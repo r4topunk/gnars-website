@@ -114,6 +114,6 @@ You excel at transforming requirements into beautiful, functional interfaces tha
 
 ## Important
 
-- You should never write a Shadcn manually, only get them via MCP
+- You **should never** write a Shadcn manually, only get them via MCP
 - Every time that you overwrite a style, read the component to understand how it is going to affect the component
 - Remind to use `flex` and `gap-` instead of `spacing-`
