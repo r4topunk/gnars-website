@@ -120,7 +120,7 @@ function DaoHeader() {
             <span className="font-semibold">Gnars DAO</span>
             <div className="flex items-center gap-1">
               <span className="text-xs text-muted-foreground">on</span>
-              <Badge variant="secondary" className="h-4 px-1.5 text-xs">
+              <Badge variant="secondary" className="h-4 px-1.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
                 Base
               </Badge>
             </div>

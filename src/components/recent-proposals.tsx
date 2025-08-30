@@ -55,47 +55,47 @@ interface RecentProposalsProps {
 const getStatusConfig = (status: ProposalStatus) => {
   const configs = {
     [ProposalStatus.ACTIVE]: {
-      color: "bg-primary text-primary-foreground",
+      color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
       icon: Clock,
       description: "Voting in progress",
     },
     [ProposalStatus.PENDING]: {
-      color: "bg-secondary text-secondary-foreground",
+      color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
       icon: Pause,
       description: "Awaiting voting period",
     },
     [ProposalStatus.SUCCEEDED]: {
-      color: "bg-primary text-primary-foreground",
+      color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
       icon: CheckCircle,
       description: "Passed, ready for execution",
     },
     [ProposalStatus.QUEUED]: {
-      color: "bg-muted text-muted-foreground",
+      color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
       icon: AlertCircle,
       description: "Queued for execution",
     },
     [ProposalStatus.EXECUTED]: {
-      color: "bg-primary text-primary-foreground",
+      color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
       icon: CheckCircle,
       description: "Successfully executed",
     },
     [ProposalStatus.DEFEATED]: {
-      color: "bg-destructive text-destructive-foreground",
+      color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
       icon: XCircle,
       description: "Did not pass",
     },
     [ProposalStatus.CANCELLED]: {
-      color: "bg-muted text-muted-foreground",
+      color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
       icon: XCircle,
       description: "Cancelled",
     },
     [ProposalStatus.EXPIRED]: {
-      color: "bg-secondary text-secondary-foreground",
+      color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
       icon: Clock,
       description: "Expired",
     },
     [ProposalStatus.VETOED]: {
-      color: "bg-destructive text-destructive-foreground",
+      color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
       icon: XCircle,
       description: "Vetoed",
     },
@@ -132,10 +132,6 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
                 <span className="text-sm font-medium text-muted-foreground">
                   Prop #{proposal.proposalNumber}
                 </span>
-                <Badge className={`${statusConfig.color} text-xs`}>
-                  <StatusIcon className="w-3 h-3 mr-1" />
-                  {proposal.status}
-                </Badge>
               </div>
               <h4 className="font-semibold text-sm leading-tight truncate pr-2">
                 {proposal.title}
@@ -143,6 +139,12 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
               <p className="text-xs text-muted-foreground mt-1">
                 by {proposal.proposer.slice(0, 6)}...{proposal.proposer.slice(-4)} • {timeCreated}
               </p>
+            </div>
+            <div className="flex-shrink-0">
+              <Badge className={`${statusConfig.color} text-xs`}>
+                <StatusIcon className="w-3 h-3 mr-1" />
+                {proposal.status}
+              </Badge>
             </div>
           </div>
 
