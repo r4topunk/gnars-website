@@ -117,3 +117,4 @@ NEXT_PUBLIC_GOLDSKY_PROJECT_ID=""
 - Target deployment: Vercel with Next.js optimizations
 - Follow security best practices - no secrets in client code
 - Use Builder DAO's proven patterns and components where possible
+- don't run the pnpm build, you should run the build only when I asked you to do it

@@ -37,7 +37,7 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
   const progressPercentage = Math.min(100, Math.max(0, (elapsed / auctionDuration) * 100));
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-background to-red-50 dark:from-orange-950/20 dark:via-background dark:to-red-950/20">
+    <section className="relative overflow-hidden bg-gradient-to-br from-muted/50 via-background to-muted/30">
       {/* Hero Content */}
       <div className="relative z-10 px-4 py-12 md:py-16 lg:py-20">
         <div className="mx-auto max-w-6xl">
@@ -48,14 +48,14 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
               <div className="space-y-4">
                 <Badge 
                   variant="secondary" 
-                  className="w-fit bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                  className="w-fit"
                 >
                   <Zap className="mr-1 h-3 w-3" />
                   Action Sports DAO
                 </Badge>
                 
                 <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
-                  <span className="text-gradient bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
                     Gnars DAO
                   </span>
                 </h1>
@@ -70,7 +70,7 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Button size="lg" className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 touch-manipulation">
+                <Button size="lg" className="touch-manipulation">
                   <Trophy className="mr-2 h-4 w-4" />
                   Join Auction
                 </Button>
@@ -83,8 +83,8 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
               {/* Quick Stats */}
               <div className="flex flex-wrap gap-4 pt-4">
                 <div className="flex items-center gap-2 text-sm">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
-                    <Trophy className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                    <Trophy className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div>
                     <div className="font-semibold">{stats.totalSupply}</div>
@@ -92,8 +92,8 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                    <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                    <Users className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div>
                     <div className="font-semibold">{stats.members}</div>
@@ -102,8 +102,8 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
                 </div>
                 {stats.treasuryValue && (
                   <div className="flex items-center gap-2 text-sm">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                      <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div>
                       <div className="font-semibold">{stats.treasuryValue} ETH</div>
@@ -116,11 +116,11 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
 
             {/* Right Column - Current Auction Spotlight */}
             <div className="flex items-center justify-center">
-              <Card className="w-full max-w-md border-2 border-orange-200 bg-gradient-to-br from-white to-orange-50/50 shadow-lg dark:border-orange-800 dark:from-background dark:to-orange-950/20">
+              <Card className="w-full max-w-md border-2 bg-card shadow-lg">
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
+                      <Badge variant="secondary">
                         Live Auction
                       </Badge>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -130,9 +130,9 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
                     </div>
 
                     {/* Mock NFT Preview */}
-                    <div className="aspect-square rounded-lg bg-gradient-to-br from-orange-200 to-red-200 dark:from-orange-900/50 dark:to-red-900/50 flex items-center justify-center">
+                    <div className="aspect-square rounded-lg bg-muted flex items-center justify-center">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                        <div className="text-2xl font-bold text-foreground">
                           Gnar #{currentAuction.tokenId}
                         </div>
                         <div className="text-sm text-muted-foreground">
@@ -153,7 +153,7 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
 
                       <Progress value={progressPercentage} className="h-2" />
 
-                      <Button className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 touch-manipulation min-h-[44px]">
+                      <Button className="w-full touch-manipulation min-h-[44px]">
                         Place Bid
                       </Button>
 
@@ -171,8 +171,8 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
 
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -right-1/2 h-96 w-96 rounded-full bg-gradient-to-br from-orange-400/10 to-red-400/10 blur-3xl"></div>
-        <div className="absolute -bottom-1/2 -left-1/2 h-96 w-96 rounded-full bg-gradient-to-br from-blue-400/10 to-purple-400/10 blur-3xl"></div>
+        <div className="absolute -top-1/2 -right-1/2 h-96 w-96 rounded-full bg-muted/20 blur-3xl"></div>
+        <div className="absolute -bottom-1/2 -left-1/2 h-96 w-96 rounded-full bg-muted/10 blur-3xl"></div>
       </div>
     </section>
   );

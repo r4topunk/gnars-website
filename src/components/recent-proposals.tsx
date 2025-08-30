@@ -55,47 +55,47 @@ interface RecentProposalsProps {
 const getStatusConfig = (status: ProposalStatus) => {
   const configs = {
     [ProposalStatus.ACTIVE]: {
-      color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+      color: "bg-primary text-primary-foreground",
       icon: Clock,
       description: "Voting in progress",
     },
     [ProposalStatus.PENDING]: {
-      color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+      color: "bg-secondary text-secondary-foreground",
       icon: Pause,
       description: "Awaiting voting period",
     },
     [ProposalStatus.SUCCEEDED]: {
-      color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+      color: "bg-primary text-primary-foreground",
       icon: CheckCircle,
       description: "Passed, ready for execution",
     },
     [ProposalStatus.QUEUED]: {
-      color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+      color: "bg-muted text-muted-foreground",
       icon: AlertCircle,
       description: "Queued for execution",
     },
     [ProposalStatus.EXECUTED]: {
-      color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+      color: "bg-primary text-primary-foreground",
       icon: CheckCircle,
       description: "Successfully executed",
     },
     [ProposalStatus.DEFEATED]: {
-      color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+      color: "bg-destructive text-destructive-foreground",
       icon: XCircle,
       description: "Did not pass",
     },
     [ProposalStatus.CANCELLED]: {
-      color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+      color: "bg-muted text-muted-foreground",
       icon: XCircle,
       description: "Cancelled",
     },
     [ProposalStatus.EXPIRED]: {
-      color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+      color: "bg-secondary text-secondary-foreground",
       icon: Clock,
       description: "Expired",
     },
     [ProposalStatus.VETOED]: {
-      color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+      color: "bg-destructive text-destructive-foreground",
       icon: XCircle,
       description: "Vetoed",
     },
@@ -218,7 +218,7 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
             </Button>
             
             {proposal.status === ProposalStatus.ACTIVE && (
-              <Button size="sm" className="h-8 text-xs bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700">
+              <Button size="sm" className="h-8 text-xs">
                 Vote Now
               </Button>
             )}

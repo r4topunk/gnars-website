@@ -113,14 +113,14 @@ function DaoHeader() {
           size="lg"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-red-600 text-white">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
             <Trophy className="size-4" />
           </div>
           <div className="flex flex-col gap-0.5 leading-none">
             <span className="font-semibold">Gnars DAO</span>
             <div className="flex items-center gap-1">
               <span className="text-xs text-muted-foreground">on</span>
-              <Badge variant="secondary" className="h-4 px-1.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              <Badge variant="secondary" className="h-4 px-1.5 text-xs">
                 Base
               </Badge>
             </div>
