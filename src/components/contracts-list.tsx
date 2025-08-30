@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Copy } from "lucide-react";
@@ -37,6 +37,9 @@ export function ContractsList() {
     <Card>
       <CardHeader>
         <CardTitle>Smart Contracts</CardTitle>
+        <CardDescription>
+          Core Gnars DAO contracts deployed on Base network
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>

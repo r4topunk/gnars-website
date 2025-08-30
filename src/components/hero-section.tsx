@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,16 +25,38 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
-  // Calculate time remaining for auction
-  const now = new Date();
-  const endTime = new Date(currentAuction.endTime);
-  const timeRemaining = Math.max(0, endTime.getTime() - now.getTime());
-  const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60));
-  const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+  const [timeLeft, setTimeLeft] = useState<{
+    hours: number;
+    minutes: number;
+    seconds: number;
+    total: number;
+  }>({ hours: 0, minutes: 0, seconds: 0, total: 0 });
+
+  useEffect(() => {
+    if (!currentAuction?.endTime) return;
+
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = currentAuction.endTime.getTime() - now;
+
+      if (distance > 0) {
+        setTimeLeft({
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000),
+          total: distance,
+        });
+      } else {
+        setTimeLeft({ hours: 0, minutes: 0, seconds: 0, total: 0 });
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [currentAuction?.endTime]);
 
   // Calculate auction progress (mock - based on time elapsed)
   const auctionDuration = 24 * 60 * 60 * 1000; // 24 hours in ms
-  const elapsed = auctionDuration - timeRemaining;
+  const elapsed = auctionDuration - timeLeft.total;
   const progressPercentage = Math.min(100, Math.max(0, (elapsed / auctionDuration) * 100));
 
   return (
@@ -110,34 +133,42 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
                 <CardContent className="py-2">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
+                      <div className="text-lg font-semibold">
+                        Gnar #{currentAuction.tokenId}
+                      </div>
                       <Badge variant="secondary">
                         Live Auction
                       </Badge>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {hoursRemaining}h {minutesRemaining}m left
-                      </div>
                     </div>
 
                     {/* Mock NFT Preview */}
                     <div className="aspect-square rounded-lg bg-muted flex items-center justify-center">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-foreground">
-                          Gnar #{currentAuction.tokenId}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Action Sports NFT
-                        </div>
+                        <div className="text-6xl font-bold text-muted-foreground">#{currentAuction.tokenId}</div>
                       </div>
                     </div>
 
                     <div className="space-y-3">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold">
-                          {currentAuction.highestBid} ETH
+                      {/* Bid and Timer Row */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-2xl font-bold">
+                            {currentAuction.highestBid} ETH
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Current Highest Bid
+                          </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          Current Highest Bid
+                        <div className="text-center">
+                          <div className="text-xl font-mono">
+                            {timeLeft.hours.toString().padStart(2, '0')}:
+                            {timeLeft.minutes.toString().padStart(2, '0')}:
+                            {timeLeft.seconds.toString().padStart(2, '0')}
+                          </div>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            Time left
+                          </div>
                         </div>
                       </div>
 

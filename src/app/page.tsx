@@ -2,7 +2,6 @@
 
 import { HeroSection } from "@/components/hero-section";
 import { ContractsList } from "@/components/contracts-list";
-import { CurrentAuction } from "@/components/current-auction";
 import { PastAuctions } from "@/components/past-auctions";
 import { RecentProposals } from "@/components/recent-proposals";
 import { AuctionTrendChart, TreasuryAllocationChart, MemberActivityChart } from "@/components/dashboard-charts";
@@ -67,20 +66,10 @@ export default function Home() {
             />
           </section>
 
-          {/* Detailed Content Grid */}
-          <div className="grid gap-6 xl:grid-cols-3">
-            {/* Current Auction - Featured */}
-            <section className="xl:col-span-2">
-              <h2 className="text-2xl font-bold mb-6">Active Auction Details</h2>
-              <CurrentAuction auction={mockCurrentAuction} />
-            </section>
-
-            {/* Smart Contracts */}
-            <section className="xl:col-span-1">
-              <h2 className="text-2xl font-bold mb-6">Smart Contracts</h2>
-              <ContractsList />
-            </section>
-          </div>
+          {/* Smart Contracts */}
+          <section>
+            <ContractsList />
+          </section>
         </div>
       </main>
     </SidebarInset>
