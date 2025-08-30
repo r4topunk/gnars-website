@@ -5,6 +5,7 @@ import { KeyStats } from "@/components/key-stats";
 import { ContractsList } from "@/components/contracts-list";
 import { CurrentAuction } from "@/components/current-auction";
 import { PastAuctions } from "@/components/past-auctions";
+import { RecentProposals } from "@/components/recent-proposals";
 import { AuctionTrendChart, TreasuryAllocationChart, MemberActivityChart } from "@/components/dashboard-charts";
 import {
   Breadcrumb,
@@ -99,6 +100,11 @@ export default function Home() {
               <ContractsList />
             </section>
           </div>
+
+          {/* Recent Proposals Section */}
+          <section>
+            <RecentProposals limit={3} />
+          </section>
 
           {/* Recent Activity */}
           <section>
