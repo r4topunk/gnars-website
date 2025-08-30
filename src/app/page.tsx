@@ -1,10 +1,22 @@
 'use client';
 
-import { DaoHeader } from "@/components/dao-header";
+import { HeroSection } from "@/components/hero-section";
 import { KeyStats } from "@/components/key-stats";
 import { ContractsList } from "@/components/contracts-list";
 import { CurrentAuction } from "@/components/current-auction";
 import { PastAuctions } from "@/components/past-auctions";
+import { AuctionTrendChart, TreasuryAllocationChart, MemberActivityChart } from "@/components/dashboard-charts";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import {
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 // Mock data - in a real app, this would come from API calls or hooks
 const mockCurrentAuction = {
@@ -27,40 +39,69 @@ const mockPastAuctions = Array.from({ length: 12 }, (_, i) => ({
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background">
-      <DaoHeader />
-      
-      <main className="container mx-auto px-4 py-8 space-y-8">
-        {/* Key Stats Section */}
-        <section>
-          <h2 className="text-2xl font-bold mb-6">DAO Overview</h2>
-          <KeyStats 
-            currentAuction={{
-              id: mockCurrentAuction.id,
-              highestBid: mockCurrentAuction.highestBid,
-              endTime: mockCurrentAuction.endTime.toISOString(),
-            }}
-            totalSupply={456}
-            members={342}
-          />
-        </section>
+    <SidebarInset>
+      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <SidebarTrigger className="-ml-1" />
+        <Separator orientation="vertical" className="mr-2 h-4" />
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbPage>Dashboard</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </header>
 
-        {/* Current Auction Section */}
-        <section>
-          <h2 className="text-2xl font-bold mb-6">Active Auction</h2>
-          <CurrentAuction auction={mockCurrentAuction} />
-        </section>
+      <main className="flex flex-1 flex-col">
+        {/* Hero Section */}
+        <HeroSection 
+          currentAuction={mockCurrentAuction}
+          stats={{
+            totalSupply: 456,
+            members: 342,
+            treasuryValue: "247.3",
+          }}
+        />
 
-        {/* Two Column Layout for Contracts and Past Auctions */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Contracts List */}
-          <section className="xl:col-span-1">
-            <h2 className="text-2xl font-bold mb-6">Smart Contracts</h2>
-            <ContractsList />
+        {/* Dashboard Grid */}
+        <div className="flex flex-1 flex-col gap-6 p-6">
+          {/* Key Statistics Cards */}
+          <section>
+            <KeyStats 
+              currentAuction={{
+                id: mockCurrentAuction.id,
+                highestBid: mockCurrentAuction.highestBid,
+                endTime: mockCurrentAuction.endTime.toISOString(),
+              }}
+              totalSupply={456}
+              members={342}
+            />
           </section>
 
-          {/* Past Auctions */}
-          <section className="xl:col-span-2">
+          {/* Analytics Charts Row */}
+          <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <AuctionTrendChart />
+            <TreasuryAllocationChart />
+            <MemberActivityChart />
+          </section>
+
+          {/* Detailed Content Grid */}
+          <div className="grid gap-6 xl:grid-cols-3">
+            {/* Current Auction - Featured */}
+            <section className="xl:col-span-2">
+              <h2 className="text-2xl font-bold mb-6">Active Auction Details</h2>
+              <CurrentAuction auction={mockCurrentAuction} />
+            </section>
+
+            {/* Smart Contracts */}
+            <section className="xl:col-span-1">
+              <h2 className="text-2xl font-bold mb-6">Smart Contracts</h2>
+              <ContractsList />
+            </section>
+          </div>
+
+          {/* Recent Activity */}
+          <section>
             <h2 className="text-2xl font-bold mb-6">Recent Auctions</h2>
             <PastAuctions 
               auctions={mockPastAuctions.slice(0, 8)}
@@ -70,6 +111,6 @@ export default function Home() {
           </section>
         </div>
       </main>
-    </div>
+    </SidebarInset>
   );
 }

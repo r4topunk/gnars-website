@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { DaoSidebar } from "@/components/dao-sidebar";
 import { Web3Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -39,8 +41,11 @@ export default function RootLayout({
         >
           <Web3Providers>
             <TooltipProvider>
-              {children}
-              <Toaster />
+              <SidebarProvider>
+                <DaoSidebar />
+                {children}
+                <Toaster />
+              </SidebarProvider>
             </TooltipProvider>
           </Web3Providers>
         </ThemeProvider>

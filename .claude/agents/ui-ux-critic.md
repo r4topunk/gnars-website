@@ -1,7 +1,7 @@
 ---
 name: ui-ux-critic
 description: Use this agent when you need expert feedback on shadcn/ui and Tailwind CSS implementations to improve user experience and design quality. Examples: <example>Context: User has just implemented a new dashboard component with shadcn/ui cards and Tailwind styling. user: 'I just created this dashboard component with patient health cards' assistant: 'Let me review your dashboard implementation with the ui-ux-critic agent to provide design feedback and UX improvements.' <commentary>Since the user has implemented UI components, use the ui-ux-critic agent to analyze the design and provide actionable improvement suggestions.</commentary></example> <example>Context: User is working on mobile-responsive forms using shadcn/ui components. user: 'Here's my patient intake form - does the mobile layout look good?' assistant: 'I'll use the ui-ux-critic agent to evaluate your form's mobile responsiveness and provide UX enhancement recommendations.' <commentary>The user is asking for design feedback on mobile layouts, which is perfect for the ui-ux-critic agent to analyze and suggest improvements.</commentary></example>
-tools: Glob, Grep, LS, Read, Edit, MultiEdit, Write, TodoWrite, mcp__shadcn-registry__get_items, mcp__shadcn-registry__get_item, mcp__shadcn-registry__get_blocks
+tools: Glob, Grep, Read, Edit, MultiEdit, Write, TodoWrite, mcp__shadcn-registry__get_items, mcp__shadcn-registry__get_item, mcp__shadcn-registry__get_blocks, mcp__shadcn-registry__add_item, mcp__shadcn-registry__execute_add
 model: opus
 ---
 
