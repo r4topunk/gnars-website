@@ -112,7 +112,9 @@ export function PastAuctions({ auctions, loading, hasMore, onLoadMore }: PastAuc
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Recent Auctions</CardTitle>
+            <CardTitle className="text-xl font-bold flex items-center gap-2">
+              Recent Auctions
+            </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Latest completed auctions from the community
             </p>
