@@ -69,24 +69,24 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
             {/* Left Column - Brand & CTA */}
             <div className="flex flex-col justify-center space-y-6">
               <div className="space-y-4">
-                <Badge 
-                  variant="secondary" 
+                <Badge
+                  variant="secondary"
                   className="w-fit bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                 >
                   <Zap className="mr-1 h-3 w-3" />
                   Action Sports DAO
                 </Badge>
-                
+
                 <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
                   <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
                     Gnars DAO
                   </span>
                 </h1>
-                
+
                 <p className="text-lg text-muted-foreground md:text-xl">
                   {DAO_DESCRIPTION}
                 </p>
-                
+
                 <div className="text-sm text-muted-foreground">
                   Headless so you can <strong className="text-foreground">shred more</strong>…
                 </div>
@@ -151,23 +151,23 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
                     <div className="space-y-3">
                       {/* Bid and Timer Row */}
                       <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-2xl font-bold">
-                            {currentAuction.highestBid} ETH
+                        <div className="flex flex-col text-center items-start">
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            Time left
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            Current Highest Bid
-                          </div>
-                        </div>
-                        <div className="text-center">
                           <div className="text-xl font-mono">
                             {timeLeft.hours.toString().padStart(2, '0')}:
                             {timeLeft.minutes.toString().padStart(2, '0')}:
                             {timeLeft.seconds.toString().padStart(2, '0')}
                           </div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            Time left
+                        </div>
+                        <div className="flex flex-col text-center items-end">
+                          <div className="text-sm text-muted-foreground">
+                            Current Highest Bid
+                          </div>
+                          <div className="text-2xl font-bold">
+                            {currentAuction.highestBid} ETH
                           </div>
                         </div>
                       </div>
