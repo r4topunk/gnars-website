@@ -23,3 +23,9 @@ This task involves building the treasury page to give a clear financial overview
         - [ ] Create an "NFTs" grid.
         - [ ] Each item in the grid should be a `Card` containing the NFT's image and its name/ID below it (e.g., "Gnar #6889").
         - [ ] If the treasury holds no NFTs, display a message: "The treasury currently holds no NFTs."
+
+### References
+- Use Gnars approach for treasury fetching (pioneers.dev portfolio API):
+  - `references/gnars-terminal/src/hooks/useTreasure.ts`
+- Builder Alchemy service (if/when switching to Alchemy):
+  - `references/nouns-builder/apps/web/src/services/alchemyService.ts`

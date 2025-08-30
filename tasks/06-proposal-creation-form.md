@@ -40,3 +40,14 @@ This task covers the interactive, multi-step wizard for creating and submitting 
     - [ ] Display the title, banner image, and rendered Markdown from Step 1.
     - [ ] Display a human-readable summary of all transactions configured in Step 2.
     - [ ] On submission, upload all content/metadata to IPFS, construct the transaction(s), and use `wagmi`'s `useWriteContract` to call the `propose` function.
+
+### References
+- Eligibility with `useVotes`:
+  - `references/nouns-builder/packages/hooks/src/useVotes.ts`
+- Transaction decoding and preview:
+  - `references/nouns-builder/packages/hooks/src/useDecodedTransactions.ts`
+- Droposal (Zora createEdition) ABI and Builder form wiring:
+  - `references/nouns-builder/packages/sdk/src/contract/abis/ZoraNFTCreator.ts`
+  - `references/nouns-builder/apps/web/src/modules/create-proposal/components/TransactionForm/Droposal/Droposal.tsx`
+- Propdates (EAS) utilities (for proposal updates text):
+  - `references/nouns-builder/apps/web/src/modules/proposal/components/PropDates/PropDates.tsx`

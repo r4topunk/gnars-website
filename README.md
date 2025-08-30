@@ -150,6 +150,7 @@ By adhering to these practices, our Gnars site will be fast, reliable, and easy 
 ## References
 
 -   [Builder DAO Monorepo (Nouns Builder) – packages and architecture](https://github.com/BuilderOSS/nouns-builder)
+-   [Gnars actual website repository – packages and architecture](https://github.com/sktbrd/gnars-terminal)
 -   [@buildeross/hooks - npm](https://www.npmjs.com/package/@buildeross/hooks)
 -   [@buildeross/sdk - npm](https://www.npmjs.com/package/@buildeross/sdk)
 -   [Nouns Builder | Gnars](https://nouns.build/dao/base/0x880Fb3Cf5c6Cc2d7DFC13a993E839a9411200C17/6889)

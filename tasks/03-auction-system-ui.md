@@ -20,3 +20,13 @@ This task covers the UI for the live auction and past auctions, which will be di
     - [ ] **Data Fetching**: Fetch historical data using the `auctionHistory` query from the official Builder DAO subgraph.
     - [ ] **Display**: Render a responsive grid of past auctions using Shadcn's `Card` component. Each card shows the Gnar thumbnail, winning bid, and winner.
     - [ ] **Pagination**: Implement a "Load More" button to fetch and append the next page of results from the subgraph.
+
+### References
+- Live auction hook and countdown:
+  - `references/nouns-builder/packages/hooks/src/useDaoAuction.ts`
+  - `references/nouns-builder/packages/hooks/src/useCountdown.ts`
+- Bid flow (min increment, simulate + write, createBid/createBidWithReferral):
+  - `references/nouns-builder/apps/web/src/modules/auction/components/CurrentAuction/PlaceBid.tsx`
+  - `references/nouns-builder/packages/sdk/src/contract/abis/Auction.ts` (functions `createBid`, `createBidWithReferral`)
+- Past auctions subgraph request:
+  - `references/nouns-builder/packages/sdk/src/subgraph/requests/auctionHistory.ts`

@@ -18,3 +18,12 @@ This task focuses on building the main landing page, which features the DAO over
     - [ ] Create a component to display the list of core DAO contract addresses.
     - [ ] For each contract, display its name and full address.
     - [ ] Add a "copy to clipboard" `Button` next to each address, using the `Copy` icon from `lucide-react`. No toast notification should appear on click.
+
+### References
+- Builder hooks for auction and countdown:
+  - `references/nouns-builder/packages/hooks/src/useDaoAuction.ts`
+  - `references/nouns-builder/packages/hooks/src/useCountdown.ts`
+- Example usage in Builder UI:
+  - `references/nouns-builder/apps/web/src/modules/dao/components/DaoFeed/DaoFeedCard.tsx`
+- Subgraph fields for DAO overview (totalSupply, ownerCount, currentAuction):
+  - `references/nouns-builder/packages/sdk/src/subgraph/sdk.generated.ts` (DAO type)

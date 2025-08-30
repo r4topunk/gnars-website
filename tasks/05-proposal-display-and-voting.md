@@ -26,3 +26,14 @@ This task focuses on building the proposal list and detail pages, matching the s
         - [ ] After a user votes, show a `sonner` toast notification confirming the action (e.g., "Your vote has been cast!").
         - [ ] The voting buttons should update. The selected option should be highlighted (e.g., with a checkmark icon) and all voting buttons should be disabled.
         - [ ] The list of votes under the `Votes` tab should update in real-time to include the user's new vote.
+
+### References
+- Proposals list/detail via Builder subgraph SDK (state with `getProposalState`):
+  - `references/nouns-builder/packages/sdk/src/subgraph/requests/proposalsQuery.ts`
+  - `references/nouns-builder/packages/sdk/src/subgraph/requests/proposalQuery.ts`
+- Decode proposed transactions (human-readable):
+  - `references/nouns-builder/packages/hooks/src/useDecodedTransactions.ts`
+- Governor voting functions (castVote / castVoteWithReason):
+  - `references/nouns-builder/packages/sdk/src/contract/abis/Governor.ts`
+- Propdates (EAS-based updates) to include as a tab:
+  - `references/nouns-builder/apps/web/src/modules/proposal/components/PropDates/PropDates.tsx`

@@ -25,3 +25,11 @@ This task covers special handling for "Droposals" and building the community mem
 - [ ] **Delegates Tab**:
     - [ ] **Data Fetching**: Use the subgraph to query for accounts with delegated votes, sorted by vote count.
     - [ ] **Display**: Create a table with columns in this order: `Delegate`, `Votes`, `Vote %`.
+
+### References
+- Droposal detection and decoding:
+  - `references/nouns-builder/packages/sdk/src/contract/abis/ZoraNFTCreator.ts` (createEdition)
+  - `references/gnars-terminal/src/components/proposal/transactions/utils/droposalABI.ts` (current site reference)
+- Members and delegates via Builder subgraph:
+  - `references/nouns-builder/packages/sdk/src/subgraph/sdk.generated.ts` (DAO.owners, DAO.voters)
+  - `references/nouns-builder/packages/sdk/src/subgraph/requests/memberSnapshot.ts`

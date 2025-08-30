@@ -33,3 +33,11 @@ This task covers the initial setup of the Next.js project, ensuring all configur
             - Treasury: `0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88`
             - Metadata: `0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58`
         - [ ] Add the Gnars DAO description: "Action sports accelerator and community owned brand. Headless so you can shred more…".
+
+### References
+- Builder chain IDs: `CHAIN_ID.BASE` `8453` and `BASE_SEPOLIA` `84532`:
+  - `references/nouns-builder/packages/types/src/chain.ts`
+- Builder Subgraph URL mapping (Base mainnet):
+  - `references/nouns-builder/packages/constants/src/subgraph.ts`
+- Builder SDK subgraph client connection (GraphQLClient):
+  - `references/nouns-builder/packages/sdk/src/subgraph/client.ts`

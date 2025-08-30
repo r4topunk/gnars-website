@@ -35,3 +35,10 @@ This task covers the creation of the Propdates section, which will feature a gal
         - [ ] Include a `Textarea` for an optional comment.
         - [ ] The main call-to-action `Button` should read "Collect for X ETH", where X is the price per mint multiplied by the quantity.
         - [ ] **Minting Logic**: On click, the button should call the `mint` or equivalent function on the Droposal contract, passing the quantity and comment. Use `wagmi` for the transaction and `sonner` for user feedback.
+
+### References
+- Propdates (EAS) data fetching and UI:
+  - `references/nouns-builder/apps/web/src/modules/proposal/components/PropDates/PropDates.tsx`
+- Droposal ABI and decoding:
+  - `references/nouns-builder/packages/sdk/src/contract/abis/ZoraNFTCreator.ts`
+  - `references/gnars-terminal/src/components/proposal/transactions/utils/droposalABI.ts`
