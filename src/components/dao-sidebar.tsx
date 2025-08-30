@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Home, Gavel, Vote, PlusCircle, Wallet, Users, FileText, Trophy, Search } from "lucide-react";
+import Image from "next/image";
+import { Home, Gavel, Vote, PlusCircle, Wallet, Users, FileText, Search } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 // DAO navigation structure
@@ -113,17 +115,20 @@ function DaoHeader() {
           size="lg"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <Trophy className="size-4" />
+          <div className="flex aspect-square size-8 items-center justify-center overflow-hidden">
+            <Image
+              src="/gnars.webp"
+              alt="Gnars DAO"
+              width={32}
+              height={32}
+              className="object-cover"
+            />
           </div>
-          <div className="flex flex-col gap-0.5 leading-none">
+          <div className="flex flex-col gap-1 leading-none">
             <span className="font-semibold">Gnars DAO</span>
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-muted-foreground">on</span>
-              <Badge variant="secondary" className="h-4 px-1.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
-                Base
-              </Badge>
-            </div>
+            <Badge variant="secondary" className="h-4 px-1.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
+              Base
+            </Badge>
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -135,7 +140,12 @@ export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader className="gap-3.5 border-b p-4">
-        <DaoHeader />
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <DaoHeader />
+          </div>
+          <SidebarTrigger className="ml-2" />
+        </div>
         <SearchForm />
       </SidebarHeader>
       <SidebarContent>

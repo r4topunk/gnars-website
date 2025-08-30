@@ -1,22 +1,13 @@
 'use client';
 
 import { HeroSection } from "@/components/hero-section";
-import { KeyStats } from "@/components/key-stats";
 import { ContractsList } from "@/components/contracts-list";
 import { CurrentAuction } from "@/components/current-auction";
 import { PastAuctions } from "@/components/past-auctions";
 import { RecentProposals } from "@/components/recent-proposals";
 import { AuctionTrendChart, TreasuryAllocationChart, MemberActivityChart } from "@/components/dashboard-charts";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import {
   SidebarInset,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 // Mock data - in a real app, this would come from API calls or hooks
@@ -41,18 +32,6 @@ const mockPastAuctions = Array.from({ length: 12 }, (_, i) => ({
 export default function Home() {
   return (
     <SidebarInset>
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <Separator orientation="vertical" className="mr-2 h-4" />
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbPage>Dashboard</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </header>
-
       <main className="flex flex-1 flex-col">
         {/* Hero Section */}
         <HeroSection 
@@ -65,18 +44,11 @@ export default function Home() {
         />
 
         {/* Dashboard Grid */}
-        <div className="flex flex-1 flex-col gap-6 p-6">
-          {/* Key Statistics Cards */}
+        <div className="flex flex-1 flex-col gap-6 px-6 py-4">
+
+          {/* Recent Proposals Section */}
           <section>
-            <KeyStats 
-              currentAuction={{
-                id: mockCurrentAuction.id,
-                highestBid: mockCurrentAuction.highestBid,
-                endTime: mockCurrentAuction.endTime.toISOString(),
-              }}
-              totalSupply={456}
-              members={342}
-            />
+            <RecentProposals limit={6} />
           </section>
 
           {/* Analytics Charts Row */}
@@ -84,6 +56,15 @@ export default function Home() {
             <AuctionTrendChart />
             <TreasuryAllocationChart />
             <MemberActivityChart />
+          </section>
+
+          {/* Recent Auctions */}
+          <section>
+            <PastAuctions 
+              auctions={mockPastAuctions.slice(0, 8)}
+              hasMore={true}
+              onLoadMore={() => console.log('Load more auctions')}
+            />
           </section>
 
           {/* Detailed Content Grid */}
@@ -100,21 +81,6 @@ export default function Home() {
               <ContractsList />
             </section>
           </div>
-
-          {/* Recent Proposals Section */}
-          <section>
-            <RecentProposals limit={3} />
-          </section>
-
-          {/* Recent Activity */}
-          <section>
-            <h2 className="text-2xl font-bold mb-6">Recent Auctions</h2>
-            <PastAuctions 
-              auctions={mockPastAuctions.slice(0, 8)}
-              hasMore={true}
-              onLoadMore={() => console.log('Load more auctions')}
-            />
-          </section>
         </div>
       </main>
     </SidebarInset>

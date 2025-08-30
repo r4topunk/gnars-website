@@ -39,7 +39,7 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-muted/50 via-background to-muted/30">
       {/* Hero Content */}
-      <div className="relative z-10 px-4 py-12 md:py-16 lg:py-20">
+      <div className="relative z-10 px-4 py-8 md:py-10 lg:py-12">
         <div className="mx-auto max-w-6xl">
           {/* Main Hero */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
@@ -69,16 +69,6 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Button size="lg" className="touch-manipulation">
-                  <Trophy className="mr-2 h-4 w-4" />
-                  Join Auction
-                </Button>
-                <Button size="lg" variant="outline" className="touch-manipulation">
-                  <Users className="mr-2 h-4 w-4" />
-                  Connect Wallet
-                </Button>
-              </div>
 
               {/* Quick Stats */}
               <div className="flex flex-wrap gap-4 pt-4">
@@ -117,7 +107,7 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
             {/* Right Column - Current Auction Spotlight */}
             <div className="flex items-center justify-center">
               <Card className="w-full max-w-md border-2 bg-card shadow-lg">
-                <CardContent className="p-6">
+                <CardContent className="py-2">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Badge variant="secondary">

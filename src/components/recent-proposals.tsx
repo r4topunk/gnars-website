@@ -287,6 +287,60 @@ const mockProposals: Proposal[] = [
     queued: false,
     vetoed: false,
   },
+  {
+    proposalId: "4",
+    proposalNumber: 42,
+    title: "Establish Gnars Skateboarding Academy Program",
+    proposer: "0x789d35Cc6634C0532925a3b8D52E02c0a65A40f2",
+    status: ProposalStatus.DEFEATED,
+    forVotes: 89,
+    againstVotes: 156,
+    abstainVotes: 24,
+    quorumVotes: 150,
+    voteStart: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    voteEnd: new Date(Date.now() - 23 * 24 * 60 * 60 * 1000).toISOString(),
+    timeCreated: Date.now() / 1000 - 32 * 24 * 60 * 60,
+    executed: false,
+    canceled: false,
+    queued: false,
+    vetoed: false,
+  },
+  {
+    proposalId: "5",
+    proposalNumber: 41,
+    title: "Allocate 50 ETH for Surfing Event Sponsorship",
+    proposer: "0xabcd35Cc6634C0532925a3b8D52E02c0a65A40f2",
+    status: ProposalStatus.PENDING,
+    forVotes: 0,
+    againstVotes: 0,
+    abstainVotes: 0,
+    quorumVotes: 120,
+    voteStart: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+    voteEnd: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(),
+    timeCreated: Date.now() / 1000 - 1 * 24 * 60 * 60,
+    executed: false,
+    canceled: false,
+    queued: false,
+    vetoed: false,
+  },
+  {
+    proposalId: "6",
+    proposalNumber: 40,
+    title: "Create Gnars Merchandise Store with Community Designs",
+    proposer: "0xefgh35Cc6634C0532925a3b8D52E02c0a65A40f2",
+    status: ProposalStatus.QUEUED,
+    forVotes: 167,
+    againstVotes: 78,
+    abstainVotes: 15,
+    quorumVotes: 140,
+    voteStart: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+    voteEnd: new Date(Date.now() - 33 * 24 * 60 * 60 * 1000).toISOString(),
+    timeCreated: Date.now() / 1000 - 42 * 24 * 60 * 60,
+    executed: false,
+    canceled: false,
+    queued: true,
+    vetoed: false,
+  },
 ];
 
 export function RecentProposals({ 
@@ -300,7 +354,7 @@ export function RecentProposals({
 
   return (
     <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="space-y-1">
           <CardTitle className="text-xl font-bold flex items-center gap-2">
             Recent Proposals

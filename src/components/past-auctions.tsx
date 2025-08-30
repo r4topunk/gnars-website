@@ -26,58 +26,54 @@ interface PastAuctionsProps {
 function AuctionCard({ auction }: { auction: PastAuction }) {
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative">
-        {auction.imageUrl ? (
-          <Image
-            src={auction.imageUrl}
-            alt={`Gnar ${auction.tokenId}`}
-            fill
-            className="object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <div className="text-4xl font-bold mb-1">#{auction.tokenId}</div>
-              <div className="text-xs">Gnar NFT</div>
+      <CardContent className="space-y-4 px-4">
+        <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative rounded-xl">
+          {auction.imageUrl ? (
+            <Image
+              src={auction.imageUrl}
+              alt={`Gnar ${auction.tokenId}`}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <div className="text-4xl font-bold mb-1">#{auction.tokenId}</div>
+                <div className="text-xs">Gnar NFT</div>
+              </div>
+            </div>
+          )}
+          <div className="absolute top-2 right-2">
+            {auction.settled ? (
+              <Badge variant="secondary" className="text-xs">
+                Settled
+              </Badge>
+            ) : (
+              <Badge variant="destructive" className="text-xs">
+                Pending
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-top justify-between">
+            <h3 className="font-semibold">Gnar #{auction.tokenId}</h3>
+            <div className="text-xs text-muted-foreground pt-1">
+              {auction.endTime.toLocaleDateString()}
             </div>
           </div>
-        )}
-        <div className="absolute top-2 right-2">
-          {auction.settled ? (
-            <Badge variant="secondary" className="text-xs">
-              Settled
-            </Badge>
-          ) : (
-            <Badge variant="destructive" className="text-xs">
-              Pending
-            </Badge>
-          )}
-        </div>
-      </div>
-      
-      <CardContent className="p-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Gnar #{auction.tokenId}</h3>
-            <span className="text-sm text-muted-foreground">
-              #{auction.id}
-            </span>
-          </div>
-          
+
           <div>
             <div className="text-sm text-muted-foreground">Final bid</div>
             <div className="font-bold text-lg">{auction.finalBid} ETH</div>
           </div>
-          
+
           <div>
             <div className="text-sm text-muted-foreground">Winner</div>
             <div className="font-mono text-sm">
               {auction.winner.slice(0, 6)}...{auction.winner.slice(-4)}
             </div>
-          </div>
-          
-          <div className="text-xs text-muted-foreground pt-1">
-            {auction.endTime.toLocaleDateString()}
           </div>
         </div>
       </CardContent>
@@ -114,7 +110,17 @@ export function PastAuctions({ auctions, loading, hasMore, onLoadMore }: PastAuc
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Past Auctions</CardTitle>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Recent Auctions</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Latest completed auctions from the community
+            </p>
+          </div>
+          <Button variant="outline" size="sm">
+            View all auctions
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {loading && !auctions?.length ? (
@@ -130,20 +136,12 @@ export function PastAuctions({ auctions, loading, hasMore, onLoadMore }: PastAuc
                 <AuctionCard key={auction.id} auction={auction} />
               ))}
             </div>
-            
+
             {loading && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <AuctionCardSkeleton key={`loading-${i}`} />
                 ))}
-              </div>
-            )}
-            
-            {hasMore && !loading && (
-              <div className="flex justify-center mt-6">
-                <Button variant="outline" onClick={onLoadMore}>
-                  Load More Auctions
-                </Button>
               </div>
             )}
           </>

@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, Wallet, Gavel, Users } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 
 import {
@@ -98,14 +98,13 @@ const memberChartConfig = {
 export function AuctionTrendChart() {
   return (
     <Card className="flex flex-col">
-      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+      <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>Auction Performance</CardTitle>
           <CardDescription>
             Final prices and bid activity over the last 14 days
           </CardDescription>
         </div>
-        <Gavel className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer config={auctionChartConfig} className="h-[200px] w-full">
@@ -169,14 +168,13 @@ export function AuctionTrendChart() {
 export function TreasuryAllocationChart() {
   return (
     <Card className="flex flex-col">
-      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+      <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>Treasury Allocation</CardTitle>
           <CardDescription>
             Current asset distribution in the DAO treasury
           </CardDescription>
         </div>
-        <Wallet className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer config={treasuryChartConfig} className="h-[200px] w-full">
@@ -220,14 +218,13 @@ export function TreasuryAllocationChart() {
 export function MemberActivityChart() {
   return (
     <Card className="flex flex-col">
-      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+      <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>Member Activity</CardTitle>
           <CardDescription>
             New member growth and governance participation
           </CardDescription>
         </div>
-        <Users className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer config={memberChartConfig} className="h-[200px] w-full">
