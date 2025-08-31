@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 const ALCHEMY_BASE_URL = ALCHEMY_API_KEY
   ? `https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
   : null;

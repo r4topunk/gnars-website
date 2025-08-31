@@ -17,7 +17,7 @@ This task covers the initial setup of the Next.js project, ensuring all configur
   - [ ] Create an `.env.example` file with the following content:
     ```
     NEXT_PUBLIC_BASE_RPC_URL="https://mainnet.base.org"
-    NEXT_PUBLIC_ALCHEMY_API_KEY=""
+    ALCHEMY_API_KEY=""
     NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID="a665b7a1ea05f0d51371b097958fb3a9"
     ```
   - [ ] Create a `.env.local` file and populate it with your actual Alchemy key.

@@ -51,7 +51,7 @@ Create a `.env.local` in the repo root:
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID= # required (wagmi walletConnect)
 NEXT_PUBLIC_BASE_RPC_URL= # optional (defaults to mainnet)
 NEXT_PUBLIC_GOLDSKY_PROJECT_ID= # optional (public default baked in)
-NEXT_PUBLIC_ALCHEMY_API_KEY= # optional (powers /api/alchemy)
+ALCHEMY_API_KEY= # optional (powers /api/alchemy)
 ```
 
 3) Run the app

@@ -118,7 +118,7 @@ Required environment variables (see `.env.example`):
 
 ```
 NEXT_PUBLIC_BASE_RPC_URL="https://mainnet.base.org"
-NEXT_PUBLIC_ALCHEMY_API_KEY=""
+ALCHEMY_API_KEY=""
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=""
 NEXT_PUBLIC_GOLDSKY_PROJECT_ID=""
 ```
