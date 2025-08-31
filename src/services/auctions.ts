@@ -59,6 +59,14 @@ export async function fetchRecentAuctions(limit: number): Promise<PastAuction[]>
     first: limit,
   })
 
+  const toHttp = (uri?: string | null): string | undefined => {
+    if (!uri) return undefined
+    if (uri.startsWith('ipfs://')) {
+      return uri.replace('ipfs://', 'https://ipfs.io/ipfs/')
+    }
+    return uri
+  }
+
   return (data.auctions || []).map((a) => {
     const amountWei = a.winningBid?.amount ?? a.highestBid?.amount ?? '0'
     const amountEth = formatEther(BigInt(amountWei))
@@ -67,7 +75,7 @@ export async function fetchRecentAuctions(limit: number): Promise<PastAuction[]>
     return {
       id: a.id ?? a.token.id,
       tokenId: a.token.tokenId,
-      imageUrl: a.token.image ?? undefined,
+      imageUrl: toHttp(a.token.image) ?? undefined,
       finalBid: parseFloat(amountEth).toFixed(3),
       winner,
       endTime: new Date(Number(a.endTime) * 1000),

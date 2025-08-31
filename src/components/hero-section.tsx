@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +76,12 @@ export function HeroSection({ stats }: HeroSectionProps) {
   const progressPercentage = Math.min(100, Math.max(0, (elapsed / auctionDuration) * 100));
   const isLive = timeLeft.total > 0;
   const isEndingSoon = isLive && timeLeft.total <= ENDING_SOON_THRESHOLD_MS;
+
+  const imageSrc = tokenUri?.image
+    ? tokenUri.image.startsWith('ipfs://')
+      ? tokenUri.image.replace('ipfs://', 'https://ipfs.io/ipfs/')
+      : tokenUri.image
+    : undefined
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-muted/50 via-background to-muted/30">
@@ -166,13 +173,15 @@ export function HeroSection({ stats }: HeroSectionProps) {
                     </div>
 
                     {/* NFT Preview */}
-                    <div className="aspect-square rounded-lg bg-muted flex items-center justify-center overflow-hidden">
-                      {tokenUri?.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={tokenUri.image}
-                          alt={tokenUri.name || `Gnar #${tokenId?.toString()}`}
-                          className="h-full w-full object-cover"
+                    <div className="aspect-square rounded-lg bg-muted flex items-center justify-center overflow-hidden relative">
+                      {imageSrc ? (
+                        <Image
+                          src={imageSrc}
+                          alt={tokenUri?.name || `Gnar #${tokenId?.toString()}`}
+                          fill
+                          className="object-cover"
+                          priority
+                          sizes="(max-width: 1024px) 100vw, 50vw"
                         />
                       ) : (
                         <div className="text-center">

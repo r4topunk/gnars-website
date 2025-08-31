@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowRight } from "lucide-react";
 
 interface PastAuction {
   id: string;
@@ -24,6 +25,7 @@ interface PastAuctionsProps {
 }
 
 function AuctionCard({ auction }: { auction: PastAuction }) {
+  const isZeroFinal = Number(auction.finalBid) === 0;
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <CardContent className="space-y-4 px-4">
@@ -34,6 +36,9 @@ function AuctionCard({ auction }: { auction: PastAuction }) {
               alt={`Gnar ${auction.tokenId}`}
               fill
               className="object-cover"
+              loading="lazy"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1536px) 33vw, 25vw"
+              quality={60}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -43,17 +48,6 @@ function AuctionCard({ auction }: { auction: PastAuction }) {
               </div>
             </div>
           )}
-          <div className="absolute top-2 right-2">
-            {auction.settled ? (
-              <Badge variant="secondary" className="text-xs">
-                Settled
-              </Badge>
-            ) : (
-              <Badge variant="destructive" className="text-xs">
-                Pending
-              </Badge>
-            )}
-          </div>
         </div>
 
         <div className="space-y-2">
@@ -66,13 +60,13 @@ function AuctionCard({ auction }: { auction: PastAuction }) {
 
           <div>
             <div className="text-sm text-muted-foreground">Final bid</div>
-            <div className="font-bold text-lg">{auction.finalBid} ETH</div>
+            <div className="font-bold text-lg">{isZeroFinal ? '-' : `${auction.finalBid} ETH`}</div>
           </div>
 
           <div>
             <div className="text-sm text-muted-foreground">Winner</div>
             <div className="font-mono text-sm">
-              {auction.winner.slice(0, 6)}...{auction.winner.slice(-4)}
+              {isZeroFinal ? '-' : `${auction.winner.slice(0, 6)}...${auction.winner.slice(-4)}`}
             </div>
           </div>
         </div>
@@ -120,7 +114,8 @@ export function PastAuctions({ auctions, loading, hasMore, onLoadMore }: PastAuc
             </p>
           </div>
           <Button variant="outline" size="sm">
-            View all auctions
+            <span>View all auctions</span>
+            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
