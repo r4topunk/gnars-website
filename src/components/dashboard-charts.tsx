@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { TrendingUp } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 
@@ -17,6 +18,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { getProposals } from "@buildeross/sdk";
 
 // Mock data for auction trends (last 30 days)
 const auctionTrendData = [
@@ -44,24 +47,72 @@ const treasuryData = [
   { name: "NFTs", value: 2.2, color: "#EF4444" },
 ];
 
-// Mock member activity data
-const memberActivityData = [
-  { month: "Jan", newMembers: 12, totalVotes: 45 },
-  { month: "Feb", newMembers: 19, totalVotes: 52 },
-  { month: "Mar", newMembers: 15, totalVotes: 38 },
-  { month: "Apr", newMembers: 23, totalVotes: 61 },
-  { month: "May", newMembers: 18, totalVotes: 47 },
-  { month: "Jun", newMembers: 21, totalVotes: 55 },
-];
+type MinimalProposal = {
+  proposalNumber: number
+  forVotes?: string | number
+  againstVotes?: string | number
+  abstainVotes?: string | number
+  timeCreated?: number | string
+}
+
+async function fetchRecentProposalVotes(limit: number) {
+  const { proposals } = await getProposals(CHAIN.id, GNARS_ADDRESSES.token, limit)
+  const list = (proposals as MinimalProposal[] | undefined) ?? []
+  return list
+    .map((p) => {
+      const forVotes = Number(p.forVotes ?? 0)
+      const againstVotes = Number(p.againstVotes ?? 0)
+      const abstainVotes = Number(p.abstainVotes ?? 0)
+      const totalVotes = forVotes + againstVotes + abstainVotes
+      const timeCreated = Number(p.timeCreated ?? 0)
+      return {
+        proposalNumber: Number(p.proposalNumber),
+        totalVotes,
+        timeCreated,
+      }
+    })
+    .sort((a, b) => b.timeCreated - a.timeCreated)
+}
+
+type ProposalWithVotes = {
+  proposalNumber: number
+  timeCreated: number
+  voterCount: number
+}
+
+async function fetchRecentProposalsWithVoters(limit: number): Promise<ProposalWithVotes[]> {
+  const { proposals } = await getProposals(CHAIN.id, GNARS_ADDRESSES.token, limit)
+  const list = ((proposals as unknown) as Array<Record<string, unknown>>) ?? []
+  return list
+    .map((p) => {
+      const votes = Array.isArray((p as any)?.votes) ? ((p as any).votes as Array<{ voter?: string | null }>) : []
+      const uniqueVoters = new Set<string>()
+      for (const v of votes) {
+        if (v?.voter) uniqueVoters.add(String(v.voter).toLowerCase())
+      }
+      const rawState = (p as any)?.state
+      const hasCancelTx = Boolean((p as any)?.cancelTransactionHash)
+      const isCanceledByState = typeof rawState === 'number' ? rawState === 2 : String(rawState ?? '').toUpperCase().includes('CANCEL')
+      const isCanceled = hasCancelTx || isCanceledByState
+      return {
+        proposalNumber: Number((p as any)?.proposalNumber ?? 0),
+        timeCreated: Number((p as any)?.timeCreated ?? 0),
+        voterCount: uniqueVoters.size,
+        _isCanceled: isCanceled,
+      } as unknown as ProposalWithVotes & { _isCanceled: boolean }
+    })
+    .filter((p: any) => !p._isCanceled)
+    .sort((a, b) => b.timeCreated - a.timeCreated)
+}
 
 const auctionChartConfig = {
   finalPrice: {
     label: "Final Price (ETH)",
-    color: "hsl(var(--chart-1))",
+    color: "var(--chart-4)",
   },
   bids: {
     label: "Total Bids",
-    color: "hsl(var(--chart-2))",
+    color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
 
@@ -85,13 +136,9 @@ const treasuryChartConfig = {
 } satisfies ChartConfig;
 
 const memberChartConfig = {
-  newMembers: {
-    label: "New Members",
-    color: "hsl(var(--chart-1))",
-  },
-  totalVotes: {
-    label: "Total Votes",
-    color: "hsl(var(--chart-2))",
+  voters: {
+    label: "Voters",
+    color: "var(--chart-4)",
   },
 } satisfies ChartConfig;
 
@@ -216,13 +263,37 @@ export function TreasuryAllocationChart() {
 }
 
 export function MemberActivityChart() {
+  const [proposalBars, setProposalBars] = useState<{ proposal: string; voters: number }[]>([])
+  const totalVoters = useMemo(() => proposalBars.reduce((sum, r) => sum + r.voters, 0), [proposalBars])
+
+  useEffect(() => {
+    let active = true
+    fetchRecentProposalsWithVoters(12)
+      .then((rows) => {
+        if (!active) return
+        setProposalBars(
+          rows
+            .slice(0, 6)
+            .reverse() // oldest to newest for nicer left-to-right feel
+            .map((r) => ({ proposal: `Prop #${r.proposalNumber}`, voters: r.voterCount }))
+        )
+      })
+      .catch(() => {
+        if (!active) return
+        setProposalBars([])
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
   return (
     <Card className="flex flex-col">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>Member Activity</CardTitle>
           <CardDescription>
-            New member growth and governance participation
+            Voters per recent proposals (excluding cancelled)
           </CardDescription>
         </div>
       </CardHeader>
@@ -230,7 +301,7 @@ export function MemberActivityChart() {
         <ChartContainer config={memberChartConfig} className="h-[200px] w-full">
           <BarChart
             accessibilityLayer
-            data={memberActivityData}
+            data={proposalBars}
             margin={{
               left: 12,
               right: 12,
@@ -238,13 +309,13 @@ export function MemberActivityChart() {
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="month"
+              dataKey="proposal"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <Bar dataKey="newMembers" fill="var(--color-newMembers)" radius={4} />
+            <Bar dataKey="voters" fill="var(--color-voters)" radius={4} />
           </BarChart>
         </ChartContainer>
       </CardContent>
@@ -252,10 +323,10 @@ export function MemberActivityChart() {
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 font-medium leading-none">
-              21 new members joined this month <TrendingUp className="h-4 w-4" />
+              {totalVoters} voters across recent proposals <TrendingUp className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              342 total members, 55 votes cast
+              Showing {proposalBars.length} proposals
             </div>
           </div>
         </div>
