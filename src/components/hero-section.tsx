@@ -84,7 +84,7 @@ export function HeroSection({ stats }: HeroSectionProps) {
     : undefined
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-muted/50 via-background to-muted/30">
+    <section className="relative overflow-hidden">
       {/* Hero Content */}
       <div className="relative z-10 px-4 py-8 md:py-10 lg:py-12">
         <div className="mx-auto max-w-6xl">

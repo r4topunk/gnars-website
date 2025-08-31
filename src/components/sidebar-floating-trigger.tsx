@@ -13,7 +13,7 @@ export default function SidebarFloatingTrigger() {
     <div className="fixed left-2 top-4 z-50 md:left-2 md:top-2">
       <SidebarTrigger
         aria-label="Open sidebar"
-        className="cursor-pointer size-9 rounded-lg bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/30"
+        className="cursor-pointer size-9 rounded-lg bg-secondary-background text-secondary-foreground shadow-sm hover:bg-secondary/30"
       />
     </div>
   );
