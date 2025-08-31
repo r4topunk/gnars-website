@@ -52,6 +52,7 @@ export async function fetchRecentAuctions(limit: number): Promise<PastAuction[]>
   const where = {
     dao: GNARS_ADDRESSES.token.toLowerCase(),
     settled: true,
+    bidCount_gt: 0,
   }
 
   const data = await subgraphQuery<AuctionsQuery>(AUCTIONS_GQL, {

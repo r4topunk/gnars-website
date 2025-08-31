@@ -29,13 +29,13 @@ function AuctionCard({ auction }: { auction: PastAuction }) {
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <CardContent className="space-y-4 px-4">
-        <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative rounded-xl">
+        <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative rounded-xl overflow-hidden">
           {auction.imageUrl ? (
             <Image
               src={auction.imageUrl}
               alt={`Gnar ${auction.tokenId}`}
               fill
-              className="object-cover"
+              className="object-cover rounded-xl"
               loading="lazy"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1536px) 33vw, 25vw"
               quality={60}
@@ -77,13 +77,13 @@ function AuctionCard({ auction }: { auction: PastAuction }) {
 
 function AuctionCardSkeleton() {
   return (
-    <Card className="overflow-hidden">
-      <Skeleton className="aspect-square w-full" />
-      <CardContent className="p-4">
+    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+      <CardContent className="space-y-4 px-4">
+        <Skeleton className="aspect-square w-full rounded-xl" />
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-5 w-20" />
-            <Skeleton className="h-4 w-8" />
+          <div className="flex items-top justify-between">
+            <Skeleton className="h-5 w-28" />
+            <Skeleton className="h-3 w-16" />
           </div>
           <div>
             <Skeleton className="h-3 w-16 mb-1" />
@@ -93,7 +93,6 @@ function AuctionCardSkeleton() {
             <Skeleton className="h-3 w-12 mb-1" />
             <Skeleton className="h-4 w-20" />
           </div>
-          <Skeleton className="h-3 w-16" />
         </div>
       </CardContent>
     </Card>

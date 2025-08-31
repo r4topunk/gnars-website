@@ -179,7 +179,7 @@ export function HeroSection({ stats }: HeroSectionProps) {
                           src={imageSrc}
                           alt={tokenUri?.name || `Gnar #${tokenId?.toString()}`}
                           fill
-                          className="object-cover"
+                          className="object-cover rounded-lg"
                           priority
                           sizes="(max-width: 1024px) 100vw, 50vw"
                         />
