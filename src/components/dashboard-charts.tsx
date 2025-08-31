@@ -48,8 +48,8 @@ const auctionTrendData = [
   { day: "Day 14", finalPrice: 2.6, bids: 20 },
 ];
 
-// Mock treasury allocation data
-const treasuryData = [
+// Default/fallback treasury allocation data used before live data loads
+const DEFAULT_TREASURY_DATA = [
   { name: "ETH", value: 85.2, color: "#627EEA" },
   { name: "USDC", value: 8.5, color: "#2775CA" },
   { name: "Other Tokens", value: 4.1, color: "#F59E0B" },
@@ -203,6 +203,88 @@ export function AuctionTrendChart() {
 }
 
 export function TreasuryAllocationChart() {
+  const [chartData, setChartData] = useState(
+    DEFAULT_TREASURY_DATA as { name: string; value: number; color: string }[],
+  );
+  const [footerBreakdown, setFooterBreakdown] = useState<string>(
+    "85.2% ETH, 8.5% USDC, 6.3% Others",
+  );
+  const [totalValueUsd, setTotalValueUsd] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadAllocation() {
+      try {
+        const apiUrl = `https://pioneers.dev/api/v1/portfolio/${GNARS_ADDRESSES.treasury}`;
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error("portfolio api error");
+        const data = await res.json();
+
+        // Tokens array lives at data.tokens[treasury]
+        const tokens: Array<{
+          token?: {
+            name?: string;
+            symbol?: string;
+            balanceUSD?: number;
+          };
+        }> = (data?.tokens?.[GNARS_ADDRESSES.treasury] as unknown) as Array<{
+          token?: { name?: string; symbol?: string; balanceUSD?: number };
+        }>;
+
+        const nftNetWorth: number = Number(data?.nftNetWorth?.[GNARS_ADDRESSES.treasury] ?? 0) || 0;
+
+        let ethUsd = 0;
+        let usdcUsd = 0;
+        let otherUsd = 0;
+
+        if (Array.isArray(tokens)) {
+          for (const entry of tokens) {
+            const name = (entry?.token?.name || "").toString();
+            const symbol = (entry?.token?.symbol || "").toString();
+            const valueUsd = Number(entry?.token?.balanceUSD || 0) || 0;
+            if (!valueUsd) continue;
+            if (name === "Ethereum" || symbol.toUpperCase() === "ETH") {
+              ethUsd += valueUsd;
+            } else if (name === "USD Coin" || symbol.toUpperCase() === "USDC") {
+              usdcUsd += valueUsd;
+            } else {
+              otherUsd += valueUsd;
+            }
+          }
+        }
+
+        const totalUsd = ethUsd + usdcUsd + otherUsd + nftNetWorth;
+        if (totalUsd <= 0) return;
+
+        const pct = (x: number) => Math.round((x / totalUsd) * 1000) / 10; // one decimal
+
+        const nextData = [
+          { name: "ETH", value: pct(ethUsd), color: "#627EEA" },
+          { name: "USDC", value: pct(usdcUsd), color: "#2775CA" },
+          { name: "Other Tokens", value: pct(otherUsd), color: "#F59E0B" },
+          { name: "NFTs", value: pct(nftNetWorth), color: "#EF4444" },
+        ];
+
+        if (!active) return;
+        setChartData(nextData);
+        setTotalValueUsd(totalUsd);
+        setFooterBreakdown(
+          `${nextData[0].value}% ETH, ${nextData[1].value}% USDC, ${Math.round(
+            (nextData[2].value + nextData[3].value) * 10,
+          ) / 10}% Others`,
+        );
+      } catch {
+        // keep defaults
+      }
+    }
+
+    loadAllocation();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <Card className="flex flex-col">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
@@ -216,7 +298,7 @@ export function TreasuryAllocationChart() {
           <PieChart>
             <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
             <Pie
-              data={treasuryData}
+              data={chartData}
               cx="50%"
               cy="50%"
               innerRadius={40}
@@ -224,7 +306,7 @@ export function TreasuryAllocationChart() {
               paddingAngle={2}
               dataKey="value"
             >
-              {treasuryData.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
@@ -234,11 +316,13 @@ export function TreasuryAllocationChart() {
       <CardFooter>
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
-            <div className="flex items-center gap-2 font-medium leading-none">
-              85.2% ETH, 8.5% USDC, 6.3% Others
-            </div>
+            <div className="flex items-center gap-2 font-medium leading-none">{footerBreakdown}</div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              Total treasury value: ~247.3 ETH
+              {totalValueUsd === null
+                ? "Live data unobtainable, showing defaults"
+                : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+                    totalValueUsd,
+                  )}
             </div>
           </div>
         </div>
