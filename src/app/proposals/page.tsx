@@ -1,4 +1,4 @@
-import { ProposalList } from "@/components/proposal-list"
+import { ProposalsGrid } from "@/components/proposals-grid"
 
 export default function ProposalsPage() {
   return (
@@ -9,7 +9,7 @@ export default function ProposalsPage() {
           View and participate in Gnars DAO governance proposals
         </p>
       </div>
-      <ProposalList />
+      <ProposalsGrid />
     </div>
   )
 }

@@ -8,19 +8,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'nouns.build',
-      },
-      {
-        protocol: 'https',
-        hostname: 'ipfs.io',
-      },
-      {
-        protocol: 'https',
-        hostname: 'goldsky.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.stamp.fyi',
+        hostname: '**',
       },
     ],
   },

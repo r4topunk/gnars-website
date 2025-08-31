@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -126,7 +128,38 @@ const getStatusConfig = (status: ProposalStatus) => {
   return configs[status] || configs[ProposalStatus.PENDING];
 };
 
-function ProposalCard({ proposal }: { proposal: Proposal }) {
+function extractFirstUrl(text?: string): string | null {
+  if (!text) return null;
+  const httpMatch = text.match(/https?:\/\/[^\s)]+/i);
+  if (httpMatch && httpMatch[0]) return httpMatch[0];
+  const ipfsMatch = text.match(/ipfs:\/\/[\w./-]+/i);
+  if (ipfsMatch && ipfsMatch[0]) return ipfsMatch[0];
+  return null;
+}
+
+function normalizeImageUrl(rawUrl: string | null): string | null {
+  if (!rawUrl) return null;
+  try {
+    if (rawUrl.startsWith("ipfs://")) {
+      const hash = rawUrl.replace(/^ipfs:\/\//i, "").replace(/^ipfs\//i, "");
+      return `https://ipfs.io/ipfs/${hash}`;
+    }
+    // Validate URL shape; allow any host (Next config handles domains)
+    // eslint-disable-next-line no-new
+    new URL(rawUrl);
+    return rawUrl;
+  } catch {
+    return null;
+  }
+}
+
+export function ProposalCard({
+  proposal,
+  showBanner = false,
+}: {
+  proposal: Proposal;
+  showBanner?: boolean;
+}) {
   const statusConfig = getStatusConfig(proposal.status);
   const StatusIcon = statusConfig.icon;
 
@@ -155,8 +188,35 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
   const isVotingActive =
     proposal.status === ProposalStatus.ACTIVE && voteEndTime > new Date();
 
+  const bannerUrl = normalizeImageUrl(extractFirstUrl(proposal.description));
+  const [currentBannerSrc, setCurrentBannerSrc] = useState<string>(
+    bannerUrl ?? "/logo-banner.jpg"
+  );
+  useEffect(() => {
+    setCurrentBannerSrc(bannerUrl ?? "/logo-banner.jpg");
+  }, [bannerUrl]);
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow overflow-hidden">
+      {showBanner && (
+        <div className="mx-4 border rounded-md overflow-hidden">
+          <AspectRatio ratio={16 / 9}>
+            <Image
+              src={currentBannerSrc}
+              alt="Proposal banner"
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover"
+              priority={false}
+              onError={() => {
+                if (currentBannerSrc !== "/logo-banner.jpg") {
+                  setCurrentBannerSrc("/logo-banner.jpg");
+                }
+              }}
+            />
+          </AspectRatio>
+        </div>
+      )}
       <CardContent className="px-4 py-2">
         <div className="space-y-3">
           {/* Header */}
@@ -195,47 +255,42 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
               <div className="space-y-1">
                 <div className="relative">
                   <div className="flex gap-0.5">
-                  {
-                    proposal.forVotes > 0 && (
+                    {proposal.forVotes > 0 && (
                       <div
                         className={cn(
                           "h-1.5 bg-green-500",
-                          proposal.againstVotes === 0 && proposal.abstainVotes === 0 
-                            ? "rounded" 
+                          proposal.againstVotes === 0 &&
+                            proposal.abstainVotes === 0
+                            ? "rounded"
                             : "rounded-l"
                         )}
                         style={{ width: `${forPercentage}%` }}
                       />
-                    )
-                  }
-                  {
-                    proposal.againstVotes > 0 && (
+                    )}
+                    {proposal.againstVotes > 0 && (
                       <div
                         className={cn(
                           "h-1.5 bg-red-500",
-                          proposal.forVotes === 0 && proposal.abstainVotes === 0 
-                            ? "rounded" 
-                            : proposal.abstainVotes === 0 
-                              ? "rounded-r" 
-                              : ""
+                          proposal.forVotes === 0 && proposal.abstainVotes === 0
+                            ? "rounded"
+                            : proposal.abstainVotes === 0
+                            ? "rounded-r"
+                            : ""
                         )}
                         style={{ width: `${againstPercentage}%` }}
                       />
-                    )
-                  }
-                  {
-                    proposal.abstainVotes > 0 && (
+                    )}
+                    {proposal.abstainVotes > 0 && (
                       <div
                         className={cn(
                           "h-1.5 bg-gray-300",
-                          proposal.forVotes === 0 && proposal.againstVotes === 0 
-                            ? "rounded" 
+                          proposal.forVotes === 0 && proposal.againstVotes === 0
+                            ? "rounded"
                             : "rounded-r"
                         )}
                         style={{ width: `${abstainPercentage}%` }}
                       />
-                    )
-                  }
+                    )}
                   </div>
 
                   {proposal.quorumVotes > 0 && totalVotes > 0 && (
@@ -313,7 +368,9 @@ export function RecentProposals({
   limit = 3,
   excludeStatuses = [],
 }: RecentProposalsProps) {
-  const [internalProposals, setInternalProposals] = useState<Proposal[]>(proposals ?? []);
+  const [internalProposals, setInternalProposals] = useState<Proposal[]>(
+    proposals ?? []
+  );
   const [isLoading, setIsLoading] = useState<boolean>(!proposals);
 
   useEffect(() => {
@@ -328,7 +385,9 @@ export function RecentProposals({
           Math.max(10, limit)
         );
         if (!isMounted) return;
-        const mapped: Proposal[] = (sdkProposals as SdkProposal[] | undefined ?? []).map((p) => ({
+        const mapped: Proposal[] = (
+          (sdkProposals as SdkProposal[] | undefined) ?? []
+        ).map((p) => ({
           proposalId: String(p.proposalId),
           proposalNumber: Number(p.proposalNumber),
           title: p.title ?? "",
@@ -336,18 +395,28 @@ export function RecentProposals({
           proposer: p.proposer,
           status: (() => {
             const s = p.state as unknown;
-            if (typeof s === 'number') {
+            if (typeof s === "number") {
               switch (s) {
-                case 0: return ProposalStatus.PENDING;
-                case 1: return ProposalStatus.ACTIVE;
-                case 2: return ProposalStatus.CANCELLED;
-                case 3: return ProposalStatus.DEFEATED;
-                case 4: return ProposalStatus.SUCCEEDED;
-                case 5: return ProposalStatus.QUEUED;
-                case 6: return ProposalStatus.EXPIRED;
-                case 7: return ProposalStatus.EXECUTED;
-                case 8: return ProposalStatus.VETOED;
-                default: return ProposalStatus.PENDING;
+                case 0:
+                  return ProposalStatus.PENDING;
+                case 1:
+                  return ProposalStatus.ACTIVE;
+                case 2:
+                  return ProposalStatus.CANCELLED;
+                case 3:
+                  return ProposalStatus.DEFEATED;
+                case 4:
+                  return ProposalStatus.SUCCEEDED;
+                case 5:
+                  return ProposalStatus.QUEUED;
+                case 6:
+                  return ProposalStatus.EXPIRED;
+                case 7:
+                  return ProposalStatus.EXECUTED;
+                case 8:
+                  return ProposalStatus.VETOED;
+                default:
+                  return ProposalStatus.PENDING;
               }
             }
             return mapSdkStateToStatus(String(s));
@@ -358,7 +427,9 @@ export function RecentProposals({
           quorumVotes: Number(p.quorumVotes ?? 0),
           voteStart: new Date(Number(p.voteStart ?? 0) * 1000).toISOString(),
           voteEnd: new Date(Number(p.voteEnd ?? 0) * 1000).toISOString(),
-          expiresAt: p.expiresAt ? new Date(Number(p.expiresAt) * 1000).toISOString() : undefined,
+          expiresAt: p.expiresAt
+            ? new Date(Number(p.expiresAt) * 1000).toISOString()
+            : undefined,
           timeCreated: Number(p.timeCreated ?? 0),
           executed: Boolean(p.executedAt),
           canceled: Boolean(p.cancelTransactionHash),
@@ -385,7 +456,6 @@ export function RecentProposals({
     (p) => !excludeStatuses.includes(p.status)
   );
   const displayedProposals = data.slice(0, limit);
-  
 
   return (
     <Card className="w-full">
@@ -425,7 +495,6 @@ export function RecentProposals({
                 <ProposalCard key={proposal.proposalId} proposal={proposal} />
               ))}
             </div>
-            
           </>
         )}
       </CardContent>
