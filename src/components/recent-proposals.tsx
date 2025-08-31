@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import {
@@ -67,8 +66,6 @@ export interface Proposal {
 interface RecentProposalsProps {
   proposals?: Proposal[];
   limit?: number;
-  showLoadMore?: boolean;
-  onLoadMore?: () => void;
   excludeStatuses?: ProposalStatus[];
 }
 
@@ -314,8 +311,6 @@ function mapSdkStateToStatus(state: string): ProposalStatus {
 export function RecentProposals({
   proposals,
   limit = 3,
-  showLoadMore = true,
-  onLoadMore,
   excludeStatuses = [],
 }: RecentProposalsProps) {
   const [internalProposals, setInternalProposals] = useState<Proposal[]>(proposals ?? []);
@@ -390,7 +385,7 @@ export function RecentProposals({
     (p) => !excludeStatuses.includes(p.status)
   );
   const displayedProposals = data.slice(0, limit);
-  const hasMore = data.length > limit;
+  
 
   return (
     <Card className="w-full">
@@ -430,21 +425,7 @@ export function RecentProposals({
                 <ProposalCard key={proposal.proposalId} proposal={proposal} />
               ))}
             </div>
-
-            {showLoadMore && hasMore && (
-              <>
-                <Separator className="my-4" />
-                <div className="flex justify-center">
-                  <Button
-                    variant="outline"
-                    onClick={onLoadMore}
-                    className="w-full md:w-auto"
-                  >
-                    Load More Proposals
-                  </Button>
-                </div>
-              </>
-            )}
+            
           </>
         )}
       </CardContent>
