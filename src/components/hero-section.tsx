@@ -6,6 +6,7 @@ import { useDaoAuction } from "@buildeross/hooks";
 import { Clock, TrendingUp, Trophy, Users, Zap } from "lucide-react";
 import { zeroAddress } from "viem";
 import { Badge } from "@/components/ui/badge";
+import { CountUp } from "@/components/ui/count-up";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -112,7 +113,9 @@ export function HeroSection({ stats }: HeroSectionProps) {
                     <Trophy className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
-                    <div className="font-semibold">{stats.totalSupply}</div>
+                    <div className="font-semibold">
+                      <CountUp value={Number(stats.totalSupply || 0)} durationMs={800} />
+                    </div>
                     <div className="text-xs text-muted-foreground">Total NFTs</div>
                   </div>
                 </div>
@@ -121,7 +124,9 @@ export function HeroSection({ stats }: HeroSectionProps) {
                     <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <div className="font-semibold">{stats.members}</div>
+                    <div className="font-semibold">
+                      <CountUp value={Number(stats.members || 0)} durationMs={800} />
+                    </div>
                     <div className="text-xs text-muted-foreground">Members</div>
                   </div>
                 </div>
@@ -131,7 +136,9 @@ export function HeroSection({ stats }: HeroSectionProps) {
                       <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
-                      <div className="font-semibold">{stats.treasuryValue} ETH</div>
+                      <div className="font-semibold">
+                        <CountUp value={parseFloat(stats.treasuryValue || "0")} decimals={1} durationMs={900} /> ETH
+                      </div>
                       <div className="text-xs text-muted-foreground">Treasury</div>
                     </div>
                   </div>
