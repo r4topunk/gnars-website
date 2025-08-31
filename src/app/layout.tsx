@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DaoSidebar } from "@/components/dao-sidebar";
 import Providers from "@/components/providers";
+import SidebarFloatingTrigger from "@/components/sidebar-floating-trigger";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,6 +46,7 @@ export default function RootLayout({
                 <DaoSidebar />
                 {children}
                 <Toaster />
+                <SidebarFloatingTrigger />
               </SidebarProvider>
             </TooltipProvider>
           </Providers>

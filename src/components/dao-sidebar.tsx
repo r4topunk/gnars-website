@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Home, Gavel, Vote, PlusCircle, Wallet, Users, FileText } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +30,6 @@ const daoNavigation = [
         title: "Dashboard",
         url: "/",
         icon: Home,
-        isActive: true,
       },
     ],
   },
@@ -39,19 +40,16 @@ const daoNavigation = [
         title: "Auctions",
         url: "/auctions",
         icon: Gavel,
-        isActive: false,
       },
       {
         title: "Proposals",
         url: "/proposals",
         icon: Vote,
-        isActive: false,
       },
       {
         title: "Create Proposal",
         url: "/propose",
         icon: PlusCircle,
-        isActive: false,
       },
     ],
   },
@@ -62,7 +60,6 @@ const daoNavigation = [
         title: "Treasury",
         url: "/treasury",
         icon: Wallet,
-        isActive: false,
       },
     ],
   },
@@ -73,13 +70,11 @@ const daoNavigation = [
         title: "Members & Delegates",
         url: "/members",
         icon: Users,
-        isActive: false,
       },
       {
         title: "Propdates",
         url: "/propdates",
         icon: FileText,
-        isActive: false,
       },
     ],
   },
@@ -115,6 +110,17 @@ function DaoHeader() {
 }
 
 export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+
+  const isRouteActive = React.useCallback(
+    (url: string) => {
+      if (!pathname) return false;
+      if (url === "/") return pathname === "/";
+      return pathname === url || pathname.startsWith(`${url}/`);
+    },
+    [pathname]
+  );
+
   return (
     <Sidebar {...props}>
       <SidebarHeader className="gap-3.5 border-b p-4">
@@ -133,11 +139,11 @@ export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenu>
                 {section.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={item.isActive} className="min-h-[44px] touch-manipulation">
-                      <a href={item.url}>
+                    <SidebarMenuButton asChild isActive={isRouteActive(item.url)} className="min-h-[44px] touch-manipulation">
+                      <Link href={item.url} aria-current={isRouteActive(item.url) ? "page" : undefined}>
                         <item.icon />
                         {item.title}
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
