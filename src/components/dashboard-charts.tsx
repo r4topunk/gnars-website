@@ -188,12 +188,12 @@ export function AuctionTrendChart() {
         </ChartContainer>
       </CardContent>
       <CardFooter>
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2 font-medium leading-none">
+        <div className="flex w-full items-center justify-center gap-2 text-sm">
+          <div className="grid gap-2 text-center">
+            <div className="flex items-center justify-center gap-2 font-medium leading-none">
               Average final price up 12% this week <TrendingUp className="h-4 w-4" />
             </div>
-            <div className="flex items-center gap-2 leading-none text-muted-foreground">
+            <div className="flex items-center justify-center gap-2 leading-none text-muted-foreground">
               Last 14 auctions completed
             </div>
           </div>
@@ -354,12 +354,12 @@ export function TreasuryAllocationChart() {
         </ChartContainer>
       </CardContent>
       <CardFooter>
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
+        <div className="flex w-full items-center justify-center gap-2 text-sm">
+          <div className="grid gap-2 text-center">
             {footerBreakdown ? (
-              <div className="flex items-center gap-2 font-medium leading-none">{footerBreakdown}</div>
+              <div className="flex items-center justify-center gap-2 font-medium leading-none">{footerBreakdown}</div>
             ) : null}
-            <div className="flex items-center gap-2 leading-none text-muted-foreground">
+            <div className="flex items-center justify-center gap-2 leading-none text-muted-foreground">
               {totalValueUsd === null
                 ? "Live data unobtainable, showing defaults"
                 : `Total: ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
@@ -433,12 +433,12 @@ export function MemberActivityChart() {
         </ChartContainer>
       </CardContent>
       <CardFooter>
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2 font-medium leading-none">
+        <div className="flex w-full items-center justify-center gap-2 text-sm">
+          <div className="grid gap-2 text-center">
+            <div className="flex items-center justify-center gap-2 font-medium leading-none">
               {totalVoters} voters across recent proposals <TrendingUp className="h-4 w-4" />
             </div>
-            <div className="flex items-center gap-2 leading-none text-muted-foreground">
+            <div className="flex items-center justify-center gap-2 leading-none text-muted-foreground">
               Showing {proposalBars.length} proposals
             </div>
           </div>
