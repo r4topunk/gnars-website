@@ -312,8 +312,6 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
         quorumVotes={proposal.quorumVotes}
         snapshotBlock={proposal.snapshotBlock}
         endDate={proposal.endDate}
-        proposer={proposal.proposer}
-        proposerEnsName={proposerEnsName || proposal.proposerEnsName}
       />
 
       {/* Voting Controls */}
