@@ -226,12 +226,6 @@ export function HeroSection({ stats }: HeroSectionProps) {
           </div>
         </div>
       </div>
-
-      {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -right-1/2 h-96 w-96 rounded-full bg-muted/20 blur-3xl"></div>
-        <div className="absolute -bottom-1/2 -left-1/2 h-96 w-96 rounded-full bg-muted/10 blur-3xl"></div>
-      </div>
     </section>
   );
 }
