@@ -2,23 +2,40 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { CalendarDays, ExternalLink, ThumbsUp, ThumbsDown, MinusCircle, Clock, CheckCircle, XCircle, AlertCircle, Pause } from "lucide-react";
+import {
+  CalendarDays,
+  ExternalLink,
+  ThumbsUp,
+  ThumbsDown,
+  MinusCircle,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Pause,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 // Proposal status enum based on reference analysis
 export enum ProposalStatus {
-  PENDING = 'Pending',
-  ACTIVE = 'Active',
-  SUCCEEDED = 'Succeeded',
-  QUEUED = 'Queued',
-  EXECUTED = 'Executed',
-  DEFEATED = 'Defeated',
-  CANCELLED = 'Cancelled',
-  EXPIRED = 'Expired',
-  VETOED = 'Vetoed',
+  PENDING = "Pending",
+  ACTIVE = "Active",
+  SUCCEEDED = "Succeeded",
+  QUEUED = "Queued",
+  EXECUTED = "Executed",
+  DEFEATED = "Defeated",
+  CANCELLED = "Cancelled",
+  EXPIRED = "Expired",
+  VETOED = "Vetoed",
 }
 
 // Proposal data structure based on reference analysis
@@ -55,12 +72,14 @@ interface RecentProposalsProps {
 const getStatusConfig = (status: ProposalStatus) => {
   const configs = {
     [ProposalStatus.ACTIVE]: {
-      color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+      color:
+        "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
       icon: Clock,
       description: "Voting in progress",
     },
     [ProposalStatus.PENDING]: {
-      color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+      color:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
       icon: Pause,
       description: "Awaiting voting period",
     },
@@ -70,12 +89,14 @@ const getStatusConfig = (status: ProposalStatus) => {
       description: "Passed, ready for execution",
     },
     [ProposalStatus.QUEUED]: {
-      color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+      color:
+        "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
       icon: AlertCircle,
       description: "Queued for execution",
     },
     [ProposalStatus.EXECUTED]: {
-      color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+      color:
+        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
       icon: CheckCircle,
       description: "Successfully executed",
     },
@@ -90,7 +111,8 @@ const getStatusConfig = (status: ProposalStatus) => {
       description: "Cancelled",
     },
     [ProposalStatus.EXPIRED]: {
-      color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+      color:
+        "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
       icon: Clock,
       description: "Expired",
     },
@@ -106,45 +128,57 @@ const getStatusConfig = (status: ProposalStatus) => {
 function ProposalCard({ proposal }: { proposal: Proposal }) {
   const statusConfig = getStatusConfig(proposal.status);
   const StatusIcon = statusConfig.icon;
-  
+
   // Calculate vote percentages
-  const totalVotes = proposal.forVotes + proposal.againstVotes + proposal.abstainVotes;
-  const forPercentage = totalVotes > 0 ? (proposal.forVotes / totalVotes) * 100 : 0;
-  const againstPercentage = totalVotes > 0 ? (proposal.againstVotes / totalVotes) * 100 : 0;
-  const abstainPercentage = totalVotes > 0 ? (proposal.abstainVotes / totalVotes) * 100 : 0;
+  const totalVotes =
+    proposal.forVotes + proposal.againstVotes + proposal.abstainVotes;
+  const forPercentage =
+    totalVotes > 0 ? (proposal.forVotes / totalVotes) * 100 : 0;
+  const againstPercentage =
+    totalVotes > 0 ? (proposal.againstVotes / totalVotes) * 100 : 0;
+  const abstainPercentage =
+    totalVotes > 0 ? (proposal.abstainVotes / totalVotes) * 100 : 0;
 
   // Calculate quorum progress
-  const quorumProgress = proposal.quorumVotes > 0 ? Math.min(100, (totalVotes / proposal.quorumVotes) * 100) : 0;
+  const quorumProgress =
+    proposal.quorumVotes > 0
+      ? Math.min(100, (totalVotes / proposal.quorumVotes) * 100)
+      : 0;
 
   // Time formatting
-  const timeCreated = formatDistanceToNow(new Date(proposal.timeCreated * 1000), { addSuffix: true });
+  const timeCreated = formatDistanceToNow(
+    new Date(proposal.timeCreated * 1000),
+    { addSuffix: true }
+  );
   const voteEndTime = new Date(proposal.voteEnd);
-  const isVotingActive = proposal.status === ProposalStatus.ACTIVE && voteEndTime > new Date();
+  const isVotingActive =
+    proposal.status === ProposalStatus.ACTIVE && voteEndTime > new Date();
 
   return (
     <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
+      <CardContent className="px-4 py-2">
         <div className="space-y-3">
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center justify-between gap-2 mb-1">
                 <span className="text-sm font-medium text-muted-foreground">
                   Prop #{proposal.proposalNumber}
                 </span>
+                <div className="flex-shrink-0">
+                  <Badge className={`${statusConfig.color} text-xs`}>
+                    <StatusIcon className="w-3 h-3 mr-1" />
+                    {proposal.status}
+                  </Badge>
+                </div>
               </div>
               <h4 className="font-semibold text-sm leading-tight truncate pr-2">
                 {proposal.title}
               </h4>
               <p className="text-xs text-muted-foreground mt-1">
-                by {proposal.proposer.slice(0, 6)}...{proposal.proposer.slice(-4)} • {timeCreated}
+                by {proposal.proposer.slice(0, 6)}...
+                {proposal.proposer.slice(-4)} • {timeCreated}
               </p>
-            </div>
-            <div className="flex-shrink-0">
-              <Badge className={`${statusConfig.color} text-xs`}>
-                <StatusIcon className="w-3 h-3 mr-1" />
-                {proposal.status}
-              </Badge>
             </div>
           </div>
 
@@ -155,36 +189,42 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
                 <span>Voting Progress</span>
                 <span>{totalVotes} votes</span>
               </div>
-              
+
               {/* Vote breakdown bars */}
               <div className="space-y-1">
                 <div className="flex gap-1">
-                  <div 
-                    className="h-1.5 bg-green-500 rounded-l" 
+                  <div
+                    className="h-1.5 bg-green-500 rounded-l"
                     style={{ width: `${forPercentage}%` }}
                   />
-                  <div 
-                    className="h-1.5 bg-red-500" 
+                  <div
+                    className="h-1.5 bg-red-500"
                     style={{ width: `${againstPercentage}%` }}
                   />
-                  <div 
-                    className="h-1.5 bg-gray-300 rounded-r" 
+                  <div
+                    className="h-1.5 bg-gray-300 rounded-r"
                     style={{ width: `${abstainPercentage}%` }}
                   />
                 </div>
-                
+
                 <div className="flex justify-between text-xs">
                   <div className="flex items-center gap-1">
                     <ThumbsUp className="w-3 h-3 text-green-500" />
-                    <span>{proposal.forVotes} ({forPercentage.toFixed(0)}%)</span>
+                    <span>
+                      {proposal.forVotes} ({forPercentage.toFixed(0)}%)
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <ThumbsDown className="w-3 h-3 text-red-500" />
-                    <span>{proposal.againstVotes} ({againstPercentage.toFixed(0)}%)</span>
+                    <span>
+                      {proposal.againstVotes} ({againstPercentage.toFixed(0)}%)
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <MinusCircle className="w-3 h-3 text-gray-400" />
-                    <span>{proposal.abstainVotes} ({abstainPercentage.toFixed(0)}%)</span>
+                    <span>
+                      {proposal.abstainVotes} ({abstainPercentage.toFixed(0)}%)
+                    </span>
                   </div>
                 </div>
               </div>
@@ -211,20 +251,6 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
               </span>
             </div>
           )}
-
-          {/* Action Buttons */}
-          <div className="flex justify-between items-center pt-1">
-            <Button variant="ghost" size="sm" className="text-xs h-8">
-              View Details
-              <ExternalLink className="w-3 h-3 ml-1" />
-            </Button>
-            
-            {proposal.status === ProposalStatus.ACTIVE && (
-              <Button size="sm" className="h-8 text-xs">
-                Vote Now
-              </Button>
-            )}
-          </div>
         </div>
       </CardContent>
     </Card>
@@ -343,11 +369,11 @@ const mockProposals: Proposal[] = [
   },
 ];
 
-export function RecentProposals({ 
-  proposals = mockProposals, 
-  limit = 3, 
+export function RecentProposals({
+  proposals = mockProposals,
+  limit = 3,
   showLoadMore = true,
-  onLoadMore 
+  onLoadMore,
 }: RecentProposalsProps) {
   const displayedProposals = proposals.slice(0, limit);
   const hasMore = proposals.length > limit;
@@ -384,13 +410,13 @@ export function RecentProposals({
                 <ProposalCard key={proposal.proposalId} proposal={proposal} />
               ))}
             </div>
-            
+
             {showLoadMore && hasMore && (
               <>
                 <Separator className="my-4" />
                 <div className="flex justify-center">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={onLoadMore}
                     className="w-full md:w-auto"
                   >
