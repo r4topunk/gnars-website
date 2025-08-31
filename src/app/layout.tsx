@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DaoSidebar } from "@/components/dao-sidebar";
-import { Web3Providers } from "@/components/providers";
+import Providers from "@/components/providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -39,7 +39,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Web3Providers>
+          <Providers>
             <TooltipProvider>
               <SidebarProvider>
                 <DaoSidebar />
@@ -47,7 +47,7 @@ export default function RootLayout({
                 <Toaster />
               </SidebarProvider>
             </TooltipProvider>
-          </Web3Providers>
+          </Providers>
         </ThemeProvider>
       </body>
     </html>
