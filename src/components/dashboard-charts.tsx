@@ -27,6 +27,7 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
 } from "@/components/ui/chart";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 
@@ -126,7 +127,7 @@ const treasuryChartConfig = {
     color: "#2775CA",
   },
   other: {
-    label: "Other",
+    label: "Other Tokens",
     color: "#F59E0B",
   },
   nfts: {
@@ -206,10 +207,9 @@ export function TreasuryAllocationChart() {
   const [chartData, setChartData] = useState(
     DEFAULT_TREASURY_DATA as { name: string; value: number; color: string }[],
   );
-  const [footerBreakdown, setFooterBreakdown] = useState<string>(
-    "85.2% ETH, 8.5% USDC, 6.3% Others",
-  );
+  const [footerBreakdown, setFooterBreakdown] = useState<string>("");
   const [totalValueUsd, setTotalValueUsd] = useState<number | null>(null);
+  const [usdBySegment, setUsdBySegment] = useState<Record<string, number>>({});
 
   useEffect(() => {
     let active = true;
@@ -254,7 +254,7 @@ export function TreasuryAllocationChart() {
           }
         }
 
-        const totalUsd = ethUsd + usdcUsd + otherUsd + nftNetWorth;
+        const totalUsd = ethUsd + usdcUsd + otherUsd + nftNetWorth; // include NFTs in pie
         if (totalUsd <= 0) return;
 
         const pct = (x: number) => Math.round((x / totalUsd) * 1000) / 10; // one decimal
@@ -269,10 +269,10 @@ export function TreasuryAllocationChart() {
         if (!active) return;
         setChartData(nextData);
         setTotalValueUsd(totalUsd);
+        setUsdBySegment({ ETH: ethUsd, USDC: usdcUsd, "Other Tokens": otherUsd, NFTs: nftNetWorth });
+        const toK = (n: number) => `$${(Math.round((n / 1000) * 10) / 10).toFixed(1)}k`;
         setFooterBreakdown(
-          `${nextData[0].value}% ETH, ${nextData[1].value}% USDC, ${Math.round(
-            (nextData[2].value + nextData[3].value) * 10,
-          ) / 10}% Others`,
+          `${toK(ethUsd)} ETH, ${toK(usdcUsd)} USDC, ${toK(otherUsd + nftNetWorth)} Others`,
         );
       } catch {
         // keep defaults
@@ -296,7 +296,29 @@ export function TreasuryAllocationChart() {
       <CardContent className="flex-1 pb-0">
         <ChartContainer config={treasuryChartConfig} className="h-[200px] w-full">
           <PieChart>
-            <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  hideLabel
+                  formatter={(
+                    value: number | string | (number | string)[],
+                    name: string | number,
+                  ) => {
+                    const percentNumber = Array.isArray(value)
+                      ? Number(value[0] ?? 0)
+                      : Number(value ?? 0);
+                    const label = String(name ?? "");
+                    return (
+                      <div className="flex w-full items-center justify-between gap-4">
+                        <span className="text-muted-foreground">{label}</span>
+                        <span className="font-mono font-medium">{percentNumber.toFixed(1)}%</span>
+                      </div>
+                    );
+                  }}
+                />
+              }
+            />
             <Pie
               data={chartData}
               cx="50%"
@@ -304,25 +326,45 @@ export function TreasuryAllocationChart() {
               innerRadius={40}
               outerRadius={80}
               paddingAngle={2}
+              nameKey="name"
               dataKey="value"
             >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
+            <ChartLegend
+              verticalAlign="bottom"
+              content={({ payload }) => (
+                <div className="flex items-center justify-center gap-4 pt-3 text-xs">
+                  {payload?.map((item: any) => {
+                    const segName = String(item?.value ?? item?.payload?.name ?? "");
+                    const color = item?.color;
+                    return (
+                      <div key={segName} className="flex items-center gap-1.5">
+                        <div className="h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: color }} />
+                        <span>{segName}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            />
           </PieChart>
         </ChartContainer>
       </CardContent>
       <CardFooter>
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
-            <div className="flex items-center gap-2 font-medium leading-none">{footerBreakdown}</div>
+            {footerBreakdown ? (
+              <div className="flex items-center gap-2 font-medium leading-none">{footerBreakdown}</div>
+            ) : null}
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
               {totalValueUsd === null
                 ? "Live data unobtainable, showing defaults"
-                : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+                : `Total: ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
                     totalValueUsd,
-                  )}
+                  )}`}
             </div>
           </div>
         </div>
