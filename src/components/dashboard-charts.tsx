@@ -2,7 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { TrendingUp } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  XAxis,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+} from "recharts";
 
 import {
   Card,
@@ -47,62 +57,59 @@ const treasuryData = [
   { name: "NFTs", value: 2.2, color: "#EF4444" },
 ];
 
-type MinimalProposal = {
-  proposalNumber: number
-  forVotes?: string | number
-  againstVotes?: string | number
-  abstainVotes?: string | number
-  timeCreated?: number | string
-}
-
-async function fetchRecentProposalVotes(limit: number) {
-  const { proposals } = await getProposals(CHAIN.id, GNARS_ADDRESSES.token, limit)
-  const list = (proposals as MinimalProposal[] | undefined) ?? []
-  return list
-    .map((p) => {
-      const forVotes = Number(p.forVotes ?? 0)
-      const againstVotes = Number(p.againstVotes ?? 0)
-      const abstainVotes = Number(p.abstainVotes ?? 0)
-      const totalVotes = forVotes + againstVotes + abstainVotes
-      const timeCreated = Number(p.timeCreated ?? 0)
-      return {
-        proposalNumber: Number(p.proposalNumber),
-        totalVotes,
-        timeCreated,
-      }
-    })
-    .sort((a, b) => b.timeCreated - a.timeCreated)
-}
+// removed unused MinimalProposal type
 
 type ProposalWithVotes = {
-  proposalNumber: number
-  timeCreated: number
-  voterCount: number
-}
+  proposalNumber: number;
+  timeCreated: number;
+  voterCount: number;
+};
 
-async function fetchRecentProposalsWithVoters(limit: number): Promise<ProposalWithVotes[]> {
-  const { proposals } = await getProposals(CHAIN.id, GNARS_ADDRESSES.token, limit)
-  const list = ((proposals as unknown) as Array<Record<string, unknown>>) ?? []
+type SdkVote = { voter?: string | null };
+type MinimalSdkProposal = {
+  votes?: unknown;
+  state?: number | string | null;
+  cancelTransactionHash?: unknown;
+  proposalNumber?: number | string | null;
+  timeCreated?: number | string | null;
+};
+
+async function fetchRecentProposalsWithVoters(
+  limit: number
+): Promise<ProposalWithVotes[]> {
+  const { proposals } = await getProposals(
+    CHAIN.id,
+    GNARS_ADDRESSES.token,
+    limit
+  );
+  const list = (proposals as MinimalSdkProposal[] | undefined) ?? [];
   return list
-    .map((p) => {
-      const votes = Array.isArray((p as any)?.votes) ? ((p as any).votes as Array<{ voter?: string | null }>) : []
-      const uniqueVoters = new Set<string>()
-      for (const v of votes) {
-        if (v?.voter) uniqueVoters.add(String(v.voter).toLowerCase())
+    .map<ProposalWithVotes & { _isCanceled: boolean }>((p) => {
+      const rawVotes = Array.isArray(p.votes) ? p.votes : [];
+      const votes: SdkVote[] = rawVotes as SdkVote[];
+      const uniqueVoters = new Set<string>();
+      for (const vote of votes) {
+        const voter = vote?.voter;
+        if (voter) uniqueVoters.add(String(voter).toLowerCase());
       }
-      const rawState = (p as any)?.state
-      const hasCancelTx = Boolean((p as any)?.cancelTransactionHash)
-      const isCanceledByState = typeof rawState === 'number' ? rawState === 2 : String(rawState ?? '').toUpperCase().includes('CANCEL')
-      const isCanceled = hasCancelTx || isCanceledByState
+      const rawState = p.state;
+      const hasCancelTx = Boolean(p.cancelTransactionHash);
+      const isCanceledByState =
+        typeof rawState === "number"
+          ? rawState === 2
+          : String(rawState ?? "")
+              .toUpperCase()
+              .includes("CANCEL");
+      const isCanceled = hasCancelTx || isCanceledByState;
       return {
-        proposalNumber: Number((p as any)?.proposalNumber ?? 0),
-        timeCreated: Number((p as any)?.timeCreated ?? 0),
+        proposalNumber: Number(p.proposalNumber ?? 0),
+        timeCreated: Number(p.timeCreated ?? 0),
         voterCount: uniqueVoters.size,
         _isCanceled: isCanceled,
-      } as unknown as ProposalWithVotes & { _isCanceled: boolean }
+      };
     })
-    .filter((p: any) => !p._isCanceled)
-    .sort((a, b) => b.timeCreated - a.timeCreated)
+    .filter((row) => !row._isCanceled)
+    .sort((a, b) => b.timeCreated - a.timeCreated);
 }
 
 const auctionChartConfig = {
@@ -122,7 +129,7 @@ const treasuryChartConfig = {
     color: "#627EEA",
   },
   usdc: {
-    label: "USDC", 
+    label: "USDC",
     color: "#2775CA",
   },
   other: {
@@ -154,7 +161,10 @@ export function AuctionTrendChart() {
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <ChartContainer config={auctionChartConfig} className="h-[200px] w-full">
+        <ChartContainer
+          config={auctionChartConfig}
+          className="h-[200px] w-full"
+        >
           <AreaChart
             accessibilityLayer
             data={auctionTrendData}
@@ -200,7 +210,8 @@ export function AuctionTrendChart() {
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 font-medium leading-none">
-              Average final price up 12% this week <TrendingUp className="h-4 w-4" />
+              Average final price up 12% this week{" "}
+              <TrendingUp className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
               Last 14 auctions completed
@@ -224,7 +235,10 @@ export function TreasuryAllocationChart() {
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <ChartContainer config={treasuryChartConfig} className="h-[200px] w-full">
+        <ChartContainer
+          config={treasuryChartConfig}
+          className="h-[200px] w-full"
+        >
           <PieChart>
             <ChartTooltip
               cursor={false}
@@ -263,29 +277,38 @@ export function TreasuryAllocationChart() {
 }
 
 export function MemberActivityChart() {
-  const [proposalBars, setProposalBars] = useState<{ proposal: string; proposalNumber: number; voters: number }[]>([])
-  const totalVoters = useMemo(() => proposalBars.reduce((sum, r) => sum + r.voters, 0), [proposalBars])
+  const [proposalBars, setProposalBars] = useState<
+    { proposal: string; proposalNumber: number; voters: number }[]
+  >([]);
+  const totalVoters = useMemo(
+    () => proposalBars.reduce((sum, r) => sum + r.voters, 0),
+    [proposalBars]
+  );
 
   useEffect(() => {
-    let active = true
+    let active = true;
     fetchRecentProposalsWithVoters(12)
       .then((rows) => {
-        if (!active) return
+        if (!active) return;
         setProposalBars(
           rows
             .slice(0, 6)
             .reverse() // oldest to newest for nicer left-to-right feel
-            .map((r) => ({ proposal: `Prop #${r.proposalNumber}`, proposalNumber: r.proposalNumber, voters: r.voterCount }))
-        )
+            .map((r) => ({
+              proposal: `Prop #${r.proposalNumber}`,
+              proposalNumber: r.proposalNumber,
+              voters: r.voterCount,
+            }))
+        );
       })
       .catch(() => {
-        if (!active) return
-        setProposalBars([])
-      })
+        if (!active) return;
+        setProposalBars([]);
+      });
     return () => {
-      active = false
-    }
-  }, [])
+      active = false;
+    };
+  }, []);
 
   return (
     <Card className="flex flex-col">
@@ -323,7 +346,8 @@ export function MemberActivityChart() {
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 font-medium leading-none">
-              {totalVoters} voters across recent proposals <TrendingUp className="h-4 w-4" />
+              {totalVoters} voters across recent proposals{" "}
+              <TrendingUp className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
               Showing {proposalBars.length} proposals

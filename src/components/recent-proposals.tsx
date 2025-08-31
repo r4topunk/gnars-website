@@ -146,7 +146,6 @@ function normalizeImageUrl(rawUrl: string | null): string | null {
       return `https://ipfs.io/ipfs/${hash}`;
     }
     // Validate URL shape; allow any host (Next config handles domains)
-    // eslint-disable-next-line no-new
     new URL(rawUrl);
     return rawUrl;
   } catch {
