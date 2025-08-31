@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface PastAuction {
   id: string;
@@ -103,7 +104,45 @@ function AuctionCardSkeleton() {
   );
 }
 
-export function PastAuctions({ auctions, loading, title = "Recent Auctions", description = "Latest completed auctions from the community", showViewAllButton = true, gridOnly = false }: PastAuctionsProps) {
+export function PastAuctions({ auctions, loading, hasMore, onLoadMore, title = "Recent Auctions", description = "Latest completed auctions from the community", showViewAllButton = true, gridOnly = false }: PastAuctionsProps) {
+  const PAGE_SIZE = 20;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Reset visible count if list becomes shorter (e.g., new query)
+  useEffect(() => {
+    if (!auctions) return;
+    setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), auctions.length));
+  }, [auctions]);
+
+  // IntersectionObserver to load more on scroll
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const el = sentinelRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry?.isIntersecting) return;
+
+        setVisibleCount((prev) => {
+          const next = prev + PAGE_SIZE;
+          const currentLength = auctions?.length ?? 0;
+          // If we've reached the end of the currently loaded items, ask parent for more
+          if (next >= currentLength && !loading && hasMore && onLoadMore) {
+            onLoadMore();
+          }
+          return next;
+        });
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => {
+      observer.unobserve(el);
+      observer.disconnect();
+    };
+  }, [auctions, loading, gridOnly, hasMore, onLoadMore]);
+
   if (gridOnly) {
     return (
       <>
@@ -116,7 +155,7 @@ export function PastAuctions({ auctions, loading, title = "Recent Auctions", des
         ) : auctions?.length ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {auctions.map((auction) => (
+              {auctions.slice(0, visibleCount).map((auction) => (
                 <AuctionCard key={auction.id} auction={auction} />
               ))}
             </div>
@@ -127,6 +166,7 @@ export function PastAuctions({ auctions, loading, title = "Recent Auctions", des
                 ))}
               </div>
             )}
+            <div ref={sentinelRef} className="h-10" />
           </>
         ) : (
           <div className="text-center py-8">
@@ -169,7 +209,7 @@ export function PastAuctions({ auctions, loading, title = "Recent Auctions", des
         ) : auctions?.length ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {auctions.map((auction) => (
+              {auctions.slice(0, visibleCount).map((auction) => (
                 <AuctionCard key={auction.id} auction={auction} />
               ))}
             </div>
@@ -181,6 +221,7 @@ export function PastAuctions({ auctions, loading, title = "Recent Auctions", des
                 ))}
               </div>
             )}
+            <div ref={sentinelRef} className="h-10" />
           </>
         ) : (
           <div className="text-center py-8">
