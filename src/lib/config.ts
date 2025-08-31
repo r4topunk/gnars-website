@@ -16,8 +16,9 @@ export const ZORA_CREATOR = {
 } as const
 
 export const SUBGRAPH = {
-  // Placeholder; wire via Builder SDK client later
-  goldskyProjectId: process.env.NEXT_PUBLIC_GOLDSKY_PROJECT_ID || 'project_cm33ek8kjx6pz010i2c3w8z25',
+  // Official Nouns Builder Subgraph URL for Gnars on Base (Goldsky public)
+  url:
+    `https://api.goldsky.com/api/public/${process.env.NEXT_PUBLIC_GOLDSKY_PROJECT_ID || 'project_cm33ek8kjx6pz010i2c3w8z25'}/subgraphs/nouns-builder-base-mainnet/latest/gn`,
 } as const
 
 export const DAO_DESCRIPTION =

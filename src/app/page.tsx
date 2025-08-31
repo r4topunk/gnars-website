@@ -9,16 +9,6 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 
-// Mock data - in a real app, this would come from API calls or hooks
-const mockCurrentAuction = {
-  id: "123",
-  tokenId: "456",
-  highestBid: "2.5",
-  bidder: "0x742d35Cc6634C0532925a3b8D52E02c0a65A40f2",
-  endTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
-  settled: false,
-};
-
 const mockPastAuctions = Array.from({ length: 12 }, (_, i) => ({
   id: (122 - i).toString(),
   tokenId: (455 - i).toString(),
@@ -33,8 +23,7 @@ export default function Home() {
     <SidebarInset>
       <main className="flex flex-1 flex-col">
         {/* Hero Section */}
-        <HeroSection 
-          currentAuction={mockCurrentAuction}
+        <HeroSection
           stats={{
             totalSupply: 456,
             members: 342,

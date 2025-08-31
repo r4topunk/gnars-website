@@ -6,17 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Clock, Zap, Users, Trophy, TrendingUp } from "lucide-react";
-import { DAO_DESCRIPTION } from "@/lib/config";
+import { CHAIN, DAO_DESCRIPTION } from "@/lib/config";
+import { useDaoAuction } from "@buildeross/hooks";
+import { GNARS_ADDRESSES } from "@/lib/config";
+import { zeroAddress } from "viem";
+
 
 interface HeroSectionProps {
-  currentAuction: {
-    id: string;
-    tokenId: string;
-    highestBid: string;
-    bidder: string;
-    endTime: Date;
-    settled: boolean;
-  };
   stats: {
     totalSupply: number;
     members: number;
@@ -24,7 +20,25 @@ interface HeroSectionProps {
   };
 }
 
-export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
+export function HeroSection({ stats }: HeroSectionProps) {
+  const {
+    highestBid,
+    highestBidder,
+    endTime,
+    startTime,
+    tokenId,
+    tokenUri,
+  } = useDaoAuction({
+    collectionAddress: GNARS_ADDRESSES.token,
+    auctionAddress: GNARS_ADDRESSES.auction,
+    chainId: CHAIN.id,
+  });
+
+  const auctionEndDate = endTime ? new Date(endTime * 1000) : undefined;
+  const auctionStartDate = startTime ? new Date(startTime * 1000) : undefined;
+  const auctionEndMs = auctionEndDate ? auctionEndDate.getTime() : 0;
+  const auctionStartMs = auctionStartDate ? auctionStartDate.getTime() : 0;
+  const ENDING_SOON_THRESHOLD_MS = 5 * 60 * 1000;
   const [timeLeft, setTimeLeft] = useState<{
     hours: number;
     minutes: number;
@@ -33,11 +47,11 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
   }>({ hours: 0, minutes: 0, seconds: 0, total: 0 });
 
   useEffect(() => {
-    if (!currentAuction?.endTime) return;
+    if (!auctionEndMs) return;
 
     const timer = setInterval(() => {
       const now = new Date().getTime();
-      const distance = currentAuction.endTime.getTime() - now;
+      const distance = auctionEndMs - now;
 
       if (distance > 0) {
         setTimeLeft({
@@ -52,12 +66,15 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentAuction?.endTime]);
+  }, [auctionEndMs]);
 
-  // Calculate auction progress (mock - based on time elapsed)
-  const auctionDuration = 24 * 60 * 60 * 1000; // 24 hours in ms
-  const elapsed = auctionDuration - timeLeft.total;
+  // Calculate auction progress based on actual start/end times when available
+  const fallbackDuration = 24 * 60 * 60 * 1000; // 24 hours in ms
+  const auctionDuration = auctionStartMs && auctionEndMs ? Math.max(auctionEndMs - auctionStartMs, 0) : fallbackDuration;
+  const elapsed = Math.max(0, Math.min(auctionDuration, auctionDuration - Math.max(timeLeft.total, 0)));
   const progressPercentage = Math.min(100, Math.max(0, (elapsed / auctionDuration) * 100));
+  const isLive = timeLeft.total > 0;
+  const isEndingSoon = isLive && timeLeft.total <= ENDING_SOON_THRESHOLD_MS;
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-muted/50 via-background to-muted/30">
@@ -86,10 +103,6 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
                 <p className="text-lg text-muted-foreground md:text-xl">
                   {DAO_DESCRIPTION}
                 </p>
-
-                <div className="text-sm text-muted-foreground">
-                  Headless so you can <strong className="text-foreground">shred more</strong>…
-                </div>
               </div>
 
 
@@ -133,19 +146,41 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
                 <CardContent className="py-2">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="text-lg font-semibold">
-                        Gnar #{currentAuction.tokenId}
+                      <div className="text-xl font-semibold">
+                        {tokenUri?.name.replace('Gnars', 'Gnar') || (tokenId ? `Gnar #${tokenId.toString()}` : 'Latest Auction')}
                       </div>
-                      <Badge variant="secondary">
-                        Live Auction
-                      </Badge>
+                      {isLive ? (
+                        <Badge
+                          variant="secondary"
+                          className={
+                            isEndingSoon
+                              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border-transparent'
+                              : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-transparent'
+                          }
+                        >
+                          {isEndingSoon ? 'Ending Soon' : 'Live Auction'}
+                        </Badge>
+                      ) : (
+                        <Badge variant="destructive">Ended</Badge>
+                      )}
                     </div>
 
-                    {/* Mock NFT Preview */}
-                    <div className="aspect-square rounded-lg bg-muted flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-6xl font-bold text-muted-foreground">#{currentAuction.tokenId}</div>
-                      </div>
+                    {/* NFT Preview */}
+                    <div className="aspect-square rounded-lg bg-muted flex items-center justify-center overflow-hidden">
+                      {tokenUri?.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={tokenUri.image}
+                          alt={tokenUri.name || `Gnar #${tokenId?.toString()}`}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <div className="text-6xl font-bold text-muted-foreground">
+                            {tokenId ? `#${tokenId.toString()}` : '—'}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-3">
@@ -167,7 +202,7 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
                             Current Highest Bid
                           </div>
                           <div className="text-2xl font-bold">
-                            {currentAuction.highestBid} ETH
+                            {highestBid ? `${highestBid} ETH` : '—'}
                           </div>
                         </div>
                       </div>
@@ -178,9 +213,11 @@ export function HeroSection({ currentAuction, stats }: HeroSectionProps) {
                         Place Bid
                       </Button>
 
-                      <div className="text-center text-xs text-muted-foreground">
-                        Leading bidder: {currentAuction.bidder.slice(0, 6)}...{currentAuction.bidder.slice(-4)}
-                      </div>
+                      {highestBidder && highestBidder !== zeroAddress && (
+                        <div className="text-center text-xs text-muted-foreground">
+                          {`Leading bidder: ${highestBidder.slice(0, 6)}...${highestBidder.slice(-4)}`}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
