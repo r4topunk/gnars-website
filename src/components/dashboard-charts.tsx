@@ -53,7 +53,7 @@ const auctionTrendData = [
 const DEFAULT_TREASURY_DATA = [
   { name: "ETH", value: 85.2, color: "#627EEA" },
   { name: "USDC", value: 8.5, color: "#2775CA" },
-  { name: "Other Tokens", value: 4.1, color: "#F59E0B" },
+  { name: "Other", value: 4.1, color: "#F59E0B" },
   { name: "NFTs", value: 2.2, color: "#EF4444" },
 ];
 
@@ -127,7 +127,7 @@ const treasuryChartConfig = {
     color: "#2775CA",
   },
   other: {
-    label: "Other Tokens",
+    label: "Other",
     color: "#F59E0B",
   },
   nfts: {
@@ -209,7 +209,6 @@ export function TreasuryAllocationChart() {
   );
   const [footerBreakdown, setFooterBreakdown] = useState<string>("");
   const [totalValueUsd, setTotalValueUsd] = useState<number | null>(null);
-  const [usdBySegment, setUsdBySegment] = useState<Record<string, number>>({});
 
   useEffect(() => {
     let active = true;
@@ -262,14 +261,13 @@ export function TreasuryAllocationChart() {
         const nextData = [
           { name: "ETH", value: pct(ethUsd), color: "#627EEA" },
           { name: "USDC", value: pct(usdcUsd), color: "#2775CA" },
-          { name: "Other Tokens", value: pct(otherUsd), color: "#F59E0B" },
+          { name: "Other", value: pct(otherUsd), color: "#F59E0B" },
           { name: "NFTs", value: pct(nftNetWorth), color: "#EF4444" },
         ];
 
         if (!active) return;
         setChartData(nextData);
         setTotalValueUsd(totalUsd);
-        setUsdBySegment({ ETH: ethUsd, USDC: usdcUsd, "Other Tokens": otherUsd, NFTs: nftNetWorth });
         const toK = (n: number) => `$${(Math.round((n / 1000) * 10) / 10).toFixed(1)}k`;
         setFooterBreakdown(
           `${toK(ethUsd)} ETH, ${toK(usdcUsd)} USDC, ${toK(otherUsd + nftNetWorth)} Others`,
@@ -335,20 +333,29 @@ export function TreasuryAllocationChart() {
             </Pie>
             <ChartLegend
               verticalAlign="bottom"
-              content={({ payload }) => (
-                <div className="flex items-center justify-center gap-4 pt-3 text-xs">
-                  {payload?.map((item: any) => {
-                    const segName = String(item?.value ?? item?.payload?.name ?? "");
-                    const color = item?.color;
-                    return (
-                      <div key={segName} className="flex items-center gap-1.5">
-                        <div className="h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: color }} />
-                        <span>{segName}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              content={(props) => {
+                const rawPayload = (props as { payload?: unknown }).payload;
+                const payload = Array.isArray(rawPayload) ? (rawPayload as unknown[]) : [];
+                return (
+                  <div className="flex items-center justify-center gap-4 pt-3 text-xs">
+                    {payload.map((raw) => {
+                      const item = raw as {
+                        value?: string | number;
+                        color?: string;
+                        payload?: { name?: string } | undefined;
+                      };
+                      const segName = String(item?.value ?? item?.payload?.name ?? "");
+                      const color = item?.color;
+                      return (
+                        <div key={segName} className="flex items-center gap-1.5">
+                          <div className="h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: color }} />
+                          <span>{segName}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              }}
             />
           </PieChart>
         </ChartContainer>
