@@ -43,11 +43,9 @@ export default function Home() {
 
           {/* Recent Auctions */}
           <section>
-            <PastAuctions 
+            <PastAuctions
               auctions={recentAuctions}
               loading={isLoading}
-              hasMore={true}
-              onLoadMore={() => {}}
             />
           </section>
 

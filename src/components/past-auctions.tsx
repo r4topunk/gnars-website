@@ -1,9 +1,9 @@
 'use client';
 
 import Image from "next/image";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight } from "lucide-react";
 
@@ -22,6 +22,10 @@ interface PastAuctionsProps {
   loading?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => void;
+  title?: string;
+  description?: string;
+  showViewAllButton?: boolean;
+  gridOnly?: boolean;
 }
 
 function AuctionCard({ auction }: { auction: PastAuction }) {
@@ -99,23 +103,60 @@ function AuctionCardSkeleton() {
   );
 }
 
-export function PastAuctions({ auctions, loading, hasMore, onLoadMore }: PastAuctionsProps) {
+export function PastAuctions({ auctions, loading, title = "Recent Auctions", description = "Latest completed auctions from the community", showViewAllButton = true, gridOnly = false }: PastAuctionsProps) {
+  if (gridOnly) {
+    return (
+      <>
+        {loading && !auctions?.length ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <AuctionCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : auctions?.length ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {auctions.map((auction) => (
+                <AuctionCard key={auction.id} auction={auction} />
+              ))}
+            </div>
+            {loading && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <AuctionCardSkeleton key={`loading-${i}`} />
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No past auctions found.</p>
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-xl font-bold flex items-center gap-2">
-              Recent Auctions
+              {title}
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              Latest completed auctions from the community
+              {description}
             </p>
           </div>
-          <Button variant="outline" size="sm">
-            <span>View all auctions</span>
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          {showViewAllButton && (
+            <Link href="/auction">
+              <Button variant="outline" size="sm">
+                <span>View all auctions</span>
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          )}
         </div>
       </CardHeader>
       <CardContent>
