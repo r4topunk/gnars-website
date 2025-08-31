@@ -263,7 +263,7 @@ export function TreasuryAllocationChart() {
 }
 
 export function MemberActivityChart() {
-  const [proposalBars, setProposalBars] = useState<{ proposal: string; voters: number }[]>([])
+  const [proposalBars, setProposalBars] = useState<{ proposal: string; proposalNumber: number; voters: number }[]>([])
   const totalVoters = useMemo(() => proposalBars.reduce((sum, r) => sum + r.voters, 0), [proposalBars])
 
   useEffect(() => {
@@ -275,7 +275,7 @@ export function MemberActivityChart() {
           rows
             .slice(0, 6)
             .reverse() // oldest to newest for nicer left-to-right feel
-            .map((r) => ({ proposal: `Prop #${r.proposalNumber}`, voters: r.voterCount }))
+            .map((r) => ({ proposal: `Prop #${r.proposalNumber}`, proposalNumber: r.proposalNumber, voters: r.voterCount }))
         )
       })
       .catch(() => {
@@ -309,7 +309,7 @@ export function MemberActivityChart() {
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="proposal"
+              dataKey="proposalNumber"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
