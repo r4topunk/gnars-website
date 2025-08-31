@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ExternalLink, User } from "lucide-react";
+import { getProposal, getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { ProposalMetrics } from "@/components/proposal-metrics";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,9 +18,26 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VotingControls } from "@/components/voting-controls";
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import ReactMarkdown from "react-markdown";
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Pie, PieChart, Cell } from "recharts";
 
-// Mock proposal data structure
-interface Proposal {
+interface UiProposalVote {
+  voter: string;
+  voterEnsName?: string;
+  choice: "FOR" | "AGAINST" | "ABSTAIN";
+  votes: string;
+  transactionHash: string;
+}
+
+interface UiProposal {
   proposalId: string;
   proposalNumber: number;
   title: string;
@@ -48,20 +66,14 @@ interface Proposal {
   values: string[];
   signatures: string[];
   transactionHash: string;
-  votes?: Array<{
-    voter: string;
-    voterEnsName?: string;
-    choice: "FOR" | "AGAINST" | "ABSTAIN";
-    votes: string;
-    transactionHash: string;
-  }>;
+  votes?: UiProposalVote[];
 }
 
 interface ProposalDetailProps {
   proposalId: string;
 }
 
-const getStatusBadgeVariant = (state: Proposal["state"]) => {
+const getStatusBadgeVariant = (state: UiProposal["state"]) => {
   switch (state) {
     case "EXECUTED":
       return "default"; // green
@@ -77,7 +89,7 @@ const getStatusBadgeVariant = (state: Proposal["state"]) => {
   }
 };
 
-const getStatusLabel = (state: Proposal["state"]) => {
+const getStatusLabel = (state: UiProposal["state"]) => {
   switch (state) {
     case "PENDING":
       return "Pending";
@@ -101,7 +113,7 @@ const getStatusLabel = (state: Proposal["state"]) => {
 };
 
 export function ProposalDetail({ proposalId }: ProposalDetailProps) {
-  const [proposal, setProposal] = useState<Proposal | null>(null);
+  const [proposal, setProposal] = useState<UiProposal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasVoted, setHasVoted] = useState(false);
   const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
@@ -109,83 +121,96 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
   useEffect(() => {
     const fetchProposal = async () => {
       try {
-        // Mock data - in real implementation use Builder SDK
-        // const data = await getProposal(CHAIN.id, proposalId)
+        // Resolve whether the route param is a 0x proposalId or a numeric proposalNumber.
+        const isHexId = proposalId.startsWith("0x");
+        let sdkProposal: SdkProposal | undefined;
 
-        const mockProposal: Proposal = {
-          proposalId: proposalId,
-          proposalNumber: parseInt(proposalId),
-          title: "Fund Gnars Skateboarding Event Series",
-          description: `# Gnars Skateboarding Event Series
+        if (isHexId) {
+          sdkProposal = await getProposal(CHAIN.id as unknown as number, proposalId);
+        } else {
+          // Numeric route: search proposals by proposalNumber (paginate up to 5 pages x 200 = 1000)
+          const targetNumber = Number.parseInt(proposalId, 10);
+          if (Number.isNaN(targetNumber)) {
+            sdkProposal = undefined;
+          } else {
+            const LIMIT = 200;
+            const MAX_PAGES = 5;
+            for (let page = 0; page < MAX_PAGES; page += 1) {
+              const { proposals } = await getProposals(
+                CHAIN.id as unknown as number,
+                GNARS_ADDRESSES.token,
+                LIMIT,
+                page,
+              );
+              const match = (proposals ?? []).find(
+                (p) => Number(p.proposalNumber ?? -1) === targetNumber,
+              );
+              if (match) {
+                sdkProposal = match;
+                break;
+              }
+              if (!proposals || proposals.length < LIMIT) {
+                break; // no more pages
+              }
+            }
+          }
+        }
 
-This proposal seeks funding to organize a series of skateboarding events across major cities to promote the Gnars brand and grow the community.
+        if (!sdkProposal) {
+          setProposal(null);
+          return;
+        }
 
-## Background
+        const endDate = (() => {
+          // Prefer executableFrom/expiresAt, else interpret voteEnd as seconds
+          const voteEnd = Number(sdkProposal.voteEnd ?? 0);
+          if (voteEnd > 0) return new Date(voteEnd * 1000);
+          const expiresAt = Number((sdkProposal as any).expiresAt ?? 0);
+          return expiresAt > 0 ? new Date(expiresAt * 1000) : undefined;
+        })();
 
-The Gnars DAO has been steadily building a community of action sports enthusiasts. To further expand our reach and provide value to our community, we propose organizing a series of skateboarding events.
-
-## Proposal Details
-
-### Events Planned
-- **Los Angeles**: Venice Beach Skate Park - March 15, 2024
-- **New York**: Brooklyn Bridge Park - April 12, 2024  
-- **San Francisco**: Dolores Park - May 10, 2024
-
-### Budget Breakdown
-- Venue rentals: 15 ETH
-- Equipment and setup: 8 ETH
-- Prizes and giveaways: 12 ETH
-- Marketing and promotion: 5 ETH
-- **Total**: 40 ETH
-
-### Expected Outcomes
-- Increased brand awareness in key markets
-- Growth of active community members
-- Content creation opportunities
-- Potential partnerships with local skate shops
-
-We believe these events will significantly boost the Gnars community and create lasting value for all DAO members.`,
-          state: "ACTIVE",
-          proposer: "0x1234567890abcdef1234567890abcdef12345678",
-          proposerEnsName: "gnars-builder.eth",
-          createdAt: Date.now() - 86400000 * 2,
-          endBlock: 123456999,
-          snapshotBlock: 123456500,
-          endDate: new Date(Date.now() + 86400000 * 5),
-          forVotes: "25.7",
-          againstVotes: "3.2",
-          abstainVotes: "1.1",
-          quorumVotes: "15.0",
-          calldatas: ["0x123..."],
-          targets: ["0x456..."],
-          values: ["40000000000000000000"],
-          signatures: ["transfer(address,uint256)"],
-          transactionHash: "0xabc123...",
-          votes: [
-            {
-              voter: "0x1111111111111111111111111111111111111111",
-              voterEnsName: "skater1.eth",
-              choice: "FOR",
-              votes: "5.2",
-              transactionHash: "0xdef456...",
-            },
-            {
-              voter: "0x2222222222222222222222222222222222222222",
-              voterEnsName: "gnars-fan.eth",
-              choice: "FOR",
-              votes: "8.1",
-              transactionHash: "0xghi789...",
-            },
-            {
-              voter: "0x3333333333333333333333333333333333333333",
-              choice: "AGAINST",
-              votes: "2.3",
-              transactionHash: "0xjkl012...",
-            },
-          ],
+        const uiProposal: UiProposal = {
+          proposalId: String(sdkProposal.proposalId),
+          proposalNumber: Number(sdkProposal.proposalNumber ?? 0),
+          title: sdkProposal.title ?? "",
+          description: sdkProposal.description ?? "",
+          state: String(sdkProposal.state ?? "PENDING").toUpperCase() as UiProposal["state"],
+          proposer: String(sdkProposal.proposer),
+          proposerEnsName: undefined,
+          createdAt: Number(sdkProposal.timeCreated ?? 0) * 1000,
+          endBlock: Number(sdkProposal.voteEnd ?? 0),
+          snapshotBlock: sdkProposal.snapshotBlockNumber ? Number(sdkProposal.snapshotBlockNumber) : undefined,
+          endDate,
+          forVotes: String(sdkProposal.forVotes ?? 0),
+          againstVotes: String(sdkProposal.againstVotes ?? 0),
+          abstainVotes: String(sdkProposal.abstainVotes ?? 0),
+          quorumVotes: String(sdkProposal.quorumVotes ?? 0),
+          calldatas: Array.isArray(sdkProposal.calldatas)
+            ? (sdkProposal.calldatas as string[])
+            : typeof (sdkProposal as any).calldatas === "string"
+              ? [(sdkProposal as any).calldatas]
+              : [],
+          targets: (sdkProposal.targets as unknown[] | undefined)?.map(String) ?? [],
+          values: (sdkProposal.values as unknown[] | undefined)?.map(String) ?? [],
+          signatures: [],
+          transactionHash: String(sdkProposal.transactionHash ?? ""),
+          votes: Array.isArray(sdkProposal.votes)
+            ? sdkProposal.votes.map((v) => ({
+                voter: String(v.voter),
+                voterEnsName: undefined,
+                choice: ((): UiProposalVote["choice"] => {
+                  const s = String(v.support ?? "").toUpperCase();
+                  if (s.includes("FOR")) return "FOR";
+                  if (s.includes("AGAINST")) return "AGAINST";
+                  return "ABSTAIN";
+                })(),
+                votes: String(v.weight ?? 0),
+                transactionHash: "",
+              }))
+            : [],
         };
 
-        setProposal(mockProposal);
+        setProposal(uiProposal);
       } catch (error) {
         console.error("Failed to fetch proposal:", error);
       } finally {
@@ -302,41 +327,7 @@ We believe these events will significantly boost the Gnars community and create 
             </CardHeader>
             <CardContent>
               <div className="prose prose-neutral dark:prose-invert max-w-none">
-                {proposal.description.split("\n").map((paragraph, index) => {
-                  if (paragraph.startsWith("# ")) {
-                    return (
-                      <h1 key={index} className="text-2xl font-bold mt-6 mb-4">
-                        {paragraph.slice(2)}
-                      </h1>
-                    );
-                  } else if (paragraph.startsWith("## ")) {
-                    return (
-                      <h2 key={index} className="text-xl font-semibold mt-5 mb-3">
-                        {paragraph.slice(3)}
-                      </h2>
-                    );
-                  } else if (paragraph.startsWith("### ")) {
-                    return (
-                      <h3 key={index} className="text-lg font-medium mt-4 mb-2">
-                        {paragraph.slice(4)}
-                      </h3>
-                    );
-                  } else if (paragraph.startsWith("- ")) {
-                    return (
-                      <li key={index} className="ml-4">
-                        {paragraph.slice(2)}
-                      </li>
-                    );
-                  } else if (paragraph.trim() === "") {
-                    return <br key={index} />;
-                  } else {
-                    return (
-                      <p key={index} className="mb-3">
-                        {paragraph}
-                      </p>
-                    );
-                  }
-                })}
+                <ReactMarkdown>{proposal.description}</ReactMarkdown>
               </div>
             </CardContent>
           </Card>
@@ -394,7 +385,66 @@ We believe these events will significantly boost the Gnars community and create 
           </Card>
         </TabsContent>
 
-        <TabsContent value="votes" className="mt-6">
+        <TabsContent value="votes" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Vote Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                const forNum = Number(proposal.forVotes ?? 0);
+                const againstNum = Number(proposal.againstVotes ?? 0);
+                const abstainNum = Number(proposal.abstainVotes ?? 0);
+                const data = [
+                  { name: "For", value: forNum, key: "for" },
+                  { name: "Against", value: againstNum, key: "against" },
+                  { name: "Abstain", value: abstainNum, key: "abstain" },
+                ];
+                const total = forNum + againstNum + abstainNum;
+                const colors: Record<string, string> = {
+                  for: "#22c55e",
+                  against: "#ef4444",
+                  abstain: "#6b7280",
+                };
+                const config = {
+                  for: { label: "For", color: colors.for },
+                  against: { label: "Against", color: colors.against },
+                  abstain: { label: "Abstain", color: colors.abstain },
+                } as const;
+                return (
+                  <ChartContainer config={config} className="w-full">
+                    <PieChart>
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            indicator="dot"
+                            formatter={(value, name) => (
+                              <div className="flex w-full items-center justify-between gap-4">
+                                <span className="text-muted-foreground">{name}</span>
+                                <span className="font-mono tabular-nums">
+                                  {Number(value).toLocaleString()} (
+                                  {total > 0 ? Math.round((Number(value) / total) * 100) : 0}%)
+                                </span>
+                              </div>
+                            )}
+                          />
+                        }
+                      />
+                      <Pie data={data} dataKey="value" nameKey="name" innerRadius={48} strokeWidth={2}>
+                        {data.map((entry) => (
+                          <Cell key={entry.key} fill={colors[entry.key]} />
+                        ))}
+                      </Pie>
+                      <ChartLegend
+                        verticalAlign="bottom"
+                        content={<ChartLegendContent nameKey="name" />}
+                      />
+                    </PieChart>
+                  </ChartContainer>
+                );
+              })()}
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle>Individual Votes</CardTitle>
