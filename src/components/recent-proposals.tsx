@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -197,151 +198,157 @@ export function ProposalCard({
   }, [bannerUrl]);
 
   return (
-    <Card className="hover:shadow-md transition-shadow overflow-hidden">
-      {showBanner && (
-        <div className="mx-4 border rounded-md overflow-hidden">
-          <AspectRatio ratio={16 / 9}>
-            <Image
-              src={currentBannerSrc}
-              alt="Proposal banner"
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover"
-              priority={false}
-              onError={() => {
-                if (currentBannerSrc !== "/logo-banner.jpg") {
-                  setCurrentBannerSrc("/logo-banner.jpg");
-                }
-              }}
-            />
-          </AspectRatio>
-        </div>
-      )}
-      <CardContent className="px-4 py-2">
-        <div className="space-y-3">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Prop #{proposal.proposalNumber}
-                </span>
-                <div className="flex-shrink-0">
-                  <Badge className={`${statusConfig.color} text-xs`}>
-                    <StatusIcon className="w-3 h-3 mr-1" />
-                    {proposal.status}
-                  </Badge>
-                </div>
-              </div>
-              <h4 className="font-semibold text-sm leading-tight truncate pr-2">
-                {proposal.title}
-              </h4>
-              <p className="text-xs text-muted-foreground mt-1">
-                by {proposal.proposer.slice(0, 6)}...
-                {proposal.proposer.slice(-4)} • {timeCreated}
-              </p>
-            </div>
+    <Link href={`/proposals/${proposal.proposalNumber}`} className="block">
+      <Card className="hover:shadow-md transition-shadow overflow-hidden cursor-pointer">
+        {showBanner && (
+          <div className="mx-4 border rounded-md overflow-hidden">
+            <AspectRatio ratio={16 / 9}>
+              <Image
+                src={currentBannerSrc}
+                alt="Proposal banner"
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="object-cover"
+                priority={false}
+                onError={() => {
+                  if (currentBannerSrc !== "/logo-banner.jpg") {
+                    setCurrentBannerSrc("/logo-banner.jpg");
+                  }
+                }}
+              />
+            </AspectRatio>
           </div>
-
-          {/* Voting Progress */}
-          {totalVotes > 0 && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Voting Progress</span>
-                <span>{totalVotes} votes</span>
-              </div>
-
-              {/* Vote breakdown bars with quorum marker */}
-              <div className="space-y-1">
-                <div className="relative">
-                  <div className="flex gap-0.5">
-                    {proposal.forVotes > 0 && (
-                      <div
-                        className={cn(
-                          "h-1.5 bg-green-500",
-                          proposal.againstVotes === 0 &&
-                            proposal.abstainVotes === 0
-                            ? "rounded"
-                            : "rounded-l"
-                        )}
-                        style={{ width: `${forPercentage}%` }}
-                      />
-                    )}
-                    {proposal.againstVotes > 0 && (
-                      <div
-                        className={cn(
-                          "h-1.5 bg-red-500",
-                          proposal.forVotes === 0 && proposal.abstainVotes === 0
-                            ? "rounded"
-                            : proposal.abstainVotes === 0
-                            ? "rounded-r"
-                            : ""
-                        )}
-                        style={{ width: `${againstPercentage}%` }}
-                      />
-                    )}
-                    {proposal.abstainVotes > 0 && (
-                      <div
-                        className={cn(
-                          "h-1.5 bg-gray-300",
-                          proposal.forVotes === 0 && proposal.againstVotes === 0
-                            ? "rounded"
-                            : "rounded-r"
-                        )}
-                        style={{ width: `${abstainPercentage}%` }}
-                      />
-                    )}
+        )}
+        <CardContent className="px-4 py-2">
+          <div className="space-y-3">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Prop #{proposal.proposalNumber}
+                  </span>
+                  <div className="flex-shrink-0">
+                    <Badge className={`${statusConfig.color} text-xs`}>
+                      <StatusIcon className="w-3 h-3 mr-1" />
+                      {proposal.status}
+                    </Badge>
                   </div>
+                </div>
+                <h4 className="font-semibold text-sm leading-tight truncate pr-2">
+                  {proposal.title}
+                </h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  by {proposal.proposer.slice(0, 6)}...
+                  {proposal.proposer.slice(-4)} • {timeCreated}
+                </p>
+              </div>
+            </div>
 
-                  {proposal.quorumVotes > 0 && totalVotes > 0 && (
-                    <div className="pointer-events-none absolute inset-0">
-                      <div
-                        className="absolute top-0 bottom-0 w-0.5 bg-yellow-400"
-                        style={{
-                          left: `${quorumMarkerPercent}%`,
-                          transform: "translateX(-50%)",
-                        }}
-                      />
+            {/* Voting Progress */}
+            {totalVotes > 0 && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Voting Progress</span>
+                  <span>{totalVotes} votes</span>
+                </div>
+
+                {/* Vote breakdown bars with quorum marker */}
+                <div className="space-y-1">
+                  <div className="relative">
+                    <div className="flex gap-0.5">
+                      {proposal.forVotes > 0 && (
+                        <div
+                          className={cn(
+                            "h-1.5 bg-green-500",
+                            proposal.againstVotes === 0 &&
+                              proposal.abstainVotes === 0
+                              ? "rounded"
+                              : "rounded-l"
+                          )}
+                          style={{ width: `${forPercentage}%` }}
+                        />
+                      )}
+                      {proposal.againstVotes > 0 && (
+                        <div
+                          className={cn(
+                            "h-1.5 bg-red-500",
+                            proposal.forVotes === 0 &&
+                              proposal.abstainVotes === 0
+                              ? "rounded"
+                              : proposal.abstainVotes === 0
+                              ? "rounded-r"
+                              : ""
+                          )}
+                          style={{ width: `${againstPercentage}%` }}
+                        />
+                      )}
+                      {proposal.abstainVotes > 0 && (
+                        <div
+                          className={cn(
+                            "h-1.5 bg-gray-300",
+                            proposal.forVotes === 0 &&
+                              proposal.againstVotes === 0
+                              ? "rounded"
+                              : "rounded-r"
+                          )}
+                          style={{ width: `${abstainPercentage}%` }}
+                        />
+                      )}
                     </div>
-                  )}
-                </div>
 
-                <div className="flex justify-between text-xs">
-                  <div className="flex items-center gap-1">
-                    <ThumbsUp className="w-3 h-3 text-green-500" />
-                    <span>
-                      {proposal.forVotes} ({forPercentage.toFixed(0)}%)
-                    </span>
+                    {proposal.quorumVotes > 0 && totalVotes > 0 && (
+                      <div className="pointer-events-none absolute inset-0">
+                        <div
+                          className="absolute top-0 bottom-0 w-0.5 bg-yellow-400"
+                          style={{
+                            left: `${quorumMarkerPercent}%`,
+                            transform: "translateX(-50%)",
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <ThumbsDown className="w-3 h-3 text-red-500" />
-                    <span>
-                      {proposal.againstVotes} ({againstPercentage.toFixed(0)}%)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MinusCircle className="w-3 h-3 text-gray-400" />
-                    <span>
-                      {proposal.abstainVotes} ({abstainPercentage.toFixed(0)}%)
-                    </span>
+
+                  <div className="flex justify-between text-xs">
+                    <div className="flex items-center gap-1">
+                      <ThumbsUp className="w-3 h-3 text-green-500" />
+                      <span>
+                        {proposal.forVotes} ({forPercentage.toFixed(0)}%)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <ThumbsDown className="w-3 h-3 text-red-500" />
+                      <span>
+                        {proposal.againstVotes} ({againstPercentage.toFixed(0)}
+                        %)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MinusCircle className="w-3 h-3 text-gray-400" />
+                      <span>
+                        {proposal.abstainVotes} ({abstainPercentage.toFixed(0)}
+                        %)
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Active voting countdown */}
-          {isVotingActive && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Voting ends</span>
-              <span className="font-medium">
-                {formatDistanceToNow(voteEndTime, { addSuffix: true })}
-              </span>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            {/* Active voting countdown */}
+            {isVotingActive && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Voting ends</span>
+                <span className="font-medium">
+                  {formatDistanceToNow(voteEndTime, { addSuffix: true })}
+                </span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
