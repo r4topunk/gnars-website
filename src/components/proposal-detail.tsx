@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ExternalLink, User } from "lucide-react";
+import { Copy, ExternalLink, User } from "lucide-react";
 import { getProposal, getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { ProposalMetrics } from "@/components/proposal-metrics";
 import { Badge } from "@/components/ui/badge";
@@ -19,15 +19,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VotingControls } from "@/components/voting-controls";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import ReactMarkdown from "react-markdown";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Pie, PieChart, Cell } from "recharts";
+import { Markdown } from "@/components/markdown";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
 interface UiProposalVote {
   voter: string;
@@ -117,6 +111,9 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasVoted, setHasVoted] = useState(false);
   const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
+  const [proposerEnsName, setProposerEnsName] = useState<string | undefined>(undefined);
+
+  console.log("description", proposal?.description);
 
   useEffect(() => {
     const fetchProposal = async () => {
@@ -221,6 +218,25 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
     fetchProposal();
   }, [proposalId]);
 
+  // Fetch ENS for proposer if available
+  useEffect(() => {
+    const fetchEns = async () => {
+      if (!proposal?.proposer) return;
+      try {
+        // Public ENS resolution API (read-only)
+        const res = await fetch(`https://api.ensideas.com/ens/resolve/${proposal.proposer}`);
+        if (res.ok) {
+          const data = (await res.json()) as { name?: string; displayName?: string };
+          const name = data?.displayName || data?.name;
+          if (name) setProposerEnsName(name);
+        }
+      } catch {
+        // non-critical
+      }
+    };
+    fetchEns();
+  }, [proposal?.proposer]);
+
   const handleVote = (vote: "FOR" | "AGAINST" | "ABSTAIN") => {
     setHasVoted(true);
     setUserVote(vote);
@@ -251,41 +267,33 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">Proposal #{proposal.proposalNumber}</h1>
+    <div className="space-y-6">
+      {/* Header like reference */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>Proposal {proposal.proposalNumber}</span>
           <Badge variant={getStatusBadgeVariant(proposal.state)}>
             {getStatusLabel(proposal.state)}
           </Badge>
+          {proposal.transactionHash && (
+            <a
+              href={`https://basescan.org/tx/${proposal.transactionHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center text-muted-foreground hover:text-foreground"
+              aria-label="Open in explorer"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          )}
         </div>
-        <Button variant="outline" size="sm" asChild>
-          <a
-            href={`https://basescan.org/tx/${proposal.transactionHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2"
-          >
-            View Transaction <ExternalLink className="h-4 w-4" />
-          </a>
-        </Button>
+        <h1 className="text-3xl font-bold tracking-tight">{proposal.title}</h1>
+        <div className="text-sm text-muted-foreground">By {proposerEnsName || proposal.proposerEnsName || `${proposal.proposer.slice(0, 6)}...${proposal.proposer.slice(-4)}`}</div>
       </div>
 
-      {/* Title and Proposer */}
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">{proposal.title}</h2>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <User className="h-4 w-4" />
-          <span>
-            By{" "}
-            {proposal.proposerEnsName ||
-              `${proposal.proposer.slice(0, 6)}...${proposal.proposer.slice(-4)}`}
-          </span>
-        </div>
-      </div>
+      {/* Vote callout removed per request */}
 
-      {/* Metrics */}
+      {/* Metrics (compact) */}
       <ProposalMetrics
         forVotes={proposal.forVotes}
         againstVotes={proposal.againstVotes}
@@ -293,10 +301,12 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
         quorumVotes={proposal.quorumVotes}
         snapshotBlock={proposal.snapshotBlock}
         endDate={proposal.endDate}
+        proposer={proposal.proposer}
+        proposerEnsName={proposerEnsName || proposal.proposerEnsName}
       />
 
       {/* Voting Controls */}
-      <Card>
+      <Card id="voting-section">
         <CardHeader>
           <CardTitle>Cast Your Vote</CardTitle>
         </CardHeader>
@@ -320,131 +330,91 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
         </TabsList>
 
         <TabsContent value="details" className="space-y-6 mt-6">
-          {/* Description */}
+          {/* Description: full markdown */}
           <Card>
             <CardHeader>
               <CardTitle>Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-neutral dark:prose-invert max-w-none">
-                <ReactMarkdown>{proposal.description}</ReactMarkdown>
-              </div>
+              <Markdown>{proposal.description}</Markdown>
             </CardContent>
           </Card>
 
-          {/* Proposer Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Proposer</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                  <User className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="font-medium">
-                    {proposal.proposerEnsName ||
-                      `${proposal.proposer.slice(0, 6)}...${proposal.proposer.slice(-4)}`}
-                  </div>
-                  <div className="text-sm text-muted-foreground font-mono">{proposal.proposer}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Proposed Transactions */}
+          {/* Proposed Transactions: human-readable table */}
           <Card>
             <CardHeader>
               <CardTitle>Proposed Transactions</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {proposal.targets.map((target, index) => (
-                  <div key={index} className="border rounded-lg p-4 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">Target:</span>
-                      <code className="text-sm bg-muted px-2 py-1 rounded">{target}</code>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">Value:</span>
-                      <code className="text-sm bg-muted px-2 py-1 rounded">
-                        {parseInt(proposal.values[index]) / 1e18} ETH
-                      </code>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">Function:</span>
-                      <code className="text-sm bg-muted px-2 py-1 rounded">
-                        {proposal.signatures[index] || "N/A"}
-                      </code>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <CardContent className="space-y-4">
+              {proposal.targets.length === 0 ? (
+                <p className="text-muted-foreground">No transaction calls attached.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Target</TableHead>
+                      <TableHead>Function</TableHead>
+                      <TableHead>Value</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {proposal.targets.map((target, index) => {
+                      const valueEth = (() => {
+                        const raw = Number(proposal.values[index] || 0);
+                        if (!Number.isFinite(raw)) return "0";
+                        return (raw / 1e18).toLocaleString(undefined, { maximumFractionDigits: 6 });
+                      })();
+                      const fnSig = proposal.signatures[index] || "—";
+                      const addressLabel = `${target.slice(0, 6)}...${target.slice(-4)}`;
+                      const copy = async (text: string, label: string) => {
+                        try {
+                          await navigator.clipboard.writeText(text);
+                          toast.success(`${label} copied`);
+                        } catch {
+                          toast.error(`Failed to copy ${label}`);
+                        }
+                      };
+                      return (
+                        <TableRow key={`${target}-${index}`}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button variant="link" className="px-0" asChild>
+                                <a
+                                  href={`https://basescan.org/address/${target}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-mono"
+                                >
+                                  {addressLabel}
+                                </a>
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Copy address"
+                                onClick={() => copy(target, "Address")}
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary">{fnSig}</Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono">{valueEth} ETH</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="votes" className="mt-6 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vote Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {(() => {
-                const forNum = Number(proposal.forVotes ?? 0);
-                const againstNum = Number(proposal.againstVotes ?? 0);
-                const abstainNum = Number(proposal.abstainVotes ?? 0);
-                const data = [
-                  { name: "For", value: forNum, key: "for" },
-                  { name: "Against", value: againstNum, key: "against" },
-                  { name: "Abstain", value: abstainNum, key: "abstain" },
-                ];
-                const total = forNum + againstNum + abstainNum;
-                const colors: Record<string, string> = {
-                  for: "#22c55e",
-                  against: "#ef4444",
-                  abstain: "#6b7280",
-                };
-                const config = {
-                  for: { label: "For", color: colors.for },
-                  against: { label: "Against", color: colors.against },
-                  abstain: { label: "Abstain", color: colors.abstain },
-                } as const;
-                return (
-                  <ChartContainer config={config} className="w-full">
-                    <PieChart>
-                      <ChartTooltip
-                        content={
-                          <ChartTooltipContent
-                            indicator="dot"
-                            formatter={(value, name) => (
-                              <div className="flex w-full items-center justify-between gap-4">
-                                <span className="text-muted-foreground">{name}</span>
-                                <span className="font-mono tabular-nums">
-                                  {Number(value).toLocaleString()} (
-                                  {total > 0 ? Math.round((Number(value) / total) * 100) : 0}%)
-                                </span>
-                              </div>
-                            )}
-                          />
-                        }
-                      />
-                      <Pie data={data} dataKey="value" nameKey="name" innerRadius={48} strokeWidth={2}>
-                        {data.map((entry) => (
-                          <Cell key={entry.key} fill={colors[entry.key]} />
-                        ))}
-                      </Pie>
-                      <ChartLegend
-                        verticalAlign="bottom"
-                        content={<ChartLegendContent nameKey="name" />}
-                      />
-                    </PieChart>
-                  </ChartContainer>
-                );
-              })()}
-            </CardContent>
-          </Card>
           <Card>
             <CardHeader>
               <CardTitle>Individual Votes</CardTitle>
@@ -464,8 +434,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                       <TableRow key={index}>
                         <TableCell>
                           <div className="font-mono text-sm">
-                            {vote.voterEnsName ||
-                              `${vote.voter.slice(0, 6)}...${vote.voter.slice(-4)}`}
+                            {vote.voterEnsName || `${vote.voter.slice(0, 6)}...${vote.voter.slice(-4)}`}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -482,18 +451,14 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          {parseFloat(vote.votes).toLocaleString(undefined, {
-                            maximumFractionDigits: 1,
-                          })}
+                          {parseFloat(vote.votes).toLocaleString(undefined, { maximumFractionDigits: 1 })}
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  No votes have been cast yet
-                </p>
+                <p className="text-center text-muted-foreground py-8">No votes have been cast yet</p>
               )}
             </CardContent>
           </Card>
@@ -507,9 +472,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
             <CardContent>
               <div className="text-center py-8 text-muted-foreground">
                 <p>Propdates functionality coming soon...</p>
-                <p className="text-sm mt-2">
-                  This will show EAS-based proposal updates and community feedback
-                </p>
+                <p className="text-sm mt-2">This will show EAS-based proposal updates and community feedback</p>
               </div>
             </CardContent>
           </Card>
