@@ -190,7 +190,7 @@ export function PastAuctions({ auctions, loading, hasMore, onLoadMore, title = "
             </p>
           </div>
           {showViewAllButton && (
-            <Link href="/auction">
+            <Link href="/auctions">
               <Button variant="outline" size="sm">
                 <span>View all auctions</span>
                 <ArrowRight className="ml-2 h-4 w-4" />
