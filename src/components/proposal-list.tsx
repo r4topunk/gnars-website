@@ -11,13 +11,14 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config"
+import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk"
 
-// Mock proposal data structure - in real implementation, this would come from Builder SDK
 interface Proposal {
   proposalId: string
   proposalNumber: number
   title: string
-  state: "PENDING" | "ACTIVE" | "DEFEATED" | "SUCCEEDED" | "QUEUED" | "EXECUTED" | "CANCELED" | "VETOED"
+  state: "PENDING" | "ACTIVE" | "DEFEATED" | "SUCCEEDED" | "QUEUED" | "EXECUTED" | "CANCELED" | "VETOED" | "EXPIRED"
   proposer: string
   description: string
   createdAt: number
@@ -34,6 +35,8 @@ const getStatusBadgeVariant = (state: Proposal["state"]) => {
       return "default" // green
     case "ACTIVE":
       return "secondary" // blue
+    case "EXPIRED":
+      return "outline" // gray
     case "DEFEATED":
     case "VETOED":
       return "destructive" // red
@@ -62,6 +65,8 @@ const getStatusLabel = (state: Proposal["state"]) => {
       return "Canceled"
     case "VETOED":
       return "Vetoed"
+    case "EXPIRED":
+      return "Expired"
     default:
       return state
   }
@@ -72,59 +77,48 @@ export function ProposalList() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data - replace with actual Builder SDK call
     const fetchProposals = async () => {
       try {
-        // In real implementation, use something like:
-        // const data = await getProposals(CHAIN.id, GNARS_ADDRESSES.token)
-        
-        // Mock data for now
-        const mockProposals: Proposal[] = [
-          {
-            proposalId: "0x1",
-            proposalNumber: 3,
-            title: "Fund Gnars Skateboarding Event",
-            state: "EXECUTED",
-            proposer: "0x123...abc",
-            description: "Proposal to fund a skateboarding event...",
-            createdAt: Date.now() - 86400000 * 7,
-            endBlock: 123456789,
-            forVotes: "15.5",
-            againstVotes: "2.1",
-            abstainVotes: "0.5",
-            quorumVotes: "10"
-          },
-          {
-            proposalId: "0x2",
-            proposalNumber: 2,
-            title: "Update DAO Metadata",
-            state: "ACTIVE",
-            proposer: "0x456...def",
-            description: "Update the DAO description and metadata...",
-            createdAt: Date.now() - 86400000 * 2,
-            endBlock: 123456999,
-            forVotes: "8.2",
-            againstVotes: "1.5",
-            abstainVotes: "0.1",
-            quorumVotes: "10"
-          },
-          {
-            proposalId: "0x3",
-            proposalNumber: 1,
-            title: "Treasury Diversification Strategy",
-            state: "DEFEATED",
-            proposer: "0x789...ghi",
-            description: "Proposal to diversify treasury holdings...",
-            createdAt: Date.now() - 86400000 * 14,
-            endBlock: 123456700,
-            forVotes: "3.2",
-            againstVotes: "12.8",
-            abstainVotes: "1.0",
-            quorumVotes: "10"
-          }
-        ]
-        
-        setProposals(mockProposals)
+        const { proposals: sdkProposals } = await getProposals(
+          CHAIN.id,
+          GNARS_ADDRESSES.token,
+          100
+        )
+
+        const mapped: Proposal[] = (sdkProposals as SdkProposal[] | undefined ?? []).map((p) => ({
+          proposalId: String(p.proposalId),
+          proposalNumber: Number(p.proposalNumber),
+          title: p.title ?? "",
+          state: (() => {
+            const s = p.state as unknown
+            if (typeof s === 'number') {
+              switch (s) {
+                case 0: return 'PENDING'
+                case 1: return 'ACTIVE'
+                case 2: return 'CANCELED'
+                case 3: return 'DEFEATED'
+                case 4: return 'SUCCEEDED'
+                case 5: return 'QUEUED'
+                case 6: return 'EXPIRED'
+                case 7: return 'EXECUTED'
+                case 8: return 'VETOED'
+                default: return 'PENDING'
+              }
+            }
+            const up = String(s).toUpperCase()
+            return up as Proposal["state"]
+          })(),
+          proposer: p.proposer,
+          description: p.description ?? "",
+          createdAt: Number(p.timeCreated ?? 0) * 1000,
+          endBlock: Number(p.voteEnd ?? 0),
+          forVotes: String(p.forVotes ?? "0"),
+          againstVotes: String(p.againstVotes ?? "0"),
+          abstainVotes: String(p.abstainVotes ?? "0"),
+          quorumVotes: String(p.quorumVotes ?? "0"),
+        }))
+
+        setProposals(mapped)
       } catch (error) {
         console.error("Failed to fetch proposals:", error)
         setProposals([])

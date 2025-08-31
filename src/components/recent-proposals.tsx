@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import {
   CalendarDays,
   ExternalLink,
@@ -24,6 +27,7 @@ import {
   Pause,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 // Proposal status enum based on reference analysis
 export enum ProposalStatus {
@@ -66,6 +70,7 @@ interface RecentProposalsProps {
   limit?: number;
   showLoadMore?: boolean;
   onLoadMore?: () => void;
+  excludeStatuses?: ProposalStatus[];
 }
 
 // Status styling configuration
@@ -192,19 +197,48 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
 
               {/* Vote breakdown bars */}
               <div className="space-y-1">
-                <div className="flex gap-1">
-                  <div
-                    className="h-1.5 bg-green-500 rounded-l"
-                    style={{ width: `${forPercentage}%` }}
-                  />
-                  <div
-                    className="h-1.5 bg-red-500"
-                    style={{ width: `${againstPercentage}%` }}
-                  />
-                  <div
-                    className="h-1.5 bg-gray-300 rounded-r"
-                    style={{ width: `${abstainPercentage}%` }}
-                  />
+                <div className="flex gap-0.5">
+                  {
+                    proposal.forVotes > 0 && (
+                      <div
+                        className={cn(
+                          "h-1.5 bg-green-500",
+                          proposal.againstVotes === 0 && proposal.abstainVotes === 0 
+                            ? "rounded" 
+                            : "rounded-l"
+                        )}
+                        style={{ width: `${forPercentage}%` }}
+                      />
+                    )
+                  }
+                  {
+                    proposal.againstVotes > 0 && (
+                      <div
+                        className={cn(
+                          "h-1.5 bg-red-500",
+                          proposal.forVotes === 0 && proposal.abstainVotes === 0 
+                            ? "rounded" 
+                            : proposal.abstainVotes === 0 
+                              ? "rounded-r" 
+                              : ""
+                        )}
+                        style={{ width: `${againstPercentage}%` }}
+                      />
+                    )
+                  }
+                  {
+                    proposal.abstainVotes > 0 && (
+                      <div
+                        className={cn(
+                          "h-1.5 bg-gray-300",
+                          proposal.forVotes === 0 && proposal.againstVotes === 0 
+                            ? "rounded" 
+                            : "rounded-r"
+                        )}
+                        style={{ width: `${abstainPercentage}%` }}
+                      />
+                    )
+                  }
                 </div>
 
                 <div className="flex justify-between text-xs">
@@ -257,126 +291,104 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
   );
 }
 
-// Mock data based on reference analysis
-const mockProposals: Proposal[] = [
-  {
-    proposalId: "1",
-    proposalNumber: 45,
-    title: "Fund Gnars BMX Competition Series - Q1 2024",
-    proposer: "0x742d35Cc6634C0532925a3b8D52E02c0a65A40f2",
-    status: ProposalStatus.ACTIVE,
-    forVotes: 125,
-    againstVotes: 23,
-    abstainVotes: 8,
-    quorumVotes: 100,
-    voteStart: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    voteEnd: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    timeCreated: Date.now() / 1000 - 3 * 24 * 60 * 60,
-    executed: false,
-    canceled: false,
-    queued: false,
-    vetoed: false,
-  },
-  {
-    proposalId: "2",
-    proposalNumber: 44,
-    title: "Update Treasury Management Strategy for Base Ecosystem",
-    proposer: "0x123d35Cc6634C0532925a3b8D52E02c0a65A40f2",
-    status: ProposalStatus.SUCCEEDED,
-    forVotes: 198,
-    againstVotes: 45,
-    abstainVotes: 12,
-    quorumVotes: 150,
-    voteStart: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    voteEnd: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    timeCreated: Date.now() / 1000 - 12 * 24 * 60 * 60,
-    executed: false,
-    canceled: false,
-    queued: true,
-    vetoed: false,
-  },
-  {
-    proposalId: "3",
-    proposalNumber: 43,
-    title: "Partner with Action Sports Brands for NFT Collaborations",
-    proposer: "0x456d35Cc6634C0532925a3b8D52E02c0a65A40f2",
-    status: ProposalStatus.EXECUTED,
-    forVotes: 245,
-    againstVotes: 31,
-    abstainVotes: 18,
-    quorumVotes: 180,
-    voteStart: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-    voteEnd: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString(),
-    timeCreated: Date.now() / 1000 - 22 * 24 * 60 * 60,
-    executed: true,
-    canceled: false,
-    queued: false,
-    vetoed: false,
-  },
-  {
-    proposalId: "4",
-    proposalNumber: 42,
-    title: "Establish Gnars Skateboarding Academy Program",
-    proposer: "0x789d35Cc6634C0532925a3b8D52E02c0a65A40f2",
-    status: ProposalStatus.DEFEATED,
-    forVotes: 89,
-    againstVotes: 156,
-    abstainVotes: 24,
-    quorumVotes: 150,
-    voteStart: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    voteEnd: new Date(Date.now() - 23 * 24 * 60 * 60 * 1000).toISOString(),
-    timeCreated: Date.now() / 1000 - 32 * 24 * 60 * 60,
-    executed: false,
-    canceled: false,
-    queued: false,
-    vetoed: false,
-  },
-  {
-    proposalId: "5",
-    proposalNumber: 41,
-    title: "Allocate 50 ETH for Surfing Event Sponsorship",
-    proposer: "0xabcd35Cc6634C0532925a3b8D52E02c0a65A40f2",
-    status: ProposalStatus.PENDING,
-    forVotes: 0,
-    againstVotes: 0,
-    abstainVotes: 0,
-    quorumVotes: 120,
-    voteStart: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-    voteEnd: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(),
-    timeCreated: Date.now() / 1000 - 1 * 24 * 60 * 60,
-    executed: false,
-    canceled: false,
-    queued: false,
-    vetoed: false,
-  },
-  {
-    proposalId: "6",
-    proposalNumber: 40,
-    title: "Create Gnars Merchandise Store with Community Designs",
-    proposer: "0xefgh35Cc6634C0532925a3b8D52E02c0a65A40f2",
-    status: ProposalStatus.QUEUED,
-    forVotes: 167,
-    againstVotes: 78,
-    abstainVotes: 15,
-    quorumVotes: 140,
-    voteStart: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
-    voteEnd: new Date(Date.now() - 33 * 24 * 60 * 60 * 1000).toISOString(),
-    timeCreated: Date.now() / 1000 - 42 * 24 * 60 * 60,
-    executed: false,
-    canceled: false,
-    queued: true,
-    vetoed: false,
-  },
-];
+// Minimal fallback for dev when network fails
+const fallbackProposals: Proposal[] = [];
+
+function mapSdkStateToStatus(state: string): ProposalStatus {
+  const mapping: Record<string, ProposalStatus> = {
+    PENDING: ProposalStatus.PENDING,
+    ACTIVE: ProposalStatus.ACTIVE,
+    SUCCEEDED: ProposalStatus.SUCCEEDED,
+    QUEUED: ProposalStatus.QUEUED,
+    EXECUTED: ProposalStatus.EXECUTED,
+    DEFEATED: ProposalStatus.DEFEATED,
+    CANCELED: ProposalStatus.CANCELLED,
+    VETOED: ProposalStatus.VETOED,
+    EXPIRED: ProposalStatus.EXPIRED,
+  };
+  return mapping[state] ?? ProposalStatus.PENDING;
+}
 
 export function RecentProposals({
-  proposals = mockProposals,
+  proposals,
   limit = 3,
   showLoadMore = true,
   onLoadMore,
+  excludeStatuses = [],
 }: RecentProposalsProps) {
-  const displayedProposals = proposals.slice(0, limit);
-  const hasMore = proposals.length > limit;
+  const [internalProposals, setInternalProposals] = useState<Proposal[]>(proposals ?? []);
+  const [isLoading, setIsLoading] = useState<boolean>(!proposals);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProposals = async () => {
+      if (proposals) return; // controlled externally
+      try {
+        setIsLoading(true);
+        const { proposals: sdkProposals } = await getProposals(
+          CHAIN.id,
+          GNARS_ADDRESSES.token,
+          Math.max(10, limit)
+        );
+        if (!isMounted) return;
+        const mapped: Proposal[] = (sdkProposals as SdkProposal[] | undefined ?? []).map((p) => ({
+          proposalId: String(p.proposalId),
+          proposalNumber: Number(p.proposalNumber),
+          title: p.title ?? "",
+          description: p.description ?? "",
+          proposer: p.proposer,
+          status: (() => {
+            const s = p.state as unknown;
+            if (typeof s === 'number') {
+              switch (s) {
+                case 0: return ProposalStatus.PENDING;
+                case 1: return ProposalStatus.ACTIVE;
+                case 2: return ProposalStatus.CANCELLED;
+                case 3: return ProposalStatus.DEFEATED;
+                case 4: return ProposalStatus.SUCCEEDED;
+                case 5: return ProposalStatus.QUEUED;
+                case 6: return ProposalStatus.EXPIRED;
+                case 7: return ProposalStatus.EXECUTED;
+                case 8: return ProposalStatus.VETOED;
+                default: return ProposalStatus.PENDING;
+              }
+            }
+            return mapSdkStateToStatus(String(s));
+          })(),
+          forVotes: Number(p.forVotes ?? 0),
+          againstVotes: Number(p.againstVotes ?? 0),
+          abstainVotes: Number(p.abstainVotes ?? 0),
+          quorumVotes: Number(p.quorumVotes ?? 0),
+          voteStart: new Date(Number(p.voteStart ?? 0) * 1000).toISOString(),
+          voteEnd: new Date(Number(p.voteEnd ?? 0) * 1000).toISOString(),
+          expiresAt: p.expiresAt ? new Date(Number(p.expiresAt) * 1000).toISOString() : undefined,
+          timeCreated: Number(p.timeCreated ?? 0),
+          executed: Boolean(p.executedAt),
+          canceled: Boolean(p.cancelTransactionHash),
+          queued: String(p.state) === "QUEUED",
+          vetoed: Boolean(p.vetoTransactionHash),
+          transactionHash: p.transactionHash,
+        }));
+        setInternalProposals(mapped);
+      } catch (err) {
+        console.error("Failed to load proposals:", err);
+        if (!isMounted) return;
+        setInternalProposals(fallbackProposals);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchProposals();
+    return () => {
+      isMounted = false;
+    };
+  }, [proposals, limit]);
+
+  const data = (proposals ?? internalProposals).filter(
+    (p) => !excludeStatuses.includes(p.status)
+  );
+  const displayedProposals = data.slice(0, limit);
+  const hasMore = data.length > limit;
 
   return (
     <Card className="w-full">
@@ -395,7 +407,13 @@ export function RecentProposals({
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {displayedProposals.length === 0 ? (
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="h-48 bg-muted rounded animate-pulse" />
+            <div className="h-48 bg-muted rounded animate-pulse" />
+            <div className="h-48 bg-muted rounded animate-pulse" />
+          </div>
+        ) : displayedProposals.length === 0 ? (
           <div className="text-center py-8">
             <CalendarDays className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No Recent Proposals</h3>

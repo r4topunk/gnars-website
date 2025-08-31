@@ -3,7 +3,7 @@
 import { HeroSection } from "@/components/hero-section";
 import { ContractsList } from "@/components/contracts-list";
 import { PastAuctions } from "@/components/past-auctions";
-import { RecentProposals } from "@/components/recent-proposals";
+import { RecentProposals, ProposalStatus } from "@/components/recent-proposals";
 import { AuctionTrendChart, TreasuryAllocationChart, MemberActivityChart } from "@/components/dashboard-charts";
 import {
   SidebarInset,
@@ -36,7 +36,7 @@ export default function Home() {
 
           {/* Recent Proposals Section */}
           <section>
-            <RecentProposals limit={6} />
+            <RecentProposals limit={6} excludeStatuses={[ProposalStatus.CANCELLED]} />
           </section>
 
           {/* Analytics Charts Row */}
