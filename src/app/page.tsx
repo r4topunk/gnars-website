@@ -8,17 +8,12 @@ import { AuctionTrendChart, TreasuryAllocationChart, MemberActivityChart } from 
 import {
   SidebarInset,
 } from "@/components/ui/sidebar";
+import { useRecentAuctions } from '@/hooks/use-auctions'
 
-const mockPastAuctions = Array.from({ length: 12 }, (_, i) => ({
-  id: (122 - i).toString(),
-  tokenId: (455 - i).toString(),
-  finalBid: (Math.random() * 5 + 0.1).toFixed(2),
-  winner: `0x${Math.random().toString(16).substring(2, 42)}`,
-  endTime: new Date(Date.now() - (i + 1) * 24 * 60 * 60 * 1000),
-  settled: true,
-}));
+// Remove mocks in favor of real data from the subgraph
 
 export default function Home() {
+  const { data: recentAuctions, isLoading } = useRecentAuctions(8)
   return (
     <SidebarInset>
       <main className="flex flex-1 flex-col">
@@ -49,9 +44,10 @@ export default function Home() {
           {/* Recent Auctions */}
           <section>
             <PastAuctions 
-              auctions={mockPastAuctions.slice(0, 8)}
+              auctions={recentAuctions}
+              loading={isLoading}
               hasMore={true}
-              onLoadMore={() => console.log('Load more auctions')}
+              onLoadMore={() => {}}
             />
           </section>
 
