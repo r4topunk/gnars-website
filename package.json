@@ -56,6 +56,7 @@
     "rehype-slug": "^6.0.0",
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
+    "require-in-the-middle": "^7.5.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "viem": "^2.36.0",
