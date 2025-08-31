@@ -300,7 +300,7 @@ export function ProposalCard({
                     {proposal.quorumVotes > 0 && totalVotes > 0 && (
                       <div className="pointer-events-none absolute inset-0">
                         <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-yellow-400"
+                          className="absolute top-0 bottom-0 w-1 bg-yellow-300"
                           style={{
                             left: `${quorumMarkerPercent}%`,
                             transform: "translateX(-50%)",
