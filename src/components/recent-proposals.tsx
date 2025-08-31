@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
@@ -144,11 +143,11 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
   const abstainPercentage =
     totalVotes > 0 ? (proposal.abstainVotes / totalVotes) * 100 : 0;
 
-  // Calculate quorum progress
-  const quorumProgress =
-    proposal.quorumVotes > 0
-      ? Math.min(100, (totalVotes / proposal.quorumVotes) * 100)
-      : 0;
+  // Quorum threshold marker position (relative to current votes bar)
+  const quorumMarkerPercent =
+    proposal.quorumVotes > 0 && totalVotes > 0
+      ? Math.min(100, (proposal.quorumVotes / totalVotes) * 100)
+      : 100;
 
   // Time formatting
   const timeCreated = formatDistanceToNow(
@@ -195,9 +194,10 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
                 <span>{totalVotes} votes</span>
               </div>
 
-              {/* Vote breakdown bars */}
+              {/* Vote breakdown bars with quorum marker */}
               <div className="space-y-1">
-                <div className="flex gap-0.5">
+                <div className="relative">
+                  <div className="flex gap-0.5">
                   {
                     proposal.forVotes > 0 && (
                       <div
@@ -239,6 +239,19 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
                       />
                     )
                   }
+                  </div>
+
+                  {proposal.quorumVotes > 0 && totalVotes > 0 && (
+                    <div className="pointer-events-none absolute inset-0">
+                      <div
+                        className="absolute top-0 bottom-0 w-0.5 bg-yellow-400"
+                        style={{
+                          left: `${quorumMarkerPercent}%`,
+                          transform: "translateX(-50%)",
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-between text-xs">
@@ -262,17 +275,6 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
                   </div>
                 </div>
               </div>
-
-              {/* Quorum progress */}
-              {proposal.quorumVotes > 0 && (
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Quorum</span>
-                    <span>{quorumProgress.toFixed(0)}%</span>
-                  </div>
-                  <Progress value={quorumProgress} className="h-1" />
-                </div>
-              )}
             </div>
           )}
 
