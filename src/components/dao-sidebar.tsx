@@ -2,10 +2,9 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { Home, Gavel, Vote, PlusCircle, Wallet, Users, FileText, Search } from "lucide-react";
+import { Home, Gavel, Vote, PlusCircle, Wallet, Users, FileText } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +12,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarInput,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -87,26 +85,6 @@ const daoNavigation = [
   },
 ];
 
-function SearchForm() {
-  return (
-    <form>
-      <SidebarGroup className="py-0">
-        <SidebarGroupContent className="relative">
-          <Label htmlFor="search" className="sr-only">
-            Search DAO
-          </Label>
-          <SidebarInput
-            id="search"
-            placeholder="Search proposals, members..."
-            className="pl-8"
-          />
-          <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 select-none opacity-50" />
-        </SidebarGroupContent>
-      </SidebarGroup>
-    </form>
-  );
-}
-
 function DaoHeader() {
   return (
     <SidebarMenu>
@@ -115,13 +93,13 @@ function DaoHeader() {
           size="lg"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
-          <div className="flex aspect-square size-8 items-center justify-center overflow-hidden">
+          <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-md bg-black">
             <Image
               src="/gnars.webp"
               alt="Gnars DAO"
-              width={32}
-              height={32}
-              className="object-cover"
+              width={64}
+              height={64}
+              className="object-cover w-4 h-4"
             />
           </div>
           <div className="flex flex-col gap-1 leading-none">
@@ -146,7 +124,6 @@ export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </div>
           <SidebarTrigger className="ml-2" />
         </div>
-        <SearchForm />
       </SidebarHeader>
       <SidebarContent>
         {daoNavigation.map((section) => (
