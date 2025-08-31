@@ -1,7 +1,9 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -9,72 +11,79 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config"
-import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk"
+} from "@/components/ui/table";
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 
 interface Proposal {
-  proposalId: string
-  proposalNumber: number
-  title: string
-  state: "PENDING" | "ACTIVE" | "DEFEATED" | "SUCCEEDED" | "QUEUED" | "EXECUTED" | "CANCELED" | "VETOED" | "EXPIRED"
-  proposer: string
-  description: string
-  createdAt: number
-  endBlock: number
-  forVotes: string
-  againstVotes: string
-  abstainVotes: string
-  quorumVotes: string
+  proposalId: string;
+  proposalNumber: number;
+  title: string;
+  state:
+    | "PENDING"
+    | "ACTIVE"
+    | "DEFEATED"
+    | "SUCCEEDED"
+    | "QUEUED"
+    | "EXECUTED"
+    | "CANCELED"
+    | "VETOED"
+    | "EXPIRED";
+  proposer: string;
+  description: string;
+  createdAt: number;
+  endBlock: number;
+  forVotes: string;
+  againstVotes: string;
+  abstainVotes: string;
+  quorumVotes: string;
 }
 
 const getStatusBadgeVariant = (state: Proposal["state"]) => {
   switch (state) {
     case "EXECUTED":
-      return "default" // green
+      return "default"; // green
     case "ACTIVE":
-      return "secondary" // blue
+      return "secondary"; // blue
     case "EXPIRED":
-      return "outline" // gray
+      return "outline"; // gray
     case "DEFEATED":
     case "VETOED":
-      return "destructive" // red
+      return "destructive"; // red
     case "CANCELED":
-      return "outline" // gray
+      return "outline"; // gray
     default:
-      return "secondary"
+      return "secondary";
   }
-}
+};
 
 const getStatusLabel = (state: Proposal["state"]) => {
   switch (state) {
     case "PENDING":
-      return "Pending"
+      return "Pending";
     case "ACTIVE":
-      return "Active"
+      return "Active";
     case "DEFEATED":
-      return "Defeated"
+      return "Defeated";
     case "SUCCEEDED":
-      return "Succeeded"
+      return "Succeeded";
     case "QUEUED":
-      return "Queued"
+      return "Queued";
     case "EXECUTED":
-      return "Executed"
+      return "Executed";
     case "CANCELED":
-      return "Canceled"
+      return "Canceled";
     case "VETOED":
-      return "Vetoed"
+      return "Vetoed";
     case "EXPIRED":
-      return "Expired"
+      return "Expired";
     default:
-      return state
+      return state;
   }
-}
+};
 
 export function ProposalList() {
-  const [proposals, setProposals] = useState<Proposal[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchProposals = async () => {
@@ -82,31 +91,41 @@ export function ProposalList() {
         const { proposals: sdkProposals } = await getProposals(
           CHAIN.id,
           GNARS_ADDRESSES.token,
-          100
-        )
+          100,
+        );
 
-        const mapped: Proposal[] = (sdkProposals as SdkProposal[] | undefined ?? []).map((p) => ({
+        const mapped: Proposal[] = ((sdkProposals as SdkProposal[] | undefined) ?? []).map((p) => ({
           proposalId: String(p.proposalId),
           proposalNumber: Number(p.proposalNumber),
           title: p.title ?? "",
           state: (() => {
-            const s = p.state as unknown
-            if (typeof s === 'number') {
+            const s = p.state as unknown;
+            if (typeof s === "number") {
               switch (s) {
-                case 0: return 'PENDING'
-                case 1: return 'ACTIVE'
-                case 2: return 'CANCELED'
-                case 3: return 'DEFEATED'
-                case 4: return 'SUCCEEDED'
-                case 5: return 'QUEUED'
-                case 6: return 'EXPIRED'
-                case 7: return 'EXECUTED'
-                case 8: return 'VETOED'
-                default: return 'PENDING'
+                case 0:
+                  return "PENDING";
+                case 1:
+                  return "ACTIVE";
+                case 2:
+                  return "CANCELED";
+                case 3:
+                  return "DEFEATED";
+                case 4:
+                  return "SUCCEEDED";
+                case 5:
+                  return "QUEUED";
+                case 6:
+                  return "EXPIRED";
+                case 7:
+                  return "EXECUTED";
+                case 8:
+                  return "VETOED";
+                default:
+                  return "PENDING";
               }
             }
-            const up = String(s).toUpperCase()
-            return up as Proposal["state"]
+            const up = String(s).toUpperCase();
+            return up as Proposal["state"];
           })(),
           proposer: p.proposer,
           description: p.description ?? "",
@@ -116,19 +135,19 @@ export function ProposalList() {
           againstVotes: String(p.againstVotes ?? "0"),
           abstainVotes: String(p.abstainVotes ?? "0"),
           quorumVotes: String(p.quorumVotes ?? "0"),
-        }))
+        }));
 
-        setProposals(mapped)
+        setProposals(mapped);
       } catch (error) {
-        console.error("Failed to fetch proposals:", error)
-        setProposals([])
+        console.error("Failed to fetch proposals:", error);
+        setProposals([]);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchProposals()
-  }, [])
+    fetchProposals();
+  }, []);
 
   if (isLoading) {
     return (
@@ -136,7 +155,7 @@ export function ProposalList() {
         <div className="h-8 bg-muted rounded animate-pulse" />
         <div className="h-64 bg-muted rounded animate-pulse" />
       </div>
-    )
+    );
   }
 
   if (proposals.length === 0) {
@@ -147,7 +166,7 @@ export function ProposalList() {
           Check back later for new governance proposals
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -186,5 +205,5 @@ export function ProposalList() {
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }

@@ -1,9 +1,16 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Copy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { GNARS_ADDRESSES } from "@/lib/config";
 
 const contracts = [
@@ -20,11 +27,11 @@ export function ContractsList() {
       await navigator.clipboard.writeText(address);
     } catch {
       // Fallback for browsers that don't support navigator.clipboard
-      const textArea = document.createElement('textarea');
+      const textArea = document.createElement("textarea");
       textArea.value = address;
       document.body.appendChild(textArea);
       textArea.select();
-      document.execCommand('copy');
+      document.execCommand("copy");
       document.body.removeChild(textArea);
     }
   };
@@ -37,9 +44,7 @@ export function ContractsList() {
     <Card>
       <CardHeader>
         <CardTitle>Smart Contracts</CardTitle>
-        <CardDescription>
-          Core Gnars DAO contracts deployed on Base network
-        </CardDescription>
+        <CardDescription>Core Gnars DAO contracts deployed on Base network</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
@@ -56,9 +61,7 @@ export function ContractsList() {
                 <TableCell>
                   <div>
                     <div className="font-medium">{contract.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {contract.description}
-                    </div>
+                    <div className="text-sm text-muted-foreground">{contract.description}</div>
                   </div>
                 </TableCell>
                 <TableCell className="font-mono text-sm">

@@ -21,6 +21,8 @@ const eslintConfig = [
       "references/**",
     ],
   },
+  // Disable rules that conflict with Prettier's formatting
+  ...compat.extends("prettier"),
 ];
 
 export default eslintConfig;

@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PastAuction {
   id: string;
@@ -65,13 +65,13 @@ function AuctionCard({ auction }: { auction: PastAuction }) {
 
           <div>
             <div className="text-sm text-muted-foreground">Final bid</div>
-            <div className="font-bold text-lg">{isZeroFinal ? '-' : `${auction.finalBid} ETH`}</div>
+            <div className="font-bold text-lg">{isZeroFinal ? "-" : `${auction.finalBid} ETH`}</div>
           </div>
 
           <div>
             <div className="text-sm text-muted-foreground">Winner</div>
             <div className="font-mono text-sm">
-              {isZeroFinal ? '-' : `${auction.winner.slice(0, 6)}...${auction.winner.slice(-4)}`}
+              {isZeroFinal ? "-" : `${auction.winner.slice(0, 6)}...${auction.winner.slice(-4)}`}
             </div>
           </div>
         </div>
@@ -104,7 +104,16 @@ function AuctionCardSkeleton() {
   );
 }
 
-export function PastAuctions({ auctions, loading, hasMore, onLoadMore, title = "Recent Auctions", description = "Latest completed auctions from the community", showViewAllButton = true, gridOnly = false }: PastAuctionsProps) {
+export function PastAuctions({
+  auctions,
+  loading,
+  hasMore,
+  onLoadMore,
+  title = "Recent Auctions",
+  description = "Latest completed auctions from the community",
+  showViewAllButton = true,
+  gridOnly = false,
+}: PastAuctionsProps) {
   const PAGE_SIZE = 20;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -134,7 +143,7 @@ export function PastAuctions({ auctions, loading, hasMore, onLoadMore, title = "
           return next;
         });
       },
-      { rootMargin: '200px' }
+      { rootMargin: "200px" },
     );
     observer.observe(el);
     return () => {
@@ -182,12 +191,8 @@ export function PastAuctions({ auctions, loading, hasMore, onLoadMore, title = "
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-xl font-bold flex items-center gap-2">
-              {title}
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              {description}
-            </p>
+            <CardTitle className="text-xl font-bold flex items-center gap-2">{title}</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">{description}</p>
           </div>
           {showViewAllButton && (
             <Link href="/auctions">

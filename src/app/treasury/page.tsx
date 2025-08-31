@@ -1,10 +1,10 @@
-import { Suspense } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { TreasuryBalance } from '@/components/treasury-balance';
-import { TokenHoldings } from '@/components/token-holdings';
-import { NftHoldings } from '@/components/nft-holdings';
-import { GNARS_ADDRESSES } from '@/lib/config';
+import { Suspense } from "react";
+import { NftHoldings } from "@/components/nft-holdings";
+import { TokenHoldings } from "@/components/token-holdings";
+import { TreasuryBalance } from "@/components/treasury-balance";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { GNARS_ADDRESSES } from "@/lib/config";
 
 export default function TreasuryPage() {
   return (
@@ -38,10 +38,7 @@ export default function TreasuryPage() {
                 <CardTitle className="text-sm font-medium">ETH Balance</CardTitle>
               </CardHeader>
               <CardContent>
-                <TreasuryBalance 
-                  treasuryAddress={GNARS_ADDRESSES.treasury} 
-                  metric="eth" 
-                />
+                <TreasuryBalance treasuryAddress={GNARS_ADDRESSES.treasury} metric="eth" />
               </CardContent>
             </Card>
           </Suspense>
@@ -50,15 +47,10 @@ export default function TreasuryPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Total Auction Sales</CardTitle>
-                <CardDescription>
-                  Cumulative ETH raised from all auctions
-                </CardDescription>
+                <CardDescription>Cumulative ETH raised from all auctions</CardDescription>
               </CardHeader>
               <CardContent>
-                <TreasuryBalance 
-                  treasuryAddress={GNARS_ADDRESSES.treasury} 
-                  metric="auctions" 
-                />
+                <TreasuryBalance treasuryAddress={GNARS_ADDRESSES.treasury} metric="auctions" />
               </CardContent>
             </Card>
           </Suspense>
@@ -68,9 +60,7 @@ export default function TreasuryPage() {
         <div className="space-y-4">
           <div className="space-y-2">
             <h2 className="text-xl font-semibold">Token Holdings</h2>
-            <p className="text-sm text-muted-foreground">
-              ERC-20 tokens held in the treasury
-            </p>
+            <p className="text-sm text-muted-foreground">ERC-20 tokens held in the treasury</p>
           </div>
           <Suspense fallback={<TableSkeleton />}>
             <TokenHoldings treasuryAddress={GNARS_ADDRESSES.treasury} />

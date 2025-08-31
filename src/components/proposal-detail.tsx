@@ -1,11 +1,12 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ExternalLink, User } from "lucide-react";
+import { ProposalMetrics } from "@/components/proposal-metrics";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -13,97 +14,104 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { ProposalMetrics } from "@/components/proposal-metrics"
-import { VotingControls } from "@/components/voting-controls"
-import { ExternalLink, User } from "lucide-react"
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { VotingControls } from "@/components/voting-controls";
 
 // Mock proposal data structure
 interface Proposal {
-  proposalId: string
-  proposalNumber: number
-  title: string
-  description: string
-  state: "PENDING" | "ACTIVE" | "DEFEATED" | "SUCCEEDED" | "QUEUED" | "EXECUTED" | "CANCELED" | "VETOED"
-  proposer: string
-  proposerEnsName?: string
-  createdAt: number
-  endBlock: number
-  snapshotBlock?: number
-  endDate?: Date
-  forVotes: string
-  againstVotes: string
-  abstainVotes: string
-  quorumVotes: string
-  calldatas: string[]
-  targets: string[]
-  values: string[]
-  signatures: string[]
-  transactionHash: string
+  proposalId: string;
+  proposalNumber: number;
+  title: string;
+  description: string;
+  state:
+    | "PENDING"
+    | "ACTIVE"
+    | "DEFEATED"
+    | "SUCCEEDED"
+    | "QUEUED"
+    | "EXECUTED"
+    | "CANCELED"
+    | "VETOED";
+  proposer: string;
+  proposerEnsName?: string;
+  createdAt: number;
+  endBlock: number;
+  snapshotBlock?: number;
+  endDate?: Date;
+  forVotes: string;
+  againstVotes: string;
+  abstainVotes: string;
+  quorumVotes: string;
+  calldatas: string[];
+  targets: string[];
+  values: string[];
+  signatures: string[];
+  transactionHash: string;
   votes?: Array<{
-    voter: string
-    voterEnsName?: string
-    choice: "FOR" | "AGAINST" | "ABSTAIN"
-    votes: string
-    transactionHash: string
-  }>
+    voter: string;
+    voterEnsName?: string;
+    choice: "FOR" | "AGAINST" | "ABSTAIN";
+    votes: string;
+    transactionHash: string;
+  }>;
 }
 
 interface ProposalDetailProps {
-  proposalId: string
+  proposalId: string;
 }
 
 const getStatusBadgeVariant = (state: Proposal["state"]) => {
   switch (state) {
     case "EXECUTED":
-      return "default" // green
+      return "default"; // green
     case "ACTIVE":
-      return "secondary" // blue
+      return "secondary"; // blue
     case "DEFEATED":
     case "VETOED":
-      return "destructive" // red
+      return "destructive"; // red
     case "CANCELED":
-      return "outline" // gray
+      return "outline"; // gray
     default:
-      return "secondary"
+      return "secondary";
   }
-}
+};
 
 const getStatusLabel = (state: Proposal["state"]) => {
   switch (state) {
     case "PENDING":
-      return "Pending"
+      return "Pending";
     case "ACTIVE":
-      return "Active"
+      return "Active";
     case "DEFEATED":
-      return "Defeated"
+      return "Defeated";
     case "SUCCEEDED":
-      return "Succeeded"
+      return "Succeeded";
     case "QUEUED":
-      return "Queued"
+      return "Queued";
     case "EXECUTED":
-      return "Executed"
+      return "Executed";
     case "CANCELED":
-      return "Canceled"
+      return "Canceled";
     case "VETOED":
-      return "Vetoed"
+      return "Vetoed";
     default:
-      return state
+      return state;
   }
-}
+};
 
 export function ProposalDetail({ proposalId }: ProposalDetailProps) {
-  const [proposal, setProposal] = useState<Proposal | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [hasVoted, setHasVoted] = useState(false)
-  const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null)
+  const [proposal, setProposal] = useState<Proposal | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
 
   useEffect(() => {
     const fetchProposal = async () => {
       try {
         // Mock data - in real implementation use Builder SDK
         // const data = await getProposal(CHAIN.id, proposalId)
-        
+
         const mockProposal: Proposal = {
           proposalId: proposalId,
           proposalNumber: parseInt(proposalId),
@@ -145,7 +153,7 @@ We believe these events will significantly boost the Gnars community and create 
           snapshotBlock: 123456500,
           endDate: new Date(Date.now() + 86400000 * 5),
           forVotes: "25.7",
-          againstVotes: "3.2", 
+          againstVotes: "3.2",
           abstainVotes: "1.1",
           quorumVotes: "15.0",
           calldatas: ["0x123..."],
@@ -156,42 +164,42 @@ We believe these events will significantly boost the Gnars community and create 
           votes: [
             {
               voter: "0x1111111111111111111111111111111111111111",
-              voterEnsName: "skater1.eth", 
+              voterEnsName: "skater1.eth",
               choice: "FOR",
               votes: "5.2",
-              transactionHash: "0xdef456..."
+              transactionHash: "0xdef456...",
             },
             {
               voter: "0x2222222222222222222222222222222222222222",
               voterEnsName: "gnars-fan.eth",
-              choice: "FOR", 
+              choice: "FOR",
               votes: "8.1",
-              transactionHash: "0xghi789..."
+              transactionHash: "0xghi789...",
             },
             {
               voter: "0x3333333333333333333333333333333333333333",
               choice: "AGAINST",
               votes: "2.3",
-              transactionHash: "0xjkl012..."
-            }
-          ]
-        }
-        
-        setProposal(mockProposal)
-      } catch (error) {
-        console.error("Failed to fetch proposal:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+              transactionHash: "0xjkl012...",
+            },
+          ],
+        };
 
-    fetchProposal()
-  }, [proposalId])
+        setProposal(mockProposal);
+      } catch (error) {
+        console.error("Failed to fetch proposal:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProposal();
+  }, [proposalId]);
 
   const handleVote = (vote: "FOR" | "AGAINST" | "ABSTAIN") => {
-    setHasVoted(true)
-    setUserVote(vote)
-  }
+    setHasVoted(true);
+    setUserVote(vote);
+  };
 
   if (isLoading) {
     return (
@@ -200,7 +208,7 @@ We believe these events will significantly boost the Gnars community and create 
         <div className="h-64 bg-muted rounded animate-pulse" />
         <div className="h-96 bg-muted rounded animate-pulse" />
       </div>
-    )
+    );
   }
 
   if (!proposal) {
@@ -214,7 +222,7 @@ We believe these events will significantly boost the Gnars community and create 
           <Link href="/proposals">Back to Proposals</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -222,15 +230,13 @@ We believe these events will significantly boost the Gnars community and create 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">
-            Proposal #{proposal.proposalNumber}
-          </h1>
+          <h1 className="text-2xl font-bold">Proposal #{proposal.proposalNumber}</h1>
           <Badge variant={getStatusBadgeVariant(proposal.state)}>
             {getStatusLabel(proposal.state)}
           </Badge>
         </div>
         <Button variant="outline" size="sm" asChild>
-          <a 
+          <a
             href={`https://basescan.org/tx/${proposal.transactionHash}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -246,7 +252,11 @@ We believe these events will significantly boost the Gnars community and create 
         <h2 className="text-xl font-semibold">{proposal.title}</h2>
         <div className="flex items-center gap-2 text-muted-foreground">
           <User className="h-4 w-4" />
-          <span>By {proposal.proposerEnsName || `${proposal.proposer.slice(0, 6)}...${proposal.proposer.slice(-4)}`}</span>
+          <span>
+            By{" "}
+            {proposal.proposerEnsName ||
+              `${proposal.proposer.slice(0, 6)}...${proposal.proposer.slice(-4)}`}
+          </span>
         </div>
       </div>
 
@@ -283,7 +293,7 @@ We believe these events will significantly boost the Gnars community and create 
           <TabsTrigger value="votes">Votes</TabsTrigger>
           <TabsTrigger value="propdates">Propdates</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="details" className="space-y-6 mt-6">
           {/* Description */}
           <Card>
@@ -292,19 +302,39 @@ We believe these events will significantly boost the Gnars community and create 
             </CardHeader>
             <CardContent>
               <div className="prose prose-neutral dark:prose-invert max-w-none">
-                {proposal.description.split('\n').map((paragraph, index) => {
-                  if (paragraph.startsWith('# ')) {
-                    return <h1 key={index} className="text-2xl font-bold mt-6 mb-4">{paragraph.slice(2)}</h1>
-                  } else if (paragraph.startsWith('## ')) {
-                    return <h2 key={index} className="text-xl font-semibold mt-5 mb-3">{paragraph.slice(3)}</h2>
-                  } else if (paragraph.startsWith('### ')) {
-                    return <h3 key={index} className="text-lg font-medium mt-4 mb-2">{paragraph.slice(4)}</h3>
-                  } else if (paragraph.startsWith('- ')) {
-                    return <li key={index} className="ml-4">{paragraph.slice(2)}</li>
-                  } else if (paragraph.trim() === '') {
-                    return <br key={index} />
+                {proposal.description.split("\n").map((paragraph, index) => {
+                  if (paragraph.startsWith("# ")) {
+                    return (
+                      <h1 key={index} className="text-2xl font-bold mt-6 mb-4">
+                        {paragraph.slice(2)}
+                      </h1>
+                    );
+                  } else if (paragraph.startsWith("## ")) {
+                    return (
+                      <h2 key={index} className="text-xl font-semibold mt-5 mb-3">
+                        {paragraph.slice(3)}
+                      </h2>
+                    );
+                  } else if (paragraph.startsWith("### ")) {
+                    return (
+                      <h3 key={index} className="text-lg font-medium mt-4 mb-2">
+                        {paragraph.slice(4)}
+                      </h3>
+                    );
+                  } else if (paragraph.startsWith("- ")) {
+                    return (
+                      <li key={index} className="ml-4">
+                        {paragraph.slice(2)}
+                      </li>
+                    );
+                  } else if (paragraph.trim() === "") {
+                    return <br key={index} />;
                   } else {
-                    return <p key={index} className="mb-3">{paragraph}</p>
+                    return (
+                      <p key={index} className="mb-3">
+                        {paragraph}
+                      </p>
+                    );
                   }
                 })}
               </div>
@@ -323,11 +353,10 @@ We believe these events will significantly boost the Gnars community and create 
                 </div>
                 <div>
                   <div className="font-medium">
-                    {proposal.proposerEnsName || `${proposal.proposer.slice(0, 6)}...${proposal.proposer.slice(-4)}`}
+                    {proposal.proposerEnsName ||
+                      `${proposal.proposer.slice(0, 6)}...${proposal.proposer.slice(-4)}`}
                   </div>
-                  <div className="text-sm text-muted-foreground font-mono">
-                    {proposal.proposer}
-                  </div>
+                  <div className="text-sm text-muted-foreground font-mono">{proposal.proposer}</div>
                 </div>
               </div>
             </CardContent>
@@ -385,22 +414,27 @@ We believe these events will significantly boost the Gnars community and create 
                       <TableRow key={index}>
                         <TableCell>
                           <div className="font-mono text-sm">
-                            {vote.voterEnsName || `${vote.voter.slice(0, 6)}...${vote.voter.slice(-4)}`}
+                            {vote.voterEnsName ||
+                              `${vote.voter.slice(0, 6)}...${vote.voter.slice(-4)}`}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge 
+                          <Badge
                             variant={
-                              vote.choice === "FOR" ? "default" : 
-                              vote.choice === "AGAINST" ? "destructive" : 
-                              "secondary"
+                              vote.choice === "FOR"
+                                ? "default"
+                                : vote.choice === "AGAINST"
+                                  ? "destructive"
+                                  : "secondary"
                             }
                           >
                             {vote.choice}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          {parseFloat(vote.votes).toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                          {parseFloat(vote.votes).toLocaleString(undefined, {
+                            maximumFractionDigits: 1,
+                          })}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -432,5 +466,5 @@ We believe these events will significantly boost the Gnars community and create 
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

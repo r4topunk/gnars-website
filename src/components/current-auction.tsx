@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Clock, Gavel } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, Gavel } from "lucide-react";
 
 interface AuctionData {
   id: string;
@@ -100,12 +100,8 @@ export function CurrentAuction({ auction, loading }: CurrentAuctionProps) {
         <CardTitle className="flex items-center gap-2">
           <Gavel className="h-5 w-5" />
           Current Auction
-          {auction.settled && (
-            <Badge variant="secondary">Settled</Badge>
-          )}
-          {isAuctionEnded && !auction.settled && (
-            <Badge variant="destructive">Ended</Badge>
-          )}
+          {auction.settled && <Badge variant="secondary">Settled</Badge>}
+          {isAuctionEnded && !auction.settled && <Badge variant="destructive">Ended</Badge>}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -153,9 +149,9 @@ export function CurrentAuction({ auction, loading }: CurrentAuctionProps) {
                   <span className="text-sm text-muted-foreground">Time remaining</span>
                 </div>
                 <div className="text-xl font-mono mb-2">
-                  {timeLeft.hours.toString().padStart(2, '0')}:
-                  {timeLeft.minutes.toString().padStart(2, '0')}:
-                  {timeLeft.seconds.toString().padStart(2, '0')}
+                  {timeLeft.hours.toString().padStart(2, "0")}:
+                  {timeLeft.minutes.toString().padStart(2, "0")}:
+                  {timeLeft.seconds.toString().padStart(2, "0")}
                 </div>
                 <Progress value={progress} className="h-2" />
               </div>

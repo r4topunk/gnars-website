@@ -1,12 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ProposalMetricsProps {
-  forVotes: string
-  againstVotes: string
-  abstainVotes: string
-  quorumVotes: string
-  snapshotBlock?: number
-  endDate?: Date
+  forVotes: string;
+  againstVotes: string;
+  abstainVotes: string;
+  quorumVotes: string;
+  snapshotBlock?: number;
+  endDate?: Date;
 }
 
 export function ProposalMetrics({
@@ -15,26 +15,26 @@ export function ProposalMetrics({
   abstainVotes,
   quorumVotes,
   snapshotBlock,
-  endDate
+  endDate,
 }: ProposalMetricsProps) {
   const formatVotes = (votes: string) => {
-    const num = parseFloat(votes)
-    return num.toLocaleString(undefined, { maximumFractionDigits: 1 })
-  }
+    const num = parseFloat(votes);
+    return num.toLocaleString(undefined, { maximumFractionDigits: 1 });
+  };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const formatBlock = (block: number) => {
-    return block.toLocaleString()
-  }
+    return block.toLocaleString();
+  };
 
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -89,7 +89,9 @@ export function ProposalMetrics({
       {snapshotBlock && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Snapshot Block</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Snapshot Block
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold font-mono">{formatBlock(snapshotBlock)}</div>
@@ -97,5 +99,5 @@ export function ProposalMetrics({
         </Card>
       )}
     </div>
-  )
+  );
 }

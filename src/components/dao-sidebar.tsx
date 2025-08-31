@@ -4,8 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Gavel, Vote, PlusCircle, Wallet, Users, FileText } from "lucide-react";
-
+import { FileText, Gavel, Home, PlusCircle, Users, Vote, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
@@ -99,7 +98,10 @@ function DaoHeader() {
           </div>
           <div className="flex flex-col gap-1 leading-none">
             <span className="font-semibold">Gnars DAO</span>
-            <Badge variant="secondary" className="h-4 px-1.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
+            <Badge
+              variant="secondary"
+              className="h-4 px-1.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200"
+            >
               Base
             </Badge>
           </div>
@@ -118,7 +120,7 @@ export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       if (url === "/") return pathname === "/";
       return pathname === url || pathname.startsWith(`${url}/`);
     },
-    [pathname]
+    [pathname],
   );
 
   return (
@@ -139,8 +141,15 @@ export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenu>
                 {section.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isRouteActive(item.url)} className="min-h-[44px] touch-manipulation">
-                      <Link href={item.url} aria-current={isRouteActive(item.url) ? "page" : undefined}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isRouteActive(item.url)}
+                      className="min-h-[44px] touch-manipulation"
+                    >
+                      <Link
+                        href={item.url}
+                        aria-current={isRouteActive(item.url) ? "page" : undefined}
+                      >
                         <item.icon />
                         {item.title}
                       </Link>

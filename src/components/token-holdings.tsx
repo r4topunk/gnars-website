@@ -1,10 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface TokenHoldingsProps {
   treasuryAddress: string;
@@ -48,25 +55,25 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
       setError(null);
 
       // Fetch token balances using Alchemy API
-      const response = await fetch('/api/alchemy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/alchemy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          method: 'alchemy_getTokenBalances',
+          method: "alchemy_getTokenBalances",
           params: [treasuryAddress],
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch token balances');
+        throw new Error("Failed to fetch token balances");
       }
 
       const data = await response.json();
       const tokenBalances: TokenBalance[] = data.result?.tokenBalances || [];
-      
+
       // Filter out zero balances
       const nonZeroTokens = tokenBalances.filter(
-        token => token.tokenBalance !== '0x0' && token.tokenBalance !== '0'
+        (token) => token.tokenBalance !== "0x0" && token.tokenBalance !== "0",
       );
 
       if (nonZeroTokens.length === 0) {
@@ -76,15 +83,15 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
 
       // Fetch metadata for each token
       const enrichedTokens: EnrichedToken[] = [];
-      
+
       for (const token of nonZeroTokens) {
         try {
           // Fetch token metadata
-          const metadataResponse = await fetch('/api/alchemy', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          const metadataResponse = await fetch("/api/alchemy", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              method: 'alchemy_getTokenMetadata',
+              method: "alchemy_getTokenMetadata",
               params: [token.contractAddress],
             }),
           });
@@ -95,7 +102,7 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
 
             if (metadata.decimals !== undefined && metadata.name && metadata.symbol) {
               const balance = parseInt(token.tokenBalance, 16) / Math.pow(10, metadata.decimals);
-              
+
               enrichedTokens.push({
                 contractAddress: token.contractAddress,
                 balance,
@@ -115,10 +122,9 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
       }
 
       setTokens(enrichedTokens);
-
     } catch (err) {
-      console.error('Error fetching token holdings:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch token holdings');
+      console.error("Error fetching token holdings:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch token holdings");
     } finally {
       setIsLoading(false);
     }
@@ -129,16 +135,16 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
   }, [fetchTokenHoldings]);
 
   const formatBalance = (balance: number, decimals: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: decimals > 6 ? 2 : Math.min(decimals, 4),
       maximumFractionDigits: decimals > 6 ? 2 : Math.min(decimals, 4),
     }).format(balance);
   };
 
   const formatUsdValue = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
@@ -162,9 +168,7 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
     return (
       <Card>
         <CardContent className="pt-6">
-          <div className="text-center text-destructive">
-            Error loading token holdings: {error}
-          </div>
+          <div className="text-center text-destructive">Error loading token holdings: {error}</div>
         </CardContent>
       </Card>
     );
@@ -176,9 +180,7 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
         <CardContent className="pt-6">
           <div className="text-center text-muted-foreground py-8">
             <div className="text-lg font-medium mb-2">No tokens found</div>
-            <div className="text-sm">
-              The treasury currently holds no ERC-20 tokens
-            </div>
+            <div className="text-sm">The treasury currently holds no ERC-20 tokens</div>
           </div>
         </CardContent>
       </Card>
@@ -189,9 +191,7 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
     <Card>
       <CardHeader>
         <CardTitle>Token Holdings</CardTitle>
-        <CardDescription>
-          ERC-20 tokens held in the treasury
-        </CardDescription>
+        <CardDescription>ERC-20 tokens held in the treasury</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
@@ -208,22 +208,20 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
                 <TableCell>
                   <div className="flex items-center space-x-3">
                     {token.logo && (
-                      <Image 
-                        src={token.logo} 
-                        alt={token.symbol} 
+                      <Image
+                        src={token.logo}
+                        alt={token.symbol}
                         width={24}
                         height={24}
                         className="rounded-full"
                         onError={(e) => {
-                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.style.display = "none";
                         }}
                       />
                     )}
                     <div>
                       <div className="font-medium">{token.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {token.symbol}
-                      </div>
+                      <div className="text-sm text-muted-foreground">{token.symbol}</div>
                     </div>
                   </div>
                 </TableCell>
@@ -232,9 +230,7 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {formatUsdValue(token.usdValue)}
-                  <div className="text-xs text-muted-foreground">
-                    Price data needed
-                  </div>
+                  <div className="text-xs text-muted-foreground">Price data needed</div>
                 </TableCell>
               </TableRow>
             ))}

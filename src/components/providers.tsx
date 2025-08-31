@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { WagmiProvider, createConfig, http, cookieStorage, createStorage } from 'wagmi'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { base } from 'viem/chains'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { base } from "viem/chains";
+import { cookieStorage, createConfig, createStorage, http, WagmiProvider } from "wagmi";
 
 const config = createConfig({
   chains: [base],
@@ -13,16 +13,14 @@ const config = createConfig({
   storage: createStorage({
     storage: cookieStorage,
   }),
-})
+});
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
-  )
+  );
 }

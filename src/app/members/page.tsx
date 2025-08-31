@@ -1,19 +1,19 @@
-import { Suspense } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { MembersList } from '@/components/members-list'
-import { DelegatesList } from '@/components/delegates-list'
+import { Suspense } from "react";
+import { DelegatesList } from "@/components/delegates-list";
+import { MembersList } from "@/components/members-list";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const revalidate = 3600 // ISR with 1 hour revalidation
+export const revalidate = 3600; // ISR with 1 hour revalidation
 
 interface MembersPageProps {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
 export default function MembersPage({ searchParams }: MembersPageProps) {
-  const search = typeof searchParams.search === 'string' ? searchParams.search : ''
-  const tab = typeof searchParams.tab === 'string' ? searchParams.tab : 'members'
+  const search = typeof searchParams.search === "string" ? searchParams.search : "";
+  const tab = typeof searchParams.tab === "string" ? searchParams.tab : "members";
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -35,9 +35,7 @@ export default function MembersPage({ searchParams }: MembersPageProps) {
             <Card>
               <CardHeader>
                 <CardTitle>Gnar Holders</CardTitle>
-                <CardDescription>
-                  All current holders of Gnar NFTs in the DAO
-                </CardDescription>
+                <CardDescription>All current holders of Gnar NFTs in the DAO</CardDescription>
               </CardHeader>
               <CardContent>
                 <Suspense fallback={<MembersTableSkeleton />}>
@@ -65,7 +63,7 @@ export default function MembersPage({ searchParams }: MembersPageProps) {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }
 
 function MembersTableSkeleton() {
@@ -73,7 +71,7 @@ function MembersTableSkeleton() {
     <div className="space-y-4">
       {/* Search input skeleton */}
       <Skeleton className="h-10 w-full max-w-sm" />
-      
+
       {/* Table skeleton */}
       <div className="space-y-2">
         <div className="flex items-center space-x-4 py-3 border-b">
@@ -90,7 +88,7 @@ function MembersTableSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 function DelegatesTableSkeleton() {
@@ -109,5 +107,5 @@ function DelegatesTableSkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }

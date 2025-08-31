@@ -1,10 +1,8 @@
-'use client';
+"use client";
 
-import { useAllAuctions } from '@/hooks/use-auctions';
-import { PastAuctions } from '@/components/past-auctions';
-import {
-  SidebarInset,
-} from "@/components/ui/sidebar";
+import { PastAuctions } from "@/components/past-auctions";
+import { SidebarInset } from "@/components/ui/sidebar";
+import { useAllAuctions } from "@/hooks/use-auctions";
 
 export default function AuctionsPage() {
   const { data: allAuctions, isLoading } = useAllAuctions();
@@ -21,11 +19,7 @@ export default function AuctionsPage() {
               </p>
             </div>
 
-            <PastAuctions
-              auctions={allAuctions}
-              loading={isLoading}
-              gridOnly
-            />
+            <PastAuctions auctions={allAuctions} loading={isLoading} gridOnly />
           </section>
         </div>
       </main>

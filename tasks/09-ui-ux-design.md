@@ -14,17 +14,20 @@ This document translates the architecture and features in README.md into a concr
 ## App frame
 
 ### Header
+
 - Left: brand wordmark/logo, route to `/`.
 - Center/Right: primary navigation (desktop), wallet connect, theme toggle.
 - Mobile: hamburger icon opens a `Sheet` with nav links.
 
 Recommended components and patterns:
+
 - `NavigationMenu` (desktop) or simple `Inline Nav` with `Button variant="link"`.
 - `Sheet` + `SheetTrigger` + `SheetContent` (mobile menu).
 - `ThemeToggle` pattern from Shadcn docs using `DropdownMenu`.
 - Wallet connect area: OnchainKit connect button styled adjacent to Shadcn buttons.
 
 Primary routes (consistent across header and mobile sheet):
+
 - `/` Overview
 - `/auction`
 - `/treasury`
@@ -33,6 +36,7 @@ Primary routes (consistent across header and mobile sheet):
 - `/members`
 
 ### Footer
+
 - Minimal: DAO contracts quick links, chain badge, social links.
 - Use `Separator` above, small muted text, `Button variant="link"` for external links.
 
@@ -47,11 +51,13 @@ Primary routes (consistent across header and mobile sheet):
 ## Common components and patterns
 
 ### Page scaffolding
+
 - Title row: `h1` + optional `Breadcrumb` + primary action (right side on desktop, stacked on mobile).
 - Content sections: `Card` components with `CardHeader`, `CardContent`, `CardFooter`.
 - Tabs when multiple related views exist: `Tabs` + `TabsList` + `TabsTrigger` + `TabsContent`.
 
 ### Data display
+
 - Lists/tables: Shadcn `Table` or DataTable pattern (`@tanstack/react-table`) for sorting/filtering/pagination.
 - Status indicators: `Badge` with variants (Default, Secondary, Destructive, Outline) mapped to states.
 - Empty states: illustration or icon + one-line explanation + primary CTA.
@@ -59,23 +65,27 @@ Primary routes (consistent across header and mobile sheet):
 - Tooltips: `Tooltip` for subtle explanations; avoid hiding critical info behind hover.
 
 ### Feedback and dialogs
+
 - Toasts using `sonner` via Shadcn `Toaster`; success/info/error for async operations.
 - Confirmation: `AlertDialog` for destructive or costly actions (e.g., placing a bid confirmation step if needed).
 - Side panels: `Sheet` for secondary flows on mobile; `Dialog` for focused tasks on desktop.
 
 ### Forms
+
 - Use `react-hook-form` + `zod` with Shadcn `Form` components (`FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormDescription`, `FormMessage`).
 - Inputs: `Input`, `Textarea`, `Select`, `Switch`, `Checkbox`, `RadioGroup`.
 - Submit buttons: disabled while submitting, show spinner icon.
 - Inline validation messages with `FormMessage` and `aria-invalid` attributes.
 
 ### Interactions
+
 - Buttons: use Shadcn `Button` variants. Primary actions are solid; secondary are `outline` or `ghost`.
 - Iconography: `lucide-react`; pair icon + label for clarity. Icon-only buttons have `sr-only` labels.
 - Copy-to-clipboard: `Button variant="ghost" size="icon"` + `Copy` icon + toast feedback.
 - Pagination: Shadcn `Pagination` for tables and long lists.
 
 ### Shadcn best practices checklist
+
 - Container and width:
   - Wrap page content with `container mx-auto px-4 md:px-6 lg:px-8` and `max-w-7xl` where appropriate.
   - Use consistent vertical rhythm: section `space-y-6`, card body `space-y-4`.
@@ -99,6 +109,7 @@ Primary routes (consistent across header and mobile sheet):
   - Integrate `zodResolver`; surface inline `FormMessage` errors; disable submit during mutations; show success/error toasts.
 
 ### Implementation primitives and helpers
+
 - Utility classes: prefer Tailwind utilities over ad-hoc CSS; avoid global styles except theme tokens.
 - Class helpers: use a `cn` helper (`clsx` + `tailwind-merge`) to compose classes cleanly.
 - Providers at root layout:
@@ -110,6 +121,7 @@ Primary routes (consistent across header and mobile sheet):
 Each page below describes sections, primary components, responsive behavior, states, and actions.
 
 ### Home (/)
+
 - Purpose: Overview, key stats, quick navigation.
 - Sections:
   - Hero summary in a `Card`: DAO name, tagline, Base chain badge, CTA buttons (Auction, Proposals).
@@ -122,6 +134,7 @@ Each page below describes sections, primary components, responsive behavior, sta
   - Empty/error banners via `Alert` if data fetch fails.
 
 ### Auction (/auction)
+
 - Purpose: Live auction focus + history browsing.
 - Layout: `Tabs` with `Live` and `History`.
 - Live tab:
@@ -140,6 +153,7 @@ Each page below describes sections, primary components, responsive behavior, sta
   - Place Bid: confirm with `AlertDialog` if exceeding a threshold; toast on tx sent/confirmed.
 
 ### Treasury (/treasury)
+
 - Purpose: ETH balance, token/NFT holdings, and (optional) transactions.
 - Layout: `Tabs` for Overview, Tokens, NFTs, Transactions (if implemented).
 - Overview:
@@ -157,6 +171,7 @@ Each page below describes sections, primary components, responsive behavior, sta
   - Skeleton cards; empty states for tokens/NFTs.
 
 ### Proposals list (/proposals)
+
 - Purpose: Discover and filter proposals.
 - Header: Title + Filters (`Select` status, `Input` search, date range if needed).
 - Content: `DataTable` with columns:
@@ -165,6 +180,7 @@ Each page below describes sections, primary components, responsive behavior, sta
 - Empty/skeleton: 6–10 skeleton rows on load; informative empty state when none.
 
 ### Proposal details (/proposals/[id])
+
 - Purpose: Read proposal, understand actions, vote.
 - Layout: Two columns on desktop; stacked on mobile.
   - Left/top column:
@@ -182,20 +198,22 @@ Each page below describes sections, primary components, responsive behavior, sta
   - Toasts on vote submission.
 
 ### Create proposal (/propose)
+
 - Purpose: Author markdown description and craft on-chain actions.
 - Layout: Wizard with 3 steps; implement with `Tabs` or custom stepper pattern.
-  1) Description
+  1. Description
      - `Form` with `Textarea` (markdown), live Preview toggled by `Switch` or `Tabs` (Edit/Preview).
-  2) Actions
+  2. Actions
      - `Accordion` list of action items; each action is a `Card` with `Select` for action type and dynamic fields.
      - Action types: Send ETH, ERC-20 transfer, Contract call, Zora Edition (Droposal template).
      - Add/Remove actions with `Button variant="secondary"`.
-  3) Review & Submit
+  3. Review & Submit
      - Render markdown and decoded actions for confirmation.
      - Submit button; show wallet flow and post-submit success state with link to new proposal.
 - Validation: zod schemas per action type; show `FormMessage` inline.
 
 ### Members (/members)
+
 - Purpose: List holders and delegates.
 - Header: Search `Input` and Filters (e.g., holders vs delegates).
 - `DataTable` columns:
@@ -287,12 +305,24 @@ Navigation (mobile sheet trigger + desktop links):
     </SheetTrigger>
     <SheetContent side="left" className="w-80">
       <nav className="grid gap-2">
-        <Button variant="link" asChild><Link href="/">Overview</Link></Button>
-        <Button variant="link" asChild><Link href="/auction">Auction</Link></Button>
-        <Button variant="link" asChild><Link href="/treasury">Treasury</Link></Button>
-        <Button variant="link" asChild><Link href="/proposals">Proposals</Link></Button>
-        <Button variant="link" asChild><Link href="/propose">Propose</Link></Button>
-        <Button variant="link" asChild><Link href="/members">Members</Link></Button>
+        <Button variant="link" asChild>
+          <Link href="/">Overview</Link>
+        </Button>
+        <Button variant="link" asChild>
+          <Link href="/auction">Auction</Link>
+        </Button>
+        <Button variant="link" asChild>
+          <Link href="/treasury">Treasury</Link>
+        </Button>
+        <Button variant="link" asChild>
+          <Link href="/proposals">Proposals</Link>
+        </Button>
+        <Button variant="link" asChild>
+          <Link href="/propose">Propose</Link>
+        </Button>
+        <Button variant="link" asChild>
+          <Link href="/members">Members</Link>
+        </Button>
       </nav>
     </SheetContent>
   </Sheet>
@@ -302,9 +332,9 @@ Navigation (mobile sheet trigger + desktop links):
 DataTable status badge cell:
 
 ```tsx
-<Badge variant={state === 'Active' ? 'default' : state === 'Executed' ? 'secondary' : 'outline'}>
+<Badge variant={state === "Active" ? "default" : state === "Executed" ? "secondary" : "outline"}>
   {state}
- </Badge>
+</Badge>
 ```
 
 Form field with validation:
@@ -346,5 +376,3 @@ Skeleton layout example (auction card):
 - When in doubt, use `Card` + `Tabs` + `Table` as the default structure for readable dashboards.
 
 This spec is the source of truth for UI/UX decisions. If a feature in the README evolves, mirror the change here by updating the corresponding page blueprint and components mapping.
-
-

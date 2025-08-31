@@ -1,0 +1,11 @@
+.next
+node_modules
+build
+out
+public
+references
+.claude
+package-lock.json
+pnpm-lock.yaml
+*.log
+

@@ -3,9 +3,7 @@
     "shadcn-registry": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "@reuvenorg/shadcn-registry-manager"
-      ],
+      "args": ["@reuvenorg/shadcn-registry-manager"],
       "env": {
         "WORKSPACE_DIR": "/Users/r4to/Script/gnars-website",
         "STYLE": "new-york",

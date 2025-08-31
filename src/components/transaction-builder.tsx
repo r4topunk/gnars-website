@@ -1,113 +1,104 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Plus, 
-  Send, 
-  Coins, 
-  Image, 
-  Zap, 
-  Settings, 
-  Trash2,
-  Edit
-} from 'lucide-react'
-import { Transaction } from './proposal-wizard'
-import { ActionForms } from './action-forms'
+import { useState } from "react";
+import { Coins, Edit, Image, Plus, Send, Settings, Trash2, Zap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ActionForms } from "./action-forms";
+import { Transaction } from "./proposal-wizard";
 
 interface TransactionBuilderProps {
-  transactions: Transaction[]
-  onAddTransaction: (transaction: Transaction) => void
-  onUpdateTransaction: (id: string, updates: Partial<Transaction>) => void
-  onRemoveTransaction: (id: string) => void
+  transactions: Transaction[];
+  onAddTransaction: (transaction: Transaction) => void;
+  onUpdateTransaction: (id: string, updates: Partial<Transaction>) => void;
+  onRemoveTransaction: (id: string) => void;
 }
 
 const transactionTypes = [
   {
-    type: 'send-eth',
-    label: 'Send ETH',
-    description: 'Send ETH from treasury',
+    type: "send-eth",
+    label: "Send ETH",
+    description: "Send ETH from treasury",
     icon: Send,
   },
   {
-    type: 'send-tokens',
-    label: 'Send Tokens',
-    description: 'Send ERC-20 tokens',
+    type: "send-tokens",
+    label: "Send Tokens",
+    description: "Send ERC-20 tokens",
     icon: Coins,
   },
   {
-    type: 'send-nfts',
-    label: 'Send NFTs',
-    description: 'Transfer NFTs',
+    type: "send-nfts",
+    label: "Send NFTs",
+    description: "Transfer NFTs",
     icon: Image,
   },
   {
-    type: 'droposal',
-    label: 'Create Droposal',
-    description: 'Create a Zora NFT drop',
+    type: "droposal",
+    label: "Create Droposal",
+    description: "Create a Zora NFT drop",
     icon: Zap,
   },
   {
-    type: 'custom',
-    label: 'Custom Transaction',
-    description: 'Advanced contract interaction',
+    type: "custom",
+    label: "Custom Transaction",
+    description: "Advanced contract interaction",
     icon: Settings,
   },
-] as const
+] as const;
 
-export function TransactionBuilder({ 
-  transactions, 
-  onAddTransaction, 
+export function TransactionBuilder({
+  transactions,
+  onAddTransaction,
   onUpdateTransaction,
-  onRemoveTransaction 
+  onRemoveTransaction,
 }: TransactionBuilderProps) {
-  const [showActionForms, setShowActionForms] = useState(false)
-  const [selectedActionType, setSelectedActionType] = useState<string>('')
-  const [editingTransaction, setEditingTransaction] = useState<string | null>(null)
+  const [showActionForms, setShowActionForms] = useState(false);
+  const [selectedActionType, setSelectedActionType] = useState<string>("");
+  const [editingTransaction, setEditingTransaction] = useState<string | null>(null);
 
   const handleAddTransaction = (type: string) => {
-    setSelectedActionType(type)
-    setEditingTransaction(null)
-    setShowActionForms(true)
-  }
+    setSelectedActionType(type);
+    setEditingTransaction(null);
+    setShowActionForms(true);
+  };
 
   const handleEditTransaction = (transaction: Transaction) => {
-    setSelectedActionType(transaction.type)
-    setEditingTransaction(transaction.id)
-    setShowActionForms(true)
-  }
+    setSelectedActionType(transaction.type);
+    setEditingTransaction(transaction.id);
+    setShowActionForms(true);
+  };
 
   const handleTransactionSubmit = (transactionData: Partial<Transaction>) => {
     if (editingTransaction) {
-      onUpdateTransaction(editingTransaction, transactionData)
+      onUpdateTransaction(editingTransaction, transactionData);
     } else {
       const newTransaction: Transaction = {
         id: `tx-${Date.now()}`,
-        type: selectedActionType as Transaction['type'],
-        target: '',
-        calldata: '0x',
-        description: '',
+        type: selectedActionType as Transaction["type"],
+        target: "",
+        calldata: "0x",
+        description: "",
         ...transactionData,
-      }
-      onAddTransaction(newTransaction)
+      };
+      onAddTransaction(newTransaction);
     }
-    setShowActionForms(false)
-    setSelectedActionType('')
-    setEditingTransaction(null)
-  }
+    setShowActionForms(false);
+    setSelectedActionType("");
+    setEditingTransaction(null);
+  };
 
   const handleCancel = () => {
-    setShowActionForms(false)
-    setSelectedActionType('')
-    setEditingTransaction(null)
-  }
+    setShowActionForms(false);
+    setSelectedActionType("");
+    setEditingTransaction(null);
+  };
 
   const getTransactionTypeInfo = (type: string) => {
-    return transactionTypes.find(t => t.type === type) || transactionTypes[4]
-  }
+    return transactionTypes.find((t) => t.type === type) || transactionTypes[4];
+  };
 
   return (
     <div className="space-y-6">
@@ -123,9 +114,9 @@ export function TransactionBuilder({
           {/* Action Type Selection */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {transactionTypes.map((actionType) => {
-              const Icon = actionType.icon
+              const Icon = actionType.icon;
               return (
-                <Card 
+                <Card
                   key={actionType.type}
                   className="cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => handleAddTransaction(actionType.type)}
@@ -137,14 +128,12 @@ export function TransactionBuilder({
                       </div>
                       <div>
                         <h3 className="font-medium">{actionType.label}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {actionType.description}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{actionType.description}</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              )
+              );
             })}
           </div>
 
@@ -156,9 +145,9 @@ export function TransactionBuilder({
                 <h3 className="text-lg font-semibold mb-4">Added Transactions</h3>
                 <div className="space-y-3">
                   {transactions.map((transaction, index) => {
-                    const typeInfo = getTransactionTypeInfo(transaction.type)
-                    const Icon = typeInfo.icon
-                    
+                    const typeInfo = getTransactionTypeInfo(transaction.type);
+                    const Icon = typeInfo.icon;
+
                     return (
                       <Card key={transaction.id}>
                         <CardContent className="p-4">
@@ -177,10 +166,10 @@ export function TransactionBuilder({
                                   </Badge>
                                 </div>
                                 <p className="text-sm text-muted-foreground mb-2">
-                                  {transaction.description || 'No description provided'}
+                                  {transaction.description || "No description provided"}
                                 </p>
                                 <div className="text-xs font-mono bg-muted p-2 rounded">
-                                  <div>Target: {transaction.target || 'Not set'}</div>
+                                  <div>Target: {transaction.target || "Not set"}</div>
                                   {transaction.value && (
                                     <div>Value: {transaction.value.toString()} ETH</div>
                                   )}
@@ -206,7 +195,7 @@ export function TransactionBuilder({
                           </div>
                         </CardContent>
                       </Card>
-                    )
+                    );
                   })}
                 </div>
               </div>
@@ -227,11 +216,13 @@ export function TransactionBuilder({
       ) : (
         <ActionForms
           actionType={selectedActionType}
-          existingData={editingTransaction ? transactions.find(t => t.id === editingTransaction) : undefined}
+          existingData={
+            editingTransaction ? transactions.find((t) => t.id === editingTransaction) : undefined
+          }
           onSubmit={handleTransactionSubmit}
           onCancel={handleCancel}
         />
       )}
     </div>
-  )
+  );
 }

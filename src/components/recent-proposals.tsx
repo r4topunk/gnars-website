@@ -3,31 +3,25 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
+import { formatDistanceToNow } from "date-fns";
+import {
+  AlertCircle,
+  CalendarDays,
+  CheckCircle,
+  Clock,
+  ExternalLink,
+  MinusCircle,
+  Pause,
+  ThumbsDown,
+  ThumbsUp,
+  XCircle,
+} from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
-import {
-  CalendarDays,
-  ExternalLink,
-  ThumbsUp,
-  ThumbsDown,
-  MinusCircle,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Pause,
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
 // Proposal status enum based on reference analysis
@@ -76,14 +70,12 @@ interface RecentProposalsProps {
 const getStatusConfig = (status: ProposalStatus) => {
   const configs = {
     [ProposalStatus.ACTIVE]: {
-      color:
-        "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+      color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
       icon: Clock,
       description: "Voting in progress",
     },
     [ProposalStatus.PENDING]: {
-      color:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+      color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
       icon: Pause,
       description: "Awaiting voting period",
     },
@@ -93,14 +85,12 @@ const getStatusConfig = (status: ProposalStatus) => {
       description: "Passed, ready for execution",
     },
     [ProposalStatus.QUEUED]: {
-      color:
-        "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+      color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
       icon: AlertCircle,
       description: "Queued for execution",
     },
     [ProposalStatus.EXECUTED]: {
-      color:
-        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+      color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
       icon: CheckCircle,
       description: "Successfully executed",
     },
@@ -115,8 +105,7 @@ const getStatusConfig = (status: ProposalStatus) => {
       description: "Cancelled",
     },
     [ProposalStatus.EXPIRED]: {
-      color:
-        "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+      color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
       icon: Clock,
       description: "Expired",
     },
@@ -164,14 +153,10 @@ export function ProposalCard({
   const StatusIcon = statusConfig.icon;
 
   // Calculate vote percentages
-  const totalVotes =
-    proposal.forVotes + proposal.againstVotes + proposal.abstainVotes;
-  const forPercentage =
-    totalVotes > 0 ? (proposal.forVotes / totalVotes) * 100 : 0;
-  const againstPercentage =
-    totalVotes > 0 ? (proposal.againstVotes / totalVotes) * 100 : 0;
-  const abstainPercentage =
-    totalVotes > 0 ? (proposal.abstainVotes / totalVotes) * 100 : 0;
+  const totalVotes = proposal.forVotes + proposal.againstVotes + proposal.abstainVotes;
+  const forPercentage = totalVotes > 0 ? (proposal.forVotes / totalVotes) * 100 : 0;
+  const againstPercentage = totalVotes > 0 ? (proposal.againstVotes / totalVotes) * 100 : 0;
+  const abstainPercentage = totalVotes > 0 ? (proposal.abstainVotes / totalVotes) * 100 : 0;
 
   // Quorum threshold marker position (relative to current votes bar)
   const quorumMarkerPercent =
@@ -180,18 +165,14 @@ export function ProposalCard({
       : 100;
 
   // Time formatting
-  const timeCreated = formatDistanceToNow(
-    new Date(proposal.timeCreated * 1000),
-    { addSuffix: true }
-  );
+  const timeCreated = formatDistanceToNow(new Date(proposal.timeCreated * 1000), {
+    addSuffix: true,
+  });
   const voteEndTime = new Date(proposal.voteEnd);
-  const isVotingActive =
-    proposal.status === ProposalStatus.ACTIVE && voteEndTime > new Date();
+  const isVotingActive = proposal.status === ProposalStatus.ACTIVE && voteEndTime > new Date();
 
   const bannerUrl = normalizeImageUrl(extractFirstUrl(proposal.description));
-  const [currentBannerSrc, setCurrentBannerSrc] = useState<string>(
-    bannerUrl ?? "/logo-banner.jpg"
-  );
+  const [currentBannerSrc, setCurrentBannerSrc] = useState<string>(bannerUrl ?? "/logo-banner.jpg");
   useEffect(() => {
     setCurrentBannerSrc(bannerUrl ?? "/logo-banner.jpg");
   }, [bannerUrl]);
@@ -260,10 +241,9 @@ export function ProposalCard({
                         <div
                           className={cn(
                             "h-1.5 bg-green-500",
-                            proposal.againstVotes === 0 &&
-                              proposal.abstainVotes === 0
+                            proposal.againstVotes === 0 && proposal.abstainVotes === 0
                               ? "rounded"
-                              : "rounded-l"
+                              : "rounded-l",
                           )}
                           style={{ width: `${forPercentage}%` }}
                         />
@@ -272,12 +252,11 @@ export function ProposalCard({
                         <div
                           className={cn(
                             "h-1.5 bg-red-500",
-                            proposal.forVotes === 0 &&
-                              proposal.abstainVotes === 0
+                            proposal.forVotes === 0 && proposal.abstainVotes === 0
                               ? "rounded"
                               : proposal.abstainVotes === 0
-                              ? "rounded-r"
-                              : ""
+                                ? "rounded-r"
+                                : "",
                           )}
                           style={{ width: `${againstPercentage}%` }}
                         />
@@ -286,10 +265,9 @@ export function ProposalCard({
                         <div
                           className={cn(
                             "h-1.5 bg-gray-300",
-                            proposal.forVotes === 0 &&
-                              proposal.againstVotes === 0
+                            proposal.forVotes === 0 && proposal.againstVotes === 0
                               ? "rounded"
-                              : "rounded-r"
+                              : "rounded-r",
                           )}
                           style={{ width: `${abstainPercentage}%` }}
                         />
@@ -374,9 +352,7 @@ export function RecentProposals({
   limit = 3,
   excludeStatuses = [],
 }: RecentProposalsProps) {
-  const [internalProposals, setInternalProposals] = useState<Proposal[]>(
-    proposals ?? []
-  );
+  const [internalProposals, setInternalProposals] = useState<Proposal[]>(proposals ?? []);
   const [isLoading, setIsLoading] = useState<boolean>(!proposals);
 
   useEffect(() => {
@@ -388,12 +364,10 @@ export function RecentProposals({
         const { proposals: sdkProposals } = await getProposals(
           CHAIN.id,
           GNARS_ADDRESSES.token,
-          Math.max(10, limit)
+          Math.max(10, limit),
         );
         if (!isMounted) return;
-        const mapped: Proposal[] = (
-          (sdkProposals as SdkProposal[] | undefined) ?? []
-        ).map((p) => ({
+        const mapped: Proposal[] = ((sdkProposals as SdkProposal[] | undefined) ?? []).map((p) => ({
           proposalId: String(p.proposalId),
           proposalNumber: Number(p.proposalNumber),
           title: p.title ?? "",
@@ -433,9 +407,7 @@ export function RecentProposals({
           quorumVotes: Number(p.quorumVotes ?? 0),
           voteStart: new Date(Number(p.voteStart ?? 0) * 1000).toISOString(),
           voteEnd: new Date(Number(p.voteEnd ?? 0) * 1000).toISOString(),
-          expiresAt: p.expiresAt
-            ? new Date(Number(p.expiresAt) * 1000).toISOString()
-            : undefined,
+          expiresAt: p.expiresAt ? new Date(Number(p.expiresAt) * 1000).toISOString() : undefined,
           timeCreated: Number(p.timeCreated ?? 0),
           executed: Boolean(p.executedAt),
           canceled: Boolean(p.cancelTransactionHash),
@@ -458,9 +430,7 @@ export function RecentProposals({
     };
   }, [proposals, limit]);
 
-  const data = (proposals ?? internalProposals).filter(
-    (p) => !excludeStatuses.includes(p.status)
-  );
+  const data = (proposals ?? internalProposals).filter((p) => !excludeStatuses.includes(p.status));
   const displayedProposals = data.slice(0, limit);
 
   return (
@@ -470,9 +440,7 @@ export function RecentProposals({
           <CardTitle className="text-xl font-bold flex items-center gap-2">
             Recent Proposals
           </CardTitle>
-          <CardDescription>
-            Latest governance proposals and their voting status
-          </CardDescription>
+          <CardDescription>Latest governance proposals and their voting status</CardDescription>
         </div>
         <Button variant="outline" size="sm">
           View All Proposals
@@ -490,9 +458,7 @@ export function RecentProposals({
           <div className="text-center py-8">
             <CalendarDays className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No Recent Proposals</h3>
-            <p className="text-muted-foreground">
-              Check back later for new governance proposals.
-            </p>
+            <p className="text-muted-foreground">Check back later for new governance proposals.</p>
           </div>
         ) : (
           <>

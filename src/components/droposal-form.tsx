@@ -1,130 +1,130 @@
-'use client'
+"use client";
 
-import { useState, useRef } from 'react'
-import Image from 'next/image'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Upload, X, Info, ExternalLink } from 'lucide-react'
-import { useAccount } from 'wagmi'
-import { GNARS_ADDRESSES } from '@/lib/config'
+import { useRef, useState } from "react";
+import Image from "next/image";
+import { ExternalLink, Info, Upload, X } from "lucide-react";
+import { useAccount } from "wagmi";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
+import { GNARS_ADDRESSES } from "@/lib/config";
 
 interface DroposalData {
-  name: string
-  symbol: string
-  description: string
-  mediaUrl: string
-  coverUrl: string
-  price: string
-  editionType: 'fixed' | 'open'
-  editionSize: string
-  startTime: string
-  endTime: string
-  mintLimitPerAddress: string
-  royaltyPercentage: string
-  payoutAddress: string
-  defaultAdmin: string
-  mediaType?: string
-  coverType?: string
+  name: string;
+  symbol: string;
+  description: string;
+  mediaUrl: string;
+  coverUrl: string;
+  price: string;
+  editionType: "fixed" | "open";
+  editionSize: string;
+  startTime: string;
+  endTime: string;
+  mintLimitPerAddress: string;
+  royaltyPercentage: string;
+  payoutAddress: string;
+  defaultAdmin: string;
+  mediaType?: string;
+  coverType?: string;
 }
 
 interface DroposalFormProps {
-  data: Partial<DroposalData>
-  onChange: (updates: Partial<DroposalData>) => void
+  data: Partial<DroposalData>;
+  onChange: (updates: Partial<DroposalData>) => void;
 }
 
 export function DroposalForm({ data, onChange }: DroposalFormProps) {
-  const { address } = useAccount()
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null)
-  const [coverPreview, setCoverPreview] = useState<string | null>(null)
-  const [editionType, setEditionType] = useState<'fixed' | 'open'>(data.editionType || 'fixed')
-  const [isUploading, setIsUploading] = useState(false)
-  const mediaInputRef = useRef<HTMLInputElement>(null)
-  const coverInputRef = useRef<HTMLInputElement>(null)
+  const { address } = useAccount();
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [editionType, setEditionType] = useState<"fixed" | "open">(data.editionType || "fixed");
+  const [isUploading, setIsUploading] = useState(false);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   // Set default values if not present
   const defaultData: DroposalData = {
-    name: '',
-    symbol: '',
-    description: '',
-    mediaUrl: '',
-    coverUrl: '',
-    price: '0.01',
-    editionType: 'fixed' as const,
-    editionSize: '100',
-    startTime: '',
-    endTime: '',
-    mintLimitPerAddress: '',
-    royaltyPercentage: '5',
+    name: "",
+    symbol: "",
+    description: "",
+    mediaUrl: "",
+    coverUrl: "",
+    price: "0.01",
+    editionType: "fixed" as const,
+    editionSize: "100",
+    startTime: "",
+    endTime: "",
+    mintLimitPerAddress: "",
+    royaltyPercentage: "5",
     payoutAddress: GNARS_ADDRESSES.treasury,
-    defaultAdmin: address || '',
+    defaultAdmin: address || "",
     ...data,
-  }
+  };
 
   const updateData = (updates: Partial<DroposalData>) => {
-    onChange({ ...defaultData, ...updates })
-  }
+    onChange({ ...defaultData, ...updates });
+  };
 
-  const handleMediaUpload = async (file: File, type: 'media' | 'cover') => {
-    setIsUploading(true)
-    
+  const handleMediaUpload = async (file: File, type: "media" | "cover") => {
+    setIsUploading(true);
+
     // Create preview
-    const previewUrl = URL.createObjectURL(file)
-    if (type === 'media') {
-      setMediaPreview(previewUrl)
+    const previewUrl = URL.createObjectURL(file);
+    if (type === "media") {
+      setMediaPreview(previewUrl);
     } else {
-      setCoverPreview(previewUrl)
+      setCoverPreview(previewUrl);
     }
 
     try {
       // TODO: Implement actual IPFS upload
       // For now, using mock IPFS URL
-      const ipfsUrl = `ipfs://${file.name}`
-      
+      const ipfsUrl = `ipfs://${file.name}`;
+
       updateData({
-        [type === 'media' ? 'mediaUrl' : 'coverUrl']: ipfsUrl,
-        [type === 'media' ? 'mediaType' : 'coverType']: file.type,
-      })
+        [type === "media" ? "mediaUrl" : "coverUrl"]: ipfsUrl,
+        [type === "media" ? "mediaType" : "coverType"]: file.type,
+      });
     } catch (error) {
-      console.error('Upload failed:', error)
+      console.error("Upload failed:", error);
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'media' | 'cover') => {
-    const file = e.target.files?.[0]
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "media" | "cover") => {
+    const file = e.target.files?.[0];
     if (file) {
-      handleMediaUpload(file, type)
+      handleMediaUpload(file, type);
     }
-  }
+  };
 
-  const removeFile = (type: 'media' | 'cover') => {
-    if (type === 'media') {
-      setMediaPreview(null)
-      updateData({ mediaUrl: '', mediaType: '' })
-      if (mediaInputRef.current) mediaInputRef.current.value = ''
+  const removeFile = (type: "media" | "cover") => {
+    if (type === "media") {
+      setMediaPreview(null);
+      updateData({ mediaUrl: "", mediaType: "" });
+      if (mediaInputRef.current) mediaInputRef.current.value = "";
     } else {
-      setCoverPreview(null)
-      updateData({ coverUrl: '', coverType: '' })
-      if (coverInputRef.current) coverInputRef.current.value = ''
+      setCoverPreview(null);
+      updateData({ coverUrl: "", coverType: "" });
+      if (coverInputRef.current) coverInputRef.current.value = "";
     }
-  }
+  };
 
-  const handleEditionTypeChange = (value: 'fixed' | 'open') => {
-    setEditionType(value)
+  const handleEditionTypeChange = (value: "fixed" | "open") => {
+    setEditionType(value);
     updateData({
       editionType: value,
-      editionSize: value === 'open' ? '0' : defaultData.editionSize,
-    })
-  }
+      editionSize: value === "open" ? "0" : defaultData.editionSize,
+    });
+  };
 
   // Check if media requires cover (non-image files)
-  const showCover = defaultData.mediaType && !defaultData.mediaType.startsWith('image')
+  const showCover = defaultData.mediaType && !defaultData.mediaType.startsWith("image");
 
   return (
     <div className="space-y-6">
@@ -133,10 +133,10 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            This creates a Zora ERC721Drop contract.{' '}
-            <a 
-              href="https://docs.zora.co/contracts/ERC721Drop" 
-              target="_blank" 
+            This creates a Zora ERC721Drop contract.{" "}
+            <a
+              href="https://docs.zora.co/contracts/ERC721Drop"
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center hover:underline"
             >
@@ -196,7 +196,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             <div className="mt-2">
               {mediaPreview ? (
                 <div className="relative">
-                  {defaultData.mediaType?.startsWith('image') ? (
+                  {defaultData.mediaType?.startsWith("image") ? (
                     <Image
                       src={mediaPreview}
                       alt="Media preview"
@@ -204,7 +204,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
                       height={192}
                       className="w-full h-48 object-cover rounded-lg border"
                     />
-                  ) : defaultData.mediaType?.startsWith('video') ? (
+                  ) : defaultData.mediaType?.startsWith("video") ? (
                     <video
                       src={mediaPreview}
                       className="w-full h-48 object-cover rounded-lg border"
@@ -219,7 +219,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
                     size="sm"
                     variant="destructive"
                     className="absolute top-2 right-2"
-                    onClick={() => removeFile('media')}
+                    onClick={() => removeFile("media")}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -240,7 +240,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
                 type="file"
                 accept="image/*,video/*,audio/*"
                 className="hidden"
-                onChange={(e) => handleFileChange(e, 'media')}
+                onChange={(e) => handleFileChange(e, "media")}
                 disabled={isUploading}
               />
             </div>
@@ -266,7 +266,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
                       size="sm"
                       variant="destructive"
                       className="absolute top-2 right-2"
-                      onClick={() => removeFile('cover')}
+                      onClick={() => removeFile("cover")}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -285,7 +285,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => handleFileChange(e, 'cover')}
+                  onChange={(e) => handleFileChange(e, "cover")}
                   disabled={isUploading}
                 />
               </div>
@@ -311,10 +311,10 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
               onChange={(e) => updateData({ price: e.target.value })}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Zora charges 0.000777 ETH per mint as a protocol fee.{' '}
-              <a 
-                href="https://support.zora.co/en/articles/4981037-zora-mint-collect-fees" 
-                target="_blank" 
+              Zora charges 0.000777 ETH per mint as a protocol fee.{" "}
+              <a
+                href="https://support.zora.co/en/articles/4981037-zora-mint-collect-fees"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline"
               >
@@ -327,7 +327,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             <Label>Edition Type *</Label>
             <RadioGroup
               value={editionType}
-              onValueChange={(value: 'fixed' | 'open') => handleEditionTypeChange(value)}
+              onValueChange={(value: "fixed" | "open") => handleEditionTypeChange(value)}
               className="mt-2"
             >
               <div className="flex items-center space-x-2">
@@ -341,7 +341,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             </RadioGroup>
           </div>
 
-          {editionType === 'fixed' && (
+          {editionType === "fixed" && (
             <div>
               <Label htmlFor="editionSize">Edition Size *</Label>
               <Input
@@ -450,11 +450,11 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
         <Textarea
           id="dropDescription"
           placeholder="Describe this droposal transaction..."
-          value={data.description || ''}
+          value={data.description || ""}
           onChange={(e) => onChange({ description: e.target.value })}
           rows={2}
         />
       </div>
     </div>
-  )
+  );
 }

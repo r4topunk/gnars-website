@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface NftHoldingsProps {
   treasuryAddress: string;
@@ -53,27 +53,26 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
       setError(null);
 
       // Fetch NFTs using Alchemy API
-      const response = await fetch('/api/alchemy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/alchemy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          method: 'alchemy_getNfts',
+          method: "alchemy_getNfts",
           params: [treasuryAddress, { withMetadata: true }],
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch NFT holdings');
+        throw new Error("Failed to fetch NFT holdings");
       }
 
       const data = await response.json();
       const nftData: AlchemyNftResponse = data.result;
-      
-      setNfts(nftData.ownedNfts || []);
 
+      setNfts(nftData.ownedNfts || []);
     } catch (err) {
-      console.error('Error fetching NFT holdings:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch NFT holdings');
+      console.error("Error fetching NFT holdings:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch NFT holdings");
     } finally {
       setIsLoading(false);
     }
@@ -119,9 +118,7 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
     return (
       <Card>
         <CardContent className="pt-6">
-          <div className="text-center text-destructive">
-            Error loading NFT holdings: {error}
-          </div>
+          <div className="text-center text-destructive">Error loading NFT holdings: {error}</div>
         </CardContent>
       </Card>
     );
@@ -133,9 +130,7 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
         <CardContent className="pt-6">
           <div className="text-center text-muted-foreground py-12">
             <div className="text-lg font-medium mb-2">No NFTs found</div>
-            <div className="text-sm">
-              The treasury currently holds no NFTs
-            </div>
+            <div className="text-sm">The treasury currently holds no NFTs</div>
           </div>
         </CardContent>
       </Card>
@@ -148,17 +143,20 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
         <div>
           <h3 className="text-lg font-semibold">NFT Collection</h3>
           <p className="text-sm text-muted-foreground">
-            {nfts.length} NFT{nfts.length !== 1 ? 's' : ''} found
+            {nfts.length} NFT{nfts.length !== 1 ? "s" : ""} found
           </p>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {nfts.map((nft) => {
           const imageUrl = getImageUrl(nft);
-          
+
           return (
-            <Card key={`${nft.contract.address}-${nft.tokenId}`} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Card
+              key={`${nft.contract.address}-${nft.tokenId}`}
+              className="overflow-hidden hover:shadow-lg transition-shadow"
+            >
               <CardContent className="p-0">
                 <div className="aspect-square bg-muted flex items-center justify-center relative">
                   {imageUrl ? (
@@ -168,32 +166,26 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
                       fill
                       className="object-cover"
                       onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        e.currentTarget.style.display = "none";
+                        e.currentTarget.nextElementSibling?.classList.remove("hidden");
                       }}
                     />
                   ) : null}
-                  <div className={`text-muted-foreground text-sm ${imageUrl ? 'hidden' : ''}`}>
+                  <div className={`text-muted-foreground text-sm ${imageUrl ? "hidden" : ""}`}>
                     No image available
                   </div>
                 </div>
-                
+
                 <div className="p-4">
                   <div className="space-y-2">
                     <div className="font-semibold text-sm">
                       {nft.name || `Token #${nft.tokenId}`}
                     </div>
-                    
+
                     <div className="text-xs text-muted-foreground space-y-1">
-                      <div>
-                        {nft.contract.name || 'Unknown Collection'}
-                      </div>
-                      <div className="font-mono">
-                        ID: {nft.tokenId}
-                      </div>
-                      <div className="font-mono">
-                        {truncateAddress(nft.contract.address)}
-                      </div>
+                      <div>{nft.contract.name || "Unknown Collection"}</div>
+                      <div className="font-mono">ID: {nft.tokenId}</div>
+                      <div className="font-mono">{truncateAddress(nft.contract.address)}</div>
                     </div>
 
                     {nft.description && (

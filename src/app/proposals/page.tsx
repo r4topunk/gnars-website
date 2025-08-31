@@ -1,4 +1,4 @@
-import { ProposalsGrid } from "@/components/proposals-grid"
+import { ProposalsGrid } from "@/components/proposals-grid";
 
 export default function ProposalsPage() {
   return (
@@ -11,5 +11,5 @@ export default function ProposalsPage() {
       </div>
       <ProposalsGrid />
     </div>
-  )
+  );
 }

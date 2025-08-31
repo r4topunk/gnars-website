@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock } from "lucide-react";
 
 interface KeyStatsProps {
   currentAuction?: {
@@ -70,58 +70,44 @@ export function KeyStats({ currentAuction, totalSupply, members, loading }: KeyS
       <Card>
         <CardHeader className="pb-1">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Current Auction #{currentAuction?.tokenId || '...'}
+            Current Auction #{currentAuction?.tokenId || "..."}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-2">
           <div className="text-2xl font-bold">
-            {currentAuction?.highestBid ? `${currentAuction.highestBid} ETH` : 'Loading...'}
+            {currentAuction?.highestBid ? `${currentAuction.highestBid} ETH` : "Loading..."}
           </div>
           {currentAuction?.endTime && timeLeft.total > 0 && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               <Clock className="h-3 w-3" />
-              {timeLeft.hours.toString().padStart(2, '0')}:
-              {timeLeft.minutes.toString().padStart(2, '0')}:
-              {timeLeft.seconds.toString().padStart(2, '0')} left
+              {timeLeft.hours.toString().padStart(2, "0")}:
+              {timeLeft.minutes.toString().padStart(2, "0")}:
+              {timeLeft.seconds.toString().padStart(2, "0")} left
             </div>
           )}
           {!currentAuction?.endTime && (
-            <p className="text-xs text-muted-foreground">
-              Auction #{currentAuction?.id || '...'}
-            </p>
+            <p className="text-xs text-muted-foreground">Auction #{currentAuction?.id || "..."}</p>
           )}
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader className="pb-1">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Total Supply
-          </CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Total Supply</CardTitle>
         </CardHeader>
         <CardContent className="pt-2">
-          <div className="text-2xl font-bold">
-            {totalSupply || '...'}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Gnars minted
-          </p>
+          <div className="text-2xl font-bold">{totalSupply || "..."}</div>
+          <p className="text-xs text-muted-foreground">Gnars minted</p>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader className="pb-1">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            DAO Members
-          </CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">DAO Members</CardTitle>
         </CardHeader>
         <CardContent className="pt-2">
-          <div className="text-2xl font-bold">
-            {members || '...'}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Active holders
-          </p>
+          <div className="text-2xl font-bold">{members || "..."}</div>
+          <p className="text-xs text-muted-foreground">Active holders</p>
         </CardContent>
       </Card>
     </div>

@@ -1,29 +1,23 @@
-'use client'
+"use client";
 
-import { useAccount } from 'wagmi'
-import { ProposalWizard } from '@/components/proposal-wizard'
-import { CHAIN, GNARS_ADDRESSES } from '@/lib/config'
-import { useVotes } from '@/hooks/use-votes'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Loader2 } from "lucide-react";
+import { useAccount } from "wagmi";
+import { ProposalWizard } from "@/components/proposal-wizard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useVotes } from "@/hooks/use-votes";
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 
 export default function ProposePage() {
-  const { address, isConnected } = useAccount()
-  
-  const { 
-    isLoading, 
-    hasThreshold, 
-    votes, 
-    proposalVotesRequired,
-    isDelegating,
-    delegatedTo 
-  } = useVotes({
-    chainId: CHAIN.id,
-    collectionAddress: GNARS_ADDRESSES.token,
-    governorAddress: GNARS_ADDRESSES.governor,
-    signerAddress: address,
-  })
+  const { address, isConnected } = useAccount();
+
+  const { isLoading, hasThreshold, votes, proposalVotesRequired, isDelegating, delegatedTo } =
+    useVotes({
+      chainId: CHAIN.id,
+      collectionAddress: GNARS_ADDRESSES.token,
+      governorAddress: GNARS_ADDRESSES.governor,
+      signerAddress: address,
+    });
 
   if (!isConnected) {
     return (
@@ -35,14 +29,12 @@ export default function ProposePage() {
           <CardContent>
             <Alert>
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Please connect your wallet to create a proposal.
-              </AlertDescription>
+              <AlertDescription>Please connect your wallet to create a proposal.</AlertDescription>
             </Alert>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (isLoading) {
@@ -55,7 +47,7 @@ export default function ProposePage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (!hasThreshold) {
@@ -69,10 +61,12 @@ export default function ProposePage() {
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                You need at least {proposalVotesRequired?.toString() || 'N/A'} votes to create a proposal.
+                You need at least {proposalVotesRequired?.toString() || "N/A"} votes to create a
+                proposal.
                 {votes !== undefined && (
                   <>
-                    {' '}You currently have {votes.toString()} votes.
+                    {" "}
+                    You currently have {votes.toString()} votes.
                     {isDelegating && delegatedTo && (
                       <> Your votes are delegated to {delegatedTo}.</>
                     )}
@@ -83,19 +77,17 @@ export default function ProposePage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
     <div className="container mx-auto py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Create Proposal</h1>
-        <p className="text-muted-foreground mt-2">
-          Create a new proposal for the Gnars DAO
-        </p>
+        <p className="text-muted-foreground mt-2">Create a new proposal for the Gnars DAO</p>
       </div>
-      
+
       <ProposalWizard />
     </div>
-  )
+  );
 }

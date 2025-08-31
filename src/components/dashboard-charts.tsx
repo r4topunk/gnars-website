@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { getProposals } from "@buildeross/sdk";
 import { TrendingUp } from "lucide-react";
 import {
   Area,
   AreaChart,
-  CartesianGrid,
-  XAxis,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  XAxis,
 } from "recharts";
-
 import {
   Card,
   CardContent,
@@ -29,7 +29,6 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { getProposals } from "@buildeross/sdk";
 
 // Mock data for auction trends (last 30 days)
 const auctionTrendData = [
@@ -74,14 +73,8 @@ type MinimalSdkProposal = {
   timeCreated?: number | string | null;
 };
 
-async function fetchRecentProposalsWithVoters(
-  limit: number
-): Promise<ProposalWithVotes[]> {
-  const { proposals } = await getProposals(
-    CHAIN.id,
-    GNARS_ADDRESSES.token,
-    limit
-  );
+async function fetchRecentProposalsWithVoters(limit: number): Promise<ProposalWithVotes[]> {
+  const { proposals } = await getProposals(CHAIN.id, GNARS_ADDRESSES.token, limit);
   const list = (proposals as MinimalSdkProposal[] | undefined) ?? [];
   return list
     .map<ProposalWithVotes & { _isCanceled: boolean }>((p) => {
@@ -155,16 +148,11 @@ export function AuctionTrendChart() {
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>Auction Performance</CardTitle>
-          <CardDescription>
-            Final prices and bid activity over the last 14 days
-          </CardDescription>
+          <CardDescription>Final prices and bid activity over the last 14 days</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          config={auctionChartConfig}
-          className="h-[200px] w-full"
-        >
+        <ChartContainer config={auctionChartConfig} className="h-[200px] w-full">
           <AreaChart
             accessibilityLayer
             data={auctionTrendData}
@@ -184,16 +172,8 @@ export function AuctionTrendChart() {
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <defs>
               <linearGradient id="fillFinalPrice" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-finalPrice)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-finalPrice)"
-                  stopOpacity={0.1}
-                />
+                <stop offset="5%" stopColor="var(--color-finalPrice)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-finalPrice)" stopOpacity={0.1} />
               </linearGradient>
             </defs>
             <Area
@@ -210,8 +190,7 @@ export function AuctionTrendChart() {
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 font-medium leading-none">
-              Average final price up 12% this week{" "}
-              <TrendingUp className="h-4 w-4" />
+              Average final price up 12% this week <TrendingUp className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
               Last 14 auctions completed
@@ -229,21 +208,13 @@ export function TreasuryAllocationChart() {
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>Treasury Allocation</CardTitle>
-          <CardDescription>
-            Current asset distribution in the DAO treasury
-          </CardDescription>
+          <CardDescription>Current asset distribution in the DAO treasury</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          config={treasuryChartConfig}
-          className="h-[200px] w-full"
-        >
+        <ChartContainer config={treasuryChartConfig} className="h-[200px] w-full">
           <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
             <Pie
               data={treasuryData}
               cx="50%"
@@ -282,7 +253,7 @@ export function MemberActivityChart() {
   >([]);
   const totalVoters = useMemo(
     () => proposalBars.reduce((sum, r) => sum + r.voters, 0),
-    [proposalBars]
+    [proposalBars],
   );
 
   useEffect(() => {
@@ -298,7 +269,7 @@ export function MemberActivityChart() {
               proposal: `Prop #${r.proposalNumber}`,
               proposalNumber: r.proposalNumber,
               voters: r.voterCount,
-            }))
+            })),
         );
       })
       .catch(() => {
@@ -315,9 +286,7 @@ export function MemberActivityChart() {
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>Member Activity</CardTitle>
-          <CardDescription>
-            Voters per recent proposals (excluding cancelled)
-          </CardDescription>
+          <CardDescription>Voters per recent proposals (excluding cancelled)</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
@@ -331,12 +300,7 @@ export function MemberActivityChart() {
             }}
           >
             <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="proposalNumber"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            />
+            <XAxis dataKey="proposalNumber" tickLine={false} axisLine={false} tickMargin={8} />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <Bar dataKey="voters" fill="var(--color-voters)" radius={4} />
           </BarChart>
@@ -346,8 +310,7 @@ export function MemberActivityChart() {
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 font-medium leading-none">
-              {totalVoters} voters across recent proposals{" "}
-              <TrendingUp className="h-4 w-4" />
+              {totalVoters} voters across recent proposals <TrendingUp className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
               Showing {proposalBars.length} proposals

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/prettierrc",
+  "printWidth": 100,
+  "singleQuote": false,
+  "semi": true,
+  "trailingComma": "all",
+  "tabWidth": 2,
+  "useTabs": false,
+  "plugins": ["@ianvs/prettier-plugin-sort-imports"],
+  "importOrder": [
+    "^react$",
+    "^next(.*)$",
+    "^@?\\w",
+    "^(@/components)(/(.*))?$",
+    "^@/(.*)$",
+    "^[./]"
+  ],
+  "overrides": []
+}

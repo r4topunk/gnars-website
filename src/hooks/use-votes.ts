@@ -1,33 +1,33 @@
-import { useReadContracts } from 'wagmi'
-import { Address } from 'viem'
+import { Address } from "viem";
+import { useReadContracts } from "wagmi";
 
 // Basic ABIs - would normally import from @buildeross/sdk
 const tokenAbi = [
   {
-    name: 'getVotes',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'account', type: 'address' }],
-    outputs: [{ name: '', type: 'uint256' }],
+    name: "getVotes",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
   },
   {
-    name: 'delegates',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'account', type: 'address' }],
-    outputs: [{ name: '', type: 'address' }],
+    name: "delegates",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "address" }],
   },
-] as const
+] as const;
 
 const governorAbi = [
   {
-    name: 'proposalThreshold',
-    type: 'function',
-    stateMutability: 'view',
+    name: "proposalThreshold",
+    type: "function",
+    stateMutability: "view",
     inputs: [],
-    outputs: [{ name: '', type: 'uint256' }],
+    outputs: [{ name: "", type: "uint256" }],
   },
-] as const
+] as const;
 
 export const useVotes = ({
   chainId,
@@ -35,10 +35,10 @@ export const useVotes = ({
   governorAddress,
   signerAddress,
 }: {
-  chainId: 8453
-  collectionAddress?: Address
-  governorAddress?: Address
-  signerAddress?: Address
+  chainId: 8453;
+  collectionAddress?: Address;
+  governorAddress?: Address;
+  signerAddress?: Address;
 }) => {
   const { data, isLoading } = useReadContracts({
     query: {
@@ -49,35 +49,35 @@ export const useVotes = ({
       {
         address: collectionAddress!,
         abi: tokenAbi,
-        functionName: 'getVotes',
+        functionName: "getVotes",
         args: [signerAddress!],
         chainId,
       },
       {
         address: collectionAddress!,
         abi: tokenAbi,
-        functionName: 'delegates',
+        functionName: "delegates",
         args: [signerAddress!],
         chainId,
       },
       {
         address: governorAddress!,
         abi: governorAbi,
-        functionName: 'proposalThreshold',
+        functionName: "proposalThreshold",
         chainId,
       },
     ] as const,
-  })
+  });
 
   if (!data || isLoading || data.some((d) => d === undefined || d === null)) {
     return {
       isLoading,
       isOwner: false,
       hasThreshold: false,
-    }
+    };
   }
 
-  const [votes, delegates, proposalThreshold] = data
+  const [votes, delegates, proposalThreshold] = data;
 
   return {
     isLoading,
@@ -87,5 +87,5 @@ export const useVotes = ({
     hasThreshold: votes > proposalThreshold,
     proposalVotesRequired: proposalThreshold + BigInt(1),
     votes,
-  }
-}
+  };
+};
