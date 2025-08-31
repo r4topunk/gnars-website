@@ -94,7 +94,7 @@ export function Markdown({ children, className }: MarkdownProps) {
                 loading="lazy"
                 className="rounded-md border mx-auto my-2 max-h-[460px] w-auto max-w-full"
                 src={url}
-                alt={typeof alt === "string" ? alt : undefined}
+                alt={typeof alt === "string" ? alt : ""}
                 {...props}
               />
             );
@@ -144,10 +144,11 @@ export function Markdown({ children, className }: MarkdownProps) {
             );
           },
           code(props) {
-            const { className, children, ...rest } = props as unknown as {
-              className?: string;
-              children?: React.ReactNode;
-            };
+            const { className, children, ...rest } =
+              (props as unknown as React.HTMLAttributes<HTMLElement> & {
+                className?: string;
+                children?: React.ReactNode;
+              });
             // Heuristic: if it has language- class, treat as block; else inline
             const isInline = !(
               typeof className === "string" && className.includes("language-")
@@ -156,14 +157,14 @@ export function Markdown({ children, className }: MarkdownProps) {
               return (
                 <code
                   className={cn("px-1 py-0.5 rounded bg-muted font-mono text-xs", className)}
-                  {...(rest as any)}
+                  {...rest}
                 >
                   {children}
                 </code>
               );
             }
             return (
-              <code className={cn("font-mono text-xs", className)} {...(rest as any)}>
+              <code className={cn("font-mono text-xs", className)} {...rest}>
                 {children}
               </code>
             );

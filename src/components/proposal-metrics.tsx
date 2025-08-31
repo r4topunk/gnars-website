@@ -8,8 +8,6 @@ interface ProposalMetricsProps {
   quorumVotes: string;
   snapshotBlock?: number;
   endDate?: Date;
-  proposer?: string;
-  proposerEnsName?: string;
 }
 
 export function ProposalMetrics({
@@ -19,8 +17,6 @@ export function ProposalMetrics({
   quorumVotes,
   snapshotBlock,
   endDate,
-  proposer,
-  proposerEnsName,
 }: ProposalMetricsProps) {
   const formatVotes = (votes: string) => {
     const num = parseFloat(votes);
@@ -32,15 +28,16 @@ export function ProposalMetrics({
     return Number.isFinite(num) ? Math.max(num, 0) : 0;
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  // reserved for future use
+  // const formatDate = (date: Date) => {
+  //   return date.toLocaleDateString(undefined, {
+  //     year: "numeric",
+  //     month: "short",
+  //     day: "numeric",
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //   });
+  // };
 
   const formatBlock = (block: number) => {
     return block.toLocaleString();

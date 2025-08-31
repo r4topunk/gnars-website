@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Copy, ExternalLink, User } from "lucide-react";
+import { Copy, ExternalLink } from "lucide-react";
 import { getProposal, getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { ProposalMetrics } from "@/components/proposal-metrics";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VotingControls } from "@/components/voting-controls";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { Markdown } from "@/components/markdown";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
 interface UiProposalVote {
@@ -162,8 +161,15 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
           // Prefer executableFrom/expiresAt, else interpret voteEnd as seconds
           const voteEnd = Number(sdkProposal.voteEnd ?? 0);
           if (voteEnd > 0) return new Date(voteEnd * 1000);
-          const expiresAt = Number((sdkProposal as any).expiresAt ?? 0);
-          return expiresAt > 0 ? new Date(expiresAt * 1000) : undefined;
+          const record = sdkProposal as unknown as Record<string, unknown>;
+          const expiresAtRaw = record["expiresAt"];
+          const expiresAtNumber =
+            typeof expiresAtRaw === "number"
+              ? expiresAtRaw
+              : typeof expiresAtRaw === "string"
+                ? Number.parseInt(expiresAtRaw, 10)
+                : 0;
+          return expiresAtNumber > 0 ? new Date(expiresAtNumber * 1000) : undefined;
         })();
 
         const uiProposal: UiProposal = {
@@ -182,11 +188,16 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
           againstVotes: String(sdkProposal.againstVotes ?? 0),
           abstainVotes: String(sdkProposal.abstainVotes ?? 0),
           quorumVotes: String(sdkProposal.quorumVotes ?? 0),
-          calldatas: Array.isArray(sdkProposal.calldatas)
-            ? (sdkProposal.calldatas as string[])
-            : typeof (sdkProposal as any).calldatas === "string"
-              ? [(sdkProposal as any).calldatas]
-              : [],
+          calldatas: (() => {
+            const direct = (sdkProposal as unknown as { calldatas?: unknown }).calldatas;
+            if (Array.isArray(direct)) return direct.map(String);
+            if (typeof direct === "string") return [direct];
+            const record = sdkProposal as unknown as Record<string, unknown>;
+            const raw = record["calldatas"];
+            if (Array.isArray(raw)) return raw.map(String);
+            if (typeof raw === "string") return [raw];
+            return [] as string[];
+          })(),
           targets: (sdkProposal.targets as unknown[] | undefined)?.map(String) ?? [],
           values: (sdkProposal.values as unknown[] | undefined)?.map(String) ?? [],
           signatures: [],
