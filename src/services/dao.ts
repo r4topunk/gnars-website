@@ -55,7 +55,7 @@ export async function fetchTotalAuctionSalesWei(): Promise<bigint> {
   try {
     return BigInt(wei);
   } catch {
-    return 0n;
+    return BigInt(0);
   }
 }
 
