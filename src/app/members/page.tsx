@@ -1,17 +1,10 @@
 import { Suspense } from "react";
 import { MembersList } from "@/components/members-list";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const revalidate = 3600; // ISR with 1 hour revalidation
 
-interface MembersPageProps {
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-export default async function MembersPage({ searchParams }: MembersPageProps) {
-  const params = (await searchParams) || {};
-  const search = typeof params.search === "string" ? params.search : "";
+export default async function MembersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -56,4 +49,3 @@ function MembersTableSkeleton() {
   );
 }
 
- 

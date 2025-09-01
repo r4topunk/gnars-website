@@ -3,7 +3,7 @@ import { NftHoldings } from "@/components/nft-holdings";
 import { TokenHoldings } from "@/components/token-holdings";
 import { TreasuryBalance } from "@/components/treasury-balance";
 import { AuctionTrendChart, MemberActivityChart, TreasuryAllocationChart } from "@/components/dashboard-charts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GNARS_ADDRESSES } from "@/lib/config";
 

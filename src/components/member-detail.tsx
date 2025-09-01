@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { fetchDelegators, fetchDelegatorsWithCounts, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
+import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
 import { ProposalCard, type Proposal as UiProposal, ProposalStatus } from "@/components/recent-proposals";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
@@ -71,11 +71,10 @@ export function MemberDetail({ address }: MemberDetailProps) {
     async function load() {
       try {
         setLoading(true);
-        const [ov, dels, vts, delsWithCounts] = await Promise.all([
+        const [ov, dels, vts] = await Promise.all([
           fetchMemberOverview(address),
           fetchDelegators(address),
           fetchMemberVotes(address, 100),
-          fetchDelegatorsWithCounts(address),
         ]);
         if (!mounted) return;
         setOverview(ov);

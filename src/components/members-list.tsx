@@ -67,7 +67,7 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
 
   const filteredMembers = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    let result = members.filter((member) =>
+    const result = members.filter((member) =>
       member.owner.toLowerCase().includes(searchLower) ||
       member.delegate.toLowerCase().includes(searchLower),
     );

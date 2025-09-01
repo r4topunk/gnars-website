@@ -361,7 +361,6 @@ export async function fetchActiveVotesForVoters(addresses: string[]): Promise<Re
 
   for (const voters of chunks) {
     let skip = 0;
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const data = await subgraphQuery<ActiveVotesBatchQuery>(ACTIVE_VOTES_BATCH_GQL, {
         dao,
@@ -415,7 +414,6 @@ export async function fetchDelegatorsWithCounts(address: string): Promise<Delega
   const PAGE_SIZE = 1000;
   let skip = 0;
   const results: DelegatorWithCount[] = [];
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const data = await subgraphQuery<DelegatorsWithCountsQuery>(DELEGATORS_WITH_COUNTS_GQL, {
       dao,
@@ -474,7 +472,6 @@ export async function fetchVotesCountForVoters(addresses: string[]): Promise<Rec
 
   for (const voters of chunks) {
     let skip = 0;
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const data = await subgraphQuery<VotesCountBatchQuery>(VOTES_COUNT_BATCH_GQL, {
         dao,

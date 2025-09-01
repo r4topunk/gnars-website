@@ -28,34 +28,12 @@ interface AlchemyTokenResponse {
   };
 }
 
-interface NftItem {
-  tokenId: string;
-  tokenType: string;
-  name?: string;
-  description?: string;
-  image?: {
-    originalUrl?: string;
-    thumbnailUrl?: string;
-  };
-  contract: {
-    address: string;
-    name?: string;
-    symbol?: string;
-  };
-}
 
-interface AlchemyNftResponse {
-  result?: {
-    ownedNfts: NftItem[];
-    totalCount: number;
-  };
-}
 
 export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryBalanceProps) {
   const [ethBalance, setEthBalance] = useState<bigint | null>(null);
   const [tokens, setTokens] = useState<TokenBalance[]>([]);
   const [tokenUsdMap, setTokenUsdMap] = useState<Record<string, number>>({});
-  const [nfts, setNfts] = useState<NftItem[]>([]);
   const [totalAuctionSalesWei, setTotalAuctionSalesWei] = useState<bigint | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -130,21 +108,6 @@ export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryB
         setTotalAuctionSalesWei(salesWei);
       } catch {
         setTotalAuctionSalesWei(BigInt(0));
-      }
-
-      // Fetch NFTs
-      const nftResponse = await fetch("/api/alchemy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          method: "alchemy_getNfts",
-          params: [treasuryAddress],
-        }),
-      });
-
-      if (nftResponse.ok) {
-        const nftData: AlchemyNftResponse = await nftResponse.json();
-        setNfts(nftData.result?.ownedNfts || []);
       }
     } catch (err) {
       console.error("Error fetching treasury data:", err);
