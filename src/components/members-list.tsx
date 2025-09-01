@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -44,6 +44,9 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [sortBy, setSortBy] = useState<"delegate" | "tokens" | "activeVotes" | "votesCount">("tokens");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const PAGE_SIZE = 100;
+  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
  
 
   useEffect(() => {
@@ -90,6 +93,27 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
     };
     return [...result].sort(compare);
   }, [members, searchTerm, sortBy, sortDir]);
+
+  // Reset visible count when the filters change
+  useEffect(() => {
+    setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), filteredMembers.length || PAGE_SIZE));
+  }, [members.length, searchTerm, sortBy, sortDir, filteredMembers.length]);
+
+  // IntersectionObserver to load more on scroll
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const el = sentinelRef.current;
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (!entry?.isIntersecting) return;
+      setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredMembers.length));
+    }, { rootMargin: "200px" });
+    observer.observe(el);
+    return () => {
+      observer.unobserve(el);
+      observer.disconnect();
+    };
+  }, [filteredMembers.length]);
 
   if (loading) {
     return (
@@ -216,7 +240,7 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
                 </TableCell>
               </TableRow>
             ) : (
-              filteredMembers.map((member) => (
+              filteredMembers.slice(0, visibleCount).map((member) => (
                 <TableRow key={member.owner}>
                   <TableCell>
                     {member.owner.toLowerCase() === GNARS_ADDRESSES.treasury.toLowerCase() ? (
@@ -274,8 +298,11 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
         </Table>
       </div>
 
+      {/* Sentinel for infinite scroll */}
+      <div ref={sentinelRef} className="h-10" />
+
       <div className="text-sm text-muted-foreground">
-        Showing {filteredMembers.length} of {members.length} members
+        Showing {Math.min(visibleCount, filteredMembers.length)} of {filteredMembers.length} members
       </div>
     </div>
   );
