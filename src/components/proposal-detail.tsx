@@ -111,7 +111,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasVoted, setHasVoted] = useState(false);
   const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
-  const [proposerEnsName, setProposerEnsName] = useState<string | undefined>(undefined);
+  // Removed unused proposerEnsName state to satisfy linter
 
   console.log("description", proposal?.description);
 
@@ -230,24 +230,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
     fetchProposal();
   }, [proposalId]);
 
-  // Fetch ENS for proposer if available
-  useEffect(() => {
-    const fetchEns = async () => {
-      if (!proposal?.proposer) return;
-      try {
-        // Public ENS resolution API (read-only)
-        const res = await fetch(`https://api.ensideas.com/ens/resolve/${proposal.proposer}`);
-        if (res.ok) {
-          const data = (await res.json()) as { name?: string; displayName?: string };
-          const name = data?.displayName || data?.name;
-          if (name) setProposerEnsName(name);
-        }
-      } catch {
-        // non-critical
-      }
-    };
-    fetchEns();
-  }, [proposal?.proposer]);
+  // Removed unused ENS fetch for proposer to satisfy linter
 
   const handleVote = (vote: "FOR" | "AGAINST" | "ABSTAIN") => {
     setHasVoted(true);

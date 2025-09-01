@@ -27,7 +27,7 @@ const ensCache = new Map<string, { data: ENSResolveResult; timestamp: number }>(
 // Rate limiting state
 let requestCount = 0;
 let lastResetTime = Date.now();
-let batchQueue: Array<{ address: Address; resolve: (result: ENSResolveResult) => void }> = [];
+const batchQueue: Array<{ address: Address; resolve: (result: ENSResolveResult) => void }> = [];
 let batchTimeout: NodeJS.Timeout | null = null;
 
 /**
@@ -144,12 +144,7 @@ async function resolveENSFromAPI(address: Address): Promise<ENSResolveResult> {
   return { name: null, avatar: null };
 }
 
-/**
- * Generate fallback avatar using DiceBear
- */
-function generateFallbackAvatar(address: Address): string {
-  return `https://api.dicebear.com/7.x/identicon/svg?seed=${address}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
-}
+// Removed unused generateFallbackAvatar helper
 
 /**
  * Main ENS resolution function

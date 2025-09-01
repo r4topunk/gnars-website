@@ -37,8 +37,13 @@ export function AddressDisplay({
   customExplorerUrl,
   onAddressClick,
 }: AddressDisplayProps) {
-  // Validate address
-  if (!address || !isAddress(address)) {
+  const normalizedAddress = String(address).toLowerCase() as Address;
+  const { data: ensData, isLoading } = useENSOptimistic(normalizedAddress);
+  const router = useRouter();
+  const isValid = isAddress(address);
+
+  // Validate address (after hooks are called to satisfy hooks rules)
+  if (!address || !isValid) {
     return (
       <div className={`inline-flex items-center gap-2 text-muted-foreground ${className}`}>
         <User className="h-4 w-4" />
@@ -47,16 +52,12 @@ export function AddressDisplay({
     );
   }
 
-  const normalizedAddress = address.toLowerCase() as Address;
-  const { data: ensData, isLoading } = useENSOptimistic(normalizedAddress);
-  const router = useRouter();
-
   // Handle copy to clipboard
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(normalizedAddress);
       toast.success('Address copied to clipboard');
-    } catch (error) {
+    } catch {
       toast.error('Failed to copy address');
     }
   };
