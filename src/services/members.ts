@@ -263,6 +263,7 @@ export type MemberListItem = {
   tokens: number[];
   tokenCount: number;
   votesCount?: number;
+  activeVotes?: number;
 };
 
 type DaoMembersPageQuery = {
@@ -325,6 +326,59 @@ export async function fetchAllMembers(): Promise<MemberListItem[]> {
     if (b.tokenCount !== a.tokenCount) return b.tokenCount - a.tokenCount;
     return a.owner.localeCompare(b.owner);
   });
+}
+
+type ActiveVotesBatchQuery = {
+  daovoters: Array<{
+    voter: string;
+    daoTokenCount: number;
+  }>;
+};
+
+const ACTIVE_VOTES_BATCH_GQL = /* GraphQL */ `
+  query ActiveVotesBatch($dao: ID!, $voters: [Bytes!]!, $first: Int!, $skip: Int!) {
+    daovoters(
+      where: { dao: $dao, voter_in: $voters }
+      orderBy: daoTokenCount
+      orderDirection: desc
+      first: $first
+      skip: $skip
+    ) {
+      voter
+      daoTokenCount
+    }
+  }
+`;
+
+export async function fetchActiveVotesForVoters(addresses: string[]): Promise<Record<string, number>> {
+  if (addresses.length === 0) return {};
+  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const counts: Record<string, number> = {};
+  const unique = Array.from(new Set(addresses.map((a) => a.toLowerCase())));
+  const PAGE = 1000;
+  const chunks: string[][] = [];
+  for (let i = 0; i < unique.length; i += 100) chunks.push(unique.slice(i, i + 100));
+
+  for (const voters of chunks) {
+    let skip = 0;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const data = await subgraphQuery<ActiveVotesBatchQuery>(ACTIVE_VOTES_BATCH_GQL, {
+        dao,
+        voters,
+        first: PAGE,
+        skip,
+      });
+      const rows = data.daovoters || [];
+      for (const row of rows) {
+        counts[row.voter.toLowerCase()] = Number(row.daoTokenCount || 0);
+      }
+      if (rows.length < PAGE) break;
+      skip += PAGE;
+    }
+  }
+
+  return counts;
 }
 
 type VotesCountBatchQuery = {

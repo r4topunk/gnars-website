@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchAllMembers, fetchVotesCountForVoters, type MemberListItem } from "@/services/members";
+import { fetchAllMembers, fetchVotesCountForVoters, fetchActiveVotesForVoters, type MemberListItem } from "@/services/members";
 
 export const dynamic = "force-dynamic";
 
@@ -9,11 +9,14 @@ export async function GET(request: Request) {
     const search = (searchParams.get("search") || "").toLowerCase();
 
     const members = await fetchAllMembers();
-    const votesCountMap = await fetchVotesCountForVoters(members.map((m) => m.owner));
+    const owners = members.map((m) => m.owner);
+    const votesCountMap = await fetchVotesCountForVoters(owners);
+    const activeVotesMap = await fetchActiveVotesForVoters(owners);
 
     const withCounts: MemberListItem[] = members.map((m) => ({
       ...m,
       votesCount: votesCountMap[m.owner.toLowerCase()] || 0,
+      activeVotes: activeVotesMap[m.owner.toLowerCase()] || 0,
     }));
 
     const filtered: MemberListItem[] = search
