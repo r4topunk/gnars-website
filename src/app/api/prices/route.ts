@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-static";
-export const revalidate = 60 * 60 * 4; // 4 hours
+// Cache external CoinGecko fetches for 4 hours
+const COINGECKO_REVALIDATE_SECONDS = 60 * 60 * 4;
 
 type PricesRequest = {
   addresses?: string[];
@@ -32,7 +32,7 @@ async function handlePrices(addresses: string[]) {
   const url = `https://api.coingecko.com/api/v3/simple/token_price/base?${params.toString()}`;
   const res = await fetch(url, {
     headers: { "user-agent": "gnars-website/treasury", "x-cg-demo-api-key": apiKey },
-    next: { revalidate },
+    next: { revalidate: COINGECKO_REVALIDATE_SECONDS },
   });
 
   if (!res.ok) {

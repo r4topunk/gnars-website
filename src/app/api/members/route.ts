@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchAllMembers, fetchVotesCountForVoters, fetchActiveVotesForVoters, type MemberListItem } from "@/services/members";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
