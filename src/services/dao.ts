@@ -34,3 +34,29 @@ export async function fetchDaoStats(): Promise<DaoStats> {
 }
 
 
+type DaoSalesQuery = {
+  dao: {
+    totalAuctionSales: string;
+  } | null;
+};
+
+const DAO_TOTAL_AUCTION_SALES_GQL = /* GraphQL */ `
+  query TotalAuctionSales($id: ID!) {
+    dao(id: $id) {
+      totalAuctionSales
+    }
+  }
+`;
+
+export async function fetchTotalAuctionSalesWei(): Promise<bigint> {
+  const id = GNARS_ADDRESSES.token.toLowerCase();
+  const data = await subgraphQuery<DaoSalesQuery>(DAO_TOTAL_AUCTION_SALES_GQL, { id });
+  const wei = data.dao?.totalAuctionSales ?? "0";
+  try {
+    return BigInt(wei);
+  } catch {
+    return 0n;
+  }
+}
+
+

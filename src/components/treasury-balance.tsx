@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { formatEther } from "viem";
 import { TREASURY_TOKEN_ADDRESSES } from "@/lib/config";
+import { fetchTotalAuctionSalesWei } from "@/services/dao";
 
 interface TreasuryBalanceProps {
   treasuryAddress: string;
@@ -52,6 +53,7 @@ export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryB
   const [ethBalance, setEthBalance] = useState<bigint | null>(null);
   const [tokens, setTokens] = useState<TokenBalance[]>([]);
   const [nfts, setNfts] = useState<NftItem[]>([]);
+  const [totalAuctionSalesWei, setTotalAuctionSalesWei] = useState<bigint | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,6 +97,14 @@ export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryB
           (token: TokenBalance) => token.tokenBalance !== "0x0" && token.tokenBalance !== "0",
         );
         setTokens(nonZeroTokens);
+      }
+
+      // Fetch total auction sales from subgraph
+      try {
+        const salesWei = await fetchTotalAuctionSalesWei();
+        setTotalAuctionSalesWei(salesWei);
+      } catch {
+        setTotalAuctionSalesWei(0n);
       }
 
       // Fetch NFTs
@@ -162,8 +172,13 @@ export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryB
         return formatCurrency(ethAmount, "ETH");
 
       case "auctions":
-        // Placeholder - in real implementation, you'd fetch auction data
-        return formatCurrency(0, "ETH");
+        if (totalAuctionSalesWei === null) return formatCurrency(0, "ETH");
+        try {
+          const salesEth = Number(formatEther(totalAuctionSalesWei));
+          return formatCurrency(salesEth, "ETH");
+        } catch {
+          return formatCurrency(0, "ETH");
+        }
 
       case "total":
       default:
@@ -183,7 +198,7 @@ export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryB
         </div>
       )}
       {metric === "auctions" && (
-        <div className="text-sm text-muted-foreground">Placeholder - Integration needed</div>
+        <div className="text-sm text-muted-foreground">Cumulative ETH from settled auctions</div>
       )}
     </div>
   );
