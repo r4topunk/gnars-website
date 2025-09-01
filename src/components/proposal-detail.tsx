@@ -299,7 +299,17 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
           )}
         </div>
         <h1 className="text-3xl font-bold tracking-tight">{proposal.title}</h1>
-        <div className="text-sm text-muted-foreground">By {proposerEnsName || proposal.proposerEnsName || `${proposal.proposer.slice(0, 6)}...${proposal.proposer.slice(-4)}`}</div>
+        <div className="text-sm text-muted-foreground">
+          By{" "}
+          <Link
+            href={`/members/${proposal.proposer}`}
+            className="hover:underline"
+          >
+            {proposerEnsName ||
+              proposal.proposerEnsName ||
+              `${proposal.proposer.slice(0, 6)}...${proposal.proposer.slice(-4)}`}
+          </Link>
+        </div>
       </div>
 
       {/* Vote callout removed per request */}

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { GnarImageTile } from "@/components/gnar-image-tile";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,26 +35,7 @@ function AuctionCard({ auction }: { auction: PastAuction }) {
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <CardContent className="space-y-4 px-4">
-        <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative rounded-xl overflow-hidden">
-          {auction.imageUrl ? (
-            <Image
-              src={auction.imageUrl}
-              alt={`Gnar ${auction.tokenId}`}
-              fill
-              className="object-cover rounded-xl"
-              loading="lazy"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1536px) 33vw, 25vw"
-              quality={30}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <div className="text-4xl font-bold mb-1">#{auction.tokenId}</div>
-                <div className="text-xs">Gnar NFT</div>
-              </div>
-            </div>
-          )}
-        </div>
+        <GnarImageTile imageUrl={auction.imageUrl} tokenId={auction.tokenId} />
 
         <div className="space-y-2">
           <div className="flex items-top justify-between">
