@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GnarCard } from "@/components/gnar-card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,10 @@ interface MemberDetailProps {
 }
 
 export function MemberDetail({ address }: MemberDetailProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [ensName, setEnsName] = useState<string | null>(null);
   const [ensAvatar, setEnsAvatar] = useState<string | null>(null);
   const [overview, setOverview] = useState<Awaited<ReturnType<typeof fetchMemberOverview>> | null>(null);
@@ -26,6 +31,32 @@ export function MemberDetail({ address }: MemberDetailProps) {
   const [proposals, setProposals] = useState<UiProposal[]>([]);
   const [votes, setVotes] = useState<Awaited<ReturnType<typeof fetchMemberVotes>>["votes"]>([]);
   const [loading, setLoading] = useState(true);
+  const allowedTabs = useMemo(() => new Set(["proposals", "votes", "tokens"]), []);
+  const initialTab = useMemo(() => {
+    const raw = searchParams.get("tab");
+    const normalized = raw ? raw.toLowerCase() : null;
+    return normalized && allowedTabs.has(normalized) ? normalized : "proposals";
+  }, [searchParams, allowedTabs]);
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
+
+  useEffect(() => {
+    const raw = searchParams.get("tab");
+    const normalized = raw ? raw.toLowerCase() : null;
+    const next = normalized && allowedTabs.has(normalized) ? normalized : "proposals";
+    if (next !== activeTab) setActiveTab(next);
+  }, [searchParams, allowedTabs, activeTab]);
+
+  const handleTabChange = (val: string) => {
+    setActiveTab(val);
+    const params = new URLSearchParams(searchParams.toString());
+    if (val === "proposals") {
+      params.delete("tab");
+    } else {
+      params.set("tab", val);
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname);
+  };
 
   const display = useMemo(() => {
     if (ensName) return ensName;
@@ -264,7 +295,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
       </div>
 
       {/* Tabs for detail lists */}
-      <Tabs defaultValue="proposals" className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="proposals">Proposals</TabsTrigger>
           <TabsTrigger value="votes">Votes</TabsTrigger>
