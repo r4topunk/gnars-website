@@ -5,16 +5,28 @@ import { isAddress } from "viem";
 
 interface MemberPageProps {
   params: Promise<{ address: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function MemberPage({ params }: MemberPageProps) {
-  const { address } = await params;
+export default async function MemberPage({ params, searchParams }: MemberPageProps) {
+  const [{ address }, sp] = await Promise.all([params, searchParams]);
   if (!isAddress(address)) {
     // Treat as ENS name and try to resolve
     if (address && address.includes(".")) {
       const resolved = await resolveAddressFromENS(address);
       if (resolved) {
-        redirect(`/members/${resolved}`);
+        const qs = new URLSearchParams();
+        if (sp) {
+          for (const [key, value] of Object.entries(sp)) {
+            if (typeof value === "string") {
+              qs.set(key, value);
+            } else if (Array.isArray(value)) {
+              for (const v of value) qs.append(key, v);
+            }
+          }
+        }
+        const suffix = qs.toString();
+        redirect(suffix ? `/members/${resolved}?${suffix}` : `/members/${resolved}`);
       }
       notFound();
     }
