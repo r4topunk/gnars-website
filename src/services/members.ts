@@ -265,39 +265,26 @@ export type MemberListItem = {
   votesCount?: number;
 };
 
-type MembersTokensPageQuery = {
-  tokens: Array<{
-    tokenId: string;
+type DaoMembersPageQuery = {
+  daotokenOwners: Array<{
     owner: string;
+    delegate: string;
+    daoTokenCount: number;
   }>;
 };
 
-const DAO_TOKENS_OWNERS_BY_DAO_GQL = /* GraphQL */ `
-  query DaoTokensOwnersByDao($dao: ID!, $first: Int!, $skip: Int!) {
-    tokens(
+const DAO_MEMBERS_LIST_GQL = /* GraphQL */ `
+  query DaoMembersList($dao: ID!, $first: Int!, $skip: Int!) {
+    daotokenOwners(
       where: { dao: $dao }
-      orderBy: tokenId
-      orderDirection: asc
+      orderBy: daoTokenCount
+      orderDirection: desc
       first: $first
       skip: $skip
     ) {
-      tokenId
       owner
-    }
-  }
-`;
-
-const DAO_TOKENS_OWNERS_BY_CONTRACT_GQL = /* GraphQL */ `
-  query DaoTokensOwnersByContract($tokenContract: ID!, $first: Int!, $skip: Int!) {
-    tokens(
-      where: { tokenContract: $tokenContract }
-      orderBy: tokenId
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      tokenId
-      owner
+      delegate
+      daoTokenCount
     }
   }
 `;
@@ -309,68 +296,32 @@ export async function fetchAllMembers(): Promise<MemberListItem[]> {
   const dao = GNARS_ADDRESSES.token.toLowerCase();
   const PAGE_SIZE = 1000;
   let skip = 0;
-  const ownerToMember: Map<string, MemberListItem> = new Map();
-  let mode: 'dao' | 'contract' | null = null;
+  const aggregated: MemberListItem[] = [];
 
   // Paginate through all tokens to aggregate by owner
   while (true) {
-    let page: MembersTokensPageQuery;
-    if (mode === 'dao' || mode === null) {
-      page = await subgraphQuery<MembersTokensPageQuery>(DAO_TOKENS_OWNERS_BY_DAO_GQL, {
-        dao,
-        first: PAGE_SIZE,
-        skip,
+    const page = await subgraphQuery<DaoMembersPageQuery>(DAO_MEMBERS_LIST_GQL, {
+      dao,
+      first: PAGE_SIZE,
+      skip,
+    });
+    const owners = page.daotokenOwners || [];
+    if (owners.length === 0) break;
+
+    for (const o of owners) {
+      aggregated.push({
+        owner: o.owner.toLowerCase(),
+        delegate: (o.delegate || o.owner).toLowerCase(),
+        tokenCount: Number(o.daoTokenCount ?? 0),
+        tokens: [],
       });
-      if (mode === null && (page.tokens ?? []).length === 0) {
-        // Fallback to tokenContract filter if dao filter returns no results
-        mode = 'contract';
-        skip = 0;
-        continue;
-      }
-      mode = 'dao';
-    } else {
-      page = await subgraphQuery<MembersTokensPageQuery>(DAO_TOKENS_OWNERS_BY_CONTRACT_GQL, {
-        tokenContract: dao,
-        first: PAGE_SIZE,
-        skip,
-      });
-      mode = 'contract';
     }
 
-    const items = page.tokens || [];
-    if (items.length === 0) break;
-
-    for (const t of items) {
-      const ownerRaw = t.owner;
-      if (!ownerRaw) {
-        continue;
-      }
-      const owner = ownerRaw.toLowerCase();
-      const delegate = owner;
-      const tokenIdNum = Number(t.tokenId);
-
-      const existing = ownerToMember.get(owner);
-      if (existing) {
-        existing.tokens.push(tokenIdNum);
-        existing.tokenCount += 1;
-        // Update delegate in case it changed (keep the latest seen)
-        existing.delegate = delegate;
-      } else {
-        ownerToMember.set(owner, {
-          owner,
-          delegate,
-          tokens: [tokenIdNum],
-          tokenCount: 1,
-        });
-      }
-    }
-
-    if (items.length < PAGE_SIZE) break;
+    if (owners.length < PAGE_SIZE) break;
     skip += PAGE_SIZE;
   }
 
-  // Sort by tokenCount desc, then owner asc for stability
-  return Array.from(ownerToMember.values()).sort((a, b) => {
+  return aggregated.sort((a, b) => {
     if (b.tokenCount !== a.tokenCount) return b.tokenCount - a.tokenCount;
     return a.owner.localeCompare(b.owner);
   });

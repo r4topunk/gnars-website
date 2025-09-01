@@ -14,6 +14,7 @@ import {
 import { AddressDisplay } from "@/components/ui/address-display";
 import Link from "next/link";
 import { type MemberListItem } from "@/services/members";
+ 
 
 async function fetchMembers(search?: string): Promise<MemberListItem[]> {
   const url = new URL("/api/members", window.location.origin);
@@ -39,6 +40,7 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
   const [members, setMembers] = useState<MemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+ 
 
   useEffect(() => {
     async function loadMembers() {
@@ -58,10 +60,11 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
 
   const filteredMembers = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    return members.filter((member) =>
+    let result = members.filter((member) =>
       member.owner.toLowerCase().includes(searchLower) ||
       member.delegate.toLowerCase().includes(searchLower),
     );
+    return result;
   }, [members, searchTerm]);
 
   if (loading) {
