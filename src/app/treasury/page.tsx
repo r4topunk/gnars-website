@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { NftHoldings } from "@/components/nft-holdings";
 import { TokenHoldings } from "@/components/token-holdings";
 import { TreasuryBalance } from "@/components/treasury-balance";
+import { AuctionTrendChart, MemberActivityChart, TreasuryAllocationChart } from "@/components/dashboard-charts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GNARS_ADDRESSES } from "@/lib/config";
@@ -18,23 +19,22 @@ export default function TreasuryPage() {
           </p>
         </div>
 
-        {/* Primary Metric: Total USD Value */}
-        <Suspense fallback={<TreasuryValueSkeleton />}>
-          <Card className="w-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Treasury Value</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <TreasuryBalance treasuryAddress={GNARS_ADDRESSES.treasury} />
-            </CardContent>
-          </Card>
-        </Suspense>
+        {/* KPIs */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <Suspense fallback={<TreasuryValueSkeleton />}>
+            <Card className="gap-2">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Total Treasury Value</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TreasuryBalance treasuryAddress={GNARS_ADDRESSES.treasury} />
+              </CardContent>
+            </Card>
+          </Suspense>
 
-        {/* Secondary Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Suspense fallback={<MetricSkeleton />}>
-            <Card>
-              <CardHeader className="pb-2">
+            <Card className="gap-2">
+              <CardHeader>
                 <CardTitle className="text-sm font-medium">ETH Balance</CardTitle>
               </CardHeader>
               <CardContent>
@@ -44,10 +44,9 @@ export default function TreasuryPage() {
           </Suspense>
 
           <Suspense fallback={<MetricSkeleton />}>
-            <Card>
-              <CardHeader className="pb-2">
+            <Card className="gap-2">
+              <CardHeader>
                 <CardTitle className="text-sm font-medium">Total Auction Sales</CardTitle>
-                <CardDescription>Cumulative ETH raised from all auctions</CardDescription>
               </CardHeader>
               <CardContent>
                 <TreasuryBalance treasuryAddress={GNARS_ADDRESSES.treasury} metric="auctions" />
@@ -56,16 +55,23 @@ export default function TreasuryPage() {
           </Suspense>
         </div>
 
-        {/* Token Holdings Table */}
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold">Token Holdings</h2>
-            <p className="text-sm text-muted-foreground">ERC-20 tokens held in the treasury</p>
+        {/* Charts */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-1">
+            <TreasuryAllocationChart />
           </div>
-          <Suspense fallback={<TableSkeleton />}>
-            <TokenHoldings treasuryAddress={GNARS_ADDRESSES.treasury} />
-          </Suspense>
+          <div className="lg:col-span-1">
+            <AuctionTrendChart />
+          </div>
+          <div className="lg:col-span-1">
+            <MemberActivityChart />
+          </div>
         </div>
+
+        {/* Token Holdings Table */}
+        <Suspense fallback={<TableSkeleton />}>
+          <TokenHoldings treasuryAddress={GNARS_ADDRESSES.treasury} />
+        </Suspense>
 
         {/* NFT Holdings Grid */}
         <div className="space-y-4">
@@ -88,7 +94,7 @@ export default function TreasuryPage() {
 function TreasuryValueSkeleton() {
   return (
     <Card className="w-full">
-      <CardHeader className="pb-2">
+      <CardHeader>
         <CardTitle className="text-sm font-medium">Total Treasury Value</CardTitle>
       </CardHeader>
       <CardContent>

@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatEther } from "viem";
-import { TREASURY_TOKEN_ADDRESSES } from "@/lib/config";
+import { TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 import { fetchTotalAuctionSalesWei } from "@/services/dao";
+import { CountUp } from "@/components/ui/count-up";
+import { Skeleton } from "./ui/skeleton";
 
 interface TreasuryBalanceProps {
   treasuryAddress: string;
@@ -52,6 +54,7 @@ interface AlchemyNftResponse {
 export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryBalanceProps) {
   const [ethBalance, setEthBalance] = useState<bigint | null>(null);
   const [tokens, setTokens] = useState<TokenBalance[]>([]);
+  const [tokenUsdMap, setTokenUsdMap] = useState<Record<string, number>>({});
   const [nfts, setNfts] = useState<NftItem[]>([]);
   const [totalAuctionSalesWei, setTotalAuctionSalesWei] = useState<bigint | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,6 +100,28 @@ export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryB
           (token: TokenBalance) => token.tokenBalance !== "0x0" && token.tokenBalance !== "0",
         );
         setTokens(nonZeroTokens);
+
+        // Load USD prices for allowlisted tokens
+        try {
+          // Always request prices for the full allowlist so we can price native ETH via WETH
+          const addresses = TREASURY_TOKEN_ADDRESSES.map((a) => String(a).toLowerCase());
+          const priceRes = await fetch("/api/prices", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ addresses }),
+          });
+          if (priceRes.ok) {
+            const priceJson = await priceRes.json();
+            const prices: Record<string, { usd?: number }> = priceJson?.prices ?? {};
+            const map: Record<string, number> = {};
+            for (const [addr, p] of Object.entries(prices)) {
+              map[addr.toLowerCase()] = Number(p?.usd ?? 0) || 0;
+            }
+            setTokenUsdMap(map);
+          }
+        } catch {
+          setTokenUsdMap({});
+        }
       }
 
       // Fetch total auction sales from subgraph
@@ -104,7 +129,7 @@ export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryB
         const salesWei = await fetchTotalAuctionSalesWei();
         setTotalAuctionSalesWei(salesWei);
       } catch {
-        setTotalAuctionSalesWei(0n);
+        setTotalAuctionSalesWei(BigInt(0));
       }
 
       // Fetch NFTs
@@ -151,13 +176,25 @@ export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryB
     }).format(amount);
   };
 
+  const totalUsdFromTokens = useMemo(() => {
+    // compute USD value using token balances and price map
+    let sum = 0;
+    for (const t of tokens) {
+      const price = tokenUsdMap[String(t.contractAddress).toLowerCase()] ?? 0;
+      const decimals = Number(t.decimals ?? 18);
+      const balance = parseInt(String(t.tokenBalance), 16) / Math.pow(10, decimals);
+      sum += balance * price;
+    }
+    // Add native ETH priced using WETH price
+    const wethAddress = String(TREASURY_TOKEN_ALLOWLIST.WETH).toLowerCase();
+    const ethPrice = tokenUsdMap[wethAddress] ?? 0;
+    const ethAmount = ethBalance ? Number(formatEther(ethBalance)) : 0;
+    sum += ethAmount * ethPrice;
+    return sum;
+  }, [tokens, tokenUsdMap, ethBalance]);
+
   if (isLoading) {
-    return (
-      <div className="flex items-center space-x-2">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent" />
-        <span className="text-sm text-muted-foreground">Loading...</span>
-      </div>
-    );
+    return <Skeleton className="h-8 w-40" />;
   }
 
   if (error) {
@@ -169,37 +206,39 @@ export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryB
       case "eth":
         if (ethBalance === null) return formatCurrency(0, "ETH");
         const ethAmount = Number(formatEther(ethBalance));
-        return formatCurrency(ethAmount, "ETH");
+        return (
+          <>
+            <CountUp value={ethAmount} decimals={4} className="tabular-nums" /> ETH
+          </>
+        );
 
       case "auctions":
         if (totalAuctionSalesWei === null) return formatCurrency(0, "ETH");
         try {
           const salesEth = Number(formatEther(totalAuctionSalesWei));
-          return formatCurrency(salesEth, "ETH");
+          return (
+            <>
+              <CountUp value={salesEth} decimals={4} className="tabular-nums" /> ETH
+            </>
+          );
         } catch {
           return formatCurrency(0, "ETH");
         }
 
       case "total":
       default:
-        // Placeholder calculation - in real implementation, you'd calculate based on current prices
-        const ethValue = ethBalance ? Number(formatEther(ethBalance)) : 0;
-        const estimatedUsdValue = ethValue * 2500; // Placeholder ETH price
-        return formatCurrency(estimatedUsdValue);
+        const usd = totalUsdFromTokens;
+        return (
+          <>
+            $<CountUp value={usd} decimals={2} className="tabular-nums" />
+          </>
+        );
     }
   };
 
   return (
     <div className="space-y-2">
-      <div className="text-3xl font-bold tabular-nums">{renderMetric()}</div>
-      {metric === "total" && (
-        <div className="text-sm text-muted-foreground">
-          {tokens.length} tokens • {nfts.length} NFTs
-        </div>
-      )}
-      {metric === "auctions" && (
-        <div className="text-sm text-muted-foreground">Cumulative ETH from settled auctions</div>
-      )}
+      <div className="text-3xl font-bold">{renderMetric()}</div>
     </div>
   );
 }

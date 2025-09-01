@@ -42,7 +42,7 @@ interface EnrichedToken {
   symbol: string;
   name: string;
   logo?: string;
-  usdValue: number; // Placeholder for now
+  usdValue: number;
 }
 
 export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
@@ -112,7 +112,7 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
                 symbol: metadata.symbol,
                 name: metadata.name,
                 logo: metadata.logo,
-                usdValue: 0, // Placeholder - would need price API integration
+                usdValue: 0,
               });
             }
           }
@@ -120,6 +120,28 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
           console.error(`Error fetching metadata for token ${token.contractAddress}:`, tokenError);
           // Continue with next token
         }
+      }
+
+      // Fetch USD prices for these tokens (CoinGecko via our API route)
+      try {
+        const addresses = enrichedTokens.map((t) => t.contractAddress.toLowerCase());
+        const priceRes = await fetch("/api/prices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ addresses }),
+        });
+        if (priceRes.ok) {
+          const priceJson = await priceRes.json();
+          const priceMap: Record<string, { usd?: number }> = priceJson?.prices ?? {};
+          for (const tok of enrichedTokens) {
+            const p = priceMap[tok.contractAddress.toLowerCase()];
+            const usd = Number(p?.usd ?? 0) || 0;
+            tok.usdValue = usd * tok.balance;
+          }
+        }
+      } catch (priceErr) {
+        console.error("Error fetching token prices:", priceErr);
+        // keep usdValue at 0
       }
 
       setTokens(enrichedTokens);
@@ -231,7 +253,6 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {formatUsdValue(token.usdValue)}
-                  <div className="text-xs text-muted-foreground">Price data needed</div>
                 </TableCell>
               </TableRow>
             ))}

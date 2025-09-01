@@ -9,7 +9,7 @@ type CountUpProps = {
   className?: string;
 };
 
-export function CountUp({ value, durationMs = 800, decimals = 0, className }: CountUpProps) {
+export function CountUp({ value, durationMs = 1200, decimals = 0, className }: CountUpProps) {
   const [display, setDisplay] = useState<number>(0);
   const startRef = useRef<number | null>(null);
   const fromRef = useRef<number>(0);
