@@ -381,6 +381,59 @@ export async function fetchActiveVotesForVoters(addresses: string[]): Promise<Re
   return counts;
 }
 
+
+// Delegators with token counts
+export type DelegatorWithCount = {
+  owner: string;
+  tokenCount: number;
+};
+
+type DelegatorsWithCountsQuery = {
+  daotokenOwners: Array<{
+    owner: string;
+    daoTokenCount: number;
+  }>;
+};
+
+const DELEGATORS_WITH_COUNTS_GQL = /* GraphQL */ `
+  query DelegatorsWithCounts($dao: ID!, $delegate: Bytes!, $first: Int!, $skip: Int!) {
+    daotokenOwners(
+      where: { dao: $dao, delegate: $delegate }
+      orderBy: daoTokenCount
+      orderDirection: desc
+      first: $first
+      skip: $skip
+    ) {
+      owner
+      daoTokenCount
+    }
+  }
+`;
+
+export async function fetchDelegatorsWithCounts(address: string): Promise<DelegatorWithCount[]> {
+  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const PAGE_SIZE = 1000;
+  let skip = 0;
+  const results: DelegatorWithCount[] = [];
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const data = await subgraphQuery<DelegatorsWithCountsQuery>(DELEGATORS_WITH_COUNTS_GQL, {
+      dao,
+      delegate: address.toLowerCase(),
+      first: PAGE_SIZE,
+      skip,
+    });
+    const rows = data.daotokenOwners || [];
+    if (rows.length === 0) break;
+    for (const row of rows) {
+      results.push({ owner: row.owner.toLowerCase(), tokenCount: Number(row.daoTokenCount || 0) });
+    }
+    if (rows.length < PAGE_SIZE) break;
+    skip += PAGE_SIZE;
+  }
+  return results;
+}
+
 type VotesCountBatchQuery = {
   proposalVotes: Array<{
     voter: string;

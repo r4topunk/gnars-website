@@ -34,10 +34,11 @@ async function fetchMembers(search?: string): Promise<MemberListItem[]> {
 }
 
 interface MembersListProps {
-  searchTerm: string;
+  searchTerm?: string;
+  showSearch?: boolean;
 }
 
-export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListProps) {
+export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = true }: MembersListProps) {
   const [members, setMembers] = useState<MemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
@@ -93,10 +94,12 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search by address or ENS..." value={searchTerm} className="max-w-sm" disabled />
-        </div>
+        {showSearch ? (
+          <div className="flex items-center space-x-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search by address or ENS..." value={searchTerm} className="max-w-sm" disabled />
+          </div>
+        ) : null}
         <div className="text-center py-8">
           <div className="text-muted-foreground">Loading members...</div>
         </div>
@@ -106,15 +109,17 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by address or ENS..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
+      {showSearch ? (
+        <div className="flex items-center space-x-2">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by address or ENS..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+      ) : null}
 
       <div className="rounded-md border">
         <Table>

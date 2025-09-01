@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
+import { fetchDelegators, fetchDelegatorsWithCounts, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
 import { ProposalCard, type Proposal as UiProposal, ProposalStatus } from "@/components/recent-proposals";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
@@ -34,7 +34,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
   };
   const [votes, setVotes] = useState<VoteItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const allowedTabs = useMemo(() => new Set(["proposals", "votes", "tokens"]), []);
+  const allowedTabs = useMemo(() => new Set(["proposals", "votes", "tokens", "delegates"]), []);
   const initialTab = useMemo(() => {
     const raw = searchParams.get("tab");
     const normalized = raw ? raw.toLowerCase() : null;
@@ -71,10 +71,11 @@ export function MemberDetail({ address }: MemberDetailProps) {
     async function load() {
       try {
         setLoading(true);
-        const [ov, dels, vts] = await Promise.all([
+        const [ov, dels, vts, delsWithCounts] = await Promise.all([
           fetchMemberOverview(address),
           fetchDelegators(address),
           fetchMemberVotes(address, 100),
+          fetchDelegatorsWithCounts(address),
         ]);
         if (!mounted) return;
         setOverview(ov);
@@ -299,10 +300,11 @@ export function MemberDetail({ address }: MemberDetailProps) {
 
       {/* Tabs for detail lists */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="proposals">Proposals</TabsTrigger>
           <TabsTrigger value="votes">Votes</TabsTrigger>
           <TabsTrigger value="tokens">Tokens</TabsTrigger>
+          <TabsTrigger value="delegates">Delegates</TabsTrigger>
         </TabsList>
 
         <TabsContent value="proposals" className="mt-6">
@@ -319,6 +321,48 @@ export function MemberDetail({ address }: MemberDetailProps) {
                     <ProposalCard key={p.proposalId} proposal={p} showBanner />
                   ))}
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="delegates" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Delegators</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {delegators.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">No one delegated to this member.</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Address/ENS</TableHead>
+                      <TableHead className="text-right">Gnars Delegated</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {delegators.map((addr) => (
+                      <TableRow key={addr}>
+                        <TableCell>
+                          <AddressDisplay
+                            address={addr}
+                            variant="compact"
+                            showAvatar
+                            showENS
+                            showCopy={false}
+                            showExplorer={false}
+                            avatarSize="sm"
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {/* In a future refinement, we can map counts from delsWithCounts by address */}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>

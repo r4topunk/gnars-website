@@ -66,7 +66,7 @@ const daoNavigation = [
     title: "Community",
     items: [
       {
-        title: "Members & Delegates",
+        title: "Members",
         url: "/members",
         icon: Users,
       },
