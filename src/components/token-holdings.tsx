@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TREASURY_TOKEN_ADDRESSES } from "@/lib/config";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -54,13 +55,13 @@ export function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
       setIsLoading(true);
       setError(null);
 
-      // Fetch token balances using Alchemy API
+      // Fetch token balances using Alchemy API (restricted to allowlist)
       const response = await fetch("/api/alchemy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           method: "alchemy_getTokenBalances",
-          params: [treasuryAddress],
+          params: [treasuryAddress, TREASURY_TOKEN_ADDRESSES.filter(Boolean)],
         }),
       });
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { formatEther } from "viem";
+import { TREASURY_TOKEN_ADDRESSES } from "@/lib/config";
 
 interface TreasuryBalanceProps {
   treasuryAddress: string;
@@ -77,13 +78,13 @@ export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryB
       const ethBal = BigInt(ethData.result || "0");
       setEthBalance(ethBal);
 
-      // Fetch token balances
+      // Fetch token balances (restricted to allowlist)
       const tokenResponse = await fetch("/api/alchemy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           method: "alchemy_getTokenBalances",
-          params: [treasuryAddress],
+          params: [treasuryAddress, TREASURY_TOKEN_ADDRESSES.filter(Boolean)],
         }),
       });
 

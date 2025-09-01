@@ -22,3 +22,13 @@ export const SUBGRAPH = {
 
 export const DAO_DESCRIPTION =
   "Action sports accelerator and community owned brand. Headless so you can shred more…";
+
+// Token contracts we care about for treasury display
+// Provide Base mainnet addresses for known tokens
+export const TREASURY_TOKEN_ALLOWLIST = {
+  USDC: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+  WETH: "0x4200000000000000000000000000000000000006",
+  SENDIT: "0xBa5B9B2D2d06a9021EB3190ea5Fb0e02160839A4",
+} as const;
+
+export const TREASURY_TOKEN_ADDRESSES = Object.values(TREASURY_TOKEN_ALLOWLIST);

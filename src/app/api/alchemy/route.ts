@@ -30,11 +30,17 @@ export async function POST(request: NextRequest) {
     let url = ALCHEMY_BASE_URL ?? BASE_RPC_URL;
 
     if (method === "alchemy_getTokenBalances") {
+      // Support optional contract allowlist or "DEFAULT_TOKENS" as second param
+      // Params shape (JSON-RPC): [address, contractAddresses?]
+      const address = Array.isArray(params) ? params[0] : undefined;
+      const secondParam = Array.isArray(params) ? params[1] : undefined;
+      const hasFilter =
+        typeof secondParam === "string" || Array.isArray(secondParam) ? true : false;
       requestBody = {
         jsonrpc: "2.0",
         id: 1,
         method: "alchemy_getTokenBalances",
-        params: [params[0]], // address
+        params: hasFilter ? [address, secondParam as unknown[]] : [address],
       };
     } else if (method === "alchemy_getTokenMetadata") {
       requestBody = {
