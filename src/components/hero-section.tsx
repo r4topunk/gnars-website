@@ -176,9 +176,6 @@ export function HeroSection({ stats }: HeroSectionProps) {
                     <GnarCard
                       tokenId={tokenId || 0}
                       imageUrl={imageSrc}
-                      variant="preview"
-                      size="lg"
-                      priority
                     />
 
                     <div className="space-y-3">

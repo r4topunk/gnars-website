@@ -112,8 +112,6 @@ export function CurrentAuction({ auction, loading }: CurrentAuctionProps) {
             <GnarCard
               tokenId={auction.tokenId}
               imageUrl={auction.imageUrl}
-              variant="preview"
-              size="lg"
             />
           </div>
 

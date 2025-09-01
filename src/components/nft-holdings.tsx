@@ -160,7 +160,6 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
             key={`gnar-${t.id}`}
             tokenId={t.id}
             imageUrl={t.imageUrl}
-            variant="card"
             dateLabel={t.dateLabel}
             finalBidEth={t.finalBidEth ?? null}
             winnerAddress={t.winnerAddress ?? null}

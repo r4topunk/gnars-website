@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GnarImageTile } from "@/components/gnar-image-tile";
+import { GnarCard } from "@/components/gnar-card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -364,55 +364,27 @@ export function MemberDetail({ address }: MemberDetailProps) {
                       ? new Date(t.endTime * 1000).toLocaleDateString()
                       : t.mintedAt
                         ? new Date(t.mintedAt * 1000).toLocaleDateString()
-                        : "";
-                    const finalEth = (() => {
-                      if (!t.finalBidWei) return "-";
+                        : undefined;
+                    const finalEth: string | null = (() => {
+                      if (!t.finalBidWei) return null;
                       try {
                         const eth = Number(t.finalBidWei) / 1e18;
                         return eth.toFixed(3).replace(/\.0+$/, "");
                       } catch {
-                        return "-";
+                        return null;
                       }
                     })();
-                    const winnerShort = t.winner
-                      ? `${t.winner.slice(0, 6)}...${t.winner.slice(-4)}`
-                      : "-";
+                    const winnerAddress: string | null = finalEth ? (t.winner || null) : null;
                     return (
-                      <Card key={t.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                        <CardContent className="space-y-4 px-4">
-                          <GnarImageTile imageUrl={t.imageUrl || undefined} tokenId={t.id} />
-                          <div className="space-y-2">
-                            <div className="flex items-top justify-between">
-                              <h3 className="font-semibold">Gnar #{t.id}</h3>
-                              <div className="text-xs text-muted-foreground pt-1">{dateLabel}</div>
-                            </div>
-                            <div>
-                              <div className="text-sm text-muted-foreground">Final bid</div>
-                              <div className="font-bold text-lg">
-                                {finalEth === "-" ? "-" : `${finalEth} ETH`}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-sm text-muted-foreground">Winner</div>
-                              <div className="font-mono text-sm">
-                                {finalEth === "-" ? (
-                                  "-"
-                                ) : t.winner ? (
-                                  <AddressDisplay
-                                    address={t.winner}
-                                    variant="compact"
-                                    showAvatar={false}
-                                    showCopy={false}
-                                    showExplorer={false}
-                                  />
-                                ) : (
-                                  "-"
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <GnarCard
+                        key={t.id}
+                        tokenId={t.id}
+                        imageUrl={t.imageUrl || undefined}
+                        dateLabel={dateLabel}
+                        finalBidEth={finalEth}
+                        winnerAddress={winnerAddress}
+                        showPlaceholders
+                      />
                     );
                   })}
                 </div>

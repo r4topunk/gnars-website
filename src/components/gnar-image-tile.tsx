@@ -9,12 +9,7 @@ interface GnarImageTileProps {
 
 export function GnarImageTile({ imageUrl, tokenId }: GnarImageTileProps) {
   return (
-    <GnarCard
-      tokenId={tokenId}
-      imageUrl={imageUrl}
-      variant="tile"
-      size="md"
-    />
+    <GnarCard tokenId={tokenId} imageUrl={imageUrl} />
   );
 }
 

@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { GnarImageTile } from "@/components/gnar-image-tile";
+import { GnarCard } from "@/components/gnar-card";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { AddressDisplay } from "@/components/ui/address-display";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,42 +32,14 @@ interface PastAuctionsProps {
 function AuctionCard({ auction }: { auction: PastAuction }) {
   const isZeroFinal = Number(auction.finalBid) === 0;
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <CardContent className="space-y-4 px-4">
-        <GnarImageTile imageUrl={auction.imageUrl} tokenId={auction.tokenId} />
-
-        <div className="space-y-2">
-          <div className="flex items-top justify-between">
-            <h3 className="font-semibold">Gnar #{auction.tokenId}</h3>
-            <div className="text-xs text-muted-foreground pt-1">
-              {auction.endTime.toLocaleDateString()}
-            </div>
-          </div>
-
-          <div>
-            <div className="text-sm text-muted-foreground">Final bid</div>
-            <div className="font-bold text-lg">{isZeroFinal ? "-" : `${auction.finalBid} ETH`}</div>
-          </div>
-
-          <div>
-            <div className="text-sm text-muted-foreground">Winner</div>
-            <div className="font-mono text-sm">
-              {isZeroFinal ? (
-                "-"
-              ) : (
-                <AddressDisplay
-                  address={auction.winner}
-                  variant="compact"
-                  showAvatar={false}
-                  showCopy={false}
-                  showExplorer={false}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <GnarCard
+      tokenId={auction.tokenId}
+      imageUrl={auction.imageUrl}
+      dateLabel={auction.endTime.toLocaleDateString()}
+      finalBidEth={isZeroFinal ? null : auction.finalBid}
+      winnerAddress={isZeroFinal ? null : auction.winner}
+      showPlaceholders
+    />
   );
 }
 
