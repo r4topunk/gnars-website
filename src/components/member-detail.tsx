@@ -29,7 +29,10 @@ export function MemberDetail({ address }: MemberDetailProps) {
   const [overview, setOverview] = useState<Awaited<ReturnType<typeof fetchMemberOverview>> | null>(null);
   const [delegators, setDelegators] = useState<string[]>([]);
   const [proposals, setProposals] = useState<UiProposal[]>([]);
-  const [votes, setVotes] = useState<Awaited<ReturnType<typeof fetchMemberVotes>>["votes"]>([]);
+  type VoteItem = Awaited<ReturnType<typeof fetchMemberVotes>>["votes"][number] & {
+    proposalTitle?: string | null;
+  };
+  const [votes, setVotes] = useState<VoteItem[]>([]);
   const [loading, setLoading] = useState(true);
   const allowedTabs = useMemo(() => new Set(["proposals", "votes", "tokens"]), []);
   const initialTab = useMemo(() => {

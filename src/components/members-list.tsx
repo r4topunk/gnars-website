@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { CircleUserRound, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -12,50 +12,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AddressDisplay } from "@/components/ui/address-display";
+import Link from "next/link";
+import { type MemberListItem } from "@/services/members";
 
-// Mock data structure - in real implementation, this would come from the Builder SDK
-interface DaoMember {
-  ownerAlias: string;
-  owner: string;
-  delegate: string;
-  tokens: number[];
-  tokenCount: number;
-  timeJoined: number;
-}
-
-// Mock function to simulate fetching members from Builder SDK
-async function fetchDaoMembers(): Promise<DaoMember[]> {
-  // In real implementation, this would use:
-  // import { memberSnapshotRequest } from '@buildeross/sdk'
-  // return memberSnapshotRequest(CHAIN.id, GNARS_ADDRESSES.token)
-
-  // Mock data for demonstration
-  return [
-    {
-      ownerAlias: "0x1234567890abcdef1234567890abcdef12345678",
-      owner: "0x1234567890abcdef1234567890abcdef12345678",
-      delegate: "0x1234567890abcdef1234567890abcdef12345678",
-      tokens: [1, 15, 27],
-      tokenCount: 3,
-      timeJoined: Date.now() - 86400000 * 30, // 30 days ago
-    },
-    {
-      ownerAlias: "0x9876543210fedcba9876543210fedcba98765432",
-      owner: "0x9876543210fedcba9876543210fedcba98765432",
-      delegate: "0x5555555555555555555555555555555555555555",
-      tokens: [5, 22],
-      tokenCount: 2,
-      timeJoined: Date.now() - 86400000 * 60, // 60 days ago
-    },
-    {
-      ownerAlias: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      owner: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      delegate: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      tokens: [8],
-      tokenCount: 1,
-      timeJoined: Date.now() - 86400000 * 15, // 15 days ago
-    },
-  ];
+async function fetchMembers(search?: string): Promise<MemberListItem[]> {
+  const url = new URL("/api/members", window.location.origin);
+  if (search) url.searchParams.set("search", search);
+  const res = await fetch(url.toString(), { cache: "no-store" });
+  if (!res.ok) {
+    let msg = `Failed to fetch members: ${res.status}`;
+    try {
+      const body = (await res.json()) as { error?: string };
+      if (body?.error) msg = `${msg} - ${body.error}`;
+    } catch {}
+    throw new Error(msg);
+  }
+  const json = (await res.json()) as { members: MemberListItem[] };
+  return json.members;
 }
 
 interface MembersListProps {
@@ -63,7 +36,7 @@ interface MembersListProps {
 }
 
 export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListProps) {
-  const [members, setMembers] = useState<DaoMember[]>([]);
+  const [members, setMembers] = useState<MemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
 
@@ -71,7 +44,7 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
     async function loadMembers() {
       try {
         setLoading(true);
-        const fetchedMembers = await fetchDaoMembers();
+        const fetchedMembers = await fetchMembers();
         setMembers(fetchedMembers);
       } catch (error) {
         console.error("Failed to load members:", error);
@@ -83,13 +56,13 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
     loadMembers();
   }, []);
 
-  const filteredMembers = members.filter((member) => {
+  const filteredMembers = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    return members.filter((member) =>
       member.owner.toLowerCase().includes(searchLower) ||
-      member.delegate.toLowerCase().includes(searchLower)
+      member.delegate.toLowerCase().includes(searchLower),
     );
-  });
+  }, [members, searchTerm]);
 
   if (loading) {
     return (
@@ -121,7 +94,6 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-12"></TableHead>
               <TableHead>Address/ENS</TableHead>
               <TableHead>Delegate</TableHead>
               <TableHead className="text-right">Gnars Held</TableHead>
@@ -130,7 +102,7 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
           <TableBody>
             {filteredMembers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
                   {searchTerm ? "No members found matching your search." : "No members found."}
                 </TableCell>
               </TableRow>
@@ -138,36 +110,36 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
               filteredMembers.map((member) => (
                 <TableRow key={member.owner}>
                   <TableCell>
-                    <CircleUserRound className="h-8 w-8 text-muted-foreground" />
+                    <Link href={`/members/${member.owner}`} className="hover:underline">
+                      <AddressDisplay
+                        address={member.owner}
+                        variant="compact"
+                        showAvatar={true}
+                        showENS={true}
+                        showCopy={false}
+                        showExplorer={false}
+                        avatarSize="sm"
+                        onAddressClick={() => {}}
+                      />
+                    </Link>
                   </TableCell>
                   <TableCell>
-                    <AddressDisplay
-                      address={member.owner}
-                      variant="compact"
-                      showAvatar={true}
-                      showENS={true}
-                      showCopy={false}
-                      showExplorer={false}
-                      avatarSize="sm"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <AddressDisplay
-                      address={member.delegate}
-                      variant="compact"
-                      showAvatar={false}
-                      showENS={true}
-                      showCopy={false}
-                      showExplorer={false}
-                      avatarSize="sm"
-                    />
+                    <Link href={`/members/${member.delegate}`} className="hover:underline">
+                      <AddressDisplay
+                        address={member.delegate}
+                        variant="compact"
+                        showAvatar={false}
+                        showENS={true}
+                        showCopy={false}
+                        showExplorer={false}
+                        avatarSize="sm"
+                        onAddressClick={() => {}}
+                      />
+                    </Link>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex flex-col items-end gap-1">
                       <span className="font-medium">{member.tokenCount}</span>
-                      <span className="text-xs text-muted-foreground">
-                        #{member.tokens.join(", #")}
-                      </span>
                     </div>
                   </TableCell>
                 </TableRow>
