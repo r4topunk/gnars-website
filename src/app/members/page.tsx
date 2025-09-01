@@ -8,12 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const revalidate = 3600; // ISR with 1 hour revalidation
 
 interface MembersPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default function MembersPage({ searchParams }: MembersPageProps) {
-  const search = typeof searchParams.search === "string" ? searchParams.search : "";
-  const tab = typeof searchParams.tab === "string" ? searchParams.tab : "members";
+export default async function MembersPage({ searchParams }: MembersPageProps) {
+  const params = (await searchParams) || {};
+  const search = typeof params.search === "string" ? params.search : "";
+  const tab = typeof params.tab === "string" ? params.tab : "members";
 
   return (
     <div className="container mx-auto px-4 py-8">
