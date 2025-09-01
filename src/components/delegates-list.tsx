@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AddressDisplay } from "@/components/ui/address-display";
 
 // Mock data structure - in real implementation, this would come from the Builder SDK
 interface DaoDelegate {
@@ -56,18 +57,9 @@ async function fetchDaoDelegates(): Promise<DaoDelegate[]> {
   ];
 }
 
-// Function to resolve ENS names (mock implementation)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function resolveENS(_address: string): Promise<string | null> {
-  // In real implementation, this would use a proper ENS resolver
-  // For now, return null to show raw addresses
-  return null;
-}
-
 export function DelegatesList() {
   const [delegates, setDelegates] = useState<DaoDelegate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [ensNames, setEnsNames] = useState<Record<string, string>>({});
   const [totalVotes, setTotalVotes] = useState(0);
 
   useEffect(() => {
@@ -81,24 +73,7 @@ export function DelegatesList() {
         const total = fetchedDelegates.reduce((sum, delegate) => sum + delegate.voteCount, 0);
         setTotalVotes(total);
 
-        // Resolve ENS names for each delegate
-        const ensPromises = fetchedDelegates.map(async (delegate) => {
-          const ensName = await resolveENS(delegate.delegate);
-          return { address: delegate.delegate, ensName };
-        });
-
-        const ensResults = await Promise.all(ensPromises);
-        const ensMap = ensResults.reduce(
-          (acc, { address, ensName }) => {
-            if (ensName) {
-              acc[address] = ensName;
-            }
-            return acc;
-          },
-          {} as Record<string, string>,
-        );
-
-        setEnsNames(ensMap);
+        
       } catch (error) {
         console.error("Failed to load delegates:", error);
       } finally {
@@ -109,14 +84,7 @@ export function DelegatesList() {
     loadDelegates();
   }, []);
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
-  const getDisplayName = (address: string) => {
-    const ensName = ensNames[address];
-    return ensName || formatAddress(address);
-  };
+  
 
   const calculateVotePercentage = (voteCount: number) => {
     if (totalVotes === 0) return 0;
@@ -159,12 +127,13 @@ export function DelegatesList() {
                 <TableRow key={delegate.delegate}>
                   <TableCell>
                     <div className="flex flex-col gap-1">
-                      <span className="font-medium">{getDisplayName(delegate.delegate)}</span>
-                      {ensNames[delegate.delegate] && (
-                        <span className="text-xs text-muted-foreground">
-                          {formatAddress(delegate.delegate)}
-                        </span>
-                      )}
+                      <AddressDisplay
+                        address={delegate.delegate}
+                        variant="compact"
+                        showAvatar={false}
+                        showCopy={false}
+                        showExplorer={false}
+                      />
                       <span className="text-xs text-muted-foreground">
                         {delegate.delegatedBy.length} delegator
                         {delegate.delegatedBy.length !== 1 ? "s" : ""}

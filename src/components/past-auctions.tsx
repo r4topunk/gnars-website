@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { GnarImageTile } from "@/components/gnar-image-tile";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,7 +53,17 @@ function AuctionCard({ auction }: { auction: PastAuction }) {
           <div>
             <div className="text-sm text-muted-foreground">Winner</div>
             <div className="font-mono text-sm">
-              {isZeroFinal ? "-" : `${auction.winner.slice(0, 6)}...${auction.winner.slice(-4)}`}
+              {isZeroFinal ? (
+                "-"
+              ) : (
+                <AddressDisplay
+                  address={auction.winner}
+                  variant="compact"
+                  showAvatar={false}
+                  showCopy={false}
+                  showExplorer={false}
+                />
+              )}
             </div>
           </div>
         </div>

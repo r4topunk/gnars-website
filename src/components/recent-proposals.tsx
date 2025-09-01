@@ -219,7 +219,7 @@ export function ProposalCard({
                 <h4 className="font-semibold text-sm leading-tight truncate pr-2">
                   {proposal.title}
                 </h4>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   by{" "}
                   <AddressDisplay
                     address={proposal.proposer}
@@ -230,7 +230,7 @@ export function ProposalCard({
                     showExplorer={false}
                   />{" "}
                   • {timeCreated}
-                </p>
+                </div>
               </div>
             </div>
 

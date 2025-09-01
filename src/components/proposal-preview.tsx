@@ -18,6 +18,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SimpleAddressDisplay } from "@/components/ui/address-display";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { ProposalFormData, Transaction } from "./proposal-wizard";
 
@@ -216,7 +217,9 @@ export function ProposalPreview({ data }: ProposalPreviewProps) {
                   </p>
                   {transaction.description && <p className="text-sm">{transaction.description}</p>}
                   <div className="text-xs font-mono bg-muted p-2 rounded mt-2">
-                    <div>Target: {transaction.target}</div>
+                    <div>
+                      Target: <SimpleAddressDisplay address={String(transaction.target || "")} />
+                    </div>
                     <div>Value: {formatEther(transaction.value || BigInt(0))} ETH</div>
                     <div>Calldata: {transaction.calldata?.slice(0, 20)}...</div>
                   </div>

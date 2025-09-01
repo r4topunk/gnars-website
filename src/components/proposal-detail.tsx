@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Copy, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { getProposal, getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { ProposalMetrics } from "@/components/proposal-metrics";
 import { Badge } from "@/components/ui/badge";
@@ -18,9 +18,10 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VotingControls } from "@/components/voting-controls";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { Markdown } from "@/components/markdown";
-import { toast } from "sonner";
+ 
 
 interface UiProposalVote {
   voter: string;
@@ -301,13 +302,14 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
         <h1 className="text-3xl font-bold tracking-tight">{proposal.title}</h1>
         <div className="text-sm text-muted-foreground">
           By{" "}
-          <Link
-            href={`/members/${proposal.proposer}`}
-            className="hover:underline"
-          >
-            {proposerEnsName ||
-              proposal.proposerEnsName ||
-              `${proposal.proposer.slice(0, 6)}...${proposal.proposer.slice(-4)}`}
+          <Link href={`/members/${proposal.proposer}`} className="hover:underline">
+            <AddressDisplay
+              address={proposal.proposer}
+              variant="compact"
+              showAvatar={false}
+              showCopy={false}
+              showExplorer={false}
+            />
           </Link>
         </div>
       </div>
@@ -384,38 +386,17 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                         return (raw / 1e18).toLocaleString(undefined, { maximumFractionDigits: 6 });
                       })();
                       const fnSig = proposal.signatures[index] || "—";
-                      const addressLabel = `${target.slice(0, 6)}...${target.slice(-4)}`;
-                      const copy = async (text: string, label: string) => {
-                        try {
-                          await navigator.clipboard.writeText(text);
-                          toast.success(`${label} copied`);
-                        } catch {
-                          toast.error(`Failed to copy ${label}`);
-                        }
-                      };
+                      
                       return (
                         <TableRow key={`${target}-${index}`}>
                           <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Button variant="link" className="px-0" asChild>
-                                <a
-                                  href={`https://basescan.org/address/${target}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="font-mono"
-                                >
-                                  {addressLabel}
-                                </a>
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                aria-label="Copy address"
-                                onClick={() => copy(target, "Address")}
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            </div>
+                            <AddressDisplay
+                              address={target}
+                              variant="default"
+                              showAvatar={false}
+                              showCopy={true}
+                              showExplorer={true}
+                            />
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -452,9 +433,13 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                     {proposal.votes.map((vote, index) => (
                       <TableRow key={index}>
                         <TableCell>
-                          <div className="font-mono text-sm">
-                            {vote.voterEnsName || `${vote.voter.slice(0, 6)}...${vote.voter.slice(-4)}`}
-                          </div>
+                          <AddressDisplay
+                            address={vote.voter}
+                            variant="compact"
+                            showAvatar={false}
+                            showCopy={false}
+                            showExplorer={false}
+                          />
                         </TableCell>
                         <TableCell>
                           <Badge

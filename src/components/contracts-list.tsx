@@ -1,7 +1,5 @@
 "use client";
 
-import { Copy } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -12,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { GNARS_ADDRESSES } from "@/lib/config";
+import { AddressDisplay } from "@/components/ui/address-display";
 
 const contracts = [
   { name: "Token (NFT)", address: GNARS_ADDRESSES.token, description: "Gnars NFT contract" },
@@ -22,23 +21,7 @@ const contracts = [
 ];
 
 export function ContractsList() {
-  const copyToClipboard = async (address: string) => {
-    try {
-      await navigator.clipboard.writeText(address);
-    } catch {
-      // Fallback for browsers that don't support navigator.clipboard
-      const textArea = document.createElement("textarea");
-      textArea.value = address;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-    }
-  };
-
-  const truncateAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
+  
 
   return (
     <Card>
@@ -65,19 +48,15 @@ export function ContractsList() {
                   </div>
                 </TableCell>
                 <TableCell className="font-mono text-sm">
-                  <span className="hidden md:inline">{contract.address}</span>
-                  <span className="md:hidden">{truncateAddress(contract.address)}</span>
+                  <AddressDisplay
+                    address={contract.address}
+                    variant="default"
+                    showAvatar={false}
+                    showCopy={true}
+                    showExplorer={true}
+                  />
                 </TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyToClipboard(contract.address)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </TableCell>
+                <TableCell />
               </TableRow>
             ))}
           </TableBody>

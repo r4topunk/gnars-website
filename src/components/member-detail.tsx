@@ -7,13 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Copy, ExternalLink } from "lucide-react";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
 import { ProposalCard, type Proposal as UiProposal, ProposalStatus } from "@/components/recent-proposals";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { toast } from "sonner";
+ 
 
 interface MemberDetailProps {
   address: string;
@@ -157,14 +156,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
     };
   }, [address]);
 
-  const copy = async (text: string, label: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(`${label} copied`);
-    } catch {
-      toast.error(`Failed to copy ${label}`);
-    }
-  };
+  
 
   if (loading || !overview) {
     return (
@@ -201,19 +193,13 @@ export function MemberDetail({ address }: MemberDetailProps) {
             )}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-            <code className="font-mono">{address}</code>
-            <Button variant="ghost" size="icon" aria-label="Copy address" onClick={() => copy(address, "Address")}>
-              <Copy className="h-4 w-4" />
-            </Button>
-            <a
-              href={`https://basescan.org/address/${address}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center"
-              aria-label="Open in explorer"
-            >
-              <ExternalLink className="h-4 w-4" />
-            </a>
+            <AddressDisplay
+              address={address}
+              variant="default"
+              showAvatar={false}
+              showCopy={true}
+              showExplorer={true}
+            />
           </div>
         </div>
       </div>
@@ -242,9 +228,18 @@ export function MemberDetail({ address }: MemberDetailProps) {
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Delegates to</span>
               <span className="font-medium">
-                {delegatedToAnother
-                  ? `${overview.delegate.slice(0, 6)}...${overview.delegate.slice(-4)}`
-                  : "Self"}
+                {delegatedToAnother ? (
+                  <AddressDisplay
+                    address={overview.delegate}
+                    variant="compact"
+                    showAvatar={false}
+                    showCopy={false}
+                    showExplorer={false}
+                    avatarSize="sm"
+                  />
+                ) : (
+                  "Self"
+                )}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -399,7 +394,21 @@ export function MemberDetail({ address }: MemberDetailProps) {
                             </div>
                             <div>
                               <div className="text-sm text-muted-foreground">Winner</div>
-                              <div className="font-mono text-sm">{finalEth === "-" ? "-" : winnerShort}</div>
+                              <div className="font-mono text-sm">
+                                {finalEth === "-" ? (
+                                  "-"
+                                ) : t.winner ? (
+                                  <AddressDisplay
+                                    address={t.winner}
+                                    variant="compact"
+                                    showAvatar={false}
+                                    showCopy={false}
+                                    showExplorer={false}
+                                  />
+                                ) : (
+                                  "-"
+                                )}
+                              </div>
                             </div>
                           </div>
                         </CardContent>
