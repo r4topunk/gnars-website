@@ -6,7 +6,15 @@ export type MemberOverview = {
   delegate: string;
   tokensHeld: number[];
   tokenCount: number;
-  tokens: Array<{ id: number; imageUrl?: string | null }>;
+  tokens: Array<{
+    id: number;
+    imageUrl?: string | null;
+    mintedAt?: number;
+    endTime?: number;
+    settled?: boolean;
+    finalBidWei?: string;
+    winner?: string;
+  }>;
 };
 
 export type MemberProposals = {
@@ -37,6 +45,13 @@ type TokensQuery = {
     tokenId: string;
     ownerInfo: { delegate: string; owner: string };
     image?: string | null;
+    mintedAt?: string;
+    auction?: {
+      endTime: string;
+      settled: boolean;
+      highestBid?: { amount: string; bidder: string } | null;
+      winningBid?: { amount: string; bidder: string } | null;
+    } | null;
   }>;
 };
 
@@ -46,6 +61,13 @@ const MEMBER_TOKENS_GQL = /* GraphQL */ `
       tokenId
       ownerInfo { owner delegate }
       image
+      mintedAt
+      auction {
+        endTime
+        settled
+        highestBid { amount bidder }
+        winningBid { amount bidder }
+      }
     }
   }
 `;
@@ -62,7 +84,15 @@ export async function fetchMemberOverview(address: string): Promise<MemberOvervi
   const tokenIds: number[] = (tokensData.tokens || []).map((t) => Number(t.tokenId));
   // Derive delegate from the first token's ownerInfo if available; fall back to self
   const delegate = tokensData.tokens?.[0]?.ownerInfo?.delegate ?? address;
-  const tokens = (tokensData.tokens || []).map((t) => ({ id: Number(t.tokenId), imageUrl: t.image ?? undefined }));
+  const tokens = (tokensData.tokens || []).map((t) => ({
+    id: Number(t.tokenId),
+    imageUrl: t.image ?? undefined,
+    mintedAt: t.mintedAt ? Number(t.mintedAt) : undefined,
+    endTime: t.auction?.endTime ? Number(t.auction.endTime) : undefined,
+    settled: t.auction?.settled ?? undefined,
+    finalBidWei: t.auction?.winningBid?.amount ?? t.auction?.highestBid?.amount ?? undefined,
+    winner: t.auction?.winningBid?.bidder ?? undefined,
+  }));
 
   return {
     address,

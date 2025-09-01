@@ -366,18 +366,48 @@ export function MemberDetail({ address }: MemberDetailProps) {
                 <div className="text-center py-8 text-muted-foreground">No tokens held.</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {overview.tokens.map((t) => (
-                    <Card key={t.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                      <CardContent className="space-y-3 px-4 pt-4 pb-4">
-                        <GnarImageTile imageUrl={t.imageUrl || undefined} tokenId={t.id} />
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-semibold">Gnar #{t.id}</h3>
+                  {overview.tokens.map((t) => {
+                    const dateLabel = t.endTime
+                      ? new Date(t.endTime * 1000).toLocaleDateString()
+                      : t.mintedAt
+                        ? new Date(t.mintedAt * 1000).toLocaleDateString()
+                        : "";
+                    const finalEth = (() => {
+                      if (!t.finalBidWei) return "-";
+                      try {
+                        const eth = Number(t.finalBidWei) / 1e18;
+                        return eth.toFixed(3).replace(/\.0+$/, "");
+                      } catch {
+                        return "-";
+                      }
+                    })();
+                    const winnerShort = t.winner
+                      ? `${t.winner.slice(0, 6)}...${t.winner.slice(-4)}`
+                      : "-";
+                    return (
+                      <Card key={t.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                        <CardContent className="space-y-4 px-4">
+                          <GnarImageTile imageUrl={t.imageUrl || undefined} tokenId={t.id} />
+                          <div className="space-y-2">
+                            <div className="flex items-top justify-between">
+                              <h3 className="font-semibold">Gnar #{t.id}</h3>
+                              <div className="text-xs text-muted-foreground pt-1">{dateLabel}</div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-muted-foreground">Final bid</div>
+                              <div className="font-bold text-lg">
+                                {finalEth === "-" ? "-" : `${finalEth} ETH`}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-muted-foreground">Winner</div>
+                              <div className="font-mono text-sm">{finalEth === "-" ? "-" : winnerShort}</div>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
