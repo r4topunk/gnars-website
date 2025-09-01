@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { AddressDisplay } from "@/components/ui/address-display";
 
 export interface GnarCardProps {
   tokenId: string | number | bigint;
@@ -20,6 +21,10 @@ export interface GnarCardProps {
   contentClassName?: string;
   priority?: boolean;
   onClick?: () => void;
+  // Optional auction/details panel (matches member page pattern)
+  dateLabel?: string;
+  finalBidEth?: string | null;
+  winnerAddress?: string | null;
 }
 
 export function GnarCard({
@@ -37,6 +42,9 @@ export function GnarCard({
   contentClassName,
   priority = false,
   onClick,
+  dateLabel,
+  finalBidEth,
+  winnerAddress,
 }: GnarCardProps) {
   const sizeClasses = {
     sm: "text-2xl",
@@ -60,7 +68,8 @@ export function GnarCard({
     <div
       className={cn(
         "aspect-square bg-gray-100 dark:bg-gray-800 relative overflow-hidden",
-        variant === "tile" ? "rounded-xl" : "rounded-lg",
+        // Match auctions card look: rounded-xl for tile and card; preview keeps rounded-lg
+        variant === "preview" ? "rounded-lg" : "rounded-xl",
         imageClassName
       )}
     >
@@ -71,7 +80,7 @@ export function GnarCard({
           fill
           className={cn(
             "object-cover",
-            variant === "tile" ? "rounded-xl" : "rounded-lg"
+            variant === "preview" ? "rounded-lg" : "rounded-xl"
           )}
           loading={priority ? "eager" : "lazy"}
           priority={priority}
@@ -98,6 +107,42 @@ export function GnarCard({
   const renderContent = () => {
     if (variant === "tile") {
       return null;
+    }
+
+    const hasDetails = Boolean(dateLabel || finalBidEth !== undefined || winnerAddress !== undefined);
+
+    if (hasDetails) {
+      const finalText = finalBidEth && finalBidEth !== "-" ? `${finalBidEth} ETH` : "-";
+      return (
+        <div className={cn("space-y-2", contentClassName)}>
+          <div className="flex items-top justify-between">
+            <h3 className={cn("font-semibold", titleSizeClasses[size])}>{`Gnar #${String(tokenId)}`}</h3>
+            {dateLabel ? <div className="text-xs text-muted-foreground pt-1">{dateLabel}</div> : null}
+          </div>
+          <div>
+            <div className="text-sm text-muted-foreground">Final bid</div>
+            <div className="font-bold text-lg">{finalText}</div>
+          </div>
+          <div>
+            <div className="text-sm text-muted-foreground">Winner</div>
+            <div className="font-mono text-sm">
+              {finalText === "-" ? (
+                "-"
+              ) : winnerAddress ? (
+                <AddressDisplay
+                  address={winnerAddress}
+                  variant="compact"
+                  showAvatar={false}
+                  showCopy={false}
+                  showExplorer={false}
+                />
+              ) : (
+                "-"
+              )}
+            </div>
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -153,18 +198,15 @@ export function GnarCard({
   return (
     <Card
       className={cn(
-        "overflow-hidden hover:shadow-md transition-shadow cursor-pointer",
+        "overflow-hidden hover:shadow-md transition-shadow",
+        onClick ? "cursor-pointer" : "",
         className
       )}
       onClick={onClick}
     >
-      <CardContent className="p-0">
+      <CardContent className="space-y-4 px-4">
         {renderImage()}
-        {renderContent() && (
-          <div className="p-4">
-            {renderContent()}
-          </div>
-        )}
+        {renderContent()}
       </CardContent>
     </Card>
   );

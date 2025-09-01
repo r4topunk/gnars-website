@@ -1,97 +1,108 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GnarCard } from "@/components/gnar-card";
+import { GNARS_ADDRESSES } from "@/lib/config";
+import { subgraphQuery } from "@/lib/subgraph";
 
 interface NftHoldingsProps {
   treasuryAddress: string;
 }
 
-interface NFT {
-  tokenId: string;
-  tokenType: string;
-  name?: string;
-  description?: string;
-  image?: {
-    originalUrl?: string;
-    thumbnailUrl?: string;
-    pngUrl?: string;
-  };
-  media?: Array<{
-    gateway: string;
-    thumbnail?: string;
-    raw?: string;
-    format?: string;
+type TreasuryTokensQuery = {
+  tokens: Array<{
+    tokenId: string;
+    image?: string | null;
+    mintedAt?: string | null;
+    auction?: {
+      endTime: string;
+      settled: boolean;
+      highestBid?: { amount: string; bidder: string } | null;
+      winningBid?: { amount: string; bidder: string } | null;
+    } | null;
   }>;
-  contract: {
-    address: string;
-    name?: string;
-    symbol?: string;
-  };
-  tokenUri?: {
-    gateway?: string;
-    raw?: string;
-  };
-}
+};
 
-interface AlchemyNftResponse {
-  ownedNfts: NFT[];
-  totalCount: number;
-  pageKey?: string;
-}
+const TREASURY_TOKENS_GQL = /* GraphQL */ `
+  query TreasuryTokens($dao: ID!, $owner: Bytes!) {
+    tokens(where: { dao: $dao, owner: $owner }, orderBy: tokenId, orderDirection: asc) {
+      tokenId
+      image
+      mintedAt
+      auction {
+        endTime
+        settled
+        highestBid { amount bidder }
+        winningBid { amount bidder }
+      }
+    }
+  }
+`;
 
 export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
-  const [nfts, setNfts] = useState<NFT[]>([]);
+  const [tokens, setTokens] = useState<Array<{
+    id: number;
+    imageUrl?: string;
+    dateLabel?: string;
+    finalBidEth?: string | null;
+    winnerAddress?: string | null;
+  }>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNftHoldings = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Fetch NFTs using Alchemy API
-      const response = await fetch("/api/alchemy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          method: "alchemy_getNfts",
-          params: [treasuryAddress, { withMetadata: true }],
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch NFT holdings");
-      }
-
-      const data = await response.json();
-      const nftData: AlchemyNftResponse = data.result;
-
-      setNfts(nftData.ownedNfts || []);
-    } catch (err) {
-      console.error("Error fetching NFT holdings:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch NFT holdings");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [treasuryAddress]);
-
   useEffect(() => {
-    fetchNftHoldings();
-  }, [fetchNftHoldings]);
-
-  const getImageUrl = (nft: NFT): string | null => {
-    // Try multiple image sources in order of preference
-    if (nft.image?.thumbnailUrl) return nft.image.thumbnailUrl;
-    if (nft.image?.pngUrl) return nft.image.pngUrl;
-    if (nft.image?.originalUrl) return nft.image.originalUrl;
-    if (nft.media && nft.media[0]) {
-      return nft.media[0].thumbnail || nft.media[0].gateway;
+    let ignore = false;
+    async function load() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const dao = GNARS_ADDRESSES.token.toLowerCase();
+        const data = await subgraphQuery<TreasuryTokensQuery>(TREASURY_TOKENS_GQL, {
+          dao,
+          owner: treasuryAddress.toLowerCase(),
+        });
+        if (ignore) return;
+        const mapped = (data.tokens || []).map((t) => {
+          const endTime = t.auction?.endTime ? Number(t.auction.endTime) : undefined;
+          const mintedAt = t.mintedAt ? Number(t.mintedAt) : undefined;
+          const dateLabel = endTime
+            ? new Date(endTime * 1000).toLocaleDateString()
+            : mintedAt
+              ? new Date(mintedAt * 1000).toLocaleDateString()
+              : undefined;
+          const finalBidWei = t.auction?.winningBid?.amount ?? t.auction?.highestBid?.amount;
+          const finalBidEth = finalBidWei ? (() => {
+            try {
+              const eth = Number(finalBidWei) / 1e18;
+              return eth.toFixed(3).replace(/\.0+$/, "");
+            } catch {
+              return null;
+            }
+          })() : null;
+          const winner = t.auction?.winningBid?.bidder ?? null;
+          return {
+            id: Number(t.tokenId),
+            imageUrl: t.image ?? undefined,
+            dateLabel,
+            finalBidEth,
+            winnerAddress: finalBidEth ? winner : null,
+          };
+        });
+        setTokens(mapped);
+      } catch (err) {
+        console.error("Error fetching treasury NFTs:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch NFT holdings");
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
     }
-    return null;
-  };
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, [treasuryAddress]);
 
   if (isLoading) {
     return (
@@ -119,13 +130,13 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
     );
   }
 
-  if (nfts.length === 0) {
+  if (tokens.length === 0) {
     return (
       <Card>
         <CardContent className="pt-6">
           <div className="text-center text-muted-foreground py-12">
             <div className="text-lg font-medium mb-2">No NFTs found</div>
-            <div className="text-sm">The treasury currently holds no NFTs</div>
+            <div className="text-sm">The treasury currently holds no Gnars</div>
           </div>
         </CardContent>
       </Card>
@@ -136,30 +147,25 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold">NFT Collection</h3>
+          <h3 className="text-lg font-semibold">Gnars in Treasury</h3>
           <p className="text-sm text-muted-foreground">
-            {nfts.length} NFT{nfts.length !== 1 ? "s" : ""} found
+            {tokens.length} Gnar{tokens.length !== 1 ? "s" : ""} found
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {nfts.map((nft) => {
-          const imageUrl = getImageUrl(nft);
-
-          return (
-            <GnarCard
-              key={`${nft.contract.address}-${nft.tokenId}`}
-              tokenId={nft.tokenId}
-              imageUrl={imageUrl || undefined}
-              title={nft.name || `Token #${nft.tokenId}`}
-              subtitle={nft.contract.name || "Unknown Collection"}
-              variant="card"
-              size="sm"
-              contentClassName="space-y-2"
-            />
-          );
-        })}
+        {tokens.map((t) => (
+          <GnarCard
+            key={`gnar-${t.id}`}
+            tokenId={t.id}
+            imageUrl={t.imageUrl}
+            variant="card"
+            dateLabel={t.dateLabel}
+            finalBidEth={t.finalBidEth ?? null}
+            winnerAddress={t.winnerAddress ?? null}
+          />
+        ))}
       </div>
     </div>
   );
