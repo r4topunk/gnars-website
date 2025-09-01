@@ -23,6 +23,7 @@ const RATE_LIMIT = {
 
 // In-memory cache for ENS data
 const ensCache = new Map<string, { data: ENSResolveResult; timestamp: number }>();
+const ensNameToAddressCache = new Map<string, { address: Address | null; timestamp: number }>();
 
 // Rate limiting state
 let requestCount = 0;
@@ -180,6 +181,61 @@ export async function resolveENS(address: string | Address): Promise<ENSData> {
     displayName: result.name || `${normalizedAddress.slice(0, 6)}...${normalizedAddress.slice(-4)}`,
     address: normalizedAddress,
   };
+}
+
+/**
+ * Resolve an ENS name to an Ethereum address
+ */
+export async function resolveAddressFromENS(name: string): Promise<Address | null> {
+  const trimmed = name.trim().toLowerCase();
+  if (!trimmed || !trimmed.includes('.')) return null;
+
+  const cached = ensNameToAddressCache.get(trimmed);
+  if (cached && Date.now() - cached.timestamp < RATE_LIMIT.CACHE_DURATION) {
+    return cached.address;
+  }
+
+  // Try primary resolver API (supports both names and addresses)
+  try {
+    const response = await fetch(`https://api.ensideas.com/ens/resolve/${encodeURIComponent(trimmed)}`, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Gnars-DAO/1.0',
+      },
+      cache: 'no-store',
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const resolvedAddress: unknown = data?.address ?? null;
+      const addressString = typeof resolvedAddress === 'string' ? resolvedAddress : null;
+      const normalized = addressString && isAddress(addressString) ? (addressString.toLowerCase() as Address) : null;
+      ensNameToAddressCache.set(trimmed, { address: normalized, timestamp: Date.now() });
+      return normalized;
+    }
+  } catch (_err) {
+    // ignore and try fallback
+  }
+
+  // Fallback resolver
+  try {
+    const response = await fetch(`https://ens.resolver.eth.link/resolve/${encodeURIComponent(trimmed)}`, {
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store',
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const resolvedAddress: unknown = data?.address ?? null;
+      const addressString = typeof resolvedAddress === 'string' ? resolvedAddress : null;
+      const normalized = addressString && isAddress(addressString) ? (addressString.toLowerCase() as Address) : null;
+      ensNameToAddressCache.set(trimmed, { address: normalized, timestamp: Date.now() });
+      return normalized;
+    }
+  } catch (_err) {
+    // ignore
+  }
+
+  ensNameToAddressCache.set(trimmed, { address: null, timestamp: Date.now() });
+  return null;
 }
 
 /**
