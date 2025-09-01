@@ -181,16 +181,11 @@ export function MemberDetail({ address }: MemberDetailProps) {
       <div className="flex items-start gap-4">
         <Avatar className="h-16 w-16">
           {ensAvatar ? <AvatarImage src={ensAvatar} alt={display} /> : null}
-          <AvatarFallback>{display.slice(2, 4).toUpperCase()}</AvatarFallback>
+          <AvatarFallback>{address.slice(2, 4).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight">{display}</h1>
-            {ensName ? (
-              <Badge variant="secondary">ENS</Badge>
-            ) : (
-              <Badge variant="outline">Address</Badge>
-            )}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
             <AddressDisplay
@@ -199,6 +194,8 @@ export function MemberDetail({ address }: MemberDetailProps) {
               showAvatar={false}
               showCopy={true}
               showExplorer={true}
+              showENS={false}
+              truncateLength={6}
             />
           </div>
         </div>

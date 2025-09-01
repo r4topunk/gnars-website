@@ -29,6 +29,7 @@ export function AddressDisplay({
   address,
   variant = 'default',
   showAvatar = true,
+  showENS = true,
   showCopy = true,
   showExplorer = true,
   className = '',
@@ -106,7 +107,7 @@ export function AddressDisplay({
           </Avatar>
         )}
         <span className="font-mono text-sm">
-          {ensData?.name || truncateAddress(normalizedAddress, truncateLength)}
+          {showENS && ensData?.name ? ensData.name : truncateAddress(normalizedAddress, truncateLength)}
         </span>
       </div>
     );
@@ -128,7 +129,7 @@ export function AddressDisplay({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="font-medium cursor-pointer hover:text-primary" onClick={handleAddressClick}>
-              {ensData?.name || 'Unnamed Address'}
+              {showENS && ensData?.name ? ensData.name : 'Unnamed Address'}
             </span>
           </div>
           
@@ -183,7 +184,7 @@ export function AddressDisplay({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-semibold truncate cursor-pointer hover:text-primary" onClick={handleAddressClick}>
-                {ensData?.name || 'Unnamed Address'}
+                {showENS && ensData?.name ? ensData.name : 'Unnamed Address'}
               </span>
             </div>
             
@@ -241,7 +242,7 @@ export function AddressDisplay({
           }`}
           onClick={handleAddressClick}
         >
-          {ensData?.name || truncateAddress(normalizedAddress, truncateLength)}
+          {showENS && ensData?.name ? ensData.name : truncateAddress(normalizedAddress, truncateLength)}
         </span>
         
         {isLoading && (
