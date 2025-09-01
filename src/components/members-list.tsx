@@ -97,12 +97,13 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
               <TableHead>Address/ENS</TableHead>
               <TableHead>Delegate</TableHead>
               <TableHead className="text-right">Gnars Held</TableHead>
+              <TableHead className="text-right">Proposals Voted</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredMembers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                   {searchTerm ? "No members found matching your search." : "No members found."}
                 </TableCell>
               </TableRow>
@@ -124,23 +125,30 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Link href={`/members/${member.delegate}`} className="hover:underline">
-                      <AddressDisplay
-                        address={member.delegate}
-                        variant="compact"
-                        showAvatar={false}
-                        showENS={true}
-                        showCopy={false}
-                        showExplorer={false}
-                        avatarSize="sm"
-                        onAddressClick={() => {}}
-                      />
-                    </Link>
+                    {member.delegate.toLowerCase() === member.owner.toLowerCase() ? (
+                      <span className="text-muted-foreground">-</span>
+                    ) : (
+                      <Link href={`/members/${member.delegate}`} className="hover:underline">
+                        <AddressDisplay
+                          address={member.delegate}
+                          variant="compact"
+                          showAvatar={false}
+                          showENS={true}
+                          showCopy={false}
+                          showExplorer={false}
+                          avatarSize="sm"
+                          onAddressClick={() => {}}
+                        />
+                      </Link>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex flex-col items-end gap-1">
                       <span className="font-medium">{member.tokenCount}</span>
                     </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="font-medium">{member.votesCount ?? 0}</span>
                   </TableCell>
                 </TableRow>
               ))

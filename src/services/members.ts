@@ -262,6 +262,7 @@ export type MemberListItem = {
   delegate: string;
   tokens: number[];
   tokenCount: number;
+  votesCount?: number;
 };
 
 type MembersTokensPageQuery = {
@@ -373,6 +374,67 @@ export async function fetchAllMembers(): Promise<MemberListItem[]> {
     if (b.tokenCount !== a.tokenCount) return b.tokenCount - a.tokenCount;
     return a.owner.localeCompare(b.owner);
   });
+}
+
+type VotesCountBatchQuery = {
+  proposalVotes: Array<{
+    voter: string;
+  }>;
+};
+
+const VOTES_COUNT_BATCH_GQL = /* GraphQL */ `
+  query VotesCountBatch($dao: ID!, $voters: [Bytes!]!, $first: Int!, $skip: Int!) {
+    proposalVotes(
+      where: { proposal_: { dao: $dao }, voter_in: $voters }
+      orderBy: timestamp
+      orderDirection: desc
+      first: $first
+      skip: $skip
+    ) {
+      voter
+    }
+  }
+`;
+
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
+/**
+ * Fetch number of proposals voted per voter address (batch, chunked).
+ */
+export async function fetchVotesCountForVoters(addresses: string[]): Promise<Record<string, number>> {
+  if (addresses.length === 0) return {};
+  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const counts: Record<string, number> = {};
+  const uniqueAddresses = Array.from(new Set(addresses.map((a) => a.toLowerCase())));
+  const chunks = chunkArray(uniqueAddresses, 100);
+
+  for (const voters of chunks) {
+    let skip = 0;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const data = await subgraphQuery<VotesCountBatchQuery>(VOTES_COUNT_BATCH_GQL, {
+        dao,
+        voters,
+        first: 1000,
+        skip,
+      });
+      const votes = data.proposalVotes || [];
+      for (const v of votes) {
+        const key = v.voter.toLowerCase();
+        counts[key] = (counts[key] || 0) + 1;
+      }
+      if (votes.length < 1000) break;
+      skip += 1000;
+    }
+  }
+
+  return counts;
 }
 
 
