@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { Clock, Gavel } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { GnarCard } from "@/components/gnar-card";
 
 interface AuctionData {
   id: string;
@@ -108,21 +108,12 @@ export function CurrentAuction({ auction, loading }: CurrentAuctionProps) {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* NFT Image */}
           <div className="flex-1">
-            <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center relative">
-              {auction.imageUrl ? (
-                <Image
-                  src={auction.imageUrl}
-                  alt={`Gnar ${auction.tokenId}`}
-                  fill
-                  className="object-cover rounded-lg"
-                />
-              ) : (
-                <div className="text-center text-muted-foreground">
-                  <div className="text-6xl font-bold mb-2">#{auction.tokenId}</div>
-                  <div className="text-sm">Gnar NFT</div>
-                </div>
-              )}
-            </div>
+            <GnarCard
+              tokenId={auction.tokenId}
+              imageUrl={auction.imageUrl}
+              variant="preview"
+              size="lg"
+            />
           </div>
 
           {/* Auction Details */}

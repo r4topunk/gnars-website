@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Image from "next/image";
 import { GnarImageTile } from "@/components/gnar-image-tile";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -183,7 +182,6 @@ export function MemberDetail({ address }: MemberDetailProps) {
 
   const isSelfDelegating = overview.delegate.toLowerCase() === address.toLowerCase();
   const delegatedToAnother = !isSelfDelegating;
-  const hasDelegators = delegators.length > 0;
 
   return (
     <div className="space-y-6">

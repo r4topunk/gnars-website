@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { GnarCard } from "@/components/gnar-card";
 
 interface NftHoldingsProps {
   treasuryAddress: string;
@@ -93,11 +93,6 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
     return null;
   };
 
-  const truncateAddress = (address: string, length = 6) => {
-    if (address.length <= length * 2) return address;
-    return `${address.slice(0, length)}...${address.slice(-length)}`;
-  };
-
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -153,50 +148,16 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
           const imageUrl = getImageUrl(nft);
 
           return (
-            <Card
+            <GnarCard
               key={`${nft.contract.address}-${nft.tokenId}`}
-              className="overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              <CardContent className="p-0">
-                <div className="aspect-square bg-muted flex items-center justify-center relative">
-                  {imageUrl ? (
-                    <Image
-                      src={imageUrl}
-                      alt={nft.name || `Token #${nft.tokenId}`}
-                      fill
-                      className="object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                        e.currentTarget.nextElementSibling?.classList.remove("hidden");
-                      }}
-                    />
-                  ) : null}
-                  <div className={`text-muted-foreground text-sm ${imageUrl ? "hidden" : ""}`}>
-                    No image available
-                  </div>
-                </div>
-
-                <div className="p-4">
-                  <div className="space-y-2">
-                    <div className="font-semibold text-sm">
-                      {nft.name || `Token #${nft.tokenId}`}
-                    </div>
-
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      <div>{nft.contract.name || "Unknown Collection"}</div>
-                      <div className="font-mono">ID: {nft.tokenId}</div>
-                      <div className="font-mono">{truncateAddress(nft.contract.address)}</div>
-                    </div>
-
-                    {nft.description && (
-                      <div className="text-xs text-muted-foreground line-clamp-2">
-                        {nft.description}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              tokenId={nft.tokenId}
+              imageUrl={imageUrl || undefined}
+              title={nft.name || `Token #${nft.tokenId}`}
+              subtitle={nft.contract.name || "Unknown Collection"}
+              variant="card"
+              size="sm"
+              contentClassName="space-y-2"
+            />
           );
         })}
       </div>

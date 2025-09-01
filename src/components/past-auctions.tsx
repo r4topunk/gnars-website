@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { GnarImageTile } from "@/components/gnar-image-tile";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";

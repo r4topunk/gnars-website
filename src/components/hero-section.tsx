@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useDaoAuction } from "@buildeross/hooks";
 import { Clock, TrendingUp, Trophy, Users, Zap } from "lucide-react";
 import { zeroAddress } from "viem";
@@ -10,6 +9,7 @@ import { CountUp } from "@/components/ui/count-up";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { GnarCard } from "@/components/gnar-card";
 import { CHAIN, DAO_DESCRIPTION, GNARS_ADDRESSES } from "@/lib/config";
 
 interface HeroSectionProps {
@@ -173,24 +173,13 @@ export function HeroSection({ stats }: HeroSectionProps) {
                     </div>
 
                     {/* NFT Preview */}
-                    <div className="aspect-square rounded-lg bg-muted flex items-center justify-center overflow-hidden relative">
-                      {imageSrc ? (
-                        <Image
-                          src={imageSrc}
-                          alt={tokenUri?.name || `Gnar #${tokenId?.toString()}`}
-                          fill
-                          className="object-cover rounded-lg"
-                          priority
-                          sizes="(max-width: 1024px) 100vw, 50vw"
-                        />
-                      ) : (
-                        <div className="text-center">
-                          <div className="text-6xl font-bold text-muted-foreground">
-                            {tokenId ? `#${tokenId.toString()}` : "—"}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    <GnarCard
+                      tokenId={tokenId || 0}
+                      imageUrl={imageSrc}
+                      variant="preview"
+                      size="lg"
+                      priority
+                    />
 
                     <div className="space-y-3">
                       {/* Bid and Timer Row */}
