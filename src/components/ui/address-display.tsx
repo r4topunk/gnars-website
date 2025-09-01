@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import { Address, isAddress } from 'viem';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Copy, ExternalLink, User } from 'lucide-react';
 import { useENSOptimistic } from '@/hooks/use-ens';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export interface AddressDisplayProps {
   address: string | Address;
@@ -47,6 +49,7 @@ export function AddressDisplay({
 
   const normalizedAddress = address.toLowerCase() as Address;
   const { data: ensData, isLoading } = useENSOptimistic(normalizedAddress);
+  const router = useRouter();
 
   // Handle copy to clipboard
   const handleCopy = async () => {
@@ -68,7 +71,9 @@ export function AddressDisplay({
   const handleAddressClick = () => {
     if (onAddressClick) {
       onAddressClick(normalizedAddress);
+      return;
     }
+    router.push(`/members/${normalizedAddress}`);
   };
 
   // Avatar size classes
@@ -90,7 +95,7 @@ export function AddressDisplay({
   // Compact variant
   if (variant === 'compact') {
     return (
-      <div className={`inline-flex items-center gap-2 ${className}`}>
+      <div className={`inline-flex items-center gap-2 cursor-pointer hover:text-primary ${className}`} onClick={handleAddressClick}>
         {showAvatar && (
           <Avatar className={avatarSizeClasses[avatarSize]}>
             <AvatarImage src={ensData?.avatar || fallbackAvatar} alt="Avatar" />
@@ -121,7 +126,7 @@ export function AddressDisplay({
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-medium">
+            <span className="font-medium cursor-pointer hover:text-primary" onClick={handleAddressClick}>
               {ensData?.name || 'Unnamed Address'}
             </span>
           </div>
@@ -176,7 +181,7 @@ export function AddressDisplay({
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-semibold truncate">
+              <span className="font-semibold truncate cursor-pointer hover:text-primary" onClick={handleAddressClick}>
                 {ensData?.name || 'Unnamed Address'}
               </span>
             </div>
