@@ -306,7 +306,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Proposal</TableHead>
-                      <TableHead>Choice</TableHead>
+                      <TableHead className="text-center">Vote</TableHead>
                       <TableHead className="text-right">Weight</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -314,26 +314,27 @@ export function MemberDetail({ address }: MemberDetailProps) {
                     {votes.map((v) => (
                       <TableRow key={v.id}>
                         <TableCell>
-                          <div className="flex flex-col gap-1">
+                          <div className="flex flex-col gap-1 whitespace-normal break-words">
                             <a href={`/proposals/${v.proposalNumber}`} className="font-medium hover:underline">
                               Proposal {v.proposalNumber}
                             </a>
                             {v.reason ? (
-                              <span className="text-xs text-muted-foreground line-clamp-2">{v.reason}</span>
+                              <span className="text-xs text-muted-foreground whitespace-pre-wrap break-words">{v.reason}</span>
                             ) : null}
                             <span className="text-xs text-muted-foreground">
                               {new Date(v.timestamp).toLocaleString()}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-center">
                           <Badge
-                            variant={
+                            variant="default"
+                            className={
                               v.support === "FOR"
-                                ? "default"
+                                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                                 : v.support === "AGAINST"
-                                  ? "destructive"
-                                  : "secondary"
+                                  ? "bg-red-600 hover:bg-red-700 text-white"
+                                  : "bg-zinc-600 hover:bg-zinc-700 text-white"
                             }
                           >
                             {v.support}
