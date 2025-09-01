@@ -212,7 +212,7 @@ export async function resolveAddressFromENS(name: string): Promise<Address | nul
       ensNameToAddressCache.set(trimmed, { address: normalized, timestamp: Date.now() });
       return normalized;
     }
-  } catch (_err) {
+  } catch {
     // ignore and try fallback
   }
 
@@ -230,7 +230,7 @@ export async function resolveAddressFromENS(name: string): Promise<Address | nul
       ensNameToAddressCache.set(trimmed, { address: normalized, timestamp: Date.now() });
       return normalized;
     }
-  } catch (_err) {
+  } catch {
     // ignore
   }
 
