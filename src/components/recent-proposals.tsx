@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { cn } from "@/lib/utils";
+import { AddressDisplay } from "@/components/ui/address-display";
 
 // Proposal status enum based on reference analysis
 export enum ProposalStatus {
@@ -219,8 +220,16 @@ export function ProposalCard({
                   {proposal.title}
                 </h4>
                 <p className="text-xs text-muted-foreground mt-1">
-                  by {proposal.proposer.slice(0, 6)}...
-                  {proposal.proposer.slice(-4)} • {timeCreated}
+                  by{" "}
+                  <AddressDisplay
+                    address={proposal.proposer}
+                    variant="compact"
+                    showAvatar={false}
+                    showENS={true}
+                    showCopy={false}
+                    showExplorer={false}
+                  />{" "}
+                  • {timeCreated}
                 </p>
               </div>
             </div>

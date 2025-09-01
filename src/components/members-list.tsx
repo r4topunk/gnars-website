@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AddressDisplay } from "@/components/ui/address-display";
 
 // Mock data structure - in real implementation, this would come from the Builder SDK
 interface DaoMember {
@@ -57,14 +58,6 @@ async function fetchDaoMembers(): Promise<DaoMember[]> {
   ];
 }
 
-// Function to resolve ENS names (mock implementation)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function resolveENS(_address: string): Promise<string | null> {
-  // In real implementation, this would use a proper ENS resolver
-  // For now, return null to show raw addresses
-  return null;
-}
-
 interface MembersListProps {
   searchTerm: string;
 }
@@ -73,7 +66,6 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
   const [members, setMembers] = useState<DaoMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
-  const [ensNames, setEnsNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadMembers() {
@@ -81,25 +73,6 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
         setLoading(true);
         const fetchedMembers = await fetchDaoMembers();
         setMembers(fetchedMembers);
-
-        // Resolve ENS names for each member
-        const ensPromises = fetchedMembers.map(async (member) => {
-          const ensName = await resolveENS(member.owner);
-          return { address: member.owner, ensName };
-        });
-
-        const ensResults = await Promise.all(ensPromises);
-        const ensMap = ensResults.reduce(
-          (acc, { address, ensName }) => {
-            if (ensName) {
-              acc[address] = ensName;
-            }
-            return acc;
-          },
-          {} as Record<string, string>,
-        );
-
-        setEnsNames(ensMap);
       } catch (error) {
         console.error("Failed to load members:", error);
       } finally {
@@ -112,21 +85,11 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
 
   const filteredMembers = members.filter((member) => {
     const searchLower = searchTerm.toLowerCase();
-    const ensName = ensNames[member.owner];
     return (
       member.owner.toLowerCase().includes(searchLower) ||
-      (ensName && ensName.toLowerCase().includes(searchLower))
+      member.delegate.toLowerCase().includes(searchLower)
     );
   });
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
-  const getDisplayName = (address: string) => {
-    const ensName = ensNames[address];
-    return ensName || formatAddress(address);
-  };
 
   if (loading) {
     return (
@@ -160,13 +123,14 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
             <TableRow>
               <TableHead className="w-12"></TableHead>
               <TableHead>Address/ENS</TableHead>
+              <TableHead>Delegate</TableHead>
               <TableHead className="text-right">Gnars Held</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredMembers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                   {searchTerm ? "No members found matching your search." : "No members found."}
                 </TableCell>
               </TableRow>
@@ -177,14 +141,26 @@ export function MembersList({ searchTerm: initialSearchTerm = "" }: MembersListP
                     <CircleUserRound className="h-8 w-8 text-muted-foreground" />
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className="font-medium">{getDisplayName(member.owner)}</span>
-                      {ensNames[member.owner] && (
-                        <span className="text-xs text-muted-foreground">
-                          {formatAddress(member.owner)}
-                        </span>
-                      )}
-                    </div>
+                    <AddressDisplay
+                      address={member.owner}
+                      variant="compact"
+                      showAvatar={true}
+                      showENS={true}
+                      showCopy={false}
+                      showExplorer={false}
+                      avatarSize="sm"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <AddressDisplay
+                      address={member.delegate}
+                      variant="compact"
+                      showAvatar={false}
+                      showENS={true}
+                      showCopy={false}
+                      showExplorer={false}
+                      avatarSize="sm"
+                    />
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex flex-col items-end gap-1">

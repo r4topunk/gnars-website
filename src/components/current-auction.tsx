@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GnarCard } from "@/components/gnar-card";
+import { AddressDisplay } from "@/components/ui/address-display";
 
 interface AuctionData {
   id: string;
@@ -128,7 +129,15 @@ export function CurrentAuction({ auction, loading }: CurrentAuctionProps) {
               <div className="text-sm text-muted-foreground mb-1">Current bid</div>
               <div className="text-3xl font-bold">{auction.highestBid} ETH</div>
               <div className="text-sm text-muted-foreground">
-                by {auction.bidder.slice(0, 6)}...{auction.bidder.slice(-4)}
+                by{" "}
+                <AddressDisplay
+                  address={auction.bidder}
+                  variant="compact"
+                  showAvatar={false}
+                  showENS={true}
+                  showCopy={false}
+                  showExplorer={false}
+                />
               </div>
             </div>
 
