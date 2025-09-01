@@ -344,7 +344,9 @@ export function MemberDetail({ address }: MemberDetailProps) {
                         <TableCell>
                           <div className="flex flex-col gap-1 whitespace-normal break-words">
                             <a href={`/proposals/${v.proposalNumber}`} className="font-medium hover:underline">
-                              Proposal {v.proposalNumber}
+                              {v.proposalTitle && v.proposalTitle.trim().length > 0
+                                ? `${v.proposalNumber} - ${v.proposalTitle}`
+                                : `${v.proposalNumber}`}
                             </a>
                             {v.reason ? (
                               <span className="text-xs text-muted-foreground whitespace-pre-wrap break-words">{v.reason}</span>
