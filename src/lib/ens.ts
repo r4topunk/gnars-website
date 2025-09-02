@@ -12,295 +12,136 @@ export interface ENSResolveResult {
   avatar: string | null;
 }
 
-// Rate limiting configuration
-const RATE_LIMIT = {
-  MAX_REQUESTS_PER_MINUTE: 30,
-  MAX_REQUESTS_PER_SECOND: 5,
-  CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
-  BATCH_SIZE: 10,
-  BATCH_DELAY: 100, // ms between batches
-};
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const localEnsCache = new Map<string, { data: ENSResolveResult; timestamp: number }>();
+const localNameToAddressCache = new Map<string, { address: Address | null; timestamp: number }>();
 
-// In-memory cache for ENS data
-const ensCache = new Map<string, { data: ENSResolveResult; timestamp: number }>();
-const ensNameToAddressCache = new Map<string, { address: Address | null; timestamp: number }>();
-
-// Rate limiting state
-let requestCount = 0;
-let lastResetTime = Date.now();
-const batchQueue: Array<{ address: Address; resolve: (result: ENSResolveResult) => void }> = [];
-let batchTimeout: NodeJS.Timeout | null = null;
-
-/**
- * Check if we're within rate limits
- */
-function checkRateLimit(): boolean {
-  const now = Date.now();
-  
-  // Reset counter every minute
-  if (now - lastResetTime > 60 * 1000) {
-    requestCount = 0;
-    lastResetTime = now;
-  }
-  
-  // Check per-minute limit
-  if (requestCount >= RATE_LIMIT.MAX_REQUESTS_PER_MINUTE) {
-    return false;
-  }
-  
-  return true;
+function getApiBase(): string {
+  if (typeof window !== 'undefined') return '';
+  const env = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || '';
+  if (!env) return 'http://localhost:3000';
+  return env.startsWith('http') ? env : `https://${env}`;
 }
 
-/**
- * Process batch queue with rate limiting
- */
-function processBatchQueue() {
-  if (batchQueue.length === 0) return;
-  
-  const batch = batchQueue.splice(0, RATE_LIMIT.BATCH_SIZE);
-  
-  if (checkRateLimit()) {
-    requestCount += batch.length;
-    
-    // Process batch in parallel
-    Promise.allSettled(
-      batch.map(({ address }) => resolveENSFromAPI(address))
-    ).then((results) => {
-      results.forEach((result, index) => {
-        const { resolve } = batch[index];
-        if (result.status === 'fulfilled') {
-          resolve(result.value);
-        } else {
-          resolve({ name: null, avatar: null });
-        }
-      });
-    });
-  } else {
-    // Rate limited, put back in queue
-    batchQueue.unshift(...batch);
-  }
-  
-  // Schedule next batch
-  if (batchQueue.length > 0) {
-    batchTimeout = setTimeout(processBatchQueue, RATE_LIMIT.BATCH_DELAY);
-  }
+function shorten(address: Address): string {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-/**
- * Add request to batch queue
- */
-function queueENSRequest(address: Address): Promise<ENSResolveResult> {
-  return new Promise((resolve) => {
-    batchQueue.push({ address, resolve });
-    
-    if (!batchTimeout) {
-      batchTimeout = setTimeout(processBatchQueue, RATE_LIMIT.BATCH_DELAY);
-    }
-  });
-}
-
-/**
- * Resolve ENS data from API with fallback strategies
- */
-async function resolveENSFromAPI(address: Address): Promise<ENSResolveResult> {
-  try {
-    // Try primary ENS API
-    const response = await fetch(`https://api.ensideas.com/ens/resolve/${address}`, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Gnars-DAO/1.0',
-      },
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      return {
-        name: data.displayName || data.name || null,
-        avatar: data.avatar || null,
-      };
-    }
-  } catch (error) {
-    console.warn(`Failed to resolve ENS for ${address}:`, error);
-  }
-  
-  // Fallback: Try alternative ENS resolver
-  try {
-    const response = await fetch(`https://ens.resolver.eth.link/resolve/${address}`, {
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      return {
-        name: data.name || null,
-        avatar: data.avatar || null,
-      };
-    }
-  } catch (error) {
-    console.warn(`Fallback ENS resolution failed for ${address}:`, error);
-  }
-  
-  return { name: null, avatar: null };
-}
-
-// Removed unused generateFallbackAvatar helper
-
-/**
- * Main ENS resolution function
- */
 export async function resolveENS(address: string | Address): Promise<ENSData> {
   if (!address || !isAddress(address)) {
     throw new Error('Invalid Ethereum address');
   }
-  
-  const normalizedAddress = address.toLowerCase() as Address;
-  
-  // Check cache first
-  const cached = ensCache.get(normalizedAddress);
-  if (cached && Date.now() - cached.timestamp < RATE_LIMIT.CACHE_DURATION) {
+
+  const normalized = address.toLowerCase() as Address;
+
+  const cached = localEnsCache.get(normalized);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return {
-      ...cached.data,
-      displayName: cached.data.name || `${normalizedAddress.slice(0, 6)}...${normalizedAddress.slice(-4)}`,
-      address: normalizedAddress,
+      name: cached.data.name,
+      avatar: cached.data.avatar,
+      displayName: cached.data.name || shorten(normalized),
+      address: normalized,
     };
   }
-  
-  // Queue request for rate limiting
-  const result = await queueENSRequest(normalizedAddress);
-  
-  // Cache the result
-  ensCache.set(normalizedAddress, {
-    data: result,
-    timestamp: Date.now(),
-  });
-  
+
+  const baseUrl = getApiBase();
+  const res = await fetch(`${baseUrl}/api/ens?address=${normalized}`, { cache: 'no-store' });
+  if (!res.ok) {
+    return {
+      name: null,
+      avatar: null,
+      displayName: shorten(normalized),
+      address: normalized,
+    };
+  }
+  const body = (await res.json()) as { ens?: ENSData };
+  const ens = body?.ens;
+  const data: ENSResolveResult = {
+    name: ens?.name ?? null,
+    avatar: ens?.avatar ?? null,
+  };
+  localEnsCache.set(normalized, { data, timestamp: Date.now() });
   return {
-    ...result,
-    displayName: result.name || `${normalizedAddress.slice(0, 6)}...${normalizedAddress.slice(-4)}`,
-    address: normalizedAddress,
+    name: data.name,
+    avatar: data.avatar,
+    displayName: data.name || shorten(normalized),
+    address: normalized,
   };
 }
 
-/**
- * Resolve an ENS name to an Ethereum address
- */
 export async function resolveAddressFromENS(name: string): Promise<Address | null> {
-  const trimmed = name.trim().toLowerCase();
+  const trimmed = (name || '').trim().toLowerCase();
   if (!trimmed || !trimmed.includes('.')) return null;
 
-  const cached = ensNameToAddressCache.get(trimmed);
-  if (cached && Date.now() - cached.timestamp < RATE_LIMIT.CACHE_DURATION) {
+  const cached = localNameToAddressCache.get(trimmed);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return cached.address;
   }
 
-  // Try primary resolver API (supports both names and addresses)
-  try {
-    const response = await fetch(`https://api.ensideas.com/ens/resolve/${encodeURIComponent(trimmed)}`, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Gnars-DAO/1.0',
-      },
-      cache: 'no-store',
-    });
-    if (response.ok) {
-      const data = await response.json();
-      const resolvedAddress: unknown = data?.address ?? null;
-      const addressString = typeof resolvedAddress === 'string' ? resolvedAddress : null;
-      const normalized = addressString && isAddress(addressString) ? (addressString.toLowerCase() as Address) : null;
-      ensNameToAddressCache.set(trimmed, { address: normalized, timestamp: Date.now() });
-      return normalized;
-    }
-  } catch {
-    // ignore and try fallback
+  const baseUrl = getApiBase();
+  const res = await fetch(`${baseUrl}/api/ens?name=${encodeURIComponent(trimmed)}`, { cache: 'no-store' });
+  if (!res.ok) {
+    localNameToAddressCache.set(trimmed, { address: null, timestamp: Date.now() });
+    return null;
   }
-
-  // Fallback resolver
-  try {
-    const response = await fetch(`https://ens.resolver.eth.link/resolve/${encodeURIComponent(trimmed)}`, {
-      headers: { 'Accept': 'application/json' },
-      cache: 'no-store',
-    });
-    if (response.ok) {
-      const data = await response.json();
-      const resolvedAddress: unknown = data?.address ?? null;
-      const addressString = typeof resolvedAddress === 'string' ? resolvedAddress : null;
-      const normalized = addressString && isAddress(addressString) ? (addressString.toLowerCase() as Address) : null;
-      ensNameToAddressCache.set(trimmed, { address: normalized, timestamp: Date.now() });
-      return normalized;
-    }
-  } catch {
-    // ignore
-  }
-
-  ensNameToAddressCache.set(trimmed, { address: null, timestamp: Date.now() });
-  return null;
+  const body = (await res.json()) as { address?: string | null };
+  const value = typeof body?.address === 'string' ? (body.address.toLowerCase() as Address) : null;
+  const normalized = value && isAddress(value) ? (value as Address) : null;
+  localNameToAddressCache.set(trimmed, { address: normalized, timestamp: Date.now() });
+  return normalized;
 }
 
-/**
- * Batch resolve multiple ENS addresses
- */
 export async function resolveENSBatch(addresses: (string | Address)[]): Promise<Map<Address, ENSData>> {
-  const validAddresses = addresses
-    .filter((addr): addr is Address => addr !== null && addr !== undefined && isAddress(addr))
-    .map(addr => addr.toLowerCase() as Address);
-  
-  const results = new Map<Address, ENSData>();
-  
-  // Process in batches to respect rate limits
-  for (let i = 0; i < validAddresses.length; i += RATE_LIMIT.BATCH_SIZE) {
-    const batch = validAddresses.slice(i, i + RATE_LIMIT.BATCH_SIZE);
-    
-    const batchPromises = batch.map(async (address) => {
-      try {
-        const ensData = await resolveENS(address);
-        return { address, ensData };
-      } catch (error) {
-        console.warn(`Failed to resolve ENS for ${address}:`, error);
-        return {
-          address,
-          ensData: {
-            name: null,
-            avatar: null,
-            displayName: `${address.slice(0, 6)}...${address.slice(-4)}`,
-            address,
-          },
-        };
-      }
-    });
-    
-    const batchResults = await Promise.allSettled(batchPromises);
-    
-    batchResults.forEach((result) => {
-      if (result.status === 'fulfilled') {
-        const { address, ensData } = result.value;
-        results.set(address, ensData);
-      }
-    });
-    
-    // Add delay between batches
-    if (i + RATE_LIMIT.BATCH_SIZE < validAddresses.length) {
-      await new Promise(resolve => setTimeout(resolve, RATE_LIMIT.BATCH_DELAY));
+  const valid = addresses
+    .filter((a): a is Address => Boolean(a) && isAddress(a))
+    .map((a) => (a as Address).toLowerCase() as Address);
+
+  if (valid.length === 0) return new Map();
+
+  const baseUrl = getApiBase();
+  const res = await fetch(`${baseUrl}/api/ens`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ addresses: valid }),
+    cache: 'no-store',
+  });
+
+  const result = new Map<Address, ENSData>();
+  if (!res.ok) {
+    for (const addr of valid) {
+      result.set(addr, {
+        name: null,
+        avatar: null,
+        displayName: shorten(addr),
+        address: addr,
+      });
     }
+    return result;
   }
-  
-  return results;
+
+  const body = (await res.json()) as { ensMap?: Record<string, ENSData> };
+  const map = body?.ensMap || {};
+  for (const [key, value] of Object.entries(map)) {
+    const lower = key.toLowerCase() as Address;
+    const data: ENSData = {
+      name: value?.name ?? null,
+      avatar: value?.avatar ?? null,
+      displayName: value?.name || shorten(lower),
+      address: lower,
+    };
+    result.set(lower, data);
+  }
+  return result;
 }
 
-/**
- * Clear cache (useful for testing or memory management)
- */
 export function clearENSCache(): void {
-  ensCache.clear();
+  localEnsCache.clear();
+  localNameToAddressCache.clear();
 }
 
-/**
- * Get cache statistics
- */
 export function getENSCacheStats(): { size: number; hitRate: number } {
   return {
-    size: ensCache.size,
-    hitRate: 0, // Could implement hit rate tracking if needed
+    size: localEnsCache.size,
+    hitRate: 0,
   };
 }
