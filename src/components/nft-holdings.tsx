@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { GnarCard } from "@/components/gnar-card";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
@@ -105,19 +105,7 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
   }, [treasuryAddress]);
 
   if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Card key={i}>
-            <CardContent className="p-4">
-              <Skeleton className="aspect-square w-full mb-3 rounded-lg" />
-              <Skeleton className="h-4 w-3/4 mb-2" />
-              <Skeleton className="h-3 w-1/2" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
+    return <LoadingGridSkeleton items={8} />;
   }
 
   if (error) {

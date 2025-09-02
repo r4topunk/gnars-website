@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
-import { Proposal, ProposalCard, ProposalStatus } from "@/components/recent-proposals";
+import { Proposal, ProposalStatus } from "@/components/proposals/types";
+import { ProposalCard } from "@/components/proposal-card";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 
 export function ProposalsGrid() {

@@ -10,7 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
-import { ProposalCard, type Proposal as UiProposal, ProposalStatus } from "@/components/recent-proposals";
+import { ProposalCard } from "@/components/proposal-card";
+import { type Proposal as UiProposal, ProposalStatus } from "@/components/proposals/types";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
  
@@ -63,7 +64,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
 
   const display = useMemo(() => {
     if (ensName) return ensName;
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    return address;
   }, [ensName, address]);
 
   useEffect(() => {
@@ -214,12 +215,12 @@ export function MemberDetail({ address }: MemberDetailProps) {
       {/* Header */}
       <div className="flex items-start gap-4">
         <Avatar className="h-16 w-16">
-          {ensAvatar ? <AvatarImage src={ensAvatar} alt={display} /> : null}
+          {ensAvatar ? <AvatarImage src={ensAvatar} alt={String(display)} /> : null}
           <AvatarFallback>{address.slice(2, 4).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">{display}</h1>
+          <div className="flex items-centered gap-2">
+            <h1 className="text-2xl font-bold tracking-tight">{typeof display === "string" ? display : String(display)}</h1>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
             <AddressDisplay

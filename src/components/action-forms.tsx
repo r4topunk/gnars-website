@@ -1,24 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Info } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { encodeFunctionData, formatEther, parseEther } from "viem";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import { DroposalForm } from "./droposal-form";
 import { Transaction } from "./proposal-wizard";
+import { SendEthForm } from "@/components/action-forms/send-eth-form";
+import { SendTokensForm } from "@/components/action-forms/send-tokens-form";
+import { SendNFTsForm } from "@/components/action-forms/send-nfts-form";
+import { CustomTransactionForm } from "@/components/action-forms/custom-transaction-form";
 
 interface ActionFormsProps {
   actionType: string;
@@ -41,20 +35,6 @@ interface FormData {
   calldata?: string;
   abi?: string;
   [key: string]: string | undefined;
-}
-
-interface FormComponentProps {
-  data: FormData;
-  onChange: (updates: Partial<FormData>) => void;
-}
-
-interface AbiFunction {
-  name: string;
-  type: string;
-  inputs?: Array<{
-    name: string;
-    type: string;
-  }>;
 }
 
 export function ActionForms({ actionType, existingData, onSubmit, onCancel }: ActionFormsProps) {
@@ -85,9 +65,7 @@ export function ActionForms({ actionType, existingData, onSubmit, onCancel }: Ac
     try {
       if (actionType === "send-eth") {
         value = parseEther(formData.value || "0");
-        // Simple ETH transfer has empty calldata
       } else if (actionType === "send-tokens") {
-        // ERC-20 transfer
         const transferCalldata = encodeFunctionData({
           abi: [
             {
@@ -105,7 +83,6 @@ export function ActionForms({ actionType, existingData, onSubmit, onCancel }: Ac
         calldata = transferCalldata;
         target = formData.tokenAddress;
       } else if (actionType === "send-nfts") {
-        // ERC-721 transferFrom
         const transferFromCalldata = encodeFunctionData({
           abi: [
             {
@@ -124,13 +101,11 @@ export function ActionForms({ actionType, existingData, onSubmit, onCancel }: Ac
         calldata = transferFromCalldata;
         target = formData.contractAddress;
       } else if (actionType === "custom") {
-        // Use provided calldata
         calldata = formData.calldata || "0x";
         if (formData.value) {
           value = parseEther(formData.value);
         }
       }
-      // droposal handled separately
     } catch (error) {
       console.error("Error encoding transaction:", error);
       return;
@@ -170,7 +145,7 @@ export function ActionForms({ actionType, existingData, onSubmit, onCancel }: Ac
       "send-nfts": "Send NFTs",
       droposal: "Create Droposal",
       custom: "Custom Transaction",
-    };
+    } as const;
     return titles[actionType as keyof typeof titles] || "Transaction";
   };
 
@@ -204,246 +179,5 @@ export function ActionForms({ actionType, existingData, onSubmit, onCancel }: Ac
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function SendEthForm({ data, onChange }: FormComponentProps) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="recipient">Recipient Address *</Label>
-        <Input
-          id="recipient"
-          placeholder="0x... or ENS name"
-          value={data.target || ""}
-          onChange={(e) => onChange({ target: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="amount">Amount (ETH) *</Label>
-        <Input
-          id="amount"
-          type="number"
-          step="0.001"
-          placeholder="0.0"
-          value={data.value || ""}
-          onChange={(e) => onChange({ value: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          placeholder="Describe the purpose of this payment..."
-          value={data.description || ""}
-          onChange={(e) => onChange({ description: e.target.value })}
-        />
-      </div>
-    </div>
-  );
-}
-
-function SendTokensForm({ data, onChange }: FormComponentProps) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="tokenAddress">Token Contract Address *</Label>
-        <Input
-          id="tokenAddress"
-          placeholder="0x..."
-          value={data.tokenAddress || ""}
-          onChange={(e) => onChange({ tokenAddress: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="recipient">Recipient Address *</Label>
-        <Input
-          id="recipient"
-          placeholder="0x... or ENS name"
-          value={data.recipient || ""}
-          onChange={(e) => onChange({ recipient: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="amount">Amount *</Label>
-        <Input
-          id="amount"
-          type="number"
-          step="0.001"
-          placeholder="0.0"
-          value={data.amount || ""}
-          onChange={(e) => onChange({ amount: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          placeholder="Describe the purpose of this token transfer..."
-          value={data.description || ""}
-          onChange={(e) => onChange({ description: e.target.value })}
-        />
-      </div>
-    </div>
-  );
-}
-
-function SendNFTsForm({ data, onChange }: FormComponentProps) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="contractAddress">NFT Contract Address *</Label>
-        <Input
-          id="contractAddress"
-          placeholder="0x..."
-          value={data.contractAddress || ""}
-          onChange={(e) => onChange({ contractAddress: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="tokenId">Token ID *</Label>
-        <Input
-          id="tokenId"
-          placeholder="1"
-          value={data.tokenId || ""}
-          onChange={(e) => onChange({ tokenId: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="from">From Address *</Label>
-        <Input
-          id="from"
-          placeholder="0x... (typically treasury address)"
-          value={data.from || ""}
-          onChange={(e) => onChange({ from: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="to">To Address *</Label>
-        <Input
-          id="to"
-          placeholder="0x... or ENS name"
-          value={data.to || ""}
-          onChange={(e) => onChange({ to: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          placeholder="Describe the purpose of this NFT transfer..."
-          value={data.description || ""}
-          onChange={(e) => onChange({ description: e.target.value })}
-        />
-      </div>
-    </div>
-  );
-}
-
-function CustomTransactionForm({ data, onChange }: FormComponentProps) {
-  const [selectedFunction, setSelectedFunction] = useState("");
-  const [parsedAbi, setParsedAbi] = useState<AbiFunction[]>([]);
-
-  const handleAbiChange = (abiString: string) => {
-    onChange({ abi: abiString });
-    try {
-      const abi = JSON.parse(abiString);
-      setParsedAbi(abi.filter((item: AbiFunction) => item.type === "function"));
-    } catch {
-      setParsedAbi([]);
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          Custom transactions require technical knowledge. Make sure you understand the contract
-          interaction.
-        </AlertDescription>
-      </Alert>
-
-      <div>
-        <Label htmlFor="target">Contract Address *</Label>
-        <Input
-          id="target"
-          placeholder="0x..."
-          value={data.target || ""}
-          onChange={(e) => onChange({ target: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="value">Value (ETH)</Label>
-        <Input
-          id="value"
-          type="number"
-          step="0.001"
-          placeholder="0.0"
-          value={data.value || "0"}
-          onChange={(e) => onChange({ value: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="abi">Contract ABI *</Label>
-        <Textarea
-          id="abi"
-          placeholder="[{...}] - Paste the contract ABI JSON"
-          value={data.abi || ""}
-          onChange={(e) => handleAbiChange(e.target.value)}
-          rows={4}
-        />
-      </div>
-
-      {parsedAbi.length > 0 && (
-        <div>
-          <Label htmlFor="function">Function</Label>
-          <Select value={selectedFunction} onValueChange={setSelectedFunction}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a function" />
-            </SelectTrigger>
-            <SelectContent>
-              {parsedAbi.map((func, i) => (
-                <SelectItem key={i} value={func.name}>
-                  {func.name}({func.inputs?.map((input) => input.type).join(", ")})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      <div>
-        <Label htmlFor="calldata">Calldata</Label>
-        <Textarea
-          id="calldata"
-          placeholder="0x... - Transaction calldata"
-          value={data.calldata || "0x"}
-          onChange={(e) => onChange({ calldata: e.target.value })}
-          rows={2}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="description">Description *</Label>
-        <Textarea
-          id="description"
-          placeholder="Clearly describe what this transaction does..."
-          value={data.description || ""}
-          onChange={(e) => onChange({ description: e.target.value })}
-        />
-      </div>
-    </div>
   );
 }

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { CountUp } from "@/components/ui/count-up";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { Progress } from "@/components/ui/progress";
 import { GnarCard } from "@/components/gnar-card";
 import { CHAIN, DAO_DESCRIPTION, GNARS_ADDRESSES } from "@/lib/config";
@@ -206,7 +207,16 @@ export function HeroSection({ stats }: HeroSectionProps) {
 
                       {highestBidder && highestBidder !== zeroAddress && (
                         <div className="text-center text-xs text-muted-foreground">
-                          {`Leading bidder: ${highestBidder.slice(0, 6)}...${highestBidder.slice(-4)}`}
+                          <span className="mr-1">Leading bidder:</span>
+                          <AddressDisplay
+                            address={highestBidder}
+                            variant="compact"
+                            showAvatar={false}
+                            showCopy={false}
+                            showExplorer={false}
+                            truncateLength={4}
+                            className="inline-flex"
+                          />
                         </div>
                       )}
                     </div>

@@ -5,18 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { formatDistanceToNow } from "date-fns";
-import {
-  AlertCircle,
-  CalendarDays,
-  CheckCircle,
-  Clock,
-  ExternalLink,
-  MinusCircle,
-  Pause,
-  ThumbsDown,
-  ThumbsUp,
-  XCircle,
-} from "lucide-react";
+import { AlertCircle, CalendarDays, CheckCircle, Clock, ExternalLink, MinusCircle, Pause, ThumbsDown, ThumbsUp, XCircle } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,42 +13,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { ProposalCard } from "@/components/proposal-card";
+import { Proposal, ProposalStatus } from "@/components/proposals/types";
 
-// Proposal status enum based on reference analysis
-export enum ProposalStatus {
-  PENDING = "Pending",
-  ACTIVE = "Active",
-  SUCCEEDED = "Succeeded",
-  QUEUED = "Queued",
-  EXECUTED = "Executed",
-  DEFEATED = "Defeated",
-  CANCELLED = "Cancelled",
-  EXPIRED = "Expired",
-  VETOED = "Vetoed",
-}
-
-// Proposal data structure based on reference analysis
-export interface Proposal {
-  proposalId: string;
-  proposalNumber: number;
-  title: string;
-  description?: string;
-  proposer: string;
-  status: ProposalStatus;
-  forVotes: number;
-  againstVotes: number;
-  abstainVotes: number;
-  quorumVotes: number;
-  voteStart: string;
-  voteEnd: string;
-  expiresAt?: string;
-  timeCreated: number;
-  executed: boolean;
-  canceled: boolean;
-  queued: boolean;
-  vetoed: boolean;
-  transactionHash?: string;
-}
+// Re-export for backwards compatibility
+export { ProposalStatus, type Proposal } from "@/components/proposals/types";
 
 interface RecentProposalsProps {
   proposals?: Proposal[];
@@ -141,219 +99,6 @@ function normalizeImageUrl(rawUrl: string | null): string | null {
   } catch {
     return null;
   }
-}
-
-export function ProposalCard({
-  proposal,
-  showBanner = false,
-}: {
-  proposal: Proposal;
-  showBanner?: boolean;
-}) {
-  const statusConfig = getStatusConfig(proposal.status);
-  const StatusIcon = statusConfig.icon;
-
-  // Calculate vote percentages
-  const totalVotes = proposal.forVotes + proposal.againstVotes + proposal.abstainVotes;
-  const forPercentage = totalVotes > 0 ? (proposal.forVotes / totalVotes) * 100 : 0;
-  const againstPercentage = totalVotes > 0 ? (proposal.againstVotes / totalVotes) * 100 : 0;
-  const abstainPercentage = totalVotes > 0 ? (proposal.abstainVotes / totalVotes) * 100 : 0;
-
-  // Quorum threshold marker position (relative to current votes bar)
-  const quorumMarkerPercent =
-    proposal.quorumVotes > 0 && totalVotes > 0
-      ? Math.min(100, (proposal.quorumVotes / totalVotes) * 100)
-      : 100;
-
-  // Time formatting
-  const timeCreated = formatDistanceToNow(new Date(proposal.timeCreated * 1000), {
-    addSuffix: true,
-  });
-  const voteEndTime = new Date(proposal.voteEnd);
-  const isVotingActive = proposal.status === ProposalStatus.ACTIVE && voteEndTime > new Date();
-
-  const bannerUrl = normalizeImageUrl(extractFirstUrl(proposal.description));
-  const [currentBannerSrc, setCurrentBannerSrc] = useState<string>(bannerUrl ?? "/logo-banner.jpg");
-  useEffect(() => {
-    setCurrentBannerSrc(bannerUrl ?? "/logo-banner.jpg");
-  }, [bannerUrl]);
-
-  return (
-    <Link href={`/proposals/${proposal.proposalNumber}`} className="block">
-      <Card className="hover:shadow-md transition-shadow overflow-hidden cursor-pointer">
-        {showBanner && (
-          <div className="mx-4 border rounded-md overflow-hidden">
-            <AspectRatio ratio={16 / 9}>
-              <Image
-                src={currentBannerSrc}
-                alt="Proposal banner"
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-cover"
-                priority={false}
-                onError={() => {
-                  if (currentBannerSrc !== "/logo-banner.jpg") {
-                    setCurrentBannerSrc("/logo-banner.jpg");
-                  }
-                }}
-              />
-            </AspectRatio>
-          </div>
-        )}
-        <CardContent className="px-4 py-2">
-          <div className="space-y-3">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Prop #{proposal.proposalNumber}
-                  </span>
-                  <div className="flex-shrink-0">
-                    <Badge className={`${statusConfig.color} text-xs`}>
-                      <StatusIcon className="w-3 h-3 mr-1" />
-                      {proposal.status}
-                    </Badge>
-                  </div>
-                </div>
-                <h4 className="font-semibold text-sm leading-tight truncate pr-2">
-                  {proposal.title}
-                </h4>
-                <div className="text-xs text-muted-foreground mt-1">
-                  by{" "}
-                  <AddressDisplay
-                    address={proposal.proposer}
-                    variant="compact"
-                    showAvatar={false}
-                    showENS={true}
-                    showCopy={false}
-                    showExplorer={false}
-                  />{" "}
-                  • {timeCreated}
-                </div>
-              </div>
-            </div>
-
-            {/* Voting Progress */}
-            {totalVotes > 0 && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Voting Progress</span>
-                  <span>{totalVotes} votes</span>
-                </div>
-
-                {/* Vote breakdown bars with quorum marker */}
-                <div className="space-y-1">
-                  <div className="relative">
-                    <div className="flex gap-0.5">
-                      {proposal.forVotes > 0 && (
-                        <div
-                          className={cn(
-                            "h-1.5 bg-green-500",
-                            proposal.againstVotes === 0 && proposal.abstainVotes === 0
-                              ? "rounded"
-                              : "rounded-l",
-                          )}
-                          style={{ width: `${forPercentage}%` }}
-                        />
-                      )}
-                      {proposal.againstVotes > 0 && (
-                        <div
-                          className={cn(
-                            "h-1.5 bg-red-500",
-                            proposal.forVotes === 0 && proposal.abstainVotes === 0
-                              ? "rounded"
-                              : proposal.abstainVotes === 0
-                                ? "rounded-r"
-                                : "",
-                          )}
-                          style={{ width: `${againstPercentage}%` }}
-                        />
-                      )}
-                      {proposal.abstainVotes > 0 && (
-                        <div
-                          className={cn(
-                            "h-1.5 bg-gray-300",
-                            proposal.forVotes === 0 && proposal.againstVotes === 0
-                              ? "rounded"
-                              : "rounded-r",
-                          )}
-                          style={{ width: `${abstainPercentage}%` }}
-                        />
-                      )}
-                    </div>
-
-                    {proposal.quorumVotes > 0 && totalVotes > 0 && (
-                      <div className="pointer-events-none absolute inset-0">
-                        <div
-                          className="absolute top-0 bottom-0 w-1 bg-yellow-300"
-                          style={{
-                            left: `${quorumMarkerPercent}%`,
-                            transform: "translateX(-50%)",
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex justify-between text-xs">
-                    <div className="flex items-center gap-1">
-                      <ThumbsUp className="w-3 h-3 text-green-500" />
-                      <span>
-                        {proposal.forVotes} ({forPercentage.toFixed(0)}%)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <ThumbsDown className="w-3 h-3 text-red-500" />
-                      <span>
-                        {proposal.againstVotes} ({againstPercentage.toFixed(0)}
-                        %)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MinusCircle className="w-3 h-3 text-gray-400" />
-                      <span>
-                        {proposal.abstainVotes} ({abstainPercentage.toFixed(0)}
-                        %)
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Active voting countdown */}
-            {isVotingActive && (
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Voting ends</span>
-                <span className="font-medium">
-                  {formatDistanceToNow(voteEndTime, { addSuffix: true })}
-                </span>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
-
-// Minimal fallback for dev when network fails
-const fallbackProposals: Proposal[] = [];
-
-function mapSdkStateToStatus(state: string): ProposalStatus {
-  const mapping: Record<string, ProposalStatus> = {
-    PENDING: ProposalStatus.PENDING,
-    ACTIVE: ProposalStatus.ACTIVE,
-    SUCCEEDED: ProposalStatus.SUCCEEDED,
-    QUEUED: ProposalStatus.QUEUED,
-    EXECUTED: ProposalStatus.EXECUTED,
-    DEFEATED: ProposalStatus.DEFEATED,
-    CANCELED: ProposalStatus.CANCELLED,
-    VETOED: ProposalStatus.VETOED,
-    EXPIRED: ProposalStatus.EXPIRED,
-  };
-  return mapping[state] ?? ProposalStatus.PENDING;
 }
 
 export function RecentProposals({
@@ -481,4 +226,22 @@ export function RecentProposals({
       </CardContent>
     </Card>
   );
+}
+
+// Minimal fallback for dev when network fails
+const fallbackProposals: Proposal[] = [];
+
+function mapSdkStateToStatus(state: string): ProposalStatus {
+  const mapping: Record<string, ProposalStatus> = {
+    PENDING: ProposalStatus.PENDING,
+    ACTIVE: ProposalStatus.ACTIVE,
+    SUCCEEDED: ProposalStatus.SUCCEEDED,
+    QUEUED: ProposalStatus.QUEUED,
+    EXECUTED: ProposalStatus.EXECUTED,
+    DEFEATED: ProposalStatus.DEFEATED,
+    CANCELED: ProposalStatus.CANCELLED,
+    VETOED: ProposalStatus.VETOED,
+    EXPIRED: ProposalStatus.EXPIRED,
+  };
+  return mapping[state] ?? ProposalStatus.PENDING;
 }

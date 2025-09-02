@@ -8,5 +8,3 @@ export function KpiSkeleton() {
     </div>
   );
 }
-
-

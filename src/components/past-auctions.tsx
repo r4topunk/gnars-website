@@ -5,8 +5,10 @@ import { GnarCard } from "@/components/gnar-card";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
+import { SectionHeader } from "@/components/section-header";
+import { AuctionCard } from "@/components/past-auctions/AuctionCard";
 
 interface PastAuction {
   id: string;
@@ -29,39 +31,11 @@ interface PastAuctionsProps {
   gridOnly?: boolean;
 }
 
-function AuctionCard({ auction }: { auction: PastAuction }) {
-  const isZeroFinal = Number(auction.finalBid) === 0;
-  return (
-    <GnarCard
-      tokenId={auction.tokenId}
-      imageUrl={auction.imageUrl}
-      dateLabel={auction.endTime.toLocaleDateString()}
-      finalBidEth={isZeroFinal ? null : auction.finalBid}
-      winnerAddress={isZeroFinal ? null : auction.winner}
-      showPlaceholders
-    />
-  );
-}
-
 function AuctionCardSkeleton() {
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <CardContent className="space-y-4 px-4">
-        <Skeleton className="aspect-square w-full rounded-xl" />
-        <div className="space-y-2">
-          <div className="flex items-top justify-between">
-            <Skeleton className="h-5 w-28" />
-            <Skeleton className="h-3 w-16" />
-          </div>
-          <div>
-            <Skeleton className="h-3 w-16 mb-1" />
-            <Skeleton className="h-6 w-24" />
-          </div>
-          <div>
-            <Skeleton className="h-3 w-12 mb-1" />
-            <Skeleton className="h-4 w-20" />
-          </div>
-        </div>
+      <CardContent className="px-0">
+        <LoadingGridSkeleton items={1} />
       </CardContent>
     </Card>
   );
@@ -119,11 +93,7 @@ export function PastAuctions({
     return (
       <>
         {loading && !auctions?.length ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <AuctionCardSkeleton key={i} />
-            ))}
-          </div>
+          <LoadingGridSkeleton items={8} />
         ) : auctions?.length ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -132,10 +102,8 @@ export function PastAuctions({
               ))}
             </div>
             {loading && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <AuctionCardSkeleton key={`loading-${i}`} />
-                ))}
+              <div className="mt-4">
+                <LoadingGridSkeleton items={4} />
               </div>
             )}
             <div ref={sentinelRef} className="h-10" />
@@ -151,29 +119,23 @@ export function PastAuctions({
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-xl font-bold flex items-center gap-2">{title}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
-          </div>
-          {showViewAllButton && (
+      <SectionHeader
+        title={title}
+        description={description}
+        action={
+          showViewAllButton ? (
             <Link href="/auctions">
               <Button variant="outline" size="sm">
                 <span>View all auctions</span>
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-          )}
-        </div>
-      </CardHeader>
+          ) : undefined
+        }
+      />
       <CardContent>
         {loading && !auctions?.length ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <AuctionCardSkeleton key={i} />
-            ))}
-          </div>
+          <LoadingGridSkeleton items={8} />
         ) : auctions?.length ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -183,10 +145,8 @@ export function PastAuctions({
             </div>
 
             {loading && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <AuctionCardSkeleton key={`loading-${i}`} />
-                ))}
+              <div className="mt-4">
+                <LoadingGridSkeleton items={4} />
               </div>
             )}
             <div ref={sentinelRef} className="h-10" />

@@ -10,7 +10,8 @@ import {
 } from "@/components/dashboard-charts";
 import { HeroSection } from "@/components/hero-section";
 import { PastAuctions } from "@/components/past-auctions";
-import { ProposalStatus, RecentProposals } from "@/components/recent-proposals";
+import { RecentProposals } from "@/components/recent-proposals";
+import { ProposalStatus } from "@/components/proposals/types";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { useRecentAuctions } from "@/hooks/use-auctions";
 import { GNARS_ADDRESSES } from "@/lib/config";
