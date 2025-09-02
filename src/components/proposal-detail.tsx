@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { getProposal, getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { ProposalMetrics } from "@/components/proposal-metrics";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,9 +17,12 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VotingControls } from "@/components/voting-controls";
-import { AddressDisplay } from "@/components/ui/address-display";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { Markdown } from "@/components/markdown";
+import { ProposalHeader } from "@/components/proposal-detail/ProposalHeader";
+import { ProposalDescriptionCard } from "@/components/proposal-detail/ProposalDescriptionCard";
+import { ProposedTransactionsTable } from "@/components/proposal-detail/ProposedTransactionsTable";
+import { ProposalVotesTable } from "@/components/proposal-detail/ProposalVotesTable";
+import { PropdatesPlaceholder } from "@/components/proposal-detail/PropdatesPlaceholder";
  
 
 interface UiProposalVote {
@@ -67,44 +69,6 @@ interface ProposalDetailProps {
   proposalId: string;
 }
 
-const getStatusBadgeVariant = (state: UiProposal["state"]) => {
-  switch (state) {
-    case "EXECUTED":
-      return "default"; // green
-    case "ACTIVE":
-      return "secondary"; // blue
-    case "DEFEATED":
-    case "VETOED":
-      return "destructive"; // red
-    case "CANCELED":
-      return "outline"; // gray
-    default:
-      return "secondary";
-  }
-};
-
-const getStatusLabel = (state: UiProposal["state"]) => {
-  switch (state) {
-    case "PENDING":
-      return "Pending";
-    case "ACTIVE":
-      return "Active";
-    case "DEFEATED":
-      return "Defeated";
-    case "SUCCEEDED":
-      return "Succeeded";
-    case "QUEUED":
-      return "Queued";
-    case "EXECUTED":
-      return "Executed";
-    case "CANCELED":
-      return "Canceled";
-    case "VETOED":
-      return "Vetoed";
-    default:
-      return state;
-  }
-};
 
 export function ProposalDetail({ proposalId }: ProposalDetailProps) {
   const [proposal, setProposal] = useState<UiProposal | null>(null);
@@ -264,38 +228,13 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
   return (
     <div className="space-y-6">
       {/* Header like reference */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Proposal {proposal.proposalNumber}</span>
-          <Badge variant={getStatusBadgeVariant(proposal.state)}>
-            {getStatusLabel(proposal.state)}
-          </Badge>
-          {proposal.transactionHash && (
-            <a
-              href={`https://basescan.org/tx/${proposal.transactionHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center text-muted-foreground hover:text-foreground"
-              aria-label="Open in explorer"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-          )}
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight">{proposal.title}</h1>
-        <div className="text-sm text-muted-foreground">
-          By{" "}
-          <Link href={`/members/${proposal.proposer}`} className="hover:underline">
-            <AddressDisplay
-              address={proposal.proposer}
-              variant="compact"
-              showAvatar={false}
-              showCopy={false}
-              showExplorer={false}
-            />
-          </Link>
-        </div>
-      </div>
+      <ProposalHeader
+        proposalNumber={proposal.proposalNumber}
+        title={proposal.title}
+        proposer={proposal.proposer}
+        state={proposal.state}
+        transactionHash={proposal.transactionHash}
+      />
 
       {/* Vote callout removed per request */}
 
@@ -335,134 +274,22 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
 
         <TabsContent value="details" className="space-y-6 mt-6">
           {/* Description: full markdown */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Description</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Markdown>{proposal.description}</Markdown>
-            </CardContent>
-          </Card>
+          <ProposalDescriptionCard description={proposal.description} />
 
           {/* Proposed Transactions: human-readable table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Proposed Transactions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {proposal.targets.length === 0 ? (
-                <p className="text-muted-foreground">No transaction calls attached.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Target</TableHead>
-                      <TableHead>Function</TableHead>
-                      <TableHead>Value</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {proposal.targets.map((target, index) => {
-                      const valueEth = (() => {
-                        const raw = Number(proposal.values[index] || 0);
-                        if (!Number.isFinite(raw)) return "0";
-                        return (raw / 1e18).toLocaleString(undefined, { maximumFractionDigits: 6 });
-                      })();
-                      const fnSig = proposal.signatures[index] || "—";
-                      
-                      return (
-                        <TableRow key={`${target}-${index}`}>
-                          <TableCell>
-                            <AddressDisplay
-                              address={target}
-                              variant="default"
-                              showAvatar={false}
-                              showCopy={true}
-                              showExplorer={true}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary">{fnSig}</Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-mono">{valueEth} ETH</TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+          <ProposedTransactionsTable
+            targets={proposal.targets}
+            values={proposal.values}
+            signatures={proposal.signatures}
+          />
         </TabsContent>
 
         <TabsContent value="votes" className="mt-6 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Individual Votes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {proposal.votes && proposal.votes.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Voter</TableHead>
-                      <TableHead>Choice</TableHead>
-                      <TableHead className="text-right">Vote Count</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {proposal.votes.map((vote, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <AddressDisplay
-                            address={vote.voter}
-                            variant="compact"
-                            showAvatar={false}
-                            showCopy={false}
-                            showExplorer={false}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              vote.choice === "FOR"
-                                ? "default"
-                                : vote.choice === "AGAINST"
-                                  ? "destructive"
-                                  : "secondary"
-                            }
-                          >
-                            {vote.choice}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {parseFloat(vote.votes).toLocaleString(undefined, { maximumFractionDigits: 1 })}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p className="text-center text-muted-foreground py-8">No votes have been cast yet</p>
-              )}
-            </CardContent>
-          </Card>
+          <ProposalVotesTable votes={proposal.votes?.map((v) => ({ voter: v.voter, choice: v.choice, votes: v.votes }))} />
         </TabsContent>
 
         <TabsContent value="propdates" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Propdates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <p>Propdates functionality coming soon...</p>
-                <p className="text-sm mt-2">This will show EAS-based proposal updates and community feedback</p>
-              </div>
-            </CardContent>
-          </Card>
+          <PropdatesPlaceholder />
         </TabsContent>
       </Tabs>
     </div>
