@@ -1,4 +1,4 @@
-import { GnarCard } from "@/components/gnar-card";
+import { GnarCard } from "@/components/auctions/GnarCard";
 
 export interface PastAuction {
   id: string;

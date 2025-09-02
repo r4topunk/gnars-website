@@ -1,8 +1,8 @@
 import { Suspense } from "react";
-import { NftHoldings } from "@/components/nft-holdings";
-import { TokenHoldings } from "@/components/token-holdings";
-import { TreasuryBalance } from "@/components/treasury-balance";
-import { AuctionTrendChart, MemberActivityChart, TreasuryAllocationChart } from "@/components/dashboard-charts";
+import { NftHoldings } from "@/components/treasury/NftHoldings";
+import { TokenHoldings } from "@/components/treasury/TokenHoldings";
+import { TreasuryBalance } from "@/components/treasury/TreasuryBalance";
+import { AuctionTrendChart, MemberActivityChart, TreasuryAllocationChart } from "@/components/treasury/DashboardCharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TreasuryValueSkeleton, MetricSkeleton, TableSkeleton, NftGridSkeleton } from "@/components/skeletons/treasury-skeletons";
 import { GNARS_ADDRESSES } from "@/lib/config";

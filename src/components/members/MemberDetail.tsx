@@ -2,19 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
 import { type Proposal as UiProposal, ProposalStatus } from "@/components/proposals/types";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { MemberHeader } from "@/components/member-detail/MemberHeader";
-import { MemberQuickStats } from "@/components/member-detail/MemberQuickStats";
-import { MemberProposalsGrid } from "@/components/member-detail/MemberProposalsGrid";
-import { MemberDelegatorsTable } from "@/components/member-detail/MemberDelegatorsTable";
-import { MemberVotesTable } from "@/components/member-detail/MemberVotesTable";
-import { MemberTokensGrid } from "@/components/member-detail/MemberTokensGrid";
+import { MemberHeader } from "@/components/members/detail/MemberHeader";
+import { MemberQuickStats } from "@/components/members/detail/MemberQuickStats";
+import { MemberProposalsGrid } from "@/components/members/detail/MemberProposalsGrid";
+import { MemberDelegatorsTable } from "@/components/members/detail/MemberDelegatorsTable";
+import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
+import { MemberTokensGrid } from "@/components/members/detail/MemberTokensGrid";
  
 
 interface MemberDetailProps {

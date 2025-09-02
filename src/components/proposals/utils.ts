@@ -1,8 +1,12 @@
 import { AlertCircle, CheckCircle, Clock, XCircle, Pause } from "lucide-react";
 import { ProposalStatus } from "@/components/proposals/types";
 
+import type { SVGProps } from "react";
+
+type IconComponent = React.ComponentType<SVGProps<SVGSVGElement>>;
+
 export const getStatusConfig = (status: ProposalStatus) => {
-  const configs: Record<ProposalStatus, { color: string; Icon: any }> = {
+  const configs: Record<ProposalStatus, { color: string; Icon: IconComponent }> = {
     [ProposalStatus.ACTIVE]: {
       color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
       Icon: Clock,

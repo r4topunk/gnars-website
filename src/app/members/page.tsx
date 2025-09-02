@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { MembersList } from "@/components/members-list";
+import { MembersList } from "@/components/members/MembersList";
 import { MembersTableSkeleton } from "@/components/skeletons/members-table-skeleton";
 
 export const revalidate = 3600; // ISR with 1 hour revalidation

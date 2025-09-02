@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Coins, Image, Plus, Send, Settings, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ActionForms } from "./proposals/builder/ActionForms";
-import { Transaction } from "./proposals/ProposalWizard";
+import { ActionForms } from "./ActionForms";
+import { Transaction } from "@/components/proposals/ProposalWizard";
 import { TransactionTypeCard } from "@/components/proposals/builder/TransactionTypeCard";
 import { TransactionListItem } from "@/components/proposals/builder/TransactionListItem";
 

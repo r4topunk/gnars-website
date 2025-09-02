@@ -2,27 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
 import { getProposal, getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
-import { ProposalMetrics } from "@/components/proposal-metrics";
+import { ProposalMetrics } from "@/components/proposals/ProposalMetrics";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VotingControls } from "@/components/voting-controls";
+import { VotingControls } from "@/components/common/VotingControls";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { ProposalHeader } from "@/components/proposal-detail/ProposalHeader";
-import { ProposalDescriptionCard } from "@/components/proposal-detail/ProposalDescriptionCard";
-import { ProposedTransactionsTable } from "@/components/proposal-detail/ProposedTransactionsTable";
-import { ProposalVotesTable } from "@/components/proposal-detail/ProposalVotesTable";
-import { PropdatesPlaceholder } from "@/components/proposal-detail/PropdatesPlaceholder";
+import { ProposalHeader } from "@/components/proposals/detail/ProposalHeader";
+import { ProposalDescriptionCard } from "@/components/proposals/detail/ProposalDescriptionCard";
+import { ProposedTransactionsTable } from "@/components/proposals/detail/ProposedTransactionsTable";
+import { ProposalVotesTable } from "@/components/proposals/detail/ProposalVotesTable";
+import { PropdatesPlaceholder } from "@/components/proposals/detail/PropdatesPlaceholder";
  
 
 interface UiProposalVote {

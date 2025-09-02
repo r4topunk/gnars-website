@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GnarCard } from "@/components/gnar-card";
+import { GnarCard } from "@/components/auctions/GnarCard";
 import { AddressDisplay } from "@/components/ui/address-display";
 
 interface AuctionData {

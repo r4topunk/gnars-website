@@ -1,4 +1,4 @@
-import { ProposalDetail } from "@/components/proposal-detail";
+import { ProposalDetail } from "@/components/proposals/detail/ProposalDetail";
 
 interface ProposalPageProps {
   params: Promise<{ id: string }>;

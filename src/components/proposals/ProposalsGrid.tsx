@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { Proposal, ProposalStatus } from "@/components/proposals/types";
-import { ProposalCard } from "@/components/proposal-card";
+import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 
 export function ProposalsGrid() {

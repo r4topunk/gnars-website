@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { GnarCard } from "@/components/gnar-card";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
-import { SectionHeader } from "@/components/section-header";
-import { AuctionCard } from "@/components/past-auctions/AuctionCard";
+import { SectionHeader } from "@/components/common/SectionHeader";
+import { AuctionCard } from "@/components/auctions/past/AuctionCard";
 
 interface PastAuction {
   id: string;
@@ -31,15 +30,7 @@ interface PastAuctionsProps {
   gridOnly?: boolean;
 }
 
-function AuctionCardSkeleton() {
-  return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <CardContent className="px-0">
-        <LoadingGridSkeleton items={1} />
-      </CardContent>
-    </Card>
-  );
-}
+
 
 export function PastAuctions({
   auctions,

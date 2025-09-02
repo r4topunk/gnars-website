@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
-import { GnarCard } from "@/components/gnar-card";
+import { GnarCard } from "@/components/auctions/GnarCard";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 

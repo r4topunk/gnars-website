@@ -1,6 +1,6 @@
 "use client";
 
-import { ProposalCard } from "@/components/proposal-card";
+import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { type Proposal } from "@/components/proposals/types";
 
 interface ProposalsGridProps {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GnarCard } from "@/components/gnar-card";
+import { GnarCard } from "@/components/auctions/GnarCard";
 
 interface TokenLike {
   id: string | number;

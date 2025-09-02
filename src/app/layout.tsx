@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
-import { DaoSidebar } from "@/components/dao-sidebar";
-import Providers from "@/components/providers";
-import SidebarFloatingTrigger from "@/components/sidebar-floating-trigger";
+import { DaoSidebar } from "@/components/layout/DaoSidebar";
+import Providers from "@/components/layout/Providers";
+import SidebarFloatingTrigger from "@/components/layout/SidebarFloatingTrigger";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";

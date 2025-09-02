@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { useAccount } from "wagmi";
-import { ProposalWizard } from "@/components/proposal-wizard";
+import { ProposalWizard } from "@/components/proposals/ProposalWizard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useVotes } from "@/hooks/use-votes";

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatCard } from "@/components/stat-card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { StatCard } from "@/components/common/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface KeyStatsProps {

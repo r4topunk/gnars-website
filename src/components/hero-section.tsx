@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Progress } from "@/components/ui/progress";
-import { GnarCard } from "@/components/gnar-card";
+import { GnarCard } from "@/components/auctions/GnarCard";
 import { CHAIN, DAO_DESCRIPTION, GNARS_ADDRESSES } from "@/lib/config";
 
 interface HeroSectionProps {

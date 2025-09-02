@@ -7,10 +7,10 @@ import {
   AuctionTrendChart,
   MemberActivityChart,
   TreasuryAllocationChart,
-} from "@/components/dashboard-charts";
+} from "@/components/treasury/DashboardCharts";
 import { HeroSection } from "@/components/hero-section";
-import { PastAuctions } from "@/components/past-auctions";
-import { RecentProposals } from "@/components/recent-proposals";
+import { PastAuctions } from "@/components/auctions/PastAuctions";
+import { RecentProposals } from "@/components/proposals/recent/RecentProposals";
 import { ProposalStatus } from "@/components/proposals/types";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { useRecentAuctions } from "@/hooks/use-auctions";

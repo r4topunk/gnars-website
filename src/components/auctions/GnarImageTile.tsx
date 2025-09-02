@@ -1,6 +1,6 @@
 "use client";
 
-import { GnarCard } from "./gnar-card";
+import { GnarCard } from "@/components/auctions/GnarCard";
 
 interface GnarImageTileProps {
   imageUrl?: string;

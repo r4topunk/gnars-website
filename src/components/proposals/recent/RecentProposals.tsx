@@ -1,23 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
-import { formatDistanceToNow } from "date-fns";
 import { AlertCircle, CheckCircle, Clock, Pause, XCircle } from "lucide-react";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { cn } from "@/lib/utils";
-import { AddressDisplay } from "@/components/ui/address-display";
-import { ProposalCard } from "@/components/proposal-card";
+import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { Proposal, ProposalStatus } from "@/components/proposals/types";
-import { RecentProposalsHeader } from "@/components/recent-proposals/RecentProposalsHeader";
-import { ProposalsGrid } from "@/components/recent-proposals/ProposalsGrid";
-import { RecentProposalsLoadingSkeleton } from "@/components/recent-proposals/LoadingSkeleton";
-import { RecentProposalsEmptyState } from "@/components/recent-proposals/EmptyState";
+import { RecentProposalsHeader } from "@/components/proposals/recent/RecentProposalsHeader";
+import { ProposalsGrid } from "@/components/proposals/recent/ProposalsGrid";
+import { RecentProposalsLoadingSkeleton } from "@/components/proposals/recent/LoadingSkeleton";
+import { RecentProposalsEmptyState } from "@/components/proposals/recent/EmptyState";
 
 // Re-export for backwards compatibility
 export { ProposalStatus, type Proposal } from "@/components/proposals/types";
@@ -28,81 +21,7 @@ interface RecentProposalsProps {
   excludeStatuses?: ProposalStatus[];
 }
 
-// Status styling configuration
-const getStatusConfig = (status: ProposalStatus) => {
-  const configs = {
-    [ProposalStatus.ACTIVE]: {
-      color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-      icon: Clock,
-      description: "Voting in progress",
-    },
-    [ProposalStatus.PENDING]: {
-      color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-      icon: Pause,
-      description: "Awaiting voting period",
-    },
-    [ProposalStatus.SUCCEEDED]: {
-      color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-      icon: CheckCircle,
-      description: "Passed, ready for execution",
-    },
-    [ProposalStatus.QUEUED]: {
-      color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-      icon: AlertCircle,
-      description: "Queued for execution",
-    },
-    [ProposalStatus.EXECUTED]: {
-      color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-      icon: CheckCircle,
-      description: "Successfully executed",
-    },
-    [ProposalStatus.DEFEATED]: {
-      color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-      icon: XCircle,
-      description: "Did not pass",
-    },
-    [ProposalStatus.CANCELLED]: {
-      color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-      icon: XCircle,
-      description: "Cancelled",
-    },
-    [ProposalStatus.EXPIRED]: {
-      color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-      icon: Clock,
-      description: "Expired",
-    },
-    [ProposalStatus.VETOED]: {
-      color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-      icon: XCircle,
-      description: "Vetoed",
-    },
-  };
-  return configs[status] || configs[ProposalStatus.PENDING];
-};
 
-function extractFirstUrl(text?: string): string | null {
-  if (!text) return null;
-  const httpMatch = text.match(/https?:\/\/[^\s)]+/i);
-  if (httpMatch && httpMatch[0]) return httpMatch[0];
-  const ipfsMatch = text.match(/ipfs:\/\/[\w./-]+/i);
-  if (ipfsMatch && ipfsMatch[0]) return ipfsMatch[0];
-  return null;
-}
-
-function normalizeImageUrl(rawUrl: string | null): string | null {
-  if (!rawUrl) return null;
-  try {
-    if (rawUrl.startsWith("ipfs://")) {
-      const hash = rawUrl.replace(/^ipfs:\/\//i, "").replace(/^ipfs\//i, "");
-      return `https://ipfs.io/ipfs/${hash}`;
-    }
-    // Validate URL shape; allow any host (Next config handles domains)
-    new URL(rawUrl);
-    return rawUrl;
-  } catch {
-    return null;
-  }
-}
 
 export function RecentProposals({
   proposals,

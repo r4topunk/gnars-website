@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimpleAddressDisplay } from "@/components/ui/address-display";
 import { GNARS_ADDRESSES } from "@/lib/config";
-import { ProposalFormData, Transaction } from "./proposal-wizard";
+import { ProposalFormData, Transaction } from "./ProposalWizard";
 
 interface ProposalPreviewProps {
   data: ProposalFormData;

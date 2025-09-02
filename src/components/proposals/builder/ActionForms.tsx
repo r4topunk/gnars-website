@@ -5,14 +5,14 @@ import { ArrowLeft } from "lucide-react";
 import { encodeFunctionData, formatEther, parseEther } from "viem";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { Separator } from "@/components/ui/separator";
-import { DroposalForm } from "./droposal-form";
-import { Transaction } from "./proposal-wizard";
-import { SendEthForm } from "@/components/action-forms/send-eth-form";
-import { SendTokensForm } from "@/components/action-forms/send-tokens-form";
-import { SendNFTsForm } from "@/components/action-forms/send-nfts-form";
-import { CustomTransactionForm } from "@/components/action-forms/custom-transaction-form";
+import { DroposalForm } from "@/components/common/DroposalForm";
+import { Transaction } from "@/components/proposals/ProposalWizard";
+import { SendEthForm } from "@/components/proposals/builder/forms/send-eth-form";
+import { SendTokensForm } from "@/components/proposals/builder/forms/send-tokens-form";
+import { SendNFTsForm } from "@/components/proposals/builder/forms/send-nfts-form";
+import { CustomTransactionForm } from "@/components/proposals/builder/forms/custom-transaction-form";
 
 interface ActionFormsProps {
   actionType: string;

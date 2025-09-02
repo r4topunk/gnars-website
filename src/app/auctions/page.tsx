@@ -1,6 +1,6 @@
 "use client";
 
-import { PastAuctions } from "@/components/past-auctions";
+import { PastAuctions } from "@/components/auctions/PastAuctions";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { useAllAuctions } from "@/hooks/use-auctions";
 

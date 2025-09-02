@@ -5,7 +5,7 @@ import { formatEther } from "viem";
 import { TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 import { fetchTotalAuctionSalesWei } from "@/services/dao";
 import { CountUp } from "@/components/ui/count-up";
-import { Skeleton } from "./ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TreasuryBalanceProps {
   treasuryAddress: string;

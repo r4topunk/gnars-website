@@ -1,4 +1,4 @@
-import { MemberDetail } from "@/components/member-detail";
+import { MemberDetail } from "@/components/members/MemberDetail";
 import { resolveAddressFromENS } from "@/lib/ens";
 import { redirect, notFound } from "next/navigation";
 import { isAddress } from "viem";
