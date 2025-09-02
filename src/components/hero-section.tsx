@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Progress } from "@/components/ui/progress";
-import { GnarCard } from "@/components/auctions/GnarCard";
+import { GnarImageTile } from "@/components/auctions/GnarImageTile";
 import { CHAIN, DAO_DESCRIPTION, GNARS_ADDRESSES } from "@/lib/config";
 
 interface HeroSectionProps {
@@ -173,11 +173,8 @@ export function HeroSection({ stats }: HeroSectionProps) {
                       )}
                     </div>
 
-                    {/* NFT Preview */}
-                    <GnarCard
-                      tokenId={tokenId || 0}
-                      imageUrl={imageSrc}
-                    />
+                    {/* NFT Preview - bare image, high quality (no inner card) */}
+                    <GnarImageTile tokenId={Number(tokenId || 0)} imageUrl={imageSrc} />
 
                     <div className="space-y-3">
                       {/* Bid and Timer Row */}
