@@ -14,6 +14,7 @@ interface TransactionBuilderProps {
   onAddTransaction: (transaction: Transaction) => void;
   onUpdateTransaction: (id: string, updates: Partial<Transaction>) => void;
   onRemoveTransaction: (id: string) => void;
+  onFormsVisibilityChange?: (visible: boolean) => void;
 }
 
 const transactionTypes = [
@@ -22,6 +23,12 @@ const transactionTypes = [
     label: "Send ETH",
     description: "Send ETH from treasury",
     icon: Send,
+  },
+  {
+    type: "send-usdc",
+    label: "Send USDC",
+    description: "Send USDC",
+    icon: Coins,
   },
   {
     type: "send-tokens",
@@ -44,7 +51,7 @@ const transactionTypes = [
   {
     type: "custom",
     label: "Custom Transaction",
-    description: "Advanced contract interaction",
+    description: "Contract interaction",
     icon: Settings,
   },
 ] as const;
@@ -54,6 +61,7 @@ export function TransactionBuilder({
   onAddTransaction,
   onUpdateTransaction,
   onRemoveTransaction,
+  onFormsVisibilityChange,
 }: TransactionBuilderProps) {
   const [showActionForms, setShowActionForms] = useState(false);
   const [selectedActionType, setSelectedActionType] = useState<string>("");
@@ -63,12 +71,14 @@ export function TransactionBuilder({
     setSelectedActionType(type);
     setEditingTransaction(null);
     setShowActionForms(true);
+    onFormsVisibilityChange?.(true);
   };
 
   const handleEditTransaction = (transaction: Transaction) => {
     setSelectedActionType(transaction.type);
     setEditingTransaction(transaction.id);
     setShowActionForms(true);
+    onFormsVisibilityChange?.(true);
   };
 
   const handleTransactionSubmit = (transactionData: Partial<Transaction>) => {
@@ -88,12 +98,14 @@ export function TransactionBuilder({
     setShowActionForms(false);
     setSelectedActionType("");
     setEditingTransaction(null);
+    onFormsVisibilityChange?.(false);
   };
 
   const handleCancel = () => {
     setShowActionForms(false);
     setSelectedActionType("");
     setEditingTransaction(null);
+    onFormsVisibilityChange?.(false);
   };
 
   const getTransactionTypeInfo = (type: string) => {
@@ -119,6 +131,7 @@ export function TransactionBuilder({
                 icon={actionType.icon}
                 label={actionType.label}
                 description={actionType.description}
+                type={actionType.type as "send-eth" | "send-usdc" | "send-tokens" | "send-nfts" | "droposal" | "custom"}
                 onClick={() => handleAddTransaction(actionType.type)}
               />
             ))}

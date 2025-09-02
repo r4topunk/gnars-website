@@ -13,6 +13,8 @@ import { SendEthForm } from "@/components/proposals/builder/forms/send-eth-form"
 import { SendTokensForm } from "@/components/proposals/builder/forms/send-tokens-form";
 import { SendNFTsForm } from "@/components/proposals/builder/forms/send-nfts-form";
 import { CustomTransactionForm } from "@/components/proposals/builder/forms/custom-transaction-form";
+import { SendUsdcForm } from "@/components/proposals/builder/forms/send-usdc-form";
+import { TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 
 interface ActionFormsProps {
   actionType: string;
@@ -65,6 +67,24 @@ export function ActionForms({ actionType, existingData, onSubmit, onCancel }: Ac
     try {
       if (actionType === "send-eth") {
         value = parseEther(formData.value || "0");
+      } else if (actionType === "send-usdc") {
+        const transferCalldata = encodeFunctionData({
+          abi: [
+            {
+              name: "transfer",
+              type: "function",
+              inputs: [
+                { name: "to", type: "address" },
+                { name: "amount", type: "uint256" },
+              ],
+            },
+          ],
+          functionName: "transfer",
+          // USDC has 6 decimals
+          args: [formData.recipient, BigInt(Math.round(Number(formData.amount || "0") * 1_000_000))],
+        });
+        calldata = transferCalldata;
+        target = TREASURY_TOKEN_ALLOWLIST.USDC;
       } else if (actionType === "send-tokens") {
         const transferCalldata = encodeFunctionData({
           abi: [
@@ -125,6 +145,8 @@ export function ActionForms({ actionType, existingData, onSubmit, onCancel }: Ac
     switch (actionType) {
       case "send-eth":
         return <SendEthForm data={formData} onChange={updateFormData} />;
+      case "send-usdc":
+        return <SendUsdcForm data={formData} onChange={updateFormData} />;
       case "send-tokens":
         return <SendTokensForm data={formData} onChange={updateFormData} />;
       case "send-nfts":
@@ -141,6 +163,7 @@ export function ActionForms({ actionType, existingData, onSubmit, onCancel }: Ac
   const getTitle = () => {
     const titles = {
       "send-eth": "Send ETH",
+      "send-usdc": "Send USDC",
       "send-tokens": "Send Tokens",
       "send-nfts": "Send NFTs",
       droposal: "Create Droposal",

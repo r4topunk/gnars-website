@@ -17,7 +17,7 @@ export interface ProposalFormData {
 
 export interface Transaction {
   id: string;
-  type: "send-eth" | "send-tokens" | "send-nfts" | "droposal" | "custom";
+  type: "send-eth" | "send-usdc" | "send-tokens" | "send-nfts" | "droposal" | "custom";
   target: string;
   value?: bigint;
   calldata: string;
@@ -32,6 +32,7 @@ export function ProposalWizard() {
     description: "",
     transactions: [],
   });
+  const [isEditingTransaction, setIsEditingTransaction] = useState(false);
 
   const updateFormData = (updates: Partial<ProposalFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
@@ -130,15 +131,18 @@ export function ProposalWizard() {
                   onAddTransaction={addTransaction}
                   onUpdateTransaction={updateTransaction}
                   onRemoveTransaction={removeTransaction}
+                  onFormsVisibilityChange={setIsEditingTransaction}
                 />
-                <div className="flex justify-between mt-6">
-                  <Button variant="outline" onClick={() => setCurrentTab("details")}>
-                    Back: Edit Details
-                  </Button>
-                  <Button onClick={() => setCurrentTab("preview")} disabled={!canProceedToPreview}>
-                    Next: Preview & Submit
-                  </Button>
-                </div>
+                {!isEditingTransaction && (
+                  <div className="flex justify-between mt-6">
+                    <Button variant="outline" onClick={() => setCurrentTab("details")}>
+                      Back: Edit Details
+                    </Button>
+                    <Button onClick={() => setCurrentTab("preview")} disabled={!canProceedToPreview}>
+                      Next: Preview & Submit
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
