@@ -3,17 +3,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GnarCard } from "@/components/gnar-card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AddressDisplay } from "@/components/ui/address-display";
 import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
-import { ProposalCard } from "@/components/proposal-card";
 import { type Proposal as UiProposal, ProposalStatus } from "@/components/proposals/types";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { MemberHeader } from "@/components/member-detail/MemberHeader";
+import { MemberQuickStats } from "@/components/member-detail/MemberQuickStats";
+import { MemberProposalsGrid } from "@/components/member-detail/MemberProposalsGrid";
+import { MemberDelegatorsTable } from "@/components/member-detail/MemberDelegatorsTable";
+import { MemberVotesTable } from "@/components/member-detail/MemberVotesTable";
+import { MemberTokensGrid } from "@/components/member-detail/MemberTokensGrid";
  
 
 interface MemberDetailProps {
@@ -207,96 +208,19 @@ export function MemberDetail({ address }: MemberDetailProps) {
     );
   }
 
-  const isSelfDelegating = overview.delegate.toLowerCase() === address.toLowerCase();
-  const delegatedToAnother = !isSelfDelegating;
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <Avatar className="h-16 w-16">
-          {ensAvatar ? <AvatarImage src={ensAvatar} alt={String(display)} /> : null}
-          <AvatarFallback>{address.slice(2, 4).toUpperCase()}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <div className="flex items-centered gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">{typeof display === "string" ? display : String(display)}</h1>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-            <AddressDisplay
-              address={address}
-              variant="default"
-              showAvatar={false}
-              showCopy={true}
-              showExplorer={true}
-              showENS={false}
-              truncateLength={6}
-            />
-          </div>
-        </div>
-      </div>
+      <MemberHeader address={address} display={display} ensAvatar={ensAvatar} />
 
       {/* Quick stats */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Gnars Held</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{overview.tokenCount}</div>
-            {overview.tokensHeld.length > 0 ? (
-              <div className="text-xs text-muted-foreground mt-1">#{overview.tokensHeld.join(", #")}</div>
-            ) : (
-              <div className="text-sm text-muted-foreground">No tokens</div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Delegation</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Delegates to</span>
-              <span className="font-medium">
-                {delegatedToAnother ? (
-                  <AddressDisplay
-                    address={overview.delegate}
-                    variant="compact"
-                    showAvatar={false}
-                    showCopy={false}
-                    showExplorer={false}
-                    avatarSize="sm"
-                  />
-                ) : (
-                  "Self"
-                )}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Delegated by</span>
-              <span className="font-medium">{delegators.length}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Activity</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Proposals</span>
-              <span className="font-medium">{proposals.length}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Votes</span>
-              <span className="font-medium">{votes.length}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <MemberQuickStats
+        address={address}
+        overview={overview}
+        delegatorsCount={delegators.length}
+        proposalsCount={proposals.length}
+        votesCount={votes.length}
+      />
 
       {/* Tabs for detail lists */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -308,167 +232,19 @@ export function MemberDetail({ address }: MemberDetailProps) {
         </TabsList>
 
         <TabsContent value="proposals" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Proposals Made</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {proposals.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No proposals from this member.</div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {proposals.map((p) => (
-                    <ProposalCard key={p.proposalId} proposal={p} showBanner />
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <MemberProposalsGrid proposals={proposals} />
         </TabsContent>
 
         <TabsContent value="delegates" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Delegators</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {delegators.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No one delegated to this member.</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Address/ENS</TableHead>
-                      <TableHead className="text-right">Gnars Delegated</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {delegators.map((addr) => (
-                      <TableRow key={addr}>
-                        <TableCell>
-                          <AddressDisplay
-                            address={addr}
-                            variant="compact"
-                            showAvatar
-                            showENS
-                            showCopy={false}
-                            showExplorer={false}
-                            avatarSize="sm"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {/* In a future refinement, we can map counts from delsWithCounts by address */}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+          <MemberDelegatorsTable delegators={delegators} />
         </TabsContent>
 
         <TabsContent value="votes" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Votes & Comments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {votes.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No votes from this member.</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Proposal</TableHead>
-                      <TableHead className="text-center">Vote</TableHead>
-                      <TableHead className="text-right">Weight</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {votes.map((v) => (
-                      <TableRow key={v.id}>
-                        <TableCell>
-                          <div className="flex flex-col gap-1 whitespace-normal break-words">
-                            <a href={`/proposals/${v.proposalNumber}`} className="font-medium hover:underline">
-                              {v.proposalTitle && v.proposalTitle.trim().length > 0
-                                ? `${v.proposalNumber} - ${v.proposalTitle}`
-                                : `${v.proposalNumber}`}
-                            </a>
-                            {v.reason ? (
-                              <span className="text-xs text-muted-foreground whitespace-pre-wrap break-words">{v.reason}</span>
-                            ) : null}
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(v.timestamp).toLocaleString()}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge
-                            variant="default"
-                            className={
-                              v.support === "FOR"
-                                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                                : v.support === "AGAINST"
-                                  ? "bg-red-600 hover:bg-red-700 text-white"
-                                  : "bg-zinc-600 hover:bg-zinc-700 text-white"
-                            }
-                          >
-                            {v.support}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-medium">{v.weight}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+          <MemberVotesTable votes={votes} />
         </TabsContent>
 
         <TabsContent value="tokens" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gnars Held</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {overview.tokens.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No tokens held.</div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {overview.tokens.map((t) => {
-                    const dateLabel = t.endTime
-                      ? new Date(t.endTime * 1000).toLocaleDateString()
-                      : t.mintedAt
-                        ? new Date(t.mintedAt * 1000).toLocaleDateString()
-                        : undefined;
-                    const finalEth: string | null = (() => {
-                      if (!t.finalBidWei) return null;
-                      try {
-                        const eth = Number(t.finalBidWei) / 1e18;
-                        return eth.toFixed(3).replace(/\.0+$/, "");
-                      } catch {
-                        return null;
-                      }
-                    })();
-                    const winnerAddress: string | null = finalEth ? (t.winner || null) : null;
-                    return (
-                      <GnarCard
-                        key={t.id}
-                        tokenId={t.id}
-                        imageUrl={t.imageUrl || undefined}
-                        dateLabel={dateLabel}
-                        finalBidEth={finalEth}
-                        winnerAddress={winnerAddress}
-                        showPlaceholders
-                      />
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <MemberTokensGrid tokens={overview.tokens as unknown as { id: string | number; imageUrl?: string | null; mintedAt?: number | null; endTime?: number | null; finalBidWei?: string | number | null; winner?: string | null }[]} />
         </TabsContent>
       </Tabs>
     </div>
