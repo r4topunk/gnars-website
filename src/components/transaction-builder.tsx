@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ActionForms } from "./action-forms";
 import { Transaction } from "./proposal-wizard";
+import { TransactionTypeCard } from "@/components/transaction-builder/TransactionTypeCard";
+import { TransactionListItem } from "@/components/transaction-builder/TransactionListItem";
 
 interface TransactionBuilderProps {
   transactions: Transaction[];
@@ -113,28 +115,15 @@ export function TransactionBuilder({
         <>
           {/* Action Type Selection */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {transactionTypes.map((actionType) => {
-              const Icon = actionType.icon;
-              return (
-                <Card
-                  key={actionType.type}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleAddTransaction(actionType.type)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium">{actionType.label}</h3>
-                        <p className="text-sm text-muted-foreground">{actionType.description}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {transactionTypes.map((actionType) => (
+              <TransactionTypeCard
+                key={actionType.type}
+                icon={actionType.icon}
+                label={actionType.label}
+                description={actionType.description}
+                onClick={() => handleAddTransaction(actionType.type)}
+              />
+            ))}
           </div>
 
           {/* Existing Transactions */}
@@ -146,55 +135,16 @@ export function TransactionBuilder({
                 <div className="space-y-3">
                   {transactions.map((transaction, index) => {
                     const typeInfo = getTransactionTypeInfo(transaction.type);
-                    const Icon = typeInfo.icon;
-
                     return (
-                      <Card key={transaction.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-3 flex-1">
-                              <div className="p-2 bg-primary/10 rounded-lg">
-                                <Icon className="h-4 w-4 text-primary" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <span className="text-sm font-medium">
-                                    Transaction {index + 1}
-                                  </span>
-                                  <Badge variant="secondary" className="text-xs">
-                                    {typeInfo.label}
-                                  </Badge>
-                                </div>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                  {transaction.description || "No description provided"}
-                                </p>
-                                <div className="text-xs font-mono bg-muted p-2 rounded">
-                                  <div>Target: {transaction.target || "Not set"}</div>
-                                  {transaction.value && (
-                                    <div>Value: {transaction.value.toString()} ETH</div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2 ml-4">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEditTransaction(transaction)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => onRemoveTransaction(transaction.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <TransactionListItem
+                        key={transaction.id}
+                        index={index}
+                        transaction={transaction}
+                        label={typeInfo.label}
+                        icon={typeInfo.icon}
+                        onEdit={handleEditTransaction}
+                        onRemove={onRemoveTransaction}
+                      />
                     );
                   })}
                 </div>

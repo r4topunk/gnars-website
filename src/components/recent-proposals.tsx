@@ -5,16 +5,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { formatDistanceToNow } from "date-fns";
-import { AlertCircle, CalendarDays, CheckCircle, Clock, ExternalLink, MinusCircle, Pause, ThumbsDown, ThumbsUp, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Pause, XCircle } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { ProposalCard } from "@/components/proposal-card";
 import { Proposal, ProposalStatus } from "@/components/proposals/types";
+import { RecentProposalsHeader } from "@/components/recent-proposals/RecentProposalsHeader";
+import { ProposalsGrid } from "@/components/recent-proposals/ProposalsGrid";
+import { RecentProposalsLoadingSkeleton } from "@/components/recent-proposals/LoadingSkeleton";
+import { RecentProposalsEmptyState } from "@/components/recent-proposals/EmptyState";
 
 // Re-export for backwards compatibility
 export { ProposalStatus, type Proposal } from "@/components/proposals/types";
@@ -189,39 +192,14 @@ export function RecentProposals({
 
   return (
     <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="space-y-1">
-          <CardTitle className="text-xl font-bold flex items-center gap-2">
-            Recent Proposals
-          </CardTitle>
-          <CardDescription>Latest governance proposals and their voting status</CardDescription>
-        </div>
-        <Button variant="outline" size="sm">
-          View All Proposals
-          <ExternalLink className="w-4 h-4 ml-2" />
-        </Button>
-      </CardHeader>
+      <RecentProposalsHeader />
       <CardContent className="space-y-4">
         {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="h-48 bg-muted rounded animate-pulse" />
-            <div className="h-48 bg-muted rounded animate-pulse" />
-            <div className="h-48 bg-muted rounded animate-pulse" />
-          </div>
+          <RecentProposalsLoadingSkeleton />
         ) : displayedProposals.length === 0 ? (
-          <div className="text-center py-8">
-            <CalendarDays className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Recent Proposals</h3>
-            <p className="text-muted-foreground">Check back later for new governance proposals.</p>
-          </div>
+          <RecentProposalsEmptyState />
         ) : (
-          <>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {displayedProposals.map((proposal) => (
-                <ProposalCard key={proposal.proposalId} proposal={proposal} />
-              ))}
-            </div>
-          </>
+          <ProposalsGrid proposals={displayedProposals} />
         )}
       </CardContent>
     </Card>
