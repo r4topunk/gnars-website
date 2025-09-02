@@ -152,7 +152,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
           <CardTitle className="text-base">Basic Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
+          <div className="grid w-full max-w-sm items-center gap-2">
             <Label htmlFor="name">Collection Name *</Label>
             <Input
               id="name"
@@ -162,7 +162,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             />
           </div>
 
-          <div>
+          <div className="grid w/full max-w-sm items-center gap-2">
             <Label htmlFor="symbol">Collection Symbol *</Label>
             <Input
               id="symbol"
@@ -172,7 +172,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             />
           </div>
 
-          <div>
+          <div className="grid w-full max-w-sm items-center gap-2">
             <Label htmlFor="description">Description *</Label>
             <Textarea
               id="description"
@@ -300,7 +300,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
           <CardTitle className="text-base">Pricing & Supply</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
+          <div className="grid w-full max-w-sm items-center gap-2">
             <Label htmlFor="price">Price per NFT (ETH) *</Label>
             <Input
               id="price"
@@ -342,7 +342,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
           </div>
 
           {editionType === "fixed" && (
-            <div>
+            <div className="grid w/full max-w-sm items-center gap-2">
               <Label htmlFor="editionSize">Edition Size *</Label>
               <Input
                 id="editionSize"
@@ -362,7 +362,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
           <CardTitle className="text-base">Sale Timing</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
+          <div className="grid w/full max-w-sm items-center gap-2">
             <Label htmlFor="startTime">Sale Start Time</Label>
             <Input
               id="startTime"
@@ -372,7 +372,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             />
           </div>
 
-          <div>
+          <div className="grid w/full max-w-sm items-center gap-2">
             <Label htmlFor="endTime">Sale End Time</Label>
             <Input
               id="endTime"
@@ -382,7 +382,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             />
           </div>
 
-          <div>
+          <div className="grid w/full max-w-sm items-center gap-2">
             <Label htmlFor="mintLimitPerAddress">Mint Limit per Address</Label>
             <Input
               id="mintLimitPerAddress"
@@ -401,7 +401,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
           <CardTitle className="text-base">Revenue & Administration</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
+          <div className="grid w/full max-w-sm items-center gap-2">
             <Label htmlFor="royaltyPercentage">Royalty Percentage *</Label>
             <Input
               id="royaltyPercentage"
@@ -417,7 +417,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             </p>
           </div>
 
-          <div>
+          <div className="grid w/full max-w-sm items-center gap-2">
             <Label htmlFor="payoutAddress">Payout Address *</Label>
             <Input
               id="payoutAddress"
@@ -430,7 +430,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             </p>
           </div>
 
-          <div>
+          <div className="grid w/full max-w-sm items-center gap-2">
             <Label htmlFor="defaultAdmin">Admin Address *</Label>
             <Input
               id="defaultAdmin"
@@ -445,7 +445,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
         </CardContent>
       </Card>
 
-      <div>
+      <div className="grid w/full max-w-sm items-center gap-2">
         <Label htmlFor="dropDescription">Transaction Description</Label>
         <Textarea
           id="dropDescription"

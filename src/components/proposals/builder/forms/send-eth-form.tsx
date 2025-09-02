@@ -16,7 +16,7 @@ export interface FormComponentProps {
 export function SendEthForm({ data, onChange }: FormComponentProps) {
   return (
     <div className="space-y-4">
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="recipient">Recipient Address *</Label>
         <Input
           id="recipient"
@@ -26,7 +26,7 @@ export function SendEthForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="amount">Amount (ETH) *</Label>
         <Input
           id="amount"
@@ -38,7 +38,7 @@ export function SendEthForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"

@@ -49,7 +49,7 @@ export function CustomTransactionForm({ data, onChange }: FormComponentProps) {
         </AlertDescription>
       </Alert>
 
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="target">Contract Address *</Label>
         <Input
           id="target"
@@ -59,7 +59,7 @@ export function CustomTransactionForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="value">Value (ETH)</Label>
         <Input
           id="value"
@@ -71,7 +71,7 @@ export function CustomTransactionForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="abi">Contract ABI *</Label>
         <Textarea
           id="abi"
@@ -83,10 +83,10 @@ export function CustomTransactionForm({ data, onChange }: FormComponentProps) {
       </div>
 
       {parsedAbi.length > 0 && (
-        <div>
-          <Label htmlFor="function">Function</Label>
+        <div className="grid w-full max-w-sm items-center gap-2">
+          <Label id="function-label">Function</Label>
           <Select value={selectedFunction} onValueChange={setSelectedFunction}>
-            <SelectTrigger>
+            <SelectTrigger id="function" aria-labelledby="function-label">
               <SelectValue placeholder="Select a function" />
             </SelectTrigger>
             <SelectContent>
@@ -100,7 +100,7 @@ export function CustomTransactionForm({ data, onChange }: FormComponentProps) {
         </div>
       )}
 
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="calldata">Calldata</Label>
         <Textarea
           id="calldata"
@@ -111,7 +111,7 @@ export function CustomTransactionForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="description">Description *</Label>
         <Textarea
           id="description"

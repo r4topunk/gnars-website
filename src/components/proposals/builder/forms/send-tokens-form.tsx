@@ -17,7 +17,7 @@ export interface FormComponentProps {
 export function SendTokensForm({ data, onChange }: FormComponentProps) {
   return (
     <div className="space-y-4">
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="tokenAddress">Token Contract Address *</Label>
         <Input
           id="tokenAddress"
@@ -27,7 +27,7 @@ export function SendTokensForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="recipient">Recipient Address *</Label>
         <Input
           id="recipient"
@@ -37,7 +37,7 @@ export function SendTokensForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="amount">Amount *</Label>
         <Input
           id="amount"
@@ -49,7 +49,7 @@ export function SendTokensForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"

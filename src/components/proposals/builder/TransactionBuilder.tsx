@@ -150,16 +150,7 @@ export function TransactionBuilder({
             </div>
           )}
 
-          {transactions.length === 0 && (
-            <Card className="border-dashed">
-              <CardContent className="p-8 text-center">
-                <Plus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  No transactions added yet. Choose an action type above to get started.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          {transactions.length === 0 && null}
         </>
       ) : (
         <ActionForms

@@ -18,7 +18,7 @@ export interface FormComponentProps {
 export function SendNFTsForm({ data, onChange }: FormComponentProps) {
   return (
     <div className="space-y-4">
-      <div>
+      <div className="grid w/full max-w-sm items-center gap-2">
         <Label htmlFor="contractAddress">NFT Contract Address *</Label>
         <Input
           id="contractAddress"
@@ -28,7 +28,7 @@ export function SendNFTsForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w/full max-w-sm items-center gap-2">
         <Label htmlFor="tokenId">Token ID *</Label>
         <Input
           id="tokenId"
@@ -38,7 +38,7 @@ export function SendNFTsForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w/full max-w-sm items-center gap-2">
         <Label htmlFor="from">From Address *</Label>
         <Input
           id="from"
@@ -48,7 +48,7 @@ export function SendNFTsForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w/full max-w-sm items-center gap-2">
         <Label htmlFor="to">To Address *</Label>
         <Input
           id="to"
@@ -58,7 +58,7 @@ export function SendNFTsForm({ data, onChange }: FormComponentProps) {
         />
       </div>
 
-      <div>
+      <div className="grid w/full max-w-sm items-center gap-2">
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
