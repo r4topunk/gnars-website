@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Markdown } from "@/components/common/Markdown";
 import { ProposalFormData } from "./ProposalWizard";
 
 interface ProposalDetailsFormProps {
@@ -47,17 +48,7 @@ export function ProposalDetailsForm({ data, onChange }: ProposalDetailsFormProps
     }
   };
 
-  const renderMarkdownPreview = (markdown: string) => {
-    // Simple markdown preview - in production, use a proper markdown parser
-    return markdown.split("\n\n").map((paragraph, i) => (
-      <p key={i} className="mb-4 last:mb-0">
-        {paragraph
-          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-          .replace(/\*(.*?)\*/g, "<em>$1</em>")
-          .replace(/`(.*?)`/g, "<code>$1</code>")}
-      </p>
-    ));
-  };
+  // Markdown preview is rendered via the shared Markdown component
 
   return (
     <div className="space-y-6">
@@ -83,14 +74,11 @@ export function ProposalDetailsForm({ data, onChange }: ProposalDetailsFormProps
           <Label htmlFor="banner">Banner Image</Label>
           <div className="mt-2">
             {imagePreview ? (
-              <div className="relative">
-                <Image
-                  src={imagePreview}
-                  alt="Banner preview"
-                  width={400}
-                  height={192}
-                  className="w-full h-48 object-cover rounded-lg border"
-                />
+              <div
+                className="relative rounded-lg border overflow-hidden"
+                style={{ aspectRatio: "16 / 9" }}
+              >
+                <Image src={imagePreview} alt="Banner preview" fill className="object-cover" />
                 <Button
                   size="sm"
                   variant="destructive"
@@ -137,12 +125,7 @@ export function ProposalDetailsForm({ data, onChange }: ProposalDetailsFormProps
             <Card>
               <CardContent className="p-4 min-h-[200px]">
                 {data.description ? (
-                  <div
-                    className="prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: renderMarkdownPreview(data.description).join(""),
-                    }}
-                  />
+                  <Markdown className="prose-sm max-w-none">{data.description}</Markdown>
                 ) : (
                   <p className="text-muted-foreground italic">No description yet</p>
                 )}

@@ -19,25 +19,7 @@ export default function ProposePage() {
       signerAddress: address,
     });
 
-  if (!isConnected) {
-    return (
-      <div className="container mx-auto py-8">
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle>Create Proposal</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>Please connect your wallet to create a proposal.</AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (isLoading) {
+  if (isConnected && isLoading) {
     return (
       <div className="container mx-auto py-8">
         <Card className="max-w-2xl mx-auto">
@@ -50,7 +32,7 @@ export default function ProposePage() {
     );
   }
 
-  if (!hasThreshold) {
+  if (isConnected && !isLoading && !hasThreshold) {
     return (
       <div className="container mx-auto py-8">
         <Card className="max-w-2xl mx-auto">
