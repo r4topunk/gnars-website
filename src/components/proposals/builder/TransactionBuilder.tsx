@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Coins, Image, Plus, Send, Settings, Zap } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useFormContext, useFieldArray } from "react-hook-form";
+import { Coins, Image, Send, Settings, Zap } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ActionForms } from "./ActionForms";
-import { Transaction } from "@/components/proposals/ProposalWizard";
+import { type ProposalFormValues, type TransactionFormValues } from "../schema";
 import { TransactionTypeCard } from "@/components/proposals/builder/TransactionTypeCard";
 import { TransactionListItem } from "@/components/proposals/builder/TransactionListItem";
 
 interface TransactionBuilderProps {
-  transactions: Transaction[];
-  onAddTransaction: (transaction: Transaction) => void;
-  onUpdateTransaction: (id: string, updates: Partial<Transaction>) => void;
-  onRemoveTransaction: (id: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onAddTransaction: (transaction: TransactionFormValues) => void;
+  onUpdateTransaction: (index: number, transaction: TransactionFormValues) => void;
+  onRemoveTransaction: (index: number) => void;
   onFormsVisibilityChange?: (visible: boolean) => void;
 }
 
@@ -57,55 +57,79 @@ const transactionTypes = [
 ] as const;
 
 export function TransactionBuilder({
-  transactions,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onAddTransaction,
   onUpdateTransaction,
   onRemoveTransaction,
   onFormsVisibilityChange,
 }: TransactionBuilderProps) {
+  const { control, getValues, watch } = useFormContext<ProposalFormValues>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { fields: transactions, append, update, remove } = useFieldArray({
+    control,
+    name: "transactions",
+  });
+
   const [showActionForms, setShowActionForms] = useState(false);
   const [selectedActionType, setSelectedActionType] = useState<string>("");
-  const [editingTransaction, setEditingTransaction] = useState<string | null>(null);
+  const [editingTransactionIndex, setEditingTransactionIndex] = useState<number | null>(null);
+  const [isCreatingNew, setIsCreatingNew] = useState<boolean>(false);
+
+  // Always render list items from live watched values, not from `fields` snapshot
+  const watchedTransactions = watch("transactions");
 
   const handleAddTransaction = (type: string) => {
+    // Append a minimal stub so the form fields can bind to transactions[index].*
+    const newIndex = transactions.length;
+    append({ type } as unknown as TransactionFormValues);
     setSelectedActionType(type);
-    setEditingTransaction(null);
+    setEditingTransactionIndex(newIndex);
     setShowActionForms(true);
     onFormsVisibilityChange?.(true);
+    setIsCreatingNew(true);
   };
 
-  const handleEditTransaction = (transaction: Transaction) => {
+  const handleEditTransaction = (index: number) => {
+    const transaction = transactions[index];
     setSelectedActionType(transaction.type);
-    setEditingTransaction(transaction.id);
+    setEditingTransactionIndex(index);
     setShowActionForms(true);
     onFormsVisibilityChange?.(true);
+    setIsCreatingNew(false);
   };
 
-  const handleTransactionSubmit = (transactionData: Partial<Transaction>) => {
-    if (editingTransaction) {
-      onUpdateTransaction(editingTransaction, transactionData);
-    } else {
-      const newTransaction: Transaction = {
-        id: `tx-${Date.now()}`,
-        type: selectedActionType as Transaction["type"],
-        target: "",
-        calldata: "0x",
-        description: "",
-        ...transactionData,
-      };
-      onAddTransaction(newTransaction);
+  const handleTransactionSubmit = () => {
+    // Values are already bound to useFieldArray via nested registration
+    // Parent callbacks can still be notified for external side-effects
+    if (editingTransactionIndex !== null) {
+      const currentValues = getValues();
+      const updatedTx = currentValues.transactions[editingTransactionIndex] as unknown as TransactionFormValues;
+      onUpdateTransaction(editingTransactionIndex, updatedTx);
     }
+    // For new items, onAddTransaction already handled on append
     setShowActionForms(false);
     setSelectedActionType("");
-    setEditingTransaction(null);
+    setEditingTransactionIndex(null);
     onFormsVisibilityChange?.(false);
+    setIsCreatingNew(false);
   };
 
   const handleCancel = () => {
     setShowActionForms(false);
     setSelectedActionType("");
-    setEditingTransaction(null);
+    // If we were creating a new transaction and user cancels, remove the placeholder
+    if (isCreatingNew && editingTransactionIndex !== null) {
+      remove(editingTransactionIndex);
+      onRemoveTransaction(editingTransactionIndex);
+    }
+    setEditingTransactionIndex(null);
     onFormsVisibilityChange?.(false);
+    setIsCreatingNew(false);
+  };
+
+  const handleRemoveTransaction = (index: number) => {
+    remove(index);
+    onRemoveTransaction(index);
   };
 
   const getTransactionTypeInfo = (type: string) => {
@@ -138,23 +162,23 @@ export function TransactionBuilder({
           </div>
 
           {/* Existing Transactions */}
-          {transactions.length > 0 && (
+          {(watchedTransactions?.length ?? 0) > 0 && (
             <div className="space-y-4">
               <Separator />
               <div>
                 <h3 className="text-lg font-semibold mb-4">Added Transactions</h3>
                 <div className="space-y-3">
-                  {transactions.map((transaction, index) => {
+                  {watchedTransactions?.map((transaction, index) => {
                     const typeInfo = getTransactionTypeInfo(transaction.type);
                     return (
                       <TransactionListItem
-                        key={transaction.id}
+                        key={transactions[index]?.id || transaction.id || index}
                         index={index}
                         transaction={transaction}
                         label={typeInfo.label}
                         icon={typeInfo.icon}
-                        onEdit={handleEditTransaction}
-                        onRemove={onRemoveTransaction}
+                        onEdit={() => handleEditTransaction(index)}
+                        onRemove={() => handleRemoveTransaction(index)}
                       />
                     );
                   })}
@@ -163,14 +187,12 @@ export function TransactionBuilder({
             </div>
           )}
 
-          {transactions.length === 0 && null}
+          {(watchedTransactions?.length ?? 0) === 0 && null}
         </>
       ) : (
         <ActionForms
+          index={editingTransactionIndex ?? 0}
           actionType={selectedActionType}
-          existingData={
-            editingTransaction ? transactions.find((t) => t.id === editingTransaction) : undefined
-          }
           onSubmit={handleTransactionSubmit}
           onCancel={handleCancel}
         />

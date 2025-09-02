@@ -1,41 +1,40 @@
+import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { type ProposalFormValues } from "../../schema";
 
-export interface FormData {
-  target?: string;
-  description?: string;
-  value?: string;
-}
+interface Props { index: number }
 
-export interface FormComponentProps {
-  data: FormData;
-  onChange: (updates: Partial<FormData>) => void;
-}
+export function SendEthForm({ index }: Props) {
+  const { register, formState: { errors } } = useFormContext<ProposalFormValues>();
 
-export function SendEthForm({ data, onChange }: FormComponentProps) {
   return (
     <div className="space-y-4">
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="recipient">Recipient Address *</Label>
+        <Label htmlFor="target">Recipient Address *</Label>
         <Input
-          id="recipient"
+          id="target"
           placeholder="0x... or ENS name"
-          value={data.target || ""}
-          onChange={(e) => onChange({ target: e.target.value })}
+          {...register(`transactions.${index}.target` as const)}
         />
+        {errors.transactions?.[index]?.target && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.target?.message)}</p>
+        )}
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="amount">Amount (ETH) *</Label>
+        <Label htmlFor="value">Amount (ETH) *</Label>
         <Input
-          id="amount"
+          id="value"
           type="number"
           step="0.001"
           placeholder="0.0"
-          value={data.value || ""}
-          onChange={(e) => onChange({ value: e.target.value })}
+          {...register(`transactions.${index}.value` as const)}
         />
+        {errors.transactions?.[index]?.value && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.value?.message)}</p>
+        )}
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
@@ -43,8 +42,7 @@ export function SendEthForm({ data, onChange }: FormComponentProps) {
         <Textarea
           id="description"
           placeholder="Describe the purpose of this payment..."
-          value={data.description || ""}
-          onChange={(e) => onChange({ description: e.target.value })}
+          {...register(`transactions.${index}.description` as const)}
         />
       </div>
     </div>

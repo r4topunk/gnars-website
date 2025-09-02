@@ -4,19 +4,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
-import { type Transaction } from "@/components/proposals/ProposalWizard";
+import { type TransactionFormValues } from "../schema";
 
 interface TransactionListItemProps {
   index: number;
-  transaction: Transaction;
+  transaction: TransactionFormValues;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  onEdit: (transaction: Transaction) => void;
-  onRemove: (id: string) => void;
+  onEdit: () => void;
+  onRemove: () => void;
 }
 
 export function TransactionListItem({ index, transaction, label, icon: Icon, onEdit, onRemove }: TransactionListItemProps) {
-  const typeStyles: Record<Transaction["type"], { iconBg: string; iconText: string; cardBorder: string; badgeText: string; badgeBorder: string }> = {
+  const typeStyles: Record<TransactionFormValues["type"], { iconBg: string; iconText: string; cardBorder: string; badgeText: string; badgeBorder: string }> = {
     "send-eth": {
       iconBg: "bg-blue-100 dark:bg-blue-900/30",
       iconText: "text-blue-600 dark:text-blue-400",
@@ -59,9 +59,64 @@ export function TransactionListItem({ index, transaction, label, icon: Icon, onE
       badgeText: "text-slate-700 dark:text-slate-300",
       badgeBorder: "border-slate-300 dark:border-slate-700",
     },
-  };
+  } as const;
 
   const styles = typeStyles[transaction.type] || typeStyles.custom;
+
+  const details = (() => {
+    switch (transaction.type) {
+      case "send-eth":
+        return (
+          <div className="text-xs font-mono bg-muted p-2 rounded">
+            <div>Target: {transaction.target || "Not set"}</div>
+            {transaction.value && <div>Value: {transaction.value} ETH</div>}
+          </div>
+        );
+      case "send-usdc":
+        return (
+          <div className="text-xs font-mono bg-muted p-2 rounded">
+            <div>Recipient: {transaction.recipient || "Not set"}</div>
+            {transaction.amount && <div>Amount: {transaction.amount} USDC</div>}
+          </div>
+        );
+      case "send-tokens":
+        return (
+          <div className="text-xs font-mono bg-muted p-2 rounded">
+            <div>Token: {transaction.tokenAddress || "Not set"}</div>
+            <div>Recipient: {transaction.recipient || "Not set"}</div>
+            {transaction.amount && <div>Amount: {transaction.amount}</div>}
+          </div>
+        );
+      case "send-nfts":
+        return (
+          <div className="text-xs font-mono bg-muted p-2 rounded">
+            <div>Contract: {transaction.contractAddress || "Not set"}</div>
+            <div>From: {transaction.from || "Not set"}</div>
+            <div>To: {transaction.to || "Not set"}</div>
+            <div>Token ID: {transaction.tokenId || "Not set"}</div>
+          </div>
+        );
+      case "custom":
+        return (
+          <div className="text-xs font-mono bg-muted p-2 rounded">
+            <div>Target: {transaction.target || "Not set"}</div>
+            <div>Value: {transaction.value || "0"} ETH</div>
+            <div>Calldata: {transaction.calldata ? `${transaction.calldata.slice(0, 20)}...` : "0x"}</div>
+          </div>
+        );
+      case "droposal":
+        return (
+          <div className="text-xs font-mono bg-muted p-2 rounded">
+            <div>Name: {transaction.name || "Not set"}</div>
+            <div>Symbol: {transaction.symbol || "Not set"}</div>
+            <div>Price: {transaction.price || "0"} ETH</div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  })();
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -80,17 +135,14 @@ export function TransactionListItem({ index, transaction, label, icon: Icon, onE
               <p className="text-sm text-muted-foreground mb-2">
                 {transaction.description || "No description provided"}
               </p>
-              <div className="text-xs font-mono bg-muted p-2 rounded">
-                <div>Target: {transaction.target || "Not set"}</div>
-                {transaction.value && <div>Value: {transaction.value.toString()} ETH</div>}
-              </div>
+              {details}
             </div>
           </div>
           <div className="flex items-center space-x-2 ml-4">
-            <Button size="sm" variant="outline" onClick={() => onEdit(transaction)}>
+            <Button size="sm" variant="outline" onClick={onEdit}>
               <Edit className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="outline" onClick={() => onRemove(transaction.id)}>
+            <Button size="sm" variant="outline" onClick={onRemove}>
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

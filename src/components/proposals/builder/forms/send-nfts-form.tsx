@@ -1,70 +1,70 @@
+import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { type ProposalFormValues } from "../../schema";
 
-export interface FormData {
-  contractAddress?: string;
-  tokenId?: string;
-  from?: string;
-  to?: string;
-  description?: string;
-}
+interface Props { index: number }
 
-export interface FormComponentProps {
-  data: FormData;
-  onChange: (updates: Partial<FormData>) => void;
-}
+export function SendNFTsForm({ index }: Props) {
+  const { register, formState: { errors } } = useFormContext<ProposalFormValues>();
 
-export function SendNFTsForm({ data, onChange }: FormComponentProps) {
   return (
     <div className="space-y-4">
-      <div className="grid w/full max-w-sm items-center gap-2">
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="contractAddress">NFT Contract Address *</Label>
         <Input
           id="contractAddress"
           placeholder="0x..."
-          value={data.contractAddress || ""}
-          onChange={(e) => onChange({ contractAddress: e.target.value })}
+          {...register(`transactions.${index}.contractAddress` as const)}
         />
+        {errors.transactions?.[index]?.contractAddress && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.contractAddress?.message)}</p>
+        )}
       </div>
 
-      <div className="grid w/full max-w-sm items-center gap-2">
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="tokenId">Token ID *</Label>
         <Input
           id="tokenId"
           placeholder="1"
-          value={data.tokenId || ""}
-          onChange={(e) => onChange({ tokenId: e.target.value })}
+          {...register(`transactions.${index}.tokenId` as const)}
         />
+        {errors.transactions?.[index]?.tokenId && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.tokenId?.message)}</p>
+        )}
       </div>
 
-      <div className="grid w/full max-w-sm items-center gap-2">
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="from">From Address *</Label>
         <Input
           id="from"
           placeholder="0x... (typically treasury address)"
-          value={data.from || ""}
-          onChange={(e) => onChange({ from: e.target.value })}
+          {...register(`transactions.${index}.from` as const)}
         />
+        {errors.transactions?.[index]?.from && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.from?.message)}</p>
+        )}
       </div>
 
-      <div className="grid w/full max-w-sm items-center gap-2">
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="to">To Address *</Label>
         <Input
           id="to"
           placeholder="0x... or ENS name"
-          value={data.to || ""}
-          onChange={(e) => onChange({ to: e.target.value })}
+          {...register(`transactions.${index}.to` as const)}
         />
+        {errors.transactions?.[index]?.to && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.to?.message)}</p>
+        )}
       </div>
 
-      <div className="grid w/full max-w-sm items-center gap-2">
+      <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
           placeholder="Describe the purpose of this NFT transfer..."
-          value={data.description || ""}
-          onChange={(e) => onChange({ description: e.target.value })}
+          {...register(`transactions.${index}.description` as const)}
         />
       </div>
     </div>

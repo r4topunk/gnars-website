@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
 import {
   AlertTriangle,
   CheckCircle,
@@ -12,19 +13,15 @@ import {
   Settings,
   Zap,
 } from "lucide-react";
-import { formatEther } from "viem";
+import { parseEther, encodeFunctionData, parseUnits } from "viem";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimpleAddressDisplay } from "@/components/ui/address-display";
-import { GNARS_ADDRESSES } from "@/lib/config";
-import { ProposalFormData, Transaction } from "./ProposalWizard";
-
-interface ProposalPreviewProps {
-  data: ProposalFormData;
-}
+import { GNARS_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
+import { type ProposalFormValues, type TransactionFormValues } from "./schema";
 
 const governorAbi = [
   {
@@ -40,19 +37,28 @@ const governorAbi = [
   },
 ] as const;
 
-export function ProposalPreview({ data }: ProposalPreviewProps) {
+export function ProposalPreview() {
+  const { getValues, handleSubmit } = useFormContext<ProposalFormValues>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [ipfsHash, setIpfsHash] = useState<string | null>(null);
+
+  // Watch form values for reactive preview
+  const watchedData = useWatch<ProposalFormValues>();
 
   const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
 
+  // Get current form data
+  const data = watchedData || getValues();
+
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case "send-eth":
         return Send;
+      case "send-usdc":
+        return Coins;
       case "send-tokens":
         return Coins;
       case "send-nfts":
@@ -70,6 +76,8 @@ export function ProposalPreview({ data }: ProposalPreviewProps) {
     switch (type) {
       case "send-eth":
         return "Send ETH";
+      case "send-usdc":
+        return "Send USDC";
       case "send-tokens":
         return "Send Tokens";
       case "send-nfts":
@@ -83,10 +91,12 @@ export function ProposalPreview({ data }: ProposalPreviewProps) {
     }
   };
 
-  const formatTransactionSummary = (transaction: Transaction) => {
+  const formatTransactionSummary = (transaction: TransactionFormValues) => {
     switch (transaction.type) {
       case "send-eth":
-        return `Send ${formatEther(transaction.value || BigInt(0))} ETH to ${transaction.target}`;
+        return `Send ${transaction.value || "0"} ETH to ${transaction.target}`;
+      case "send-usdc":
+        return `Send ${transaction.amount || "0"} USDC to ${transaction.recipient}`;
       case "send-tokens":
         return `Send ${transaction.amount || "0"} tokens to ${transaction.recipient}`;
       case "send-nfts":
@@ -109,21 +119,122 @@ export function ProposalPreview({ data }: ProposalPreviewProps) {
     return `QmProposal${Date.now()}`;
   };
 
-  const handleSubmit = async () => {
-    if (!data.title || data.transactions.length === 0) return;
+  const handleFormSubmit = async (formData: ProposalFormValues) => {
+    if (!formData.title || formData.transactions.length === 0) return;
 
     setIsSubmitting(true);
 
     try {
       // Upload proposal metadata to IPFS
-      const hash = await uploadToIPFS();
-      setIpfsHash(hash);
+      const ipfsHash = await uploadToIPFS();
+      setIpfsHash(ipfsHash);
 
-      // Prepare transaction data
-      const targets = data.transactions.map((tx) => tx.target as `0x${string}`);
-      const values = data.transactions.map((tx) => tx.value || BigInt(0));
-      const calldatas = data.transactions.map((tx) => tx.calldata as `0x${string}`);
-      const description = `# ${data.title}\n\n${data.description}\n\n**IPFS:** ${hash}`;
+      // Prepare transaction data for governor contract
+      const targets: `0x${string}`[] = [];
+      const values: bigint[] = [];
+      const calldatas: `0x${string}`[] = [];
+
+      for (const tx of formData.transactions) {
+        try {
+          switch (tx.type) {
+            case "send-eth":
+              targets.push(tx.target as `0x${string}`);
+              values.push(parseEther(tx.value || "0"));
+              calldatas.push("0x" as `0x${string}`);
+              break;
+
+            case "send-usdc":
+              targets.push(TREASURY_TOKEN_ALLOWLIST.USDC as `0x${string}`);
+              values.push(BigInt(0));
+              const usdcCalldata = encodeFunctionData({
+                abi: [
+                  {
+                    name: "transfer",
+                    type: "function",
+                    inputs: [
+                      { name: "to", type: "address" },
+                      { name: "amount", type: "uint256" },
+                    ],
+                  },
+                ],
+                functionName: "transfer",
+                args: [tx.recipient, parseUnits(tx.amount || "0", 6)], // USDC has 6 decimals
+              });
+              calldatas.push(usdcCalldata);
+              break;
+
+            case "send-tokens":
+              targets.push(tx.tokenAddress as `0x${string}`);
+              values.push(BigInt(0));
+              // TODO: Fetch token decimals on-chain or add a field to the form
+              const tokenCalldata = encodeFunctionData({
+                abi: [
+                  {
+                    name: "transfer",
+                    type: "function",
+                    inputs: [
+                      { name: "to", type: "address" },
+                      { name: "amount", type: "uint256" },
+                    ],
+                  },
+                ],
+                functionName: "transfer",
+                args: [tx.recipient, parseUnits(tx.amount || "0", 18)], // Assuming 18 decimals for generic ERC-20
+              });
+              calldatas.push(tokenCalldata);
+              break;
+
+            case "send-nfts":
+              targets.push(tx.contractAddress as `0x${string}`);
+              values.push(BigInt(0));
+              const nftCalldata = encodeFunctionData({
+                abi: [
+                  {
+                    name: "transferFrom",
+                    type: "function",
+                    inputs: [
+                      { name: "from", type: "address" },
+                      { name: "to", type: "address" },
+                      { name: "tokenId", type: "uint256" },
+                    ],
+                  },
+                ],
+                functionName: "transferFrom",
+                args: [tx.from, tx.to, BigInt(tx.tokenId || "0")],
+              });
+              calldatas.push(nftCalldata);
+              break;
+
+            case "custom":
+              targets.push(tx.target as `0x${string}`);
+              values.push(tx.value ? parseEther(tx.value) : BigInt(0));
+              calldatas.push(tx.calldata as `0x${string}`);
+              break;
+
+            case "droposal":
+              // TODO: Implement droposal transaction encoding
+              console.warn("Droposal transaction encoding not yet implemented");
+              targets.push("0x" as `0x${string}`);
+              values.push(BigInt(0));
+              calldatas.push("0x" as `0x${string}`);
+              break;
+
+            default:
+              console.error(`Unknown transaction type: ${tx.type}`);
+              targets.push("0x" as `0x${string}`);
+              values.push(BigInt(0));
+              calldatas.push("0x" as `0x${string}`);
+          }
+        } catch (error) {
+          console.error(`Error encoding transaction ${tx.type}:`, error);
+          // Add empty transaction to maintain array length
+          targets.push("0x" as `0x${string}`);
+          values.push(BigInt(0));
+          calldatas.push("0x" as `0x${string}`);
+        }
+      }
+
+      const description = `# ${formData.title}\n\n${formData.description}\n\n**IPFS:** ${ipfsHash}`;
 
       // Submit to governor contract
       await writeContract({
@@ -203,7 +314,7 @@ export function ProposalPreview({ data }: ProposalPreviewProps) {
           {data.transactions.map((transaction, index) => {
             const Icon = getTransactionIcon(transaction.type);
             return (
-              <div key={transaction.id} className="flex items-start space-x-3">
+              <div key={transaction.id || `${transaction.type}-${index}` } className="flex items-start space-x-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <Icon className="h-4 w-4 text-primary" />
                 </div>
@@ -218,10 +329,14 @@ export function ProposalPreview({ data }: ProposalPreviewProps) {
                   {transaction.description && <p className="text-sm">{transaction.description}</p>}
                   <div className="text-xs font-mono bg-muted p-2 rounded mt-2">
                     <div>
-                      Target: <SimpleAddressDisplay address={String(transaction.target || "")} />
+                      Target: <SimpleAddressDisplay address={String(
+                        transaction.type === "send-usdc"
+                          ? TREASURY_TOKEN_ALLOWLIST.USDC
+                          : transaction.target || transaction.contractAddress || transaction.tokenAddress || ""
+                      )} />
                     </div>
-                    <div>Value: {formatEther(transaction.value || BigInt(0))} ETH</div>
-                    <div>Calldata: {transaction.calldata?.slice(0, 20)}...</div>
+                    <div>Value: {transaction.value || transaction.amount || "0"} {transaction.type === "send-usdc" ? "USDC" : "ETH"}</div>
+                    <div>Calldata: {transaction.calldata ? transaction.calldata.slice(0, 20) + "..." : "0x"}</div>
                   </div>
                 </div>
               </div>
@@ -272,7 +387,7 @@ export function ProposalPreview({ data }: ProposalPreviewProps) {
             </Alert>
           )}
 
-          <Button onClick={handleSubmit} disabled={!canSubmit} size="lg" className="w-full">
+          <Button onClick={handleSubmit(handleFormSubmit)} disabled={!canSubmit} size="lg" className="w-full">
             {isSubmitting || isPending || isConfirming ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />

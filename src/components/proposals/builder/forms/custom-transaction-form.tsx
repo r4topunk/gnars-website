@@ -1,10 +1,12 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { useFormContext, Controller } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Info } from "lucide-react";
+import { type ProposalFormValues } from "../../schema";
 
 export interface AbiFunction {
   name: string;
@@ -12,32 +14,28 @@ export interface AbiFunction {
   inputs?: Array<{ name: string; type: string }>;
 }
 
-export interface FormData {
-  target?: string;
-  description?: string;
-  value?: string;
-  calldata?: string;
-  abi?: string;
-}
+interface Props { index: number }
 
-export interface FormComponentProps {
-  data: FormData;
-  onChange: (updates: Partial<FormData>) => void;
-}
-
-export function CustomTransactionForm({ data, onChange }: FormComponentProps) {
+export function CustomTransactionForm({ index }: Props) {
+  const { register, control, watch, formState: { errors } } = useFormContext<ProposalFormValues>();
   const [selectedFunction, setSelectedFunction] = useState("");
   const [parsedAbi, setParsedAbi] = useState<AbiFunction[]>([]);
 
-  const handleAbiChange = (abiString: string) => {
-    onChange({ abi: abiString });
-    try {
-      const abi = JSON.parse(abiString);
-      setParsedAbi(abi.filter((item: AbiFunction) => item.type === "function"));
-    } catch {
+  const watchedAbi = watch(`transactions.${index}.abi`);
+
+  // Parse ABI when it changes
+  React.useEffect(() => {
+    if (watchedAbi) {
+      try {
+        const abi = JSON.parse(watchedAbi);
+        setParsedAbi(abi.filter((item: AbiFunction) => item.type === "function"));
+      } catch {
+        setParsedAbi([]);
+      }
+    } else {
       setParsedAbi([]);
     }
-  };
+  }, [watchedAbi]);
 
   return (
     <div className="space-y-4">
@@ -54,9 +52,11 @@ export function CustomTransactionForm({ data, onChange }: FormComponentProps) {
         <Input
           id="target"
           placeholder="0x..."
-          value={data.target || ""}
-          onChange={(e) => onChange({ target: e.target.value })}
+          {...register(`transactions.${index}.target` as const)}
         />
+        {errors.transactions?.[index]?.target && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.target?.message)}</p>
+        )}
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
@@ -66,20 +66,30 @@ export function CustomTransactionForm({ data, onChange }: FormComponentProps) {
           type="number"
           step="0.001"
           placeholder="0.0"
-          value={data.value || "0"}
-          onChange={(e) => onChange({ value: e.target.value })}
+          {...register(`transactions.${index}.value` as const)}
         />
+        {errors.transactions?.[index]?.value && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.value?.message)}</p>
+        )}
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
         <Label htmlFor="abi">Contract ABI *</Label>
-        <Textarea
-          id="abi"
-          placeholder="[{...}] - Paste the contract ABI JSON"
-          value={data.abi || ""}
-          onChange={(e) => handleAbiChange(e.target.value)}
-          rows={4}
+        <Controller
+          name={`transactions.${index}.abi` as const}
+          control={control}
+          render={({ field }) => (
+            <Textarea
+              id="abi"
+              placeholder="[{...}] - Paste the contract ABI JSON"
+              {...field}
+              rows={4}
+            />
+          )}
         />
+        {errors.transactions?.[index]?.abi && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.abi?.message)}</p>
+        )}
       </div>
 
       {parsedAbi.length > 0 && (
@@ -105,10 +115,12 @@ export function CustomTransactionForm({ data, onChange }: FormComponentProps) {
         <Textarea
           id="calldata"
           placeholder="0x... - Transaction calldata"
-          value={data.calldata || "0x"}
-          onChange={(e) => onChange({ calldata: e.target.value })}
+          {...register(`transactions.${index}.calldata` as const)}
           rows={2}
         />
+        {errors.transactions?.[index]?.calldata && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.calldata?.message)}</p>
+        )}
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
@@ -116,9 +128,11 @@ export function CustomTransactionForm({ data, onChange }: FormComponentProps) {
         <Textarea
           id="description"
           placeholder="Clearly describe what this transaction does..."
-          value={data.description || ""}
-          onChange={(e) => onChange({ description: e.target.value })}
+          {...register(`transactions.${index}.description` as const)}
         />
+        {errors.transactions?.[index]?.description && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.description?.message)}</p>
+        )}
       </div>
     </div>
   );

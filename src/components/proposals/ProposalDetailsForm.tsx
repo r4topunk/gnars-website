@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import Image from "next/image";
 import { Eye, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,17 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Markdown } from "@/components/common/Markdown";
-import { ProposalFormData } from "./ProposalWizard";
+import { type ProposalFormValues } from "./schema";
 
-interface ProposalDetailsFormProps {
-  data: ProposalFormData;
-  onChange: (updates: Partial<ProposalFormData>) => void;
-}
-
-export function ProposalDetailsForm({ data, onChange }: ProposalDetailsFormProps) {
+export function ProposalDetailsForm() {
+  const { register, setValue, watch, formState: { errors } } = useFormContext<ProposalFormValues>();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const watchedDescription = watch("description");
+  const watchedBannerImage = watch("bannerImage");
 
   const handleImageUpload = async (file: File) => {
     // Create preview
@@ -30,7 +30,7 @@ export function ProposalDetailsForm({ data, onChange }: ProposalDetailsFormProps
     // For now, we'll store the preview URL
     // TODO: Implement IPFS upload
     const ipfsUrl = `ipfs://${file.name}`; // Mock IPFS URL
-    onChange({ bannerImage: ipfsUrl });
+    setValue("bannerImage", ipfsUrl);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,7 +42,7 @@ export function ProposalDetailsForm({ data, onChange }: ProposalDetailsFormProps
 
   const removeImage = () => {
     setImagePreview(null);
-    onChange({ bannerImage: undefined });
+    setValue("bannerImage", undefined);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -63,22 +63,29 @@ export function ProposalDetailsForm({ data, onChange }: ProposalDetailsFormProps
           <Input
             id="title"
             placeholder="Enter proposal title..."
-            value={data.title}
-            onChange={(e) => onChange({ title: e.target.value })}
+            {...register("title")}
             className="mt-1"
           />
+          {errors.title && (
+            <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>
+          )}
           <p className="text-xs text-muted-foreground mt-1">Keep it concise and descriptive</p>
         </div>
 
         <div>
           <Label htmlFor="banner">Banner Image</Label>
           <div className="mt-2">
-            {imagePreview ? (
+            {imagePreview || watchedBannerImage ? (
               <div
                 className="relative rounded-lg border overflow-hidden"
                 style={{ aspectRatio: "16 / 9" }}
               >
-                <Image src={imagePreview} alt="Banner preview" fill className="object-cover" />
+                <Image
+                  src={imagePreview || watchedBannerImage || ""}
+                  alt="Banner preview"
+                  fill
+                  className="object-cover"
+                />
                 <Button
                   size="sm"
                   variant="destructive"
@@ -124,8 +131,8 @@ export function ProposalDetailsForm({ data, onChange }: ProposalDetailsFormProps
           {showMarkdownPreview ? (
             <Card>
               <CardContent className="p-4 min-h-[200px]">
-                {data.description ? (
-                  <Markdown className="prose-sm max-w-none">{data.description}</Markdown>
+                {watchedDescription ? (
+                  <Markdown className="prose-sm max-w-none">{watchedDescription}</Markdown>
                 ) : (
                   <p className="text-muted-foreground italic">No description yet</p>
                 )}
@@ -134,7 +141,7 @@ export function ProposalDetailsForm({ data, onChange }: ProposalDetailsFormProps
           ) : (
             <Textarea
               id="description"
-              placeholder="Describe your proposal in detail... 
+              placeholder="Describe your proposal in detail...
 
 You can use **markdown** formatting:
 - **Bold text**
@@ -142,13 +149,15 @@ You can use **markdown** formatting:
 - `Code snippets`
 
 Explain the problem, solution, and expected outcomes."
-              value={data.description}
-              onChange={(e) => onChange({ description: e.target.value })}
+              {...register("description")}
               rows={8}
               className="resize-none"
             />
           )}
 
+          {errors.description && (
+            <p className="text-xs text-red-500 mt-1">{errors.description.message}</p>
+          )}
           <p className="text-xs text-muted-foreground mt-1">
             Markdown formatting supported. Be thorough and clear about your proposal&apos;s purpose
             and impact.

@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useFormContext } from "react-hook-form";
+import { useAccount } from "wagmi";
 import Image from "next/image";
 import { ExternalLink, Info, Upload, X } from "lucide-react";
-import { useAccount } from "wagmi";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,89 +12,41 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { type ProposalFormValues } from "../proposals/schema";
 
-interface DroposalData {
-  name: string;
-  symbol: string;
-  description: string;
-  mediaUrl: string;
-  coverUrl: string;
-  price: string;
-  editionType: "fixed" | "open";
-  editionSize: string;
-  startTime: string;
-  endTime: string;
-  mintLimitPerAddress: string;
-  royaltyPercentage: string;
-  payoutAddress: string;
-  defaultAdmin: string;
-  mediaType?: string;
-  coverType?: string;
-}
+interface Props { index: number }
 
-interface DroposalFormProps {
-  data: Partial<DroposalData>;
-  onChange: (updates: Partial<DroposalData>) => void;
-}
-
-export function DroposalForm({ data, onChange }: DroposalFormProps) {
+export function DroposalForm({ index }: Props) {
+  const { register, setValue, watch, formState: { errors } } = useFormContext<ProposalFormValues>();
   const { address } = useAccount();
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [editionType, setEditionType] = useState<"fixed" | "open">(data.editionType || "fixed");
+  const [editionType, setEditionType] = useState<"fixed" | "open">("fixed");
   const [isUploading, setIsUploading] = useState(false);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
-  // Set default values if not present
-  const defaultData: DroposalData = {
-    name: "",
-    symbol: "",
-    description: "",
-    mediaUrl: "",
-    coverUrl: "",
-    price: "0.01",
-    editionType: "fixed" as const,
-    editionSize: "100",
-    startTime: "",
-    endTime: "",
-    mintLimitPerAddress: "",
-    royaltyPercentage: "5",
-    payoutAddress: GNARS_ADDRESSES.treasury,
-    defaultAdmin: address || "",
-    ...data,
-  };
-
-  const updateData = (updates: Partial<DroposalData>) => {
-    onChange({ ...defaultData, ...updates });
-  };
+  const watchedMediaType = watch(`transactions.${index}.mediaType`);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const watchedCoverType = watch(`transactions.${index}.coverType`);
+  const watchedMediaUrl = watch(`transactions.${index}.mediaUrl`);
+  const watchedCoverUrl = watch(`transactions.${index}.coverUrl`);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const watchedEditionType = watch(`transactions.${index}.editionType`);
 
   const handleMediaUpload = async (file: File, type: "media" | "cover") => {
     setIsUploading(true);
-
-    // Create preview
     const previewUrl = URL.createObjectURL(file);
+
     if (type === "media") {
-      setMediaPreview(previewUrl);
+      setValue(`transactions.${index}.mediaUrl` as const, `ipfs://${file.name}`); // Mock IPFS URL
+      setValue(`transactions.${index}.mediaType` as const, file.type);
     } else {
       setCoverPreview(previewUrl);
+      setValue(`transactions.${index}.coverUrl` as const, `ipfs://${file.name}`); // Mock IPFS URL
+      setValue(`transactions.${index}.coverType` as const, file.type);
     }
-
-    try {
-      // TODO: Implement actual IPFS upload
-      // For now, using mock IPFS URL
-      const ipfsUrl = `ipfs://${file.name}`;
-
-      updateData({
-        [type === "media" ? "mediaUrl" : "coverUrl"]: ipfsUrl,
-        [type === "media" ? "mediaType" : "coverType"]: file.type,
-      });
-    } catch (error) {
-      console.error("Upload failed:", error);
-    } finally {
-      setIsUploading(false);
-    }
+    setIsUploading(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "media" | "cover") => {
@@ -105,26 +58,35 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
 
   const removeFile = (type: "media" | "cover") => {
     if (type === "media") {
-      setMediaPreview(null);
-      updateData({ mediaUrl: "", mediaType: "" });
+      setValue(`transactions.${index}.mediaUrl` as const, "");
+      setValue(`transactions.${index}.mediaType` as const, undefined);
       if (mediaInputRef.current) mediaInputRef.current.value = "";
     } else {
       setCoverPreview(null);
-      updateData({ coverUrl: "", coverType: "" });
+      setValue(`transactions.${index}.coverUrl` as const, "");
+      setValue(`transactions.${index}.coverType` as const, undefined);
       if (coverInputRef.current) coverInputRef.current.value = "";
     }
   };
 
+  // Check if media requires cover (non-image files)
+  const showCover = watchedMediaType && !watchedMediaType.startsWith("image");
+
+  // Set initial edition type from form context or default
+  useEffect(() => {
+    const currentEditionType = watch(`transactions.${index}.editionType`);
+    if (currentEditionType) {
+      setEditionType(currentEditionType);
+    } else {
+      setValue(`transactions.${index}.editionType` as const, "fixed");
+    }
+  }, [index, watch, setValue]);
+
   const handleEditionTypeChange = (value: "fixed" | "open") => {
     setEditionType(value);
-    updateData({
-      editionType: value,
-      editionSize: value === "open" ? "0" : defaultData.editionSize,
-    });
+    setValue(`transactions.${index}.editionType` as const, value);
+    setValue(`transactions.${index}.editionSize` as const, value === "open" ? "0" : "100");
   };
-
-  // Check if media requires cover (non-image files)
-  const showCover = defaultData.mediaType && !defaultData.mediaType.startsWith("image");
 
   return (
     <div className="space-y-6">
@@ -157,9 +119,11 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             <Input
               id="name"
               placeholder="Gnars Special Edition"
-              value={defaultData.name}
-              onChange={(e) => updateData({ name: e.target.value })}
+              {...register(`transactions.${index}.name` as const)}
             />
+            {errors.transactions?.[index] && errors.transactions?.[index]?.name && (
+              <p className="text-xs text-red-500">{String(errors.transactions[index].name.message)}</p>
+            )}
           </div>
 
           <div className="grid w/full max-w-sm items-center gap-2">
@@ -167,9 +131,11 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             <Input
               id="symbol"
               placeholder="GNARSSE"
-              value={defaultData.symbol}
-              onChange={(e) => updateData({ symbol: e.target.value })}
+              {...register(`transactions.${index}.symbol` as const)}
             />
+            {errors.transactions?.[index] && errors.transactions?.[index]?.symbol && (
+              <p className="text-xs text-red-500">{String(errors.transactions[index].symbol.message)}</p>
+            )}
           </div>
 
           <div className="grid w-full max-w-sm items-center gap-2">
@@ -177,10 +143,12 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             <Textarea
               id="description"
               placeholder="A special edition drop for the Gnars community..."
-              value={defaultData.description}
-              onChange={(e) => updateData({ description: e.target.value })}
+              {...register(`transactions.${index}.description` as const)}
               rows={3}
             />
+            {errors.transactions?.[index] && errors.transactions?.[index]?.description && (
+              <p className="text-xs text-red-500">{String(errors.transactions[index].description.message)}</p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -194,36 +162,26 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
           <div>
             <Label>Media File *</Label>
             <div className="mt-2">
-              {mediaPreview ? (
-                <div className="relative">
-                  {defaultData.mediaType?.startsWith("image") ? (
-                    <Image
-                      src={mediaPreview}
-                      alt="Media preview"
-                      width={400}
-                      height={192}
-                      className="w-full h-48 object-cover rounded-lg border"
-                    />
-                  ) : defaultData.mediaType?.startsWith("video") ? (
-                    <video
-                      src={mediaPreview}
-                      className="w-full h-48 object-cover rounded-lg border"
-                      controls
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-muted rounded-lg border flex items-center justify-center">
-                      <p className="text-muted-foreground">Media uploaded</p>
-                    </div>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="absolute top-2 right-2"
-                    onClick={() => removeFile("media")}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+              {watchedMediaUrl ? (
+                watchedMediaType?.startsWith("image") ? (
+                  <Image
+                    src={watchedMediaUrl}
+                    alt="Media preview"
+                    width={400}
+                    height={192}
+                    className="w-full h-48 object-cover rounded-lg border"
+                  />
+                ) : watchedMediaType?.startsWith("video") ? (
+                  <video
+                    src={watchedMediaUrl}
+                    className="w-full h-48 object-cover rounded-lg border"
+                    controls
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-muted rounded-lg border flex items-center justify-center">
+                    <p className="text-muted-foreground">Media uploaded</p>
+                  </div>
+                )
               ) : (
                 <div
                   className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
@@ -253,10 +211,10 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
                 Cover image for non-image media files
               </p>
               <div className="mt-2">
-                {coverPreview ? (
+                {coverPreview || watchedCoverUrl ? (
                   <div className="relative">
                     <Image
-                      src={coverPreview}
+                      src={coverPreview || watchedCoverUrl || ""}
                       alt="Cover preview"
                       width={400}
                       height={128}
@@ -307,9 +265,11 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
               type="number"
               step="0.001"
               placeholder="0.01"
-              value={defaultData.price}
-              onChange={(e) => updateData({ price: e.target.value })}
+              {...register(`transactions.${index}.price` as const)}
             />
+            {errors.transactions?.[index] && errors.transactions?.[index]?.price && (
+              <p className="text-xs text-red-500">{String(errors.transactions[index].price.message)}</p>
+            )}
             <p className="text-xs text-muted-foreground mt-1">
               Zora charges 0.000777 ETH per mint as a protocol fee.{" "}
               <a
@@ -327,7 +287,7 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             <Label>Edition Type *</Label>
             <RadioGroup
               value={editionType}
-              onValueChange={(value: "fixed" | "open") => handleEditionTypeChange(value)}
+              onValueChange={handleEditionTypeChange}
               className="mt-2"
             >
               <div className="flex items-center space-x-2">
@@ -348,9 +308,11 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
                 id="editionSize"
                 type="number"
                 placeholder="100"
-                value={defaultData.editionSize}
-                onChange={(e) => updateData({ editionSize: e.target.value })}
+                {...register(`transactions.${index}.editionSize` as const)}
               />
+              {errors.transactions?.[index] && errors.transactions?.[index]?.editionSize && (
+                <p className="text-xs text-red-500">{String(errors.transactions[index].editionSize.message)}</p>
+              )}
             </div>
           )}
         </CardContent>
@@ -367,9 +329,11 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             <Input
               id="startTime"
               type="datetime-local"
-              value={defaultData.startTime}
-              onChange={(e) => updateData({ startTime: e.target.value })}
+              {...register(`transactions.${index}.startTime` as const)}
             />
+            {errors.transactions?.[index] && errors.transactions?.[index]?.startTime && (
+              <p className="text-xs text-red-500">{String(errors.transactions[index].startTime.message)}</p>
+            )}
           </div>
 
           <div className="grid w/full max-w-sm items-center gap-2">
@@ -377,9 +341,11 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             <Input
               id="endTime"
               type="datetime-local"
-              value={defaultData.endTime}
-              onChange={(e) => updateData({ endTime: e.target.value })}
+              {...register(`transactions.${index}.endTime` as const)}
             />
+            {errors.transactions?.[index] && errors.transactions?.[index]?.endTime && (
+              <p className="text-xs text-red-500">{String(errors.transactions[index].endTime.message)}</p>
+            )}
           </div>
 
           <div className="grid w/full max-w-sm items-center gap-2">
@@ -388,9 +354,11 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
               id="mintLimitPerAddress"
               type="number"
               placeholder="Leave empty for unlimited"
-              value={defaultData.mintLimitPerAddress}
-              onChange={(e) => updateData({ mintLimitPerAddress: e.target.value })}
+              {...register(`transactions.${index}.mintLimitPerAddress` as const)}
             />
+            {errors.transactions?.[index] && errors.transactions?.[index]?.mintLimitPerAddress && (
+              <p className="text-xs text-red-500">{String(errors.transactions[index].mintLimitPerAddress.message)}</p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -409,9 +377,11 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
               min="0"
               max="100"
               placeholder="5"
-              value={defaultData.royaltyPercentage}
-              onChange={(e) => updateData({ royaltyPercentage: e.target.value })}
+              {...register(`transactions.${index}.royaltyPercentage` as const)}
             />
+            {errors.transactions?.[index] && errors.transactions?.[index]?.royaltyPercentage && (
+              <p className="text-xs text-red-500">{String(errors.transactions[index].royaltyPercentage.message)}</p>
+            )}
             <p className="text-xs text-muted-foreground mt-1">
               Percentage of secondary sales that go to the payout address
             </p>
@@ -422,9 +392,11 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             <Input
               id="payoutAddress"
               placeholder="0x... or ENS name"
-              value={defaultData.payoutAddress}
-              onChange={(e) => updateData({ payoutAddress: e.target.value })}
+              {...register(`transactions.${index}.payoutAddress` as const)}
             />
+            {errors.transactions?.[index] && errors.transactions?.[index]?.payoutAddress && (
+              <p className="text-xs text-red-500">{String(errors.transactions[index].payoutAddress.message)}</p>
+            )}
             <p className="text-xs text-muted-foreground mt-1">
               Address that receives mint proceeds and royalties (defaults to DAO treasury)
             </p>
@@ -435,9 +407,12 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
             <Input
               id="defaultAdmin"
               placeholder="0x... or ENS name"
-              value={defaultData.defaultAdmin}
-              onChange={(e) => updateData({ defaultAdmin: e.target.value })}
+              value={address || ""}
+              {...register(`transactions.${index}.defaultAdmin` as const)}
             />
+            {errors.transactions?.[index] && errors.transactions?.[index]?.defaultAdmin && (
+              <p className="text-xs text-red-500">{String(errors.transactions[index].defaultAdmin.message)}</p>
+            )}
             <p className="text-xs text-muted-foreground mt-1">
               Address that can manage the collection (defaults to connected wallet)
             </p>
@@ -450,10 +425,12 @@ export function DroposalForm({ data, onChange }: DroposalFormProps) {
         <Textarea
           id="dropDescription"
           placeholder="Describe this droposal transaction..."
-          value={data.description || ""}
-          onChange={(e) => onChange({ description: e.target.value })}
+          {...register(`transactions.${index}.description` as const)}
           rows={2}
         />
+        {errors.transactions?.[index] && errors.transactions?.[index]?.description && (
+          <p className="text-xs text-red-500">{String(errors.transactions[index].description.message)}</p>
+        )}
       </div>
     </div>
   );

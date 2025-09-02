@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
-import { AlertCircle, CheckCircle, Clock, Pause, XCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { Proposal, ProposalStatus } from "@/components/proposals/types";
 import { RecentProposalsHeader } from "@/components/proposals/recent/RecentProposalsHeader";
 import { ProposalsGrid } from "@/components/proposals/recent/ProposalsGrid";

@@ -1,20 +1,14 @@
+import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { type ProposalFormValues } from "../../schema";
 
-export interface FormData {
-  description?: string;
-  recipient?: string;
-  amount?: string;
-  tokenAddress?: string;
-}
+interface Props { index: number }
 
-export interface FormComponentProps {
-  data: FormData;
-  onChange: (updates: Partial<FormData>) => void;
-}
+export function SendTokensForm({ index }: Props) {
+  const { register, formState: { errors } } = useFormContext<ProposalFormValues>();
 
-export function SendTokensForm({ data, onChange }: FormComponentProps) {
   return (
     <div className="space-y-4">
       <div className="grid w-full max-w-sm items-center gap-2">
@@ -22,9 +16,11 @@ export function SendTokensForm({ data, onChange }: FormComponentProps) {
         <Input
           id="tokenAddress"
           placeholder="0x..."
-          value={data.tokenAddress || ""}
-          onChange={(e) => onChange({ tokenAddress: e.target.value })}
+          {...register(`transactions.${index}.tokenAddress` as const)}
         />
+        {errors.transactions?.[index]?.tokenAddress && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.tokenAddress?.message)}</p>
+        )}
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
@@ -32,9 +28,11 @@ export function SendTokensForm({ data, onChange }: FormComponentProps) {
         <Input
           id="recipient"
           placeholder="0x... or ENS name"
-          value={data.recipient || ""}
-          onChange={(e) => onChange({ recipient: e.target.value })}
+          {...register(`transactions.${index}.recipient` as const)}
         />
+        {errors.transactions?.[index]?.recipient && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.recipient?.message)}</p>
+        )}
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
@@ -44,9 +42,11 @@ export function SendTokensForm({ data, onChange }: FormComponentProps) {
           type="number"
           step="0.001"
           placeholder="0.0"
-          value={data.amount || ""}
-          onChange={(e) => onChange({ amount: e.target.value })}
+          {...register(`transactions.${index}.amount` as const)}
         />
+        {errors.transactions?.[index]?.amount && (
+          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.amount?.message)}</p>
+        )}
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
@@ -54,8 +54,7 @@ export function SendTokensForm({ data, onChange }: FormComponentProps) {
         <Textarea
           id="description"
           placeholder="Describe the purpose of this token transfer..."
-          value={data.description || ""}
-          onChange={(e) => onChange({ description: e.target.value })}
+          {...register(`transactions.${index}.description` as const)}
         />
       </div>
     </div>
