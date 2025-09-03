@@ -75,6 +75,11 @@ const daoNavigation = [
         url: "/propdates",
         icon: FileText,
       },
+      {
+        title: "Droposals",
+        url: "/droposals",
+        icon: FileText,
+      },
     ],
   },
 ];

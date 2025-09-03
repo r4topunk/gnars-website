@@ -73,6 +73,14 @@ export function DaoHeader() {
               Propdates
             </NavigationMenuLink>
           </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              href="/droposals"
+              className="px-4 py-2 text-sm font-medium transition-colors hover:text-primary"
+            >
+              Droposals
+            </NavigationMenuLink>
+          </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
     </header>
