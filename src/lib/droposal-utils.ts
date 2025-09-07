@@ -1,4 +1,4 @@
-import { decodeFunctionData } from "viem";
+import { decodeFunctionData, formatEther } from "viem";
 import { ZORA_CREATOR, DROPOSAL_TARGET } from "./config";
 
 // Zora NFT Creator ABI - focusing on createEdition function for droposal detection
@@ -149,26 +149,36 @@ export function formatDroposalForTable(params: DroposalParams): Array<{
   parameter: string;
   value: string | React.ReactNode;
 }> {
+  const OPEN_EDITION_SENTINEL = BigInt("18446744073709551615");
+  const editionText =
+    params.editionSize === BigInt(0) || params.editionSize === OPEN_EDITION_SENTINEL
+      ? "Open edition"
+      : new Intl.NumberFormat().format(Number(params.editionSize));
+
+  const priceWei = params.saleConfig.publicSalePrice ?? BigInt(0);
+  const priceEth = Number(priceWei) === 0 ? "Free" : `${formatEther(priceWei)} ETH`;
+
+  const maxPerAddr =
+    params.saleConfig.maxSalePurchasePerAddress && params.saleConfig.maxSalePurchasePerAddress > 0
+      ? new Intl.NumberFormat().format(params.saleConfig.maxSalePurchasePerAddress)
+      : "Unlimited";
+
+  const startMs = Number(params.saleConfig.publicSaleStart || BigInt(0)) * 1000;
+  const endMs = Number(params.saleConfig.publicSaleEnd || BigInt(0)) * 1000;
+  const startText = startMs ? new Date(startMs).toLocaleString() : "Not set";
+  const endText = endMs ? new Date(endMs).toLocaleString() : "Not set";
+
   return [
     { parameter: "Name", value: params.name },
     { parameter: "Symbol", value: params.symbol },
-    { parameter: "Edition Size", value: params.editionSize.toString() },
-    { parameter: "Royalty BPS", value: `${params.royaltyBPS / 100}%` },
+    { parameter: "Edition Size", value: editionText },
+    { parameter: "Royalty", value: `${(params.royaltyBPS / 100).toFixed(2)}%` },
     { parameter: "Funds Recipient", value: params.fundsRecipient },
     { parameter: "Admin", value: params.defaultAdmin },
-    { parameter: "Public Sale Price", value: `${params.saleConfig.publicSalePrice} wei` },
-    {
-      parameter: "Max Purchase Per Address",
-      value: params.saleConfig.maxSalePurchasePerAddress.toString(),
-    },
-    {
-      parameter: "Public Sale Start",
-      value: new Date(Number(params.saleConfig.publicSaleStart) * 1000).toLocaleString(),
-    },
-    {
-      parameter: "Public Sale End",
-      value: new Date(Number(params.saleConfig.publicSaleEnd) * 1000).toLocaleString(),
-    },
+    { parameter: "Public Sale Price", value: priceEth },
+    { parameter: "Max per Address", value: maxPerAddr },
+    { parameter: "Public Sale Start", value: startText },
+    { parameter: "Public Sale End", value: endText },
     { parameter: "Description", value: params.description },
     { parameter: "Animation URI", value: params.animationURI || "None" },
     { parameter: "Image URI", value: params.imageURI || "None" },
