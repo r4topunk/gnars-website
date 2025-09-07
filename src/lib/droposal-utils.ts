@@ -1,5 +1,5 @@
 import { decodeFunctionData } from "viem";
-import { ZORA_CREATOR } from "./config";
+import { ZORA_CREATOR, DROPOSAL_TARGET } from "./config";
 
 // Zora NFT Creator ABI - focusing on createEdition function for droposal detection
 export const zoraNftCreatorAbi = [
@@ -65,10 +65,10 @@ export interface DroposalParams {
  * the Zora EditionCreator contract and calls the createEdition function
  */
 export function isDroposal(target: string, calldata?: string): boolean {
-  // Check if target matches Zora Creator contract on Base
-  if (target.toLowerCase() !== ZORA_CREATOR.base.toLowerCase()) {
-    return false;
-  }
+  const normalized = target.toLowerCase();
+  const matchesZoraCreator = normalized === ZORA_CREATOR.base.toLowerCase();
+  const matchesDroposalTarget = normalized === DROPOSAL_TARGET.base.toLowerCase();
+  if (!matchesZoraCreator && !matchesDroposalTarget) return false;
 
   // If no calldata provided, we can only check the target
   if (!calldata) {

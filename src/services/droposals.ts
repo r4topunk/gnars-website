@@ -1,4 +1,4 @@
-import { GNARS_ADDRESSES, ZORA_CREATOR } from "@/lib/config";
+import { GNARS_ADDRESSES, DROPOSAL_TARGET } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
@@ -63,7 +63,8 @@ export async function fetchDroposals(max: number = 24): Promise<DroposalListItem
   const pageSize = Math.min(100, Math.max(1, max));
   const data = await subgraphQuery<ProposalsQuery>(PROPOSALS_GQL, {
     dao,
-    creator: ZORA_CREATOR.base.toLowerCase(),
+    // Filter by the droposal target address used in Gnars proposals
+    creator: DROPOSAL_TARGET.base.toLowerCase(),
     first: pageSize,
     skip: 0,
   });

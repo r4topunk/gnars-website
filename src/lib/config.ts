@@ -15,6 +15,11 @@ export const ZORA_CREATOR = {
   base: "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b",
 } as const;
 
+// Droposal target (the contract used by Gnars droposals on Base)
+export const DROPOSAL_TARGET = {
+  base: "0x58c3ccb2dcb9384e5ab9111cd1a5dea916b0f33c",
+} as const;
+
 export const SUBGRAPH = {
   // Official Nouns Builder Subgraph URL for Gnars on Base (Goldsky public)
   url: `https://api.goldsky.com/api/public/${process.env.NEXT_PUBLIC_GOLDSKY_PROJECT_ID || "project_cm33ek8kjx6pz010i2c3w8z25"}/subgraphs/nouns-builder-base-mainnet/latest/gn`,
