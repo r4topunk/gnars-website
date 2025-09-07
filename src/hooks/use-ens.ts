@@ -1,3 +1,4 @@
+"use client";
 import { useCallback, useEffect, useState } from 'react';
 import { Address, isAddress } from 'viem';
 import { resolveENS, resolveENSBatch, type ENSData } from '@/lib/ens';

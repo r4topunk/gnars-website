@@ -190,7 +190,7 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
             mediaImage={mediaImage}
             alt={decoded?.name || p.title || "Droposal media"}
           />
-          <DroposalSupporters />
+          <DroposalSupporters tokenAddress={tokenAddress as `0x${string}` | null} totalSupply={decoded?.editionSize?.toString() ?? null} />
           <DroposalMetadata rows={decoded ? formatDroposalForTable(decoded) : []} />
         </div>
 
