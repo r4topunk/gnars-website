@@ -13,6 +13,10 @@ type ProposalsQuery = {
     calldatas?: string | null;
     targets: string[];
     timeCreated: string;
+    canceled?: boolean;
+    vetoed?: boolean;
+    executed?: boolean;
+    queued?: boolean;
     executedAt?: string | null;
     transactionHash?: string | null;
   }>;
@@ -34,6 +38,10 @@ const PROPOSALS_GQL = /* GraphQL */ `
       calldatas
       targets
       timeCreated
+      canceled
+      vetoed
+      executed
+      queued
       executedAt
       transactionHash
     }
@@ -71,6 +79,10 @@ export async function fetchDroposals(max: number = 24): Promise<DroposalListItem
 
   const items: DroposalListItem[] = [];
   for (const p of data.proposals) {
+    // Only include proposals that have been executed (droposal deploy finalized)
+    const isExecuted = (p.executed || !!p.executedAt) && !p.canceled && !p.vetoed;
+    if (!isExecuted) continue;
+
     const calldatasRaw = p.calldatas;
     const calldatas = Array.isArray(calldatasRaw)
       ? (calldatasRaw as unknown as string[])
