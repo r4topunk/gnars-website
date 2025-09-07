@@ -1,0 +1,85 @@
+---
+globs: *.tsx
+alwaysApply: false
+---
+# file & size targets
+
+* component file length: **≤ 200 lines** (hard cap 250). if it goes over, extract subcomponents or hooks.
+* one top-level component per file, plus **0–3 small subcomponents** (each ≤ 60 lines).
+* custom hook files: **≤ 120 lines**; split logic by concern if over; use react-query.
+* utility files: **≤ 150 lines**; prefer multiple small utils over one kitchen-sink.
+* function length: **≤ 40 lines**; if over, refactor helpers.
+* JSX nesting depth: **≤ 4 levels**; extract child components when deeper.
+* props count: **≤ 7 props** (including optional). if more, group into a config object or split the component.
+* Tailwind class strings: **≤ 120 chars / 15 tokens** per element; move repeated styles to `cva` variants or a wrapper component.
+
+# component shape (tsx)
+
+* prefer **named exports** for components; **default export only** for framework-reserved files (e.g., Next.js page/layout).
+* file order:
+  1. imports (sorted: react, libs, components, utils, styles)
+  2. types (Props, Variant enums)
+  3. constants (CVA/variants)
+  4. subcomponents (if any)
+  5. main component
+  6. helper functions (local only)
+* minimal state: lift or derive when possible; memoize **only** when profiling says so.
+
+# typescript rules
+
+* no `any`. prefer `unknown` + narrowing.
+* props interface rules:
+  * `Props` must be exported.
+  * booleans start with verbs: `isOpen`, `hasBorder`.
+  * union types for variants (e.g., `"sm" | "md" | "lg"`), not free strings.
+* derive types from data (`as const` + `keyof typeof`) to avoid drift.
+* never suppress with `// @ts-ignore` unless you add a 1-line reason.
+
+# tailwind conventions
+
+* order classes logically: **layout → box → typography → visuals → state → responsive** (e.g., `flex items-center gap-2 rounded-md border p-2 text-sm hover:bg-muted sm:p-3`).
+* extract repeated patterns with:
+  * `cn()` helper for conditional classes.
+  * `class-variance-authority (cva)` for variants and sizes.
+* avoid long conditionals inside `className`; build classes above as variables when branching gets nontrivial.
+* keep responsive logic **≤ 2 breakpoints** in a single element; otherwise split into subcomponents.
+* do not use `space-`, use `gap-` instead.
+* never overwrite common components style, update the local style.
+
+# state & data flow
+
+* components should be **presentational or container**, not both.
+* data fetching lives in hooks or server components; UI files should receive data via props.
+* avoid prop drilling > 2 levels; use context or dedicated hook.
+* events: prefer **controlled** inputs; forward `onChange`, `onValueChange`, etc.
+* side effects isolated in hooks; **no effects** for simple derived values (compute inline).
+
+# errors, loading, empty
+
+* every async view must show: **loading**, **error**, **empty** states.
+* loading UIs: skeletons (shadcn) or minimal spinners; keep skeleton blocks **≤ 6**.
+
+# naming & folders
+
+* folders kebab-case; files PascalCase for components, camelCase for utils.
+* colocate: `Component.tsx`, `Component.stories.tsx`, `Component.test.tsx`, `Component.md` (brief usage notes) in the same folder.
+* index files: export barrels only; do not implement logic in `index.ts`.
+
+# shadcn usage
+
+* prefer shadcn primitives for consistency; extend via `className`/`asChild`.
+* never fork shadcn internals unless adding a new variant via `cva`.
+* when adding a variant: document allowed values inline above the `cva`.
+* never overwrite common components style, update the local style.
+* read the component to understand it's code before using it.
+* use MCP get_blocks, then get_item to understand how to create beatiful pages.
+
+# comments & docs
+
+* **File header (≤6 lines):** state purpose, public surface (props/variants), accessibility notes, and key constraints.
+* **Exported APIs (JSDoc):** document only public props and return values; include defaults and required/optional; keep names consistent with the TypeScript types.
+* **Inline comments:** explain *why*, not *what*; note invariants, preconditions, side-effects, and performance tradeoffs; avoid narrating JSX.
+* **Effects & state notes:** when using `useEffect` or complex state, add a one-line rationale and list external dependencies or data contracts.
+* **Accessibility notes:** record roles, labels, keyboard interactions, and focus behavior; mention any nonstandard patterns.
+* **Agent notes (optional block):** give rules for splitting components, extracting hooks, or limiting complexity; place above the main component.
+* **Usage notes (Component.md, ≤20 lines):** summarize intent, supported variants, and constraints for consumers; omit implementation details.
