@@ -2,26 +2,15 @@
 
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import {
-  AlertTriangle,
-  CheckCircle,
-  Coins,
-  ExternalLink,
-  Image as ImageIcon,
-  Loader2,
-  Send,
-  Settings,
-  Zap,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle, ExternalLink, Loader2 } from "lucide-react";
 import { parseEther, encodeFunctionData, parseUnits } from "viem";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SimpleAddressDisplay } from "@/components/ui/address-display";
+import { Card, CardContent } from "@/components/ui/card";
 import { GNARS_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
-import { type ProposalFormValues, type TransactionFormValues } from "./schema";
+import { type ProposalFormValues } from "./schema";
+import { TransactionsSummaryList } from "@/components/proposals/preview/TransactionsSummaryList";
 
 const governorAbi = [
   {
@@ -53,111 +42,9 @@ export function ProposalPreview() {
   // Get current form data
   const data = (watchedData as ProposalFormValues) || getValues();
 
-  const getTransactionIcon = (type: string | undefined) => {
-    switch (type) {
-      case "send-eth":
-        return Send;
-      case "send-usdc":
-        return Coins;
-      case "send-tokens":
-        return Coins;
-      case "send-nfts":
-        return ImageIcon;
-      case "droposal":
-        return Zap;
-      case "custom":
-        return Settings;
-      default:
-        return Settings;
-    }
-  };
+  // Summary formatting moved to separate component
 
-  const getTransactionLabel = (type: string | undefined) => {
-    switch (type) {
-      case "send-eth":
-        return "Send ETH";
-      case "send-usdc":
-        return "Send USDC";
-      case "send-tokens":
-        return "Send Tokens";
-      case "send-nfts":
-        return "Send NFTs";
-      case "droposal":
-        return "Create Droposal";
-      case "custom":
-        return "Custom Transaction";
-      default:
-        return "Unknown";
-    }
-  };
-
-  const formatTransactionSummary = (transaction: TransactionFormValues) => {
-    switch (transaction.type) {
-      case "send-eth":
-        return `Send ${transaction.value || "0"} ETH to ${transaction.target}`;
-      case "send-usdc":
-        return `Send ${transaction.amount || "0"} USDC to ${transaction.recipient}`;
-      case "send-tokens":
-        return `Send ${transaction.amount || "0"} tokens to ${transaction.recipient}`;
-      case "send-nfts":
-        return `Transfer NFT #${transaction.tokenId} from ${transaction.from} to ${transaction.to}`;
-      case "droposal":
-        return `Create Zora drop: "${transaction.name}" (${transaction.editionType === "open" ? "Open" : transaction.editionSize} edition)`;
-      case "custom":
-        return `Execute custom transaction on ${transaction.target}`;
-      default:
-        return "Unknown transaction";
-    }
-  };
-
-  const resolveTargetAddress = (tx: TransactionFormValues): string => {
-    switch (tx.type) {
-      case "send-usdc":
-        return TREASURY_TOKEN_ALLOWLIST.USDC;
-      case "send-eth":
-      case "custom":
-        return tx.target;
-      case "send-tokens":
-        return tx.tokenAddress;
-      case "send-nfts":
-        return tx.contractAddress;
-      case "droposal":
-        return "";
-    }
-  };
-
-  const resolveValue = (tx: TransactionFormValues): string => {
-    switch (tx.type) {
-      case "send-eth":
-        return tx.value || "0";
-      case "send-usdc":
-      case "send-tokens":
-        return tx.amount || "0";
-      case "custom":
-        return tx.value || "0";
-      case "send-nfts":
-      case "droposal":
-        return "0";
-    }
-  };
-
-  const resolveUnit = (tx: TransactionFormValues): string => {
-    switch (tx.type) {
-      case "send-usdc":
-        return "USDC";
-      default:
-        return "ETH";
-    }
-  };
-
-  const resolveCalldata = (tx: TransactionFormValues): string => {
-    switch (tx.type) {
-      case "custom":
-        return tx.calldata;
-      default:
-        return "0x";
-    }
-  };
+  // moved list rendering into TransactionsSummaryList
 
   const uploadToIPFS = async (): Promise<string> => {
     // Mock IPFS upload - in production, implement actual IPFS upload
@@ -355,40 +242,7 @@ export function ProposalPreview() {
       </Card>
 
       {/* Transactions Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Transactions ({data.transactions?.length ?? 0})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {(data.transactions ?? []).map((transaction, index) => {
-            const Icon = getTransactionIcon(transaction.type);
-            return (
-              <div key={transaction.id || `${transaction.type}-${index}` } className="flex items-start space-x-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Icon className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="font-medium">Transaction {index + 1}</span>
-                    <Badge variant="secondary">{getTransactionLabel(transaction.type)}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {formatTransactionSummary(transaction)}
-                  </p>
-                  {transaction.description && <p className="text-sm">{transaction.description}</p>}
-                  <div className="text-xs font-mono bg-muted p-2 rounded mt-2">
-                    <div>
-                      Target: <SimpleAddressDisplay address={resolveTargetAddress(transaction)} />
-                    </div>
-                    <div>Value: {resolveValue(transaction)} {resolveUnit(transaction)}</div>
-                    <div>Calldata: {(() => { const cd = resolveCalldata(transaction); return cd ? (cd.length > 22 ? cd.slice(0, 20) + "..." : cd) : "0x"; })()}</div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+      <TransactionsSummaryList transactions={data.transactions ?? []} />
 
       {/* Submit Section */}
       <Card>
