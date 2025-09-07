@@ -10,10 +10,6 @@ import { TransactionTypeCard } from "@/components/proposals/builder/TransactionT
 import { TransactionListItem } from "@/components/proposals/builder/TransactionListItem";
 
 interface TransactionBuilderProps {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onAddTransaction: (transaction: TransactionFormValues) => void;
-  onUpdateTransaction: (index: number, transaction: TransactionFormValues) => void;
-  onRemoveTransaction: (index: number) => void;
   onFormsVisibilityChange?: (visible: boolean) => void;
 }
 
@@ -56,15 +52,8 @@ const transactionTypes = [
   },
 ] as const;
 
-export function TransactionBuilder({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onAddTransaction,
-  onUpdateTransaction,
-  onRemoveTransaction,
-  onFormsVisibilityChange,
-}: TransactionBuilderProps) {
+export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuilderProps) {
   const { control, getValues, watch } = useFormContext<ProposalFormValues>();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { fields: transactions, append, update, remove } = useFieldArray({
     control,
     name: "transactions",
@@ -104,7 +93,7 @@ export function TransactionBuilder({
     if (editingTransactionIndex !== null) {
       const currentValues = getValues();
       const updatedTx = currentValues.transactions[editingTransactionIndex] as unknown as TransactionFormValues;
-      onUpdateTransaction(editingTransactionIndex, updatedTx);
+      update(editingTransactionIndex, updatedTx);
     }
     // For new items, onAddTransaction already handled on append
     setShowActionForms(false);
@@ -120,7 +109,6 @@ export function TransactionBuilder({
     // If we were creating a new transaction and user cancels, remove the placeholder
     if (isCreatingNew && editingTransactionIndex !== null) {
       remove(editingTransactionIndex);
-      onRemoveTransaction(editingTransactionIndex);
     }
     setEditingTransactionIndex(null);
     onFormsVisibilityChange?.(false);
@@ -129,7 +117,6 @@ export function TransactionBuilder({
 
   const handleRemoveTransaction = (index: number) => {
     remove(index);
-    onRemoveTransaction(index);
   };
 
   const getTransactionTypeInfo = (type: string) => {

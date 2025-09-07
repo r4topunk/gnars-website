@@ -9,6 +9,10 @@ interface Props { index: number }
 
 export function SendUsdcForm({ index }: Props) {
   const { register, formState: { errors } } = useFormContext<ProposalFormValues>();
+  const getErrorMessage = (key: string): string | undefined => {
+    const txErrors = errors.transactions?.[index] as unknown as Record<string, { message?: string }> | undefined;
+    return txErrors?.[key]?.message;
+  };
 
   return (
     <div className="space-y-4">
@@ -24,8 +28,8 @@ export function SendUsdcForm({ index }: Props) {
           placeholder="0x... or ENS name"
           {...register(`transactions.${index}.recipient` as const)}
         />
-        {errors.transactions?.[index]?.recipient && (
-          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.recipient?.message)}</p>
+        {getErrorMessage("recipient") && (
+          <p className="text-xs text-red-500">{String(getErrorMessage("recipient"))}</p>
         )}
       </div>
 
@@ -38,8 +42,8 @@ export function SendUsdcForm({ index }: Props) {
           placeholder="0.00"
           {...register(`transactions.${index}.amount` as const)}
         />
-        {errors.transactions?.[index]?.amount && (
-          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.amount?.message)}</p>
+        {getErrorMessage("amount") && (
+          <p className="text-xs text-red-500">{String(getErrorMessage("amount"))}</p>
         )}
       </div>
 

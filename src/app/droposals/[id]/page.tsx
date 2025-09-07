@@ -104,7 +104,7 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
           <CardHeader>
             <CardTitle>Droposal not found</CardTitle>
           </CardHeader>
-          <CardContent>We couldn't find this droposal.</CardContent>
+          <CardContent>We couldn&apos;t find this droposal.</CardContent>
         </Card>
       </div>
     );
@@ -127,7 +127,9 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
   }
 
   // Try to resolve deployed token address from execution receipt (if executed)
-  const execHash = (p as any).executionTransactionHash as string | undefined;
+  const execHash = ("executionTransactionHash" in p ? p.executionTransactionHash : undefined) as
+    | string
+    | undefined;
   if (execHash && execHash.startsWith("0x")) {
     try {
       const client = createPublicClient({ chain: base, transport: http() });

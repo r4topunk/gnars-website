@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, FormProvider, useFieldArray } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProposalDetailsForm } from "@/components/proposals/ProposalDetailsForm";
 import { ProposalPreview } from "@/components/proposals/ProposalPreview";
@@ -9,7 +9,7 @@ import { TransactionBuilder } from "@/components/proposals/builder/TransactionBu
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { proposalSchema, type ProposalFormValues, type TransactionFormValues } from "./schema";
+import { proposalSchema, type ProposalFormValues } from "./schema";
 
 export function ProposalWizard() {
   const [currentTab, setCurrentTab] = useState("details");
@@ -26,11 +26,7 @@ export function ProposalWizard() {
     mode: "onChange",
   });
 
-  const { control, trigger, watch } = methods;
-  const { fields: transactions, append: appendTransaction, remove: removeTransaction, update: updateTransaction } = useFieldArray({
-    control,
-    name: "transactions",
-  });
+  const { trigger, watch } = methods;
 
   const watchedValues = watch();
 
@@ -53,17 +49,7 @@ export function ProposalWizard() {
     }
   };
 
-  const handleAddTransaction = (transaction: TransactionFormValues) => {
-    appendTransaction(transaction);
-  };
-
-  const handleUpdateTransaction = (index: number, transaction: TransactionFormValues) => {
-    updateTransaction(index, transaction);
-  };
-
-  const handleRemoveTransaction = (index: number) => {
-    removeTransaction(index);
-  };
+  // Child builder handles add/update/remove via useFieldArray
 
   return (
     <FormProvider {...methods}>
@@ -130,12 +116,7 @@ export function ProposalWizard() {
             <TabsContent value="transactions" className="space-y-4">
               <Card>
                 <CardContent className="p-6">
-                  <TransactionBuilder
-                    onAddTransaction={handleAddTransaction}
-                    onUpdateTransaction={handleUpdateTransaction}
-                    onRemoveTransaction={handleRemoveTransaction}
-                    onFormsVisibilityChange={setIsEditingTransaction}
-                  />
+                  <TransactionBuilder onFormsVisibilityChange={setIsEditingTransaction} />
                   {!isEditingTransaction && (
                     <div className="flex justify-between mt-6">
                       <Button variant="outline" onClick={() => setCurrentTab("details")}>

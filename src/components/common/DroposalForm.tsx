@@ -19,7 +19,6 @@ interface Props { index: number }
 export function DroposalForm({ index }: Props) {
   const { register, setValue, watch, formState: { errors } } = useFormContext<ProposalFormValues>();
   const { address } = useAccount();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [editionType, setEditionType] = useState<"fixed" | "open">("fixed");
   const [isUploading, setIsUploading] = useState(false);
@@ -27,12 +26,8 @@ export function DroposalForm({ index }: Props) {
   const coverInputRef = useRef<HTMLInputElement>(null);
 
   const watchedMediaType = watch(`transactions.${index}.mediaType`);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const watchedCoverType = watch(`transactions.${index}.coverType`);
   const watchedMediaUrl = watch(`transactions.${index}.mediaUrl`);
   const watchedCoverUrl = watch(`transactions.${index}.coverUrl`);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const watchedEditionType = watch(`transactions.${index}.editionType`);
 
   const handleMediaUpload = async (file: File, type: "media" | "cover") => {
     setIsUploading(true);
@@ -88,6 +83,14 @@ export function DroposalForm({ index }: Props) {
     setValue(`transactions.${index}.editionSize` as const, value === "open" ? "0" : "100");
   };
 
+  // Safely read error messages from discriminated union transaction errors
+  type FieldErrorLike = { message?: string } | undefined;
+  const getErrorMessage = (key: string): string | undefined => {
+    const txErrors = errors.transactions?.[index] as unknown as Record<string, FieldErrorLike> | undefined;
+    const field = txErrors?.[key];
+    return (field && typeof field === "object" && "message" in field) ? field?.message : undefined;
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -121,8 +124,8 @@ export function DroposalForm({ index }: Props) {
               placeholder="Gnars Special Edition"
               {...register(`transactions.${index}.name` as const)}
             />
-            {errors.transactions?.[index] && errors.transactions?.[index]?.name && (
-              <p className="text-xs text-red-500">{String(errors.transactions[index].name.message)}</p>
+            {getErrorMessage("name") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("name"))}</p>
             )}
           </div>
 
@@ -133,8 +136,8 @@ export function DroposalForm({ index }: Props) {
               placeholder="GNARSSE"
               {...register(`transactions.${index}.symbol` as const)}
             />
-            {errors.transactions?.[index] && errors.transactions?.[index]?.symbol && (
-              <p className="text-xs text-red-500">{String(errors.transactions[index].symbol.message)}</p>
+            {getErrorMessage("symbol") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("symbol"))}</p>
             )}
           </div>
 
@@ -146,8 +149,8 @@ export function DroposalForm({ index }: Props) {
               {...register(`transactions.${index}.description` as const)}
               rows={3}
             />
-            {errors.transactions?.[index] && errors.transactions?.[index]?.description && (
-              <p className="text-xs text-red-500">{String(errors.transactions[index].description.message)}</p>
+            {getErrorMessage("description") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("description"))}</p>
             )}
           </div>
         </CardContent>
@@ -267,8 +270,8 @@ export function DroposalForm({ index }: Props) {
               placeholder="0.01"
               {...register(`transactions.${index}.price` as const)}
             />
-            {errors.transactions?.[index] && errors.transactions?.[index]?.price && (
-              <p className="text-xs text-red-500">{String(errors.transactions[index].price.message)}</p>
+            {getErrorMessage("price") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("price"))}</p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
               Zora charges 0.000777 ETH per mint as a protocol fee.{" "}
@@ -310,8 +313,8 @@ export function DroposalForm({ index }: Props) {
                 placeholder="100"
                 {...register(`transactions.${index}.editionSize` as const)}
               />
-              {errors.transactions?.[index] && errors.transactions?.[index]?.editionSize && (
-                <p className="text-xs text-red-500">{String(errors.transactions[index].editionSize.message)}</p>
+              {getErrorMessage("editionSize") && (
+                <p className="text-xs text-red-500">{String(getErrorMessage("editionSize"))}</p>
               )}
             </div>
           )}
@@ -331,8 +334,8 @@ export function DroposalForm({ index }: Props) {
               type="datetime-local"
               {...register(`transactions.${index}.startTime` as const)}
             />
-            {errors.transactions?.[index] && errors.transactions?.[index]?.startTime && (
-              <p className="text-xs text-red-500">{String(errors.transactions[index].startTime.message)}</p>
+            {getErrorMessage("startTime") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("startTime"))}</p>
             )}
           </div>
 
@@ -343,8 +346,8 @@ export function DroposalForm({ index }: Props) {
               type="datetime-local"
               {...register(`transactions.${index}.endTime` as const)}
             />
-            {errors.transactions?.[index] && errors.transactions?.[index]?.endTime && (
-              <p className="text-xs text-red-500">{String(errors.transactions[index].endTime.message)}</p>
+            {getErrorMessage("endTime") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("endTime"))}</p>
             )}
           </div>
 
@@ -356,8 +359,8 @@ export function DroposalForm({ index }: Props) {
               placeholder="Leave empty for unlimited"
               {...register(`transactions.${index}.mintLimitPerAddress` as const)}
             />
-            {errors.transactions?.[index] && errors.transactions?.[index]?.mintLimitPerAddress && (
-              <p className="text-xs text-red-500">{String(errors.transactions[index].mintLimitPerAddress.message)}</p>
+            {getErrorMessage("mintLimitPerAddress") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("mintLimitPerAddress"))}</p>
             )}
           </div>
         </CardContent>
@@ -379,8 +382,8 @@ export function DroposalForm({ index }: Props) {
               placeholder="5"
               {...register(`transactions.${index}.royaltyPercentage` as const)}
             />
-            {errors.transactions?.[index] && errors.transactions?.[index]?.royaltyPercentage && (
-              <p className="text-xs text-red-500">{String(errors.transactions[index].royaltyPercentage.message)}</p>
+            {getErrorMessage("royaltyPercentage") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("royaltyPercentage"))}</p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
               Percentage of secondary sales that go to the payout address
@@ -394,8 +397,8 @@ export function DroposalForm({ index }: Props) {
               placeholder="0x... or ENS name"
               {...register(`transactions.${index}.payoutAddress` as const)}
             />
-            {errors.transactions?.[index] && errors.transactions?.[index]?.payoutAddress && (
-              <p className="text-xs text-red-500">{String(errors.transactions[index].payoutAddress.message)}</p>
+            {getErrorMessage("payoutAddress") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("payoutAddress"))}</p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
               Address that receives mint proceeds and royalties (defaults to DAO treasury)
@@ -410,8 +413,8 @@ export function DroposalForm({ index }: Props) {
               value={address || ""}
               {...register(`transactions.${index}.defaultAdmin` as const)}
             />
-            {errors.transactions?.[index] && errors.transactions?.[index]?.defaultAdmin && (
-              <p className="text-xs text-red-500">{String(errors.transactions[index].defaultAdmin.message)}</p>
+            {getErrorMessage("defaultAdmin") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("defaultAdmin"))}</p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
               Address that can manage the collection (defaults to connected wallet)
@@ -428,8 +431,8 @@ export function DroposalForm({ index }: Props) {
           {...register(`transactions.${index}.description` as const)}
           rows={2}
         />
-        {errors.transactions?.[index] && errors.transactions?.[index]?.description && (
-          <p className="text-xs text-red-500">{String(errors.transactions[index].description.message)}</p>
+        {getErrorMessage("description") && (
+          <p className="text-xs text-red-500">{String(getErrorMessage("description"))}</p>
         )}
       </div>
     </div>

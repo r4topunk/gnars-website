@@ -56,8 +56,7 @@ export function SendNFTsForm({ index }: Props) {
         let all: Array<{ id: number; imageUrl?: string }> = [];
         let skip = 0;
         // page through all results from the API
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
+        for (;;) {
           const page = await subgraphQuery<TreasuryTokensQuery>(TREASURY_TOKENS_GQL, {
             dao: GNARS_ADDRESSES.token.toLowerCase(),
             owner: GNARS_ADDRESSES.treasury.toLowerCase(),
@@ -181,7 +180,7 @@ export function SendNFTsForm({ index }: Props) {
             )}
           </CardContent>
         </Card>
-        {((errors.transactions?.[index] as any)?.tokenId) && (
+        {(errors.transactions?.[index] && "tokenId" in (errors.transactions?.[index] as object)) && (
           <p className="text-xs text-red-500">Please select an NFT</p>
         )}
       </div>
@@ -193,8 +192,8 @@ export function SendNFTsForm({ index }: Props) {
           placeholder="0x... or ENS name"
           {...register(`transactions.${index}.to` as const)}
         />
-        {((errors.transactions?.[index] as any)?.to) && (
-          <p className="text-xs text-red-500">{String((errors.transactions?.[index] as any)?.to?.message)}</p>
+        {(errors.transactions?.[index] && "to" in (errors.transactions?.[index] as object)) && (
+          <p className="text-xs text-red-500">{String((errors.transactions?.[index] as Record<string, unknown>).to && (errors.transactions?.[index] as Record<string, { message?: string }> ).to?.message)}</p>
         )}
       </div>
 

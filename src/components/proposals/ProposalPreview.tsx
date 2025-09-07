@@ -51,9 +51,9 @@ export function ProposalPreview() {
   });
 
   // Get current form data
-  const data = watchedData || getValues();
+  const data = (watchedData as ProposalFormValues) || getValues();
 
-  const getTransactionIcon = (type: string) => {
+  const getTransactionIcon = (type: string | undefined) => {
     switch (type) {
       case "send-eth":
         return Send;
@@ -72,7 +72,7 @@ export function ProposalPreview() {
     }
   };
 
-  const getTransactionLabel = (type: string) => {
+  const getTransactionLabel = (type: string | undefined) => {
     switch (type) {
       case "send-eth":
         return "Send ETH";
@@ -107,6 +107,55 @@ export function ProposalPreview() {
         return `Execute custom transaction on ${transaction.target}`;
       default:
         return "Unknown transaction";
+    }
+  };
+
+  const resolveTargetAddress = (tx: TransactionFormValues): string => {
+    switch (tx.type) {
+      case "send-usdc":
+        return TREASURY_TOKEN_ALLOWLIST.USDC;
+      case "send-eth":
+      case "custom":
+        return tx.target;
+      case "send-tokens":
+        return tx.tokenAddress;
+      case "send-nfts":
+        return tx.contractAddress;
+      case "droposal":
+        return "";
+    }
+  };
+
+  const resolveValue = (tx: TransactionFormValues): string => {
+    switch (tx.type) {
+      case "send-eth":
+        return tx.value || "0";
+      case "send-usdc":
+      case "send-tokens":
+        return tx.amount || "0";
+      case "custom":
+        return tx.value || "0";
+      case "send-nfts":
+      case "droposal":
+        return "0";
+    }
+  };
+
+  const resolveUnit = (tx: TransactionFormValues): string => {
+    switch (tx.type) {
+      case "send-usdc":
+        return "USDC";
+      default:
+        return "ETH";
+    }
+  };
+
+  const resolveCalldata = (tx: TransactionFormValues): string => {
+    switch (tx.type) {
+      case "custom":
+        return tx.calldata;
+      default:
+        return "0x";
     }
   };
 
@@ -220,7 +269,7 @@ export function ProposalPreview() {
               break;
 
             default:
-              console.error(`Unknown transaction type: ${tx.type}`);
+              console.error("Unknown transaction type");
               targets.push("0x" as `0x${string}`);
               values.push(BigInt(0));
               calldatas.push("0x" as `0x${string}`);
@@ -251,7 +300,7 @@ export function ProposalPreview() {
   };
 
   const canSubmit =
-    data.title && data.transactions.length > 0 && !isSubmitting && !isPending && !isConfirming;
+    Boolean(data.title) && (data.transactions?.length ?? 0) > 0 && !isSubmitting && !isPending && !isConfirming;
 
   if (isSuccess) {
     return (
@@ -296,7 +345,7 @@ export function ProposalPreview() {
           )}
           <h1 className="text-3xl font-bold mb-4">{data.title}</h1>
           <div className="prose prose-gray max-w-none">
-            {data.description.split("\n\n").map((paragraph, i) => (
+            {(data.description ?? "").split("\n\n").map((paragraph, i) => (
               <p key={i} className="mb-4 last:mb-0">
                 {paragraph}
               </p>
@@ -308,10 +357,10 @@ export function ProposalPreview() {
       {/* Transactions Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Transactions ({data.transactions.length})</CardTitle>
+          <CardTitle>Transactions ({data.transactions?.length ?? 0})</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {data.transactions.map((transaction, index) => {
+          {(data.transactions ?? []).map((transaction, index) => {
             const Icon = getTransactionIcon(transaction.type);
             return (
               <div key={transaction.id || `${transaction.type}-${index}` } className="flex items-start space-x-3">
@@ -329,14 +378,10 @@ export function ProposalPreview() {
                   {transaction.description && <p className="text-sm">{transaction.description}</p>}
                   <div className="text-xs font-mono bg-muted p-2 rounded mt-2">
                     <div>
-                      Target: <SimpleAddressDisplay address={String(
-                        transaction.type === "send-usdc"
-                          ? TREASURY_TOKEN_ALLOWLIST.USDC
-                          : transaction.target || transaction.contractAddress || transaction.tokenAddress || ""
-                      )} />
+                      Target: <SimpleAddressDisplay address={resolveTargetAddress(transaction)} />
                     </div>
-                    <div>Value: {transaction.value || transaction.amount || "0"} {transaction.type === "send-usdc" ? "USDC" : "ETH"}</div>
-                    <div>Calldata: {transaction.calldata ? transaction.calldata.slice(0, 20) + "..." : "0x"}</div>
+                    <div>Value: {resolveValue(transaction)} {resolveUnit(transaction)}</div>
+                    <div>Calldata: {(() => { const cd = resolveCalldata(transaction); return cd ? (cd.length > 22 ? cd.slice(0, 20) + "..." : cd) : "0x"; })()}</div>
                   </div>
                 </div>
               </div>

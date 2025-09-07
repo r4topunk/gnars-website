@@ -1,4 +1,4 @@
-import { CHAIN, GNARS_ADDRESSES, ZORA_CREATOR } from "@/lib/config";
+import { GNARS_ADDRESSES, ZORA_CREATOR } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";

@@ -8,6 +8,10 @@ interface Props { index: number }
 
 export function SendEthForm({ index }: Props) {
   const { register, formState: { errors } } = useFormContext<ProposalFormValues>();
+  const getErrorMessage = (key: string): string | undefined => {
+    const txErrors = errors.transactions?.[index] as unknown as Record<string, { message?: string }> | undefined;
+    return txErrors?.[key]?.message;
+  };
 
   return (
     <div className="space-y-4">
@@ -18,8 +22,8 @@ export function SendEthForm({ index }: Props) {
           placeholder="0x... or ENS name"
           {...register(`transactions.${index}.target` as const)}
         />
-        {errors.transactions?.[index]?.target && (
-          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.target?.message)}</p>
+        {getErrorMessage("target") && (
+          <p className="text-xs text-red-500">{String(getErrorMessage("target"))}</p>
         )}
       </div>
 
@@ -32,8 +36,8 @@ export function SendEthForm({ index }: Props) {
           placeholder="0.0"
           {...register(`transactions.${index}.value` as const)}
         />
-        {errors.transactions?.[index]?.value && (
-          <p className="text-xs text-red-500">{String(errors.transactions?.[index]?.value?.message)}</p>
+        {getErrorMessage("value") && (
+          <p className="text-xs text-red-500">{String(getErrorMessage("value"))}</p>
         )}
       </div>
 
