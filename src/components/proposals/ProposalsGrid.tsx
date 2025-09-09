@@ -1,18 +1,28 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { Proposal, ProposalStatus } from "@/components/proposals/types";
 import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 
-export function ProposalsGrid() {
+export function ProposalsGrid({
+  filterStatuses,
+  onAvailableStatusesChange,
+}: {
+  filterStatuses?: Set<ProposalStatus>;
+  onAvailableStatusesChange?: (statuses: Set<ProposalStatus>) => void;
+}) {
   const PAGE_SIZE = 12;
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const defaultActiveStatuses = useMemo(
+    () => new Set((Object.values(ProposalStatus) as ProposalStatus[]).filter((s) => s !== ProposalStatus.CANCELLED)),
+    [],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -96,6 +106,8 @@ export function ProposalsGrid() {
           transactionHash: p.transactionHash,
         }));
         setProposals(mapped);
+        // Inform parent about available statuses immediately after fetch
+        onAvailableStatusesChange?.(new Set(mapped.map((p) => p.status)));
       } catch (err) {
         console.error("Failed to load proposals:", err);
         setProposals([]);
@@ -109,9 +121,23 @@ export function ProposalsGrid() {
     };
   }, []);
 
-  // Reset visible count if list updates (e.g., new fetch)
+  // Derive filtered proposals based on provided statuses or default
+  const effectiveStatuses = filterStatuses ?? defaultActiveStatuses;
+  const filteredProposals = useMemo(
+    () => proposals.filter((p) => effectiveStatuses.has(p.status)),
+    [proposals, effectiveStatuses],
+  );
+
+  // Reset/clamp visible count when data or filters change
   useEffect(() => {
-    setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), proposals.length || PAGE_SIZE));
+    setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), filteredProposals.length || PAGE_SIZE));
+  }, [filteredProposals.length]);
+
+  // Keep parent informed if proposals list changes outside initial fetch
+  useEffect(() => {
+    if (proposals.length > 0) {
+      onAvailableStatusesChange?.(new Set(proposals.map((p) => p.status)));
+    }
   }, [proposals]);
 
   // Observe sentinel to increase visible items progressively
@@ -122,7 +148,7 @@ export function ProposalsGrid() {
       (entries) => {
         const [entry] = entries;
         if (!entry?.isIntersecting) return;
-        setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, proposals.length));
+        setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredProposals.length));
       },
       { rootMargin: "200px" },
     );
@@ -131,7 +157,7 @@ export function ProposalsGrid() {
       observer.unobserve(el);
       observer.disconnect();
     };
-  }, [isLoading, proposals.length]);
+  }, [isLoading, filteredProposals.length]);
 
   if (isLoading && proposals.length === 0) {
     return <LoadingGridSkeleton items={12} withCard aspectClassName="h-24" containerClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3" />;
@@ -141,10 +167,14 @@ export function ProposalsGrid() {
     return <div className="text-center py-12 text-muted-foreground">No proposals found</div>;
   }
 
+  if (!isLoading && filteredProposals.length === 0) {
+    return <div className="text-center py-12 text-muted-foreground">No proposals match the selected filters</div>;
+  }
+
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {proposals.slice(0, visibleCount).map((proposal, i) => (
+        {filteredProposals.slice(0, visibleCount).map((proposal, i) => (
           <div
             key={proposal.proposalId}
             className="motion-safe:animate-in motion-safe:fade-in-50 motion-safe:slide-in-from-bottom-1"
@@ -154,7 +184,7 @@ export function ProposalsGrid() {
           </div>
         ))}
       </div>
-      {isLoading && proposals.length > 0 && (
+      {isLoading && filteredProposals.length > 0 && (
         <div className="mt-4">
           <LoadingGridSkeleton items={6} withCard aspectClassName="h-24" containerClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3" />
         </div>
