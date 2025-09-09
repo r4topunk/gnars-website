@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { Proposal, ProposalStatus } from "@/components/proposals/types";
 import { ProposalCard } from "@/components/proposals/ProposalCard";
@@ -8,8 +8,11 @@ import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 
 export function ProposalsGrid() {
+  const PAGE_SIZE = 12;
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -106,25 +109,57 @@ export function ProposalsGrid() {
     };
   }, []);
 
-  if (isLoading) {
-    return <LoadingGridSkeleton items={9} withCard aspectClassName="h-24" containerClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3" />;
+  // Reset visible count if list updates (e.g., new fetch)
+  useEffect(() => {
+    setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), proposals.length || PAGE_SIZE));
+  }, [proposals]);
+
+  // Observe sentinel to increase visible items progressively
+  useEffect(() => {
+    if (isLoading || !sentinelRef.current) return;
+    const el = sentinelRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry?.isIntersecting) return;
+        setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, proposals.length));
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => {
+      observer.unobserve(el);
+      observer.disconnect();
+    };
+  }, [isLoading, proposals.length]);
+
+  if (isLoading && proposals.length === 0) {
+    return <LoadingGridSkeleton items={12} withCard aspectClassName="h-24" containerClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3" />;
   }
 
-  if (proposals.length === 0) {
+  if (!isLoading && proposals.length === 0) {
     return <div className="text-center py-12 text-muted-foreground">No proposals found</div>;
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {proposals.map((proposal, i) => (
-        <div
-          key={proposal.proposalId}
-          className="motion-safe:animate-in motion-safe:fade-in-50 motion-safe:slide-in-from-bottom-1"
-          style={{ animationDelay: `${i * 45}ms` }}
-        >
-          <ProposalCard proposal={proposal} showBanner />
+    <>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {proposals.slice(0, visibleCount).map((proposal, i) => (
+          <div
+            key={proposal.proposalId}
+            className="motion-safe:animate-in motion-safe:fade-in-50 motion-safe:slide-in-from-bottom-1"
+            style={{ animationDelay: `${i * 45}ms` }}
+          >
+            <ProposalCard proposal={proposal} showBanner />
+          </div>
+        ))}
+      </div>
+      {isLoading && proposals.length > 0 && (
+        <div className="mt-4">
+          <LoadingGridSkeleton items={6} withCard aspectClassName="h-24" containerClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3" />
         </div>
-      ))}
-    </div>
+      )}
+      <div ref={sentinelRef} className="h-10" />
+    </>
   );
 }
