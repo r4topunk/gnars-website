@@ -112,7 +112,7 @@ export function RecentProposals({
       <RecentProposalsHeader />
       <CardContent className="space-y-4">
         {isLoading ? (
-          <RecentProposalsLoadingSkeleton />
+          <RecentProposalsLoadingSkeleton items={limit} />
         ) : displayedProposals.length === 0 ? (
           <RecentProposalsEmptyState />
         ) : (

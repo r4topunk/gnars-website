@@ -31,7 +31,7 @@ export function ProposalCard({ proposal, showBanner = false }: { proposal: Propo
 
   return (
     <Link href={`/proposals/${proposal.proposalNumber}`} className="block">
-      <Card className="hover:shadow-md transition-shadow overflow-hidden cursor-pointer">
+      <Card className="overflow-hidden cursor-pointer transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-md">
         {showBanner && (
           <div className="mx-4 border rounded-md overflow-hidden">
             <AspectRatio ratio={16 / 9}>

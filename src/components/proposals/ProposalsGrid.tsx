@@ -5,6 +5,7 @@ import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { Proposal, ProposalStatus } from "@/components/proposals/types";
 import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 
 export function ProposalsGrid() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -106,13 +107,7 @@ export function ProposalsGrid() {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <div className="h-48 bg-muted rounded animate-pulse" />
-        <div className="h-48 bg-muted rounded animate-pulse" />
-        <div className="h-48 bg-muted rounded animate-pulse" />
-      </div>
-    );
+    return <LoadingGridSkeleton items={9} withCard aspectClassName="h-24" containerClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3" />;
   }
 
   if (proposals.length === 0) {
@@ -121,8 +116,14 @@ export function ProposalsGrid() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {proposals.map((proposal) => (
-        <ProposalCard key={proposal.proposalId} proposal={proposal} showBanner />
+      {proposals.map((proposal, i) => (
+        <div
+          key={proposal.proposalId}
+          className="motion-safe:animate-in motion-safe:fade-in-50 motion-safe:slide-in-from-bottom-1"
+          style={{ animationDelay: `${i * 45}ms` }}
+        >
+          <ProposalCard proposal={proposal} showBanner />
+        </div>
       ))}
     </div>
   );

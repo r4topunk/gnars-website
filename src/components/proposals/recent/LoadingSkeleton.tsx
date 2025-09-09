@@ -1,12 +1,15 @@
 "use client";
 
-export function RecentProposalsLoadingSkeleton() {
+import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
+
+export function RecentProposalsLoadingSkeleton({ items = 6 }: { items?: number }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <div className="h-48 bg-muted rounded animate-pulse" />
-      <div className="h-48 bg-muted rounded animate-pulse" />
-      <div className="h-48 bg-muted rounded animate-pulse" />
-    </div>
+    <LoadingGridSkeleton
+      items={items}
+      withCard
+      aspectClassName="h-24"
+      containerClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+    />
   );
 }
 
