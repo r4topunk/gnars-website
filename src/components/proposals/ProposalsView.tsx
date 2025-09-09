@@ -63,7 +63,6 @@ function StatusFilter({
   onClearAll: () => void;
   onSelectDefault: () => void;
 }) {
-  const activeCount = activeStatuses.size;
   return (
     <Popover>
       <PopoverTrigger asChild>

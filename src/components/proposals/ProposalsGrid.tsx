@@ -119,7 +119,7 @@ export function ProposalsGrid({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [onAvailableStatusesChange]);
 
   // Derive filtered proposals based on provided statuses or default
   const effectiveStatuses = filterStatuses ?? defaultActiveStatuses;
@@ -138,7 +138,7 @@ export function ProposalsGrid({
     if (proposals.length > 0) {
       onAvailableStatusesChange?.(new Set(proposals.map((p) => p.status)));
     }
-  }, [proposals]);
+  }, [proposals, onAvailableStatusesChange]);
 
   // Observe sentinel to increase visible items progressively
   useEffect(() => {
