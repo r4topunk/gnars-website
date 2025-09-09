@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -28,6 +29,12 @@ export function ProposalCard({ proposal, showBanner = false }: { proposal: Propo
 
   const bannerUrl = normalizeImageUrl(extractFirstUrl(proposal.description));
   const currentBannerSrc = bannerUrl ?? "/logo-banner.jpg";
+  const [bannerSrc, setBannerSrc] = useState<string>(currentBannerSrc);
+
+  // Keep local banner src in sync when proposal changes
+  useEffect(() => {
+    setBannerSrc(currentBannerSrc);
+  }, [currentBannerSrc]);
 
   return (
     <Link href={`/proposals/${proposal.proposalNumber}`} className="block">
@@ -36,12 +43,15 @@ export function ProposalCard({ proposal, showBanner = false }: { proposal: Propo
           <div className="mx-4 border rounded-md overflow-hidden">
             <AspectRatio ratio={16 / 9}>
               <Image
-                src={currentBannerSrc}
+                src={bannerSrc}
                 alt="Proposal banner"
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className="object-cover"
                 priority={false}
+                onError={() => {
+                  if (bannerSrc !== "/logo-banner.jpg") setBannerSrc("/logo-banner.jpg");
+                }}
               />
             </AspectRatio>
           </div>
