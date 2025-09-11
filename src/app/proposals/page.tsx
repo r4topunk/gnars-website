@@ -4,11 +4,12 @@ import { Suspense } from "react";
 import { ProposalsGridSkeleton } from "@/components/proposals/ProposalsGrid";
 import { proposalSchema } from "@/lib/schemas/proposals";
 import { z } from "zod";
-import { BASE_URL } from "@/lib/config";
 
-async function fetchProposals(): Promise<Proposal[]> {
+export const dynamic = "force-dynamic";
+
+async function getProposals() {
   try {
-    const response = await fetch(`${BASE_URL}/api/proposals`, {
+    const response = await fetch(`/api/proposals`, {
       next: { revalidate: 300 }, // Revalidate every 5 minutes
     });
     if (!response.ok) {
@@ -28,7 +29,7 @@ async function fetchProposals(): Promise<Proposal[]> {
 }
 
 export default async function ProposalsPage() {
-  const proposals = await fetchProposals();
+  const proposals = await getProposals();
 
   return (
     <div className="container mx-auto py-8 px-4">
