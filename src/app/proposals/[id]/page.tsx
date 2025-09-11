@@ -1,4 +1,21 @@
-import { ProposalDetail } from "@/components/proposals/detail/ProposalDetail";
+import { ProposalDetail, ProposalDetailSkeleton } from "@/components/proposals/detail/ProposalDetail";
+import { Proposal } from "@/components/proposals/types";
+import { Suspense } from "react";
+
+async function fetchProposalData(id: string): Promise<Proposal | null> {
+  try {
+    // Using an absolute URL is recommended for server-side fetching in Next.js
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/proposals/${id}`);
+    if (!response.ok) {
+      return null;
+    }
+    const data: Proposal = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch proposal:", error);
+    return null;
+  }
+}
 
 interface ProposalPageProps {
   params: Promise<{ id: string }>;
@@ -6,10 +23,24 @@ interface ProposalPageProps {
 
 export default async function ProposalPage({ params }: ProposalPageProps) {
   const { id } = await params;
+  const proposal = await fetchProposalData(id);
+
+  if (!proposal) {
+    return (
+      <div className="container mx-auto py-8 px-4 text-center">
+        <h2 className="text-2xl font-bold text-muted-foreground">Proposal Not Found</h2>
+        <p className="text-muted-foreground mt-2">
+          The proposal you&apos;re looking for doesn&apos;t exist or has been removed.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <ProposalDetail proposalId={id} />
+      <Suspense fallback={<ProposalDetailSkeleton />}>
+        <ProposalDetail proposal={proposal} />
+      </Suspense>
     </div>
   );
 }

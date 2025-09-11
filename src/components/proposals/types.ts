@@ -10,24 +10,42 @@ export enum ProposalStatus {
   VETOED = "Vetoed",
 }
 
+export interface ProposalVote {
+  voter: string;
+  voterEnsName?: string;
+  choice: "FOR" | "AGAINST" | "ABSTAIN";
+  votes: string;
+  transactionHash: string;
+}
+
 export interface Proposal {
   proposalId: string;
   proposalNumber: number;
   title: string;
-  description?: string;
+  description: string;
+  state:
+    | "PENDING"
+    | "ACTIVE"
+    | "DEFEATED"
+    | "SUCCEEDED"
+    | "QUEUED"
+    | "EXECUTED"
+    | "CANCELED"
+    | "VETOED";
   proposer: string;
-  status: ProposalStatus;
-  forVotes: number;
-  againstVotes: number;
-  abstainVotes: number;
-  quorumVotes: number;
-  voteStart: string;
-  voteEnd: string;
-  expiresAt?: string;
-  timeCreated: number;
-  executed: boolean;
-  canceled: boolean;
-  queued: boolean;
-  vetoed: boolean;
-  transactionHash?: string;
+  proposerEnsName?: string;
+  createdAt: number;
+  endBlock: number;
+  snapshotBlock?: number;
+  endDate?: Date;
+  forVotes: string;
+  againstVotes: string;
+  abstainVotes: string;
+  quorumVotes: string;
+  calldatas: string[];
+  targets: string[];
+  values: string[];
+  signatures: string[];
+  transactionHash: string;
+  votes?: ProposalVote[];
 }
