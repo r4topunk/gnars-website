@@ -4,8 +4,9 @@ import { Proposal, ProposalStatus } from "@/components/proposals/types";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 
 export const revalidate = 60; // Revalidate every 60 seconds
+export const dynamic = 'force-dynamic';
 
-function getProposalStatus(state: unknown): ProposalStatus {
+export function getProposalStatus(state: unknown): ProposalStatus {
   if (typeof state === "number") {
     switch (state) {
       case 0:

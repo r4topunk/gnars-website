@@ -14,6 +14,7 @@ import { MemberProposalsGrid } from "@/components/members/detail/MemberProposals
 import { MemberDelegatorsTable } from "@/components/members/detail/MemberDelegatorsTable";
 import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
 import { MemberTokensGrid } from "@/components/members/detail/MemberTokensGrid";
+import { getProposalStatus } from "@/app/api/proposals/route";
  
 
 interface MemberDetailProps {
@@ -86,76 +87,45 @@ export function MemberDetail({ address }: MemberDetailProps) {
         const { proposals: sdkProposals } = await getProposals(CHAIN.id, GNARS_ADDRESSES.token, 200);
         const mapped: UiProposal[] = ((sdkProposals as SdkProposal[] | undefined) ?? [])
           .filter((p) => String(p.proposer).toLowerCase() === address.toLowerCase())
-          .map((p) => ({
-            proposalId: String(p.proposalId),
-            proposalNumber: Number(p.proposalNumber),
-            title: p.title ?? "",
-            description: p.description ?? "",
-            proposer: p.proposer,
-            status: (() => {
-              const s = p.state as unknown;
-              if (typeof s === "number") {
-                switch (s) {
-                  case 0:
-                    return ProposalStatus.PENDING;
-                  case 1:
-                    return ProposalStatus.ACTIVE;
-                  case 2:
-                    return ProposalStatus.CANCELLED;
-                  case 3:
-                    return ProposalStatus.DEFEATED;
-                  case 4:
-                    return ProposalStatus.SUCCEEDED;
-                  case 5:
-                    return ProposalStatus.QUEUED;
-                  case 6:
-                    return ProposalStatus.EXPIRED;
-                  case 7:
-                    return ProposalStatus.EXECUTED;
-                  case 8:
-                    return ProposalStatus.VETOED;
-                  default:
-                    return ProposalStatus.PENDING;
-                }
-              }
-              const up = String(s).toUpperCase();
-              switch (up) {
-                case "PENDING":
-                  return ProposalStatus.PENDING;
-                case "ACTIVE":
-                  return ProposalStatus.ACTIVE;
-                case "SUCCEEDED":
-                  return ProposalStatus.SUCCEEDED;
-                case "QUEUED":
-                  return ProposalStatus.QUEUED;
-                case "EXECUTED":
-                  return ProposalStatus.EXECUTED;
-                case "DEFEATED":
-                  return ProposalStatus.DEFEATED;
-                case "CANCELED":
-                  return ProposalStatus.CANCELLED;
-                case "VETOED":
-                  return ProposalStatus.VETOED;
-                case "EXPIRED":
-                  return ProposalStatus.EXPIRED;
-                default:
-                  return ProposalStatus.PENDING;
-              }
-            })(),
-            forVotes: Number(p.forVotes ?? 0),
-            againstVotes: Number(p.againstVotes ?? 0),
-            abstainVotes: Number(p.abstainVotes ?? 0),
-            quorumVotes: Number(p.quorumVotes ?? 0),
-            voteStart: new Date(Number(p.voteStart ?? 0) * 1000).toISOString(),
-            voteEnd: new Date(Number(p.voteEnd ?? 0) * 1000).toISOString(),
-            expiresAt: p.expiresAt ? new Date(Number(p.expiresAt) * 1000).toISOString() : undefined,
-            timeCreated: Number(p.timeCreated ?? 0),
-            executed: Boolean(p.executedAt),
-            canceled: Boolean(p.cancelTransactionHash),
-            queued: String(p.state) === "QUEUED",
-            vetoed: Boolean(p.vetoTransactionHash),
-            transactionHash: p.transactionHash,
-          }));
+          .map((p) => {
+            const status = getProposalStatus(p.state);
+            return {
+              proposalId: String(p.proposalId),
+              proposalNumber: Number(p.proposalNumber),
+              title: p.title ?? "",
+              description: p.description ?? "",
+              proposer: p.proposer,
+              status,
+              state: String(p.state ?? "PENDING").toUpperCase() as UiProposal["state"],
+              proposerEnsName: undefined,
+              createdAt: Number(p.timeCreated ?? 0) * 1000,
+              endBlock: Number(p.voteEnd ?? 0),
+              snapshotBlock: p.snapshotBlockNumber
+                ? Number(p.snapshotBlockNumber)
+                : undefined,
+              endDate: p.voteEnd ? new Date(Number(p.voteEnd) * 1000) : undefined,
+              forVotes: Number(p.forVotes ?? 0),
+              againstVotes: Number(p.againstVotes ?? 0),
+              abstainVotes: Number(p.abstainVotes ?? 0),
+              quorumVotes: Number(p.quorumVotes ?? 0),
+              calldatas: [],
+              targets: (p.targets as string[] | undefined) ?? [],
+              values: (p.values as string[] | undefined) ?? [],
+              signatures: [],
+              transactionHash: p.transactionHash ?? "",
+              votes: [],
+              voteStart: new Date(Number(p.voteStart ?? 0) * 1000).toISOString(),
+              voteEnd: new Date(Number(p.voteEnd ?? 0) * 1000).toISOString(),
+              expiresAt: p.expiresAt
+                ? new Date(Number(p.expiresAt) * 1000).toISOString()
+                : undefined,
+              timeCreated: Number(p.timeCreated ?? 0),
+              executed: Boolean(p.executedAt),
+              canceled: Boolean(p.cancelTransactionHash),
+              queued: status === ProposalStatus.QUEUED,
+              vetoed: Boolean(p.vetoTransactionHash),
+            };
+          });
         setProposals(mapped);
       } catch (err) {
         console.error("Failed to load member details", err);
