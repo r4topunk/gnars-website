@@ -4,11 +4,12 @@ import { Suspense } from "react";
 import { ProposalsGridSkeleton } from "@/components/proposals/ProposalsGrid";
 import { proposalSchema } from "@/lib/schemas/proposals";
 import { z } from "zod";
+import { BASE_URL } from "@/lib/config";
 
 async function fetchProposals(): Promise<Proposal[]> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/proposals`, {
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
+    const response = await fetch(`${BASE_URL}/api/proposals`, {
+      next: { revalidate: 300 }, // Revalidate every 5 minutes
     });
     if (!response.ok) {
       return [];

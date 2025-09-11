@@ -1,11 +1,12 @@
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Proposal } from "@/components/proposals/types";
 import { HomeClientComponents } from "@/components/home-client-components";
+import { BASE_URL } from "@/lib/config";
 
-async function fetchRecentProposals(): Promise<Proposal[]> {
+async function getRecentProposals() {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/proposals?limit=10`, {
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
+    const response = await fetch(`${BASE_URL}/api/proposals?limit=10`, {
+      next: { revalidate: 300 },
     });
     if (!response.ok) {
       return [];
@@ -19,7 +20,7 @@ async function fetchRecentProposals(): Promise<Proposal[]> {
 }
 
 export default async function Home() {
-  const proposals = await fetchRecentProposals();
+  const proposals = await getRecentProposals();
 
   return (
     <SidebarInset>

@@ -2,13 +2,13 @@ import { ProposalDetail, ProposalDetailSkeleton } from "@/components/proposals/d
 import { Proposal } from "@/components/proposals/types";
 import { Suspense } from "react";
 import { proposalSchema } from "@/lib/schemas/proposals";
+import { BASE_URL } from "@/lib/config";
 
 async function fetchProposalData(id: string): Promise<Proposal | null> {
   try {
-    // Using an absolute URL is recommended for server-side fetching in Next.js
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/proposals/${id}`);
+    const response = await fetch(`${BASE_URL}/api/proposals/${id}`);
     if (!response.ok) {
-      return null;
+      throw new Error("Failed to fetch proposal");
     }
     const data = await response.json();
     const validation = proposalSchema.safeParse(data);

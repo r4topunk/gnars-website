@@ -48,7 +48,7 @@ export function useProposalSearch(proposals: Proposal[]) {
       if (!w || !ready) return;
       w.postMessage({ type: 'search', query: trimmedQuery });
     },
-    [ready]
+    [ready, proposals]
   );
 
   useEffect(() => () => { workerRef.current?.terminate(); workerRef.current = null; }, []);
