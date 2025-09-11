@@ -40,7 +40,7 @@ export function useProposalSearch(proposals: Proposal[]) {
     (q: string) => {
       const trimmedQuery = q.trim();
       if (!trimmedQuery) {
-        setIds(undefined);
+        setIds(proposals.map(p => p.proposalId));
         return;
       }
 

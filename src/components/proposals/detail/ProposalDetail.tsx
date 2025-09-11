@@ -11,6 +11,7 @@ import { ProposedTransactionsTable } from "@/components/proposals/detail/Propose
 import { ProposalVotesTable } from "@/components/proposals/detail/ProposalVotesTable";
 import { PropdatesPlaceholder } from "@/components/proposals/detail/PropdatesPlaceholder";
 import { Proposal } from "@/components/proposals/types";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface ProposalDetailProps {
   proposal: Proposal;
@@ -43,7 +44,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         proposalNumber={proposal.proposalNumber}
         title={proposal.title}
         proposer={proposal.proposer}
-        state={proposal.state}
+        status={proposal.status}
         transactionHash={proposal.transactionHash}
       />
       <ProposalMetrics
@@ -61,7 +62,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         <CardContent>
           <VotingControls
             proposalId={proposal.proposalNumber.toString()}
-            isActive={proposal.state === "ACTIVE"}
+            isActive={proposal.status === ProposalStatus.ACTIVE}
             hasVoted={hasVoted}
             userVote={userVote || undefined}
             onVote={handleVote}

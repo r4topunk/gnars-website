@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
-import { type Proposal as UiProposal, ProposalStatus } from "@/components/proposals/types";
+import { type Proposal as UiProposal } from "@/components/proposals/types";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { MemberHeader } from "@/components/members/detail/MemberHeader";
@@ -14,7 +14,7 @@ import { MemberProposalsGrid } from "@/components/members/detail/MemberProposals
 import { MemberDelegatorsTable } from "@/components/members/detail/MemberDelegatorsTable";
 import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
 import { MemberTokensGrid } from "@/components/members/detail/MemberTokensGrid";
-import { getProposalStatus } from "@/app/api/proposals/route";
+import { getProposalStatus } from "@/lib/schemas/proposals";
  
 
 interface MemberDetailProps {
@@ -96,7 +96,6 @@ export function MemberDetail({ address }: MemberDetailProps) {
               description: p.description ?? "",
               proposer: p.proposer,
               status,
-              state: String(p.state ?? "PENDING").toUpperCase() as UiProposal["state"],
               proposerEnsName: undefined,
               createdAt: Number(p.timeCreated ?? 0) * 1000,
               endBlock: Number(p.voteEnd ?? 0),
@@ -120,10 +119,6 @@ export function MemberDetail({ address }: MemberDetailProps) {
                 ? new Date(Number(p.expiresAt) * 1000).toISOString()
                 : undefined,
               timeCreated: Number(p.timeCreated ?? 0),
-              executed: Boolean(p.executedAt),
-              canceled: Boolean(p.cancelTransactionHash),
-              queued: status === ProposalStatus.QUEUED,
-              vetoed: Boolean(p.vetoTransactionHash),
             };
           });
         setProposals(mapped);

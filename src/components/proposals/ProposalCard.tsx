@@ -10,11 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { Proposal, ProposalStatus } from "@/components/proposals/types";
+import { Proposal } from "@/components/proposals/types";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 import { getStatusConfig, extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils";
 
 export function ProposalCard({ proposal, showBanner = false }: { proposal: Proposal; showBanner?: boolean }) {
-  const { color, Icon: StatusIcon } = getStatusConfig(proposal.status);
+  const { Icon, color } = getStatusConfig(proposal.status);
 
   const totalVotes = (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
   const forPercentage = totalVotes > 0 ? (proposal.forVotes / totalVotes) * 100 : 0;
@@ -64,7 +65,7 @@ export function ProposalCard({ proposal, showBanner = false }: { proposal: Propo
                   <span className="text-sm font-medium text-muted-foreground">Prop #{proposal.proposalNumber}</span>
                   <div className="flex-shrink-0">
                     <Badge className={`${color} text-xs`}>
-                      <StatusIcon className="w-3 h-3 mr-1" />
+                      <Icon className="w-3 h-3 mr-1" />
                       {proposal.status}
                     </Badge>
                   </div>

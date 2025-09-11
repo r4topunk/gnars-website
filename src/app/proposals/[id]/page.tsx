@@ -1,6 +1,7 @@
 import { ProposalDetail, ProposalDetailSkeleton } from "@/components/proposals/detail/ProposalDetail";
 import { Proposal } from "@/components/proposals/types";
 import { Suspense } from "react";
+import { proposalSchema } from "@/lib/schemas/proposals";
 
 async function fetchProposalData(id: string): Promise<Proposal | null> {
   try {
@@ -9,8 +10,13 @@ async function fetchProposalData(id: string): Promise<Proposal | null> {
     if (!response.ok) {
       return null;
     }
-    const data: Proposal = await response.json();
-    return data;
+    const data = await response.json();
+    const validation = proposalSchema.safeParse(data);
+    if (!validation.success) {
+      console.error("Failed to validate proposal:", validation.error);
+      return null;
+    }
+    return validation.data;
   } catch (error) {
     console.error("Failed to fetch proposal:", error);
     return null;

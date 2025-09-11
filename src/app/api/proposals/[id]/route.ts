@@ -2,9 +2,10 @@ import { getProposal, getProposals, type Proposal as SdkProposal } from "@builde
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { NextRequest, NextResponse } from "next/server";
 import { Proposal, ProposalVote } from "@/components/proposals/types";
-import { ProposalStatus } from "@/components/proposals/types";
+import { getProposalStatus } from "@/lib/schemas/proposals";
 
 export const revalidate = 60; // Revalidate every 60 seconds
+export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,
@@ -64,65 +65,12 @@ export async function GET(
       return expiresAtNumber > 0 ? new Date(expiresAtNumber * 1000) : undefined;
     })();
 
-    // Map state to status
-    const getProposalStatus = (state: unknown) => {
-      if (typeof state === "number") {
-        switch (state) {
-          case 0:
-            return ProposalStatus.PENDING;
-          case 1:
-            return ProposalStatus.ACTIVE;
-          case 2:
-            return ProposalStatus.CANCELLED;
-          case 3:
-            return ProposalStatus.DEFEATED;
-          case 4:
-            return ProposalStatus.SUCCEEDED;
-          case 5:
-            return ProposalStatus.QUEUED;
-          case 6:
-            return ProposalStatus.EXPIRED;
-          case 7:
-            return ProposalStatus.EXECUTED;
-          case 8:
-            return ProposalStatus.VETOED;
-          default:
-            return ProposalStatus.PENDING;
-        }
-      }
-
-      const up = String(state).toUpperCase();
-      switch (up) {
-        case "PENDING":
-          return ProposalStatus.PENDING;
-        case "ACTIVE":
-          return ProposalStatus.ACTIVE;
-        case "SUCCEEDED":
-          return ProposalStatus.SUCCEEDED;
-        case "QUEUED":
-          return ProposalStatus.QUEUED;
-        case "EXECUTED":
-          return ProposalStatus.EXECUTED;
-        case "DEFEATED":
-          return ProposalStatus.DEFEATED;
-        case "CANCELED":
-          return ProposalStatus.CANCELLED;
-        case "VETOED":
-          return ProposalStatus.VETOED;
-        case "EXPIRED":
-          return ProposalStatus.EXPIRED;
-        default:
-          return ProposalStatus.PENDING;
-      }
-    };
-
     const proposal: Proposal = {
       proposalId: String(sdkProposal.proposalId),
-      proposalNumber: Number(sdkProposal.proposalNumber ?? 0),
+      proposalNumber: Number(sdkProposal.proposalNumber),
       title: sdkProposal.title ?? "",
       description: sdkProposal.description ?? "",
       status: getProposalStatus(sdkProposal.state),
-      state: String(sdkProposal.state ?? "PENDING").toUpperCase() as Proposal["state"],
       proposer: String(sdkProposal.proposer),
       proposerEnsName: undefined,
       createdAt: Number(sdkProposal.timeCreated ?? 0) * 1000,
@@ -171,10 +119,6 @@ export async function GET(
         ? new Date(Number(sdkProposal.expiresAt) * 1000).toISOString()
         : undefined,
       timeCreated: Number(sdkProposal.timeCreated ?? 0),
-      executed: Boolean(sdkProposal.executedAt),
-      canceled: Boolean(sdkProposal.cancelTransactionHash),
-      queued: String(sdkProposal.state).toUpperCase() === "QUEUED",
-      vetoed: Boolean(sdkProposal.vetoTransactionHash),
     };
 
     return NextResponse.json(proposal);

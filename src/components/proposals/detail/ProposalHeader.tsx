@@ -4,70 +4,50 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/ui/address-display";
-
-type ProposalState =
-  | "PENDING"
-  | "ACTIVE"
-  | "DEFEATED"
-  | "SUCCEEDED"
-  | "QUEUED"
-  | "EXECUTED"
-  | "CANCELED"
-  | "VETOED";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface ProposalHeaderProps {
   proposalNumber: number;
   title: string;
   proposer: string;
-  state: ProposalState;
+  status: ProposalStatus;
   transactionHash?: string;
 }
 
-const getStatusBadgeVariant = (state: ProposalState) => {
-  switch (state) {
-    case "EXECUTED":
+const getStatusBadgeVariant = (status: ProposalStatus) => {
+  switch (status) {
+    case ProposalStatus.EXECUTED:
       return "default" as const; // green
-    case "ACTIVE":
+    case ProposalStatus.ACTIVE:
       return "secondary" as const; // blue
-    case "DEFEATED":
-    case "VETOED":
+    case ProposalStatus.DEFEATED:
+    case ProposalStatus.VETOED:
       return "destructive" as const; // red
-    case "CANCELED":
+    case ProposalStatus.CANCELLED:
       return "outline" as const; // gray
     default:
       return "secondary" as const;
   }
 };
 
-const getStatusLabel = (state: ProposalState) => {
-  switch (state) {
-    case "PENDING":
-      return "Pending";
-    case "ACTIVE":
-      return "Active";
-    case "DEFEATED":
-      return "Defeated";
-    case "SUCCEEDED":
-      return "Succeeded";
-    case "QUEUED":
-      return "Queued";
-    case "EXECUTED":
-      return "Executed";
-    case "CANCELED":
-      return "Canceled";
-    case "VETOED":
-      return "Vetoed";
-    default:
-      return state;
-  }
+const getStatusLabel = (status: ProposalStatus) => {
+  return status;
 };
 
-export function ProposalHeader({ proposalNumber, title, proposer, state, transactionHash }: ProposalHeaderProps) {
+export function ProposalHeader({
+  proposalNumber,
+  title,
+  proposer,
+  status,
+  transactionHash,
+}: ProposalHeaderProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>Proposal {proposalNumber}</span>
-        <Badge variant={getStatusBadgeVariant(state)}>{getStatusLabel(state)}</Badge>
+        <Badge variant={getStatusBadgeVariant(status)}>
+          {getStatusLabel(status)}
+        </Badge>
         {transactionHash ? (
           <a
             href={`https://basescan.org/tx/${transactionHash}`}

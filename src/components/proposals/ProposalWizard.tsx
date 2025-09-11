@@ -3,13 +3,18 @@
 import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertTriangle, Loader2 } from "lucide-react";
+import { useAccount } from "wagmi";
 import { ProposalDetailsForm } from "@/components/proposals/ProposalDetailsForm";
 import { ProposalPreview } from "@/components/proposals/ProposalPreview";
 import { TransactionBuilder } from "@/components/proposals/builder/TransactionBuilder";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { proposalSchema, type ProposalFormValues } from "./schema";
+import { useVotes } from "@/hooks/use-votes";
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function ProposalWizard() {
   const [currentTab, setCurrentTab] = useState("details");
@@ -25,6 +30,15 @@ export function ProposalWizard() {
     },
     mode: "onChange",
   });
+
+  const { address, isConnected } = useAccount();
+  const { isLoading, hasThreshold, votes, proposalVotesRequired, isDelegating, delegatedTo } =
+    useVotes({
+      chainId: CHAIN.id,
+      collectionAddress: GNARS_ADDRESSES.token,
+      governorAddress: GNARS_ADDRESSES.governor,
+      signerAddress: address,
+    });
 
   const { trigger, watch } = methods;
 
@@ -50,6 +64,45 @@ export function ProposalWizard() {
   };
 
   // Child builder handles add/update/remove via useFieldArray
+
+  if (isConnected && isLoading) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          <span>Checking proposal eligibility...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isConnected && !isLoading && !hasThreshold) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Insufficient Voting Power</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              You need at least {proposalVotesRequired?.toString() || "N/A"} votes to create a
+              proposal.
+              {votes !== undefined && (
+                <>
+                  {" "}
+                  You currently have {votes.toString()} votes.
+                  {isDelegating && delegatedTo && (
+                    <> Your votes are delegated to {delegatedTo}.</>
+                  )}
+                </>
+              )}
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <FormProvider {...methods}>

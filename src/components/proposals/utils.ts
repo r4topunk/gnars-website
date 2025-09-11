@@ -1,5 +1,5 @@
 import { AlertCircle, CheckCircle, Clock, XCircle, Pause } from "lucide-react";
-import { ProposalStatus } from "@/components/proposals/types";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 
 import type { SVGProps } from "react";
 

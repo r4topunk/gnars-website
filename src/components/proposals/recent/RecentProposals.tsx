@@ -4,15 +4,16 @@ import { useEffect, useState } from "react";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { Card, CardContent } from "@/components/ui/card";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { Proposal, ProposalStatus } from "@/components/proposals/types";
+import { Proposal } from "@/components/proposals/types";
 import { RecentProposalsHeader } from "@/components/proposals/recent/RecentProposalsHeader";
 import { ProposalsGrid } from "@/components/proposals/recent/ProposalsGrid";
 import { RecentProposalsLoadingSkeleton } from "@/components/proposals/recent/LoadingSkeleton";
 import { RecentProposalsEmptyState } from "@/components/proposals/recent/EmptyState";
-import { getProposalStatus } from "@/app/api/proposals/route";
+import { getProposalStatus, ProposalStatus } from "@/lib/schemas/proposals";
 
 // Re-export for backwards compatibility
-export { ProposalStatus, type Proposal } from "@/components/proposals/types";
+export { type Proposal } from "@/components/proposals/types";
+export { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface RecentProposalsProps {
   proposals?: Proposal[];
@@ -50,7 +51,6 @@ export function RecentProposals({
             description: p.description ?? "",
             proposer: p.proposer,
             status: getProposalStatus(p.state), // Use the imported getProposalStatus
-            state: String(p.state ?? "PENDING").toUpperCase() as Proposal["state"],
             proposerEnsName: undefined,
             createdAt: Number(p.timeCreated ?? 0) * 1000,
             endBlock: Number(p.voteEnd ?? 0),
@@ -74,10 +74,6 @@ export function RecentProposals({
               ? new Date(Number(p.expiresAt) * 1000).toISOString()
               : undefined,
             timeCreated: Number(p.timeCreated ?? 0),
-            executed: Boolean(p.executedAt),
-            canceled: Boolean(p.cancelTransactionHash),
-            queued: getProposalStatus(p.state) === ProposalStatus.QUEUED, // Use getProposalStatus for queued status
-            vetoed: Boolean(p.vetoTransactionHash),
           };
         });
         setInternalProposals(mapped);

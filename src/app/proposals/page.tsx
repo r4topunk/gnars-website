@@ -2,6 +2,8 @@ import { ProposalsView } from "@/components/proposals/ProposalsView";
 import { Proposal } from "@/components/proposals/types";
 import { Suspense } from "react";
 import { ProposalsGridSkeleton } from "@/components/proposals/ProposalsGrid";
+import { proposalSchema } from "@/lib/schemas/proposals";
+import { z } from "zod";
 
 async function fetchProposals(): Promise<Proposal[]> {
   try {
@@ -11,8 +13,13 @@ async function fetchProposals(): Promise<Proposal[]> {
     if (!response.ok) {
       return [];
     }
-    const data: Proposal[] = await response.json();
-    return data;
+    const data = await response.json();
+    const validation = z.array(proposalSchema).safeParse(data);
+    if (!validation.success) {
+      console.error("Failed to validate proposals:", validation.error);
+      return [];
+    }
+    return validation.data;
   } catch (error) {
     console.error("Failed to fetch proposals:", error);
     return [];

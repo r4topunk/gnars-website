@@ -2,7 +2,8 @@
 
 import { useMemo, useState, useEffect, useDeferredValue } from "react";
 import { ProposalsGrid } from "@/components/proposals/ProposalsGrid";
-import { Proposal, ProposalStatus } from "@/components/proposals/types";
+import { Proposal } from "@/components/proposals/types";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,12 +20,8 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   const [activeStatuses, setActiveStatuses] = useState<Set<ProposalStatus>>(
     () => new Set((Object.values(ProposalStatus) as ProposalStatus[]).filter((s) => s !== ProposalStatus.CANCELLED))
   );
-  const [availableStatuses, setAvailableStatuses] = useState<Set<ProposalStatus>>(new Set());
-
-  useEffect(() => {
-    if (allProposals.length > 0) {
-      setAvailableStatuses(new Set(allProposals.map((p) => p.status)));
-    }
+  const availableStatuses = useMemo(() => {
+    return new Set(allProposals.map((p) => p.status));
   }, [allProposals]);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,6 +35,17 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   useEffect(() => {
     searchProposals(deferredSearchQuery);
   }, [deferredSearchQuery, searchProposals]);
+
+  const filteredProposals = useMemo(() => {
+    let proposalsToFilter = allProposals;
+
+    if (searchFilteredIds) {
+      const idSet = new Set(searchFilteredIds);
+      proposalsToFilter = allProposals.filter((p) => idSet.has(p.proposalId));
+    }
+
+    return proposalsToFilter.filter((p) => activeStatuses.has(p.status));
+  }, [allProposals, activeStatuses, searchFilteredIds]);
 
   return (
     <div className="space-y-6">
@@ -75,7 +83,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
           />
         </div>
       </div>
-      <ProposalsGrid proposals={allProposals} filterStatuses={activeStatuses} searchFilteredIds={searchFilteredIds} />
+      <ProposalsGrid proposals={filteredProposals} />
     </div>
   );
 }

@@ -11,7 +11,8 @@ import {
 import { HeroSection } from "@/components/hero-section";
 import { PastAuctions } from "@/components/auctions/PastAuctions";
 import { RecentProposals } from "@/components/proposals/recent/RecentProposals";
-import { ProposalStatus, Proposal } from "@/components/proposals/types";
+import { Proposal } from "@/components/proposals/types";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 import { useRecentAuctions } from "@/hooks/use-auctions";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { fetchDaoStats } from "@/services/dao";

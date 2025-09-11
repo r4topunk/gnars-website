@@ -6,27 +6,64 @@ const addressSchema = z.string().refine((val) => isAddress(val), {
   message: "Invalid Ethereum address",
 });
 
-// Custom positive number validation for string inputs
-const positiveNumberString = z.string().refine((val) => {
-  const num = parseFloat(val);
-  return !isNaN(num) && num > 0;
-}, {
-  message: "Must be a positive number",
-});
+// Reusable numeric string validation
+const numericString = <T extends z.ZodType<string | undefined>>(schema: T) => {
+  return schema.refine(
+    (val) => {
+      if (!val) return true; // Allow optional empty strings
+      const num = parseFloat(val);
+      return !isNaN(num) && isFinite(num);
+    },
+    { message: "Must be a valid number" }
+  );
+};
 
-// Custom optional positive number validation
-const optionalPositiveNumberString = z.string().optional().refine((val) => {
-  if (!val) return true; // Allow empty
-  const num = parseFloat(val);
-  return !isNaN(num) && num > 0;
-}, {
-  message: "Must be a positive number or empty",
-});
+const positiveNumericString = (schema = z.string()) => {
+  return numericString(schema).refine(
+    (val) => {
+      if (!val) return true;
+      return parseFloat(val) > 0;
+    },
+    { message: "Must be a positive number" }
+  );
+};
+
+const positiveNumericStringOptional = (schema = z.string().optional()) => {
+  return numericString(schema).refine(
+    (val) => {
+      if (!val) return true;
+      return parseFloat(val) > 0;
+    },
+    { message: "Must be a positive number" }
+  );
+};
+
+const nonNegativeNumericString = (schema = z.string()) => {
+  return numericString(schema).refine(
+    (val) => {
+      if (!val) return true;
+      return parseFloat(val) >= 0;
+    },
+    { message: "Must be a non-negative number" }
+  );
+};
+
+const nonNegativeNumericStringOptional = (schema = z.string().optional()) => {
+  return numericString(schema).refine(
+    (val) => {
+      if (!val) return true;
+      return parseFloat(val) >= 0;
+    },
+    { message: "Must be a non-negative number" }
+  );
+};
 
 // Custom hex validation for calldata
-const hexSchema = z.string().refine((val) => /^0x[0-9a-fA-F]*$/.test(val), {
-  message: "Must be valid hex string starting with 0x",
-});
+const hexSchema = z
+  .string()
+  .refine((val) => /^0x[0-9a-fA-F]*$/.test(val), {
+    message: "Must be valid hex string starting with 0x",
+  });
 
 // Base transaction schema
 const baseTransactionSchema = z.object({
@@ -38,17 +75,14 @@ const baseTransactionSchema = z.object({
 export const sendEthTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("send-eth"),
   target: addressSchema,
-  value: z.string().min(1, "Amount is required").refine((val) => {
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0;
-  }, "Must be a positive amount"),
+  value: positiveNumericString(z.string().min(1, "Amount is required")),
 });
 
 // Send USDC transaction
 export const sendUsdcTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("send-usdc"),
   recipient: addressSchema,
-  amount: positiveNumberString,
+  amount: positiveNumericString(z.string().min(1, "Amount is required")),
 });
 
 // Send Tokens transaction
@@ -56,17 +90,14 @@ export const sendTokensTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("send-tokens"),
   tokenAddress: addressSchema,
   recipient: addressSchema,
-  amount: positiveNumberString,
+  amount: positiveNumericString(z.string().min(1, "Amount is required")),
 });
 
 // Send NFTs transaction
 export const sendNftsTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("send-nfts"),
   contractAddress: addressSchema,
-  tokenId: z.string().min(1, "Token ID is required").refine((val) => {
-    const num = parseInt(val);
-    return !isNaN(num) && num >= 0;
-  }, "Must be a valid token ID"),
+  tokenId: nonNegativeNumericString(z.string().min(1, "Token ID is required")),
   from: addressSchema,
   to: addressSchema,
 });
@@ -79,20 +110,19 @@ export const droposalTransactionSchema = baseTransactionSchema.extend({
   description: z.string().min(1, "Description is required"),
   mediaUrl: z.string().min(1, "Media URL is required"),
   coverUrl: z.string().optional(),
-  price: positiveNumberString,
+  price: positiveNumericString(z.string().min(1, "Price is required")),
   editionType: z.enum(["fixed", "open"]),
-  editionSize: z.string().optional().refine((val) => {
-    if (!val) return true; // Allow empty for open edition
-    const num = parseInt(val);
-    return !isNaN(num) && num > 0;
-  }, "Must be a positive number"),
+  editionSize: positiveNumericStringOptional(),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
-  mintLimitPerAddress: optionalPositiveNumberString,
-  royaltyPercentage: z.string().min(1, "Royalty percentage is required").refine((val) => {
-    const num = parseFloat(val);
-    return !isNaN(num) && num >= 0 && num <= 100;
-  }, "Must be between 0 and 100"),
+  mintLimitPerAddress: positiveNumericStringOptional(),
+  royaltyPercentage: nonNegativeNumericString(z.string().min(1, "Royalty percentage is required")).refine(
+    (val) => {
+      if (!val) return true;
+      return parseFloat(val) <= 100;
+    },
+    { message: "Must be between 0 and 100" }
+  ),
   payoutAddress: addressSchema,
   defaultAdmin: addressSchema,
   mediaType: z.string().optional(),
@@ -104,11 +134,7 @@ export const customTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("custom"),
   target: addressSchema,
   calldata: hexSchema,
-  value: z.string().optional().refine((val) => {
-    if (!val) return true; // Allow empty
-    const num = parseFloat(val);
-    return !isNaN(num) && num >= 0;
-  }, "Must be a non-negative number or empty"),
+  value: nonNegativeNumericStringOptional(),
 });
 
 // Discriminated union for all transaction types
