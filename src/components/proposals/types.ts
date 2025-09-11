@@ -23,6 +23,7 @@ export interface Proposal {
   proposalNumber: number;
   title: string;
   description: string;
+  status: ProposalStatus;
   state:
     | "PENDING"
     | "ACTIVE"
@@ -38,14 +39,22 @@ export interface Proposal {
   endBlock: number;
   snapshotBlock?: number;
   endDate?: Date;
-  forVotes: string;
-  againstVotes: string;
-  abstainVotes: string;
-  quorumVotes: string;
+  forVotes: number;
+  againstVotes: number;
+  abstainVotes: number;
+  quorumVotes: number;
   calldatas: string[];
   targets: string[];
   values: string[];
   signatures: string[];
   transactionHash: string;
   votes?: ProposalVote[];
+  voteStart: string;
+  voteEnd: string;
+  expiresAt?: string;
+  timeCreated: number;
+  executed: boolean;
+  canceled: boolean;
+  queued: boolean;
+  vetoed: boolean;
 }

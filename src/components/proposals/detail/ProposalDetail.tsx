@@ -47,10 +47,10 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         transactionHash={proposal.transactionHash}
       />
       <ProposalMetrics
-        forVotes={proposal.forVotes}
-        againstVotes={proposal.againstVotes}
-        abstainVotes={proposal.abstainVotes}
-        quorumVotes={proposal.quorumVotes}
+        forVotes={String(proposal.forVotes)}
+        againstVotes={String(proposal.againstVotes)}
+        abstainVotes={String(proposal.abstainVotes)}
+        quorumVotes={String(proposal.quorumVotes)}
         snapshotBlock={proposal.snapshotBlock}
         endDate={endDate}
       />

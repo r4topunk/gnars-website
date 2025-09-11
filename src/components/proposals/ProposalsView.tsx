@@ -1,26 +1,25 @@
 "use client";
 
-import { useMemo, useState, useEffect, useDeferredValue } from 'react';
+import { useMemo, useState, useEffect, useDeferredValue } from "react";
 import { ProposalsGrid } from "@/components/proposals/ProposalsGrid";
-import { ProposalStatus } from "@/components/proposals/types";
+import { Proposal, ProposalStatus } from "@/components/proposals/types";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useProposalSearch } from "@/hooks/use-proposal-search";
-import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
-import { useProposals } from "@/hooks/use-proposals";
 
-export function ProposalsView() {
+interface ProposalsViewProps {
+  proposals: Proposal[];
+}
+
+export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   const ALL_STATUSES = useMemo(() => Object.values(ProposalStatus) as ProposalStatus[], []);
   const [activeStatuses, setActiveStatuses] = useState<Set<ProposalStatus>>(
-    () => new Set((Object.values(ProposalStatus) as ProposalStatus[]).filter((s) => s !== ProposalStatus.CANCELLED)),
+    () => new Set((Object.values(ProposalStatus) as ProposalStatus[]).filter((s) => s !== ProposalStatus.CANCELLED))
   );
   const [availableStatuses, setAvailableStatuses] = useState<Set<ProposalStatus>>(new Set());
-
-  const { data: allProposalsData, isLoading } = useProposals();
-  const allProposals = useMemo(() => allProposalsData ?? [], [allProposalsData]);
 
   useEffect(() => {
     if (allProposals.length > 0) {
@@ -32,7 +31,6 @@ export function ProposalsView() {
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const {
     init: initSearchWorker,
-    // ready: searchWorkerReady,
     ids: searchFilteredIds,
     search: searchProposals,
   } = useProposalSearch(allProposals);
@@ -40,17 +38,6 @@ export function ProposalsView() {
   useEffect(() => {
     searchProposals(deferredSearchQuery);
   }, [deferredSearchQuery, searchProposals]);
-
-  if (isLoading) {
-    return (
-      <LoadingGridSkeleton
-        items={12}
-        withCard
-        aspectClassName="h-24"
-        containerClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
-      />
-    );
-  }
 
   return (
     <div className="space-y-6">

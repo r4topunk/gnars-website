@@ -5,6 +5,17 @@ import { Proposal, ProposalStatus } from "@/components/proposals/types";
 import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 
+export function ProposalsGridSkeleton() {
+  return (
+    <LoadingGridSkeleton
+      items={12}
+      withCard
+      aspectClassName="h-24"
+      containerClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+    />
+  );
+}
+
 export function ProposalsGrid({
   proposals,
   filterStatuses,

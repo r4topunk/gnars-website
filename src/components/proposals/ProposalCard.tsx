@@ -16,7 +16,7 @@ import { getStatusConfig, extractFirstUrl, normalizeImageUrl } from "@/component
 export function ProposalCard({ proposal, showBanner = false }: { proposal: Proposal; showBanner?: boolean }) {
   const { color, Icon: StatusIcon } = getStatusConfig(proposal.status);
 
-  const totalVotes = proposal.forVotes + proposal.againstVotes + proposal.abstainVotes;
+  const totalVotes = (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
   const forPercentage = totalVotes > 0 ? (proposal.forVotes / totalVotes) * 100 : 0;
   const againstPercentage = totalVotes > 0 ? (proposal.againstVotes / totalVotes) * 100 : 0;
   const abstainPercentage = totalVotes > 0 ? (proposal.abstainVotes / totalVotes) * 100 : 0;
