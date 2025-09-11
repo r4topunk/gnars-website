@@ -2,12 +2,13 @@ import { ProposalDetail, ProposalDetailSkeleton } from "@/components/proposals/d
 import { Proposal } from "@/components/proposals/types";
 import { Suspense } from "react";
 import { proposalSchema } from "@/lib/schemas/proposals";
+import { BASE_URL } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
 async function fetchProposalData(id: string): Promise<Proposal | null> {
   try {
-    const response = await fetch(`/api/proposals/${id}`);
+    const response = await fetch(`${BASE_URL}/api/proposals/${id}`);
     if (!response.ok) {
       throw new Error("Failed to fetch proposal");
     }

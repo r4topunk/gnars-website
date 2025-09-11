@@ -1,12 +1,13 @@
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Proposal } from "@/components/proposals/types";
 import { HomeClientComponents } from "@/components/home-client-components";
+import { BASE_URL } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
 async function getRecentProposals() {
   try {
-    const response = await fetch(`/api/proposals?limit=10`, {
+    const response = await fetch(`${BASE_URL}/api/proposals?limit=10`, {
       next: { revalidate: 300 },
     });
     if (!response.ok) {
