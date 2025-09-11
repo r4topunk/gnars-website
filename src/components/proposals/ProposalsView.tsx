@@ -2,15 +2,13 @@
 
 import { useMemo, useState, useEffect, useDeferredValue } from 'react';
 import { ProposalsGrid } from "@/components/proposals/ProposalsGrid";
-import { Proposal, ProposalStatus } from "@/components/proposals/types";
+import { ProposalStatus } from "@/components/proposals/types";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useProposalSearch } from "@/hooks/use-proposal-search";
-import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { useProposals } from "@/hooks/use-proposals";
 
@@ -34,7 +32,7 @@ export function ProposalsView() {
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const {
     init: initSearchWorker,
-    ready: searchWorkerReady,
+    // ready: searchWorkerReady,
     ids: searchFilteredIds,
     search: searchProposals,
   } = useProposalSearch(allProposals);

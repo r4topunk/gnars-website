@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Proposal, ProposalStatus } from "@/components/proposals/types";
 import { ProposalCard } from "@/components/proposals/ProposalCard";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 
 export function ProposalsGrid({
