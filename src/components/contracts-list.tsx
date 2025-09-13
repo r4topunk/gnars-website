@@ -35,7 +35,6 @@ export function ContractsList() {
             <TableRow>
               <TableHead>Contract</TableHead>
               <TableHead>Address</TableHead>
-              <TableHead className="w-[100px]">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -56,7 +55,6 @@ export function ContractsList() {
                     showExplorer={true}
                   />
                 </TableCell>
-                <TableCell />
               </TableRow>
             ))}
           </TableBody>
