@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
-import { Coins, Image, Send, Settings, Zap } from "lucide-react";
+import {
+  Coins,
+  FileImage,
+  Send,
+  Settings,
+  Video,
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ActionForms } from "./ActionForms";
 import { type ProposalFormValues, type TransactionFormValues } from "../schema";
@@ -36,13 +42,13 @@ const transactionTypes = [
     type: "send-nfts",
     label: "Send NFTs",
     description: "Transfer NFTs",
-    icon: Image,
+    icon: FileImage,
   },
   {
     type: "droposal",
     label: "Create Droposal",
     description: "Create a Zora NFT drop",
-    icon: Zap,
+    icon: Video,
   },
   {
     type: "custom",
