@@ -1,24 +1,13 @@
 import { ProposalDetail, ProposalDetailSkeleton } from "@/components/proposals/detail/ProposalDetail";
 import { Proposal } from "@/components/proposals/types";
 import { Suspense } from "react";
-import { proposalSchema } from "@/lib/schemas/proposals";
-import { BASE_URL } from "@/lib/config";
+import { getProposalByIdOrNumber } from "@/services/proposals";
 
 export const dynamic = "force-dynamic";
 
 async function fetchProposalData(id: string): Promise<Proposal | null> {
   try {
-    const response = await fetch(`${BASE_URL}/api/proposals/${id}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch proposal");
-    }
-    const data = await response.json();
-    const validation = proposalSchema.safeParse(data);
-    if (!validation.success) {
-      console.error("Failed to validate proposal:", validation.error);
-      return null;
-    }
-    return validation.data;
+    return await getProposalByIdOrNumber(id);
   } catch (error) {
     console.error("Failed to fetch proposal:", error);
     return null;

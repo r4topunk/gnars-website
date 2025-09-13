@@ -1,20 +1,14 @@
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Proposal } from "@/components/proposals/types";
 import { HomeClientComponents } from "@/components/home-client-components";
-import { BASE_URL } from "@/lib/config";
+import { listProposals } from "@/services/proposals";
 
 export const dynamic = "force-dynamic";
 
-async function getRecentProposals() {
+async function getRecentProposals(): Promise<Proposal[]> {
   try {
-    const response = await fetch(`${BASE_URL}/api/proposals?limit=10`, {
-      next: { revalidate: 300 },
-    });
-    if (!response.ok) {
-      return [];
-    }
-    const data: Proposal[] = await response.json();
-    return data;
+    const proposals = await listProposals(10, 0);
+    return proposals;
   } catch (error) {
     console.error("Failed to fetch recent proposals:", error);
     return [];

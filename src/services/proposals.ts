@@ -1,0 +1,118 @@
+import { getProposal, getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
+import type { Proposal, ProposalVote } from "@/components/proposals/types";
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { getProposalStatus, proposalSchema } from "@/lib/schemas/proposals";
+
+function mapSdkProposalToProposal(p: SdkProposal): Proposal {
+  const endDate = (() => {
+    const voteEnd = Number(p.voteEnd ?? 0);
+    if (voteEnd > 0) return new Date(voteEnd * 1000);
+    const record = p as unknown as Record<string, unknown>;
+    const expiresAtRaw = record["expiresAt"];
+    const expiresAtNumber =
+      typeof expiresAtRaw === "number"
+        ? expiresAtRaw
+        : typeof expiresAtRaw === "string"
+          ? Number.parseInt(expiresAtRaw, 10)
+          : 0;
+    return expiresAtNumber > 0 ? new Date(expiresAtNumber * 1000) : undefined;
+  })();
+
+  const proposal: Proposal = {
+    proposalId: String(p.proposalId),
+    proposalNumber: Number(p.proposalNumber),
+    title: p.title ?? "",
+    description: p.description ?? "",
+    proposer: String(p.proposer),
+    status: getProposalStatus(p.state),
+    proposerEnsName: undefined,
+    createdAt: Number(p.timeCreated ?? 0) * 1000,
+    endBlock: Number(p.voteEnd ?? 0),
+    snapshotBlock: p.snapshotBlockNumber ? Number(p.snapshotBlockNumber) : undefined,
+    endDate,
+    forVotes: Number(p.forVotes ?? 0),
+    againstVotes: Number(p.againstVotes ?? 0),
+    abstainVotes: Number(p.abstainVotes ?? 0),
+    quorumVotes: Number(p.quorumVotes ?? 0),
+    calldatas: (() => {
+      const direct = (p as unknown as { calldatas?: unknown }).calldatas;
+      if (Array.isArray(direct)) return direct.map(String);
+      if (typeof direct === "string") return [direct];
+      const record = p as unknown as Record<string, unknown>;
+      const raw = record["calldatas"];
+      if (Array.isArray(raw)) return raw.map(String);
+      if (typeof raw === "string") return [raw];
+      return [] as string[];
+    })(),
+    targets: (p.targets as unknown[] | undefined)?.map(String) ?? [],
+    values: (p.values as unknown[] | undefined)?.map(String) ?? [],
+    signatures: [],
+    transactionHash: String(p.transactionHash ?? ""),
+    votes: Array.isArray(p.votes)
+      ? p.votes.map(
+          (v): ProposalVote => ({
+            voter: String(v.voter),
+            voterEnsName: undefined,
+            choice: ((): ProposalVote["choice"] => {
+              const s = String(v.support ?? "").toUpperCase();
+              if (s.includes("FOR")) return "FOR";
+              if (s.includes("AGAINST")) return "AGAINST";
+              return "ABSTAIN";
+            })(),
+            votes: String(v.weight ?? 0),
+            transactionHash: "",
+          })
+        )
+      : [],
+    voteStart: new Date(Number(p.voteStart ?? 0) * 1000).toISOString(),
+    voteEnd: new Date(Number(p.voteEnd ?? 0) * 1000).toISOString(),
+    expiresAt: p.expiresAt ? new Date(Number(p.expiresAt) * 1000).toISOString() : undefined,
+    timeCreated: Number(p.timeCreated ?? 0),
+  };
+
+  return proposalSchema.parse(proposal);
+}
+
+export async function listProposals(limit = 200, page = 0): Promise<Proposal[]> {
+  const { proposals: sdkProposals } = await getProposals(
+    CHAIN.id,
+    GNARS_ADDRESSES.token,
+    limit,
+    page
+  );
+
+  const mapped = ((sdkProposals as SdkProposal[] | undefined) ?? []).map(mapSdkProposalToProposal);
+  return mapped;
+}
+
+export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Proposal | null> {
+  try {
+    const isHexId = idOrNumber.startsWith("0x");
+    if (isHexId) {
+      const sdkProposal = await getProposal(CHAIN.id as unknown as number, idOrNumber);
+      return sdkProposal ? mapSdkProposalToProposal(sdkProposal) : null;
+    }
+
+    const targetNumber = Number.parseInt(idOrNumber, 10);
+    if (Number.isNaN(targetNumber)) return null;
+
+    const LIMIT = 200;
+    const MAX_PAGES = 5;
+    for (let page = 0; page < MAX_PAGES; page += 1) {
+      const { proposals } = await getProposals(
+        CHAIN.id as unknown as number,
+        GNARS_ADDRESSES.token,
+        LIMIT,
+        page
+      );
+      const match = (proposals ?? []).find((p) => Number(p.proposalNumber ?? -1) === targetNumber);
+      if (match) return mapSdkProposalToProposal(match);
+      if (!proposals || proposals.length < LIMIT) break;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+
