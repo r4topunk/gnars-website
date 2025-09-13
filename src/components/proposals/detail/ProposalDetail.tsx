@@ -9,7 +9,7 @@ import { ProposalHeader } from "@/components/proposals/detail/ProposalHeader";
 import { ProposalDescriptionCard } from "@/components/proposals/detail/ProposalDescriptionCard";
 import { ProposedTransactionsTable } from "@/components/proposals/detail/ProposedTransactionsTable";
 import { ProposalVotesTable } from "@/components/proposals/detail/ProposalVotesTable";
-import { PropdatesPlaceholder } from "@/components/proposals/detail/PropdatesPlaceholder";
+import { Propdates } from "@/components/proposals/detail/Propdates";
 import { Proposal } from "@/components/proposals/types";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 
@@ -108,7 +108,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
           />
         </TabsContent>
         <TabsContent value="propdates" className="mt-6">
-          <PropdatesPlaceholder />
+          <Propdates proposalId={proposal.proposalId} />
         </TabsContent>
       </Tabs>
     </div>

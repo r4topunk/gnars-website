@@ -15,7 +15,13 @@ import { Proposal } from "@/components/proposals/types";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { getStatusConfig, extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils";
 
-export function ProposalCard({ proposal, showBanner = false }: { proposal: Proposal; showBanner?: boolean }) {
+export function ProposalCard({
+  proposal,
+  showBanner = false,
+}: {
+  proposal: Proposal;
+  showBanner?: boolean;
+}) {
   const { Icon, color } = getStatusConfig(proposal.status);
 
   const totalVotes = (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
@@ -79,8 +85,8 @@ export function ProposalCard({ proposal, showBanner = false }: { proposal: Propo
                 </div>
                 <h4 className="font-semibold text-sm leading-tight truncate pr-2">{proposal.title}</h4>
                 <div className="text-xs text-muted-foreground mt-1">
-                  by {" "}
-                  <AddressDisplay address={proposal.proposer} variant="compact" showAvatar={false} showENS={true} showCopy={false} showExplorer={false} /> {" "}
+                  by{" "}
+                  <AddressDisplay address={proposal.proposer} variant="compact" showAvatar={false} showENS={true} showCopy={false} showExplorer={false} />{" "}
                   • {timeCreated}
                 </div>
               </div>

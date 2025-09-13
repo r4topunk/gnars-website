@@ -87,10 +87,35 @@ export async function listProposals(limit = 200, page = 0): Promise<Proposal[]> 
 
 export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Proposal | null> {
   try {
+    // Instrumentation: trace inputs and code paths for intermittent "not found" cases
+    console.log("[proposals:getProposalByIdOrNumber] start", {
+      idOrNumber,
+      chainId: CHAIN.id,
+      token: GNARS_ADDRESSES.token,
+    });
     const isHexId = idOrNumber.startsWith("0x");
     if (isHexId) {
-      const sdkProposal = await getProposal(CHAIN.id as unknown as number, idOrNumber);
-      return sdkProposal ? mapSdkProposalToProposal(sdkProposal) : null;
+      try {
+        const sdkProposal = await getProposal(CHAIN.id as unknown as number, idOrNumber);
+        if (!sdkProposal) {
+          console.warn("[proposals:getProposalByIdOrNumber] no proposal by hex id", {
+            idOrNumber,
+          });
+          return null;
+        }
+        const mapped = mapSdkProposalToProposal(sdkProposal);
+        console.log("[proposals:getProposalByIdOrNumber] found by hex id", {
+          proposalId: mapped.proposalId,
+          proposalNumber: mapped.proposalNumber,
+        });
+        return mapped;
+      } catch (err) {
+        console.error("[proposals:getProposalByIdOrNumber] error fetching by hex id", {
+          idOrNumber,
+          error: err instanceof Error ? err.message : String(err),
+        });
+        throw err;
+      }
     }
 
     const targetNumber = Number.parseInt(idOrNumber, 10);
@@ -99,6 +124,11 @@ export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Propo
     const LIMIT = 200;
     const MAX_PAGES = 5;
     for (let page = 0; page < MAX_PAGES; page += 1) {
+      console.log("[proposals:getProposalByIdOrNumber] querying by number", {
+        targetNumber,
+        page,
+        limit: LIMIT,
+      });
       const { proposals } = await getProposals(
         CHAIN.id as unknown as number,
         GNARS_ADDRESSES.token,
@@ -106,11 +136,35 @@ export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Propo
         page
       );
       const match = (proposals ?? []).find((p) => Number(p.proposalNumber ?? -1) === targetNumber);
-      if (match) return mapSdkProposalToProposal(match);
-      if (!proposals || proposals.length < LIMIT) break;
+      if (match) {
+        const mapped = mapSdkProposalToProposal(match);
+        console.log("[proposals:getProposalByIdOrNumber] found by number", {
+          proposalId: mapped.proposalId,
+          proposalNumber: mapped.proposalNumber,
+          page,
+        });
+        return mapped;
+      }
+      if (!proposals || proposals.length < LIMIT) {
+        console.warn("[proposals:getProposalByIdOrNumber] page underfilled or empty; stopping", {
+          page,
+          returned: proposals?.length ?? 0,
+        });
+        break;
+      }
     }
+    console.warn("[proposals:getProposalByIdOrNumber] not found after pagination", {
+      idOrNumber,
+      targetNumber,
+      maxPagesTried: MAX_PAGES,
+      limitPerPage: LIMIT,
+    });
     return null;
-  } catch {
+  } catch (err) {
+    console.error("[proposals:getProposalByIdOrNumber] unexpected error", {
+      idOrNumber,
+      error: err instanceof Error ? { message: err.message, stack: err.stack } : String(err),
+    });
     return null;
   }
 }
