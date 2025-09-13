@@ -1,4 +1,10 @@
-import { getPropDates, type PropDate, EasSDK, getDecodedValue } from "@buildeross/sdk/eas";
+import {
+  getPropDates,
+  type PropDate,
+  EasSDK,
+  getDecodedValue,
+  type DecodedData,
+} from "@buildeross/sdk/eas";
 // Inline schema UID to avoid extra constants package dependency here
 const PROPDATE_SCHEMA_UID =
   "0x8bd0d42901ce3cd9898dbea6ae2fbf1e796ef0923e7cbb0a1cecac2e42d47cb3" as const;
@@ -60,10 +66,10 @@ export async function listDaoPropdates(): Promise<Propdate[]> {
     };
 
     const mapped: Propdate[] = await Promise.all(
-      attestations.map(async (att: any) => {
-        const decoded = JSON.parse(att.decodedDataJson) as Array<{ name: string; value: { value: unknown } }>;
-        const messageTypeRaw = getDecodedValue(decoded as any, "messageType");
-        const messageRaw = String(getDecodedValue(decoded as any, "message") ?? "");
+      attestations.map(async (att) => {
+        const decoded = JSON.parse(att.decodedDataJson) as DecodedData[];
+        const messageTypeRaw = getDecodedValue(decoded, "messageType");
+        const messageRaw = String(getDecodedValue(decoded, "message") ?? "");
 
         let content = messageRaw;
         let milestoneId: number | null = null;
@@ -94,8 +100,10 @@ export async function listDaoPropdates(): Promise<Propdate[]> {
           content = messageRaw;
         }
 
-        const proposalId = String(getDecodedValue(decoded as any, "proposalId") ?? "0x");
-        const originalMessageId = String(getDecodedValue(decoded as any, "originalMessageId") ?? "0x");
+        const proposalId = String(getDecodedValue(decoded, "proposalId") ?? "0x");
+        const originalMessageId = String(
+          getDecodedValue(decoded, "originalMessageId") ?? "0x"
+        );
         return {
           id: att.id,
           attester: att.attester,

@@ -56,9 +56,9 @@ export function Propdates({ proposalId }: PropdatesProps) {
         />
       )}
       <Separator />
-      {propdates.length > 0 ? (
+      {(propdates?.length ?? 0) > 0 ? (
         <div className="space-y-4">
-          {propdates.map((propdate) => (
+          {propdates!.map((propdate) => (
             <PropdateCard key={propdate.txid} propdate={propdate} />
           ))}
         </div>

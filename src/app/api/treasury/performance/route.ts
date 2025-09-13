@@ -102,7 +102,6 @@ async function rpcCall<T = unknown>(method: string, params: unknown[]): Promise<
   const body = { method, params };
 
   let attempt = 0;
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     attempt += 1;
     const res = await fetch(alchemyUrl, {
@@ -177,7 +176,6 @@ export async function GET(request: Request) {
     for (const ts of timestamps) {
       // retry up to 3 times if rate-limited
       let attempt = 0;
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
           const b = await basescanBlockByTimestamp(ts);

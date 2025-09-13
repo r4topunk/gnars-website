@@ -1,5 +1,4 @@
 import { ProposalsView } from "@/components/proposals/ProposalsView";
-import { Proposal } from "@/components/proposals/types";
 import { Suspense } from "react";
 import { ProposalsGridSkeleton } from "@/components/proposals/ProposalsGrid";
 import { listProposals } from "@/services/proposals";
