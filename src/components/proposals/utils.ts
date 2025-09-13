@@ -16,11 +16,11 @@ export const getStatusConfig = (status: ProposalStatus) => {
       Icon: Pause,
     },
     [ProposalStatus.SUCCEEDED]: {
-      color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+      color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
       Icon: CheckCircle,
     },
     [ProposalStatus.QUEUED]: {
-      color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+      color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
       Icon: AlertCircle,
     },
     [ProposalStatus.EXECUTED]: {
