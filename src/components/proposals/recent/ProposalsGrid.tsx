@@ -2,6 +2,7 @@
 
 import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { type Proposal } from "@/components/proposals/types";
+import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 
 interface ProposalsGridProps {
   proposals: Proposal[];
@@ -11,13 +12,9 @@ export function ProposalsGrid({ proposals }: ProposalsGridProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {proposals.map((proposal, i) => (
-        <div
-          key={proposal.proposalId}
-          className="motion-safe:animate-in motion-safe:fade-in-50 motion-safe:slide-in-from-bottom-1"
-          style={{ animationDelay: `${i * 60}ms` }}
-        >
+        <AnimatedListItem key={proposal.proposalId} delayMs={i * 50}>
           <ProposalCard proposal={proposal} />
-        </div>
+        </AnimatedListItem>
       ))}
     </div>
   );

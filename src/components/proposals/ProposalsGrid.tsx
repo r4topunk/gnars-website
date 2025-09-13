@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Proposal } from "@/components/proposals/types";
 import { ProposalCard } from "@/components/proposals/ProposalCard";
+import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 
 export function ProposalsGridSkeleton() {
@@ -63,13 +64,9 @@ export function ProposalsGrid({
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {proposals.slice(0, visibleCount).map((proposal, i) => (
-          <div
-            key={proposal.proposalId}
-            className="motion-safe:animate-in motion-safe:fade-in-50 motion-safe:slide-in-from-bottom-1"
-            style={{ animationDelay: `${i * 45}ms` }}
-          >
+          <AnimatedListItem key={proposal.proposalId} delayMs={i * 40}>
             <ProposalCard proposal={proposal} showBanner />
-          </div>
+          </AnimatedListItem>
         ))}
       </div>
       {proposals.length > visibleCount && (

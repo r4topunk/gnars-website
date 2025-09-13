@@ -6,6 +6,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { MinusCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ export function ProposalCard({ proposal, showBanner = false }: { proposal: Propo
   const bannerUrl = normalizeImageUrl(extractFirstUrl(proposal.description));
   const currentBannerSrc = bannerUrl ?? "/logo-banner.jpg";
   const [bannerSrc, setBannerSrc] = useState<string>(currentBannerSrc);
+  const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
 
   // Keep local banner src in sync when proposal changes
   useEffect(() => {
@@ -43,13 +45,18 @@ export function ProposalCard({ proposal, showBanner = false }: { proposal: Propo
         {showBanner && (
           <div className="mx-4 border rounded-md overflow-hidden">
             <AspectRatio ratio={16 / 9}>
+              {/* Image skeleton placeholder to avoid empty gap while loading */}
+              {!isImageLoaded && (
+                <Skeleton className="absolute inset-0" />
+              )}
               <Image
                 src={bannerSrc}
                 alt="Proposal banner"
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-cover"
+                className={`object-cover transition-opacity duration-300 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                 priority={false}
+                onLoadingComplete={() => setIsImageLoaded(true)}
                 onError={() => {
                   if (bannerSrc !== "/logo-banner.jpg") setBannerSrc("/logo-banner.jpg");
                 }}
