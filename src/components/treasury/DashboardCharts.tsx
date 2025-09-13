@@ -31,22 +31,14 @@ import {
 } from "@/components/ui/chart";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 
-// Mock data for auction trends (last 30 days)
-const auctionTrendData = [
-  { day: "Day 1", finalPrice: 1.2, bids: 8 },
-  { day: "Day 2", finalPrice: 1.5, bids: 12 },
-  { day: "Day 3", finalPrice: 2.1, bids: 15 },
-  { day: "Day 4", finalPrice: 1.8, bids: 10 },
-  { day: "Day 5", finalPrice: 2.3, bids: 18 },
-  { day: "Day 6", finalPrice: 1.9, bids: 14 },
-  { day: "Day 7", finalPrice: 2.7, bids: 22 },
-  { day: "Day 8", finalPrice: 2.1, bids: 16 },
-  { day: "Day 9", finalPrice: 2.4, bids: 19 },
-  { day: "Day 10", finalPrice: 1.6, bids: 11 },
-  { day: "Day 11", finalPrice: 3.1, bids: 25 },
-  { day: "Day 12", finalPrice: 2.8, bids: 21 },
-  { day: "Day 13", finalPrice: 2.2, bids: 17 },
-  { day: "Day 14", finalPrice: 2.6, bids: 20 },
+type TreasuryPoint = { month: string; eth: number; usdc: number };
+const DEFAULT_TREASURY_TREND: TreasuryPoint[] = [
+  { month: "M1", eth: 0, usdc: 0 },
+  { month: "M2", eth: 0, usdc: 0 },
+  { month: "M3", eth: 0, usdc: 0 },
+  { month: "M4", eth: 0, usdc: 0 },
+  { month: "M5", eth: 0, usdc: 0 },
+  { month: "M6", eth: 0, usdc: 0 },
 ];
 
 // Default/fallback treasury allocation data used before live data loads
@@ -107,13 +99,13 @@ async function fetchRecentProposalsWithVoters(limit: number): Promise<ProposalWi
 }
 
 const auctionChartConfig = {
-  finalPrice: {
-    label: "Final Price (ETH)",
-    color: "var(--chart-4)",
+  eth: {
+    label: "ETH",
+    color: "#8FA8F5", // lighter blue 1
   },
-  bids: {
-    label: "Total Bids",
-    color: "var(--chart-3)",
+  usdc: {
+    label: "USDC",
+    color: "#5B9BD5", // lighter blue 2
   },
 } satisfies ChartConfig;
 
@@ -144,45 +136,105 @@ const memberChartConfig = {
 } satisfies ChartConfig;
 
 export function AuctionTrendChart() {
+  const [points, setPoints] = useState<TreasuryPoint[]>(DEFAULT_TREASURY_TREND);
+  const [footerNote, setFooterNote] = useState<string>("Including current month");
+
+  useEffect(() => {
+    let active = true;
+    const url = `/api/treasury/performance?months=6&address=${GNARS_ADDRESSES.treasury}`;
+    fetch(url)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("api error"))))
+      .then((data: { points?: Array<{ month?: string; eth?: number; usdc?: number }> }) => {
+        if (!active) return;
+        const rows = Array.isArray(data?.points) ? data.points : [];
+        if (!rows.length) return;
+        const next: TreasuryPoint[] = rows.map((r) => {
+          const raw = String(r.month ?? "");
+          let label = raw;
+          try {
+            const [yy, mm] = raw.split("-").map((n) => parseInt(n, 10));
+            if (Number.isFinite(yy) && Number.isFinite(mm)) {
+              const d = new Date(Date.UTC(yy, (mm || 1) - 1, 1));
+              label = d.toLocaleString("en-US", { month: "short" });
+            }
+          } catch {}
+          const ethVal = Number(r.eth ?? 0) || 0;
+          const usdcThousands = (Number(r.usdc ?? 0) || 0) / 1000; // normalize to K for visibility
+          return {
+            month: label,
+            eth: ethVal,
+            usdc: usdcThousands,
+          };
+        });
+        setPoints(next);
+        setFooterNote(`Last ${next.length} months (incl. current)`);
+      })
+      .catch(() => {
+        // keep defaults
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <Card className="flex flex-col">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Auction Performance</CardTitle>
-          <CardDescription>Final prices and bid activity over the last 14 days</CardDescription>
+          <CardTitle>Treasury Performance</CardTitle>
+          <CardDescription>ETH and USDC balances over the last 6 months</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer config={auctionChartConfig} className="h-[200px] w-full">
           <AreaChart
             accessibilityLayer
-            data={auctionTrendData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
+            data={points}
+            margin={{ left: 12, right: 12 }}
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="day"
+              dataKey="month"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => value.slice(-1)} // Show only day number
+              tickFormatter={(v) => String(v).slice(0, 3)}
             />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <defs>
-              <linearGradient id="fillFinalPrice" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-finalPrice)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-finalPrice)" stopOpacity={0.1} />
-              </linearGradient>
-            </defs>
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  indicator="dot"
+                  formatter={(value, name) => {
+                    const v = Number(value ?? 0);
+                    const label = String(name ?? "");
+                    const isUsdc = label.toUpperCase().includes("USDC");
+                    const formatted = isUsdc ? `${Math.round(v)}k` : v.toFixed(4);
+                    return (
+                      <div className="flex w-full items-center justify-between gap-4">
+                        <span className="text-muted-foreground">{label}</span>
+                        <span className="font-mono font-medium">{formatted}</span>
+                      </div>
+                    );
+                  }}
+                />
+              }
+            />
             <Area
-              dataKey="finalPrice"
+              dataKey="usdc"
+              name="USDC (k)"
               type="natural"
-              fill="url(#fillFinalPrice)"
+              fill="var(--color-usdc)"
               fillOpacity={0.4}
-              stroke="var(--color-finalPrice)"
+              stroke="var(--color-usdc)"
+            />
+            <Area
+              dataKey="eth"
+              name="ETH"
+              type="natural"
+              fill="var(--color-eth)"
+              fillOpacity={0.4}
+              stroke="var(--color-eth)"
             />
           </AreaChart>
         </ChartContainer>
@@ -191,10 +243,10 @@ export function AuctionTrendChart() {
         <div className="flex w-full items-center justify-center gap-2 text-sm">
           <div className="grid gap-2 text-center">
             <div className="flex items-center justify-center gap-2 font-medium leading-none">
-              Average final price up 12% this week <TrendingUp className="h-4 w-4" />
+              {footerNote} <TrendingUp className="h-4 w-4" />
             </div>
             <div className="flex items-center justify-center gap-2 leading-none text-muted-foreground">
-              Last 14 auctions completed
+              Source: Base RPC & BaseScan
             </div>
           </div>
         </div>
