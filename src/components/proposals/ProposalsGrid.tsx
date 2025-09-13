@@ -10,7 +10,7 @@ export function ProposalsGridSkeleton() {
     <LoadingGridSkeleton
       items={12}
       withCard
-      aspectClassName="h-24"
+      aspectClassName="aspect-video"
       containerClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
     />
   );

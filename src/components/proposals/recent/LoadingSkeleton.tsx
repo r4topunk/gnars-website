@@ -7,7 +7,7 @@ export function RecentProposalsLoadingSkeleton({ items = 6 }: { items?: number }
     <LoadingGridSkeleton
       items={items}
       withCard
-      aspectClassName="h-24"
+      aspectClassName="aspect-video"
       containerClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
     />
   );

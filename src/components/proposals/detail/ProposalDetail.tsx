@@ -20,9 +20,24 @@ interface ProposalDetailProps {
 export function ProposalDetailSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="h-12 bg-muted rounded animate-pulse" />
-      <div className="h-64 bg-muted rounded animate-pulse" />
-      <div className="h-96 bg-muted rounded animate-pulse" />
+      {/* Header */}
+      <div className="h-10 bg-muted rounded animate-pulse" />
+      {/* Metrics */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="h-24 bg-muted rounded animate-pulse" />
+        <div className="h-24 bg-muted rounded animate-pulse" />
+        <div className="h-24 bg-muted rounded animate-pulse" />
+        <div className="h-24 bg-muted rounded animate-pulse" />
+      </div>
+      {/* Voting Card */}
+      <div className="h-40 bg-muted rounded animate-pulse" />
+      {/* Tabs */}
+      <div className="h-10 bg-muted rounded animate-pulse" />
+      {/* Description & Transactions */}
+      <div className="space-y-4">
+        <div className="h-48 bg-muted rounded animate-pulse" />
+        <div className="h-32 bg-muted rounded animate-pulse" />
+      </div>
     </div>
   );
 }
