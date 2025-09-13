@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { ArrowRightIcon } from "lucide-react";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -17,7 +17,7 @@ export function RecentProposalsHeader() {
       <Button variant="outline" size="sm" asChild>
         <Link href="/proposals">
           View All Proposals
-          <ExternalLink className="w-4 h-4 ml-2" />
+          <ArrowRightIcon className="w-4 h-4 ml-2" />
         </Link>
       </Button>
     </CardHeader>
