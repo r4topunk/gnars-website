@@ -11,6 +11,7 @@ import {
 import { HeroSection } from "@/components/hero-section";
 import { PastAuctions } from "@/components/auctions/PastAuctions";
 import { RecentProposals } from "@/components/proposals/recent/RecentProposals";
+import { FAQ } from "@/components/common/FAQ";
 import { Proposal } from "@/components/proposals/types";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { useRecentAuctions } from "@/hooks/use-auctions";
@@ -102,6 +103,11 @@ export function HomeClientComponents({ proposals }: HomeClientComponentsProps) {
         {/* Recent Auctions */}
         <section>
           <PastAuctions auctions={recentAuctions} loading={isLoading} />
+        </section>
+
+        {/* FAQ Section */}
+        <section>
+          <FAQ />
         </section>
 
         {/* Smart Contracts */}
