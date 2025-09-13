@@ -10,17 +10,17 @@ export default function AuctionsPage() {
   return (
     <SidebarInset>
       <main className="flex flex-1 flex-col">
-        <div className="flex flex-1 flex-col gap-6 px-6 py-4">
-          <section>
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold mb-2">All Auctions</h1>
+        <div className="container mx-auto py-8 px-4">
+          <div className="space-y-6">
+            <div className="min-w-0">
+              <h1 className="text-3xl font-bold tracking-tight mb-2">Auctions</h1>
               <p className="text-muted-foreground">
                 Complete history of all Gnars auctions, including those with no bids
               </p>
             </div>
 
             <PastAuctions auctions={allAuctions} loading={isLoading} gridOnly />
-          </section>
+          </div>
         </div>
       </main>
     </SidebarInset>
