@@ -261,6 +261,7 @@ export function TreasuryAllocationChart() {
   );
   const [footerBreakdown, setFooterBreakdown] = useState<string>("");
   const [totalValueUsd, setTotalValueUsd] = useState<number | null>(null);
+  const [footerNote, setFooterNote] = useState<string>("Current snapshot");
 
   useEffect(() => {
     let active = true;
@@ -320,6 +321,7 @@ export function TreasuryAllocationChart() {
         if (!active) return;
         setChartData(nextData);
         setTotalValueUsd(totalUsd);
+        setFooterNote("Current allocation snapshot");
         const toK = (n: number) => `$${(Math.round((n / 1000) * 10) / 10).toFixed(1)}k`;
         setFooterBreakdown(
           `${toK(ethUsd)} ETH, ${toK(usdcUsd)} USDC, ${toK(otherUsd + nftNetWorth)} Others`,
@@ -415,9 +417,9 @@ export function TreasuryAllocationChart() {
       <CardFooter>
         <div className="flex w-full items-center justify-center gap-2 text-sm">
           <div className="grid gap-2 text-center">
-            {footerBreakdown ? (
-              <div className="flex items-center justify-center gap-2 font-medium leading-none">{footerBreakdown}</div>
-            ) : null}
+            <div className="flex items-center justify-center gap-2 font-medium leading-none">
+              {footerNote} <TrendingUp className="h-4 w-4" />
+            </div>
             <div className="flex items-center justify-center gap-2 leading-none text-muted-foreground">
               {totalValueUsd === null
                 ? "Live data unobtainable, showing defaults"
