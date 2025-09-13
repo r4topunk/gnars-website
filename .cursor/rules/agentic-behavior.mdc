@@ -1,0 +1,29 @@
+---
+description: Behavioral rules for the coding agent to maximize context before edits.
+globs: "**/*"
+alwaysApply: true
+---
+
+# context-first workflow
+
+* always begin with discovery: identify target files and related modules (routes, hooks, services, ui, config).
+* search for similar features; read their implementations and mirror patterns (naming, props, state, data, styles, tests).
+* map end-to-end data flow (api → services → hooks → components); note types/schemas and server/client boundaries.
+
+# creating features
+
+* follow established conventions; reuse existing hooks/utils/components; avoid new patterns without clear justification.
+* align with routing and folder structure; ensure loading/error/empty states match peer implementations.
+* keep the change minimal and focused; preserve public apis unless explicitly changing them.
+
+# fixing bugs
+
+* reproduce first; trace the data shape across layers; compare with a known-good path.
+* inspect parent and child components, contexts, and side-effects that could influence behavior.
+* check edge cases: async timing, pagination, memoization, derived state, and css/layout overflow.
+
+# validation
+
+* add/update types to encode invariants; prefer type-safe fixes over runtime guards.
+* run lint, type-checks, and relevant tests; add a focused test when practical.
+* document the "why" briefly (comment or note) and reference the similar code you followed.
