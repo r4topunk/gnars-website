@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { AuctionCard } from "@/components/auctions/past/AuctionCard";
+import { SectionHeader } from "@/components/common/SectionHeader";
+import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
-import { SectionHeader } from "@/components/common/SectionHeader";
-import { AuctionCard } from "@/components/auctions/past/AuctionCard";
 
 interface PastAuction {
   id: string;
@@ -29,8 +29,6 @@ interface PastAuctionsProps {
   showViewAllButton?: boolean;
   gridOnly?: boolean;
 }
-
-
 
 export function PastAuctions({
   auctions,
@@ -115,12 +113,12 @@ export function PastAuctions({
         description={description}
         action={
           showViewAllButton ? (
-            <Link href="/auctions">
-              <Button variant="outline" size="sm">
-                <span>View all auctions</span>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/auctions">
+                View all auctions
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           ) : undefined
         }
       />
