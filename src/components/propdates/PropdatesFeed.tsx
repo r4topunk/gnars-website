@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { PropdateCard } from "@/components/proposals/detail/PropdateCard";
@@ -14,28 +14,11 @@ export function PropdatesFeed() {
     queryFn: () => listDaoPropdates(),
   });
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4" aria-busy="true" aria-label="Loading propdates feed">
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Failed to load propdates feed. Please try again later.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  const sorted = [...(propdates ?? [])].sort((a: Propdate, b: Propdate) => b.timeCreated - a.timeCreated);
+  // Keep hooks order consistent across renders (compute sorted and set up state/refs before any early returns)
+  const sorted = useMemo(
+    () => [...(propdates ?? [])].sort((a: Propdate, b: Propdate) => b.timeCreated - a.timeCreated),
+    [propdates]
+  );
 
   // Incremental rendering like ProposalsGrid
   const PAGE_SIZE = 12;
@@ -57,6 +40,27 @@ export function PropdatesFeed() {
   useEffect(() => {
     setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), sorted.length || PAGE_SIZE));
   }, [sorted.length]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4" aria-busy="true" aria-label="Loading propdates feed">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to load propdates feed. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   if (sorted.length === 0) {
     return <div className="text-center py-12 text-muted-foreground">No propdates yet</div>;
