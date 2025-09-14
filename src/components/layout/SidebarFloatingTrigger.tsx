@@ -10,10 +10,10 @@ export default function SidebarFloatingTrigger() {
   if (!shouldShow) return null;
 
   return (
-    <div className="fixed left-2 top-4 z-50 md:left-2 md:top-2">
+    <div className="fixed right-2 sm:left-2 top-4 z-50 md:left-2 md:top-2">
       <SidebarTrigger
         aria-label="Open sidebar"
-        className="cursor-pointer size-9 rounded-lg bg-secondary-background text-secondary-foreground shadow-sm hover:bg-secondary/30"
+        className="cursor-pointer size-9 rounded-lg bg-background text-secondary-foreground shadow-sm hover:bg-secondary/30"
       />
     </div>
   );
