@@ -1,5 +1,5 @@
-import { DroposalListItem } from "@/services/droposals";
 import { DroposalCard } from "@/components/droposals/DroposalCard";
+import { DroposalListItem } from "@/services/droposals";
 
 interface DroposalsGridProps {
   items: DroposalListItem[];
@@ -7,11 +7,7 @@ interface DroposalsGridProps {
 
 export function DroposalsGrid({ items }: DroposalsGridProps) {
   if (items.length === 0) {
-    return (
-      <div className="text-center text-muted-foreground py-12">
-        No droposals found.
-      </div>
-    );
+    return <div className="text-center text-muted-foreground py-12">No droposals found.</div>;
   }
 
   return (
@@ -22,5 +18,3 @@ export function DroposalsGrid({ items }: DroposalsGridProps) {
     </div>
   );
 }
-
-

@@ -1,8 +1,8 @@
 "use client";
 
+import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { type Proposal } from "@/components/proposals/types";
-import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 
 interface ProposalsGridProps {
   proposals: Proposal[];
@@ -19,5 +19,3 @@ export function ProposalsGrid({ proposals }: ProposalsGridProps) {
     </div>
   );
 }
-
-

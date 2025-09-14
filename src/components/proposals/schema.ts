@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { isAddress } from "viem";
+import { z } from "zod";
 
 // Custom address validation
 const addressSchema = z.string().refine((val) => isAddress(val), {
@@ -14,7 +14,7 @@ const numericString = <T extends z.ZodType<string | undefined>>(schema: T) => {
       const num = parseFloat(val);
       return !isNaN(num) && isFinite(num);
     },
-    { message: "Must be a valid number" }
+    { message: "Must be a valid number" },
   );
 };
 
@@ -24,7 +24,7 @@ const positiveNumericString = (schema = z.string()) => {
       if (!val) return true;
       return parseFloat(val) > 0;
     },
-    { message: "Must be a positive number" }
+    { message: "Must be a positive number" },
   );
 };
 
@@ -34,7 +34,7 @@ const positiveNumericStringOptional = (schema = z.string().optional()) => {
       if (!val) return true;
       return parseFloat(val) > 0;
     },
-    { message: "Must be a positive number" }
+    { message: "Must be a positive number" },
   );
 };
 
@@ -44,7 +44,7 @@ const nonNegativeNumericString = (schema = z.string()) => {
       if (!val) return true;
       return parseFloat(val) >= 0;
     },
-    { message: "Must be a non-negative number" }
+    { message: "Must be a non-negative number" },
   );
 };
 
@@ -54,16 +54,14 @@ const nonNegativeNumericStringOptional = (schema = z.string().optional()) => {
       if (!val) return true;
       return parseFloat(val) >= 0;
     },
-    { message: "Must be a non-negative number" }
+    { message: "Must be a non-negative number" },
   );
 };
 
 // Custom hex validation for calldata
-const hexSchema = z
-  .string()
-  .refine((val) => /^0x[0-9a-fA-F]*$/.test(val), {
-    message: "Must be valid hex string starting with 0x",
-  });
+const hexSchema = z.string().refine((val) => /^0x[0-9a-fA-F]*$/.test(val), {
+  message: "Must be valid hex string starting with 0x",
+});
 
 // Base transaction schema
 const baseTransactionSchema = z.object({
@@ -116,12 +114,14 @@ export const droposalTransactionSchema = baseTransactionSchema.extend({
   startTime: z.string().optional(),
   endTime: z.string().optional(),
   mintLimitPerAddress: positiveNumericStringOptional(),
-  royaltyPercentage: nonNegativeNumericString(z.string().min(1, "Royalty percentage is required")).refine(
+  royaltyPercentage: nonNegativeNumericString(
+    z.string().min(1, "Royalty percentage is required"),
+  ).refine(
     (val) => {
       if (!val) return true;
       return parseFloat(val) <= 100;
     },
-    { message: "Must be between 0 and 100" }
+    { message: "Must be between 0 and 100" },
   ),
   payoutAddress: addressSchema,
   defaultAdmin: addressSchema,

@@ -138,11 +138,7 @@ export function PastAuctions({
                 <LoadingGridSkeleton items={4} />
               </div>
             )}
-            {
-              hasMore && (
-                <div ref={sentinelRef} className="h-10" />
-              )
-            }
+            {hasMore && <div ref={sentinelRef} className="h-10" />}
           </>
         ) : (
           <div className="text-center py-8">

@@ -1,13 +1,13 @@
 "use client";
 
-import { usePropdates } from "@/hooks/use-propdates";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { PropdateCard } from "./PropdateCard";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { PropdateForm } from "./PropdateForm";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePropdates } from "@/hooks/use-propdates";
+import { PropdateCard } from "./PropdateCard";
+import { PropdateForm } from "./PropdateForm";
 
 interface PropdatesProps {
   proposalId: string;
@@ -31,9 +31,7 @@ export function Propdates({ proposalId }: PropdatesProps) {
     return (
       <Alert variant="destructive">
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Failed to load propdates. Please try again later.
-        </AlertDescription>
+        <AlertDescription>Failed to load propdates. Please try again later.</AlertDescription>
       </Alert>
     );
   }

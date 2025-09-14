@@ -1,6 +1,6 @@
 import { DroposalsGrid } from "@/components/droposals/DroposalsGrid";
-import { fetchDroposals } from "@/services/droposals";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { fetchDroposals } from "@/services/droposals";
 
 export const revalidate = 1800; // 30 minutes
 

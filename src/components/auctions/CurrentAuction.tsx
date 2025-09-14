@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Clock, Gavel } from "lucide-react";
+import { GnarCard } from "@/components/auctions/GnarCard";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GnarCard } from "@/components/auctions/GnarCard";
-import { AddressDisplay } from "@/components/ui/address-display";
 
 interface AuctionData {
   id: string;
@@ -109,10 +109,7 @@ export function CurrentAuction({ auction, loading }: CurrentAuctionProps) {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* NFT Image */}
           <div className="flex-1">
-            <GnarCard
-              tokenId={auction.tokenId}
-              imageUrl={auction.imageUrl}
-            />
+            <GnarCard tokenId={auction.tokenId} imageUrl={auction.imageUrl} />
           </div>
 
           {/* Auction Details */}

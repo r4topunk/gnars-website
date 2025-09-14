@@ -11,5 +11,3 @@ export function ipfsToHttp(ipfsUri: string): string {
   }
   return uri;
 }
-
-

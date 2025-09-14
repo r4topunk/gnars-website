@@ -1,8 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  listPropdates,
-  createPropdate,
-} from "@/services/propdates";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createPropdate, listPropdates } from "@/services/propdates";
 
 export function usePropdates(proposalId: string) {
   const queryClient = useQueryClient();

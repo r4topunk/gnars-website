@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Vote } from "lucide-react";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { Progress } from "@/components/ui/progress";
 import {
   Table,
@@ -11,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AddressDisplay } from "@/components/ui/address-display";
 
 // Mock data structure - in real implementation, this would come from the Builder SDK
 interface DaoDelegate {
@@ -72,8 +72,6 @@ export function DelegatesList() {
         // Calculate total votes for percentage calculation
         const total = fetchedDelegates.reduce((sum, delegate) => sum + delegate.voteCount, 0);
         setTotalVotes(total);
-
-        
       } catch (error) {
         console.error("Failed to load delegates:", error);
       } finally {
@@ -83,8 +81,6 @@ export function DelegatesList() {
 
     loadDelegates();
   }, []);
-
-  
 
   const calculateVotePercentage = (voteCount: number) => {
     if (totalVotes === 0) return 0;

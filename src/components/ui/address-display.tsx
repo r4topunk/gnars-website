@@ -1,22 +1,23 @@
 "use client";
-import React from 'react';
-import { Address, isAddress } from 'viem';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Copy, ExternalLink, User } from 'lucide-react';
-import { useENSOptimistic } from '@/hooks/use-ens';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+
+import React from "react";
+import { useRouter } from "next/navigation";
+import { Copy, ExternalLink, User } from "lucide-react";
+import { toast } from "sonner";
+import { Address, isAddress } from "viem";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useENSOptimistic } from "@/hooks/use-ens";
 
 export interface AddressDisplayProps {
   address: string | Address;
-  variant?: 'default' | 'compact' | 'detailed' | 'card';
+  variant?: "default" | "compact" | "detailed" | "card";
   showAvatar?: boolean;
   showENS?: boolean; // kept for API compatibility but ignored for badge
   showCopy?: boolean;
   showExplorer?: boolean;
   className?: string;
-  avatarSize?: 'sm' | 'md' | 'lg';
+  avatarSize?: "sm" | "md" | "lg";
   truncateLength?: number;
   customExplorerUrl?: string;
   onAddressClick?: (address: Address) => void;
@@ -27,13 +28,13 @@ export interface AddressDisplayProps {
  */
 export function AddressDisplay({
   address,
-  variant = 'default',
+  variant = "default",
   showAvatar = true,
   showENS = true,
   showCopy = true,
   showExplorer = true,
-  className = '',
-  avatarSize = 'md',
+  className = "",
+  avatarSize = "md",
   truncateLength = 6,
   customExplorerUrl,
   onAddressClick,
@@ -57,16 +58,16 @@ export function AddressDisplay({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(normalizedAddress);
-      toast.success('Address copied to clipboard');
+      toast.success("Address copied to clipboard");
     } catch {
-      toast.error('Failed to copy address');
+      toast.error("Failed to copy address");
     }
   };
 
   // Handle explorer link
   const handleExplorerClick = () => {
     const explorerUrl = customExplorerUrl || `https://basescan.org/address/${normalizedAddress}`;
-    window.open(explorerUrl, '_blank', 'noopener,noreferrer');
+    window.open(explorerUrl, "_blank", "noopener,noreferrer");
   };
 
   // Handle address click
@@ -80,9 +81,9 @@ export function AddressDisplay({
 
   // Avatar size classes
   const avatarSizeClasses = {
-    sm: 'h-6 w-6',
-    md: 'h-8 w-8',
-    lg: 'h-12 w-12',
+    sm: "h-6 w-6",
+    md: "h-8 w-8",
+    lg: "h-12 w-12",
   };
 
   // Truncate address
@@ -95,9 +96,12 @@ export function AddressDisplay({
   const fallbackAvatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${normalizedAddress}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
 
   // Compact variant
-  if (variant === 'compact') {
+  if (variant === "compact") {
     return (
-      <div className={`inline-flex items-center gap-2 cursor-pointer hover:text-primary ${className}`} onClick={handleAddressClick}>
+      <div
+        className={`inline-flex items-center gap-2 cursor-pointer hover:text-primary ${className}`}
+        onClick={handleAddressClick}
+      >
         {showAvatar && (
           <Avatar className={avatarSizeClasses[avatarSize]}>
             <AvatarImage src={ensData?.avatar || fallbackAvatar} alt="Avatar" />
@@ -107,14 +111,16 @@ export function AddressDisplay({
           </Avatar>
         )}
         <span className="font-mono text-sm">
-          {showENS && ensData?.name ? ensData.name : truncateAddress(normalizedAddress, truncateLength)}
+          {showENS && ensData?.name
+            ? ensData.name
+            : truncateAddress(normalizedAddress, truncateLength)}
         </span>
       </div>
     );
   }
 
   // Detailed variant
-  if (variant === 'detailed') {
+  if (variant === "detailed") {
     return (
       <div className={`flex items-center gap-3 p-3 border rounded-lg ${className}`}>
         {showAvatar && (
@@ -125,31 +131,29 @@ export function AddressDisplay({
             </AvatarFallback>
           </Avatar>
         )}
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-medium cursor-pointer hover:text-primary" onClick={handleAddressClick}>
-              {showENS && ensData?.name ? ensData.name : 'Unnamed Address'}
+            <span
+              className="font-medium cursor-pointer hover:text-primary"
+              onClick={handleAddressClick}
+            >
+              {showENS && ensData?.name ? ensData.name : "Unnamed Address"}
             </span>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <code className="text-sm text-muted-foreground font-mono">
               {truncateAddress(normalizedAddress, 8)}
             </code>
-            
+
             <div className="flex items-center gap-1">
               {showCopy && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopy}
-                  className="h-6 w-6 p-0"
-                >
+                <Button variant="ghost" size="sm" onClick={handleCopy} className="h-6 w-6 p-0">
                   <Copy className="h-3 w-3" />
                 </Button>
               )}
-              
+
               {showExplorer && (
                 <Button
                   variant="ghost"
@@ -168,7 +172,7 @@ export function AddressDisplay({
   }
 
   // Card variant
-  if (variant === 'card') {
+  if (variant === "card") {
     return (
       <div className={`p-4 border rounded-lg hover:bg-muted/50 transition-colors ${className}`}>
         <div className="flex items-center gap-3 mb-3">
@@ -180,40 +184,33 @@ export function AddressDisplay({
               </AvatarFallback>
             </Avatar>
           )}
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-semibold truncate cursor-pointer hover:text-primary" onClick={handleAddressClick}>
-                {showENS && ensData?.name ? ensData.name : 'Unnamed Address'}
+              <span
+                className="font-semibold truncate cursor-pointer hover:text-primary"
+                onClick={handleAddressClick}
+              >
+                {showENS && ensData?.name ? ensData.name : "Unnamed Address"}
               </span>
             </div>
-            
+
             <code className="text-sm text-muted-foreground font-mono">
               {truncateAddress(normalizedAddress, 10)}
             </code>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {showCopy && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopy}
-              className="flex-1"
-            >
+            <Button variant="outline" size="sm" onClick={handleCopy} className="flex-1">
               <Copy className="h-4 w-4 mr-2" />
               Copy
             </Button>
           )}
-          
+
           {showExplorer && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExplorerClick}
-              className="flex-1"
-            >
+            <Button variant="outline" size="sm" onClick={handleExplorerClick} className="flex-1">
               <ExternalLink className="h-4 w-4 mr-2" />
               Explorer
             </Button>
@@ -234,41 +231,33 @@ export function AddressDisplay({
           </AvatarFallback>
         </Avatar>
       )}
-      
+
       <div className="flex items-center gap-2">
         <span
           className={`font-mono cursor-pointer hover:text-primary transition-colors ${
-            onAddressClick ? 'cursor-pointer' : ''
+            onAddressClick ? "cursor-pointer" : ""
           }`}
           onClick={handleAddressClick}
         >
-          {showENS && ensData?.name ? ensData.name : truncateAddress(normalizedAddress, truncateLength)}
+          {showENS && ensData?.name
+            ? ensData.name
+            : truncateAddress(normalizedAddress, truncateLength)}
         </span>
-        
+
         {isLoading && (
           <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         )}
       </div>
-      
+
       <div className="flex items-center gap-1">
         {showCopy && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleCopy}
-            className="h-6 w-6 p-0"
-          >
+          <Button variant="ghost" size="sm" onClick={handleCopy} className="h-6 w-6 p-0">
             <Copy className="h-3 w-3" />
           </Button>
         )}
-        
+
         {showExplorer && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleExplorerClick}
-            className="h-6 w-6 p-0"
-          >
+          <Button variant="ghost" size="sm" onClick={handleExplorerClick} className="h-6 w-6 p-0">
             <ExternalLink className="h-3 w-3" />
           </Button>
         )}
@@ -283,7 +272,7 @@ export function AddressDisplay({
 export function SimpleAddressDisplay({
   address,
   truncateLength = 6,
-  className = '',
+  className = "",
 }: {
   address: string | Address;
   truncateLength?: number;
@@ -296,24 +285,20 @@ export function SimpleAddressDisplay({
   const normalizedAddress = address.toLowerCase() as Address;
   const truncated = `${normalizedAddress.slice(0, truncateLength)}...${normalizedAddress.slice(-truncateLength)}`;
 
-  return (
-    <code className={`font-mono ${className}`}>
-      {truncated}
-    </code>
-  );
+  return <code className={`font-mono ${className}`}>{truncated}</code>;
 }
 
 /**
  * Address display with loading skeleton
  */
 export function AddressDisplaySkeleton({
-  variant = 'default',
-  className = '',
+  variant = "default",
+  className = "",
 }: {
-  variant?: 'default' | 'compact' | 'detailed' | 'card';
+  variant?: "default" | "compact" | "detailed" | "card";
   className?: string;
 }) {
-  if (variant === 'compact') {
+  if (variant === "compact") {
     return (
       <div className={`inline-flex items-center gap-2 ${className}`}>
         <div className="h-6 w-6 rounded-full bg-muted animate-pulse" />
@@ -322,7 +307,7 @@ export function AddressDisplaySkeleton({
     );
   }
 
-  if (variant === 'detailed') {
+  if (variant === "detailed") {
     return (
       <div className={`flex items-center gap-3 p-3 border rounded-lg ${className}`}>
         <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
@@ -334,7 +319,7 @@ export function AddressDisplaySkeleton({
     );
   }
 
-  if (variant === 'card') {
+  if (variant === "card") {
     return (
       <div className={`p-4 border rounded-lg ${className}`}>
         <div className="flex items-center gap-3 mb-3">

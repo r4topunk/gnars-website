@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface OverviewLike {
   tokenCount: number;
@@ -17,7 +17,13 @@ interface MemberQuickStatsProps {
   votesCount: number;
 }
 
-export function MemberQuickStats({ address, overview, delegatorsCount, proposalsCount, votesCount }: MemberQuickStatsProps) {
+export function MemberQuickStats({
+  address,
+  overview,
+  delegatorsCount,
+  proposalsCount,
+  votesCount,
+}: MemberQuickStatsProps) {
   const isSelfDelegating = overview.delegate.toLowerCase() === address.toLowerCase();
   const delegatedToAnother = !isSelfDelegating;
 
@@ -30,7 +36,9 @@ export function MemberQuickStats({ address, overview, delegatorsCount, proposals
         <CardContent>
           <div className="text-3xl font-bold">{overview.tokenCount}</div>
           {overview.tokensHeld.length > 0 ? (
-            <div className="text-xs text-muted-foreground mt-1">#{overview.tokensHeld.join(", #")}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              #{overview.tokensHeld.join(", #")}
+            </div>
           ) : (
             <div className="text-sm text-muted-foreground">No tokens</div>
           )}
@@ -84,5 +92,3 @@ export function MemberQuickStats({ address, overview, delegatorsCount, proposals
     </div>
   );
 }
-
-

@@ -57,7 +57,11 @@ async function fetchENSFromUpstream(address: Address): Promise<ENSResolveResult>
       next: { revalidate: 60 * 60 },
     });
     if (res.ok) {
-      const data = (await res.json()) as { displayName?: string | null; name?: string | null; avatar?: string | null };
+      const data = (await res.json()) as {
+        displayName?: string | null;
+        name?: string | null;
+        avatar?: string | null;
+      };
       return {
         name: data.displayName || data.name || null,
         avatar: data.avatar || null,
@@ -129,10 +133,13 @@ async function resolveNameToAddress(name: string): Promise<Address | null> {
 
   // Fallback provider
   try {
-    const res = await fetch(`https://ens.resolver.eth.link/resolve/${encodeURIComponent(trimmed)}`, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 60 * 60 },
-    });
+    const res = await fetch(
+      `https://ens.resolver.eth.link/resolve/${encodeURIComponent(trimmed)}`,
+      {
+        headers: { Accept: "application/json" },
+        next: { revalidate: 60 * 60 },
+      },
+    );
     if (res.ok) {
       const data = (await res.json()) as { address?: string | null };
       const addr = typeof data?.address === "string" ? data.address.toLowerCase() : null;
@@ -172,7 +179,7 @@ async function handleBatch(addressesParam: string[]) {
     addresses.map(async (addr) => {
       const base = await resolveEnsForAddress(addr);
       return [addr, buildENSData(addr, base)] as const;
-    })
+    }),
   );
 
   const ensMap: Record<string, ENSData> = {};
@@ -211,5 +218,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 }
-
-

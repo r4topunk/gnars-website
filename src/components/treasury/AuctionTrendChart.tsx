@@ -103,56 +103,52 @@ export function AuctionTrendChart() {
       <CardContent className="flex-1 pb-0 overflow-hidden">
         <div className="w-full overflow-x-auto">
           <ChartContainer config={chartConfig} className="w-full max-w-full">
-          <AreaChart
-            accessibilityLayer
-            data={points}
-            margin={{ left: 12, right: 12 }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(v) => String(v).slice(0, 3)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={
-                <ChartTooltipContent
-                  indicator="dot"
-                  formatter={(value, name) => {
-                    const v = Number(value ?? 0);
-                    const label = String(name ?? "");
-                    const isUsdc = label.toUpperCase().includes("USDC");
-                    const formatted = isUsdc ? `${Math.round(v)}k` : v.toFixed(4);
-                    return (
-                      <div className="flex w-full items-center justify-between gap-4">
-                        <span className="text-muted-foreground">{label}</span>
-                        <span className="font-mono font-medium">{formatted}</span>
-                      </div>
-                    );
-                  }}
-                />
-              }
-            />
-            <Area
-              dataKey="usdc"
-              name="USDC (k)"
-              type="natural"
-              fill="var(--color-usdc)"
-              fillOpacity={0.4}
-              stroke="var(--color-usdc)"
-            />
-            <Area
-              dataKey="eth"
-              name="ETH"
-              type="natural"
-              fill="var(--color-eth)"
-              fillOpacity={0.4}
-              stroke="var(--color-eth)"
-            />
-          </AreaChart>
+            <AreaChart accessibilityLayer data={points} margin={{ left: 12, right: 12 }}>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="month"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(v) => String(v).slice(0, 3)}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    indicator="dot"
+                    formatter={(value, name) => {
+                      const v = Number(value ?? 0);
+                      const label = String(name ?? "");
+                      const isUsdc = label.toUpperCase().includes("USDC");
+                      const formatted = isUsdc ? `${Math.round(v)}k` : v.toFixed(4);
+                      return (
+                        <div className="flex w-full items-center justify-between gap-4">
+                          <span className="text-muted-foreground">{label}</span>
+                          <span className="font-mono font-medium">{formatted}</span>
+                        </div>
+                      );
+                    }}
+                  />
+                }
+              />
+              <Area
+                dataKey="usdc"
+                name="USDC (k)"
+                type="natural"
+                fill="var(--color-usdc)"
+                fillOpacity={0.4}
+                stroke="var(--color-usdc)"
+              />
+              <Area
+                dataKey="eth"
+                name="ETH"
+                type="natural"
+                fill="var(--color-eth)"
+                fillOpacity={0.4}
+                stroke="var(--color-eth)"
+              />
+            </AreaChart>
           </ChartContainer>
         </div>
       </CardContent>

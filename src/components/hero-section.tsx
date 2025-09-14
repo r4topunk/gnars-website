@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { useDaoAuction } from "@buildeross/hooks";
 import { Clock, TrendingUp, Trophy, Users, Zap } from "lucide-react";
 import { zeroAddress } from "viem";
+import { GnarImageTile } from "@/components/auctions/GnarImageTile";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
-import { CountUp } from "@/components/ui/count-up";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AddressDisplay } from "@/components/ui/address-display";
+import { CountUp } from "@/components/ui/count-up";
 import { Progress } from "@/components/ui/progress";
-import { GnarImageTile } from "@/components/auctions/GnarImageTile";
 import { CHAIN, DAO_DESCRIPTION, GNARS_ADDRESSES } from "@/lib/config";
 
 interface HeroSectionProps {
@@ -138,7 +138,12 @@ export function HeroSection({ stats }: HeroSectionProps) {
                     </div>
                     <div>
                       <div className="font-semibold">
-                        <CountUp value={parseFloat(stats.treasuryValue || "0")} decimals={1} durationMs={900} /> ETH
+                        <CountUp
+                          value={parseFloat(stats.treasuryValue || "0")}
+                          decimals={1}
+                          durationMs={900}
+                        />{" "}
+                        ETH
                       </div>
                       <div className="text-xs text-muted-foreground">Treasury</div>
                     </div>

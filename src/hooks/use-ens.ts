@@ -1,7 +1,8 @@
 "use client";
-import { useCallback, useEffect, useState } from 'react';
-import { Address, isAddress } from 'viem';
-import { resolveENS, resolveENSBatch, type ENSData } from '@/lib/ens';
+
+import { useCallback, useEffect, useState } from "react";
+import { Address, isAddress } from "viem";
+import { resolveENS, resolveENSBatch, type ENSData } from "@/lib/ens";
 
 export interface UseENSResult {
   data: ENSData | null;
@@ -38,7 +39,7 @@ export function useENS(address?: string | Address): UseENSResult {
       const ensData = await resolveENS(address);
       setData(ensData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to resolve ENS');
+      setError(err instanceof Error ? err.message : "Failed to resolve ENS");
       setData(null);
     } finally {
       setIsLoading(false);
@@ -78,7 +79,7 @@ export function useENSBatch(addresses: (string | Address)[]): UseENSBatchResult 
       const ensDataMap = await resolveENSBatch(addresses);
       setData(ensDataMap);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to resolve ENS batch');
+      setError(err instanceof Error ? err.message : "Failed to resolve ENS batch");
       setData(new Map());
     } finally {
       setIsLoading(false);
@@ -128,7 +129,7 @@ export function useENSOptimistic(address?: string | Address): UseENSResult {
       const ensData = await resolveENS(address);
       setData(ensData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to resolve ENS');
+      setError(err instanceof Error ? err.message : "Failed to resolve ENS");
       // Keep optimistic data on error
     } finally {
       setIsLoading(false);

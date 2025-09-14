@@ -1,4 +1,4 @@
-import { Address, isAddress } from 'viem';
+import { Address, isAddress } from "viem";
 
 export interface ENSData {
   name: string | null;
@@ -17,10 +17,10 @@ const localEnsCache = new Map<string, { data: ENSResolveResult; timestamp: numbe
 const localNameToAddressCache = new Map<string, { address: Address | null; timestamp: number }>();
 
 function getApiBase(): string {
-  if (typeof window !== 'undefined') return '';
-  const env = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || '';
-  if (!env) return 'http://localhost:3000';
-  return env.startsWith('http') ? env : `https://${env}`;
+  if (typeof window !== "undefined") return "";
+  const env = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || "";
+  if (!env) return "http://localhost:3000";
+  return env.startsWith("http") ? env : `https://${env}`;
 }
 
 function shorten(address: Address): string {
@@ -29,7 +29,7 @@ function shorten(address: Address): string {
 
 export async function resolveENS(address: string | Address): Promise<ENSData> {
   if (!address || !isAddress(address)) {
-    throw new Error('Invalid Ethereum address');
+    throw new Error("Invalid Ethereum address");
   }
 
   const normalized = address.toLowerCase() as Address;
@@ -45,7 +45,7 @@ export async function resolveENS(address: string | Address): Promise<ENSData> {
   }
 
   const baseUrl = getApiBase();
-  const res = await fetch(`${baseUrl}/api/ens?address=${normalized}`, { cache: 'no-store' });
+  const res = await fetch(`${baseUrl}/api/ens?address=${normalized}`, { cache: "no-store" });
   if (!res.ok) {
     return {
       name: null,
@@ -70,8 +70,8 @@ export async function resolveENS(address: string | Address): Promise<ENSData> {
 }
 
 export async function resolveAddressFromENS(name: string): Promise<Address | null> {
-  const trimmed = (name || '').trim().toLowerCase();
-  if (!trimmed || !trimmed.includes('.')) return null;
+  const trimmed = (name || "").trim().toLowerCase();
+  if (!trimmed || !trimmed.includes(".")) return null;
 
   const cached = localNameToAddressCache.get(trimmed);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
@@ -79,19 +79,23 @@ export async function resolveAddressFromENS(name: string): Promise<Address | nul
   }
 
   const baseUrl = getApiBase();
-  const res = await fetch(`${baseUrl}/api/ens?name=${encodeURIComponent(trimmed)}`, { cache: 'no-store' });
+  const res = await fetch(`${baseUrl}/api/ens?name=${encodeURIComponent(trimmed)}`, {
+    cache: "no-store",
+  });
   if (!res.ok) {
     localNameToAddressCache.set(trimmed, { address: null, timestamp: Date.now() });
     return null;
   }
   const body = (await res.json()) as { address?: string | null };
-  const value = typeof body?.address === 'string' ? (body.address.toLowerCase() as Address) : null;
+  const value = typeof body?.address === "string" ? (body.address.toLowerCase() as Address) : null;
   const normalized = value && isAddress(value) ? (value as Address) : null;
   localNameToAddressCache.set(trimmed, { address: normalized, timestamp: Date.now() });
   return normalized;
 }
 
-export async function resolveENSBatch(addresses: (string | Address)[]): Promise<Map<Address, ENSData>> {
+export async function resolveENSBatch(
+  addresses: (string | Address)[],
+): Promise<Map<Address, ENSData>> {
   const valid = addresses
     .filter((a): a is Address => Boolean(a) && isAddress(a))
     .map((a) => (a as Address).toLowerCase() as Address);
@@ -100,10 +104,10 @@ export async function resolveENSBatch(addresses: (string | Address)[]): Promise<
 
   const baseUrl = getApiBase();
   const res = await fetch(`${baseUrl}/api/ens`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    method: "POST",
+    headers: { "content-type": "application/json" },
     body: JSON.stringify({ addresses: valid }),
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   const result = new Map<Address, ENSData>();

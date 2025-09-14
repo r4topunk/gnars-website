@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { CardHeader, CardTitle, CardAction } from "@/components/ui/card";
+import { CardAction, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface SectionHeaderProps {

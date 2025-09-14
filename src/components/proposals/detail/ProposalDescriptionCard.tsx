@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Markdown } from "@/components/common/Markdown";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ProposalDescriptionCardProps {
   description: string;
@@ -19,5 +19,3 @@ export function ProposalDescriptionCard({ description }: ProposalDescriptionCard
     </Card>
   );
 }
-
-

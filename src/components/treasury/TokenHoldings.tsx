@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { TREASURY_TOKEN_ADDRESSES } from "@/lib/config";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -13,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TREASURY_TOKEN_ADDRESSES } from "@/lib/config";
 
 interface TokenHoldingsProps {
   treasuryAddress: string;

@@ -1,5 +1,5 @@
 import { decodeFunctionData, formatEther } from "viem";
-import { ZORA_CREATOR, DROPOSAL_TARGET } from "./config";
+import { DROPOSAL_TARGET, ZORA_CREATOR } from "./config";
 
 // Zora NFT Creator ABI - focusing on createEdition function for droposal detection
 export const zoraNftCreatorAbi = [

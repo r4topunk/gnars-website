@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/common/SectionHeader";
+import { Button } from "@/components/ui/button";
 
 export function RecentProposalsHeader() {
   return (
@@ -21,5 +21,3 @@ export function RecentProposalsHeader() {
     />
   );
 }
-
-

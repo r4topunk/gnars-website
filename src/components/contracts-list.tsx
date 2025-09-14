@@ -1,5 +1,6 @@
 "use client";
 
+import { AddressDisplay } from "@/components/ui/address-display";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -10,7 +11,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { GNARS_ADDRESSES } from "@/lib/config";
-import { AddressDisplay } from "@/components/ui/address-display";
 
 const contracts = [
   { name: "Token (NFT)", address: GNARS_ADDRESSES.token, description: "Gnars NFT contract" },
@@ -21,8 +21,6 @@ const contracts = [
 ];
 
 export function ContractsList() {
-  
-
   return (
     <Card>
       <CardHeader>

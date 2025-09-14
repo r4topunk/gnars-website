@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { AddressDisplay } from "@/components/ui/address-display";
 
 export interface GnarCardProps {
   tokenId: string | number | bigint;
@@ -47,16 +47,20 @@ export function GnarCard({
           )}
         </div>
 
-        <div className={cn("space-y-2")}> 
+        <div className={cn("space-y-2")}>
           <div className="flex items-top justify-between">
             <h3 className={cn("font-semibold text-base")}>{`Gnar #${String(tokenId)}`}</h3>
-            {dateLabel ? <div className="text-xs text-muted-foreground pt-1">{dateLabel}</div> : null}
+            {dateLabel ? (
+              <div className="text-xs text-muted-foreground pt-1">{dateLabel}</div>
+            ) : null}
           </div>
 
           {(finalBidEth != null || showPlaceholders) && (
             <div>
               <div className="text-sm text-muted-foreground">Final bid</div>
-              <div className="font-bold text-lg">{finalBidEth != null ? `${finalBidEth} ETH` : "-"}</div>
+              <div className="font-bold text-lg">
+                {finalBidEth != null ? `${finalBidEth} ETH` : "-"}
+              </div>
             </div>
           )}
 

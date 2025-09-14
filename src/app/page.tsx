@@ -1,6 +1,6 @@
-import { SidebarInset } from "@/components/ui/sidebar";
-import { Proposal } from "@/components/proposals/types";
 import { HomeClientComponents } from "@/components/home-client-components";
+import { Proposal } from "@/components/proposals/types";
+import { SidebarInset } from "@/components/ui/sidebar";
 import { listProposals } from "@/services/proposals";
 
 export const dynamic = "force-dynamic";

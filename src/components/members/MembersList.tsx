@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import Link from "next/link";
+import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -11,11 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AddressDisplay } from "@/components/ui/address-display";
-import Link from "next/link";
-import { type MemberListItem } from "@/services/members";
 import { GNARS_ADDRESSES } from "@/lib/config";
- 
+import { type MemberListItem } from "@/services/members";
 
 async function fetchMembers(search?: string): Promise<MemberListItem[]> {
   const url = new URL("/api/members", window.location.origin);
@@ -38,16 +37,20 @@ interface MembersListProps {
   showSearch?: boolean;
 }
 
-export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = true }: MembersListProps) {
+export function MembersList({
+  searchTerm: initialSearchTerm = "",
+  showSearch = true,
+}: MembersListProps) {
   const [members, setMembers] = useState<MemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
-  const [sortBy, setSortBy] = useState<"delegate" | "tokens" | "activeVotes" | "votesCount">("tokens");
+  const [sortBy, setSortBy] = useState<"delegate" | "tokens" | "activeVotes" | "votesCount">(
+    "tokens",
+  );
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const PAGE_SIZE = 100;
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
- 
 
   useEffect(() => {
     async function loadMembers() {
@@ -67,9 +70,10 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
 
   const filteredMembers = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    const result = members.filter((member) =>
-      member.owner.toLowerCase().includes(searchLower) ||
-      member.delegate.toLowerCase().includes(searchLower),
+    const result = members.filter(
+      (member) =>
+        member.owner.toLowerCase().includes(searchLower) ||
+        member.delegate.toLowerCase().includes(searchLower),
     );
     const dir = sortDir === "asc" ? 1 : -1;
     const compare = (a: MemberListItem, b: MemberListItem) => {
@@ -84,9 +88,9 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
         case "tokens":
           return (a.tokenCount - b.tokenCount) * dir;
         case "activeVotes":
-          return (((a.activeVotes ?? 0) - (b.activeVotes ?? 0)) * dir);
+          return ((a.activeVotes ?? 0) - (b.activeVotes ?? 0)) * dir;
         case "votesCount":
-          return (((a.votesCount ?? 0) - (b.votesCount ?? 0)) * dir);
+          return ((a.votesCount ?? 0) - (b.votesCount ?? 0)) * dir;
         default:
           return 0;
       }
@@ -96,18 +100,23 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
 
   // Reset visible count when the filters change
   useEffect(() => {
-    setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), filteredMembers.length || PAGE_SIZE));
+    setVisibleCount((prev) =>
+      Math.min(Math.max(PAGE_SIZE, prev), filteredMembers.length || PAGE_SIZE),
+    );
   }, [members.length, searchTerm, sortBy, sortDir, filteredMembers.length]);
 
   // IntersectionObserver to load more on scroll
   useEffect(() => {
     if (!sentinelRef.current) return;
     const el = sentinelRef.current;
-    const observer = new IntersectionObserver((entries) => {
-      const [entry] = entries;
-      if (!entry?.isIntersecting) return;
-      setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredMembers.length));
-    }, { rootMargin: "200px" });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry?.isIntersecting) return;
+        setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredMembers.length));
+      },
+      { rootMargin: "200px" },
+    );
     observer.observe(el);
     return () => {
       observer.unobserve(el);
@@ -121,7 +130,12 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
         {showSearch ? (
           <div className="flex flex-wrap items-center gap-2">
             <Search className="h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search by address or ENS..." value={searchTerm} className="w-full sm:max-w-sm" disabled />
+            <Input
+              placeholder="Search by address or ENS..."
+              value={searchTerm}
+              className="w-full sm:max-w-sm"
+              disabled
+            />
           </div>
         ) : null}
         <div className="text-center py-8">
@@ -194,7 +208,9 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
                 className="text-right cursor-pointer select-none"
                 onClick={() => {
                   setSortBy("activeVotes");
-                  setSortDir((d) => (sortBy === "activeVotes" ? (d === "asc" ? "desc" : "asc") : d));
+                  setSortDir((d) =>
+                    sortBy === "activeVotes" ? (d === "asc" ? "desc" : "asc") : d,
+                  );
                 }}
               >
                 <span className="inline-flex items-center gap-1 justify-end w-full">
@@ -244,7 +260,10 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
                 <TableRow key={member.owner}>
                   <TableCell>
                     {member.owner.toLowerCase() === GNARS_ADDRESSES.treasury.toLowerCase() ? (
-                      <Link href={`/members/${member.owner}`} className="hover:underline font-medium">
+                      <Link
+                        href={`/members/${member.owner}`}
+                        className="hover:underline font-medium"
+                      >
                         {"Gnars' treasury"}
                       </Link>
                     ) : (

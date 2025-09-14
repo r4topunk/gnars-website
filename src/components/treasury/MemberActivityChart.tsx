@@ -36,7 +36,7 @@ const chartConfig = {
 
 export function MemberActivityChart() {
   const { data: proposalBars = [], isLoading, error } = useMemberActivity(12);
-  
+
   const totalVoters = useMemo(
     () => proposalBars.reduce((sum, r) => sum + r.voters, 0),
     [proposalBars],
@@ -110,19 +110,19 @@ export function MemberActivityChart() {
       <CardContent className="flex-1 pb-0 overflow-hidden">
         <div className="w-full overflow-x-auto">
           <ChartContainer config={chartConfig} className="h-[200px] w-full max-w-full">
-          <BarChart
-            accessibilityLayer
-            data={proposalBars}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis dataKey="proposalNumber" tickLine={false} axisLine={false} tickMargin={8} />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <Bar dataKey="voters" fill="var(--color-voters)" radius={4} />
-          </BarChart>
+            <BarChart
+              accessibilityLayer
+              data={proposalBars}
+              margin={{
+                left: 12,
+                right: 12,
+              }}
+            >
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="proposalNumber" tickLine={false} axisLine={false} tickMargin={8} />
+              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <Bar dataKey="voters" fill="var(--color-voters)" radius={4} />
+            </BarChart>
           </ChartContainer>
         </div>
       </CardContent>
@@ -130,10 +130,8 @@ export function MemberActivityChart() {
         <div className="flex w-full items-center justify-center gap-2 text-sm">
           <div className="grid gap-2 text-center">
             <div className="flex items-center justify-center gap-2 font-medium leading-none">
-              {isLoading 
-                ? "Loading..." 
-                : `${totalVoters} voters across recent proposals`
-              } <TrendingUp className="h-4 w-4" />
+              {isLoading ? "Loading..." : `${totalVoters} voters across recent proposals`}{" "}
+              <TrendingUp className="h-4 w-4" />
             </div>
             <div className="flex items-center justify-center gap-2 leading-none text-muted-foreground">
               Showing {proposalBars.length} proposals

@@ -33,5 +33,3 @@ export function GnarImageTile({ imageUrl, tokenId, className }: GnarImageTilePro
     </div>
   );
 }
-
-

@@ -1,8 +1,8 @@
-import { GNARS_ADDRESSES, DROPOSAL_TARGET } from "@/lib/config";
-import { subgraphQuery } from "@/lib/subgraph";
+import { formatEther } from "viem";
+import { DROPOSAL_TARGET, GNARS_ADDRESSES } from "@/lib/config";
 import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
-import { formatEther } from "viem";
+import { subgraphQuery } from "@/lib/subgraph";
 
 type ProposalsQuery = {
   proposals: Array<{
@@ -98,9 +98,10 @@ export async function fetchDroposals(max: number = 24): Promise<DroposalListItem
       const decoded = calldatas[i] ? decodeDroposalParams(calldatas[i]!) : null;
       const bannerImage = decoded?.imageURI ? ipfsToHttp(decoded.imageURI) : undefined;
       const animationUrl = decoded?.animationURI ? ipfsToHttp(decoded.animationURI) : undefined;
-      const priceEth = decoded?.saleConfig?.publicSalePrice !== undefined
-        ? formatEther(decoded.saleConfig.publicSalePrice)
-        : undefined;
+      const priceEth =
+        decoded?.saleConfig?.publicSalePrice !== undefined
+          ? formatEther(decoded.saleConfig.publicSalePrice)
+          : undefined;
 
       items.push({
         proposalId: p.proposalId,
@@ -124,5 +125,3 @@ export async function fetchDroposals(max: number = 24): Promise<DroposalListItem
 
   return items;
 }
-
-

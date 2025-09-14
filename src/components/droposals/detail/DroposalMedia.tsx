@@ -20,7 +20,12 @@ export function DroposalMedia({ mediaImage, mediaAnimation, alt }: DroposalMedia
     <div className="relative w-full aspect-[16/9] bg-muted rounded-xl overflow-hidden">
       {mediaAnimation ? (
         <>
-          <video src={mediaAnimation} className="h-full w-full object-cover" controls preload="metadata" />
+          <video
+            src={mediaAnimation}
+            className="h-full w-full object-cover"
+            controls
+            preload="metadata"
+          />
           <div className="absolute right-2 top-2 inline-flex items-center gap-1 rounded bg-purple-600 px-2 py-1 text-xs text-white">
             Video
           </div>
@@ -33,5 +38,3 @@ export function DroposalMedia({ mediaImage, mediaAnimation, alt }: DroposalMedia
     </div>
   );
 }
-
-

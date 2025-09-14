@@ -1,10 +1,10 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { AddressDisplay } from "@/components/ui/address-display";
-import { type Propdate } from "@/services/propdates";
 import { formatDistanceToNow } from "date-fns";
 import { Markdown } from "@/components/common/Markdown";
+import { AddressDisplay } from "@/components/ui/address-display";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { type Propdate } from "@/services/propdates";
 
 interface PropdateCardProps {
   propdate: Propdate;

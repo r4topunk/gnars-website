@@ -1,16 +1,16 @@
 "use client";
 
 import { useTransition } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
 import { AlertTriangle, CheckCircle, ExternalLink, Loader2 } from "lucide-react";
+import { useFormContext, useWatch } from "react-hook-form";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { TransactionsSummaryList } from "@/components/proposals/preview/TransactionsSummaryList";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { createProposalAction } from "@/app/propose/actions";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { type ProposalFormValues } from "./schema";
-import { TransactionsSummaryList } from "@/components/proposals/preview/TransactionsSummaryList";
-import { createProposalAction } from "@/app/propose/actions";
 
 const governorAbi = [
   {
@@ -50,7 +50,12 @@ export function ProposalPreview() {
           address: GNARS_ADDRESSES.governor as `0x${string}`,
           abi: governorAbi,
           functionName: "propose",
-          args: [preparedTx.targets, preparedTx.values, preparedTx.calldatas, preparedTx.description],
+          args: [
+            preparedTx.targets,
+            preparedTx.values,
+            preparedTx.calldatas,
+            preparedTx.description,
+          ],
         });
       } catch (error) {
         console.error("Error submitting proposal:", error);
@@ -141,9 +146,7 @@ export function ProposalPreview() {
           {isActionPending && (
             <Alert className="mb-4">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <AlertDescription>
-                Preparing proposal...
-              </AlertDescription>
+              <AlertDescription>Preparing proposal...</AlertDescription>
             </Alert>
           )}
 
@@ -163,11 +166,20 @@ export function ProposalPreview() {
             </Alert>
           )}
 
-          <Button onClick={handleSubmit(handleFormSubmit)} disabled={!canSubmit} size="lg" className="w-full">
+          <Button
+            onClick={handleSubmit(handleFormSubmit)}
+            disabled={!canSubmit}
+            size="lg"
+            className="w-full"
+          >
             {isActionPending || isWalletPending || isConfirming ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                {isActionPending ? "Preparing..." : isWalletPending ? "Confirming..." : "Submitting..."}
+                {isActionPending
+                  ? "Preparing..."
+                  : isWalletPending
+                    ? "Confirming..."
+                    : "Submitting..."}
               </>
             ) : (
               "Submit Proposal"

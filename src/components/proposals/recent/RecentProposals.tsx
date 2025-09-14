@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
+import { RecentProposalsEmptyState } from "@/components/proposals/recent/EmptyState";
+import { RecentProposalsLoadingSkeleton } from "@/components/proposals/recent/LoadingSkeleton";
+import { ProposalsGrid } from "@/components/proposals/recent/ProposalsGrid";
+import { RecentProposalsHeader } from "@/components/proposals/recent/RecentProposalsHeader";
+import { Proposal } from "@/components/proposals/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { Proposal } from "@/components/proposals/types";
-import { RecentProposalsHeader } from "@/components/proposals/recent/RecentProposalsHeader";
-import { ProposalsGrid } from "@/components/proposals/recent/ProposalsGrid";
-import { RecentProposalsLoadingSkeleton } from "@/components/proposals/recent/LoadingSkeleton";
-import { RecentProposalsEmptyState } from "@/components/proposals/recent/EmptyState";
 import { getProposalStatus, ProposalStatus } from "@/lib/schemas/proposals";
 
 // Re-export for backwards compatibility
@@ -20,8 +20,6 @@ interface RecentProposalsProps {
   limit?: number;
   excludeStatuses?: ProposalStatus[];
 }
-
-
 
 export function RecentProposals({
   proposals,
@@ -54,9 +52,7 @@ export function RecentProposals({
             proposerEnsName: undefined,
             createdAt: Number(p.timeCreated ?? 0) * 1000,
             endBlock: Number(p.voteEnd ?? 0),
-            snapshotBlock: p.snapshotBlockNumber
-              ? Number(p.snapshotBlockNumber)
-              : undefined,
+            snapshotBlock: p.snapshotBlockNumber ? Number(p.snapshotBlockNumber) : undefined,
             endDate: p.voteEnd ? new Date(Number(p.voteEnd) * 1000) : undefined,
             forVotes: Number(p.forVotes ?? 0),
             againstVotes: Number(p.againstVotes ?? 0),
@@ -70,9 +66,7 @@ export function RecentProposals({
             votes: [],
             voteStart: new Date(Number(p.voteStart ?? 0) * 1000).toISOString(),
             voteEnd: new Date(Number(p.voteEnd ?? 0) * 1000).toISOString(),
-            expiresAt: p.expiresAt
-              ? new Date(Number(p.expiresAt) * 1000).toISOString()
-              : undefined,
+            expiresAt: p.expiresAt ? new Date(Number(p.expiresAt) * 1000).toISOString() : undefined,
             timeCreated: Number(p.timeCreated ?? 0),
           };
         });

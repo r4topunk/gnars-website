@@ -26,15 +26,8 @@ export interface DroposalHeaderProps {
 }
 
 export function DroposalHeader(props: DroposalHeaderProps) {
-  const {
-    proposalNumber,
-    title,
-    fallbackName,
-    createdAtMs,
-    isExecuted,
-    priceEth,
-    editionSize,
-  } = props;
+  const { proposalNumber, title, fallbackName, createdAtMs, isExecuted, priceEth, editionSize } =
+    props;
 
   return (
     <div className="flex items-start justify-between gap-4">
@@ -65,5 +58,3 @@ export function DroposalHeader(props: DroposalHeaderProps) {
     </div>
   );
 }
-
-

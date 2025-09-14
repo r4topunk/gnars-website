@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { formatEther } from "viem";
+import { PastAuctions } from "@/components/auctions/PastAuctions";
+import { FAQ } from "@/components/common/FAQ";
 import { ContractsList } from "@/components/contracts-list";
+import { HeroSection } from "@/components/hero-section";
+import { RecentProposals } from "@/components/proposals/recent/RecentProposals";
+import { Proposal } from "@/components/proposals/types";
 import {
   AuctionTrendChart,
   MemberActivityChart,
   TreasuryAllocationChart,
 } from "@/components/treasury/DashboardCharts";
-import { HeroSection } from "@/components/hero-section";
-import { PastAuctions } from "@/components/auctions/PastAuctions";
-import { RecentProposals } from "@/components/proposals/recent/RecentProposals";
-import { FAQ } from "@/components/common/FAQ";
-import { Proposal } from "@/components/proposals/types";
-import { ProposalStatus } from "@/lib/schemas/proposals";
 import { useRecentAuctions } from "@/hooks/use-auctions";
 import { GNARS_ADDRESSES } from "@/lib/config";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 import { fetchDaoStats } from "@/services/dao";
 
 interface HomeClientComponentsProps {
@@ -46,7 +46,10 @@ export function HomeClientComponents({ proposals }: HomeClientComponentsProps) {
     fetch("/api/alchemy", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ method: "eth_getBalance", params: [GNARS_ADDRESSES.treasury, "latest"] }),
+      body: JSON.stringify({
+        method: "eth_getBalance",
+        params: [GNARS_ADDRESSES.treasury, "latest"],
+      }),
     })
       .then(async (r) => (r.ok ? r.json() : Promise.reject(new Error("alchemy"))))
       .then((j) => {
@@ -86,10 +89,10 @@ export function HomeClientComponents({ proposals }: HomeClientComponentsProps) {
       <div className="flex flex-1 flex-col gap-6 px-4 py-4">
         {/* Recent Proposals Section */}
         <section>
-          <RecentProposals 
-            proposals={proposals} 
-            limit={6} 
-            excludeStatuses={[ProposalStatus.CANCELLED]} 
+          <RecentProposals
+            proposals={proposals}
+            limit={6}
+            excludeStatuses={[ProposalStatus.CANCELLED]}
           />
         </section>
 

@@ -44,5 +44,3 @@ export function CountUp({ value, durationMs = 1200, decimals = 0, className }: C
 
   return <span className={className}>{formatter.format(display)}</span>;
 }
-
-

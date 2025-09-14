@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { VotingControls } from "@/components/common/VotingControls";
+import { Propdates } from "@/components/proposals/detail/Propdates";
+import { ProposalDescriptionCard } from "@/components/proposals/detail/ProposalDescriptionCard";
+import { ProposalHeader } from "@/components/proposals/detail/ProposalHeader";
+import { ProposalVotesTable } from "@/components/proposals/detail/ProposalVotesTable";
+import { ProposedTransactionsTable } from "@/components/proposals/detail/ProposedTransactionsTable";
 import { ProposalMetrics } from "@/components/proposals/ProposalMetrics";
+import { Proposal } from "@/components/proposals/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VotingControls } from "@/components/common/VotingControls";
-import { ProposalHeader } from "@/components/proposals/detail/ProposalHeader";
-import { ProposalDescriptionCard } from "@/components/proposals/detail/ProposalDescriptionCard";
-import { ProposedTransactionsTable } from "@/components/proposals/detail/ProposedTransactionsTable";
-import { ProposalVotesTable } from "@/components/proposals/detail/ProposalVotesTable";
-import { Propdates } from "@/components/proposals/detail/Propdates";
-import { Proposal } from "@/components/proposals/types";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface ProposalDetailProps {

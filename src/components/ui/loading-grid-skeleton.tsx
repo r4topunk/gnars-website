@@ -27,7 +27,9 @@ export function LoadingGridSkeleton({
         <CardContent className="p-0">{content}</CardContent>
       </Card>
     ) : (
-      <div key={index} className="p-0">{content}</div>
+      <div key={index} className="p-0">
+        {content}
+      </div>
     );
   };
 

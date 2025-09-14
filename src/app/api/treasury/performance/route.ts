@@ -18,7 +18,9 @@ type MonthlyPoint = {
 const BASE_RPC = process.env.BASE_RPC || "https://mainnet.base.org"; // fallback only
 const BASESCAN_API = "https://api.basescan.org/api";
 const BASESCAN_API_KEY = process.env.BASESCAN_API_KEY || "";
-const USDC_BASE = (process.env.USDC_BASE || "0x833589fCD6EDb6E08f4c7C32D4f71b54bdA02913").toLowerCase();
+const USDC_BASE = (
+  process.env.USDC_BASE || "0x833589fCD6EDb6E08f4c7C32D4f71b54bdA02913"
+).toLowerCase();
 
 // Gnars treasury by default; override with ?address=
 const DEFAULT_TREASURY = "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88".toLowerCase();
@@ -143,7 +145,11 @@ async function ethGetBalanceAtBlock(address: string, blockNumber: number): Promi
   return BigInt(result);
 }
 
-async function erc20BalanceOfAtBlock(token: string, holder: string, blockNumber: number): Promise<bigint> {
+async function erc20BalanceOfAtBlock(
+  token: string,
+  holder: string,
+  blockNumber: number,
+): Promise<bigint> {
   const selector = "70a08231"; // balanceOf(address)
   const addr = holder.toLowerCase().replace("0x", "").padStart(40, "0");
   const data = `0x${selector}${"0".repeat(24)}${addr}`;
@@ -217,5 +223,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
 }
-
-

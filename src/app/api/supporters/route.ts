@@ -1,10 +1,10 @@
-import { createPublicClient, http } from 'viem';
-import { base } from 'viem/chains';
-import { NextRequest, NextResponse } from 'next/server';
-import zoraNftAbi from '@/utils/abis/zoraNftAbi';
-import type { Address } from 'viem';
+import { NextRequest, NextResponse } from "next/server";
+import { createPublicClient, http } from "viem";
+import type { Address } from "viem";
+import { base } from "viem/chains";
+import zoraNftAbi from "@/utils/abis/zoraNftAbi";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const revalidate = 300;
 
 const publicClient = createPublicClient({
@@ -58,7 +58,7 @@ async function readOwnerOf(address: Address, tokenId: bigint) {
     const result = await publicClient.readContract({
       address,
       abi: zoraNftAbi,
-      functionName: 'ownerOf',
+      functionName: "ownerOf",
       args: [tokenId],
     });
     return { success: true as const, data: result as string };
@@ -72,7 +72,7 @@ async function readTotalSupply(address: Address) {
     const result = await publicClient.readContract({
       address,
       abi: zoraNftAbi,
-      functionName: 'totalSupply',
+      functionName: "totalSupply",
     });
     return { success: true as const, data: result as bigint };
   } catch (err) {
@@ -80,7 +80,11 @@ async function readTotalSupply(address: Address) {
   }
 }
 
-async function fetchTokenOwnersBatch(contractAddress: Address, startTokenId: bigint, endTokenId: bigint) {
+async function fetchTokenOwnersBatch(
+  contractAddress: Address,
+  startTokenId: bigint,
+  endTokenId: bigint,
+) {
   const results: { address: string; tokenId: bigint }[] = [];
   for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId++) {
     const owner = await readOwnerOf(contractAddress, tokenId);
@@ -106,22 +110,22 @@ function aggregateAndRank(minters: { address: string; tokenId: bigint }[]): Aggr
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const contractAddress = searchParams.get('contractAddress');
-  const startTokenId = searchParams.get('startTokenId');
-  const endTokenId = searchParams.get('endTokenId');
-  const limitParam = searchParams.get('limit');
+  const contractAddress = searchParams.get("contractAddress");
+  const startTokenId = searchParams.get("startTokenId");
+  const endTokenId = searchParams.get("endTokenId");
+  const limitParam = searchParams.get("limit");
 
   if (!contractAddress) {
-    return NextResponse.json({ error: 'Missing contractAddress parameter' }, { status: 400 });
+    return NextResponse.json({ error: "Missing contractAddress parameter" }, { status: 400 });
   }
 
   let formatted: Address;
   try {
-    formatted = contractAddress.toLowerCase().startsWith('0x')
+    formatted = contractAddress.toLowerCase().startsWith("0x")
       ? (contractAddress as Address)
       : (`0x${contractAddress}` as Address);
   } catch {
-    return NextResponse.json({ error: 'Invalid contract address format' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid contract address format" }, { status: 400 });
   }
 
   const start = startTokenId ? BigInt(startTokenId) : 1n;
@@ -131,15 +135,17 @@ export async function GET(request: NextRequest) {
   const cacheKey = getCacheKey(contractAddress, start.toString(), end.toString());
   const cached = getFromCache(cacheKey);
   if (cached) {
-    const limited = limit && cached.supporters.length > limit
-      ? { ...cached, supporters: cached.supporters.slice(0, limit) }
-      : cached;
+    const limited =
+      limit && cached.supporters.length > limit
+        ? { ...cached, supporters: cached.supporters.slice(0, limit) }
+        : cached;
     return NextResponse.json(limited);
   }
 
   try {
     const totalSupplyResult = await readTotalSupply(formatted);
-    const totalSupply = totalSupplyResult.success && totalSupplyResult.data ? totalSupplyResult.data : 0n;
+    const totalSupply =
+      totalSupplyResult.success && totalSupplyResult.data ? totalSupplyResult.data : 0n;
     const actualEnd = totalSupply > 0n && end > totalSupply ? totalSupply : end;
 
     const owners = await fetchTokenOwnersBatch(formatted, start, actualEnd);
@@ -171,12 +177,10 @@ export async function GET(request: NextRequest) {
     });
 
     const headers = new Headers();
-    headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    headers.set("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");
     return NextResponse.json(response, { headers });
   } catch (error) {
-    console.error('Error fetching supporters:', error);
-    return NextResponse.json({ error: 'Failed to fetch supporters' }, { status: 500 });
+    console.error("Error fetching supporters:", error);
+    return NextResponse.json({ error: "Failed to fetch supporters" }, { status: 500 });
   }
 }
-
-

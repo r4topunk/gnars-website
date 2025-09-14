@@ -12,5 +12,3 @@ export function RecentProposalsLoadingSkeleton({ items = 6 }: { items?: number }
     />
   );
 }
-
-

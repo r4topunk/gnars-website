@@ -20,9 +20,9 @@ import {
 import {
   ChartConfig,
   ChartContainer,
+  ChartLegend,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTreasuryAllocation } from "@/hooks/use-treasury-allocation";
@@ -112,71 +112,74 @@ export function TreasuryAllocationChart() {
       <CardContent className="flex-1 pb-0 overflow-hidden">
         <div className="w-full overflow-x-auto">
           <ChartContainer config={chartConfig} className="h-[200px] w-full max-w-full">
-          <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={
-                <ChartTooltipContent
-                  hideLabel
-                  formatter={(
-                    value: number | string | (number | string)[],
-                    name: string | number,
-                  ) => {
-                    const percentNumber = Array.isArray(value)
-                      ? Number(value[0] ?? 0)
-                      : Number(value ?? 0);
-                    const label = String(name ?? "");
-                    return (
-                      <div className="flex w-full items-center justify-between gap-4">
-                        <span className="text-muted-foreground">{label}</span>
-                        <span className="font-mono font-medium">{percentNumber.toFixed(1)}%</span>
-                      </div>
-                    );
-                  }}
-                />
-              }
-            />
-            <Pie
-              data={allocation}
-              cx="50%"
-              cy="50%"
-              innerRadius={40}
-              outerRadius={80}
-              paddingAngle={2}
-              nameKey="name"
-              dataKey="value"
-            >
-              {allocation.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <ChartLegend
-              verticalAlign="bottom"
-              content={(props) => {
-                const rawPayload = (props as { payload?: unknown }).payload;
-                const payload = Array.isArray(rawPayload) ? (rawPayload as unknown[]) : [];
-                return (
-                  <div className="flex items-center justify-center gap-4 pt-3 text-xs">
-                    {payload.map((raw) => {
-                      const item = raw as {
-                        value?: string | number;
-                        color?: string;
-                        payload?: { name?: string } | undefined;
-                      };
-                      const segName = String(item?.value ?? item?.payload?.name ?? "");
-                      const color = item?.color;
+            <PieChart>
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    hideLabel
+                    formatter={(
+                      value: number | string | (number | string)[],
+                      name: string | number,
+                    ) => {
+                      const percentNumber = Array.isArray(value)
+                        ? Number(value[0] ?? 0)
+                        : Number(value ?? 0);
+                      const label = String(name ?? "");
                       return (
-                        <div key={segName} className="flex items-center gap-1.5">
-                          <div className="h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: color }} />
-                          <span>{segName}</span>
+                        <div className="flex w-full items-center justify-between gap-4">
+                          <span className="text-muted-foreground">{label}</span>
+                          <span className="font-mono font-medium">{percentNumber.toFixed(1)}%</span>
                         </div>
                       );
-                    })}
-                  </div>
-                );
-              }}
-            />
-          </PieChart>
+                    }}
+                  />
+                }
+              />
+              <Pie
+                data={allocation}
+                cx="50%"
+                cy="50%"
+                innerRadius={40}
+                outerRadius={80}
+                paddingAngle={2}
+                nameKey="name"
+                dataKey="value"
+              >
+                {allocation.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <ChartLegend
+                verticalAlign="bottom"
+                content={(props) => {
+                  const rawPayload = (props as { payload?: unknown }).payload;
+                  const payload = Array.isArray(rawPayload) ? (rawPayload as unknown[]) : [];
+                  return (
+                    <div className="flex items-center justify-center gap-4 pt-3 text-xs">
+                      {payload.map((raw) => {
+                        const item = raw as {
+                          value?: string | number;
+                          color?: string;
+                          payload?: { name?: string } | undefined;
+                        };
+                        const segName = String(item?.value ?? item?.payload?.name ?? "");
+                        const color = item?.color;
+                        return (
+                          <div key={segName} className="flex items-center gap-1.5">
+                            <div
+                              className="h-2 w-2 shrink-0 rounded-[2px]"
+                              style={{ backgroundColor: color }}
+                            />
+                            <span>{segName}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }}
+              />
+            </PieChart>
           </ChartContainer>
         </div>
       </CardContent>
@@ -184,14 +187,16 @@ export function TreasuryAllocationChart() {
         <div className="flex w-full items-center justify-center gap-2 text-sm">
           <div className="grid gap-2 text-center">
             <div className="flex items-center justify-center gap-2 font-medium leading-none">
-              {isLoading ? "Loading..." : "Current allocation snapshot"} <TrendingUp className="h-4 w-4" />
+              {isLoading ? "Loading..." : "Current allocation snapshot"}{" "}
+              <TrendingUp className="h-4 w-4" />
             </div>
             <div className="flex items-center justify-center gap-2 leading-none text-muted-foreground">
               {totalValueUsd === null
                 ? "Live data unavailable, showing defaults"
-                : `Total: ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
-                    totalValueUsd ?? 0,
-                  )}`}
+                : `Total: ${new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                  }).format(totalValueUsd ?? 0)}`}
             </div>
           </div>
         </div>

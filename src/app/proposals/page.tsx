@@ -1,8 +1,8 @@
-import { ProposalsView } from "@/components/proposals/ProposalsView";
 import { Suspense } from "react";
 import { ProposalsGridSkeleton } from "@/components/proposals/ProposalsGrid";
-import { listProposals } from "@/services/proposals";
+import { ProposalsView } from "@/components/proposals/ProposalsView";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { listProposals } from "@/services/proposals";
 
 export const dynamic = "force-dynamic";
 

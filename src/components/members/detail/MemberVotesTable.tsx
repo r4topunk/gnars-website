@@ -1,8 +1,15 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface VoteItem {
   id: string | number;
@@ -41,13 +48,18 @@ export function MemberVotesTable({ votes }: MemberVotesTableProps) {
                 <TableRow key={v.id}>
                   <TableCell>
                     <div className="flex flex-col gap-1 whitespace-normal break-words">
-                      <a href={`/proposals/${v.proposalNumber}`} className="font-medium hover:underline">
+                      <a
+                        href={`/proposals/${v.proposalNumber}`}
+                        className="font-medium hover:underline"
+                      >
                         {v.proposalTitle && v.proposalTitle.trim().length > 0
                           ? `${v.proposalNumber} - ${v.proposalTitle}`
                           : `${v.proposalNumber}`}
                       </a>
                       {v.reason ? (
-                        <span className="text-xs text-muted-foreground whitespace-pre-wrap break-words">{v.reason}</span>
+                        <span className="text-xs text-muted-foreground whitespace-pre-wrap break-words">
+                          {v.reason}
+                        </span>
                       ) : null}
                       <span className="text-xs text-muted-foreground">
                         {new Date(v.timestamp).toLocaleString()}
@@ -78,5 +90,3 @@ export function MemberVotesTable({ votes }: MemberVotesTableProps) {
     </Card>
   );
 }
-
-

@@ -31,9 +31,11 @@ export const proposalSchema = z.object({
   createdAt: z.number(),
   endBlock: z.number(),
   snapshotBlock: z.number().optional(),
-  endDate: z.preprocess((arg) => {
-    if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
-  }, z.date()).optional(),
+  endDate: z
+    .preprocess((arg) => {
+      if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
+    }, z.date())
+    .optional(),
   forVotes: z.number(),
   againstVotes: z.number(),
   abstainVotes: z.number(),

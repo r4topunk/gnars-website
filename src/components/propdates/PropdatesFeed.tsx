@@ -1,15 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { PropdateCard } from "@/components/proposals/detail/PropdateCard";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { type Propdate, listDaoPropdates } from "@/services/propdates";
+import { Skeleton } from "@/components/ui/skeleton";
+import { listDaoPropdates, type Propdate } from "@/services/propdates";
 
 export function PropdatesFeed() {
-  const { data: propdates, isLoading, error } = useQuery({
+  const {
+    data: propdates,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["propdates-feed"],
     queryFn: () => listDaoPropdates(),
   });
@@ -17,7 +21,7 @@ export function PropdatesFeed() {
   // Keep hooks order consistent across renders (compute sorted and set up state/refs before any early returns)
   const sorted = useMemo(
     () => [...(propdates ?? [])].sort((a: Propdate, b: Propdate) => b.timeCreated - a.timeCreated),
-    [propdates]
+    [propdates],
   );
 
   // Incremental rendering like ProposalsGrid
@@ -26,15 +30,20 @@ export function PropdatesFeed() {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, sorted.length));
-      }
-    }, { rootMargin: "200px" });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, sorted.length));
+        }
+      },
+      { rootMargin: "200px" },
+    );
 
     const current = sentinelRef.current;
     if (current) observer.observe(current);
-    return () => { if (current) observer.unobserve(current); };
+    return () => {
+      if (current) observer.unobserve(current);
+    };
   }, [sorted.length]);
 
   useEffect(() => {
@@ -55,9 +64,7 @@ export function PropdatesFeed() {
     return (
       <Alert variant="destructive">
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Failed to load propdates feed. Please try again later.
-        </AlertDescription>
+        <AlertDescription>Failed to load propdates feed. Please try again later.</AlertDescription>
       </Alert>
     );
   }

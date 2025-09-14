@@ -1,12 +1,13 @@
 "use client";
+
 /**
  * DroposalSupporters
  * Renders a grid of supporters (wallets) who minted the edition.
  * Expects the NFT contract `tokenAddress` and optional `totalSupply` to optimize fetching.
  */
-import { Card, CardContent } from "@/components/ui/card";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { AddressDisplay, AddressDisplaySkeleton } from "@/components/ui/address-display";
+import { Card, CardContent } from "@/components/ui/card";
 import { useSupporters } from "@/hooks/use-supporters";
 
 export interface DroposalSupportersProps {
@@ -23,7 +24,6 @@ export function DroposalSupporters({ tokenAddress, totalSupply }: DroposalSuppor
     itemsPerPage: 200,
     autoLoad: Boolean(tokenAddress),
   });
-  
 
   return (
     <Card>
@@ -32,10 +32,7 @@ export function DroposalSupporters({ tokenAddress, totalSupply }: DroposalSuppor
         {isLoading && (
           <div className="flex flex-wrap items-center gap-3">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-2 rounded-md border px-3 py-2"
-              >
+              <div key={i} className="flex items-center gap-2 rounded-md border px-3 py-2">
                 <AddressDisplaySkeleton variant="compact" />
                 <div className="h-3 w-8 bg-muted rounded" />
               </div>
@@ -43,9 +40,7 @@ export function DroposalSupporters({ tokenAddress, totalSupply }: DroposalSuppor
           </div>
         )}
 
-        {!isLoading && error && (
-          <div className="text-sm text-destructive">{error}</div>
-        )}
+        {!isLoading && error && <div className="text-sm text-destructive">{error}</div>}
 
         {!isLoading && !error && visibleSupporters.length === 0 && (
           <div className="text-muted-foreground">No supporters found.</div>
@@ -73,5 +68,3 @@ export function DroposalSupporters({ tokenAddress, totalSupply }: DroposalSuppor
     </Card>
   );
 }
-
-

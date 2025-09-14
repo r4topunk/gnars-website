@@ -37,7 +37,10 @@ async function handlePrices(addresses: string[]) {
 
   if (!res.ok) {
     const text = await res.text();
-    return NextResponse.json({ error: "coingecko_error", status: res.status, body: text }, { status: 200 });
+    return NextResponse.json(
+      { error: "coingecko_error", status: res.status, body: text },
+      { status: 200 },
+    );
   }
 
   const data = (await res.json()) as Record<string, { usd?: number }>;
@@ -68,5 +71,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid-request" }, { status: 400 });
   }
 }
-
-

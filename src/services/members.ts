@@ -60,14 +60,23 @@ const MEMBER_TOKENS_GQL = /* GraphQL */ `
   query MemberTokens($dao: ID!, $owner: Bytes!) {
     tokens(where: { dao: $dao, owner: $owner }, orderBy: tokenId, orderDirection: asc) {
       tokenId
-      ownerInfo { owner delegate }
+      ownerInfo {
+        owner
+        delegate
+      }
       image
       mintedAt
       auction {
         endTime
         settled
-        highestBid { amount bidder }
-        winningBid { amount bidder }
+        highestBid {
+          amount
+          bidder
+        }
+        winningBid {
+          amount
+          bidder
+        }
       }
     }
   }
@@ -235,11 +244,11 @@ type DelegatedByTokensQuery = {
 
 const MEMBER_DELEGATED_BY_TOKENS_GQL = /* GraphQL */ `
   query DelegatedByTokens($dao: ID!, $delegate: Bytes!) {
-    tokens(
-      where: { dao: $dao, ownerInfo_: { delegate: $delegate } }
-      first: 1000
-    ) {
-      ownerInfo { owner delegate }
+    tokens(where: { dao: $dao, ownerInfo_: { delegate: $delegate } }, first: 1000) {
+      ownerInfo {
+        owner
+        delegate
+      }
     }
   }
 `;
@@ -254,7 +263,6 @@ export async function fetchDelegators(address: string): Promise<string[]> {
   // Unique owners (addresses who delegated to this member)
   return Array.from(new Set(owners));
 }
-
 
 // Aggregated members list for the DAO
 export type MemberListItem = {
@@ -350,7 +358,9 @@ const ACTIVE_VOTES_BATCH_GQL = /* GraphQL */ `
   }
 `;
 
-export async function fetchActiveVotesForVoters(addresses: string[]): Promise<Record<string, number>> {
+export async function fetchActiveVotesForVoters(
+  addresses: string[],
+): Promise<Record<string, number>> {
   if (addresses.length === 0) return {};
   const dao = GNARS_ADDRESSES.token.toLowerCase();
   const counts: Record<string, number> = {};
@@ -379,7 +389,6 @@ export async function fetchActiveVotesForVoters(addresses: string[]): Promise<Re
 
   return counts;
 }
-
 
 // Delegators with token counts
 export type DelegatorWithCount = {
@@ -463,7 +472,9 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 /**
  * Fetch number of proposals voted per voter address (batch, chunked).
  */
-export async function fetchVotesCountForVoters(addresses: string[]): Promise<Record<string, number>> {
+export async function fetchVotesCountForVoters(
+  addresses: string[],
+): Promise<Record<string, number>> {
   if (addresses.length === 0) return {};
   const dao = GNARS_ADDRESSES.token.toLowerCase();
   const counts: Record<string, number> = {};
@@ -491,5 +502,3 @@ export async function fetchVotesCountForVoters(addresses: string[]): Promise<Rec
 
   return counts;
 }
-
-

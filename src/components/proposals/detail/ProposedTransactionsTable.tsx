@@ -1,9 +1,16 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface ProposedTransactionsTableProps {
   targets: string[];
@@ -11,7 +18,11 @@ interface ProposedTransactionsTableProps {
   signatures: string[];
 }
 
-export function ProposedTransactionsTable({ targets, values, signatures }: ProposedTransactionsTableProps) {
+export function ProposedTransactionsTable({
+  targets,
+  values,
+  signatures,
+}: ProposedTransactionsTableProps) {
   return (
     <Card>
       <CardHeader>
@@ -40,7 +51,13 @@ export function ProposedTransactionsTable({ targets, values, signatures }: Propo
                 return (
                   <TableRow key={`${target}-${index}`}>
                     <TableCell>
-                      <AddressDisplay address={target} variant="default" showAvatar={false} showCopy={true} showExplorer={true} />
+                      <AddressDisplay
+                        address={target}
+                        variant="default"
+                        showAvatar={false}
+                        showCopy={true}
+                        showExplorer={true}
+                      />
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -58,5 +75,3 @@ export function ProposedTransactionsTable({ targets, values, signatures }: Propo
     </Card>
   );
 }
-
-

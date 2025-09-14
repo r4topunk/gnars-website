@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { fetchAllMembers, fetchVotesCountForVoters, fetchActiveVotesForVoters, type MemberListItem } from "@/services/members";
+import {
+  fetchActiveVotesForVoters,
+  fetchAllMembers,
+  fetchVotesCountForVoters,
+  type MemberListItem,
+} from "@/services/members";
 
 export async function GET(request: Request) {
   try {
@@ -18,9 +23,9 @@ export async function GET(request: Request) {
     }));
 
     const filtered: MemberListItem[] = search
-      ? withCounts.filter((m) =>
-          m.owner.toLowerCase().includes(search) ||
-          m.delegate.toLowerCase().includes(search),
+      ? withCounts.filter(
+          (m) =>
+            m.owner.toLowerCase().includes(search) || m.delegate.toLowerCase().includes(search),
         )
       : withCounts;
 
@@ -30,5 +35,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-
-

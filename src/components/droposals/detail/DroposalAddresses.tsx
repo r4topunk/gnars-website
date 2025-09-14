@@ -2,9 +2,9 @@
  * DroposalAddresses
  * Renders addresses for funds recipient, admin, and deployed token contract.
  */
-import { Card, CardContent } from "@/components/ui/card";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Card, CardContent } from "@/components/ui/card";
 
 export interface DroposalAddressesProps {
   fundsRecipient?: string | null;
@@ -12,7 +12,11 @@ export interface DroposalAddressesProps {
   tokenAddress?: string | null;
 }
 
-export function DroposalAddresses({ fundsRecipient, defaultAdmin, tokenAddress }: DroposalAddressesProps) {
+export function DroposalAddresses({
+  fundsRecipient,
+  defaultAdmin,
+  tokenAddress,
+}: DroposalAddressesProps) {
   return (
     <Card>
       <SectionHeader title="Addresses" />
@@ -39,5 +43,3 @@ export function DroposalAddresses({ fundsRecipient, defaultAdmin, tokenAddress }
     </Card>
   );
 }
-
-

@@ -1,22 +1,29 @@
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useFormContext } from "react-hook-form";
+import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 import { cn } from "@/lib/utils";
 import { type ProposalFormValues } from "../../schema";
 
-interface Props { index: number }
+interface Props {
+  index: number;
+}
 
 export function SendNFTsForm({ index }: Props) {
-  const { register, formState: { errors }, setValue, watch } = useFormContext<ProposalFormValues>();
+  const {
+    register,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useFormContext<ProposalFormValues>();
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +35,7 @@ export function SendNFTsForm({ index }: Props) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   type TreasuryTokensQuery = {
-    tokens: Array<{ tokenId: string; image?: string | null }>
+    tokens: Array<{ tokenId: string; image?: string | null }>;
   };
 
   const TREASURY_TOKENS_GQL = /* GraphQL */ `
@@ -64,7 +71,10 @@ export function SendNFTsForm({ index }: Props) {
             skip,
           });
           if (ignore) return;
-          const mapped = (page.tokens || []).map((t) => ({ id: Number(t.tokenId), imageUrl: t.image ?? undefined }));
+          const mapped = (page.tokens || []).map((t) => ({
+            id: Number(t.tokenId),
+            imageUrl: t.image ?? undefined,
+          }));
           all = all.concat(mapped);
           if (!page.tokens || page.tokens.length < pageSize) break;
           skip += pageSize;
@@ -77,7 +87,9 @@ export function SendNFTsForm({ index }: Props) {
       }
     }
     void loadAllTokens();
-    return () => { ignore = true; };
+    return () => {
+      ignore = true;
+    };
   }, [TREASURY_TOKENS_GQL]);
 
   useEffect(() => {
@@ -92,7 +104,7 @@ export function SendNFTsForm({ index }: Props) {
           setVisibleTokensCount((prev) => prev + 60);
         }
       },
-      { root: viewportEl, rootMargin: "200px 0px", threshold: 0 }
+      { root: viewportEl, rootMargin: "200px 0px", threshold: 0 },
     );
     // Only observe if there are more tokens to show
     if (visibleTokensCount < tokens.length) {
@@ -143,7 +155,7 @@ export function SendNFTsForm({ index }: Props) {
                         className={cn(
                           "relative aspect-square overflow-hidden rounded-lg bg-muted",
                           "ring-1 ring-transparent hover:ring-primary transition focus:outline-none",
-                          isSelected && "ring-2 ring-primary shadow"
+                          isSelected && "ring-2 ring-primary shadow",
                         )}
                         aria-pressed={isSelected}
                       >
@@ -165,7 +177,10 @@ export function SendNFTsForm({ index }: Props) {
                           </div>
                         )}
                         <div className="absolute top-1.5 left-1.5">
-                          <Badge variant={isSelected ? "default" : "secondary"} className="font-mono text-[10px]">
+                          <Badge
+                            variant={isSelected ? "default" : "secondary"}
+                            className="font-mono text-[10px]"
+                          >
                             #{String(t.id)}
                           </Badge>
                         </div>
@@ -180,7 +195,7 @@ export function SendNFTsForm({ index }: Props) {
             )}
           </CardContent>
         </Card>
-        {(errors.transactions?.[index] && "tokenId" in (errors.transactions?.[index] as object)) && (
+        {errors.transactions?.[index] && "tokenId" in (errors.transactions?.[index] as object) && (
           <p className="text-xs text-red-500">Please select an NFT</p>
         )}
       </div>
@@ -192,8 +207,13 @@ export function SendNFTsForm({ index }: Props) {
           placeholder="0x... or ENS name"
           {...register(`transactions.${index}.to` as const)}
         />
-        {(errors.transactions?.[index] && "to" in (errors.transactions?.[index] as object)) && (
-          <p className="text-xs text-red-500">{String((errors.transactions?.[index] as Record<string, unknown>).to && (errors.transactions?.[index] as Record<string, { message?: string }> ).to?.message)}</p>
+        {errors.transactions?.[index] && "to" in (errors.transactions?.[index] as object) && (
+          <p className="text-xs text-red-500">
+            {String(
+              (errors.transactions?.[index] as Record<string, unknown>).to &&
+                (errors.transactions?.[index] as Record<string, { message?: string }>).to?.message,
+            )}
+          </p>
         )}
       </div>
 

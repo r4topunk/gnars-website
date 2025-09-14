@@ -3,8 +3,8 @@
  * Shows price, edition, sale status and mint CTA.
  */
 import { AlertTriangle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export interface DroposalActionBoxProps {
   priceEth: string;
@@ -35,11 +35,15 @@ export function DroposalActionBox({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="text-xs text-muted-foreground">Price</div>
-            <div className="text-lg font-semibold">{Number(priceEth) === 0 ? "Free" : `${priceEth} ETH`}</div>
+            <div className="text-lg font-semibold">
+              {Number(priceEth) === 0 ? "Free" : `${priceEth} ETH`}
+            </div>
           </div>
           <div>
             <div className="text-xs text-muted-foreground">Edition</div>
-            <div className="text-lg font-semibold">{editionSize === "0" ? "Open" : editionSize}</div>
+            <div className="text-lg font-semibold">
+              {editionSize === "0" ? "Open" : editionSize}
+            </div>
           </div>
         </div>
         <div className="text-sm text-muted-foreground">
@@ -64,5 +68,3 @@ export function DroposalActionBox({
     </Card>
   );
 }
-
-

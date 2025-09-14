@@ -2,8 +2,8 @@
  * DroposalDetailsCard
  * Shows basic details like name and description.
  */
-import { Card, CardContent } from "@/components/ui/card";
 import { SectionHeader } from "@/components/common/SectionHeader";
+import { Card, CardContent } from "@/components/ui/card";
 
 export interface DroposalDetailsCardProps {
   name?: string | null;
@@ -30,5 +30,3 @@ export function DroposalDetailsCard({ name, title, description }: DroposalDetail
     </Card>
   );
 }
-
-

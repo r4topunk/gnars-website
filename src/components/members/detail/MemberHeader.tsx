@@ -1,7 +1,7 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface MemberHeaderProps {
   address: string;
@@ -18,7 +18,9 @@ export function MemberHeader({ address, display, ensAvatar }: MemberHeaderProps)
       </Avatar>
       <div className="flex-1">
         <div className="flex items-centered gap-2">
-          <h1 className="text-2xl font-bold tracking-tight">{typeof display === "string" ? display : String(display)}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {typeof display === "string" ? display : String(display)}
+          </h1>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
           <AddressDisplay
@@ -35,5 +37,3 @@ export function MemberHeader({ address, display, ensAvatar }: MemberHeaderProps)
     </div>
   );
 }
-
-

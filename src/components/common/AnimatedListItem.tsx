@@ -20,5 +20,3 @@ interface AnimatedListItemProps {
 export function AnimatedListItem({ children, className }: AnimatedListItemProps) {
   return <div className={className}>{children}</div>;
 }
-
-

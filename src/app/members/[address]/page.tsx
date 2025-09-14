@@ -1,8 +1,8 @@
-import { MemberDetail } from "@/components/members/MemberDetail";
-import { resolveAddressFromENS } from "@/lib/ens";
-import { redirect, notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { isAddress } from "viem";
+import { MemberDetail } from "@/components/members/MemberDetail";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { resolveAddressFromENS } from "@/lib/ens";
 
 interface MemberPageProps {
   params: Promise<{ address: string }>;
@@ -41,5 +41,3 @@ export default async function MemberPage({ params, searchParams }: MemberPagePro
     </SidebarInset>
   );
 }
-
-

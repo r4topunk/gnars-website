@@ -1,19 +1,26 @@
 import React from "react";
+import { Info } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Info } from "lucide-react";
 import { type ProposalFormValues } from "../../schema";
 
-interface Props { index: number }
+interface Props {
+  index: number;
+}
 
 export function CustomTransactionForm({ index }: Props) {
-  const { register, formState: { errors } } = useFormContext<ProposalFormValues>();
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext<ProposalFormValues>();
 
   const getErrorMessage = (key: string): string | undefined => {
-    const txErrors = errors.transactions?.[index] as unknown as Record<string, { message?: string }> | undefined;
+    const txErrors = errors.transactions?.[index] as unknown as
+      | Record<string, { message?: string }>
+      | undefined;
     return txErrors?.[key]?.message;
   };
 
@@ -22,7 +29,8 @@ export function CustomTransactionForm({ index }: Props) {
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Custom transactions require technical knowledge. Make sure you understand the contract interaction.
+          Custom transactions require technical knowledge. Make sure you understand the contract
+          interaction.
         </AlertDescription>
       </Alert>
 

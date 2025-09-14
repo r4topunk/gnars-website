@@ -26,5 +26,3 @@ const zoraNftAbi = [
 ] as const;
 
 export default zoraNftAbi;
-
-

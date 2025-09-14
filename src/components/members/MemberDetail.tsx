@@ -2,20 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
-import { type Proposal as UiProposal } from "@/components/proposals/types";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { MemberHeader } from "@/components/members/detail/MemberHeader";
-import { MemberQuickStats } from "@/components/members/detail/MemberQuickStats";
-import { MemberProposalsGrid } from "@/components/members/detail/MemberProposalsGrid";
 import { MemberDelegatorsTable } from "@/components/members/detail/MemberDelegatorsTable";
-import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
+import { MemberHeader } from "@/components/members/detail/MemberHeader";
+import { MemberProposalsGrid } from "@/components/members/detail/MemberProposalsGrid";
+import { MemberQuickStats } from "@/components/members/detail/MemberQuickStats";
 import { MemberTokensGrid } from "@/components/members/detail/MemberTokensGrid";
+import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
+import { type Proposal as UiProposal } from "@/components/proposals/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { getProposalStatus } from "@/lib/schemas/proposals";
- 
+import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
 
 interface MemberDetailProps {
   address: string;
@@ -28,7 +26,9 @@ export function MemberDetail({ address }: MemberDetailProps) {
 
   const [ensName, setEnsName] = useState<string | null>(null);
   const [ensAvatar, setEnsAvatar] = useState<string | null>(null);
-  const [overview, setOverview] = useState<Awaited<ReturnType<typeof fetchMemberOverview>> | null>(null);
+  const [overview, setOverview] = useState<Awaited<ReturnType<typeof fetchMemberOverview>> | null>(
+    null,
+  );
   const [delegators, setDelegators] = useState<string[]>([]);
   const [proposals, setProposals] = useState<UiProposal[]>([]);
   type VoteItem = Awaited<ReturnType<typeof fetchMemberVotes>>["votes"][number] & {
@@ -84,7 +84,11 @@ export function MemberDetail({ address }: MemberDetailProps) {
         setVotes(vts.votes);
 
         // Load proposals using the same SDK mapping as proposals page, then filter by proposer
-        const { proposals: sdkProposals } = await getProposals(CHAIN.id, GNARS_ADDRESSES.token, 200);
+        const { proposals: sdkProposals } = await getProposals(
+          CHAIN.id,
+          GNARS_ADDRESSES.token,
+          200,
+        );
         const mapped: UiProposal[] = ((sdkProposals as SdkProposal[] | undefined) ?? [])
           .filter((p) => String(p.proposer).toLowerCase() === address.toLowerCase())
           .map((p) => {
@@ -99,9 +103,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
               proposerEnsName: undefined,
               createdAt: Number(p.timeCreated ?? 0) * 1000,
               endBlock: Number(p.voteEnd ?? 0),
-              snapshotBlock: p.snapshotBlockNumber
-                ? Number(p.snapshotBlockNumber)
-                : undefined,
+              snapshotBlock: p.snapshotBlockNumber ? Number(p.snapshotBlockNumber) : undefined,
               endDate: p.voteEnd ? new Date(Number(p.voteEnd) * 1000) : undefined,
               forVotes: Number(p.forVotes ?? 0),
               againstVotes: Number(p.againstVotes ?? 0),
@@ -156,8 +158,6 @@ export function MemberDetail({ address }: MemberDetailProps) {
     };
   }, [address]);
 
-  
-
   if (loading || !overview) {
     return (
       <div className="space-y-6">
@@ -208,11 +208,20 @@ export function MemberDetail({ address }: MemberDetailProps) {
         </TabsContent>
 
         <TabsContent value="tokens" className="mt-6">
-          <MemberTokensGrid tokens={overview.tokens as unknown as { id: string | number; imageUrl?: string | null; mintedAt?: number | null; endTime?: number | null; finalBidWei?: string | number | null; winner?: string | null }[]} />
+          <MemberTokensGrid
+            tokens={
+              overview.tokens as unknown as {
+                id: string | number;
+                imageUrl?: string | null;
+                mintedAt?: number | null;
+                endTime?: number | null;
+                finalBidWei?: string | number | null;
+                winner?: string | null;
+              }[]
+            }
+          />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
-
-

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { usePropdates } from "@/hooks/use-propdates";
 
 interface PropdateFormProps {
@@ -24,7 +24,7 @@ export function PropdateForm({ proposalId, onSuccess }: PropdateFormProps) {
           setMessageText("");
           onSuccess();
         },
-      }
+      },
     );
   };
 

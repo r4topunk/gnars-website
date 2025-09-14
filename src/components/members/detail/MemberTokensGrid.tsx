@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GnarCard } from "@/components/auctions/GnarCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface TokenLike {
   id: string | number;
@@ -42,7 +42,7 @@ export function MemberTokensGrid({ tokens }: MemberTokensGridProps) {
                   return null;
                 }
               })();
-              const winnerAddress: string | null = finalEth ? (t.winner || null) : null;
+              const winnerAddress: string | null = finalEth ? t.winner || null : null;
               return (
                 <GnarCard
                   key={t.id}
@@ -61,5 +61,3 @@ export function MemberTokensGrid({ tokens }: MemberTokensGridProps) {
     </Card>
   );
 }
-
-

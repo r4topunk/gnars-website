@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Badge } from "@/components/ui/badge";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface ProposalHeaderProps {
@@ -45,9 +45,7 @@ export function ProposalHeader({
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>Proposal {proposalNumber}</span>
-        <Badge variant={getStatusBadgeVariant(status)}>
-          {getStatusLabel(status)}
-        </Badge>
+        <Badge variant={getStatusBadgeVariant(status)}>{getStatusLabel(status)}</Badge>
         {transactionHash ? (
           <a
             href={`https://basescan.org/tx/${transactionHash}`}
@@ -64,11 +62,15 @@ export function ProposalHeader({
       <div className="text-sm text-muted-foreground">
         By{" "}
         <Link href={`/members/${proposer}`} className="hover:underline">
-          <AddressDisplay address={proposer} variant="compact" showAvatar={false} showCopy={false} showExplorer={false} />
+          <AddressDisplay
+            address={proposer}
+            variant="compact"
+            showAvatar={false}
+            showCopy={false}
+            showExplorer={false}
+          />
         </Link>
       </div>
     </div>
   );
 }
-
-

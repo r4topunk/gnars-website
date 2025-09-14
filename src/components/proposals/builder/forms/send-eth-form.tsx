@@ -4,12 +4,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { type ProposalFormValues } from "../../schema";
 
-interface Props { index: number }
+interface Props {
+  index: number;
+}
 
 export function SendEthForm({ index }: Props) {
-  const { register, formState: { errors } } = useFormContext<ProposalFormValues>();
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext<ProposalFormValues>();
   const getErrorMessage = (key: string): string | undefined => {
-    const txErrors = errors.transactions?.[index] as unknown as Record<string, { message?: string }> | undefined;
+    const txErrors = errors.transactions?.[index] as unknown as
+      | Record<string, { message?: string }>
+      | undefined;
     return txErrors?.[key]?.message;
   };
 

@@ -5,8 +5,8 @@
  * Props:
  * - rows: array of { parameter, value }
  */
-import { Card, CardContent } from "@/components/ui/card";
 import { SectionHeader } from "@/components/common/SectionHeader";
+import { Card, CardContent } from "@/components/ui/card";
 import { ipfsToHttp } from "@/lib/ipfs";
 
 export interface MetadataRow {
@@ -26,11 +26,16 @@ export function DroposalMetadata({ rows }: DroposalMetadataProps) {
         {rows && rows.length > 0 ? (
           <dl className="grid grid-cols-1 gap-2">
             {rows.map((row) => {
-              const isUri = typeof row.value === "string" && row.parameter.toLowerCase().includes("uri");
+              const isUri =
+                typeof row.value === "string" && row.parameter.toLowerCase().includes("uri");
               const text = String(row.value ?? "");
-              const truncated = isUri && text.length > 28 ? `${text.slice(0, 18)}…${text.slice(-8)}` : text;
+              const truncated =
+                isUri && text.length > 28 ? `${text.slice(0, 18)}…${text.slice(-8)}` : text;
               return (
-                <div key={row.parameter} className="flex items-start justify-between gap-3 rounded-md bg-muted/50 px-3 py-2">
+                <div
+                  key={row.parameter}
+                  className="flex items-start justify-between gap-3 rounded-md bg-muted/50 px-3 py-2"
+                >
                   <dt className="text-xs text-muted-foreground">{row.parameter}</dt>
                   <dd className="text-sm text-right break-words">
                     {isUri ? (
@@ -59,5 +64,3 @@ export function DroposalMetadata({ rows }: DroposalMetadataProps) {
     </Card>
   );
 }
-
-

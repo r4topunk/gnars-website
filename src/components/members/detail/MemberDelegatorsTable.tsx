@@ -1,8 +1,15 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface MemberDelegatorsTableProps {
   delegators: string[];
@@ -16,7 +23,9 @@ export function MemberDelegatorsTable({ delegators }: MemberDelegatorsTableProps
       </CardHeader>
       <CardContent>
         {delegators.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">No one delegated to this member.</div>
+          <div className="text-center py-8 text-muted-foreground">
+            No one delegated to this member.
+          </div>
         ) : (
           <Table>
             <TableHeader>
@@ -51,5 +60,3 @@ export function MemberDelegatorsTable({ delegators }: MemberDelegatorsTableProps
     </Card>
   );
 }
-
-

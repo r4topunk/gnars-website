@@ -1,23 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
+import { ExternalLink, Info } from "lucide-react";
 import { useFormContext } from "react-hook-form";
+import { useAccount } from "wagmi";
+import { type ProposalFormValues } from "@/components/proposals/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { ExternalLink, Info } from "lucide-react";
-import { type ProposalFormValues } from "@/components/proposals/schema";
 import { MediaSection } from "./droposal/MediaSection";
 
-interface Props { index: number }
+interface Props {
+  index: number;
+}
 
 export function DroposalForm({ index }: Props) {
   const { address } = useAccount();
-  const { register, setValue, watch, formState: { errors } } = useFormContext<ProposalFormValues>();
+  const {
+    register,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useFormContext<ProposalFormValues>();
   const [editionType, setEditionType] = useState<"fixed" | "open">("fixed");
 
   useEffect(() => {
@@ -45,9 +52,11 @@ export function DroposalForm({ index }: Props) {
 
   type FieldErrorLike = { message?: string } | undefined;
   const getErrorMessage = (key: string): string | undefined => {
-    const txErrors = errors.transactions?.[index] as unknown as Record<string, FieldErrorLike> | undefined;
+    const txErrors = errors.transactions?.[index] as unknown as
+      | Record<string, FieldErrorLike>
+      | undefined;
     const field = txErrors?.[key];
-    return (field && typeof field === "object" && "message" in field) ? field?.message : undefined;
+    return field && typeof field === "object" && "message" in field ? field?.message : undefined;
   };
 
   return (
@@ -223,7 +232,9 @@ export function DroposalForm({ index }: Props) {
               {...register(`transactions.${index}.mintLimitPerAddress` as const)}
             />
             {getErrorMessage("mintLimitPerAddress") && (
-              <p className="text-xs text-red-500">{String(getErrorMessage("mintLimitPerAddress"))}</p>
+              <p className="text-xs text-red-500">
+                {String(getErrorMessage("mintLimitPerAddress"))}
+              </p>
             )}
           </div>
         </CardContent>
@@ -300,5 +311,3 @@ export function DroposalForm({ index }: Props) {
     </div>
   );
 }
-
-

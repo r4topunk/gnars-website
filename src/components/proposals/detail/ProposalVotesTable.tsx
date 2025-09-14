@@ -1,9 +1,16 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
 
@@ -37,7 +44,13 @@ export function ProposalVotesTable({ votes }: ProposalVotesTableProps) {
               {votes.map((vote, index) => (
                 <TableRow key={index}>
                   <TableCell>
-                    <AddressDisplay address={vote.voter} variant="compact" showAvatar={false} showCopy={false} showExplorer={false} />
+                    <AddressDisplay
+                      address={vote.voter}
+                      variant="compact"
+                      showAvatar={false}
+                      showCopy={false}
+                      showExplorer={false}
+                    />
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -66,5 +79,3 @@ export function ProposalVotesTable({ votes }: ProposalVotesTableProps) {
     </Card>
   );
 }
-
-

@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatEther } from "viem";
-import { TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
-import { fetchTotalAuctionSalesWei } from "@/services/dao";
 import { CountUp } from "@/components/ui/count-up";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
+import { fetchTotalAuctionSalesWei } from "@/services/dao";
 
 interface TreasuryBalanceProps {
   treasuryAddress: string;
@@ -27,8 +27,6 @@ interface AlchemyTokenResponse {
     tokenBalances: TokenBalance[];
   };
 }
-
-
 
 export function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryBalanceProps) {
   const [ethBalance, setEthBalance] = useState<bigint | null>(null);

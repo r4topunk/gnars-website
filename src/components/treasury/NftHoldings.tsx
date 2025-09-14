@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { GnarCard } from "@/components/auctions/GnarCard";
+import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
+import { Card, CardContent } from "@/components/ui/card";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 
@@ -34,21 +34,29 @@ const TREASURY_TOKENS_GQL = /* GraphQL */ `
       auction {
         endTime
         settled
-        highestBid { amount bidder }
-        winningBid { amount bidder }
+        highestBid {
+          amount
+          bidder
+        }
+        winningBid {
+          amount
+          bidder
+        }
       }
     }
   }
 `;
 
 export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
-  const [tokens, setTokens] = useState<Array<{
-    id: number;
-    imageUrl?: string;
-    dateLabel?: string;
-    finalBidEth?: string | null;
-    winnerAddress?: string | null;
-  }>>([]);
+  const [tokens, setTokens] = useState<
+    Array<{
+      id: number;
+      imageUrl?: string;
+      dateLabel?: string;
+      finalBidEth?: string | null;
+      winnerAddress?: string | null;
+    }>
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,14 +81,16 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
               ? new Date(mintedAt * 1000).toLocaleDateString()
               : undefined;
           const finalBidWei = t.auction?.winningBid?.amount ?? t.auction?.highestBid?.amount;
-          const finalBidEth = finalBidWei ? (() => {
-            try {
-              const eth = Number(finalBidWei) / 1e18;
-              return eth.toFixed(3).replace(/\.0+$/, "");
-            } catch {
-              return null;
-            }
-          })() : null;
+          const finalBidEth = finalBidWei
+            ? (() => {
+                try {
+                  const eth = Number(finalBidWei) / 1e18;
+                  return eth.toFixed(3).replace(/\.0+$/, "");
+                } catch {
+                  return null;
+                }
+              })()
+            : null;
           const winner = t.auction?.winningBid?.bidder ?? null;
           return {
             id: Number(t.tokenId),

@@ -61,7 +61,7 @@ function mapSdkProposalToProposal(p: SdkProposal): Proposal {
             })(),
             votes: String(v.weight ?? 0),
             transactionHash: "",
-          })
+          }),
         )
       : [],
     voteStart: new Date(Number(p.voteStart ?? 0) * 1000).toISOString(),
@@ -78,7 +78,7 @@ export async function listProposals(limit = 200, page = 0): Promise<Proposal[]> 
     CHAIN.id,
     GNARS_ADDRESSES.token,
     limit,
-    page
+    page,
   );
 
   const mapped = ((sdkProposals as SdkProposal[] | undefined) ?? []).map(mapSdkProposalToProposal);
@@ -133,7 +133,7 @@ export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Propo
         CHAIN.id as unknown as number,
         GNARS_ADDRESSES.token,
         LIMIT,
-        page
+        page,
       );
       const match = (proposals ?? []).find((p) => Number(p.proposalNumber ?? -1) === targetNumber);
       if (match) {
@@ -168,5 +168,3 @@ export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Propo
     return null;
   }
 }
-
-

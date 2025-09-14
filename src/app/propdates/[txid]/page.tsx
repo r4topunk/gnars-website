@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getPropdateByTxid } from "@/services/propdates";
 import { PropdateDetail } from "@/components/propdates/PropdateDetail";
+import { getPropdateByTxid } from "@/services/propdates";
 
 export const dynamic = "force-dynamic";
 

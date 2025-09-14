@@ -1,7 +1,6 @@
-import { AlertCircle, CheckCircle, Clock, XCircle, Pause } from "lucide-react";
-import { ProposalStatus } from "@/lib/schemas/proposals";
-
 import type { SVGProps } from "react";
+import { AlertCircle, CheckCircle, Clock, Pause, XCircle } from "lucide-react";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 
 type IconComponent = React.ComponentType<SVGProps<SVGSVGElement>>;
 

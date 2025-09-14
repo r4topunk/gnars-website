@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { listProposals } from "@/services/proposals";
 
 export const revalidate = 60; // Revalidate every 60 seconds
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {

@@ -1,18 +1,18 @@
 "use client";
 
 import { useEffect } from "react";
-import { useFormContext } from "react-hook-form";
 import { ArrowLeft } from "lucide-react";
+import { useFormContext } from "react-hook-form";
+import { CustomTransactionForm } from "@/components/proposals/builder/forms/custom-transaction-form";
+import { DroposalForm } from "@/components/proposals/builder/forms/droposal-form";
+import { SendEthForm } from "@/components/proposals/builder/forms/send-eth-form";
+import { SendNFTsForm } from "@/components/proposals/builder/forms/send-nfts-form";
+import { SendTokensForm } from "@/components/proposals/builder/forms/send-tokens-form";
+import { SendUsdcForm } from "@/components/proposals/builder/forms/send-usdc-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { DroposalForm } from "@/components/proposals/builder/forms/droposal-form";
 import { type ProposalFormValues, type TransactionFormValues } from "../schema";
-import { SendEthForm } from "@/components/proposals/builder/forms/send-eth-form";
-import { SendTokensForm } from "@/components/proposals/builder/forms/send-tokens-form";
-import { SendNFTsForm } from "@/components/proposals/builder/forms/send-nfts-form";
-import { CustomTransactionForm } from "@/components/proposals/builder/forms/custom-transaction-form";
-import { SendUsdcForm } from "@/components/proposals/builder/forms/send-usdc-form";
 
 interface ActionFormsProps {
   index: number;
@@ -69,9 +69,7 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
           </Button>
           <div>
             <CardTitle>{getTitle()}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Configure transaction details
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">Configure transaction details</p>
           </div>
         </div>
       </CardHeader>
@@ -84,9 +82,7 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
           <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)}>
-            Save Transaction
-          </Button>
+          <Button onClick={handleSubmit(onSubmit)}>Save Transaction</Button>
         </div>
       </CardContent>
     </Card>

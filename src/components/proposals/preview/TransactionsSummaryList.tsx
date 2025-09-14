@@ -1,11 +1,11 @@
 "use client";
 
+import { Coins, Image as ImageIcon, Send, Settings, Zap } from "lucide-react";
+import { SimpleAddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SimpleAddressDisplay } from "@/components/ui/address-display";
-import { Coins, Image as ImageIcon, Send, Settings, Zap } from "lucide-react";
-import { type TransactionFormValues } from "../schema";
 import { TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
+import { type TransactionFormValues } from "../schema";
 
 function getTransactionIcon(type: string | undefined) {
   switch (type) {
@@ -94,7 +94,11 @@ function resolveCalldata(tx: TransactionFormValues): string {
   }
 }
 
-export function TransactionsSummaryList({ transactions }: { transactions: TransactionFormValues[] }) {
+export function TransactionsSummaryList({
+  transactions,
+}: {
+  transactions: TransactionFormValues[];
+}) {
   return (
     <Card>
       <CardHeader>
@@ -104,7 +108,10 @@ export function TransactionsSummaryList({ transactions }: { transactions: Transa
         {transactions.map((transaction, index) => {
           const Icon = getTransactionIcon(transaction.type);
           return (
-            <div key={transaction.id || `${transaction.type}-${index}` } className="flex items-start space-x-3">
+            <div
+              key={transaction.id || `${transaction.type}-${index}`}
+              className="flex items-start space-x-3"
+            >
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Icon className="h-4 w-4 text-primary" />
               </div>
@@ -117,8 +124,16 @@ export function TransactionsSummaryList({ transactions }: { transactions: Transa
                   <div>
                     Target: <SimpleAddressDisplay address={resolveTargetAddress(transaction)} />
                   </div>
-                  <div>Value: {resolveValue(transaction)} {resolveUnit(transaction)}</div>
-                  <div>Calldata: {(() => { const cd = resolveCalldata(transaction); return cd ? (cd.length > 22 ? cd.slice(0, 20) + "..." : cd) : "0x"; })()}</div>
+                  <div>
+                    Value: {resolveValue(transaction)} {resolveUnit(transaction)}
+                  </div>
+                  <div>
+                    Calldata:{" "}
+                    {(() => {
+                      const cd = resolveCalldata(transaction);
+                      return cd ? (cd.length > 22 ? cd.slice(0, 20) + "..." : cd) : "0x";
+                    })()}
+                  </div>
                 </div>
               </div>
             </div>
@@ -128,5 +143,3 @@ export function TransactionsSummaryList({ transactions }: { transactions: Transa
     </Card>
   );
 }
-
-

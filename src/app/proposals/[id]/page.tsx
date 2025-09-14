@@ -1,8 +1,11 @@
-import { ProposalDetail, ProposalDetailSkeleton } from "@/components/proposals/detail/ProposalDetail";
-import { Proposal } from "@/components/proposals/types";
 import { Suspense } from "react";
-import { getProposalByIdOrNumber } from "@/services/proposals";
+import {
+  ProposalDetail,
+  ProposalDetailSkeleton,
+} from "@/components/proposals/detail/ProposalDetail";
+import { Proposal } from "@/components/proposals/types";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { getProposalByIdOrNumber } from "@/services/proposals";
 
 export const dynamic = "force-dynamic";
 

@@ -1,19 +1,19 @@
 import { createPublicClient, formatEther, http } from "viem";
 import { base } from "viem/chains";
+import { DroposalActionBox } from "@/components/droposals/detail/DroposalActionBox";
+import { DroposalAddresses } from "@/components/droposals/detail/DroposalAddresses";
+import { DroposalDetailsCard } from "@/components/droposals/detail/DroposalDetailsCard";
+import { DroposalHeader } from "@/components/droposals/detail/DroposalHeader";
+import { DroposalMedia } from "@/components/droposals/detail/DroposalMedia";
+import { DroposalMetadata } from "@/components/droposals/detail/DroposalMetadata";
+import { DroposalSupporters } from "@/components/droposals/detail/DroposalSupporters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { SidebarInset } from "@/components/ui/sidebar";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { decodeDroposalParams, formatDroposalForTable, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
 import { subgraphQuery } from "@/lib/subgraph";
-import { DroposalHeader } from "@/components/droposals/detail/DroposalHeader";
-import { DroposalMedia } from "@/components/droposals/detail/DroposalMedia";
-import { DroposalSupporters } from "@/components/droposals/detail/DroposalSupporters";
-import { DroposalMetadata } from "@/components/droposals/detail/DroposalMetadata";
-import { DroposalActionBox } from "@/components/droposals/detail/DroposalActionBox";
-import { DroposalDetailsCard } from "@/components/droposals/detail/DroposalDetailsCard";
-import { DroposalAddresses } from "@/components/droposals/detail/DroposalAddresses";
-import { SidebarInset } from "@/components/ui/sidebar";
 
 type ProposalQuery = {
   proposal: {
@@ -194,7 +194,10 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
               mediaImage={mediaImage}
               alt={decoded?.name || p.title || "Droposal media"}
             />
-            <DroposalSupporters tokenAddress={tokenAddress as `0x${string}` | null} totalSupply={decoded?.editionSize?.toString() ?? null} />
+            <DroposalSupporters
+              tokenAddress={tokenAddress as `0x${string}` | null}
+              totalSupply={decoded?.editionSize?.toString() ?? null}
+            />
             <DroposalMetadata rows={decoded ? formatDroposalForTable(decoded) : []} />
           </div>
 
@@ -210,7 +213,11 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
               hasDecoded={Boolean(decoded)}
               formatCountdown={countdown}
             />
-            <DroposalDetailsCard name={decoded?.name} title={p.title} description={decoded?.description} />
+            <DroposalDetailsCard
+              name={decoded?.name}
+              title={p.title}
+              description={decoded?.description}
+            />
             <DroposalAddresses
               fundsRecipient={decoded?.fundsRecipient}
               defaultAdmin={decoded?.defaultAdmin}

@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Edit, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { type TransactionFormValues } from "../schema";
 
 interface TransactionListItemProps {
@@ -15,8 +15,18 @@ interface TransactionListItemProps {
   onRemove: () => void;
 }
 
-export function TransactionListItem({ index, transaction, label, icon: Icon, onEdit, onRemove }: TransactionListItemProps) {
-  const typeStyles: Record<TransactionFormValues["type"], { iconBg: string; iconText: string; cardBorder: string; badgeText: string; badgeBorder: string }> = {
+export function TransactionListItem({
+  index,
+  transaction,
+  label,
+  icon: Icon,
+  onEdit,
+  onRemove,
+}: TransactionListItemProps) {
+  const typeStyles: Record<
+    TransactionFormValues["type"],
+    { iconBg: string; iconText: string; cardBorder: string; badgeText: string; badgeBorder: string }
+  > = {
     "send-eth": {
       iconBg: "bg-blue-100 dark:bg-blue-900/30",
       iconText: "text-blue-600 dark:text-blue-400",
@@ -101,7 +111,9 @@ export function TransactionListItem({ index, transaction, label, icon: Icon, onE
           <div className="text-xs font-mono bg-muted p-2 rounded">
             <div>Target: {transaction.target || "Not set"}</div>
             <div>Value: {transaction.value || "0"} ETH</div>
-            <div>Calldata: {transaction.calldata ? `${transaction.calldata.slice(0, 20)}...` : "0x"}</div>
+            <div>
+              Calldata: {transaction.calldata ? `${transaction.calldata.slice(0, 20)}...` : "0x"}
+            </div>
           </div>
         );
       case "droposal":
@@ -128,7 +140,10 @@ export function TransactionListItem({ index, transaction, label, icon: Icon, onE
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-1">
                 <span className="text-sm font-medium">Transaction {index + 1}</span>
-                <Badge variant="outline" className={`text-xs ${styles.badgeText} ${styles.badgeBorder}`}>
+                <Badge
+                  variant="outline"
+                  className={`text-xs ${styles.badgeText} ${styles.badgeBorder}`}
+                >
                   {label}
                 </Badge>
               </div>
@@ -151,5 +166,3 @@ export function TransactionListItem({ index, transaction, label, icon: Icon, onE
     </Card>
   );
 }
-
-

@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { FormProvider, useForm } from "react-hook-form";
 import { useAccount } from "wagmi";
+import { TransactionBuilder } from "@/components/proposals/builder/TransactionBuilder";
 import { ProposalDetailsForm } from "@/components/proposals/ProposalDetailsForm";
 import { ProposalPreview } from "@/components/proposals/ProposalPreview";
-import { TransactionBuilder } from "@/components/proposals/builder/TransactionBuilder";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { proposalSchema, type ProposalFormValues } from "./schema";
 import { useVotes } from "@/hooks/use-votes";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { proposalSchema, type ProposalFormValues } from "./schema";
 
 export function ProposalWizard() {
   const [currentTab, setCurrentTab] = useState("details");
@@ -92,9 +92,7 @@ export function ProposalWizard() {
                 <>
                   {" "}
                   You currently have {votes.toString()} votes.
-                  {isDelegating && delegatedTo && (
-                    <> Your votes are delegated to {delegatedTo}.</>
-                  )}
+                  {isDelegating && delegatedTo && <> Your votes are delegated to {delegatedTo}.</>}
                 </>
               )}
             </AlertDescription>
@@ -110,45 +108,45 @@ export function ProposalWizard() {
         <Tabs value={currentTab} onValueChange={setCurrentTab}>
           <div className="overflow-x-auto">
             <TabsList className="grid w-full grid-cols-3 min-w-fit">
-            <TabsTrigger value="details" className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                1
-              </span>
-              Details
-            </TabsTrigger>
-            <TabsTrigger
-              value="transactions"
-              disabled={!canProceedToTransactions}
-              className="flex items-center gap-2"
-            >
-              <span
-                className={`w-6 h-6 rounded-full text-xs flex items-center justify-center ${
-                  canProceedToTransactions
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
+              <TabsTrigger value="details" className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                  1
+                </span>
+                Details
+              </TabsTrigger>
+              <TabsTrigger
+                value="transactions"
+                disabled={!canProceedToTransactions}
+                className="flex items-center gap-2"
               >
-                2
-              </span>
-              Transactions
-            </TabsTrigger>
-            <TabsTrigger
-              value="preview"
-              disabled={!canProceedToPreview}
-              className="flex items-center gap-2"
-            >
-              <span
-                className={`w-6 h-6 rounded-full text-xs flex items-center justify-center ${
-                  canProceedToPreview
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
+                <span
+                  className={`w-6 h-6 rounded-full text-xs flex items-center justify-center ${
+                    canProceedToTransactions
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  2
+                </span>
+                Transactions
+              </TabsTrigger>
+              <TabsTrigger
+                value="preview"
+                disabled={!canProceedToPreview}
+                className="flex items-center gap-2"
               >
-                3
-              </span>
-              Preview
-            </TabsTrigger>
-          </TabsList>
+                <span
+                  className={`w-6 h-6 rounded-full text-xs flex items-center justify-center ${
+                    canProceedToPreview
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  3
+                </span>
+                Preview
+              </TabsTrigger>
+            </TabsList>
           </div>
 
           <div className="mt-6">
@@ -175,10 +173,18 @@ export function ProposalWizard() {
                   <TransactionBuilder onFormsVisibilityChange={setIsEditingTransaction} />
                   {!isEditingTransaction && (
                     <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6">
-                      <Button variant="outline" onClick={() => setCurrentTab("details")} className="w-full sm:w-auto">
+                      <Button
+                        variant="outline"
+                        onClick={() => setCurrentTab("details")}
+                        className="w-full sm:w-auto"
+                      >
                         Back: Edit Details
                       </Button>
-                      <Button onClick={handleNextToPreview} disabled={!canProceedToPreview} className="w-full sm:w-auto">
+                      <Button
+                        onClick={handleNextToPreview}
+                        disabled={!canProceedToPreview}
+                        className="w-full sm:w-auto"
+                      >
                         Next: Preview & Submit
                       </Button>
                     </div>
@@ -192,7 +198,11 @@ export function ProposalWizard() {
                 <CardContent className="p-6">
                   <ProposalPreview />
                   <div className="flex justify-between mt-6">
-                    <Button variant="outline" onClick={() => setCurrentTab("transactions")} className="w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentTab("transactions")}
+                      className="w-full sm:w-auto"
+                    >
                       Back: Edit Transactions
                     </Button>
                     {/* Submit button will be in ProposalPreview component */}

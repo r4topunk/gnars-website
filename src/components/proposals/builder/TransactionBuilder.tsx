@@ -1,19 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useFormContext, useFieldArray } from "react-hook-form";
-import {
-  Coins,
-  FileImage,
-  Send,
-  Settings,
-  Video,
-} from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { ActionForms } from "./ActionForms";
-import { type ProposalFormValues, type TransactionFormValues } from "../schema";
-import { TransactionTypeCard } from "@/components/proposals/builder/TransactionTypeCard";
+import { Coins, FileImage, Send, Settings, Video } from "lucide-react";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { TransactionListItem } from "@/components/proposals/builder/TransactionListItem";
+import { TransactionTypeCard } from "@/components/proposals/builder/TransactionTypeCard";
+import { Separator } from "@/components/ui/separator";
+import { type ProposalFormValues, type TransactionFormValues } from "../schema";
+import { ActionForms } from "./ActionForms";
 
 interface TransactionBuilderProps {
   onFormsVisibilityChange?: (visible: boolean) => void;
@@ -60,7 +54,12 @@ const transactionTypes = [
 
 export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuilderProps) {
   const { control, getValues, watch } = useFormContext<ProposalFormValues>();
-  const { fields: transactions, append, update, remove } = useFieldArray({
+  const {
+    fields: transactions,
+    append,
+    update,
+    remove,
+  } = useFieldArray({
     control,
     name: "transactions",
   });
@@ -98,7 +97,9 @@ export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuild
     // Parent callbacks can still be notified for external side-effects
     if (editingTransactionIndex !== null) {
       const currentValues = getValues();
-      const updatedTx = currentValues.transactions[editingTransactionIndex] as unknown as TransactionFormValues;
+      const updatedTx = currentValues.transactions[
+        editingTransactionIndex
+      ] as unknown as TransactionFormValues;
       update(editingTransactionIndex, updatedTx);
     }
     // For new items, onAddTransaction already handled on append
@@ -148,7 +149,15 @@ export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuild
                 icon={actionType.icon}
                 label={actionType.label}
                 description={actionType.description}
-                type={actionType.type as "send-eth" | "send-usdc" | "send-tokens" | "send-nfts" | "droposal" | "custom"}
+                type={
+                  actionType.type as
+                    | "send-eth"
+                    | "send-usdc"
+                    | "send-tokens"
+                    | "send-nfts"
+                    | "droposal"
+                    | "custom"
+                }
                 onClick={() => handleAddTransaction(actionType.type)}
               />
             ))}

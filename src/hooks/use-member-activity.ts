@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { getProposals } from "@buildeross/sdk";
+import { useQuery } from "@tanstack/react-query";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 
 export type ProposalWithVotes = {
@@ -14,8 +14,8 @@ export type MemberActivityData = {
   voters: number;
 };
 
-type SdkVote = { 
-  voter?: string | null; 
+type SdkVote = {
+  voter?: string | null;
 };
 
 type MinimalSdkProposal = {
@@ -29,18 +29,18 @@ type MinimalSdkProposal = {
 async function fetchRecentProposalsWithVoters(limit: number): Promise<ProposalWithVotes[]> {
   const { proposals } = await getProposals(CHAIN.id, GNARS_ADDRESSES.token, limit);
   const list = (proposals as MinimalSdkProposal[] | undefined) ?? [];
-  
+
   return list
     .map<ProposalWithVotes & { _isCanceled: boolean }>((p) => {
       const rawVotes = Array.isArray(p.votes) ? p.votes : [];
       const votes: SdkVote[] = rawVotes as SdkVote[];
       const uniqueVoters = new Set<string>();
-      
+
       for (const vote of votes) {
         const voter = vote?.voter;
         if (voter) uniqueVoters.add(String(voter).toLowerCase());
       }
-      
+
       const rawState = p.state;
       const hasCancelTx = Boolean(p.cancelTransactionHash);
       const isCanceledByState =
@@ -50,7 +50,7 @@ async function fetchRecentProposalsWithVoters(limit: number): Promise<ProposalWi
               .toUpperCase()
               .includes("CANCEL");
       const isCanceled = hasCancelTx || isCanceledByState;
-      
+
       return {
         proposalNumber: Number(p.proposalNumber ?? 0),
         timeCreated: Number(p.timeCreated ?? 0),
@@ -70,11 +70,13 @@ export function useMemberActivity(limit: number = 12) {
       return data
         .slice(0, 6)
         .reverse() // oldest to newest for nicer left-to-right feel
-        .map((r): MemberActivityData => ({
-          proposal: `Prop #${r.proposalNumber}`,
-          proposalNumber: r.proposalNumber,
-          voters: r.voterCount,
-        }));
+        .map(
+          (r): MemberActivityData => ({
+            proposal: `Prop #${r.proposalNumber}`,
+            proposalNumber: r.proposalNumber,
+            voters: r.voterCount,
+          }),
+        );
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,

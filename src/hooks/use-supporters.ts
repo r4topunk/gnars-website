@@ -1,6 +1,7 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Address } from 'viem';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Address } from "viem";
 
 export interface AggregatedHolder {
   address: string;
@@ -54,7 +55,10 @@ export function useSupporters({
 
   const loadedKey = useRef<string | null>(null);
 
-  const canLoad = useMemo(() => Boolean(contractAddress) && totalSupply !== undefined && totalSupply !== null, [contractAddress, totalSupply]);
+  const canLoad = useMemo(
+    () => Boolean(contractAddress) && totalSupply !== undefined && totalSupply !== null,
+    [contractAddress, totalSupply],
+  );
 
   useEffect(() => {
     if (!autoLoad || !canLoad) return;
@@ -62,9 +66,12 @@ export function useSupporters({
     if (loadedKey.current === key) return;
     loadedKey.current = key;
 
-    const initialBatchEnd = totalSupply && totalSupply > 0n
-      ? (totalSupply < BigInt(batchSize) ? totalSupply : BigInt(batchSize))
-      : BigInt(batchSize);
+    const initialBatchEnd =
+      totalSupply && totalSupply > 0n
+        ? totalSupply < BigInt(batchSize)
+          ? totalSupply
+          : BigInt(batchSize)
+        : BigInt(batchSize);
 
     const fetchInitial = async () => {
       try {
@@ -72,16 +79,16 @@ export function useSupporters({
         setError(null);
         const params = new URLSearchParams({
           contractAddress: contractAddress!,
-          startTokenId: '1',
+          startTokenId: "1",
           endTokenId: initialBatchEnd.toString(),
         });
         const res = await fetch(`/api/supporters?${params.toString()}`);
         if (!res.ok) throw new Error(`Failed to fetch supporters: ${res.statusText}`);
         const api: SupportersApiResponse = await res.json();
-        const mapped: AggregatedHolder[] = api.supporters.map(s => ({
+        const mapped: AggregatedHolder[] = api.supporters.map((s) => ({
           address: s.address,
           tokenCount: s.tokenCount,
-          tokenIds: s.tokenIds.map(id => BigInt(id)),
+          tokenIds: s.tokenIds.map((id) => BigInt(id)),
         }));
         setSupporters(mapped);
         setVisibleSupporters(mapped.slice(0, itemsPerPage));
@@ -90,7 +97,7 @@ export function useSupporters({
         setNextTokenId(BigInt(api.nextTokenId));
         setCached(Boolean(api.cached));
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch supporters');
+        setError(err instanceof Error ? err.message : "Failed to fetch supporters");
         loadedKey.current = null; // allow retry on change
       } finally {
         setIsLoading(false);
@@ -104,9 +111,12 @@ export function useSupporters({
     if (!hasMore || !contractAddress || isLoadingMore) return;
     try {
       setIsLoadingMore(true);
-      const end = totalSupply && totalSupply > 0n
-        ? (nextTokenId + BigInt(batchSize) - 1n > totalSupply ? totalSupply : nextTokenId + BigInt(batchSize) - 1n)
-        : nextTokenId + BigInt(batchSize) - 1n;
+      const end =
+        totalSupply && totalSupply > 0n
+          ? nextTokenId + BigInt(batchSize) - 1n > totalSupply
+            ? totalSupply
+            : nextTokenId + BigInt(batchSize) - 1n
+          : nextTokenId + BigInt(batchSize) - 1n;
       const params = new URLSearchParams({
         contractAddress,
         startTokenId: nextTokenId.toString(),
@@ -115,17 +125,19 @@ export function useSupporters({
       const res = await fetch(`/api/supporters?${params.toString()}`);
       if (!res.ok) throw new Error(`Failed to fetch supporters: ${res.statusText}`);
       const api: SupportersApiResponse = await res.json();
-      const newBatch: AggregatedHolder[] = api.supporters.map(s => ({
+      const newBatch: AggregatedHolder[] = api.supporters.map((s) => ({
         address: s.address,
         tokenCount: s.tokenCount,
-        tokenIds: s.tokenIds.map(id => BigInt(id)),
+        tokenIds: s.tokenIds.map((id) => BigInt(id)),
       }));
 
       // Merge by re-aggregating tokenIds across batches
-      setSupporters(prev => {
+      setSupporters((prev) => {
         const allTokenEntries = [
-          ...prev.flatMap(s => s.tokenIds.map(tokenId => ({ address: s.address, tokenId }))),
-          ...newBatch.flatMap(s => s.tokenIds.map(tokenId => ({ address: s.address, tokenId }))),
+          ...prev.flatMap((s) => s.tokenIds.map((tokenId) => ({ address: s.address, tokenId }))),
+          ...newBatch.flatMap((s) =>
+            s.tokenIds.map((tokenId) => ({ address: s.address, tokenId })),
+          ),
         ];
         const map = new Map<string, { count: number; tokens: bigint[] }>();
         for (const { address, tokenId } of allTokenEntries) {
@@ -144,7 +156,7 @@ export function useSupporters({
       setHasMore(api.hasMore);
       setNextTokenId(BigInt(api.nextTokenId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load more supporters');
+      setError(err instanceof Error ? err.message : "Failed to load more supporters");
     } finally {
       setIsLoadingMore(false);
     }
@@ -161,5 +173,3 @@ export function useSupporters({
     cached,
   };
 }
-
-

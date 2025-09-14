@@ -5,15 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { MinusCircle, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Proposal } from "@/components/proposals/types";
+import { extractFirstUrl, getStatusConfig, normalizeImageUrl } from "@/components/proposals/utils";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { AddressDisplay } from "@/components/ui/address-display";
-import { Proposal } from "@/components/proposals/types";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ProposalStatus } from "@/lib/schemas/proposals";
-import { getStatusConfig, extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils";
+import { cn } from "@/lib/utils";
 
 export function ProposalCard({
   proposal,
@@ -24,14 +24,20 @@ export function ProposalCard({
 }) {
   const { Icon, color } = getStatusConfig(proposal.status);
 
-  const totalVotes = (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
+  const totalVotes =
+    (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
   const forPercentage = totalVotes > 0 ? (proposal.forVotes / totalVotes) * 100 : 0;
   const againstPercentage = totalVotes > 0 ? (proposal.againstVotes / totalVotes) * 100 : 0;
   const abstainPercentage = totalVotes > 0 ? (proposal.abstainVotes / totalVotes) * 100 : 0;
 
-  const quorumMarkerPercent = proposal.quorumVotes > 0 && totalVotes > 0 ? Math.min(100, (proposal.quorumVotes / totalVotes) * 100) : 100;
+  const quorumMarkerPercent =
+    proposal.quorumVotes > 0 && totalVotes > 0
+      ? Math.min(100, (proposal.quorumVotes / totalVotes) * 100)
+      : 100;
 
-  const timeCreated = formatDistanceToNow(new Date(proposal.timeCreated * 1000), { addSuffix: true });
+  const timeCreated = formatDistanceToNow(new Date(proposal.timeCreated * 1000), {
+    addSuffix: true,
+  });
   const voteEndTime = new Date(proposal.voteEnd);
   const isVotingActive = proposal.status === ProposalStatus.ACTIVE && voteEndTime > new Date();
 
@@ -52,9 +58,7 @@ export function ProposalCard({
           <div className="mx-4 border rounded-md overflow-hidden">
             <AspectRatio ratio={16 / 9}>
               {/* Image skeleton placeholder to avoid empty gap while loading */}
-              {!isImageLoaded && (
-                <Skeleton className="absolute inset-0" />
-              )}
+              {!isImageLoaded && <Skeleton className="absolute inset-0" />}
               <Image
                 src={bannerSrc}
                 alt="Proposal banner"
@@ -75,7 +79,9 @@ export function ProposalCard({
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-sm font-medium text-muted-foreground">Prop #{proposal.proposalNumber}</span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Prop #{proposal.proposalNumber}
+                  </span>
                   <div className="flex-shrink-0">
                     <Badge className={`${color} text-xs`}>
                       <Icon className="w-3 h-3 mr-1" />
@@ -83,10 +89,19 @@ export function ProposalCard({
                     </Badge>
                   </div>
                 </div>
-                <h4 className="font-semibold text-sm leading-tight sm:truncate pr-2">{proposal.title}</h4>
+                <h4 className="font-semibold text-sm leading-tight sm:truncate pr-2">
+                  {proposal.title}
+                </h4>
                 <div className="text-xs text-muted-foreground mt-1">
                   by{" "}
-                  <AddressDisplay address={proposal.proposer} variant="compact" showAvatar={false} showENS={true} showCopy={false} showExplorer={false} />{" "}
+                  <AddressDisplay
+                    address={proposal.proposer}
+                    variant="compact"
+                    showAvatar={false}
+                    showENS={true}
+                    showCopy={false}
+                    showExplorer={false}
+                  />{" "}
                   • {timeCreated}
                 </div>
               </div>
@@ -102,18 +117,47 @@ export function ProposalCard({
                   <div className="relative">
                     <div className="flex gap-0.5">
                       {proposal.forVotes > 0 && (
-                        <div className={cn("h-1.5 bg-green-500", proposal.againstVotes === 0 && proposal.abstainVotes === 0 ? "rounded" : "rounded-l")} style={{ width: `${forPercentage}%` }} />
+                        <div
+                          className={cn(
+                            "h-1.5 bg-green-500",
+                            proposal.againstVotes === 0 && proposal.abstainVotes === 0
+                              ? "rounded"
+                              : "rounded-l",
+                          )}
+                          style={{ width: `${forPercentage}%` }}
+                        />
                       )}
                       {proposal.againstVotes > 0 && (
-                        <div className={cn("h-1.5 bg-red-500", proposal.forVotes === 0 && proposal.abstainVotes === 0 ? "rounded" : proposal.abstainVotes === 0 ? "rounded-r" : "")} style={{ width: `${againstPercentage}%` }} />
+                        <div
+                          className={cn(
+                            "h-1.5 bg-red-500",
+                            proposal.forVotes === 0 && proposal.abstainVotes === 0
+                              ? "rounded"
+                              : proposal.abstainVotes === 0
+                                ? "rounded-r"
+                                : "",
+                          )}
+                          style={{ width: `${againstPercentage}%` }}
+                        />
                       )}
                       {proposal.abstainVotes > 0 && (
-                        <div className={cn("h-1.5 bg-gray-300", proposal.forVotes === 0 && proposal.againstVotes === 0 ? "rounded" : "rounded-r")} style={{ width: `${abstainPercentage}%` }} />
+                        <div
+                          className={cn(
+                            "h-1.5 bg-gray-300",
+                            proposal.forVotes === 0 && proposal.againstVotes === 0
+                              ? "rounded"
+                              : "rounded-r",
+                          )}
+                          style={{ width: `${abstainPercentage}%` }}
+                        />
                       )}
                     </div>
                     {proposal.quorumVotes > 0 && totalVotes > 0 && (
                       <div className="pointer-events-none absolute inset-0">
-                        <div className="absolute top-0 bottom-0 w-1 bg-yellow-300" style={{ left: `${quorumMarkerPercent}%`, transform: "translateX(-50%)" }} />
+                        <div
+                          className="absolute top-0 bottom-0 w-1 bg-yellow-300"
+                          style={{ left: `${quorumMarkerPercent}%`, transform: "translateX(-50%)" }}
+                        />
                       </div>
                     )}
                   </div>
@@ -144,7 +188,9 @@ export function ProposalCard({
             {isVotingActive && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Voting ends</span>
-                <span className="font-medium">{formatDistanceToNow(voteEndTime, { addSuffix: true })}</span>
+                <span className="font-medium">
+                  {formatDistanceToNow(voteEndTime, { addSuffix: true })}
+                </span>
               </div>
             )}
           </div>

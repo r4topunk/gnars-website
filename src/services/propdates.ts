@@ -1,15 +1,16 @@
 import {
-  getPropDates,
-  type PropDate,
   EasSDK,
   getDecodedValue,
+  getPropDates,
   type DecodedData,
+  type PropDate,
 } from "@buildeross/sdk/eas";
+import { getAddress, isAddress, isHex } from "viem";
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+
 // Inline schema UID to avoid extra constants package dependency here
 const PROPDATE_SCHEMA_UID =
   "0x8bd0d42901ce3cd9898dbea6ae2fbf1e796ef0923e7cbb0a1cecac2e42d47cb3" as const;
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-import { isAddress, isHex, getAddress } from "viem";
 
 export type Propdate = PropDate;
 
@@ -23,11 +24,7 @@ export async function listPropdates(proposalId: string): Promise<Propdate[]> {
       return [];
     }
 
-    const propdates = await getPropDates(
-      GNARS_ADDRESSES.token,
-      CHAIN.id,
-      proposalId
-    );
+    const propdates = await getPropDates(GNARS_ADDRESSES.token, CHAIN.id, proposalId);
     return propdates;
   } catch (err) {
     console.error("[propdates:listPropdates] fetch failed", {
@@ -101,9 +98,7 @@ export async function listDaoPropdates(): Promise<Propdate[]> {
         }
 
         const proposalId = String(getDecodedValue(decoded, "proposalId") ?? "0x");
-        const originalMessageId = String(
-          getDecodedValue(decoded, "originalMessageId") ?? "0x"
-        );
+        const originalMessageId = String(getDecodedValue(decoded, "originalMessageId") ?? "0x");
         return {
           id: att.id,
           attester: att.attester,
@@ -114,7 +109,7 @@ export async function listDaoPropdates(): Promise<Propdate[]> {
           txid: att.txid,
           timeCreated: Number(att.timeCreated ?? 0),
         } as Propdate;
-      })
+      }),
     );
 
     // sort ascending to match noun-builder component expectations
@@ -142,10 +137,7 @@ export async function getPropdateByTxid(txid: string): Promise<Propdate | null> 
   }
 }
 
-export async function createPropdate(
-  proposalId: string,
-  messageText: string
-): Promise<void> {
+export async function createPropdate(proposalId: string, messageText: string): Promise<void> {
   // TODO: Replace this with the actual SDK call
   console.log("Creating propdate:", { proposalId, messageText });
   await new Promise((resolve) => setTimeout(resolve, 1000));

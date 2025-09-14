@@ -1,5 +1,5 @@
-import { TransactionFormValues } from "@/components/proposals/schema";
 import { encodeFunctionData, parseEther, parseUnits } from "viem";
+import { TransactionFormValues } from "@/components/proposals/schema";
 import { TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 
 export function encodeTransactions(transactions: TransactionFormValues[]) {

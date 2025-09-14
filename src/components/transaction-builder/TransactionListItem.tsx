@@ -1,10 +1,10 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { type TransactionFormValues as Transaction } from "@/components/proposals/schema";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface TransactionListItemProps {
   index: number;
@@ -15,7 +15,14 @@ interface TransactionListItemProps {
   onRemove: (id: string) => void;
 }
 
-export function TransactionListItem({ index, transaction, label, icon: Icon, onEdit, onRemove }: TransactionListItemProps) {
+export function TransactionListItem({
+  index,
+  transaction,
+  label,
+  icon: Icon,
+  onEdit,
+  onRemove,
+}: TransactionListItemProps) {
   const details = (() => {
     switch (transaction.type) {
       case "send-eth":
@@ -54,7 +61,9 @@ export function TransactionListItem({ index, transaction, label, icon: Icon, onE
           <div className="text-xs font-mono bg-muted p-2 rounded">
             <div>Target: {transaction.target || "Not set"}</div>
             <div>Value: {transaction.value || "0"} ETH</div>
-            <div>Calldata: {transaction.calldata ? `${transaction.calldata.slice(0, 20)}...` : "0x"}</div>
+            <div>
+              Calldata: {transaction.calldata ? `${transaction.calldata.slice(0, 20)}...` : "0x"}
+            </div>
           </div>
         );
       case "droposal":
@@ -104,5 +113,3 @@ export function TransactionListItem({ index, transaction, label, icon: Icon, onE
     </Card>
   );
 }
-
-

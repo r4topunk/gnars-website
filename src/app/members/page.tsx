@@ -1,12 +1,11 @@
 import { Suspense } from "react";
 import { MembersList } from "@/components/members/MembersList";
-import { SidebarInset } from "@/components/ui/sidebar";
 import { MembersTableSkeleton } from "@/components/skeletons/members-table-skeleton";
+import { SidebarInset } from "@/components/ui/sidebar";
 
 export const revalidate = 3600; // ISR with 1 hour revalidation
 
 export default async function MembersPage() {
-
   return (
     <SidebarInset>
       <div className="container mx-auto px-4 py-8">
@@ -26,4 +25,3 @@ export default async function MembersPage() {
     </SidebarInset>
   );
 }
-

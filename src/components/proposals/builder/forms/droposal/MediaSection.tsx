@@ -3,11 +3,11 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { Upload, X } from "lucide-react";
+import { useFormContext } from "react-hook-form";
+import { type ProposalFormValues } from "@/components/proposals/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { useFormContext } from "react-hook-form";
-import { type ProposalFormValues } from "@/components/proposals/schema";
 
 interface MediaSectionProps {
   index: number;
@@ -96,7 +96,9 @@ export function MediaSection({ index }: MediaSectionProps) {
                 onClick={() => mediaInputRef.current?.click()}
               >
                 <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Upload media file (image, video, audio)</p>
+                <p className="text-sm text-muted-foreground">
+                  Upload media file (image, video, audio)
+                </p>
               </div>
             )}
             <input
@@ -113,7 +115,9 @@ export function MediaSection({ index }: MediaSectionProps) {
         {showCover && (
           <div>
             <Label>Cover Image</Label>
-            <p className="text-sm text-muted-foreground mb-2">Cover image for non-image media files</p>
+            <p className="text-sm text-muted-foreground mb-2">
+              Cover image for non-image media files
+            </p>
             <div className="mt-2">
               {coverPreview || watchedCoverUrl ? (
                 <div className="relative">
@@ -157,5 +161,3 @@ export function MediaSection({ index }: MediaSectionProps) {
     </Card>
   );
 }
-
-

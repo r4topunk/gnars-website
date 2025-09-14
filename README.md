@@ -35,7 +35,7 @@ A modern, performant Next.js app for the Gnars DAO on Base. It surfaces auctions
 
 ## Quick start
 
-1) Install dependencies
+1. Install dependencies
 
 ```bash
 pnpm install
@@ -43,7 +43,7 @@ pnpm install
 npm install
 ```
 
-2) Configure environment
+2. Configure environment
 
 Create a `.env.local` in the repo root:
 
@@ -54,7 +54,7 @@ NEXT_PUBLIC_GOLDSKY_PROJECT_ID= # optional (public default baked in)
 ALCHEMY_API_KEY= # optional (powers /api/alchemy)
 ```
 
-3) Run the app
+3. Run the app
 
 ```bash
 pnpm dev
@@ -141,5 +141,3 @@ src/
 ## License
 
 No license file is currently included. If you plan to use or distribute this code, please open an issue to clarify licensing or add a `LICENSE` file (MIT is commonly used).
-
-

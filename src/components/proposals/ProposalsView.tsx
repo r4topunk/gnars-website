@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo, useState, useEffect, useDeferredValue } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { ProposalsGrid } from "@/components/proposals/ProposalsGrid";
 import { Proposal } from "@/components/proposals/types";
-import { ProposalStatus } from "@/lib/schemas/proposals";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useProposalSearch } from "@/hooks/use-proposal-search";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface ProposalsViewProps {
   proposals: Proposal[];
@@ -18,7 +18,12 @@ interface ProposalsViewProps {
 export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   const ALL_STATUSES = useMemo(() => Object.values(ProposalStatus) as ProposalStatus[], []);
   const [activeStatuses, setActiveStatuses] = useState<Set<ProposalStatus>>(
-    () => new Set((Object.values(ProposalStatus) as ProposalStatus[]).filter((s) => s !== ProposalStatus.CANCELLED))
+    () =>
+      new Set(
+        (Object.values(ProposalStatus) as ProposalStatus[]).filter(
+          (s) => s !== ProposalStatus.CANCELLED,
+        ),
+      ),
   );
   const availableStatuses = useMemo(() => {
     return new Set(allProposals.map((p) => p.status));
@@ -52,7 +57,9 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-3xl font-bold tracking-tight mb-2">Proposals</h1>
-          <p className="text-muted-foreground">View and participate in Gnars DAO governance proposals</p>
+          <p className="text-muted-foreground">
+            View and participate in Gnars DAO governance proposals
+          </p>
         </div>
         <div className="flex gap-2">
           <Input
@@ -109,29 +116,33 @@ function StatusFilter({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline">
-          Filter status{activeCount > 0 ? ` (${activeCount})` : ""}
-        </Button>
+        <Button variant="outline">Filter status{activeCount > 0 ? ` (${activeCount})` : ""}</Button>
       </PopoverTrigger>
       <PopoverContent align="end" sideOffset={8} className="w-64 p-2">
         <div className="px-2 pb-2 text-sm font-medium">Status</div>
         <div className="max-h-[60vh] overflow-auto pr-1">
           <div className="flex flex-col gap-1">
-            {allStatuses.filter((s) => availableStatuses.has(s)).map((status) => {
-              const id = `status-${status}`;
-              return (
-                <label key={status} htmlFor={id} className="flex items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-accent">
-                  <Checkbox
-                    id={id}
-                    checked={activeStatuses.has(status)}
-                    onCheckedChange={() => onToggleStatus(status)}
-                  />
-                  <Label htmlFor={id} className="text-sm font-normal leading-none">
-                    {status}
-                  </Label>
-                </label>
-              );
-            })}
+            {allStatuses
+              .filter((s) => availableStatuses.has(s))
+              .map((status) => {
+                const id = `status-${status}`;
+                return (
+                  <label
+                    key={status}
+                    htmlFor={id}
+                    className="flex items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-accent"
+                  >
+                    <Checkbox
+                      id={id}
+                      checked={activeStatuses.has(status)}
+                      onCheckedChange={() => onToggleStatus(status)}
+                    />
+                    <Label htmlFor={id} className="text-sm font-normal leading-none">
+                      {status}
+                    </Label>
+                  </label>
+                );
+              })}
           </div>
         </div>
         <div className="mt-2 flex px-2 w-full justify-center gap-2">
@@ -149,5 +160,3 @@ function StatusFilter({
     </Popover>
   );
 }
-
-

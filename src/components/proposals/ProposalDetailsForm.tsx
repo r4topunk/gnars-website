@@ -1,19 +1,24 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useFormContext } from "react-hook-form";
 import Image from "next/image";
 import { Eye, Upload, X } from "lucide-react";
+import { useFormContext } from "react-hook-form";
+import { Markdown } from "@/components/common/Markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Markdown } from "@/components/common/Markdown";
 import { type ProposalFormValues } from "./schema";
 
 export function ProposalDetailsForm() {
-  const { register, setValue, watch, formState: { errors } } = useFormContext<ProposalFormValues>();
+  const {
+    register,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useFormContext<ProposalFormValues>();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -66,9 +71,7 @@ export function ProposalDetailsForm() {
             {...register("title")}
             className="mt-1"
           />
-          {errors.title && (
-            <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>
-          )}
+          {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>}
           <p className="text-xs text-muted-foreground mt-1">Keep it concise and descriptive</p>
         </div>
 

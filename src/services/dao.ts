@@ -33,7 +33,6 @@ export async function fetchDaoStats(): Promise<DaoStats> {
   };
 }
 
-
 type DaoSalesQuery = {
   dao: {
     totalAuctionSales: string;
@@ -58,5 +57,3 @@ export async function fetchTotalAuctionSalesWei(): Promise<bigint> {
     return BigInt(0);
   }
 }
-
-
