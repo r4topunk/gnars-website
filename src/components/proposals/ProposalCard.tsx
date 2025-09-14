@@ -83,7 +83,7 @@ export function ProposalCard({
                     </Badge>
                   </div>
                 </div>
-                <h4 className="font-semibold text-sm leading-tight truncate pr-2">{proposal.title}</h4>
+                <h4 className="font-semibold text-sm leading-tight sm:truncate pr-2">{proposal.title}</h4>
                 <div className="text-xs text-muted-foreground mt-1">
                   by{" "}
                   <AddressDisplay address={proposal.proposer} variant="compact" showAvatar={false} showENS={true} showCopy={false} showExplorer={false} />{" "}

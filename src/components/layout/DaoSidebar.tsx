@@ -158,7 +158,7 @@ export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenuButton
                       asChild
                       isActive={isRouteActive(item.url)}
-                      className="min-h-[44px] touch-manipulation"
+                      className="touch-manipulation"
                     >
                       <Link
                         href={item.url}

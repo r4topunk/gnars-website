@@ -2,25 +2,23 @@
 
 import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
-import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SectionHeader } from "@/components/common/SectionHeader";
 
 export function RecentProposalsHeader() {
   return (
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <div className="space-y-1">
-        <CardTitle className="text-xl font-bold flex items-center gap-2">
-          Recent Proposals
-        </CardTitle>
-        <CardDescription>Latest governance proposals and their voting status</CardDescription>
-      </div>
-      <Button variant="outline" size="sm" asChild>
-        <Link href="/proposals">
-          View All Proposals
-          <ArrowRightIcon className="w-4 h-4 ml-2" />
-        </Link>
-      </Button>
-    </CardHeader>
+    <SectionHeader
+      title="Recent Proposals"
+      description="Governance proposals and their voting status"
+      action={
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/proposals">
+            View All Proposals
+            <ArrowRightIcon className="w-4 h-4 ml-2" />
+          </Link>
+        </Button>
+      }
+    />
   );
 }
 

@@ -49,7 +49,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-3xl font-bold tracking-tight mb-2">Proposals</h1>
           <p className="text-muted-foreground">View and participate in Gnars DAO governance proposals</p>
@@ -61,7 +61,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={initSearchWorker}
-            className="max-w-xs"
+            className="w-full sm:max-w-xs"
           />
           <StatusFilter
             allStatuses={ALL_STATUSES}

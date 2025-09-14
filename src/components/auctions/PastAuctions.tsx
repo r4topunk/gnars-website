@@ -82,7 +82,7 @@ export function PastAuctions({
     return (
       <>
         {loading && !auctions?.length ? (
-          <LoadingGridSkeleton items={8} />
+          <LoadingGridSkeleton items={12} />
         ) : auctions?.length ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -138,7 +138,11 @@ export function PastAuctions({
                 <LoadingGridSkeleton items={4} />
               </div>
             )}
-            <div ref={sentinelRef} className="h-10" />
+            {
+              hasMore && (
+                <div ref={sentinelRef} className="h-10" />
+              )
+            }
           </>
         ) : (
           <div className="text-center py-8">

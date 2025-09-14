@@ -108,7 +108,8 @@ export function ProposalWizard() {
     <FormProvider {...methods}>
       <div className="max-w-4xl mx-auto">
         <Tabs value={currentTab} onValueChange={setCurrentTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <div className="overflow-x-auto">
+            <TabsList className="grid w-full grid-cols-3 min-w-fit">
             <TabsTrigger value="details" className="flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
                 1
@@ -148,6 +149,7 @@ export function ProposalWizard() {
               Preview
             </TabsTrigger>
           </TabsList>
+          </div>
 
           <div className="mt-6">
             <TabsContent value="details" className="space-y-4">
@@ -158,6 +160,7 @@ export function ProposalWizard() {
                     <Button
                       onClick={handleNextToTransactions}
                       disabled={!canProceedToTransactions}
+                      className="w-full sm:w-auto"
                     >
                       Next: Add Transactions
                     </Button>
@@ -171,11 +174,11 @@ export function ProposalWizard() {
                 <CardContent className="p-6">
                   <TransactionBuilder onFormsVisibilityChange={setIsEditingTransaction} />
                   {!isEditingTransaction && (
-                    <div className="flex justify-between mt-6">
-                      <Button variant="outline" onClick={() => setCurrentTab("details")}>
+                    <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6">
+                      <Button variant="outline" onClick={() => setCurrentTab("details")} className="w-full sm:w-auto">
                         Back: Edit Details
                       </Button>
-                      <Button onClick={handleNextToPreview} disabled={!canProceedToPreview}>
+                      <Button onClick={handleNextToPreview} disabled={!canProceedToPreview} className="w-full sm:w-auto">
                         Next: Preview & Submit
                       </Button>
                     </div>
@@ -189,7 +192,7 @@ export function ProposalWizard() {
                 <CardContent className="p-6">
                   <ProposalPreview />
                   <div className="flex justify-between mt-6">
-                    <Button variant="outline" onClick={() => setCurrentTab("transactions")}>
+                    <Button variant="outline" onClick={() => setCurrentTab("transactions")} className="w-full sm:w-auto">
                       Back: Edit Transactions
                     </Button>
                     {/* Submit button will be in ProposalPreview component */}

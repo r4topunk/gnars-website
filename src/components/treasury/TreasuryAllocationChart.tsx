@@ -102,15 +102,16 @@ export function TreasuryAllocationChart() {
   const { allocation = [], totalValueUsd } = data ?? {};
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col overflow-hidden">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>Treasury Allocation</CardTitle>
           <CardDescription>Current asset distribution in the DAO treasury</CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer config={chartConfig} className="h-[200px] w-full">
+      <CardContent className="flex-1 pb-0 overflow-hidden">
+        <div className="w-full overflow-x-auto">
+          <ChartContainer config={chartConfig} className="h-[200px] w-full max-w-full">
           <PieChart>
             <ChartTooltip
               cursor={false}
@@ -176,7 +177,8 @@ export function TreasuryAllocationChart() {
               }}
             />
           </PieChart>
-        </ChartContainer>
+          </ChartContainer>
+        </div>
       </CardContent>
       <CardFooter>
         <div className="flex w-full items-center justify-center gap-2 text-sm">

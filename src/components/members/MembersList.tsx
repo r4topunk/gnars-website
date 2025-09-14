@@ -119,9 +119,9 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
     return (
       <div className="space-y-4">
         {showSearch ? (
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Search className="h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search by address or ENS..." value={searchTerm} className="max-w-sm" disabled />
+            <Input placeholder="Search by address or ENS..." value={searchTerm} className="w-full sm:max-w-sm" disabled />
           </div>
         ) : null}
         <div className="text-center py-8">
@@ -134,13 +134,13 @@ export function MembersList({ searchTerm: initialSearchTerm = "", showSearch = t
   return (
     <div className="space-y-4">
       {showSearch ? (
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by address or ENS..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
+            className="w-full sm:max-w-sm"
           />
         </div>
       ) : null}

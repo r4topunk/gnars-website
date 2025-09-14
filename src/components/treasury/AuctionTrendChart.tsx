@@ -93,15 +93,16 @@ export function AuctionTrendChart() {
   }
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col overflow-hidden">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>Treasury Performance</CardTitle>
           <CardDescription>ETH and USDC balances over the last 6 months</CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer config={chartConfig} className="h-[200px] w-full">
+      <CardContent className="flex-1 pb-0 overflow-hidden">
+        <div className="w-full overflow-x-auto">
+          <ChartContainer config={chartConfig} className="w-full max-w-full">
           <AreaChart
             accessibilityLayer
             data={points}
@@ -152,7 +153,8 @@ export function AuctionTrendChart() {
               stroke="var(--color-eth)"
             />
           </AreaChart>
-        </ChartContainer>
+          </ChartContainer>
+        </div>
       </CardContent>
       <CardFooter>
         <div className="flex w-full items-center justify-center gap-2 text-sm">

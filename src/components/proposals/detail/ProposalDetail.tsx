@@ -85,11 +85,13 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         </CardContent>
       </Card>
       <Tabs defaultValue="details" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="votes">Votes</TabsTrigger>
-          <TabsTrigger value="propdates">Propdates</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto">
+          <TabsList className="grid w-full grid-cols-3 min-w-fit">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="votes">Votes</TabsTrigger>
+            <TabsTrigger value="propdates">Propdates</TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="details" className="space-y-6 mt-6">
           <ProposalDescriptionCard description={proposal.description} />
           <ProposedTransactionsTable

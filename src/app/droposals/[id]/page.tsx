@@ -13,6 +13,7 @@ import { DroposalMetadata } from "@/components/droposals/detail/DroposalMetadata
 import { DroposalActionBox } from "@/components/droposals/detail/DroposalActionBox";
 import { DroposalDetailsCard } from "@/components/droposals/detail/DroposalDetailsCard";
 import { DroposalAddresses } from "@/components/droposals/detail/DroposalAddresses";
+import { SidebarInset } from "@/components/ui/sidebar";
 
 type ProposalQuery = {
   proposal: {
@@ -98,14 +99,16 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
 
   if (!p) {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Droposal not found</CardTitle>
-          </CardHeader>
-          <CardContent>We couldn&apos;t find this droposal.</CardContent>
-        </Card>
-      </div>
+      <SidebarInset>
+        <div className="container mx-auto py-8 px-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Droposal not found</CardTitle>
+            </CardHeader>
+            <CardContent>We couldn&apos;t find this droposal.</CardContent>
+          </Card>
+        </div>
+      </SidebarInset>
     );
   }
 
@@ -171,49 +174,51 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 space-y-6">
-      <DroposalHeader
-        proposalNumber={p.proposalNumber}
-        title={p.title}
-        fallbackName={decoded?.name || null}
-        createdAtMs={createdAt}
-        isExecuted={isExecuted}
-        priceEth={priceEth}
-        editionSize={editionSize}
-      />
-      <Separator />
+    <SidebarInset>
+      <div className="container mx-auto py-8 px-4 space-y-6">
+        <DroposalHeader
+          proposalNumber={p.proposalNumber}
+          title={p.title}
+          fallbackName={decoded?.name || null}
+          createdAtMs={createdAt}
+          isExecuted={isExecuted}
+          priceEth={priceEth}
+          editionSize={editionSize}
+        />
+        <Separator />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <DroposalMedia
-            mediaAnimation={mediaAnimation}
-            mediaImage={mediaImage}
-            alt={decoded?.name || p.title || "Droposal media"}
-          />
-          <DroposalSupporters tokenAddress={tokenAddress as `0x${string}` | null} totalSupply={decoded?.editionSize?.toString() ?? null} />
-          <DroposalMetadata rows={decoded ? formatDroposalForTable(decoded) : []} />
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <DroposalMedia
+              mediaAnimation={mediaAnimation}
+              mediaImage={mediaImage}
+              alt={decoded?.name || p.title || "Droposal media"}
+            />
+            <DroposalSupporters tokenAddress={tokenAddress as `0x${string}` | null} totalSupply={decoded?.editionSize?.toString() ?? null} />
+            <DroposalMetadata rows={decoded ? formatDroposalForTable(decoded) : []} />
+          </div>
 
-        <div className="space-y-6 h-fit">
-          <DroposalActionBox
-            priceEth={priceEth}
-            editionSize={editionSize}
-            saleActive={saleActive}
-            saleNotStarted={Boolean(saleNotStarted)}
-            saleEnded={Boolean(saleEnded)}
-            saleStart={saleStart || undefined}
-            saleEnd={saleEnd || undefined}
-            hasDecoded={Boolean(decoded)}
-            formatCountdown={countdown}
-          />
-          <DroposalDetailsCard name={decoded?.name} title={p.title} description={decoded?.description} />
-          <DroposalAddresses
-            fundsRecipient={decoded?.fundsRecipient}
-            defaultAdmin={decoded?.defaultAdmin}
-            tokenAddress={tokenAddress}
-          />
+          <div className="space-y-6 h-fit">
+            <DroposalActionBox
+              priceEth={priceEth}
+              editionSize={editionSize}
+              saleActive={saleActive}
+              saleNotStarted={Boolean(saleNotStarted)}
+              saleEnded={Boolean(saleEnded)}
+              saleStart={saleStart || undefined}
+              saleEnd={saleEnd || undefined}
+              hasDecoded={Boolean(decoded)}
+              formatCountdown={countdown}
+            />
+            <DroposalDetailsCard name={decoded?.name} title={p.title} description={decoded?.description} />
+            <DroposalAddresses
+              fundsRecipient={decoded?.fundsRecipient}
+              defaultAdmin={decoded?.defaultAdmin}
+              tokenAddress={tokenAddress}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </SidebarInset>
   );
 }

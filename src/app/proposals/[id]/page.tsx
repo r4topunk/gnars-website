@@ -2,6 +2,7 @@ import { ProposalDetail, ProposalDetailSkeleton } from "@/components/proposals/d
 import { Proposal } from "@/components/proposals/types";
 import { Suspense } from "react";
 import { getProposalByIdOrNumber } from "@/services/proposals";
+import { SidebarInset } from "@/components/ui/sidebar";
 
 export const dynamic = "force-dynamic";
 
@@ -24,20 +25,24 @@ export default async function ProposalPage({ params }: ProposalPageProps) {
 
   if (!proposal) {
     return (
-      <div className="container mx-auto py-8 px-4 text-center">
-        <h2 className="text-2xl font-bold text-muted-foreground">Proposal Not Found</h2>
-        <p className="text-muted-foreground mt-2">
-          The proposal you&apos;re looking for doesn&apos;t exist or has been removed.
-        </p>
-      </div>
+      <SidebarInset>
+        <div className="container mx-auto py-8 px-4 text-center">
+          <h2 className="text-2xl font-bold text-muted-foreground">Proposal Not Found</h2>
+          <p className="text-muted-foreground mt-2">
+            The proposal you&apos;re looking for doesn&apos;t exist or has been removed.
+          </p>
+        </div>
+      </SidebarInset>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Suspense fallback={<ProposalDetailSkeleton />}>
-        <ProposalDetail proposal={proposal} />
-      </Suspense>
-    </div>
+    <SidebarInset>
+      <div className="container mx-auto py-8 px-4">
+        <Suspense fallback={<ProposalDetailSkeleton />}>
+          <ProposalDetail proposal={proposal} />
+        </Suspense>
+      </div>
+    </SidebarInset>
   );
 }

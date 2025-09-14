@@ -83,7 +83,7 @@ export function HomeClientComponents({ proposals }: HomeClientComponentsProps) {
       />
 
       {/* Dashboard Grid */}
-      <div className="flex flex-1 flex-col gap-6 px-6 py-4">
+      <div className="flex flex-1 flex-col gap-6 px-4 py-4">
         {/* Recent Proposals Section */}
         <section>
           <RecentProposals 

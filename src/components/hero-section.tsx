@@ -83,7 +83,7 @@ export function HeroSection({ stats }: HeroSectionProps) {
   return (
     <section className="relative overflow-hidden">
       {/* Hero Content */}
-      <div className="relative z-10 px-4 py-8 md:py-10 lg:py-12">
+      <div className="relative z-10 px-4 pt-8 pb-4 md:py-10 lg:py-12">
         <div className="mx-auto max-w-6xl">
           {/* Main Hero */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
@@ -149,7 +149,7 @@ export function HeroSection({ stats }: HeroSectionProps) {
 
             {/* Right Column - Current Auction Spotlight */}
             <div className="flex items-center justify-center">
-              <Card className="w-full max-w-md border-2 bg-card shadow-lg">
+              <Card className="w-full max-w-md bg-card">
                 <CardContent className="py-2">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -200,7 +200,7 @@ export function HeroSection({ stats }: HeroSectionProps) {
 
                       <Progress value={progressPercentage} className="h-2" />
 
-                      <Button className="w-full touch-manipulation min-h-[44px]">Place Bid</Button>
+                      <Button className="w-full touch-manipulation">Place Bid</Button>
 
                       {highestBidder && highestBidder !== zeroAddress && (
                         <div className="text-center text-xs text-muted-foreground">
