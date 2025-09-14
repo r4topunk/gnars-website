@@ -272,6 +272,10 @@ export type MemberListItem = {
   tokenCount: number;
   votesCount?: number;
   activeVotes?: number;
+  // Percentage of non-canceled proposals the member voted on (0-100)
+  attendancePct?: number;
+  // Percentage of FOR votes among the member's cast votes (0-100)
+  likePct?: number;
 };
 
 type DaoMembersPageQuery = {
@@ -501,4 +505,98 @@ export async function fetchVotesCountForVoters(
   }
 
   return counts;
+}
+
+type VotesSupportBatchQuery = {
+  proposalVotes: Array<{
+    voter: string;
+    support: "FOR" | "AGAINST" | "ABSTAIN";
+  }>;
+};
+
+const VOTES_SUPPORT_BATCH_GQL = /* GraphQL */ `
+  query VotesSupportBatch($dao: ID!, $voters: [Bytes!]!, $first: Int!, $skip: Int!) {
+    proposalVotes(
+      where: { proposal_: { dao: $dao, canceled: false }, voter_in: $voters }
+      orderBy: timestamp
+      orderDirection: desc
+      first: $first
+      skip: $skip
+    ) {
+      voter
+      support
+    }
+  }
+`;
+
+/**
+ * Fetch per-voter support counts (FOR vs total) excluding canceled proposals.
+ */
+export async function fetchVoteSupportForVoters(
+  addresses: string[],
+): Promise<Record<string, { total: number; forCount: number }>> {
+  if (addresses.length === 0) return {};
+  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const supportMap: Record<string, { total: number; forCount: number }> = {};
+  const uniqueAddresses = Array.from(new Set(addresses.map((a) => a.toLowerCase())));
+  const chunks = chunkArray(uniqueAddresses, 100);
+
+  for (const voters of chunks) {
+    let skip = 0;
+    while (true) {
+      const data = await subgraphQuery<VotesSupportBatchQuery>(VOTES_SUPPORT_BATCH_GQL, {
+        dao,
+        voters,
+        first: 1000,
+        skip,
+      });
+      const votes = data.proposalVotes || [];
+      for (const v of votes) {
+        const key = v.voter.toLowerCase();
+        const entry = (supportMap[key] ||= { total: 0, forCount: 0 });
+        entry.total += 1;
+        if (v.support === "FOR") entry.forCount += 1;
+      }
+      if (votes.length < 1000) break;
+      skip += 1000;
+    }
+  }
+
+  return supportMap;
+}
+
+type NonCanceledProposalsQuery = {
+  proposals: Array<{
+    id: string;
+  }>;
+};
+
+const NON_CANCELED_PROPOSALS_GQL = /* GraphQL */ `
+  query NonCanceledProposals($dao: ID!, $first: Int!, $skip: Int!) {
+    proposals(where: { dao: $dao, canceled: false }, orderBy: timeCreated, orderDirection: desc, first: $first, skip: $skip) {
+      id
+    }
+  }
+`;
+
+/**
+ * Count non-canceled proposals for the DAO.
+ */
+export async function fetchNonCanceledProposalsCount(): Promise<number> {
+  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const PAGE_SIZE = 1000;
+  let skip = 0;
+  let count = 0;
+  while (true) {
+    const data = await subgraphQuery<NonCanceledProposalsQuery>(NON_CANCELED_PROPOSALS_GQL, {
+      dao,
+      first: PAGE_SIZE,
+      skip,
+    });
+    const rows = data.proposals || [];
+    count += rows.length;
+    if (rows.length < PAGE_SIZE) break;
+    skip += PAGE_SIZE;
+  }
+  return count;
 }

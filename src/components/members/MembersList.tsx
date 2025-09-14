@@ -44,7 +44,9 @@ export function MembersList({
   const [members, setMembers] = useState<MemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
-  const [sortBy, setSortBy] = useState<"delegate" | "tokens" | "activeVotes" | "votesCount">(
+  const [sortBy, setSortBy] = useState<
+    "delegate" | "tokens" | "activeVotes" | "attendancePct"
+  >(
     "tokens",
   );
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -74,7 +76,7 @@ export function MembersList({
       (member) =>
         member.owner.toLowerCase().includes(searchLower) ||
         member.delegate.toLowerCase().includes(searchLower),
-    );
+    ).filter((m) => (m.activeVotes ?? 0) > 0);
     const dir = sortDir === "asc" ? 1 : -1;
     const compare = (a: MemberListItem, b: MemberListItem) => {
       switch (sortBy) {
@@ -89,8 +91,8 @@ export function MembersList({
           return (a.tokenCount - b.tokenCount) * dir;
         case "activeVotes":
           return ((a.activeVotes ?? 0) - (b.activeVotes ?? 0)) * dir;
-        case "votesCount":
-          return ((a.votesCount ?? 0) - (b.votesCount ?? 0)) * dir;
+        case "attendancePct":
+          return ((a.attendancePct ?? 0) - (b.attendancePct ?? 0)) * dir;
         default:
           return 0;
       }
@@ -229,13 +231,13 @@ export function MembersList({
               <TableHead
                 className="text-right cursor-pointer select-none"
                 onClick={() => {
-                  setSortBy("votesCount");
-                  setSortDir((d) => (sortBy === "votesCount" ? (d === "asc" ? "desc" : "asc") : d));
+                  setSortBy("attendancePct");
+                  setSortDir((d) => (sortBy === "attendancePct" ? (d === "asc" ? "desc" : "asc") : d));
                 }}
               >
                 <span className="inline-flex items-center gap-1 justify-end w-full">
-                  Proposals Voted
-                  {sortBy === "votesCount" ? (
+                  Attendance %
+                  {sortBy === "attendancePct" ? (
                     sortDir === "asc" ? (
                       <ArrowUp className="h-3 w-3" />
                     ) : (
@@ -246,6 +248,7 @@ export function MembersList({
                   )}
                 </span>
               </TableHead>
+
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -308,8 +311,9 @@ export function MembersList({
                     <span className="font-medium">{member.activeVotes ?? 0}</span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="font-medium">{member.votesCount ?? 0}</span>
+                    <span className="font-medium">{member.attendancePct ?? 0}%</span>
                   </TableCell>
+                  {/* Like % column removed as requested */}
                 </TableRow>
               ))
             )}
