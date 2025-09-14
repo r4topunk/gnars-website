@@ -28,17 +28,6 @@ export function ProposalMetrics({
     return Number.isFinite(num) ? Math.max(num, 0) : 0;
   };
 
-  // reserved for future use
-  // const formatDate = (date: Date) => {
-  //   return date.toLocaleDateString(undefined, {
-  //     year: "numeric",
-  //     month: "short",
-  //     day: "numeric",
-  //     hour: "2-digit",
-  //     minute: "2-digit",
-  //   });
-  // };
-
   const formatBlock = (block: number) => {
     return block.toLocaleString();
   };
@@ -54,7 +43,7 @@ export function ProposalMetrics({
   return (
     <div className="space-y-3">
       {/* Top row: For / Against / Abstain */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
         {/* For */}
         <Card className="py-2 gap-3">
           <CardHeader className="pb-1 px-4">
