@@ -35,13 +35,6 @@ export function MemberQuickStats({
         </CardHeader>
         <CardContent>
           <div className="text-3xl font-bold">{overview.tokenCount}</div>
-          {overview.tokensHeld.length > 0 ? (
-            <div className="text-xs text-muted-foreground mt-1">
-              #{overview.tokensHeld.join(", #")}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">No tokens</div>
-          )}
         </CardContent>
       </Card>
 
