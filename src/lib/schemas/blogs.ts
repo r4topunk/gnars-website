@@ -11,12 +11,19 @@ export const postSchema = z.object({
   id: z.string(),
   title: z.string(),
   slug: z.string(),
-  markdown: z.string(),
+  markdown: z.string().optional().default(""),
+  content: z.string().optional(), // Some API responses use 'content' instead of 'markdown'
   staticHtml: z.string().optional(),
   json: z.string().optional(),
   coinId: z.string().optional(),
   publishedAt: z.string(),
   updatedAt: z.string(),
+}).transform((data) => {
+  // If markdown is empty but content exists, use content as markdown
+  if (!data.markdown && data.content) {
+    return { ...data, markdown: data.content };
+  }
+  return data;
 });
 
 export const paginationSchema = z.object({
@@ -34,7 +41,7 @@ export const blogSchema = z.object({
   id: z.string(),
   slug: z.string(),
   title: z.string(),
-  markdown: z.string(),
+  markdown: z.string().optional().default(""),
   staticHtml: z.string().optional(),
   publishedAt: z.string(),
   updatedAt: z.string(),

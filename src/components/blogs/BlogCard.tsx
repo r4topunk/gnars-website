@@ -25,14 +25,15 @@ export function BlogCard({ blog }: { blog: Blog }) {
   const publishedDate = formatSafeDistanceToNow(blog.publishedAt);
 
   // Extract first paragraph for preview
-  const getPreview = (markdown: string) => {
+  const getPreview = (markdown: string | undefined) => {
+    if (!markdown) return '';
     const firstParagraph = markdown.split('\n').find(line => line.trim() && !line.startsWith('#'));
     return firstParagraph?.slice(0, 150) + (firstParagraph && firstParagraph.length > 150 ? '...' : '') || '';
   };
 
   return (
-    <Link href={`/blogs/${blog.slug}`} className="block">
-      <Card className="overflow-hidden cursor-pointer transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-md">
+    <Card className="overflow-hidden cursor-pointer transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-md">
+      <Link href={`/blogs/${blog.slug}`} className="block">
         <div className="mx-4 border rounded-md overflow-hidden">
           <AspectRatio ratio={16 / 9}>
             {/* Image skeleton placeholder to avoid empty gap while loading */}
@@ -74,7 +75,7 @@ export function BlogCard({ blog }: { blog: Blog }) {
             </div>
           </div>
         </CardContent>
-      </Card>
-    </Link>
+      </Link>
+    </Card>
   );
 }

@@ -66,10 +66,18 @@ async function getPosts(publicationId: string, cursor?: string): Promise<PostsRe
 
 // Get a single post by publication slug and post slug
 async function getPostBySlug(publicationSlug: string, postSlug: string): Promise<Post> {
-  const endpoint = `/publications/slug/${encodeURIComponent(publicationSlug)}/posts/slug/${encodeURIComponent(postSlug)}`;
+  const endpoint = `/publications/slug/${encodeURIComponent(publicationSlug)}/posts/slug/${encodeURIComponent(postSlug)}?includeContent=true`;
   const data = await paragraphFetch(endpoint);
-  // Assuming the API returns the post directly, not wrapped in an object
-  return data;
+  console.log("Post data from API:", {
+    hasMarkdown: !!data.markdown,
+    hasContent: !!data.content,
+    hasStaticHtml: !!data.staticHtml,
+    keys: Object.keys(data)
+  });
+
+  // Parse through schema which will handle the content -> markdown transformation
+  const parsedPost = postSchema.parse(data);
+  return parsedPost;
 }
 
 function mapPostToBlog(post: Post, publication: Publication): Blog {
@@ -80,7 +88,7 @@ function mapPostToBlog(post: Post, publication: Publication): Blog {
     id: post.id,
     slug: post.slug,
     title: post.title,
-    markdown: post.markdown,
+    markdown: post.markdown || "",
     staticHtml: post.staticHtml,
     publishedAt: post.publishedAt,
     updatedAt: post.updatedAt,

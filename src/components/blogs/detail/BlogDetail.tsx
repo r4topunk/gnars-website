@@ -104,7 +104,7 @@ export function BlogDetail({ blog }: BlogDetailProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <Markdown className="prose-lg">{blog.markdown}</Markdown>
+          <Markdown className="prose-lg">{blog.markdown || ''}</Markdown>
         </CardContent>
       </Card>
     </div>
