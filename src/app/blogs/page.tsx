@@ -2,14 +2,14 @@ import { Suspense } from "react";
 import { BlogsPageSkeleton } from "@/components/blogs/BlogsPageSkeleton";
 import { BlogsView } from "@/components/blogs/BlogsView";
 import { SidebarInset } from "@/components/ui/sidebar";
-import { listBlogs } from "@/services/blogs";
+import { getAllBlogs } from "@/services/blogs";
 
 export const dynamic = "force-dynamic";
 
 async function getBlogs() {
   try {
-    const result = await listBlogs(); // Get first page of blogs
-    return result.blogs;
+    const result = await getAllBlogs(); // Get first page of blogs
+    return result;
   } catch (error) {
     console.error("Failed to fetch blogs:", error);
     return [];
