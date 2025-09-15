@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gavel, Home, Newspaper, PlusCircle, Users, Video, Vote, Wallet } from "lucide-react";
+import { BookOpen, Gavel, Home, Newspaper, PlusCircle, Users, Video, Vote, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
@@ -69,6 +69,11 @@ const daoNavigation = [
         title: "Members",
         url: "/members",
         icon: Users,
+      },
+      {
+        title: "Blogs",
+        url: "/blogs",
+        icon: BookOpen,
       },
       {
         title: "Propdates",

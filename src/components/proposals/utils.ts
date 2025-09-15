@@ -62,6 +62,9 @@ export function normalizeImageUrl(rawUrl: string | null): string | null {
       const hash = rawUrl.replace(/^ipfs:\/\//i, "").replace(/^ipfs\//i, "");
       return `https://ipfs.io/ipfs/${hash}`;
     }
+    if (rawUrl.startsWith("http://")) {
+      return rawUrl.replace("http://", "https://");
+    }
     new URL(rawUrl);
     return rawUrl;
   } catch {
