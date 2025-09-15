@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 async function getBlogs() {
   try {
-    const result = await listBlogs(50); // Get first 50 blogs
+    const result = await listBlogs(); // Get first page of blogs
     return result.blogs;
   } catch (error) {
     console.error("Failed to fetch blogs:", error);

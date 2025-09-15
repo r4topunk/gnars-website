@@ -106,7 +106,6 @@ const getCachedPublication = unstable_cache(
 );
 
 export async function listBlogs(
-  limit = 20,
   cursor?: string,
 ): Promise<{ blogs: Blog[]; hasMore: boolean; nextCursor?: string }> {
   try {
@@ -120,7 +119,7 @@ export async function listBlogs(
       hasMore: postData.pagination.hasMore,
       nextCursor: postData.pagination.cursor,
     };
-  } catch (error) {
+  } catch {
     return {
       blogs: [],
       hasMore: false,
@@ -140,13 +139,13 @@ export async function getBlogBySlug(slug: string): Promise<Blog | null> {
     }
 
     return mapPostToBlog(post, publication);
-  } catch (error) {
+  } catch {
     // If the direct method fails, fallback to searching through all posts
     try {
       const allBlogs = await getAllBlogs();
       const found = allBlogs.find((blog) => blog.slug === slug) || null;
       return found;
-    } catch (fallbackError) {
+    } catch {
       return null;
     }
   }
@@ -158,7 +157,7 @@ export async function getAllBlogs(): Promise<Blog[]> {
   let hasMore = true;
 
   while (hasMore) {
-    const result = await listBlogs(50, cursor);
+    const result = await listBlogs(cursor);
     allBlogs.push(...result.blogs);
     hasMore = result.hasMore;
     cursor = result.nextCursor;

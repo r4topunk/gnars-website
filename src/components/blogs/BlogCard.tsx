@@ -78,7 +78,7 @@ export function BlogCard({ blog }: { blog: Blog }) {
               sizes="(max-width: 768px) 100vw, 50vw"
               className={`object-cover transition-opacity duration-300 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
               priority={false}
-              onLoadingComplete={() => setIsImageLoaded(true)}
+              onLoad={() => setIsImageLoaded(true)}
               onError={() => {
                 if (bannerSrc !== "/logo-banner.jpg") setBannerSrc("/logo-banner.jpg");
               }}
