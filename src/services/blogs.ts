@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import type { Blog, Publication, Post, PostsResponse } from "@/lib/schemas/blogs";
 import { blogSchema, publicationSchema, postsResponseSchema } from "@/lib/schemas/blogs";
+import { blogPosts } from "@/lib/blog-posts";
 
 const PARAGRAPH_API_BASE = "https://public.api.paragraph.com/api/v1";
 const GNARS_PUBLICATION_SLUG = "gnars";
@@ -72,6 +73,9 @@ async function getPostBySlug(publicationSlug: string, postSlug: string): Promise
 }
 
 function mapPostToBlog(post: Post, publication: Publication): Blog {
+  // Find the matching blog post from our hardcoded list to get the image URL
+  const blogPost = blogPosts.find(bp => bp.slug === post.slug);
+
   const blog: Blog = {
     id: post.id,
     slug: post.slug,
@@ -82,6 +86,8 @@ function mapPostToBlog(post: Post, publication: Publication): Blog {
     updatedAt: post.updatedAt,
     coinId: post.coinId,
     publication,
+    // Add the image URL from our hardcoded list
+    imageUrl: blogPost?.imageUrl,
   };
 
   return blogSchema.parse(blog);

@@ -40,6 +40,7 @@ export const blogSchema = z.object({
   updatedAt: z.string(),
   coinId: z.string().optional(),
   publication: publicationSchema,
+  imageUrl: z.string().optional(),
 });
 
 export type Publication = z.infer<typeof publicationSchema>;

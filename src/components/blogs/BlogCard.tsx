@@ -11,7 +11,8 @@ import { extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils
 import { formatSafeDistanceToNow } from "@/lib/utils/date";
 
 export function BlogCard({ blog }: { blog: Blog }) {
-  const bannerUrl = normalizeImageUrl(extractFirstUrl(blog.markdown));
+  // Use imageUrl from blog object if available, otherwise fallback to extracting from markdown
+  const bannerUrl = blog.imageUrl || normalizeImageUrl(extractFirstUrl(blog.markdown));
   const currentBannerSrc = bannerUrl ?? "/logo-banner.jpg";
   const [bannerSrc, setBannerSrc] = useState<string>(currentBannerSrc);
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
