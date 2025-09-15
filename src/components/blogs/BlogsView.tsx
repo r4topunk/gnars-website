@@ -3,7 +3,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { BlogsGrid } from "@/components/blogs/BlogsGrid";
 import { Blog } from "@/lib/schemas/blogs";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useBlogSearch } from "@/hooks/use-blog-search";
 

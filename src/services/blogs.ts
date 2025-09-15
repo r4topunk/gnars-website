@@ -1,13 +1,13 @@
 import { unstable_cache } from "next/cache";
 import type { Blog, Publication, Post, PostsResponse } from "@/lib/schemas/blogs";
-import { blogSchema, publicationSchema, postsResponseSchema } from "@/lib/schemas/blogs";
+import { blogSchema, publicationSchema, postsResponseSchema, postSchema } from "@/lib/schemas/blogs";
 import { blogPosts } from "@/lib/blog-posts";
 
 const PARAGRAPH_API_BASE = "https://public.api.paragraph.com/api/v1";
 const GNARS_PUBLICATION_SLUG = "gnars";
 
 // Utility function to make API calls
-async function paragraphFetch(endpoint: string): Promise<any> {
+async function paragraphFetch<T = unknown>(endpoint: string): Promise<T> {
   const url = `${PARAGRAPH_API_BASE}${endpoint}`;
   console.log("Fetching:", url);
 
@@ -29,7 +29,7 @@ async function paragraphFetch(endpoint: string): Promise<any> {
       try {
         errorText = await response.text();
         console.log("Error response body:", errorText);
-      } catch (e) {
+      } catch {
         errorText = "Unable to read error response";
       }
       throw new Error(`Paragraph API error: ${response.status} ${response.statusText}. Body: ${errorText}`);
@@ -67,7 +67,7 @@ async function getPosts(publicationId: string, cursor?: string): Promise<PostsRe
 // Get a single post by publication slug and post slug
 async function getPostBySlug(publicationSlug: string, postSlug: string): Promise<Post> {
   const endpoint = `/publications/slug/${encodeURIComponent(publicationSlug)}/posts/slug/${encodeURIComponent(postSlug)}?includeContent=true`;
-  const data = await paragraphFetch(endpoint);
+  const data = await paragraphFetch<Record<string, unknown>>(endpoint);
   console.log("Post data from API:", {
     hasMarkdown: !!data.markdown,
     hasContent: !!data.content,
