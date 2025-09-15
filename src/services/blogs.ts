@@ -9,7 +9,6 @@ const GNARS_PUBLICATION_SLUG = "gnars";
 // Utility function to make API calls
 async function paragraphFetch<T = unknown>(endpoint: string): Promise<T> {
   const url = `${PARAGRAPH_API_BASE}${endpoint}`;
-  console.log("Fetching:", url);
 
   try {
     const response = await fetch(url, {
@@ -20,15 +19,11 @@ async function paragraphFetch<T = unknown>(endpoint: string): Promise<T> {
       },
     });
 
-    console.log("Response status:", response.status, response.statusText);
-    console.log("Response headers:", Object.fromEntries(response.headers.entries()));
-
     if (!response.ok) {
       // Try to get error details from response
       let errorText;
       try {
         errorText = await response.text();
-        console.log("Error response body:", errorText);
       } catch {
         errorText = "Unable to read error response";
       }
@@ -36,10 +31,8 @@ async function paragraphFetch<T = unknown>(endpoint: string): Promise<T> {
     }
 
     const data = await response.json();
-    console.log("Response data:", data);
     return data;
   } catch (error) {
-    console.error("Fetch error:", error);
     throw error;
   }
 }
@@ -68,12 +61,6 @@ async function getPosts(publicationId: string, cursor?: string): Promise<PostsRe
 async function getPostBySlug(publicationSlug: string, postSlug: string): Promise<Post> {
   const endpoint = `/publications/slug/${encodeURIComponent(publicationSlug)}/posts/slug/${encodeURIComponent(postSlug)}?includeContent=true`;
   const data = await paragraphFetch<Record<string, unknown>>(endpoint);
-  console.log("Post data from API:", {
-    hasMarkdown: !!data.markdown,
-    hasContent: !!data.content,
-    hasStaticHtml: !!data.staticHtml,
-    keys: Object.keys(data)
-  });
 
   // Parse through schema which will handle the content -> markdown transformation
   const parsedPost = postSchema.parse(data);
@@ -105,12 +92,9 @@ function mapPostToBlog(post: Post, publication: Publication): Blog {
 const getCachedPublication = unstable_cache(
   async () => {
     try {
-      console.log("Fetching publication with slug:", GNARS_PUBLICATION_SLUG);
       const publication = await getPublicationBySlug(GNARS_PUBLICATION_SLUG);
-      console.log("Fetched publication:", publication);
       return publication;
     } catch (error) {
-      console.error("Failed to fetch publication:", error);
       throw error;
     }
   },
@@ -126,14 +110,8 @@ export async function listBlogs(
   cursor?: string,
 ): Promise<{ blogs: Blog[]; hasMore: boolean; nextCursor?: string }> {
   try {
-    console.log("listBlogs called with limit:", limit, "cursor:", cursor);
-
     const publication = await getCachedPublication();
     const postData = await getPosts(publication.id, cursor);
-    console.log("Got posts data:", {
-      itemCount: postData.items?.length,
-      hasMore: postData.pagination?.hasMore,
-    });
 
     const blogs = postData.items.map((post) => mapPostToBlog(post, publication));
 
@@ -143,7 +121,6 @@ export async function listBlogs(
       nextCursor: postData.pagination.cursor,
     };
   } catch (error) {
-    console.error("Failed to list blogs:", error);
     return {
       blogs: [],
       hasMore: false,
@@ -153,33 +130,23 @@ export async function listBlogs(
 
 export async function getBlogBySlug(slug: string): Promise<Blog | null> {
   try {
-    console.log("getBlogBySlug called with slug:", slug);
-
     const publication = await getCachedPublication();
-    console.log("Got publication for getBlogBySlug:", publication);
 
     // Try to get the post directly using publication slug and post slug
     const post = await getPostBySlug(GNARS_PUBLICATION_SLUG, slug);
-    console.log("Got post:", post);
 
     if (!post) {
-      console.log("No post found for slug:", slug);
       return null;
     }
 
     return mapPostToBlog(post, publication);
   } catch (error) {
-    console.error("Failed to fetch blog by slug:", error);
-
     // If the direct method fails, fallback to searching through all posts
     try {
-      console.log("Falling back to getAllBlogs search");
       const allBlogs = await getAllBlogs();
       const found = allBlogs.find((blog) => blog.slug === slug) || null;
-      console.log("Fallback search result:", found?.title || "Not found");
       return found;
     } catch (fallbackError) {
-      console.error("Fallback also failed:", fallbackError);
       return null;
     }
   }
