@@ -24,11 +24,44 @@ export function BlogCard({ blog }: { blog: Blog }) {
 
   const publishedDate = formatSafeDistanceToNow(blog.publishedAt);
 
-  // Extract first paragraph for preview
+  // Extract first 3 paragraphs for preview
   const getPreview = (markdown: string | undefined) => {
     if (!markdown) return '';
-    const firstParagraph = markdown.split('\n').find(line => line.trim() && !line.startsWith('#'));
-    return firstParagraph?.slice(0, 150) + (firstParagraph && firstParagraph.length > 150 ? '...' : '') || '';
+
+    // Find first 3 non-header paragraphs
+    const paragraphs = markdown
+      .split('\n')
+      .filter(line => line.trim() && !line.startsWith('#'))
+      .slice(0, 3);
+
+    if (paragraphs.length === 0) return '';
+
+    // Join paragraphs with space
+    let preview = paragraphs.join(' ');
+
+    // Remove images: ![alt](url) or ![alt][ref]
+    preview = preview.replace(/!\[.*?\]\(.*?\)/g, '');
+    preview = preview.replace(/!\[.*?\]\[.*?\]/g, '');
+
+    // Remove escaped bracket patterns: [\[...\]] or \[\[...\]\]
+    preview = preview.replace(/\[?\\\[.*?\\\]\]?\(.*?\)/g, '');
+    preview = preview.replace(/\\\[.*?\\\]/g, '');
+
+    // Convert links to text only: [text](url) -> text
+    preview = preview.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+    preview = preview.replace(/\[([^\]]+)\]\[[^\]]*\]/g, '$1');
+
+    // Remove bold formatting: **text** or __text__
+    preview = preview.replace(/\*\*(.+?)\*\*/g, '$1');
+    preview = preview.replace(/__(.+?)__/g, '$1');
+
+    // Remove italic formatting: *text* or _text_
+    preview = preview.replace(/\*([^*]+?)\*/g, '$1');
+    preview = preview.replace(/_([^_]+?)_/g, '$1');
+    preview = preview.replace("__ ", '');
+
+    // Trim and return (no truncation since line-clamp will handle it)
+    return preview.trim();
   };
 
   return (
@@ -60,7 +93,7 @@ export function BlogCard({ blog }: { blog: Blog }) {
                 {blog.title}
               </h3>
 
-              <p className="text-sm text-muted-foreground line-clamp-3">
+              <p className="text-sm text-muted-foreground line-clamp-2">
                 {getPreview(blog.markdown)}
               </p>
             </div>
