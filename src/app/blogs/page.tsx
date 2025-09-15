@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { BlogsGridSkeleton } from "@/components/blogs/BlogsGrid";
+import { BlogsPageSkeleton } from "@/components/blogs/BlogsPageSkeleton";
 import { BlogsView } from "@/components/blogs/BlogsView";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { listBlogs } from "@/services/blogs";
@@ -22,7 +22,7 @@ export default async function BlogsPage() {
   return (
     <SidebarInset>
       <div className="container mx-auto py-8 px-4">
-        <Suspense fallback={<BlogsGridSkeleton />}>
+        <Suspense fallback={<BlogsPageSkeleton />}>
           <BlogsView blogs={blogs} />
         </Suspense>
       </div>

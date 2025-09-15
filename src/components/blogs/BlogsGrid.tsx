@@ -3,17 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 import { BlogCard } from "@/components/blogs/BlogCard";
+import { BlogCardSkeleton } from "@/components/blogs/BlogCardSkeleton";
 import { Blog } from "@/lib/schemas/blogs";
-import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 
 export function BlogsGridSkeleton() {
   return (
-    <LoadingGridSkeleton
-      items={6}
-      withCard
-      aspectClassName="aspect-video"
-      containerClassName="grid gap-6 md:grid-cols-2"
-    />
+    <div className="grid gap-6 md:grid-cols-2">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <BlogCardSkeleton key={i} />
+      ))}
+    </div>
   );
 }
 
@@ -67,13 +66,10 @@ export function BlogsGrid({ blogs }: { blogs: Blog[] }) {
         ))}
       </div>
       {blogs.length > visibleCount && (
-        <div className="mt-6">
-          <LoadingGridSkeleton
-            items={2}
-            withCard
-            aspectClassName="h-32"
-            containerClassName="grid gap-6 md:grid-cols-2"
-          />
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <BlogCardSkeleton key={i} />
+          ))}
         </div>
       )}
       <div ref={sentinelRef} className="h-10" />
