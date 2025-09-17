@@ -14,6 +14,7 @@ import {
   TreasuryAllocationChart,
 } from "@/components/treasury/DashboardCharts";
 import { useRecentAuctions } from "@/hooks/use-auctions";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { fetchDaoStats } from "@/services/dao";
@@ -23,7 +24,9 @@ interface HomeClientComponentsProps {
 }
 
 export function HomeClientComponents({ proposals }: HomeClientComponentsProps) {
-  const { data: recentAuctions, isLoading } = useRecentAuctions(8);
+  const isMobile = useIsMobile();
+  const recentAuctionsLimit = isMobile ? 3 : 8;
+  const { data: recentAuctions, isLoading } = useRecentAuctions(recentAuctionsLimit);
   const [totalSupply, setTotalSupply] = useState<number>(0);
   const [members, setMembers] = useState<number>(0);
   const [treasuryEth, setTreasuryEth] = useState<string>("0");
