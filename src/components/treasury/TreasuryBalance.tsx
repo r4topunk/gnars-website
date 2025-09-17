@@ -1,6 +1,6 @@
 import { cache } from "react";
-import { formatEther } from "viem";
 import { headers } from "next/headers";
+import { formatEther } from "viem";
 import { TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 import { fetchTotalAuctionSalesWei } from "@/services/dao";
 import { TreasuryBalanceClient } from "./TreasuryBalanceClient";
@@ -62,9 +62,12 @@ const loadTreasurySnapshot = cache(async (treasuryAddress: string): Promise<Trea
     return balance && balance !== "0" && balance !== "0x0";
   });
 
-  const prices = priceRes.prices ?? {};
+  const prices: Record<string, { usd: number }> = priceRes.prices ?? {};
   const priceLookup = Object.fromEntries(
-    Object.entries(prices).map(([address, value]) => [address.toLowerCase(), Number(value?.usd ?? 0) || 0]),
+    Object.entries(prices).map(([address, value]) => [
+      address.toLowerCase(),
+      Number(value?.usd ?? 0) || 0,
+    ]),
   );
 
   const tokensUsd = tokenBalances.reduce((sum, token) => {

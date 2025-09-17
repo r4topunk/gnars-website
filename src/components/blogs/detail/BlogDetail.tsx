@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Blog } from "@/lib/schemas/blogs";
 import { Markdown } from "@/components/common/Markdown";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Skeleton } from "@/components/ui/skeleton";
 import { extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Blog } from "@/lib/schemas/blogs";
 import { formatSafeDistanceToNow } from "@/lib/utils/date";
 
 interface BlogDetailProps {
@@ -100,11 +100,11 @@ export function BlogDetail({ blog }: BlogDetailProps) {
       <Card>
         <CardHeader>
           <div className="text-sm text-muted-foreground">
-            Last updated {formatSafeDistanceToNow(blog.updatedAt, 'Unknown')}
+            Last updated {formatSafeDistanceToNow(blog.updatedAt, "Unknown")}
           </div>
         </CardHeader>
         <CardContent>
-          <Markdown className="prose-lg">{blog.markdown || ''}</Markdown>
+          <Markdown className="prose-lg">{blog.markdown || ""}</Markdown>
         </CardContent>
       </Card>
     </div>

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import {
   fetchActiveVotesForVoters,
   fetchAllMembers,
-  fetchVotesCountForVoters,
   fetchNonCanceledProposalsCount,
+  fetchVotesCountForVoters,
   fetchVoteSupportForVoters,
   type MemberListItem,
 } from "@/services/members";
@@ -27,7 +27,8 @@ export async function GET(request: Request) {
       const castVotes = votesCountMap[key] || 0;
       const activeVotes = activeVotesMap[key] || 0;
       const support = voteSupportMap[key] || { total: 0, forCount: 0 };
-      const attendancePct = nonCanceledCount > 0 ? Math.round((castVotes / nonCanceledCount) * 100) : 0;
+      const attendancePct =
+        nonCanceledCount > 0 ? Math.round((castVotes / nonCanceledCount) * 100) : 0;
       const likePct = support.total > 0 ? Math.round((support.forCount / support.total) * 100) : 0;
       return {
         ...m,

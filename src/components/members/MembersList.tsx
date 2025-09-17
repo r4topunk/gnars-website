@@ -44,9 +44,7 @@ export function MembersList({
   const [members, setMembers] = useState<MemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
-  const [sortBy, setSortBy] = useState<
-    "delegate" | "tokens" | "activeVotes" | "attendancePct"
-  >(
+  const [sortBy, setSortBy] = useState<"delegate" | "tokens" | "activeVotes" | "attendancePct">(
     "tokens",
   );
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -72,11 +70,13 @@ export function MembersList({
 
   const filteredMembers = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    const result = members.filter(
-      (member) =>
-        member.owner.toLowerCase().includes(searchLower) ||
-        member.delegate.toLowerCase().includes(searchLower),
-    ).filter((m) => (m.activeVotes ?? 0) > 0);
+    const result = members
+      .filter(
+        (member) =>
+          member.owner.toLowerCase().includes(searchLower) ||
+          member.delegate.toLowerCase().includes(searchLower),
+      )
+      .filter((m) => (m.activeVotes ?? 0) > 0);
     const dir = sortDir === "asc" ? 1 : -1;
     const compare = (a: MemberListItem, b: MemberListItem) => {
       switch (sortBy) {
@@ -232,7 +232,9 @@ export function MembersList({
                 className="text-right cursor-pointer select-none"
                 onClick={() => {
                   setSortBy("attendancePct");
-                  setSortDir((d) => (sortBy === "attendancePct" ? (d === "asc" ? "desc" : "asc") : d));
+                  setSortDir((d) =>
+                    sortBy === "attendancePct" ? (d === "asc" ? "desc" : "asc") : d,
+                  );
                 }}
               >
                 <span className="inline-flex items-center gap-1 justify-end w-full">
@@ -248,7 +250,6 @@ export function MembersList({
                   )}
                 </span>
               </TableHead>
-
             </TableRow>
           </TableHeader>
           <TableBody>

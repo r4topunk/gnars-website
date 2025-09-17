@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Blog } from "@/lib/schemas/blogs";
+import { extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils";
+import { Blog } from "@/lib/schemas/blogs";
 import { formatSafeDistanceToNow } from "@/lib/utils/date";
 
 export function BlogCard({ blog }: { blog: Blog }) {
@@ -26,39 +26,39 @@ export function BlogCard({ blog }: { blog: Blog }) {
 
   // Extract first 3 paragraphs for preview
   const getPreview = (markdown: string | undefined) => {
-    if (!markdown) return '';
+    if (!markdown) return "";
 
     // Find first 3 non-header paragraphs
     const paragraphs = markdown
-      .split('\n')
-      .filter(line => line.trim() && !line.startsWith('#'))
+      .split("\n")
+      .filter((line) => line.trim() && !line.startsWith("#"))
       .slice(0, 3);
 
-    if (paragraphs.length === 0) return '';
+    if (paragraphs.length === 0) return "";
 
     // Join paragraphs with space
-    let preview = paragraphs.join(' ');
+    let preview = paragraphs.join(" ");
 
     // Remove images: ![alt](url) or ![alt][ref]
-    preview = preview.replace(/!\[.*?\]\(.*?\)/g, '');
-    preview = preview.replace(/!\[.*?\]\[.*?\]/g, '');
+    preview = preview.replace(/!\[.*?\]\(.*?\)/g, "");
+    preview = preview.replace(/!\[.*?\]\[.*?\]/g, "");
 
     // Remove escaped bracket patterns: [\[...\]] or \[\[...\]\]
-    preview = preview.replace(/\[?\\\[.*?\\\]\]?\(.*?\)/g, '');
-    preview = preview.replace(/\\\[.*?\\\]/g, '');
+    preview = preview.replace(/\[?\\\[.*?\\\]\]?\(.*?\)/g, "");
+    preview = preview.replace(/\\\[.*?\\\]/g, "");
 
     // Convert links to text only: [text](url) -> text
-    preview = preview.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-    preview = preview.replace(/\[([^\]]+)\]\[[^\]]*\]/g, '$1');
+    preview = preview.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+    preview = preview.replace(/\[([^\]]+)\]\[[^\]]*\]/g, "$1");
 
     // Remove bold formatting: **text** or __text__
-    preview = preview.replace(/\*\*(.+?)\*\*/g, '$1');
-    preview = preview.replace(/__(.+?)__/g, '$1');
+    preview = preview.replace(/\*\*(.+?)\*\*/g, "$1");
+    preview = preview.replace(/__(.+?)__/g, "$1");
 
     // Remove italic formatting: *text* or _text_
-    preview = preview.replace(/\*([^*]+?)\*/g, '$1');
-    preview = preview.replace(/_([^_]+?)_/g, '$1');
-    preview = preview.replace("__ ", '');
+    preview = preview.replace(/\*([^*]+?)\*/g, "$1");
+    preview = preview.replace(/_([^_]+?)_/g, "$1");
+    preview = preview.replace("__ ", "");
 
     // Trim and return (no truncation since line-clamp will handle it)
     return preview.trim();
@@ -89,9 +89,7 @@ export function BlogCard({ blog }: { blog: Blog }) {
         <CardContent className="px-4 py-4">
           <div className="space-y-3">
             <div className="space-y-2">
-              <h3 className="font-semibold text-lg leading-tight line-clamp-2">
-                {blog.title}
-              </h3>
+              <h3 className="font-semibold text-lg leading-tight line-clamp-2">{blog.title}</h3>
 
               <p className="text-sm text-muted-foreground line-clamp-2">
                 {getPreview(blog.markdown)}
@@ -99,12 +97,8 @@ export function BlogCard({ blog }: { blog: Blog }) {
             </div>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>
-                by {blog.publication.name}
-              </span>
-              <span>
-                {publishedDate}
-              </span>
+              <span>by {blog.publication.name}</span>
+              <span>{publishedDate}</span>
             </div>
           </div>
         </CardContent>

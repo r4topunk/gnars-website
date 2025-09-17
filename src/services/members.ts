@@ -573,7 +573,13 @@ type NonCanceledProposalsQuery = {
 
 const NON_CANCELED_PROPOSALS_GQL = /* GraphQL */ `
   query NonCanceledProposals($dao: ID!, $first: Int!, $skip: Int!) {
-    proposals(where: { dao: $dao, canceled: false }, orderBy: timeCreated, orderDirection: desc, first: $first, skip: $skip) {
+    proposals(
+      where: { dao: $dao, canceled: false }
+      orderBy: timeCreated
+      orderDirection: desc
+      first: $first
+      skip: $skip
+    ) {
       id
     }
   }

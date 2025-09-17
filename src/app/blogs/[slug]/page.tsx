@@ -1,10 +1,7 @@
 import { Suspense } from "react";
-import {
-  BlogDetail,
-  BlogDetailSkeleton,
-} from "@/components/blogs/detail/BlogDetail";
-import { Blog } from "@/lib/schemas/blogs";
+import { BlogDetail, BlogDetailSkeleton } from "@/components/blogs/detail/BlogDetail";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { Blog } from "@/lib/schemas/blogs";
 import { getBlogBySlug } from "@/services/blogs";
 
 export const dynamic = "force-dynamic";

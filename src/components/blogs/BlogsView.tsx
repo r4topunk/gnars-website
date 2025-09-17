@@ -2,9 +2,9 @@
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { BlogsGrid } from "@/components/blogs/BlogsGrid";
-import { Blog } from "@/lib/schemas/blogs";
 import { Input } from "@/components/ui/input";
 import { useBlogSearch } from "@/hooks/use-blog-search";
+import { Blog } from "@/lib/schemas/blogs";
 
 interface BlogsViewProps {
   blogs: Blog[];
@@ -39,9 +39,7 @@ export function BlogsView({ blogs: allBlogs }: BlogsViewProps) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-3xl font-bold tracking-tight mb-2">Blogs</h1>
-          <p className="text-muted-foreground">
-            Read the latest posts from Gnars DAO
-          </p>
+          <p className="text-muted-foreground">Read the latest posts from Gnars DAO</p>
         </div>
         <div className="flex gap-2">
           <Input

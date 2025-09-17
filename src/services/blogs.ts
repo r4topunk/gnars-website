@@ -1,7 +1,12 @@
 import { unstable_cache } from "next/cache";
-import type { Blog, Publication, Post, PostsResponse } from "@/lib/schemas/blogs";
-import { blogSchema, publicationSchema, postsResponseSchema, postSchema } from "@/lib/schemas/blogs";
 import { blogPosts } from "@/lib/blog-posts";
+import type { Blog, Post, PostsResponse, Publication } from "@/lib/schemas/blogs";
+import {
+  blogSchema,
+  postSchema,
+  postsResponseSchema,
+  publicationSchema,
+} from "@/lib/schemas/blogs";
 
 const PARAGRAPH_API_BASE = "https://public.api.paragraph.com/api/v1";
 const GNARS_PUBLICATION_SLUG = "gnars";
@@ -27,7 +32,9 @@ async function paragraphFetch<T = unknown>(endpoint: string): Promise<T> {
       } catch {
         errorText = "Unable to read error response";
       }
-      throw new Error(`Paragraph API error: ${response.status} ${response.statusText}. Body: ${errorText}`);
+      throw new Error(
+        `Paragraph API error: ${response.status} ${response.statusText}. Body: ${errorText}`,
+      );
     }
 
     const data = await response.json();
@@ -69,7 +76,7 @@ async function getPostBySlug(publicationSlug: string, postSlug: string): Promise
 
 function mapPostToBlog(post: Post, publication: Publication): Blog {
   // Find the matching blog post from our hardcoded list to get the image URL
-  const blogPost = blogPosts.find(bp => bp.slug === post.slug);
+  const blogPost = blogPosts.find((bp) => bp.slug === post.slug);
 
   const blog: Blog = {
     id: post.id,

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 import { BlogCard } from "@/components/blogs/BlogCard";
 import { BlogCardSkeleton } from "@/components/blogs/BlogCardSkeleton";
+import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 import { Blog } from "@/lib/schemas/blogs";
 
 export function BlogsGridSkeleton() {
@@ -49,11 +49,7 @@ export function BlogsGrid({ blogs }: { blogs: Blog[] }) {
   }, [blogs.length]);
 
   if (blogs.length === 0) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        No blog posts available
-      </div>
-    );
+    return <div className="text-center py-12 text-muted-foreground">No blog posts available</div>;
   }
 
   return (

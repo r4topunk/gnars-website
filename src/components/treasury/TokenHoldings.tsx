@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { headers } from "next/headers";
 import { TREASURY_TOKEN_ADDRESSES } from "@/lib/config";
-import { TokenHoldingsClient, EnrichedToken } from "./TokenHoldingsClient";
+import { EnrichedToken, TokenHoldingsClient } from "./TokenHoldingsClient";
 
 interface TokenBalance {
   contractAddress?: string;
