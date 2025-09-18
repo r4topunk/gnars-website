@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PropdateCard } from "@/components/proposals/detail/PropdateCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PropdatesFeedSkeleton } from "@/components/propdates/PropdatesFeedSkeleton";
 import { listDaoPropdates, type Propdate } from "@/services/propdates";
 
 export function PropdatesFeed() {
@@ -51,13 +52,7 @@ export function PropdatesFeed() {
   }, [sorted.length]);
 
   if (isLoading) {
-    return (
-      <div className="space-y-4" aria-busy="true" aria-label="Loading propdates feed">
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-      </div>
-    );
+    return <PropdatesFeedSkeleton />;
   }
 
   if (error) {
