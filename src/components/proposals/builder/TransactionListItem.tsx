@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { getETHDisplayProps } from "@/lib/utils";
+import { GNARS_ADDRESSES } from "@/lib/config";
 import { type TransactionFormValues } from "../schema";
 import { cn } from "@/lib/utils";
 
@@ -102,9 +103,13 @@ export function TransactionListItem({
             <div className="flex items-center gap-3">
               <div className="flex-1">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">From</p>
-                <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex flex-col justify-center">
-                  <p className="text-sm font-medium">DAO Treasury</p>
-                  <p className="text-xs text-muted-foreground">Gnars DAO</p>
+                <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
+                  <div>
+                    <p className="text-sm font-medium">DAO Treasury</p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {GNARS_ADDRESSES.treasury.slice(0, 6)}...{GNARS_ADDRESSES.treasury.slice(-4)}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -155,9 +160,13 @@ export function TransactionListItem({
             <div className="flex items-center gap-3">
               <div className="flex-1">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">From</p>
-                <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex flex-col justify-center">
-                  <p className="text-sm font-medium">DAO Treasury</p>
-                  <p className="text-xs text-muted-foreground">USDC Balance</p>
+                <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
+                  <div>
+                    <p className="text-sm font-medium">DAO Treasury</p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {GNARS_ADDRESSES.treasury.slice(0, 6)}...{GNARS_ADDRESSES.treasury.slice(-4)}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -292,16 +301,11 @@ export function TransactionListItem({
               <div className="flex-1">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">From</p>
                 <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
-                      DAO
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">DAO Treasury</p>
-                      <p className="text-xs text-muted-foreground font-mono">
-                        {transaction.from ? transaction.from.slice(0, 6) + "..." + transaction.from.slice(-4) : ""}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-sm font-medium">DAO Treasury</p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {transaction.from ? transaction.from.slice(0, 6) + "..." + transaction.from.slice(-4) : ""}
+                    </p>
                   </div>
                 </div>
               </div>
