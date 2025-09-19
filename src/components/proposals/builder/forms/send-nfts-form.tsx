@@ -125,9 +125,13 @@ export function SendNFTsForm({ index }: Props) {
 
   const handleSelect = (id: number) => {
     setSelectedTokenId(id);
+    const token = tokens.find(t => t.id === id);
     setValue(`transactions.${index}.contractAddress` as const, GNARS_ADDRESSES.token);
     setValue(`transactions.${index}.from` as const, GNARS_ADDRESSES.treasury);
     setValue(`transactions.${index}.tokenId` as const, String(id));
+    if (token?.imageUrl) {
+      setValue(`transactions.${index}.nftImage` as const, token.imageUrl);
+    }
   };
 
   return (

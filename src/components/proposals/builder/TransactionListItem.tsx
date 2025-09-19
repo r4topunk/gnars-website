@@ -1,6 +1,7 @@
 "use client";
 
 import { Edit, Trash2, ArrowRight, AlertCircle } from "lucide-react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -267,58 +268,42 @@ export function TransactionListItem({
       case "send-nfts":
         return (
           <div className="space-y-4">
-            {/* NFT Info Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="px-3 py-2 rounded-lg bg-background border">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Collection</p>
-                {transaction.contractAddress ? (
-                  <AddressDisplay
-                    address={transaction.contractAddress}
-                    variant="compact"
-                    showAvatar={false}
-                    showCopy={false}
-                    showExplorer={false}
-                    truncateLength={4}
-                    className="text-sm font-mono"
+            {/* NFT Display */}
+            {transaction.nftImage && (
+              <div className="flex items-center gap-4">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0 ring-1 ring-border">
+                  <Image
+                    src={transaction.nftImage}
+                    alt={`Gnar #${transaction.tokenId}`}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
                   />
-                ) : (
-                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Not set</span>
-                )}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Gnar #{transaction.tokenId}</p>
+                  <p className="text-xs text-muted-foreground">Gnars NFT Collection</p>
+                </div>
               </div>
-
-              <div className="px-3 py-2 rounded-lg bg-background border">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Token ID</p>
-                <p className="text-sm font-bold font-mono">
-                  {transaction.tokenId ? `#${transaction.tokenId}` : "Not set"}
-                </p>
-              </div>
-            </div>
+            )}
 
             {/* Transfer Flow */}
             <div className="flex items-center gap-3">
               <div className="flex-1">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">From</p>
-                {transaction.from ? (
-                  <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
-                    <AddressDisplay
-                      address={transaction.from}
-                      variant="compact"
-                      showAvatar={true}
-                      showCopy={false}
-                      showExplorer={false}
-                      avatarSize="sm"
-                      truncateLength={6}
-                      className="text-sm font-medium"
-                    />
-                  </div>
-                ) : (
-                  <div className="px-3 py-2 rounded-lg border border-dashed border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20 min-h-[60px] flex items-center">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-                      <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Not set</span>
+                <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                      DAO
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">DAO Treasury</p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {transaction.from ? transaction.from.slice(0, 6) + "..." + transaction.from.slice(-4) : ""}
+                      </p>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
 
               <div className="flex flex-col items-center">

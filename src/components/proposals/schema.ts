@@ -98,6 +98,7 @@ export const sendNftsTransactionSchema = baseTransactionSchema.extend({
   tokenId: nonNegativeNumericString(z.string().min(1, "Token ID is required")),
   from: addressSchema,
   to: addressSchema,
+  nftImage: z.string().optional(),
 });
 
 // Droposal transaction
