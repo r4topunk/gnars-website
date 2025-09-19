@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { getETHDisplayProps } from "@/lib/utils";
 import { GNARS_ADDRESSES } from "@/lib/config";
@@ -436,16 +435,13 @@ export function TransactionListItem({
   })();
 
   return (
-    <TooltipProvider>
-      <Card className={cn(
-        "relative overflow-hidden transition-all duration-300",
-        "hover:shadow-lg hover:-translate-y-0.5",
-        styles.border,
-        "group"
-      )}>
+    <Card className={cn(
+      "relative overflow-hidden",
+      styles.border
+    )}>
         {/* Subtle gradient background based on type */}
         <div className={cn(
-          "absolute inset-0 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity",
+          "absolute inset-0 opacity-[0.03]",
           styles.bg
         )} />
 
@@ -455,8 +451,7 @@ export function TransactionListItem({
             <div className="flex items-start gap-3 flex-1 min-w-0">
               {/* Type Icon with gradient background */}
               <div className={cn(
-                "p-2.5 rounded-xl transition-all duration-300",
-                "group-hover:scale-105 group-hover:rotate-1",
+                "p-2.5 rounded-xl",
                 styles.bg,
                 "border",
                 styles.border
@@ -503,45 +498,31 @@ export function TransactionListItem({
 
             {/* Action Buttons */}
             <div className="flex items-center gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={onEdit}
-                    className={cn(
-                      "h-8 w-8 transition-all duration-200",
-                      "hover:bg-blue-50 dark:hover:bg-blue-950/30",
-                      "hover:text-blue-600 dark:hover:text-blue-400"
-                    )}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>Edit transaction</p>
-                </TooltipContent>
-              </Tooltip>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={onEdit}
+                className={cn(
+                  "h-8 w-8 transition-all duration-200",
+                  "hover:bg-blue-50 dark:hover:bg-blue-950/30",
+                  "hover:text-blue-600 dark:hover:text-blue-400"
+                )}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={onRemove}
-                    className={cn(
-                      "h-8 w-8 transition-all duration-200",
-                      "hover:bg-red-50 dark:hover:bg-red-950/30",
-                      "hover:text-red-600 dark:hover:text-red-400"
-                    )}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>Remove transaction</p>
-                </TooltipContent>
-              </Tooltip>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={onRemove}
+                className={cn(
+                  "h-8 w-8 transition-all duration-200",
+                  "hover:bg-red-50 dark:hover:bg-red-950/30",
+                  "hover:text-red-600 dark:hover:text-red-400"
+                )}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -552,7 +533,6 @@ export function TransactionListItem({
             {details}
           </div>
         </CardContent>
-      </Card>
-    </TooltipProvider>
+    </Card>
   );
 }
