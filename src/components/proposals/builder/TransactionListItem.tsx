@@ -1,10 +1,11 @@
 "use client";
 
-import { Edit, Trash2, ArrowUpRight, Coins, DollarSign } from "lucide-react";
+import { Edit, Trash2, Image as ImageIcon, Settings, Zap, Coins } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { formatETH, getETHDisplayProps } from "@/lib/utils";
 import { type TransactionFormValues } from "../schema";
@@ -75,15 +76,11 @@ export function TransactionListItem({
       case "send-eth":
         const ethProps = getETHDisplayProps(transaction.value);
         return (
-          <div className="space-y-3 p-4 bg-muted/50 rounded-xl">
+          <Card className="border-0 bg-muted/50">
+            <CardContent className="space-y-3">
             {/* Amount Section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg">
-                  <Coins className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">Amount</span>
-              </div>
+              <span className="text-sm font-medium text-muted-foreground">Amount</span>
               <div className="text-left sm:text-right">
                 <div className={`text-lg sm:text-xl font-bold font-mono ${ethProps.textColor}`}>
                   {ethProps.formatted}
@@ -98,14 +95,8 @@ export function TransactionListItem({
 
             {/* Recipient Section */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-lg">
-                  <ArrowUpRight className="h-4 w-4 text-green-600 dark:text-green-400" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">Recipient</span>
-              </div>
-
-              <div className="ml-6 sm:ml-10">
+              <span className="text-sm font-medium text-muted-foreground">Recipient</span>
+              <div>
                 {transaction.target ? (
                   <AddressDisplay
                     address={transaction.target}
@@ -125,49 +116,291 @@ export function TransactionListItem({
                 )}
               </div>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         );
       case "send-usdc":
         return (
-          <div className="text-xs font-mono bg-muted p-2 rounded">
-            <div>Recipient: {transaction.recipient || "Not set"}</div>
-            {transaction.amount && <div>Amount: {transaction.amount} USDC</div>}
-          </div>
+          <Card className="border-0 bg-muted/50">
+            <CardContent className="space-y-3">
+            {/* Amount Section */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+              <span className="text-sm font-medium text-muted-foreground">Amount</span>
+              <div className="text-left sm:text-right">
+                <div className="text-lg sm:text-xl font-bold font-mono text-foreground">
+                  {transaction.amount ? `${transaction.amount} USDC` : "0 USDC"}
+                </div>
+                <div className="text-xs text-muted-foreground">Stablecoin Transfer</div>
+              </div>
+            </div>
+
+            {/* Recipient Section */}
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-muted-foreground">Recipient</span>
+              <div>
+                {transaction.recipient ? (
+                  <AddressDisplay
+                    address={transaction.recipient}
+                    variant="compact"
+                    showAvatar={true}
+                    showCopy={true}
+                    showExplorer={true}
+                    avatarSize="sm"
+                    truncateLength={6}
+                    className="text-sm"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                    <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-sm font-medium">Address not configured</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            </CardContent>
+          </Card>
         );
       case "send-tokens":
         return (
-          <div className="text-xs font-mono bg-muted p-2 rounded">
-            <div>Token: {transaction.tokenAddress || "Not set"}</div>
-            <div>Recipient: {transaction.recipient || "Not set"}</div>
-            {transaction.amount && <div>Amount: {transaction.amount}</div>}
-          </div>
+          <Card className="border-0 bg-muted/50">
+            <CardContent className="space-y-3">
+            {/* Token Contract Section */}
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-muted-foreground">Token Contract</span>
+              <div>
+                {transaction.tokenAddress ? (
+                  <AddressDisplay
+                    address={transaction.tokenAddress}
+                    variant="compact"
+                    showAvatar={false}
+                    showCopy={true}
+                    showExplorer={true}
+                    truncateLength={6}
+                    className="text-sm"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                    <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-sm font-medium">Token not configured</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Amount Section */}
+            {transaction.amount && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+                <span className="text-sm font-medium text-muted-foreground">Amount</span>
+                <div className="text-left sm:text-right">
+                  <div className="text-lg sm:text-xl font-bold font-mono text-foreground">
+                    {transaction.amount}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Recipient Section */}
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-muted-foreground">Recipient</span>
+              <div>
+                {transaction.recipient ? (
+                  <AddressDisplay
+                    address={transaction.recipient}
+                    variant="compact"
+                    showAvatar={true}
+                    showCopy={true}
+                    showExplorer={true}
+                    avatarSize="sm"
+                    truncateLength={6}
+                    className="text-sm"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                    <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-sm font-medium">Address not configured</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            </CardContent>
+          </Card>
         );
       case "send-nfts":
         return (
-          <div className="text-xs font-mono bg-muted p-2 rounded">
-            <div>Contract: {transaction.contractAddress || "Not set"}</div>
-            <div>From: {transaction.from || "Not set"}</div>
-            <div>To: {transaction.to || "Not set"}</div>
-            <div>Token ID: {transaction.tokenId || "Not set"}</div>
-          </div>
+          <Card className="border-0 bg-muted/50">
+            <CardContent className="space-y-3">
+            {/* NFT Contract Section */}
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-muted-foreground">NFT Contract</span>
+              <div>
+                {transaction.contractAddress ? (
+                  <AddressDisplay
+                    address={transaction.contractAddress}
+                    variant="compact"
+                    showAvatar={false}
+                    showCopy={true}
+                    showExplorer={true}
+                    truncateLength={6}
+                    className="text-sm"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                    <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-sm font-medium">Contract not configured</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Token ID Section */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+              <span className="text-sm font-medium text-muted-foreground">Token ID</span>
+              <div className="text-left sm:text-right">
+                <div className="text-lg font-bold font-mono text-foreground">
+                  #{transaction.tokenId || "Not set"}
+                </div>
+              </div>
+            </div>
+
+            {/* Transfer Section */}
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-muted-foreground">Transfer Details</span>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground">From</div>
+                  {transaction.from ? (
+                    <AddressDisplay
+                      address={transaction.from}
+                      variant="compact"
+                      showAvatar={true}
+                      showCopy={true}
+                      showExplorer={true}
+                      avatarSize="sm"
+                      truncateLength={6}
+                      className="text-sm"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                      <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                      <span className="text-sm font-medium">From address not set</span>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground">To</div>
+                  {transaction.to ? (
+                    <AddressDisplay
+                      address={transaction.to}
+                      variant="compact"
+                      showAvatar={true}
+                      showCopy={true}
+                      showExplorer={true}
+                      avatarSize="sm"
+                      truncateLength={6}
+                      className="text-sm"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                      <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                      <span className="text-sm font-medium">To address not set</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            </CardContent>
+          </Card>
         );
       case "custom":
         return (
-          <div className="text-xs font-mono bg-muted p-2 rounded">
-            <div>Target: {transaction.target || "Not set"}</div>
-            <div>Value: {transaction.value || "0"} ETH</div>
-            <div>
-              Calldata: {transaction.calldata ? `${transaction.calldata.slice(0, 20)}...` : "0x"}
+          <Card className="border-0 bg-muted/50">
+            <CardContent className="space-y-3">
+            {/* Target Contract Section */}
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-muted-foreground">Target Contract</span>
+              <div>
+                {transaction.target ? (
+                  <AddressDisplay
+                    address={transaction.target}
+                    variant="compact"
+                    showAvatar={false}
+                    showCopy={true}
+                    showExplorer={true}
+                    truncateLength={6}
+                    className="text-sm"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                    <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-sm font-medium">Target not configured</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+
+            {/* Value Section */}
+            {transaction.value && transaction.value !== "0" && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+                <span className="text-sm font-medium text-muted-foreground">Value</span>
+                <div className="text-left sm:text-right">
+                  <div className="text-lg font-bold font-mono text-foreground">
+                    {transaction.value} ETH
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Calldata Section */}
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-muted-foreground">Calldata</span>
+              <div>
+                <div className="p-2 bg-muted rounded-lg">
+                  <code className="text-xs text-muted-foreground break-all">
+                    {transaction.calldata || "0x"}
+                  </code>
+                </div>
+              </div>
+            </div>
+            </CardContent>
+          </Card>
         );
       case "droposal":
         return (
-          <div className="text-xs font-mono bg-muted p-2 rounded">
-            <div>Name: {transaction.name || "Not set"}</div>
-            <div>Symbol: {transaction.symbol || "Not set"}</div>
-            <div>Price: {transaction.price || "0"} ETH</div>
-          </div>
+          <Card className="border-0 bg-muted/50">
+            <CardContent className="space-y-3 p-4">
+            {/* Collection Details Section */}
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-muted-foreground">Collection Details</span>
+            </div>
+
+            {/* Name & Symbol */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
+                <span className="text-sm text-muted-foreground">Name</span>
+                <div className="text-base font-semibold">
+                  {transaction.name || "Not configured"}
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
+                <span className="text-sm text-muted-foreground">Symbol</span>
+                <div className="text-base font-semibold font-mono">
+                  {transaction.symbol || "Not set"}
+                </div>
+              </div>
+            </div>
+
+            {/* Price Section */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+              <span className="text-sm font-medium text-muted-foreground">Mint Price</span>
+              <div className="text-left sm:text-right">
+                <div className="text-lg font-bold font-mono text-foreground">
+                  {transaction.price || "0"} ETH
+                </div>
+                <div className="text-xs text-muted-foreground">Per NFT</div>
+              </div>
+            </div>
+            </CardContent>
+          </Card>
         );
       default:
         return null;
@@ -177,8 +410,8 @@ export function TransactionListItem({
   return (
     <TooltipProvider>
       <Card className={`transition-all duration-200 hover:shadow-md hover:shadow-blue-100/40 dark:hover:shadow-blue-900/20 ${styles.cardBorder} group`}>
-        <CardContent className="p-0">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between p-4 pb-2 gap-3 sm:gap-0">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-0">
             <div className="flex items-start gap-3 flex-1">
               <div className={`p-2 sm:p-3 rounded-xl transition-all duration-200 group-hover:scale-105 ${styles.iconBg}`}>
                 <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${styles.iconText}`} />
@@ -234,10 +467,9 @@ export function TransactionListItem({
               </Tooltip>
             </div>
           </div>
-
-          <div className="px-4 pb-4">
-            {details}
-          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {details}
         </CardContent>
       </Card>
     </TooltipProvider>
