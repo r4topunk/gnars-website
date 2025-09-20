@@ -28,25 +28,6 @@ export function TransactionListItem({
   onEdit,
   onRemove,
 }: TransactionListItemProps) {
-  // Check if transaction is complete (all required fields filled)
-  const isComplete = (() => {
-    switch (transaction.type) {
-      case "send-eth":
-        return !!transaction.target && !!transaction.value;
-      case "send-usdc":
-        return !!transaction.recipient && !!transaction.amount;
-      case "send-tokens":
-        return !!transaction.tokenAddress && !!transaction.recipient && !!transaction.amount;
-      case "send-nfts":
-        return !!transaction.contractAddress && !!transaction.from && !!transaction.to && !!transaction.tokenId;
-      case "droposal":
-        return !!transaction.name && !!transaction.symbol && !!transaction.price;
-      case "custom":
-        return !!transaction.target;
-      default:
-        return false;
-    }
-  })();
 
   const typeStyles: Record<
     TransactionFormValues["type"],
@@ -476,15 +457,6 @@ export function TransactionListItem({
                   >
                     {label}
                   </Badge>
-                  {!isComplete && (
-                    <Badge
-                      variant="outline"
-                      className="text-xs px-2 py-0.5 border-amber-500/50 text-amber-600 dark:text-amber-400"
-                    >
-                      <AlertCircle className="h-3 w-3 mr-1" />
-                      Incomplete
-                    </Badge>
-                  )}
                 </div>
 
                 {/* Description */}
