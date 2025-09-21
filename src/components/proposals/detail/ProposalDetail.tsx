@@ -6,7 +6,7 @@ import { Propdates } from "@/components/proposals/detail/Propdates";
 import { ProposalDescriptionCard } from "@/components/proposals/detail/ProposalDescriptionCard";
 import { ProposalHeader } from "@/components/proposals/detail/ProposalHeader";
 import { ProposalVotesTable } from "@/components/proposals/detail/ProposalVotesTable";
-import { ProposedTransactionsTable } from "@/components/proposals/detail/ProposedTransactionsTable";
+import { ProposalTransactionVisualization } from "@/components/proposals/transaction/ProposalTransactionVisualization";
 import { ProposalMetrics } from "@/components/proposals/ProposalMetrics";
 import { Proposal } from "@/components/proposals/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,11 +94,19 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         </div>
         <TabsContent value="details" className="space-y-6 mt-6">
           <ProposalDescriptionCard description={proposal.description} />
-          <ProposedTransactionsTable
-            targets={proposal.targets}
-            values={proposal.values}
-            signatures={proposal.signatures}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Proposed Transactions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProposalTransactionVisualization
+                targets={proposal.targets}
+                values={proposal.values}
+                signatures={proposal.signatures}
+                calldatas={proposal.calldatas}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
         <TabsContent value="votes" className="mt-6 space-y-6">
           <ProposalVotesTable

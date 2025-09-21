@@ -46,7 +46,16 @@ function mapSdkProposalToProposal(p: SdkProposal): Proposal {
     })(),
     targets: (p.targets as unknown[] | undefined)?.map(String) ?? [],
     values: (p.values as unknown[] | undefined)?.map(String) ?? [],
-    signatures: [],
+    signatures: (() => {
+      const direct = (p as unknown as { signatures?: unknown }).signatures;
+      if (Array.isArray(direct)) return direct.map(String);
+      if (typeof direct === "string") return [direct];
+      const record = p as unknown as Record<string, unknown>;
+      const raw = record["signatures"];
+      if (Array.isArray(raw)) return raw.map(String);
+      if (typeof raw === "string") return [raw];
+      return [] as string[];
+    })(),
     transactionHash: String(p.transactionHash ?? ""),
     votes: Array.isArray(p.votes)
       ? p.votes.map(

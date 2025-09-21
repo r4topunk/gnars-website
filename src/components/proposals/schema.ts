@@ -67,6 +67,7 @@ const hexSchema = z.string().refine((val) => /^0x[0-9a-fA-F]*$/.test(val), {
 const baseTransactionSchema = z.object({
   id: z.string().optional(),
   description: z.string().optional(),
+  rawCalldata: z.string().optional(),
 });
 
 // Send ETH transaction

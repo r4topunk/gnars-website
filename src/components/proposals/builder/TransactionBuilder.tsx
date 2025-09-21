@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { Coins, FileImage, Send, Settings, Video } from "lucide-react";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { TransactionListItem } from "@/components/proposals/builder/TransactionListItem";
+import { TransactionCard } from "@/components/proposals/transaction/TransactionCard";
+import { SendEthTransactionDetails } from "@/components/proposals/transaction/SendEthTransactionDetails";
+import { SendUsdcTransactionDetails } from "@/components/proposals/transaction/SendUsdcTransactionDetails";
+import { SendTokensTransactionDetails } from "@/components/proposals/transaction/SendTokensTransactionDetails";
+import { SendNftsTransactionDetails } from "@/components/proposals/transaction/SendNftsTransactionDetails";
+import { CustomTransactionDetails } from "@/components/proposals/transaction/CustomTransactionDetails";
+import { DroposalTransactionDetails } from "@/components/proposals/transaction/DroposalTransactionDetails";
 import { TransactionTypeCard } from "@/components/proposals/builder/TransactionTypeCard";
 import { Separator } from "@/components/ui/separator";
 import { type ProposalFormValues, type TransactionFormValues } from "../schema";
@@ -127,7 +133,26 @@ export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuild
   };
 
   const getTransactionTypeInfo = (type: string) => {
-    return transactionTypes.find((t) => t.type === type) || transactionTypes[4];
+    return transactionTypes.find((t) => t.type === type) || transactionTypes[5];
+  };
+
+  const renderTransactionDetails = (transaction: TransactionFormValues) => {
+    switch (transaction.type) {
+      case "send-eth":
+        return <SendEthTransactionDetails transaction={transaction} />;
+      case "send-usdc":
+        return <SendUsdcTransactionDetails transaction={transaction} />;
+      case "send-tokens":
+        return <SendTokensTransactionDetails transaction={transaction} />;
+      case "send-nfts":
+        return <SendNftsTransactionDetails transaction={transaction} />;
+      case "custom":
+        return <CustomTransactionDetails transaction={transaction} />;
+      case "droposal":
+        return <DroposalTransactionDetails transaction={transaction} />;
+      default:
+        return <CustomTransactionDetails transaction={transaction} />;
+    }
   };
 
   return (
@@ -173,7 +198,7 @@ export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuild
                   {watchedTransactions?.map((transaction, index) => {
                     const typeInfo = getTransactionTypeInfo(transaction.type);
                     return (
-                      <TransactionListItem
+                      <TransactionCard
                         key={transactions[index]?.id || transaction.id || index}
                         index={index}
                         transaction={transaction}
@@ -181,7 +206,9 @@ export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuild
                         icon={typeInfo.icon}
                         onEdit={() => handleEditTransaction(index)}
                         onRemove={() => handleRemoveTransaction(index)}
-                      />
+                      >
+                        {renderTransactionDetails(transaction)}
+                      </TransactionCard>
                     );
                   })}
                 </div>

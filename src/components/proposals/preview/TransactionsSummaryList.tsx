@@ -1,10 +1,8 @@
 "use client";
 
 import { Coins, Image as ImageIcon, Send, Settings, Zap } from "lucide-react";
-import { SimpleAddressDisplay } from "@/components/ui/address-display";
-import { Badge } from "@/components/ui/badge";
+import { TransactionVisualization } from "@/components/proposals/transaction/TransactionVisualization";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 import { type TransactionFormValues } from "../schema";
 
 function getTransactionIcon(type: string | undefined) {
@@ -45,54 +43,6 @@ function getTransactionLabel(type: string | undefined) {
   }
 }
 
-function resolveTargetAddress(tx: TransactionFormValues): string {
-  switch (tx.type) {
-    case "send-usdc":
-      return TREASURY_TOKEN_ALLOWLIST.USDC;
-    case "send-eth":
-    case "custom":
-      return tx.target || "";
-    case "send-tokens":
-      return tx.tokenAddress || "";
-    case "send-nfts":
-      return tx.contractAddress || "";
-    case "droposal":
-      return "";
-  }
-}
-
-function resolveValue(tx: TransactionFormValues): string {
-  switch (tx.type) {
-    case "send-eth":
-      return tx.value || "0";
-    case "send-usdc":
-    case "send-tokens":
-      return tx.amount || "0";
-    case "custom":
-      return tx.value || "0";
-    case "send-nfts":
-    case "droposal":
-      return "0";
-  }
-}
-
-function resolveUnit(tx: TransactionFormValues): string {
-  switch (tx.type) {
-    case "send-usdc":
-      return "USDC";
-    default:
-      return "ETH";
-  }
-}
-
-function resolveCalldata(tx: TransactionFormValues): string {
-  switch (tx.type) {
-    case "custom":
-      return tx.calldata || "0x";
-    default:
-      return "0x";
-  }
-}
 
 export function TransactionsSummaryList({
   transactions,
@@ -108,35 +58,13 @@ export function TransactionsSummaryList({
         {transactions.map((transaction, index) => {
           const Icon = getTransactionIcon(transaction.type);
           return (
-            <div
+            <TransactionVisualization
               key={transaction.id || `${transaction.type}-${index}`}
-              className="flex items-start space-x-3"
-            >
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Icon className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="font-medium">Transaction {index + 1}</span>
-                  <Badge variant="secondary">{getTransactionLabel(transaction.type)}</Badge>
-                </div>
-                <div className="text-xs font-mono bg-muted p-2 rounded mt-2">
-                  <div>
-                    Target: <SimpleAddressDisplay address={resolveTargetAddress(transaction)} />
-                  </div>
-                  <div>
-                    Value: {resolveValue(transaction)} {resolveUnit(transaction)}
-                  </div>
-                  <div>
-                    Calldata:{" "}
-                    {(() => {
-                      const cd = resolveCalldata(transaction);
-                      return cd ? (cd.length > 22 ? cd.slice(0, 20) + "..." : cd) : "0x";
-                    })()}
-                  </div>
-                </div>
-              </div>
-            </div>
+              index={index}
+              transaction={transaction}
+              label={getTransactionLabel(transaction.type)}
+              icon={Icon}
+            />
           );
         })}
       </CardContent>
