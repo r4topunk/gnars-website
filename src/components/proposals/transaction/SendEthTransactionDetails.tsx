@@ -12,7 +12,10 @@ interface SendEthTransactionDetailsProps {
 }
 
 export function SendEthTransactionDetails({ transaction }: SendEthTransactionDetailsProps) {
-  const ethProps = transaction.value ? getETHDisplayProps(transaction.value) : null;
+  if (transaction.type !== "send-eth") return null;
+
+  const { target, value } = transaction;
+  const ethProps = value ? getETHDisplayProps(value) : null;
 
   return (
     <div className="space-y-4">
@@ -44,10 +47,10 @@ export function SendEthTransactionDetails({ transaction }: SendEthTransactionDet
 
         <div className="flex-1">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">To</p>
-          {transaction.target ? (
+          {target ? (
             <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
               <AddressDisplay
-                address={transaction.target}
+                address={target}
                 variant="compact"
                 showAvatar={true}
                 showCopy={true}

@@ -9,14 +9,20 @@ interface CustomTransactionDetailsProps {
 }
 
 export function CustomTransactionDetails({ transaction }: CustomTransactionDetailsProps) {
+  if (transaction.type !== "custom") {
+    return null;
+  }
+
+  const { target, value, calldata = "0x" } = transaction;
+
   return (
     <div className="space-y-4">
       {/* Contract Details */}
       <div className="px-3 py-2 rounded-lg bg-background border">
         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Target Contract</p>
-        {transaction.target ? (
+        {target ? (
           <AddressDisplay
-            address={transaction.target}
+            address={target}
             variant="compact"
             showAvatar={false}
             showCopy={true}
@@ -37,14 +43,14 @@ export function CustomTransactionDetails({ transaction }: CustomTransactionDetai
         <div className="px-3 py-2 rounded-lg bg-muted/50">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Value</p>
           <p className="text-sm font-bold font-mono">
-            {transaction.value || "0"} ETH
+            {value || "0"} ETH
           </p>
         </div>
 
         <div className="px-3 py-2 rounded-lg bg-muted/50">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Calldata</p>
           <p className="text-sm font-mono text-muted-foreground truncate">
-            {transaction.calldata ? `${transaction.calldata.slice(0, 10)}...` : "0x"}
+            {calldata ? `${calldata.slice(0, 10)}...` : "0x"}
           </p>
         </div>
       </div>

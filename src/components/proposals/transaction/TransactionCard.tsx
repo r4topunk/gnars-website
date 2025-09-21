@@ -12,8 +12,8 @@ interface TransactionCardProps {
   transaction: TransactionFormValues;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  onEdit: () => void;
-  onRemove: () => void;
+  onEdit?: () => void;
+  onRemove?: () => void;
   children?: React.ReactNode;
   variant?: "builder" | "detail";
 }

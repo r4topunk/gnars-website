@@ -10,22 +10,26 @@ interface SendNftsTransactionDetailsProps {
 }
 
 export function SendNftsTransactionDetails({ transaction }: SendNftsTransactionDetailsProps) {
+  if (transaction.type !== "send-nfts") return null;
+
+  const { nftImage, tokenId, from, to } = transaction;
+
   return (
     <div className="space-y-4">
       {/* NFT Display */}
-      {transaction.nftImage && (
+      {nftImage && (
         <div className="flex items-center gap-4">
           <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0 ring-1 ring-border">
             <Image
-              src={transaction.nftImage}
-              alt={`Gnar #${transaction.tokenId}`}
+              src={nftImage}
+              alt={`Gnar #${tokenId}`}
               fill
               className="object-cover"
               sizes="64px"
             />
           </div>
           <div>
-            <p className="text-sm font-semibold">Gnar #{transaction.tokenId}</p>
+            <p className="text-sm font-semibold">Gnar #{tokenId}</p>
             <p className="text-xs text-muted-foreground">Gnars NFT Collection</p>
           </div>
         </div>
@@ -39,7 +43,7 @@ export function SendNftsTransactionDetails({ transaction }: SendNftsTransactionD
             <div>
               <p className="text-sm font-medium">DAO Treasury</p>
               <p className="text-xs text-muted-foreground font-mono">
-                {transaction.from ? transaction.from.slice(0, 6) + "..." + transaction.from.slice(-4) : ""}
+                {from ? `${from.slice(0, 6)}...${from.slice(-4)}` : ""}
               </p>
             </div>
           </div>
@@ -52,10 +56,10 @@ export function SendNftsTransactionDetails({ transaction }: SendNftsTransactionD
 
         <div className="flex-1">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">To</p>
-          {transaction.to ? (
+          {to ? (
             <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
               <AddressDisplay
-                address={transaction.to}
+                address={to}
                 variant="compact"
                 showAvatar={true}
                 showCopy={false}

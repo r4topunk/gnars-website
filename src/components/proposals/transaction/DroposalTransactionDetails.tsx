@@ -8,6 +8,10 @@ interface DroposalTransactionDetailsProps {
 }
 
 export function DroposalTransactionDetails({ transaction }: DroposalTransactionDetailsProps) {
+  if (transaction.type !== "droposal") return null;
+
+  const { name, symbol, price } = transaction;
+
   return (
     <div className="space-y-4">
       {/* Collection Info Card */}
@@ -23,16 +27,12 @@ export function DroposalTransactionDetails({ transaction }: DroposalTransactionD
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Name</span>
-              <span className="text-sm font-semibold">
-                {transaction.name || "Not configured"}
-              </span>
+              <span className="text-sm font-semibold">{name || "Not configured"}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Symbol</span>
-              <span className="text-sm font-mono font-semibold">
-                {transaction.symbol || "Not set"}
-              </span>
+              <span className="text-sm font-mono font-semibold">{symbol || "Not set"}</span>
             </div>
           </div>
         </div>
@@ -42,7 +42,7 @@ export function DroposalTransactionDetails({ transaction }: DroposalTransactionD
       <div className="px-3 py-2 rounded-lg bg-background border text-center">
         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Mint Price</p>
         <p className="text-lg font-bold font-mono text-amber-600 dark:text-amber-400">
-          {transaction.price || "0"} ETH
+          {price || "0"} ETH
         </p>
         <p className="text-xs text-muted-foreground">per NFT</p>
       </div>

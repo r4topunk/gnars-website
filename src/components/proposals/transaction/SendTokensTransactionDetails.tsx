@@ -9,14 +9,18 @@ interface SendTokensTransactionDetailsProps {
 }
 
 export function SendTokensTransactionDetails({ transaction }: SendTokensTransactionDetailsProps) {
+  if (transaction.type !== "send-tokens") return null;
+
+  const { tokenAddress, amount, recipient } = transaction;
+
   return (
     <div className="space-y-4">
       {/* Token Info */}
       <div className="px-3 py-2 rounded-lg bg-background border">
         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Token Contract</p>
-        {transaction.tokenAddress ? (
+        {tokenAddress ? (
           <AddressDisplay
-            address={transaction.tokenAddress}
+            address={tokenAddress}
             variant="compact"
             showAvatar={false}
             showCopy={true}
@@ -43,19 +47,19 @@ export function SendTokensTransactionDetails({ transaction }: SendTokensTransact
 
         <div className="flex flex-col items-center">
           <ArrowRight className="h-4 w-4 text-muted-foreground" />
-          {transaction.amount && (
+          {amount && (
             <div className="text-sm font-bold font-mono text-violet-600 dark:text-violet-400 mt-1">
-              {transaction.amount}
+              {amount}
             </div>
           )}
         </div>
 
         <div className="flex-1">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">To</p>
-          {transaction.recipient ? (
+          {recipient ? (
             <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
               <AddressDisplay
-                address={transaction.recipient}
+                address={recipient}
                 variant="compact"
                 showAvatar={true}
                 showCopy={true}

@@ -3,12 +3,18 @@
 import { ArrowRight, AlertCircle } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { type TransactionFormValues } from "../schema";
+import { GNARS_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 
 interface SendUsdcTransactionDetailsProps {
   transaction: TransactionFormValues;
 }
 
 export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionDetailsProps) {
+  if (transaction.type !== "send-usdc") return null;
+
+  const { recipient, amount } = transaction;
+  const tokenAddress = TREASURY_TOKEN_ALLOWLIST.USDC;
+
   return (
     <div className="space-y-4">
       {/* Transfer Flow Visualization */}
@@ -19,7 +25,7 @@ export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionD
             <div>
               <p className="text-sm font-medium">DAO Treasury</p>
               <p className="text-xs text-muted-foreground font-mono">
-                {transaction.tokenAddress?.slice(0, 6)}...{transaction.tokenAddress?.slice(-4) || ""}
+                {GNARS_ADDRESSES.treasury.slice(0, 6)}...{GNARS_ADDRESSES.treasury.slice(-4)}
               </p>
             </div>
           </div>
@@ -28,16 +34,16 @@ export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionD
         <div className="flex flex-col items-center">
           <ArrowRight className="h-4 w-4 text-muted-foreground" />
           <div className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
-            {transaction.amount || "0"} USDC
+            {amount || "0"} USDC
           </div>
         </div>
 
         <div className="flex-1">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">To</p>
-          {transaction.recipient ? (
+          {recipient ? (
             <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
               <AddressDisplay
-                address={transaction.recipient}
+                address={recipient}
                 variant="compact"
                 showAvatar={true}
                 showCopy={true}
@@ -56,6 +62,19 @@ export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionD
             </div>
           )}
         </div>
+      </div>
+
+      <div className="px-3 py-2 rounded-lg bg-muted/50">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Token Contract</p>
+        <AddressDisplay
+          address={tokenAddress}
+          variant="compact"
+          showAvatar={false}
+          showCopy={true}
+          showExplorer={false}
+          truncateLength={8}
+          className="text-sm font-mono"
+        />
       </div>
     </div>
   );
