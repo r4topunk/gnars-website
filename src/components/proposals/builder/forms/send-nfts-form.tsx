@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useFormContext } from "react-hook-form";
-import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
+import { NftGridSkeleton } from "@/components/skeletons/nftGridSkeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -125,7 +125,7 @@ export function SendNFTsForm({ index }: Props) {
 
   const handleSelect = (id: number) => {
     setSelectedTokenId(id);
-    const token = tokens.find(t => t.id === id);
+    const token = tokens.find((t) => t.id === id);
     setValue(`transactions.${index}.contractAddress` as const, GNARS_ADDRESSES.token);
     setValue(`transactions.${index}.from` as const, GNARS_ADDRESSES.treasury);
     setValue(`transactions.${index}.tokenId` as const, String(id));
@@ -140,14 +140,16 @@ export function SendNFTsForm({ index }: Props) {
         <Label>Select a Gnar from Treasury *</Label>
         <Card className="py-0">
           <CardContent>
-            {isLoading ? (
-              <LoadingGridSkeleton items={8} />
-            ) : error ? (
-              <div className="text-sm text-destructive">Failed to load treasury NFTs: {error}</div>
-            ) : tokens.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No Gnars found in treasury.</div>
-            ) : (
-              <ScrollArea className="h-80" viewportRef={viewportRef}>
+            <ScrollArea className="h-80" viewportRef={viewportRef}>
+              {isLoading ? (
+                <NftGridSkeleton />
+              ) : error ? (
+                <div className="text-sm text-destructive">
+                  Failed to load treasury NFTs: {error}
+                </div>
+              ) : tokens.length === 0 ? (
+                <div className="text-sm text-muted-foreground">No Gnars found in treasury.</div>
+              ) : (
                 <div className="my-6 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 pr-2">
                   {tokens.slice(0, visibleTokensCount).map((t) => {
                     const isSelected = selectedTokenId === t.id;
@@ -157,9 +159,9 @@ export function SendNFTsForm({ index }: Props) {
                         type="button"
                         onClick={() => handleSelect(t.id)}
                         className={cn(
-                          "relative aspect-square overflow-hidden rounded-lg bg-muted",
-                          "ring-1 ring-transparent hover:ring-primary transition focus:outline-none",
-                          isSelected && "ring-2 ring-primary shadow",
+                          "cursor-pointer relative aspect-square overflow-hidden rounded-lg bg-muted",
+                          "border-1 border-transparent hover:border-primary transition focus:outline-none",
+                          isSelected && "border-2 border-primary shadow",
                         )}
                         aria-pressed={isSelected}
                       >
@@ -195,8 +197,8 @@ export function SendNFTsForm({ index }: Props) {
                     <div ref={sentinelRef} className="col-span-full h-6" />
                   )}
                 </div>
-              </ScrollArea>
-            )}
+              )}
+            </ScrollArea>
           </CardContent>
         </Card>
         {errors.transactions?.[index] && "tokenId" in (errors.transactions?.[index] as object) && (
