@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
+import Link from "next/link";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { type TransactionFormValues } from "../schema";
 
@@ -50,7 +51,18 @@ export function CustomTransactionDetails({ transaction }: CustomTransactionDetai
         <div className="px-3 py-2 rounded-lg bg-muted/50">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Calldata</p>
           <p className="text-sm font-mono text-muted-foreground truncate">
-            {calldata ? `${calldata.slice(0, 10)}...` : "0x"}
+            {calldata && calldata !== "0x" ? (
+              <Link 
+                href={`https://calldata.swiss-knife.xyz/decoder?calldata=${calldata}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground hover:underline"
+              >
+                {`${calldata.slice(0, 10)}...`}
+              </Link>
+            ) : (
+              "0x"
+            )}
           </p>
         </div>
       </div>

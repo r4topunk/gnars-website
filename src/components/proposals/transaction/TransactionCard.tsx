@@ -1,6 +1,7 @@
 "use client";
 
 import { Edit, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -167,7 +168,14 @@ export function TransactionCard({
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Calldata</p>
               <div className="rounded-md bg-background border px-3 py-2 font-mono text-xs overflow-x-auto">
-                {transaction.rawCalldata}
+                <Link 
+                  href={`https://calldata.swiss-knife.xyz/decoder?calldata=${transaction.rawCalldata}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground hover:underline"
+                >
+                  {transaction.rawCalldata}
+                </Link>
               </div>
             </div>
           )}
