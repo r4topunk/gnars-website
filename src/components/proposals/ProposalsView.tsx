@@ -112,11 +112,10 @@ function StatusFilter({
   onClearAll: () => void;
   onSelectDefault: () => void;
 }) {
-  const activeCount = activeStatuses.size;
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline">Filter status{activeCount > 0 ? ` (${activeCount})` : ""}</Button>
+        <Button variant="outline">Filter status</Button>
       </PopoverTrigger>
       <PopoverContent align="end" sideOffset={8} className="w-64 p-2">
         <div className="px-2 pb-2 text-sm font-medium">Status</div>
