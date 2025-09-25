@@ -105,11 +105,10 @@ export function ProposalWizard() {
   return (
     <FormProvider {...methods}>
       <div className="max-w-4xl mx-auto">
-        <Tabs value={currentTab} onValueChange={setCurrentTab}>
-          <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-3 min-w-fit">
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="gap-6">
+          <TabsList className="w-full">
               <TabsTrigger value="details" className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
                   1
                 </span>
                 Details
@@ -120,7 +119,7 @@ export function ProposalWizard() {
                 className="flex items-center gap-2"
               >
                 <span
-                  className={`w-6 h-6 rounded-full text-xs flex items-center justify-center ${
+                  className={`w-5 h-5 rounded-full text-xs flex items-center justify-center ${
                     canProceedToTransactions
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground"
@@ -136,7 +135,7 @@ export function ProposalWizard() {
                 className="flex items-center gap-2"
               >
                 <span
-                  className={`w-6 h-6 rounded-full text-xs flex items-center justify-center ${
+                  className={`w-5 h-5 rounded-full text-xs flex items-center justify-center ${
                     canProceedToPreview
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground"
@@ -146,11 +145,9 @@ export function ProposalWizard() {
                 </span>
                 Preview
               </TabsTrigger>
-            </TabsList>
-          </div>
+          </TabsList>
 
-          <div className="mt-6">
-            <TabsContent value="details" className="space-y-4">
+          <TabsContent value="details" className="space-y-4">
               <Card>
                 <CardContent className="p-6">
                   <ProposalDetailsForm />
@@ -165,9 +162,9 @@ export function ProposalWizard() {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
+          </TabsContent>
 
-            <TabsContent value="transactions" className="space-y-4">
+          <TabsContent value="transactions" className="space-y-4">
               <Card>
                 <CardContent className="p-6">
                   <TransactionBuilder onFormsVisibilityChange={setIsEditingTransaction} />
@@ -191,9 +188,9 @@ export function ProposalWizard() {
                   )}
                 </CardContent>
               </Card>
-            </TabsContent>
+          </TabsContent>
 
-            <TabsContent value="preview" className="space-y-4">
+          <TabsContent value="preview" className="space-y-4">
               <Card>
                 <CardContent className="p-6">
                   <ProposalPreview />
@@ -209,8 +206,7 @@ export function ProposalWizard() {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-          </div>
+          </TabsContent>
         </Tabs>
       </div>
     </FormProvider>
