@@ -56,8 +56,11 @@ export function ConnectButton() {
                   e.preventDefault();
                   try {
                     await connectAsync({ connector });
-                  } catch (err) {
-                    const message = err instanceof Error ? err.message : "Failed to connect";
+                  } catch (err: unknown) {
+                    const message =
+                      err && typeof err === "object" && "message" in err
+                        ? String((err as { message?: string }).message ?? "Failed to connect")
+                        : "Failed to connect";
                     if (/rejected|user|cancel/i.test(message)) {
                       toast("Connection cancelled");
                     } else {
@@ -95,7 +98,7 @@ export function ConnectButton() {
                 } catch (err: unknown) {
                   const message =
                     err && typeof err === "object" && "message" in err
-                      ? String((err as any).message)
+                      ? String((err as { message?: string }).message ?? "Failed to disconnect")
                       : "Failed to disconnect";
                   toast.error("Disconnect failed", { description: message });
                 }

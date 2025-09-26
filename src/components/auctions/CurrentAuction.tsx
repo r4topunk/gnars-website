@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAccount, useSimulateContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { useAccount, useSimulateContract, useWriteContract } from "wagmi";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { parseEther } from "viem";
@@ -48,7 +48,7 @@ export function CurrentAuction({ auction, loading }: CurrentAuctionProps) {
   })();
 
   const { writeContractAsync } = useWriteContract();
-  const { data: simData, error: simError } = useSimulateContract(
+  const { error: simError } = useSimulateContract(
     auction && nextBidWei
       ? {
           address: GNARS_ADDRESSES.auction as `0x${string}`,
@@ -58,7 +58,7 @@ export function CurrentAuction({ auction, loading }: CurrentAuctionProps) {
           value: nextBidWei,
           query: { enabled: isConnected && !loading },
         }
-      : (undefined as any),
+      : undefined,
   );
   const [timeLeft, setTimeLeft] = useState<{
     hours: number;
