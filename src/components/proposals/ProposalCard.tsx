@@ -40,6 +40,7 @@ export function ProposalCard({
   });
   const voteEndTime = new Date(proposal.voteEnd);
   const isVotingActive = proposal.status === ProposalStatus.ACTIVE && voteEndTime > new Date();
+  const isPending = proposal.status === ProposalStatus.PENDING;
 
   const bannerUrl = normalizeImageUrl(extractFirstUrl(proposal.description));
   const currentBannerSrc = bannerUrl ?? "/logo-banner.jpg";
@@ -107,51 +108,55 @@ export function ProposalCard({
               </div>
             </div>
 
-            {totalVotes > 0 && (
+            {(totalVotes > 0 || isPending) && (
               <div className="space-y-2">
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>Voting Progress</span>
-                  <span>{totalVotes} votes</span>
+                  <span className={cn(isPending && "italic")}>{isPending ? "not started" : `${totalVotes} votes`}</span>
                 </div>
                 <div className="space-y-1">
                   <div className="relative">
-                    <div className="flex gap-0.5">
-                      {proposal.forVotes > 0 && (
-                        <div
-                          className={cn(
-                            "h-1.5 bg-green-500",
-                            proposal.againstVotes === 0 && proposal.abstainVotes === 0
-                              ? "rounded"
-                              : "rounded-l",
-                          )}
-                          style={{ width: `${forPercentage}%` }}
-                        />
-                      )}
-                      {proposal.againstVotes > 0 && (
-                        <div
-                          className={cn(
-                            "h-1.5 bg-red-500",
-                            proposal.forVotes === 0 && proposal.abstainVotes === 0
-                              ? "rounded"
-                              : proposal.abstainVotes === 0
-                                ? "rounded-r"
-                                : "",
-                          )}
-                          style={{ width: `${againstPercentage}%` }}
-                        />
-                      )}
-                      {proposal.abstainVotes > 0 && (
-                        <div
-                          className={cn(
-                            "h-1.5 bg-gray-300",
-                            proposal.forVotes === 0 && proposal.againstVotes === 0
-                              ? "rounded"
-                              : "rounded-r",
-                          )}
-                          style={{ width: `${abstainPercentage}%` }}
-                        />
-                      )}
-                    </div>
+                    {isPending && totalVotes === 0 ? (
+                      <div className="h-1.5 rounded bg-muted" />
+                    ) : (
+                      <div className="flex gap-0.5">
+                        {proposal.forVotes > 0 && (
+                          <div
+                            className={cn(
+                              "h-1.5 bg-green-500",
+                              proposal.againstVotes === 0 && proposal.abstainVotes === 0
+                                ? "rounded"
+                                : "rounded-l",
+                            )}
+                            style={{ width: `${forPercentage}%` }}
+                          />
+                        )}
+                        {proposal.againstVotes > 0 && (
+                          <div
+                            className={cn(
+                              "h-1.5 bg-red-500",
+                              proposal.forVotes === 0 && proposal.abstainVotes === 0
+                                ? "rounded"
+                                : proposal.abstainVotes === 0
+                                  ? "rounded-r"
+                                  : "",
+                            )}
+                            style={{ width: `${againstPercentage}%` }}
+                          />
+                        )}
+                        {proposal.abstainVotes > 0 && (
+                          <div
+                            className={cn(
+                              "h-1.5 bg-gray-300",
+                              proposal.forVotes === 0 && proposal.againstVotes === 0
+                                ? "rounded"
+                                : "rounded-r",
+                            )}
+                            style={{ width: `${abstainPercentage}%` }}
+                          />
+                        )}
+                      </div>
+                    )}
                     {proposal.quorumVotes > 0 && totalVotes > 0 && (
                       <div className="pointer-events-none absolute inset-0">
                         <div
@@ -162,20 +167,20 @@ export function ProposalCard({
                     )}
                   </div>
                   <div className="flex justify-between text-xs">
-                    <div className="flex items-center gap-1">
-                      <ThumbsUp className="w-3 h-3 text-green-500" />
+                    <div className={cn("flex items-center gap-1", isPending && "text-muted-foreground")}> 
+                      <ThumbsUp className={cn("w-3 h-3", isPending ? "text-muted-foreground" : "text-green-500")} />
                       <span>
                         {proposal.forVotes} ({forPercentage.toFixed(0)}%)
                       </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <ThumbsDown className="w-3 h-3 text-red-500" />
+                    <div className={cn("flex items-center gap-1", isPending && "text-muted-foreground")}> 
+                      <ThumbsDown className={cn("w-3 h-3", isPending ? "text-muted-foreground" : "text-red-500")} />
                       <span>
                         {proposal.againstVotes} ({againstPercentage.toFixed(0)}%)
                       </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <MinusCircle className="w-3 h-3 text-gray-400" />
+                    <div className={cn("flex items-center gap-1", isPending && "text-muted-foreground")}>
+                      <MinusCircle className={cn("w-3 h-3", isPending ? "text-muted-foreground" : "text-gray-400")} />
                       <span>
                         {proposal.abstainVotes} ({abstainPercentage.toFixed(0)}%)
                       </span>
