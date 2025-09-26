@@ -70,7 +70,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         snapshotBlock={proposal.snapshotBlock}
         endDate={endDate}
       />
-      <Card id="voting-section">
+      <Card id="voting-section" className="hidden">
         <CardHeader>
           <CardTitle>Cast Your Vote</CardTitle>
         </CardHeader>
