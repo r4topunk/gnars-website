@@ -9,6 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAccount, useSimulateContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { GNARS_ADDRESSES } from "@/lib/config";
+import auctionAbi from "@/utils/abis/auctionAbi";
+import { parseEther } from "viem";
+import { toast } from "sonner";
 
 interface AuctionData {
   id: string;
@@ -26,6 +31,35 @@ interface CurrentAuctionProps {
 }
 
 export function CurrentAuction({ auction, loading }: CurrentAuctionProps) {
+  const { isConnected } = useAccount();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const minNextBidEth = (() => {
+    const current = Number(auction?.highestBid ?? "0");
+    if (!Number.isFinite(current)) return 0;
+    return Math.max(0, current * 1.01);
+  })();
+
+  const nextBidWei = (() => {
+    try {
+      return parseEther(minNextBidEth.toFixed(5));
+    } catch {
+      return undefined;
+    }
+  })();
+
+  const { writeContractAsync } = useWriteContract();
+  const { data: simData, error: simError } = useSimulateContract(
+    auction && nextBidWei
+      ? {
+          address: GNARS_ADDRESSES.auction as `0x${string}`,
+          abi: auctionAbi,
+          functionName: "createBid",
+          args: [BigInt(auction.tokenId)],
+          value: nextBidWei,
+          query: { enabled: isConnected && !loading },
+        }
+      : (undefined as any),
+  );
   const [timeLeft, setTimeLeft] = useState<{
     hours: number;
     minutes: number;
@@ -155,8 +189,31 @@ export function CurrentAuction({ auction, loading }: CurrentAuctionProps) {
             {/* Bidding Button */}
             <div className="space-y-2">
               {!isAuctionEnded && !auction.settled ? (
-                <Button className="w-full" size="lg">
-                  Place Bid
+                <Button
+                  className="w-full"
+                  size="lg"
+                  disabled={!isConnected || isSubmitting || !!simError}
+                  onClick={async () => {
+                    if (!auction || !isConnected || !nextBidWei) return;
+                    try {
+                      setIsSubmitting(true);
+                      const hash = await writeContractAsync({
+                        address: GNARS_ADDRESSES.auction as `0x${string}`,
+                        abi: auctionAbi,
+                        functionName: "createBid",
+                        args: [BigInt(auction.tokenId)],
+                        value: nextBidWei,
+                      });
+                      toast("Transaction submitted", { description: String(hash) });
+                    } catch (err) {
+                      const message = err instanceof Error ? err.message : "Failed to submit bid";
+                      toast.error("Bid failed", { description: message });
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                >
+                  {isSubmitting ? "Submitting…" : `Place Bid (~${minNextBidEth.toFixed(3)} ETH)`}
                 </Button>
               ) : auction.settled ? (
                 <Button className="w-full" variant="secondary" disabled>
@@ -168,7 +225,7 @@ export function CurrentAuction({ auction, loading }: CurrentAuctionProps) {
                 </Button>
               )}
               <p className="text-xs text-muted-foreground text-center">
-                Connect your wallet to participate
+                {isConnected ? "" : "Connect your wallet to participate"}
               </p>
             </div>
           </div>

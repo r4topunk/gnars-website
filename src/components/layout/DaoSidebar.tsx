@@ -23,12 +23,14 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
+  SidebarFooter,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { ConnectButton } from "@/components/ui/ConnectButton";
 
 // DAO navigation structure
 const daoNavigation = [
@@ -181,6 +183,11 @@ export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         ))}
       </SidebarContent>
+      <SidebarFooter className="border-t p-4">
+        <div className="flex items-center justify-between gap-2">
+          <ConnectButton />
+        </div>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
