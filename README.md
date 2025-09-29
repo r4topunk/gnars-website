@@ -96,7 +96,7 @@ pnpm dev
 
 - Subgraph access via `src/lib/subgraph.ts` (POST GraphQL; `no-store` cache)
 - Auctions via `src/services/auctions.ts` + `src/hooks/use-auctions.ts`
-- Voting power via `src/hooks/use-votes.ts` (wagmi `useReadContracts`)
+- Voting power via `src/hooks/useVotes.ts` (wagmi `useReadContracts`)
 - Wallet + RPC via `src/lib/wagmi.ts` (WalletConnect/MetaMask/Coinbase)
 - Optional Alchemy proxy endpoints via `src/app/api/alchemy/route.ts`
 

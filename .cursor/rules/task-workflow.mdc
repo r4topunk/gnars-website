@@ -1,0 +1,106 @@
+---
+description: Task workflow — research, planning, implementation with artifacts under tasks/<task-id>/
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+Purpose
+
+- Establish a consistent, task-centric workflow for all changes.
+- Persist intermediate context in version-controlled markdown files inside `tasks/<task-id>/`.
+
+Conventions
+
+- Use semantic, kebab-case task IDs (e.g., `landing-copy-refresh`).
+- Each task lives in `tasks/<task-id>/`.
+- Core artifacts:
+  - `tasks/<task-id>/research.md`
+  - `tasks/<task-id>/plan.md`
+  - (Optional) `tasks/<task-id>/notes.md` for scratch notes
+
+0. Tasks
+
+- Work on a task basis. Create the folder before starting research.
+- Keep all non-code context in the task folder as markdown.
+
+1. Research
+
+- Goal: Understand existing patterns and constraints before proposing changes.
+- Actions:
+  - Explore the codebase first (favor semantic search over exact match for discovery).
+  - Check existing patterns/components/services to maximize reuse.
+  - Search the web/docs only if needed.
+  - Ask follow-up questions to clarify scope/direction when necessary.
+- Output: Write findings to `research.md` including:
+  - Problem statement and success criteria
+  - Existing patterns, components, services, and relevant files
+  - Risks/constraints and alternatives considered
+  - Open questions (keep concise)
+
+2. Planning
+
+- Read `research.md` and produce an implementable plan in `plan.md`.
+- Plan should include:
+  - Summary of approach and how it reuses existing patterns
+  - High-level implementation steps and file touchpoints
+  - Data model or API changes (call out migrations, RLS if applicable)
+  - Testing strategy and acceptance criteria
+  - Rollout/impact considerations
+
+3. Implementation
+
+- Start by reading `plan.md`.
+- Create a structured todo list from the plan and execute.
+- While implementing:
+  - Adhere to project stack and conventions (TypeScript, Next.js App Router, Tailwind, Shadcn UI, Zustand, Drizzle ORM, Zod, Vercel AI SDK).
+  - Keep code readable, functional, and DRY. Avoid `any`.
+  - Handle errors and edge-cases early; optimize for Core Web Vitals.
+  - Update todos as progress is made.
+- If scope is ambiguous: proceed as far as reasonably safe, then batch questions at the end of the turn.
+
+Definition of Done
+
+- `research.md` and `plan.md` exist and are up to date.
+- Implementation tasks are tracked and checked off.
+- Code adheres to lint rules and project conventions.
+- A concise summary of changes and impact is provided in the final turn.
+
+Suggested Templates
+
+research.md
+
+```
+# Research — <task-id>
+
+## Goal
+
+## Existing Patterns / References
+- Files / components / services:
+
+## Findings
+
+## Risks / Constraints
+
+## Open Questions
+```
+
+plan.md
+
+```
+# Plan — <task-id>
+
+## Approach Summary
+
+## Steps
+- [ ] Step 1
+- [ ] Step 2
+
+## File/Module Touchpoints
+
+## Data / API Changes
+
+## Testing Strategy
+
+## Acceptance Criteria
+```

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useAccount } from "wagmi";
 import { VotingControls } from "@/components/common/VotingControls";
 import { Propdates } from "@/components/proposals/detail/Propdates";
 import { ProposalDescriptionCard } from "@/components/proposals/detail/ProposalDescriptionCard";
@@ -11,7 +12,6 @@ import { ProposalMetrics } from "@/components/proposals/ProposalMetrics";
 import { Proposal } from "@/components/proposals/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface ProposalDetailProps {
   proposal: Proposal;
@@ -43,13 +43,15 @@ export function ProposalDetailSkeleton() {
 }
 
 export function ProposalDetail({ proposal }: ProposalDetailProps) {
-  const [hasVoted, setHasVoted] = useState(false);
+  const { address } = useAccount();
   const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
 
-  const handleVote = (vote: "FOR" | "AGAINST" | "ABSTAIN") => {
-    setHasVoted(true);
-    setUserVote(vote);
-  };
+  const initialVote = useMemo(() => {
+    if (!address) return null;
+    return proposal.votes?.find((vote) => vote.voter?.toLowerCase() === address.toLowerCase())?.choice ?? null;
+  }, [address, proposal.votes]);
+
+  const currentVote = userVote ?? initialVote;
 
   const endDate = proposal.endDate ? new Date(proposal.endDate) : undefined;
 
@@ -70,17 +72,17 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         snapshotBlock={proposal.snapshotBlock}
         endDate={endDate}
       />
-      <Card id="voting-section" className="hidden">
+      <Card id="voting-section">
         <CardHeader>
           <CardTitle>Cast Your Vote</CardTitle>
         </CardHeader>
         <CardContent>
           <VotingControls
-            proposalId={proposal.proposalNumber.toString()}
-            isActive={proposal.status === ProposalStatus.ACTIVE}
-            hasVoted={hasVoted}
-            userVote={userVote || undefined}
-            onVote={handleVote}
+            proposalIdHex={proposal.proposalId as `0x${string}`}
+            proposalNumber={proposal.proposalNumber}
+            status={proposal.status}
+            existingUserVote={currentVote}
+            onVoteSuccess={(choice) => setUserVote(choice)}
           />
         </CardContent>
       </Card>

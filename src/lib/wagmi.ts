@@ -3,7 +3,6 @@ import { base } from "wagmi/chains";
 import { coinbaseWallet, metaMask, walletConnect } from "wagmi/connectors";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __wagmiConfig: ReturnType<typeof createConfig> | undefined;
 }
 

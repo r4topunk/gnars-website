@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useVotes } from "@/hooks/use-votes";
+import { useVotes } from "@/hooks/useVotes";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { proposalSchema, type ProposalFormValues } from "./schema";
 
