@@ -1,17 +1,17 @@
 # Plan — proposal-voting-integration
 
 ## Approach Summary
-- Reuse the global wagmi setup to enable onchain voting via the Governor contract.
-- Update proposal detail UI to surface voting controls when the viewer is eligible (connected wallet, active proposal, not yet voted).
+- Reuse the global wagmi setup to enable onchain voting via the Governor contract, including optional vote comments that call `castVoteWithReason`.
+- Update proposal detail UI to surface voting controls only when the viewer is eligible (connected wallet, >=1 GNAR voting power, active proposal, not yet voted).
 - Implement a dedicated hook/component logic that uses wagmi `useSimulateContract` and `useWriteContract` with the Governor ABI, following patterns from proposal submission and auction bidding.
-- Ensure vote submission updates UI state and refetches proposal data to reflect the new vote tally.
+- Ensure vote submission updates UI state and refetches proposal data to reflect the new vote tally and captured comment.
 
 ## Steps
 - [x] Expose a shared Governor ABI (reuse from references; locate best source).
-- [ ] Build a voting hook that wires up wagmi (`useAccount`, `useSimulateContract`, `useWriteContract`) for `castVote`/`castVoteWithReason`.
-- [ ] Update `VotingControls` to use the hook: handle eligibility, pending states, toasts, and disable logic; remove mock delay.
-- [ ] Un-hide voting card in `ProposalDetail` and wire it with real data (active state, existing votes, refetch callback).
-- [ ] Trigger proposal data refresh post-vote (client refetch or optimistic update) to sync vote tallies.
+- [ ] Extend the voting hook to support optional reasons (`castVoteWithReason`) and surface eligibility helpers (>=1 GNAR delegated).
+- [ ] Update `VotingControls` UI: add comment textarea, display eligibility messaging, and gate entire block when viewer cannot vote.
+- [ ] Adjust `ProposalDetail` to respect gating (hide vote card for ineligible users) and wire success handling/refetch.
+- [ ] Trigger proposal data refresh post-vote (client refetch or optimistic update) to sync vote tallies and comment state.
 - [ ] Validate with linting and manual flow instructions.
 
 ## File/Module Touchpoints

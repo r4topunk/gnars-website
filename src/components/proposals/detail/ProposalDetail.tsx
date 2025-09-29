@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 import { VotingControls } from "@/components/common/VotingControls";
+import { useVotes } from "@/hooks/useVotes";
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { Propdates } from "@/components/proposals/detail/Propdates";
 import { ProposalDescriptionCard } from "@/components/proposals/detail/ProposalDescriptionCard";
 import { ProposalHeader } from "@/components/proposals/detail/ProposalHeader";
@@ -43,7 +45,7 @@ export function ProposalDetailSkeleton() {
 }
 
 export function ProposalDetail({ proposal }: ProposalDetailProps) {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
 
   const initialVote = useMemo(() => {
@@ -52,6 +54,21 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   }, [address, proposal.votes]);
 
   const currentVote = userVote ?? initialVote;
+
+  const {
+    hasVotingPower,
+    votingPower,
+    isLoading: votesLoading,
+    isDelegating,
+    delegatedTo,
+  } = useVotes({
+    chainId: CHAIN.id,
+    collectionAddress: GNARS_ADDRESSES.token,
+    governorAddress: GNARS_ADDRESSES.governor,
+    signerAddress: address ?? undefined,
+  });
+
+  const shouldShowVotingCard = isConnected && hasVotingPower;
 
   const endDate = proposal.endDate ? new Date(proposal.endDate) : undefined;
 
@@ -72,20 +89,27 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         snapshotBlock={proposal.snapshotBlock}
         endDate={endDate}
       />
-      <Card id="voting-section">
-        <CardHeader>
-          <CardTitle>Cast Your Vote</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <VotingControls
-            proposalIdHex={proposal.proposalId as `0x${string}`}
-            proposalNumber={proposal.proposalNumber}
-            status={proposal.status}
-            existingUserVote={currentVote}
-            onVoteSuccess={(choice) => setUserVote(choice)}
-          />
-        </CardContent>
-      </Card>
+      {shouldShowVotingCard ? (
+        <Card id="voting-section">
+          <CardHeader>
+            <CardTitle>Cast Your Vote</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <VotingControls
+              proposalIdHex={proposal.proposalId as `0x${string}`}
+              proposalNumber={proposal.proposalNumber}
+              status={proposal.status}
+              existingUserVote={currentVote}
+              onVoteSuccess={(choice) => setUserVote(choice)}
+              hasVotingPower={hasVotingPower}
+              votingPower={votingPower}
+              votesLoading={votesLoading}
+              isDelegating={isDelegating}
+              delegatedTo={delegatedTo}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
       <Tabs defaultValue="details" className="w-full">
         <div className="overflow-x-auto">
           <TabsList className="grid w-full grid-cols-3 min-w-fit">

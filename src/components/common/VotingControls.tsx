@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { useAccount } from "wagmi";
+import { Address } from "viem";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useVotes } from "@/hooks/useVotes";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useCastVote } from "@/hooks/useCastVote";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
@@ -18,6 +19,11 @@ export interface VotingControlsProps {
   status: ProposalStatus;
   existingUserVote?: VoteChoice | null;
   onVoteSuccess?: (choice: VoteChoice, txHash: `0x${string}`) => void;
+  hasVotingPower: boolean;
+  votingPower: bigint;
+  votesLoading: boolean;
+  isDelegating: boolean;
+  delegatedTo?: Address;
 }
 
 const VOTE_LABELS: Record<VoteChoice, string> = {
@@ -38,21 +44,15 @@ export function VotingControls({
   status,
   existingUserVote,
   onVoteSuccess,
+  hasVotingPower,
+  votingPower,
+  votesLoading,
+  isDelegating,
+  delegatedTo,
 }: VotingControlsProps) {
-  const { address, isConnected } = useAccount();
-  const {
-    votingPower,
-    hasVotingPower,
-    proposalThreshold,
-    isDelegating,
-    delegatedTo,
-    isLoading: votesLoading,
-  } = useVotes({
-    chainId: CHAIN.id,
-    collectionAddress: GNARS_ADDRESSES.token,
-    governorAddress: GNARS_ADDRESSES.governor,
-    signerAddress: address ?? undefined,
-  });
+  const { isConnected } = useAccount();
+  const [voteChoice, setVoteChoice] = useState<VoteChoice | null>(existingUserVote ?? null);
+  const [reason, setReason] = useState("");
 
   const {
     castVote,
@@ -63,19 +63,29 @@ export function VotingControls({
     pendingHash,
   } = useCastVote({
     proposalId: proposalIdHex,
-    onSuccess: (hash, choice) => onVoteSuccess?.(choice, hash),
+    onSuccess: (hash, choice) => {
+      onVoteSuccess?.(choice, hash);
+      setReason("");
+    },
   });
 
   const hasVoted = Boolean(existingUserVote) || Boolean(isConfirmed);
+  const eligibleToVote = Boolean(isConnected && hasVotingPower);
+
+  useEffect(() => {
+    if (existingUserVote) {
+      setVoteChoice(existingUserVote);
+    }
+  }, [existingUserVote]);
 
   const helperText = useMemo(() => {
     if (!isConnected) return "Connect your wallet to vote";
     if (votesLoading) return "Checking voting power...";
-    if (!hasVotingPower || votingPower <= proposalThreshold)
-      return "You need sufficient delegated voting power to participate";
-    if (isDelegating) return `Voting power delegated to ${delegatedTo ?? "another address"}`;
-    return "";
-  }, [delegatedTo, hasVotingPower, isConnected, isDelegating, proposalThreshold, votingPower, votesLoading]);
+    if (!hasVotingPower) return "You need at least 1 GNAR delegated to vote";
+    if (isDelegating)
+      return `Voting power delegated to ${delegatedTo ?? "another address"}`;
+    return `You have ${votingPower.toString().trim()} GNAR voting power available`;
+  }, [delegatedTo, hasVotingPower, isConnected, isDelegating, votesLoading, votingPower]);
 
   if (status !== ProposalStatus.ACTIVE) {
     return (
@@ -90,6 +100,10 @@ export function VotingControls({
         </div>
       </div>
     );
+  }
+
+  if (!eligibleToVote) {
+    return helperText ? <p className="text-sm text-muted-foreground">{helperText}</p> : null;
   }
 
   return (
@@ -110,14 +124,16 @@ export function VotingControls({
 
       <div className="flex flex-col gap-3 sm:flex-row">
         {(Object.keys(VOTE_LABELS) as VoteChoice[]).map((choice) => {
-          const isSelected = existingUserVote === choice || isConfirmed;
-          const hasPower = hasVotingPower && votingPower > proposalThreshold;
-          const disabled = !castReady || isPending || isConfirming || hasVoted || !hasPower;
+          const isSelected = voteChoice === choice;
+          const disabled = !castReady || isPending || isConfirming || hasVoted;
 
           return (
             <Button
               key={choice}
-              onClick={() => castVote(choice)}
+              onClick={() => {
+                setVoteChoice(choice);
+                castVote(choice, reason);
+              }}
               disabled={disabled}
               variant={isSelected ? VARIANT_MAP[choice] : "outline"}
               className="relative flex-1"
@@ -134,6 +150,20 @@ export function VotingControls({
             </Button>
           );
         })}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="vote-reason" className="text-xs text-muted-foreground">
+          Optional comment (shared on-chain)
+        </Label>
+        <Textarea
+          id="vote-reason"
+          value={reason}
+          onChange={(event) => setReason(event.target.value)}
+          placeholder="Share context for your vote"
+          className="min-h-24"
+          disabled={hasVoted || isPending || isConfirming}
+        />
       </div>
 
       {helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}

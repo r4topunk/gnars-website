@@ -50,22 +50,35 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
   });
 
   const castVote = useCallback(
-    async (choice: VoteChoice) => {
+    async (choice: VoteChoice, reason?: string) => {
       if (!isReady || !proposalId) {
         toast.error("Unable to vote", { description: "Connect wallet and refresh." });
         return;
       }
 
       const supportValue = supportMap[choice];
+      const trimmedReason = reason?.trim();
 
       try {
-        const txHash = await writeContractAsync({
-          abi: gnarsGovernorAbi,
-          address: governorAddress,
-          functionName: "castVote",
-          args: [proposalId, supportValue],
-          chainId,
-        });
+        let txHash: Hex;
+
+        if (trimmedReason && trimmedReason.length > 0) {
+          txHash = await writeContractAsync({
+            abi: gnarsGovernorAbi,
+            address: governorAddress,
+            functionName: "castVoteWithReason",
+            args: [proposalId, supportValue, trimmedReason],
+            chainId,
+          });
+        } else {
+          txHash = await writeContractAsync({
+            abi: gnarsGovernorAbi,
+            address: governorAddress,
+            functionName: "castVote",
+            args: [proposalId, supportValue],
+            chainId,
+          });
+        }
 
         onSubmitted?.(txHash);
 
