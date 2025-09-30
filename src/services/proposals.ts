@@ -70,6 +70,7 @@ function mapSdkProposalToProposal(p: SdkProposal): Proposal {
             })(),
             votes: String(v.weight ?? 0),
             transactionHash: "",
+            reason: (v as unknown as { reason?: string | null }).reason ?? null,
           }),
         )
       : [],

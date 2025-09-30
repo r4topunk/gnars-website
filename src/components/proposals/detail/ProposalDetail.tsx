@@ -8,7 +8,7 @@ import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { Propdates } from "@/components/proposals/detail/Propdates";
 import { ProposalDescriptionCard } from "@/components/proposals/detail/ProposalDescriptionCard";
 import { ProposalHeader } from "@/components/proposals/detail/ProposalHeader";
-import { ProposalVotesTable } from "@/components/proposals/detail/ProposalVotesTable";
+import { ProposalVotesList } from "@/components/proposals/detail/ProposalVotesList";
 import { ProposalTransactionVisualization } from "@/components/proposals/transaction/ProposalTransactionVisualization";
 import { ProposalMetrics } from "@/components/proposals/ProposalMetrics";
 import { Proposal } from "@/components/proposals/types";
@@ -135,11 +135,12 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
           </Card>
         </TabsContent>
         <TabsContent value="votes" className="mt-6 space-y-6">
-          <ProposalVotesTable
+          <ProposalVotesList
             votes={proposal.votes?.map((v) => ({
               voter: v.voter,
               choice: v.choice,
               votes: v.votes,
+              reason: (v as { reason?: string | null }).reason ?? null,
             }))}
           />
         </TabsContent>

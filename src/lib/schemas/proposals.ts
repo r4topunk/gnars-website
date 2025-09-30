@@ -18,6 +18,8 @@ export const proposalVoteSchema = z.object({
   choice: z.enum(["FOR", "AGAINST", "ABSTAIN"]),
   votes: z.string(),
   transactionHash: z.string(),
+  // Optional voter comment/reason captured from the subgraph when available
+  reason: z.string().nullable().optional(),
 });
 
 export const proposalSchema = z.object({
