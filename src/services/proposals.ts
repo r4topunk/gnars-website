@@ -1,4 +1,11 @@
-import { getProposal, getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
+import {
+  getProposal,
+  getProposals,
+  SubgraphSDK,
+  formatAndFetchState,
+  type Proposal as SdkProposal,
+  type Proposal_Filter,
+} from "@buildeross/sdk";
 import type { Proposal, ProposalVote } from "@/components/proposals/types";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { getProposalStatus, proposalSchema } from "@/lib/schemas/proposals";
@@ -97,81 +104,59 @@ export async function listProposals(limit = 200, page = 0): Promise<Proposal[]> 
 
 export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Proposal | null> {
   try {
-    // Instrumentation: trace inputs and code paths for intermittent "not found" cases
     console.log("[proposals:getProposalByIdOrNumber] start", {
       idOrNumber,
       chainId: CHAIN.id,
       token: GNARS_ADDRESSES.token,
     });
+
     const isHexId = idOrNumber.startsWith("0x");
-    if (isHexId) {
-      try {
-        const sdkProposal = await getProposal(CHAIN.id as unknown as number, idOrNumber);
-        if (!sdkProposal) {
-          console.warn("[proposals:getProposalByIdOrNumber] no proposal by hex id", {
-            idOrNumber,
-          });
-          return null;
+
+    // Build the where filter for direct subgraph query
+    const where: Proposal_Filter = isHexId
+      ? {
+          proposalId: idOrNumber.toLowerCase(),
         }
-        const mapped = mapSdkProposalToProposal(sdkProposal);
-        console.log("[proposals:getProposalByIdOrNumber] found by hex id", {
-          proposalId: mapped.proposalId,
-          proposalNumber: mapped.proposalNumber,
-        });
-        return mapped;
-      } catch (err) {
-        console.error("[proposals:getProposalByIdOrNumber] error fetching by hex id", {
-          idOrNumber,
-          error: err instanceof Error ? err.message : String(err),
-        });
-        throw err;
-      }
-    }
+      : {
+          proposalNumber: Number.parseInt(idOrNumber, 10),
+          dao: GNARS_ADDRESSES.token.toLowerCase(),
+        };
 
-    const targetNumber = Number.parseInt(idOrNumber, 10);
-    if (Number.isNaN(targetNumber)) return null;
+    console.log("[proposals:getProposalByIdOrNumber] querying with filter", { where });
 
-    const LIMIT = 200;
-    const MAX_PAGES = 5;
-    for (let page = 0; page < MAX_PAGES; page += 1) {
-      console.log("[proposals:getProposalByIdOrNumber] querying by number", {
-        targetNumber,
-        page,
-        limit: LIMIT,
-      });
-      const { proposals } = await getProposals(
-        CHAIN.id as unknown as number,
-        GNARS_ADDRESSES.token,
-        LIMIT,
-        page,
-      );
-      const match = (proposals ?? []).find((p) => Number(p.proposalNumber ?? -1) === targetNumber);
-      if (match) {
-        const mapped = mapSdkProposalToProposal(match);
-        console.log("[proposals:getProposalByIdOrNumber] found by number", {
-          proposalId: mapped.proposalId,
-          proposalNumber: mapped.proposalNumber,
-          page,
-        });
-        return mapped;
-      }
-      if (!proposals || proposals.length < LIMIT) {
-        console.warn("[proposals:getProposalByIdOrNumber] page underfilled or empty; stopping", {
-          page,
-          returned: proposals?.length ?? 0,
-        });
-        break;
-      }
-    }
-    console.warn("[proposals:getProposalByIdOrNumber] not found after pagination", {
-      idOrNumber,
-      targetNumber,
-      maxPagesTried: MAX_PAGES,
-      limitPerPage: LIMIT,
+    // Direct query using SubgraphSDK (same pattern as Nouns Builder)
+    const data = await SubgraphSDK.connect(CHAIN.id).proposals({
+      where,
+      first: 1,
     });
-    return null;
+
+    if (!data.proposals || data.proposals.length === 0) {
+      console.warn("[proposals:getProposalByIdOrNumber] no proposal found", {
+        idOrNumber,
+        where,
+      });
+      return null;
+    }
+
+    // Use formatAndFetchState to get proposal state from contract
+    const sdkProposal = await formatAndFetchState(CHAIN.id, data.proposals[0]);
+
+    if (!sdkProposal) {
+      console.warn("[proposals:getProposalByIdOrNumber] formatAndFetchState returned null", {
+        idOrNumber,
+      });
+      return null;
+    }
+
+    const mapped = mapSdkProposalToProposal(sdkProposal);
+    console.log("[proposals:getProposalByIdOrNumber] found", {
+      proposalId: mapped.proposalId,
+      proposalNumber: mapped.proposalNumber,
+    });
+
+    return mapped;
   } catch (err) {
-    console.error("[proposals:getProposalByIdOrNumber] unexpected error", {
+    console.error("[proposals:getProposalByIdOrNumber] error", {
       idOrNumber,
       error: err instanceof Error ? { message: err.message, stack: err.stack } : String(err),
     });
