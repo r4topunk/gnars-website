@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
 import { DaoSidebar } from "@/components/layout/DaoSidebar";
 import Providers from "@/components/layout/Providers";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import SidebarFloatingTrigger from "@/components/layout/SidebarFloatingTrigger";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
@@ -44,6 +45,7 @@ export default function RootLayout({
           <Providers>
             <TooltipProvider>
               <SidebarProvider>
+                <ScrollToTop />
                 <DaoSidebar />
                 {children}
                 <Toaster />
