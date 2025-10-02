@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 import { VotingControls } from "@/components/common/VotingControls";
 import { useVotes } from "@/hooks/useVotes";
+import { usePropdates } from "@/hooks/use-propdates";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { Propdates } from "@/components/proposals/detail/Propdates";
 import { ProposalDescriptionCard } from "@/components/proposals/detail/ProposalDescriptionCard";
@@ -68,6 +69,23 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     signerAddress: address ?? undefined,
   });
 
+  // Fetch propdates to determine if the tab should be shown
+  const { propdates } = usePropdates(proposal.proposalId);
+
+  // Show propdates tab if there's at least one propdate OR the connected user is the proposal owner
+  const isProposalOwner = address && proposal.proposer 
+    ? address.toLowerCase() === proposal.proposer.toLowerCase()
+    : false;
+  const hasPropdates = (propdates?.length ?? 0) > 0;
+  const shouldShowPropdatesTab = hasPropdates || isProposalOwner;
+
+  // Show votes tab only if the proposal is active
+  const shouldShowVotesTab = proposal.status === "Active";
+
+  // Count visible tabs to determine if we should show tabs at all
+  const visibleTabsCount = 1 + (shouldShowVotesTab ? 1 : 0) + (shouldShowPropdatesTab ? 1 : 0);
+  const shouldShowTabs = visibleTabsCount > 1;
+
   const shouldShowVotingCard = isConnected && hasVotingPower;
 
   const endDate = proposal.endDate ? new Date(proposal.endDate) : undefined;
@@ -110,15 +128,55 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
           </CardContent>
         </Card>
       ) : null}
-      <Tabs defaultValue="details" className="w-full">
-        <div className="overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-3 min-w-fit">
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="votes">Votes</TabsTrigger>
-            <TabsTrigger value="propdates">Propdates</TabsTrigger>
-          </TabsList>
-        </div>
-        <TabsContent value="details" className="space-y-6 mt-6">
+      {shouldShowTabs ? (
+        <Tabs defaultValue="details" className="w-full">
+          <div className="overflow-x-auto">
+            <TabsList className={`grid w-full ${visibleTabsCount === 2 ? 'grid-cols-2' : 'grid-cols-3'} min-w-fit`}>
+              <TabsTrigger value="details">Details</TabsTrigger>
+              {shouldShowVotesTab && (
+                <TabsTrigger value="votes">Votes</TabsTrigger>
+              )}
+              {shouldShowPropdatesTab && (
+                <TabsTrigger value="propdates">Propdates</TabsTrigger>
+              )}
+            </TabsList>
+          </div>
+          <TabsContent value="details" className="space-y-6 mt-6">
+            <ProposalDescriptionCard description={proposal.description} />
+            <Card>
+              <CardHeader>
+                <CardTitle>Proposed Transactions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ProposalTransactionVisualization
+                  targets={proposal.targets}
+                  values={proposal.values}
+                  signatures={proposal.signatures}
+                  calldatas={proposal.calldatas}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          {shouldShowVotesTab && (
+            <TabsContent value="votes" className="mt-6 space-y-6">
+              <ProposalVotesList
+                votes={proposal.votes?.map((v) => ({
+                  voter: v.voter,
+                  choice: v.choice,
+                  votes: v.votes,
+                  reason: (v as { reason?: string | null }).reason ?? null,
+                }))}
+              />
+            </TabsContent>
+          )}
+          {shouldShowPropdatesTab && (
+            <TabsContent value="propdates" className="mt-6">
+              <Propdates proposalId={proposal.proposalId} />
+            </TabsContent>
+          )}
+        </Tabs>
+      ) : (
+        <div className="space-y-6">
           <ProposalDescriptionCard description={proposal.description} />
           <Card>
             <CardHeader>
@@ -133,21 +191,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
               />
             </CardContent>
           </Card>
-        </TabsContent>
-        <TabsContent value="votes" className="mt-6 space-y-6">
-          <ProposalVotesList
-            votes={proposal.votes?.map((v) => ({
-              voter: v.voter,
-              choice: v.choice,
-              votes: v.votes,
-              reason: (v as { reason?: string | null }).reason ?? null,
-            }))}
-          />
-        </TabsContent>
-        <TabsContent value="propdates" className="mt-6">
-          <Propdates proposalId={proposal.proposalId} />
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 }
