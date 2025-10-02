@@ -69,12 +69,6 @@ export async function listProposals(limit = 200, page = 0): Promise<Proposal[]> 
 
 export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Proposal | null> {
   try {
-    console.log("[proposals:getProposalByIdOrNumber] start", {
-      idOrNumber,
-      chainId: CHAIN.id,
-      token: GNARS_ADDRESSES.token,
-    });
-
     const isHexId = idOrNumber.startsWith("0x");
 
     // Build the where filter for direct subgraph query
@@ -87,8 +81,6 @@ export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Propo
           dao: GNARS_ADDRESSES.token.toLowerCase(),
         };
 
-    console.log("[proposals:getProposalByIdOrNumber] querying with filter", { where });
-
     // Direct query using SubgraphSDK (same pattern as Nouns Builder)
     const data = await SubgraphSDK.connect(CHAIN.id).proposals({
       where,
@@ -96,10 +88,6 @@ export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Propo
     });
 
     if (!data.proposals || data.proposals.length === 0) {
-      console.warn("[proposals:getProposalByIdOrNumber] no proposal found", {
-        idOrNumber,
-        where,
-      });
       return null;
     }
 
@@ -107,24 +95,12 @@ export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Propo
     const sdkProposal = await formatAndFetchState(CHAIN.id, data.proposals[0]);
 
     if (!sdkProposal) {
-      console.warn("[proposals:getProposalByIdOrNumber] formatAndFetchState returned null", {
-        idOrNumber,
-      });
       return null;
     }
 
     const proposal = transformProposal(sdkProposal);
-    console.log("[proposals:getProposalByIdOrNumber] found", {
-      proposalId: proposal.proposalId,
-      proposalNumber: proposal.proposalNumber,
-    });
-
     return proposal;
   } catch (err) {
-    console.error("[proposals:getProposalByIdOrNumber] error", {
-      idOrNumber,
-      error: err instanceof Error ? { message: err.message, stack: err.stack } : String(err),
-    });
     return null;
   }
 }
