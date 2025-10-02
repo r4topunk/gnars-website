@@ -101,6 +101,10 @@ export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Propo
     const proposal = transformProposal(sdkProposal);
     return proposal;
   } catch (err) {
+    console.error("[proposals:getProposalByIdOrNumber] error", {
+      idOrNumber,
+      error: err instanceof Error ? { message: err.message, stack: err.stack } : String(err),
+    });
     return null;
   }
 }
