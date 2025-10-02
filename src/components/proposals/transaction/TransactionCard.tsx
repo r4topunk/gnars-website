@@ -1,12 +1,12 @@
 "use client";
 
-import { Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { Edit, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { type TransactionFormValues } from "../schema";
 import { cn } from "@/lib/utils";
+import { type TransactionFormValues } from "../schema";
 
 interface TransactionCardProps {
   index: number;
@@ -74,27 +74,16 @@ export function TransactionCard({
   const styles = typeStyles[transaction.type] || typeStyles.custom;
 
   return (
-    <Card className={cn(
-      "relative overflow-hidden",
-      styles.border
-    )}>
+    <Card className={cn("relative overflow-hidden", styles.border)}>
       {/* Subtle gradient background based on type */}
-      <div className={cn(
-        "absolute inset-0 opacity-[0.03]",
-        styles.bg
-      )} />
+      <div className={cn("absolute inset-0 opacity-[0.03]", styles.bg)} />
 
       <CardHeader className="relative">
         <div className="flex items-start justify-between gap-4">
           {/* Left section with icon and main info */}
           <div className="flex items-start gap-3 flex-1 min-w-0">
             {/* Type Icon with gradient background */}
-            <div className={cn(
-              "p-2.5 rounded-xl",
-              styles.bg,
-              "border",
-              styles.border
-            )}>
+            <div className={cn("p-2.5 rounded-xl", styles.bg, "border", styles.border)}>
               <Icon className={cn("h-5 w-5", styles.text)} />
             </div>
 
@@ -102,15 +91,13 @@ export function TransactionCard({
             <div className="flex-1 space-y-2">
               {/* Header with number and type badge */}
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-sm font-semibold text-foreground">
-                  Tx #{index + 1}
-                </h3>
+                <h3 className="text-sm font-semibold text-foreground">Tx #{index + 1}</h3>
                 <Badge
                   variant="secondary"
                   className={cn(
                     "text-xs font-medium px-2 py-0.5",
                     styles.text,
-                    "bg-opacity-10 border-0"
+                    "bg-opacity-10 border-0",
                   )}
                 >
                   {label}
@@ -136,7 +123,7 @@ export function TransactionCard({
                 className={cn(
                   "h-8 w-8 transition-all duration-200",
                   "hover:bg-blue-50 dark:hover:bg-blue-950/30",
-                  "hover:text-blue-600 dark:hover:text-blue-400"
+                  "hover:text-blue-600 dark:hover:text-blue-400",
                 )}
               >
                 <Edit className="h-4 w-4" />
@@ -149,7 +136,7 @@ export function TransactionCard({
                 className={cn(
                   "h-8 w-8 transition-all duration-200",
                   "hover:bg-red-50 dark:hover:bg-red-950/30",
-                  "hover:text-red-600 dark:hover:text-red-400"
+                  "hover:text-red-600 dark:hover:text-red-400",
                 )}
               >
                 <Trash2 className="h-4 w-4" />
@@ -164,11 +151,11 @@ export function TransactionCard({
         <div className="rounded-lg bg-muted/30 p-4 space-y-4">
           {children}
 
-          {variant === "detail" && transaction.rawCalldata !== undefined && (
-            <div className="space-y-2">
+          {variant === "detail" && transaction.rawCalldata !== undefined && transaction.rawCalldata !== "0x" && (
+            <div className="space-y-2 max-w-full">
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Calldata</p>
-              <div className="rounded-md bg-background border px-3 py-2 font-mono text-xs overflow-x-auto">
-                <Link 
+              <div className="rounded-md bg-background border px-3 py-2 font-mono text-xs overflow-x-auto whitespace-pre-wrap break-all max-h-20">
+                <Link
                   href={`https://calldata.swiss-knife.xyz/decoder?calldata=${transaction.rawCalldata}`}
                   target="_blank"
                   rel="noopener noreferrer"
