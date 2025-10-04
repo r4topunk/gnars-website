@@ -25,14 +25,18 @@ export function ProposalCard({
 
   const totalVotes =
     (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
-  const forPercentage = totalVotes > 0 ? (proposal.forVotes / totalVotes) * 100 : 0;
-  const againstPercentage = totalVotes > 0 ? (proposal.againstVotes / totalVotes) * 100 : 0;
-  const abstainPercentage = totalVotes > 0 ? (proposal.abstainVotes / totalVotes) * 100 : 0;
+  
+  // Use threshold as the 100% reference point for the bar
+  // This shows progress toward meeting the quorum requirement
+  const baseValue = Math.max(proposal.quorumVotes, totalVotes, 1);
+  const forPercentage = (proposal.forVotes / baseValue) * 100;
+  const againstPercentage = (proposal.againstVotes / baseValue) * 100;
+  const abstainPercentage = (proposal.abstainVotes / baseValue) * 100;
 
-  const quorumMarkerPercent =
-    proposal.quorumVotes > 0 && totalVotes > 0
-      ? Math.min(100, (proposal.quorumVotes / totalVotes) * 100)
-      : 100;
+  // Threshold marker position as percentage of the base value
+  const quorumMarkerPercent = proposal.quorumVotes > 0 
+    ? (proposal.quorumVotes / baseValue) * 100 
+    : 100;
 
   const timeCreated = formatDistanceToNow(new Date(proposal.timeCreated * 1000), {
     addSuffix: true,
@@ -115,48 +119,33 @@ export function ProposalCard({
                     {isPending && totalVotes === 0 ? (
                       <div className="h-1.5 rounded bg-muted" />
                     ) : (
-                      <div className="flex gap-0.5">
-                        {proposal.forVotes > 0 && (
-                          <div
-                            className={cn(
-                              "h-1.5 bg-green-500",
-                              proposal.againstVotes === 0 && proposal.abstainVotes === 0
-                                ? "rounded"
-                                : "rounded-l",
-                            )}
-                            style={{ width: `${forPercentage}%` }}
-                          />
-                        )}
-                        {proposal.againstVotes > 0 && (
-                          <div
-                            className={cn(
-                              "h-1.5 bg-red-500",
-                              proposal.forVotes === 0 && proposal.abstainVotes === 0
-                                ? "rounded"
-                                : proposal.abstainVotes === 0
-                                  ? "rounded-r"
-                                  : "",
-                            )}
-                            style={{ width: `${againstPercentage}%` }}
-                          />
-                        )}
-                        {proposal.abstainVotes > 0 && (
-                          <div
-                            className={cn(
-                              "h-1.5 bg-gray-300",
-                              proposal.forVotes === 0 && proposal.againstVotes === 0
-                                ? "rounded"
-                                : "rounded-r",
-                            )}
-                            style={{ width: `${abstainPercentage}%` }}
-                          />
-                        )}
+                      <div className="relative h-1.5 rounded bg-muted/50 overflow-hidden">
+                        <div className="absolute inset-0 flex gap-0.5">
+                          {proposal.forVotes > 0 && (
+                            <div
+                              className="h-full bg-green-500"
+                              style={{ width: `${forPercentage}%` }}
+                            />
+                          )}
+                          {proposal.againstVotes > 0 && (
+                            <div
+                              className="h-full bg-red-500"
+                              style={{ width: `${againstPercentage}%` }}
+                            />
+                          )}
+                          {proposal.abstainVotes > 0 && (
+                            <div
+                              className="h-full bg-gray-300"
+                              style={{ width: `${abstainPercentage}%` }}
+                            />
+                          )}
+                        </div>
                       </div>
                     )}
-                    {proposal.quorumVotes > 0 && totalVotes > 0 && (
+                    {proposal.quorumVotes > 0 && totalVotes > proposal.quorumVotes && (
                       <div className="pointer-events-none absolute inset-0">
                         <div
-                          className="absolute top-0 bottom-0 w-1 bg-yellow-300"
+                          className="absolute top-0 bottom-0 w-1 bg-yellow-500"
                           style={{ left: `${quorumMarkerPercent}%`, transform: "translateX(-50%)" }}
                         />
                       </div>
