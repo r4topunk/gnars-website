@@ -31,6 +31,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { ConnectButton } from "@/components/ui/ConnectButton";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 // DAO navigation structure
 const daoNavigation = [
@@ -152,7 +153,10 @@ export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <div className="flex-1">
             <DaoHeader />
           </div>
-          <SidebarTrigger className="ml-2" />
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <SidebarTrigger />
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>

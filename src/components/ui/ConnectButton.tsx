@@ -26,7 +26,7 @@ export function ConnectButton() {
   }, [address]);
 
   return (
-    <DropdownMenu modal={false}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant={isConnected ? "ghost" : "default"} className="w-full cursor-pointer">
           {isConnected && address ? (
