@@ -5,7 +5,7 @@ import { useAccount } from "wagmi";
 import { VotingControls } from "@/components/common/VotingControls";
 import { useVotes } from "@/hooks/useVotes";
 import { usePropdates } from "@/hooks/use-propdates";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, GNARS_ADDRESSES, IS_DEV } from "@/lib/config";
 import { Propdates } from "@/components/proposals/detail/Propdates";
 import { ProposalDescriptionCard } from "@/components/proposals/detail/ProposalDescriptionCard";
 import { ProposalHeader } from "@/components/proposals/detail/ProposalHeader";
@@ -86,7 +86,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const visibleTabsCount = 1 + (shouldShowVotesTab ? 1 : 0) + (shouldShowPropdatesTab ? 1 : 0);
   const shouldShowTabs = visibleTabsCount > 1;
 
-  const shouldShowVotingCard = isConnected && hasVotingPower;
+  // Show voting card if user is connected and has voting power, or in dev mode
+  const shouldShowVotingCard = IS_DEV || (isConnected && hasVotingPower);
 
   const endDate = proposal.endDate ? new Date(proposal.endDate) : undefined;
 

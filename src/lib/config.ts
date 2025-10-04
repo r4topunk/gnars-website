@@ -1,3 +1,6 @@
+// Development mode flag
+export const IS_DEV = process.env.NODE_ENV === "development";
+
 export const CHAIN = {
   id: 8453,
   name: "base",
