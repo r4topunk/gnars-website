@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
-import { Badge } from "@/components/ui/badge";
+import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
 import {
   Table,
   TableBody,
@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface Proposal {
   proposalId: string;
@@ -37,49 +38,6 @@ interface Proposal {
   abstainVotes: string;
   quorumVotes: string;
 }
-
-const getStatusBadgeVariant = (state: Proposal["state"]) => {
-  switch (state) {
-    case "EXECUTED":
-      return "default"; // green
-    case "ACTIVE":
-      return "secondary"; // blue
-    case "EXPIRED":
-      return "outline"; // gray
-    case "DEFEATED":
-    case "VETOED":
-      return "destructive"; // red
-    case "CANCELED":
-      return "outline"; // gray
-    default:
-      return "secondary";
-  }
-};
-
-const getStatusLabel = (state: Proposal["state"]) => {
-  switch (state) {
-    case "PENDING":
-      return "Pending";
-    case "ACTIVE":
-      return "Active";
-    case "DEFEATED":
-      return "Defeated";
-    case "SUCCEEDED":
-      return "Succeeded";
-    case "QUEUED":
-      return "Queued";
-    case "EXECUTED":
-      return "Executed";
-    case "CANCELED":
-      return "Canceled";
-    case "VETOED":
-      return "Vetoed";
-    case "EXPIRED":
-      return "Expired";
-    default:
-      return state;
-  }
-};
 
 export function ProposalList() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -196,9 +154,7 @@ export function ProposalList() {
                 </Link>
               </TableCell>
               <TableCell>
-                <Badge variant={getStatusBadgeVariant(proposal.state)}>
-                  {getStatusLabel(proposal.state)}
-                </Badge>
+                <ProposalStatusBadge status={proposal.state as ProposalStatus} />
               </TableCell>
             </TableRow>
           ))}

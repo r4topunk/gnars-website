@@ -6,10 +6,10 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { MinusCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Proposal } from "@/components/proposals/types";
-import { extractFirstUrl, getStatusConfig, normalizeImageUrl } from "@/components/proposals/utils";
+import { extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils";
+import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProposalStatus } from "@/lib/schemas/proposals";
@@ -22,7 +22,6 @@ export function ProposalCard({
   proposal: Proposal;
   showBanner?: boolean;
 }) {
-  const { Icon, color } = getStatusConfig(proposal.status);
 
   const totalVotes =
     (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
@@ -84,10 +83,7 @@ export function ProposalCard({
                     Prop #{proposal.proposalNumber}
                   </span>
                   <div className="flex-shrink-0">
-                    <Badge className={`${color} text-xs`}>
-                      <Icon className="w-3 h-3 mr-1" />
-                      {proposal.status}
-                    </Badge>
+                    <ProposalStatusBadge status={proposal.status} className="text-xs" />
                   </div>
                 </div>
                 <h4 className="font-semibold text-sm leading-tight sm:truncate pr-2">
