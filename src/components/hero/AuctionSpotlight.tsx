@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { getStatusConfig } from "@/components/proposals/utils";
 import { ProposalStatus } from "@/lib/schemas/proposals";
@@ -224,21 +225,28 @@ export function AuctionSpotlight() {
 
             {isLive ? (
               <div className="flex gap-2">
-                <InputGroup className="flex-[3]">
-                  <InputGroupInput
-                    type="number"
-                    step="0.0001"
-                    min={minNextBidEth}
-                    value={bidAmount}
-                    onChange={(e) => setBidAmount(e.target.value)}
-                    placeholder={minNextBidEth.toFixed(4)}
-                    disabled={!isConnected || isBidding}
-                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <InputGroupAddon align="inline-end">
-                    <InputGroupText>ETH</InputGroupText>
-                  </InputGroupAddon>
-                </InputGroup>
+                <Tooltip open={isLive && !isValidBid && isConnected && !!bidAmount}>
+                  <TooltipTrigger asChild>
+                    <InputGroup className="flex-[3]">
+                      <InputGroupInput
+                        type="number"
+                        step="0.0001"
+                        min={minNextBidEth}
+                        value={bidAmount}
+                        onChange={(e) => setBidAmount(e.target.value)}
+                        placeholder={minNextBidEth.toFixed(4)}
+                        disabled={!isConnected || isBidding}
+                        className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <InputGroupAddon align="inline-end">
+                        <InputGroupText>ETH</InputGroupText>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="font-mono">
+                    Minimum bid: {minNextBidEth} ETH
+                  </TooltipContent>
+                </Tooltip>
                 <Button
                   className="flex-[7] touch-manipulation"
                   disabled={!isConnected || isBidding || !isValidBid}
@@ -276,12 +284,6 @@ export function AuctionSpotlight() {
             {isLive && !isConnected && (
               <p className="text-xs text-muted-foreground text-center">
                 Connect your wallet to place a bid
-              </p>
-            )}
-
-            {isLive && !isValidBid && isConnected && bidAmount && (
-              <p className="text-xs text-red-500 text-center">
-                Minimum bid: {minNextBidEth.toFixed(4)} ETH
               </p>
             )}
 
