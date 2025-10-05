@@ -9,7 +9,7 @@ import { HeroSection } from "@/components/hero-section";
 import { RecentProposals } from "@/components/proposals/recent/RecentProposals";
 import { Proposal } from "@/components/proposals/types";
 import {
-  AuctionTrendChart,
+  ProposalsPerMonthChart,
   MemberActivityChart,
   TreasuryAllocationChart,
 } from "@/components/treasury/DashboardCharts";
@@ -101,7 +101,7 @@ export function HomeClientComponents({ proposals }: HomeClientComponentsProps) {
 
         {/* Analytics Charts Row */}
         <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          <AuctionTrendChart />
+          <ProposalsPerMonthChart />
           <TreasuryAllocationChart />
           <MemberActivityChart />
         </section>

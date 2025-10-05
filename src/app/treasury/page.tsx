@@ -6,7 +6,7 @@ import {
   TreasuryValueSkeleton,
 } from "@/components/skeletons/treasury-skeletons";
 import {
-  AuctionTrendChart,
+  ProposalsPerMonthChart,
   MemberActivityChart,
   TreasuryAllocationChart,
 } from "@/components/treasury/DashboardCharts";
@@ -72,7 +72,7 @@ export default function TreasuryPage() {
               <TreasuryAllocationChart />
             </div>
             <div className="lg:col-span-1 min-w-0">
-              <AuctionTrendChart />
+              <ProposalsPerMonthChart />
             </div>
             <div className="lg:col-span-1 min-w-0">
               <MemberActivityChart />
