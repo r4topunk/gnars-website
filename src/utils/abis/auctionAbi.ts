@@ -1,5 +1,5 @@
-// Minimal Auction ABI for bidding & reading current auction
-// Includes: auction() view, createBid(uint256) payable
+// Auction ABI for bidding, reading, and settling auctions
+// Includes: auction() view, createBid(uint256) payable, settlement functions
 
 const auctionAbi = [
   {
@@ -22,6 +22,27 @@ const auctionAbi = [
     name: "createBid",
     inputs: [{ name: "_tokenId", type: "uint256" }],
     outputs: [],
+  },
+  {
+    type: "function",
+    stateMutability: "nonpayable",
+    name: "settleAuction",
+    inputs: [],
+    outputs: [],
+  },
+  {
+    type: "function",
+    stateMutability: "nonpayable",
+    name: "settleCurrentAndCreateNewAuction",
+    inputs: [],
+    outputs: [],
+  },
+  {
+    type: "function",
+    stateMutability: "view",
+    name: "paused",
+    inputs: [],
+    outputs: [{ name: "", type: "bool" }],
   },
 ] as const;
 

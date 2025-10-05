@@ -2,25 +2,43 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Clock } from "lucide-react";
-import { zeroAddress } from "viem";
+import { parseEther, zeroAddress } from "viem";
 import { useDaoAuction } from "@buildeross/hooks";
+import { useAccount, useReadContract, useSimulateContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { GnarImageTile } from "@/components/auctions/GnarImageTile";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
 import { Progress } from "@/components/ui/progress";
+import { Spinner } from "@/components/ui/spinner";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { getStatusConfig } from "@/components/proposals/utils";
 import { ProposalStatus } from "@/lib/schemas/proposals";
+import auctionAbi from "@/utils/abis/auctionAbi";
+import { toast } from "sonner";
 
 export function AuctionSpotlight() {
+  const { address, isConnected } = useAccount();
   const { highestBid, highestBidder, endTime, startTime, tokenId, tokenUri } = useDaoAuction({
     collectionAddress: GNARS_ADDRESSES.token,
     auctionAddress: GNARS_ADDRESSES.auction,
     chainId: CHAIN.id,
   });
 
+  const [isSettling, setIsSettling] = useState(false);
+  const [settleTxHash, setSettleTxHash] = useState<`0x${string}` | undefined>();
+  const [isBidding, setIsBidding] = useState(false);
+  
+  // Calculate minimum bid (1% increment)
+  const minNextBidEth = useMemo(() => {
+    const current = Number(highestBid ?? "0");
+    if (!Number.isFinite(current) || current <= 0) return 0.01;
+    return Math.max(0, current * 1.01);
+  }, [highestBid]);
+
+  const [bidAmount, setBidAmount] = useState(minNextBidEth.toFixed(4));
   const tokenName = tokenUri?.name;
   const imageUrl = tokenUri?.image
     ? tokenUri.image.startsWith("ipfs://")
@@ -68,6 +86,108 @@ export function AuctionSpotlight() {
   const { color } = getStatusConfig(badgeStatus);
   const badgeLabel = isLive ? (isEndingSoon ? "Ending Soon" : "Live Auction") : "Ended";
 
+  // Update bid amount when minimum changes
+  useEffect(() => {
+    setBidAmount(minNextBidEth.toFixed(4));
+  }, [minNextBidEth]);
+
+  // Validate bid amount
+  const bidAmountNum = parseFloat(bidAmount);
+  const isValidBid = !isNaN(bidAmountNum) && bidAmountNum >= minNextBidEth;
+  
+  const bidAmountWei = useMemo(() => {
+    try {
+      return isValidBid ? parseEther(bidAmount) : undefined;
+    } catch {
+      return undefined;
+    }
+  }, [bidAmount, isValidBid]);
+
+  // Check if auctions are paused
+  const { data: isPaused } = useReadContract({
+    address: GNARS_ADDRESSES.auction as `0x${string}`,
+    abi: auctionAbi,
+    functionName: "paused",
+    chainId: CHAIN.id,
+  });
+
+  const { writeContractAsync } = useWriteContract();
+
+  // Handle bid submission
+  const handleBid = async () => {
+    if (!isConnected || !bidAmountWei || !tokenId || !isValidBid) return;
+
+    try {
+      setIsBidding(true);
+      await writeContractAsync({
+        address: GNARS_ADDRESSES.auction as `0x${string}`,
+        abi: auctionAbi,
+        functionName: "createBid",
+        args: [BigInt(tokenId)],
+        value: bidAmountWei,
+      });
+      toast.success("Bid submitted", {
+        description: "Waiting for confirmation...",
+      });
+      // Optionally wait for confirmation and reload
+      setTimeout(() => window.location.reload(), 3000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to submit bid";
+      toast.error("Bid failed", { description: message });
+    } finally {
+      setIsBidding(false);
+    }
+  };
+
+  // Settlement simulation - only when auction has ended
+  const isAuctionEnded = !isLive && timeLeft.total <= 0;
+  const { data: settleData, error: settleError } = useSimulateContract({
+    address: GNARS_ADDRESSES.auction as `0x${string}`,
+    abi: auctionAbi,
+    functionName: isPaused ? "settleAuction" : "settleCurrentAndCreateNewAuction",
+    chainId: CHAIN.id,
+    query: { enabled: isAuctionEnded },
+  });
+
+  // Check if connected user is the winner
+  const isWinner =
+    address && highestBidder && address.toLowerCase() === highestBidder.toLowerCase();
+
+  // Wait for settlement transaction confirmation
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash: settleTxHash,
+    chainId: CHAIN.id,
+  });
+
+  // Settlement handler
+  const handleSettle = async () => {
+    if (!settleData || settleError) return;
+
+    try {
+      setIsSettling(true);
+      const hash = await writeContractAsync(settleData.request);
+      setSettleTxHash(hash);
+      toast.success("Settlement submitted", {
+        description: "Waiting for confirmation...",
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to settle auction";
+      toast.error("Settlement failed", { description: message });
+      setIsSettling(false);
+      setSettleTxHash(undefined);
+    }
+  };
+
+  // Handle successful confirmation
+  useEffect(() => {
+    if (isConfirmed && settleTxHash) {
+      toast.success("Settlement confirmed!", {
+        description: "Reloading to show new auction...",
+      });
+      setTimeout(() => window.location.reload(), 2000);
+    }
+  }, [isConfirmed, settleTxHash]);
+
   return (
     <Card className="w-full max-w-md bg-card">
       <CardContent className="py-2">
@@ -102,11 +222,72 @@ export function AuctionSpotlight() {
 
             <Progress value={progressPercentage} className="h-2" />
 
-            <Button className="w-full touch-manipulation">Place Bid</Button>
+            {isLive ? (
+              <div className="flex gap-2">
+                <InputGroup className="flex-[3]">
+                  <InputGroupInput
+                    type="number"
+                    step="0.0001"
+                    min={minNextBidEth}
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                    placeholder={minNextBidEth.toFixed(4)}
+                    disabled={!isConnected || isBidding}
+                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupText>ETH</InputGroupText>
+                  </InputGroupAddon>
+                </InputGroup>
+                <Button
+                  className="flex-[7] touch-manipulation"
+                  disabled={!isConnected || isBidding || !isValidBid}
+                  onClick={handleBid}
+                >
+                  {isBidding ? (
+                    <>
+                      <Spinner />
+                      Bidding...
+                    </>
+                  ) : (
+                    "Place Bid"
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                className="w-full touch-manipulation"
+                disabled={isSettling || isConfirming || !!settleError}
+                onClick={handleSettle}
+              >
+                {isSettling || isConfirming ? (
+                  <>
+                    <Spinner />
+                    {isConfirming ? "Confirming..." : "Settling…"}
+                  </>
+                ) : isWinner ? (
+                  "Claim NFT"
+                ) : (
+                  "Settle Auction"
+                )}
+              </Button>
+            )}
+
+            {isLive && !isConnected && (
+              <p className="text-xs text-muted-foreground text-center">
+                Connect your wallet to place a bid
+              </p>
+            )}
+
+            {isLive && !isValidBid && isConnected && bidAmount && (
+              <p className="text-xs text-red-500 text-center">
+                Minimum bid: {minNextBidEth.toFixed(4)} ETH
+              </p>
+            )}
 
             {highestBidder && highestBidder !== zeroAddress && (
               <div className="text-center text-xs text-muted-foreground">
-                <span className="mr-1">Leading bidder:</span>
+                <span className="mr-1">{isLive ? "Leading bidder:" : "Winner:"}</span>
                 <AddressDisplay
                   address={highestBidder}
                   variant="compact"
