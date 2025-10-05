@@ -3,7 +3,8 @@
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { Address, Hex } from "viem";
-import { useAccount, useSimulateContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { base } from "wagmi/chains";
+import { useAccount, useSimulateContract, useWaitForTransactionReceipt, useWriteContract, useSwitchChain } from "wagmi";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
 
@@ -22,7 +23,8 @@ export interface UseCastVoteArgs {
 }
 
 export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteArgs) {
-  const { address, chainId, isConnected } = useAccount();
+  const { address, chain, isConnected } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
   const governorAddress = GNARS_ADDRESSES.governor as Address;
 
   const isReady = Boolean(proposalId) && isConnected && Boolean(address);
@@ -37,13 +39,13 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
     query: {
       enabled: isReady,
     },
-    chainId,
+    chainId: base.id,
   });
 
   const { writeContractAsync, data: pendingHash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash: pendingHash,
-    chainId,
+    chainId: base.id,
     query: {
       enabled: Boolean(pendingHash),
     },
@@ -60,6 +62,12 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
       const trimmedReason = reason?.trim();
 
       try {
+        // Check if on correct network, switch if needed
+        if (chain?.id !== base.id) {
+          toast.info("Switching to Base network...");
+          await switchChainAsync({ chainId: base.id });
+        }
+
         let txHash: Hex;
 
         if (trimmedReason && trimmedReason.length > 0) {
@@ -68,7 +76,7 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
             address: governorAddress,
             functionName: "castVoteWithReason",
             args: [proposalId, supportValue, trimmedReason],
-            chainId,
+            chainId: base.id,
           });
         } else {
           txHash = await writeContractAsync({
@@ -76,7 +84,7 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
             address: governorAddress,
             functionName: "castVote",
             args: [proposalId, supportValue],
-            chainId,
+            chainId: base.id,
           });
         }
 
@@ -98,7 +106,7 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
         });
       }
     },
-    [chainId, governorAddress, isReady, onSubmitted, onSuccess, proposalId, writeContractAsync],
+    [chain, switchChainAsync, governorAddress, isReady, onSubmitted, onSuccess, proposalId, writeContractAsync],
   );
 
   return {

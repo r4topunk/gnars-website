@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Clock } from "lucide-react";
 import { parseEther, zeroAddress } from "viem";
+import { base } from "wagmi/chains";
 import { useDaoAuction } from "@buildeross/hooks";
-import { useAccount, useReadContract, useSimulateContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useReadContract, useSimulateContract, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from "wagmi";
 import { GnarImageTile } from "@/components/auctions/GnarImageTile";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +22,8 @@ import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
 
 export function AuctionSpotlight() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
   const { highestBid, highestBidder, endTime, startTime, tokenId, tokenUri } = useDaoAuction({
     collectionAddress: GNARS_ADDRESSES.token,
     auctionAddress: GNARS_ADDRESSES.auction,
@@ -120,12 +122,20 @@ export function AuctionSpotlight() {
 
     try {
       setIsBidding(true);
+      
+      // Check if on correct network, switch if needed
+      if (chain?.id !== base.id) {
+        toast.info("Switching to Base network...");
+        await switchChainAsync({ chainId: base.id });
+      }
+      
       await writeContractAsync({
         address: GNARS_ADDRESSES.auction as `0x${string}`,
         abi: auctionAbi,
         functionName: "createBid",
         args: [BigInt(tokenId)],
         value: bidAmountWei,
+        chainId: base.id,
       });
       toast.success("Bid submitted", {
         description: "Waiting for confirmation...",
@@ -166,7 +176,17 @@ export function AuctionSpotlight() {
 
     try {
       setIsSettling(true);
-      const hash = await writeContractAsync(settleData.request);
+      
+      // Check if on correct network, switch if needed
+      if (chain?.id !== base.id) {
+        toast.info("Switching to Base network...");
+        await switchChainAsync({ chainId: base.id });
+      }
+      
+      const hash = await writeContractAsync({
+        ...settleData.request,
+        chainId: base.id,
+      });
       setSettleTxHash(hash);
       toast.success("Settlement submitted", {
         description: "Waiting for confirmation...",

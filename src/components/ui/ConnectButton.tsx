@@ -45,7 +45,7 @@ export function ConnectButton() {
           <ChevronDown className="ml-2 h-4 w-4 opacity-70" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side="top" sideOffset={8} className="min-w-56">
+      <DropdownMenuContent side="top">
         {!isConnected ? (
           <>
             {connectors.map((connector) => (

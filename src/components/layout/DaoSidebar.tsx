@@ -15,23 +15,26 @@ import {
   Vote,
   Wallet,
 } from "lucide-react";
+import { toast } from "sonner";
+import { useAccount, useSwitchChain } from "wagmi";
+import { base } from "wagmi/chains";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
+import { ConnectButton } from "@/components/ui/ConnectButton";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarFooter,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { ConnectButton } from "@/components/ui/ConnectButton";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 // DAO navigation structure
 const daoNavigation = [
@@ -136,6 +139,8 @@ function DaoHeader() {
 
 export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const { isConnected, chain } = useAccount();
+  const { switchChain, isPending } = useSwitchChain();
 
   const isRouteActive = React.useCallback(
     (url: string) => {
@@ -145,6 +150,24 @@ export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     [pathname],
   );
+
+  const isWrongNetwork = isConnected && chain?.id !== base.id;
+
+  const handleSwitchNetwork = React.useCallback(() => {
+    if (isPending) return;
+
+    switchChain(
+      { chainId: base.id },
+      {
+        onSuccess: () => {
+          toast.success("Successfully switched to Base");
+        },
+        onError: (error) => {
+          toast.error(`Failed to switch network: ${error.message}`);
+        },
+      },
+    );
+  }, [switchChain, isPending]);
 
   return (
     <Sidebar {...props}>
@@ -188,8 +211,19 @@ export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ))}
       </SidebarContent>
       <SidebarFooter className="border-t p-4">
-        <div className="flex items-center justify-between gap-2">
-          <ConnectButton />
+        <div className="flex flex-col gap-2 w-full justify-center items-center">
+          {isWrongNetwork && (
+            <Badge
+              variant="secondary"
+              className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+              onClick={handleSwitchNetwork}
+            >
+              {isPending ? "Switching..." : "Switch to Base"}
+            </Badge>
+          )}
+          <div className="flex items-center justify-between gap-2 w-full">
+            <ConnectButton />
+          </div>
         </div>
       </SidebarFooter>
       <SidebarRail />

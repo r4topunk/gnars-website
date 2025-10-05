@@ -3,7 +3,9 @@
 import { useTransition } from "react";
 import { AlertTriangle, CheckCircle, ExternalLink, Loader2 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { base } from "wagmi/chains";
+import { useAccount, useWaitForTransactionReceipt, useWriteContract, useSwitchChain } from "wagmi";
+import { toast } from "sonner";
 import { TransactionsSummaryList } from "@/components/proposals/preview/TransactionsSummaryList";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -29,6 +31,8 @@ const governorAbi = [
 export function ProposalPreview() {
   const { getValues, handleSubmit } = useFormContext<ProposalFormValues>();
   const [isActionPending, startTransition] = useTransition();
+  const { chain } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
 
   // Watch form values for reactive preview
   const watchedData = useWatch<ProposalFormValues>();
@@ -36,6 +40,7 @@ export function ProposalPreview() {
   const { writeContract, data: hash, isPending: isWalletPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
+    chainId: base.id,
   });
 
   // Get current form data
@@ -44,6 +49,12 @@ export function ProposalPreview() {
   const handleFormSubmit = async (formData: ProposalFormValues) => {
     startTransition(async () => {
       try {
+        // Check if on correct network, switch if needed
+        if (chain?.id !== base.id) {
+          toast.info("Switching to Base network...");
+          await switchChainAsync({ chainId: base.id });
+        }
+
         const preparedTx = await createProposalAction(formData);
 
         await writeContract({
@@ -56,10 +67,13 @@ export function ProposalPreview() {
             preparedTx.calldatas,
             preparedTx.description,
           ],
+          chainId: base.id,
         });
       } catch (error) {
         console.error("Error submitting proposal:", error);
-        // TODO: Show an error to the user
+        toast.error("Failed to submit proposal", {
+          description: error instanceof Error ? error.message : "An unknown error occurred",
+        });
       }
     });
   };
