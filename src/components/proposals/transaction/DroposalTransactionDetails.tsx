@@ -2,6 +2,8 @@
 
 import { Badge } from "@/components/ui/badge";
 import { type TransactionFormValues } from "../schema";
+import { DroposalMedia } from "@/components/droposals/detail/DroposalMedia";
+import { ipfsToHttp } from "@/lib/ipfs";
 
 interface DroposalTransactionDetailsProps {
   transaction: TransactionFormValues;
@@ -10,10 +12,23 @@ interface DroposalTransactionDetailsProps {
 export function DroposalTransactionDetails({ transaction }: DroposalTransactionDetailsProps) {
   if (transaction.type !== "droposal") return null;
 
-  const { name, symbol, price } = transaction;
+  const { name, symbol, price, animationUri, imageUri } = transaction;
+
+  // Convert IPFS URIs to HTTP URLs
+  const mediaAnimation = animationUri ? ipfsToHttp(animationUri) : undefined;
+  const mediaImage = imageUri ? ipfsToHttp(imageUri) : undefined;
 
   return (
     <div className="space-y-4">
+      {/* Media Display */}
+      {(mediaAnimation || mediaImage) && (
+        <DroposalMedia
+          mediaAnimation={mediaAnimation}
+          mediaImage={mediaImage}
+          alt={name || "Droposal media"}
+        />
+      )}
+
       {/* Collection Info Card */}
       <div className="px-4 py-3 rounded-lg bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-200/50 dark:border-amber-800/50">
         <div className="space-y-3">

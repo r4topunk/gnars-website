@@ -327,6 +327,8 @@ function mapProposalTransaction(
         symbol: decoded?.symbol ?? "",
         description: decoded?.description ?? "",
         mediaUrl: decoded?.animationURI ?? "",
+        animationUri: decoded?.animationURI ?? "",
+        imageUri: decoded?.imageURI ?? "",
         price: decoded?.saleConfig ? formatEther(decoded.saleConfig.publicSalePrice) : "0",
         editionType: "fixed",
         payoutAddress: decoded?.fundsRecipient ?? "",

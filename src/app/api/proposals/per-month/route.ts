@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SubgraphSDK } from "@buildeross/sdk";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 
+export const dynamic = 'force-dynamic'; // Required for searchParams in Next.js 15
 export const revalidate = 300; // 5 minutes
 
 // In-memory cache to reduce subgraph queries
