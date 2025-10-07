@@ -12,9 +12,12 @@ import { ProposalHeader } from "@/components/proposals/detail/ProposalHeader";
 import { ProposalVotesList } from "@/components/proposals/detail/ProposalVotesList";
 import { ProposalTransactionVisualization } from "@/components/proposals/transaction/ProposalTransactionVisualization";
 import { ProposalMetrics } from "@/components/proposals/ProposalMetrics";
+import { ProposalActions } from "@/components/proposals/detail/ProposalActions";
 import { Proposal } from "@/components/proposals/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { isProposalSuccessful } from "@/lib/utils/proposal-state";
+import { useRouter } from "next/navigation";
 
 interface ProposalDetailProps {
   proposal: Proposal;
@@ -46,6 +49,7 @@ export function ProposalDetailSkeleton() {
 }
 
 export function ProposalDetail({ proposal }: ProposalDetailProps) {
+  const router = useRouter();
   const { address, isConnected } = useAccount();
   const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
 
@@ -55,6 +59,12 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   }, [address, proposal.votes]);
 
   const currentVote = userVote ?? initialVote;
+
+  // Handler for proposal actions success (queue/execute)
+  const handleActionSuccess = () => {
+    // Refresh the page to get updated proposal data
+    router.refresh();
+  };
 
   const {
     hasVotingPower,
@@ -86,8 +96,9 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const visibleTabsCount = 1 + (shouldShowVotesTab ? 1 : 0) + (shouldShowPropdatesTab ? 1 : 0);
   const shouldShowTabs = visibleTabsCount > 1;
 
-  // Show voting card if user is connected and has voting power, or in dev mode
-  const shouldShowVotingCard = IS_DEV || (isConnected && hasVotingPower);
+  // Show voting card only if proposal is active AND (user is connected and has voting power, or in dev mode)
+  const isProposalActive = proposal.status === "Active";
+  const shouldShowVotingCard = isProposalActive && (IS_DEV || (isConnected && hasVotingPower));
 
   const endDate = proposal.endDate ? new Date(proposal.endDate) : undefined;
 
@@ -129,6 +140,9 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
           </CardContent>
         </Card>
       ) : null}
+      {isProposalSuccessful(proposal.status) && (
+        <ProposalActions proposal={proposal} onActionSuccess={handleActionSuccess} />
+      )}
       {shouldShowTabs ? (
         <Tabs defaultValue="details" className="w-full">
           <div className="overflow-x-auto">

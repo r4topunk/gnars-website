@@ -52,6 +52,11 @@ export const proposalSchema = z.object({
   voteEnd: z.string(), // ISO date string
   expiresAt: z.string().optional(), // ISO date string
   timeCreated: z.number(),
+  // Queue/Execute timing fields
+  executableFrom: z.string().optional(), // ISO date string - ETA when proposal can be executed
+  queuedAt: z.string().optional(), // ISO date string - When proposal was queued
+  executedAt: z.string().optional(), // ISO date string - When proposal was executed
+  descriptionHash: z.string().optional(), // Hash needed for execute call
 });
 
 export function getProposalStatus(state: unknown): ProposalStatus {

@@ -53,6 +53,16 @@ function transformProposal(p: SdkProposal): Proposal {
     voteEnd: new Date(Number(p.voteEnd ?? 0) * 1000).toISOString(),
     expiresAt: p.expiresAt ? new Date(Number(p.expiresAt) * 1000).toISOString() : undefined,
     timeCreated: Number(p.timeCreated ?? 0),
+    // Queue/Execute timing fields
+    executableFrom:
+      "executableFrom" in p && p.executableFrom
+        ? new Date(Number(p.executableFrom) * 1000).toISOString()
+        : undefined,
+    queuedAt:
+      "queuedAt" in p && p.queuedAt ? new Date(Number(p.queuedAt) * 1000).toISOString() : undefined,
+    executedAt:
+      "executedAt" in p && p.executedAt ? new Date(Number(p.executedAt) * 1000).toISOString() : undefined,
+    descriptionHash: "descriptionHash" in p ? String(p.descriptionHash ?? "") : "",
   };
 }
 
