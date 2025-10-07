@@ -3,7 +3,8 @@
 import { InfoIcon } from "lucide-react";
 import { useAccount } from "wagmi";
 import { Countdown } from "@/components/common/Countdown";
-import { GovernorContractButton } from "@/components/proposals/GovernorContractButton";
+import { QueueProposalButton } from "@/components/proposals/QueueProposalButton";
+import { ExecuteProposalButton } from "@/components/proposals/ExecuteProposalButton";
 import { Proposal } from "@/components/proposals/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -83,8 +84,7 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
             <>
               <div className="flex-shrink-0">
                 {canPerformAction ? (
-                  <GovernorContractButton
-                    functionName="queue"
+                  <QueueProposalButton
                     args={[proposalId as `0x${string}`]}
                     proposalId={proposalId}
                     buttonText="Queue Proposal"
@@ -142,8 +142,7 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
             <>
               <div className="flex-shrink-0">
                 {canPerformAction ? (
-                  <GovernorContractButton
-                    functionName="execute"
+                  <ExecuteProposalButton
                     args={[
                       targets as `0x${string}`[],
                       values.map((v) => BigInt(v)),
