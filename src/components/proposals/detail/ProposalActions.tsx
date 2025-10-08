@@ -1,6 +1,6 @@
 "use client";
 
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, Timer } from "lucide-react";
 import { useAccount } from "wagmi";
 import { Countdown } from "@/components/common/Countdown";
 import { QueueProposalButton } from "@/components/proposals/QueueProposalButton";
@@ -8,7 +8,8 @@ import { ExecuteProposalButton } from "@/components/proposals/ExecuteProposalBut
 import { Proposal } from "@/components/proposals/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useVotes } from "@/hooks/useVotes";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { ProposalStatus } from "@/lib/schemas/proposals";
@@ -76,9 +77,8 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
   };
 
   return (
-    <Card className={getBorderColor()}>
-      <CardContent>
-        <div className="flex flex-col md:flex-row gap-4 md:items-center">
+    <Card className={`${getBorderColor()} p-6 w-fit mx-auto`}>
+      <div className="flex flex-col md:flex-row gap-4 md:items-center">
           {/* Succeeded state - show Queue button */}
           {status === ProposalStatus.SUCCEEDED && (
             <>
@@ -121,20 +121,26 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
           {status === ProposalStatus.QUEUED &&
             !isProposalExecutable(proposal) &&
             executableFrom && (
-              <>
-                <div className="flex-1">
-                  <p className="text-center text-sm text-muted-foreground">
-                    Time remaining before this proposal can be executed
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center border border-border rounded-lg px-4 py-3 bg-background min-w-[124px]">
-                    <span className="text-lg font-semibold tabular-nums">
-                      <Countdown end={executableFrom} onEnd={handleSuccess} />
-                    </span>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 shrink-0">
+                    <Timer className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium">Execution Timelock</p>
+                    <p className="text-xs text-muted-foreground">
+                      Waiting for security delay
+                    </p>
                   </div>
                 </div>
-              </>
+                
+                <Badge 
+                  variant="secondary" 
+                  className="text-lg font-bold tabular-nums px-6 py-2"
+                >
+                  <Countdown end={executableFrom} onEnd={handleSuccess} />
+                </Badge>
+              </div>
             )}
 
           {/* Queued and ready to execute */}
@@ -194,7 +200,6 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
             </>
           )}
         </div>
-      </CardContent>
     </Card>
   );
 }
