@@ -89,8 +89,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const hasPropdates = (propdates?.length ?? 0) > 0;
   const shouldShowPropdatesTab = hasPropdates || isProposalOwner;
 
-  // Show votes tab only if the proposal is active
-  const shouldShowVotesTab = proposal.status === "Active";
+  // Show votes tab if there are any votes (for any status: Active, Executed, Defeated, etc.)
+  const shouldShowVotesTab = (proposal.votes?.length ?? 0) > 0;
 
   // Count visible tabs to determine if we should show tabs at all
   const visibleTabsCount = 1 + (shouldShowVotesTab ? 1 : 0) + (shouldShowPropdatesTab ? 1 : 0);
