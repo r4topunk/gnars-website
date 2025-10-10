@@ -606,3 +606,181 @@ export async function fetchNonCanceledProposalsCount(): Promise<number> {
   }
   return count;
 }
+
+// Active Members Service
+
+export type ActiveMember = {
+  address: string;
+  delegate: string;
+  tokenCount: number;
+  votesInWindow: number;
+};
+
+type VotesByProposalsQuery = {
+  proposalVotes: Array<{
+    voter: string;
+    proposal: {
+      id: string;
+    };
+  }>;
+};
+
+const VOTES_BY_PROPOSALS_GQL = /* GraphQL */ `
+  query VotesByProposals($dao: ID!, $proposalIds: [String!]!, $first: Int!, $skip: Int!) {
+    proposalVotes(
+      where: { proposal_: { dao: $dao }, proposal_in: $proposalIds }
+      orderBy: timestamp
+      orderDirection: desc
+      first: $first
+      skip: $skip
+    ) {
+      voter
+      proposal {
+        id
+      }
+    }
+  }
+`;
+
+type OwnersByAddressesQuery = {
+  daotokenOwners: Array<{
+    owner: string;
+    delegate: string;
+    daoTokenCount: number;
+  }>;
+};
+
+const OWNERS_BY_ADDRESSES_GQL = /* GraphQL */ `
+  query OwnersByAddresses($dao: ID!, $owners: [Bytes!]!, $first: Int!, $skip: Int!) {
+    daotokenOwners(
+      where: { dao: $dao, owner_in: $owners }
+      orderBy: daoTokenCount
+      orderDirection: desc
+      first: $first
+      skip: $skip
+    ) {
+      owner
+      delegate
+      daoTokenCount
+    }
+  }
+`;
+
+/**
+ * Fetch active members: voters who voted in at least `threshold` of the last `windowSize` non-canceled proposals.
+ * Returns enriched list with address, delegate, tokenCount, and votesInWindow.
+ */
+export async function fetchActiveMembers(
+  windowSize = 10,
+  threshold = 5,
+): Promise<ActiveMember[]> {
+  const dao = GNARS_ADDRESSES.token.toLowerCase();
+
+  // Step 1: Fetch last N non-canceled proposals
+  const proposalsData = await subgraphQuery<NonCanceledProposalsQuery>(
+    NON_CANCELED_PROPOSALS_GQL,
+    {
+      dao,
+      first: windowSize,
+      skip: 0,
+    },
+  );
+  const proposals = proposalsData.proposals || [];
+  
+  if (proposals.length === 0) {
+    return [];
+  }
+
+  const proposalIds = proposals.map((p) => p.id);
+
+  // Step 2: Fetch all votes for these proposals (paginated)
+  const voterProposalMap = new Map<string, Set<string>>();
+  let skip = 0;
+  const PAGE_SIZE = 1000;
+
+  while (true) {
+    const votesData = await subgraphQuery<VotesByProposalsQuery>(VOTES_BY_PROPOSALS_GQL, {
+      dao,
+      proposalIds,
+      first: PAGE_SIZE,
+      skip,
+    });
+    const votes = votesData.proposalVotes || [];
+
+    for (const vote of votes) {
+      const voter = vote.voter.toLowerCase();
+      const proposalId = vote.proposal.id;
+      
+      if (!voterProposalMap.has(voter)) {
+        voterProposalMap.set(voter, new Set());
+      }
+      voterProposalMap.get(voter)!.add(proposalId);
+    }
+
+    if (votes.length < PAGE_SIZE) break;
+    skip += PAGE_SIZE;
+  }
+
+  // Step 3: Filter voters with >= threshold unique proposals voted
+  const qualifiedVoters: Array<{ address: string; votesInWindow: number }> = [];
+  for (const [voter, proposalSet] of voterProposalMap.entries()) {
+    if (proposalSet.size >= threshold) {
+      qualifiedVoters.push({ address: voter, votesInWindow: proposalSet.size });
+    }
+  }
+
+  if (qualifiedVoters.length === 0) {
+    return [];
+  }
+
+  // Step 4: Enrich with delegate and tokenCount (batched by 100)
+  const addresses = qualifiedVoters.map((v) => v.address);
+  const chunks = chunkArray(addresses, 100);
+  const enrichmentMap = new Map<string, { delegate: string; tokenCount: number }>();
+
+  for (const ownerChunk of chunks) {
+    let chunkSkip = 0;
+    while (true) {
+      const ownersData = await subgraphQuery<OwnersByAddressesQuery>(OWNERS_BY_ADDRESSES_GQL, {
+        dao,
+        owners: ownerChunk,
+        first: 1000,
+        skip: chunkSkip,
+      });
+      const owners = ownersData.daotokenOwners || [];
+
+      for (const owner of owners) {
+        enrichmentMap.set(owner.owner.toLowerCase(), {
+          delegate: (owner.delegate || owner.owner).toLowerCase(),
+          tokenCount: Number(owner.daoTokenCount || 0),
+        });
+      }
+
+      if (owners.length < 1000) break;
+      chunkSkip += 1000;
+    }
+  }
+
+  // Step 5: Build final list with defaults for missing enrichment
+  const result: ActiveMember[] = qualifiedVoters.map((v) => {
+    const enrichment = enrichmentMap.get(v.address) || {
+      delegate: v.address,
+      tokenCount: 0,
+    };
+    return {
+      address: v.address,
+      delegate: enrichment.delegate,
+      tokenCount: enrichment.tokenCount,
+      votesInWindow: v.votesInWindow,
+    };
+  });
+
+  // Step 6: Sort by votesInWindow desc, tokenCount desc, address asc
+  result.sort((a, b) => {
+    if (b.votesInWindow !== a.votesInWindow) return b.votesInWindow - a.votesInWindow;
+    if (b.tokenCount !== a.tokenCount) return b.tokenCount - a.tokenCount;
+    return a.address.localeCompare(b.address);
+  });
+
+  return result;
+}
