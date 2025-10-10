@@ -181,6 +181,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
                   votes: v.votes,
                   reason: (v as { reason?: string | null }).reason ?? null,
                 }))}
+                proposalId={proposal.proposalId}
+                isActive={proposal.status === "Active"}
               />
             </TabsContent>
           )}

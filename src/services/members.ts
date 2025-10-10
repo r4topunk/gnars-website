@@ -611,8 +611,7 @@ export async function fetchNonCanceledProposalsCount(): Promise<number> {
 
 export type ActiveMember = {
   address: string;
-  delegate: string;
-  tokenCount: number;
+  votingPower: number;
   votesInWindow: number;
 };
 
@@ -642,25 +641,23 @@ const VOTES_BY_PROPOSALS_GQL = /* GraphQL */ `
   }
 `;
 
-type OwnersByAddressesQuery = {
-  daotokenOwners: Array<{
-    owner: string;
-    delegate: string;
+type VotersByAddressesQuery = {
+  daovoters: Array<{
+    voter: string;
     daoTokenCount: number;
   }>;
 };
 
-const OWNERS_BY_ADDRESSES_GQL = /* GraphQL */ `
-  query OwnersByAddresses($dao: ID!, $owners: [Bytes!]!, $first: Int!, $skip: Int!) {
-    daotokenOwners(
-      where: { dao: $dao, owner_in: $owners }
+const VOTERS_BY_ADDRESSES_GQL = /* GraphQL */ `
+  query VotersByAddresses($dao: ID!, $voters: [Bytes!]!, $first: Int!, $skip: Int!) {
+    daovoters(
+      where: { dao: $dao, voter_in: $voters }
       orderBy: daoTokenCount
       orderDirection: desc
       first: $first
       skip: $skip
     ) {
-      owner
-      delegate
+      voter
       daoTokenCount
     }
   }
@@ -668,7 +665,7 @@ const OWNERS_BY_ADDRESSES_GQL = /* GraphQL */ `
 
 /**
  * Fetch active members: voters who voted in at least `threshold` of the last `windowSize` non-canceled proposals.
- * Returns enriched list with address, delegate, tokenCount, and votesInWindow.
+ * Returns enriched list with address, votingPower (including delegated votes), and votesInWindow.
  */
 export async function fetchActiveMembers(
   windowSize = 10,
@@ -733,52 +730,51 @@ export async function fetchActiveMembers(
     return [];
   }
 
-  // Step 4: Enrich with delegate and tokenCount (batched by 100)
+  // Step 4: Enrich with voting power (batched by 100)
   const addresses = qualifiedVoters.map((v) => v.address);
   const chunks = chunkArray(addresses, 100);
-  const enrichmentMap = new Map<string, { delegate: string; tokenCount: number }>();
+  const enrichmentMap = new Map<string, { votingPower: number }>();
 
-  for (const ownerChunk of chunks) {
+  for (const voterChunk of chunks) {
     let chunkSkip = 0;
     while (true) {
-      const ownersData = await subgraphQuery<OwnersByAddressesQuery>(OWNERS_BY_ADDRESSES_GQL, {
+      const votersData = await subgraphQuery<VotersByAddressesQuery>(VOTERS_BY_ADDRESSES_GQL, {
         dao,
-        owners: ownerChunk,
+        voters: voterChunk,
         first: 1000,
         skip: chunkSkip,
       });
-      const owners = ownersData.daotokenOwners || [];
+      const voters = votersData.daovoters || [];
 
-      for (const owner of owners) {
-        enrichmentMap.set(owner.owner.toLowerCase(), {
-          delegate: (owner.delegate || owner.owner).toLowerCase(),
-          tokenCount: Number(owner.daoTokenCount || 0),
+      for (const voter of voters) {
+        enrichmentMap.set(voter.voter.toLowerCase(), {
+          votingPower: Number(voter.daoTokenCount || 0),
         });
       }
 
-      if (owners.length < 1000) break;
+      if (voters.length < 1000) break;
       chunkSkip += 1000;
     }
   }
 
-  // Step 5: Build final list with defaults for missing enrichment
-  const result: ActiveMember[] = qualifiedVoters.map((v) => {
-    const enrichment = enrichmentMap.get(v.address) || {
-      delegate: v.address,
-      tokenCount: 0,
-    };
-    return {
-      address: v.address,
-      delegate: enrichment.delegate,
-      tokenCount: enrichment.tokenCount,
-      votesInWindow: v.votesInWindow,
-    };
-  });
+  // Step 5: Build final list with defaults for missing enrichment, filter out 0 voting power
+  const result: ActiveMember[] = qualifiedVoters
+    .map((v) => {
+      const enrichment = enrichmentMap.get(v.address) || {
+        votingPower: 0,
+      };
+      return {
+        address: v.address,
+        votingPower: enrichment.votingPower,
+        votesInWindow: v.votesInWindow,
+      };
+    })
+    .filter((member) => member.votingPower > 0); // Exclude members with 0 voting power
 
-  // Step 6: Sort by votesInWindow desc, tokenCount desc, address asc
+  // Step 6: Sort by votingPower desc, votesInWindow desc, address asc
   result.sort((a, b) => {
+    if (b.votingPower !== a.votingPower) return b.votingPower - a.votingPower;
     if (b.votesInWindow !== a.votesInWindow) return b.votesInWindow - a.votesInWindow;
-    if (b.tokenCount !== a.tokenCount) return b.tokenCount - a.tokenCount;
     return a.address.localeCompare(b.address);
   });
 

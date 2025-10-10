@@ -2,11 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import type { ActiveMember } from "@/services/members";
 
 async function fetchActiveMembersFromAPI(
-  window: number = 10,
+  windowSize: number = 10,
   threshold: number = 5,
 ): Promise<ActiveMember[]> {
   const url = new URL("/api/members/active", window.location.origin);
-  url.searchParams.set("window", String(window));
+  url.searchParams.set("window", String(windowSize));
   url.searchParams.set("threshold", String(threshold));
 
   const res = await fetch(url.toString(), { cache: "no-store" });
@@ -23,12 +23,13 @@ async function fetchActiveMembersFromAPI(
   return json.activeMembers;
 }
 
-export function useActiveMembers(window: number = 10, threshold: number = 5) {
+export function useActiveMembers(windowSize: number = 10, threshold: number = 5, enabled: boolean = true) {
   return useQuery({
-    queryKey: ["active-members", window, threshold],
-    queryFn: () => fetchActiveMembersFromAPI(window, threshold),
+    queryKey: ["active-members", windowSize, threshold],
+    queryFn: () => fetchActiveMembersFromAPI(windowSize, threshold),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
+    enabled,
   });
 }
 
