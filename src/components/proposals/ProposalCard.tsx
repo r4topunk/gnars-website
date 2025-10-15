@@ -41,8 +41,6 @@ export function ProposalCard({
   const timeCreated = formatDistanceToNow(new Date(proposal.timeCreated * 1000), {
     addSuffix: true,
   });
-  const voteEndTime = new Date(proposal.voteEnd);
-  const isVotingActive = proposal.status === ProposalStatus.ACTIVE && voteEndTime > new Date();
   const isPending = proposal.status === ProposalStatus.PENDING;
 
   const bannerUrl = normalizeImageUrl(extractFirstUrl(proposal.description));
@@ -108,15 +106,16 @@ export function ProposalCard({
               </div>
             </div>
 
-            {(totalVotes > 0 || isPending) && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Voting Progress</span>
-                  <span className={cn(isPending && "italic")}>{isPending ? "not started" : `${totalVotes} votes`}</span>
-                </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Voting Progress</span>
+                <span className={cn(isPending && "italic")}>
+                  {isPending ? "not started" : totalVotes === 0 ? "no votes yet" : `${totalVotes} votes`}
+                </span>
+              </div>
                 <div className="space-y-1">
                   <div className="relative">
-                    {isPending && totalVotes === 0 ? (
+                    {totalVotes === 0 ? (
                       <div className="h-1.5 rounded bg-muted" />
                     ) : (
                       <div className="relative h-1.5 rounded bg-muted/50 overflow-hidden">
@@ -173,16 +172,6 @@ export function ProposalCard({
                   </div>
                 </div>
               </div>
-            )}
-
-            {isVotingActive && (
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Voting ends</span>
-                <span className="font-medium">
-                  {formatDistanceToNow(voteEndTime, { addSuffix: true })}
-                </span>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
