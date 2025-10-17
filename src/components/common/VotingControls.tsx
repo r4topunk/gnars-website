@@ -17,9 +17,10 @@ type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
 
 export interface VotingControlsProps {
   proposalIdHex: `0x${string}`;
-  proposalNumber: number;
   status: ProposalStatus;
   existingUserVote?: VoteChoice | null;
+  existingUserReason?: string | null;
+  showConfirmedButton?: boolean;
   onVoteSuccess?: (params: {
     choice: VoteChoice;
     txHash: `0x${string}`;
@@ -72,9 +73,10 @@ const VOTE_COLORS: Record<VoteChoice, {
 
 export function VotingControls({
   proposalIdHex,
-  proposalNumber,
   status,
   existingUserVote,
+  existingUserReason,
+  showConfirmedButton,
   onVoteSuccess,
   hasVotingPower,
   votingPower,
@@ -109,6 +111,12 @@ export function VotingControls({
     }
   }, [existingUserVote]);
 
+  useEffect(() => {
+    if (existingUserReason !== undefined && hasVoted) {
+      setReason(existingUserReason ?? "");
+    }
+  }, [existingUserReason, hasVoted]);
+
   const helperText = useMemo(() => {
     if (!isConnected) return "Connect your wallet to vote";
     if (votesLoading) return "Checking voting power...";
@@ -133,10 +141,17 @@ export function VotingControls({
     });
 
     setPendingVote(null);
-    setReason("");
+    setReason(pendingVote.reason ?? "");
   }, [accountAddress, isConfirmed, onVoteSuccess, pendingHash, pendingVote, signerAddress, votingPower]);
 
   const isDisabled = status !== ProposalStatus.ACTIVE || !eligibleToVote || hasVoted || isPending || isConfirming;
+  const shouldShowButton =
+    !existingUserVote ||
+    Boolean(showConfirmedButton) ||
+    isPending ||
+    isConfirming ||
+    isConfirmed ||
+    pendingVote !== null;
 
   const handleConfirmVote = async () => {
     if (voteChoice) {
@@ -166,13 +181,6 @@ export function VotingControls({
 
   return (
     <div className="space-y-6">
-      {hasVoted && existingUserVote && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Check className="h-4 w-4 text-green-600" />
-          You voted {existingUserVote.toLowerCase()} on proposal {proposalNumber}
-        </div>
-      )}
-
       <RadioGroup
         value={voteChoice ?? undefined}
         onValueChange={(value) => setVoteChoice(value as VoteChoice)}
@@ -226,38 +234,40 @@ export function VotingControls({
         />
       </div>
 
-      {helperText && (
+      {helperText && !hasVoted && (
         <p className="text-xs text-muted-foreground">{helperText}</p>
       )}
 
-      <Button
-        onClick={handleConfirmVote}
-        disabled={!voteChoice || !castReady || isPending || isConfirming || hasVoted}
-        className="w-full"
-        size="lg"
-      >
-        {isPending ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Submitting vote...
-          </>
-        ) : isConfirming ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Waiting for confirmation...
-          </>
-        ) : hasVoted && existingUserVote ? (
-          <>
-            <Check className="mr-2 h-4 w-4" />
-            Vote {existingUserVote.toLowerCase()} confirmed
-          </>
-        ) : (
-          <>
-            <Check className="mr-2 h-4 w-4" />
-            Confirm Vote
-          </>
-        )}
-      </Button>
+      {shouldShowButton ? (
+        <Button
+          onClick={handleConfirmVote}
+          disabled={!voteChoice || !castReady || isPending || isConfirming || hasVoted}
+          className="w-full"
+          size="lg"
+        >
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Submitting vote...
+            </>
+          ) : isConfirming ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Waiting for confirmation...
+            </>
+          ) : hasVoted && existingUserVote ? (
+            <>
+              <Check className="mr-2 h-4 w-4" />
+              Vote {existingUserVote.toLowerCase()} confirmed
+            </>
+          ) : (
+            <>
+              <Check className="mr-2 h-4 w-4" />
+              Confirm Vote
+            </>
+          )}
+        </Button>
+      ) : null}
     </div>
   );
 }

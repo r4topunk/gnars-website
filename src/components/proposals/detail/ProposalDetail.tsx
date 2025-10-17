@@ -52,6 +52,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const router = useRouter();
   const { address, isConnected } = useAccount();
   const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
+  const [userVoteReason, setUserVoteReason] = useState<string | null>(null);
+  const [hasRecentVoteConfirmation, setHasRecentVoteConfirmation] = useState(false);
   const [voteTotals, setVoteTotals] = useState({
     forVotes: proposal.forVotes,
     againstVotes: proposal.againstVotes,
@@ -66,14 +68,23 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       abstainVotes: proposal.abstainVotes,
     });
     setVotesList(proposal.votes ? [...proposal.votes] : []);
+    setUserVote(null);
+    setUserVoteReason(null);
+    setHasRecentVoteConfirmation(false);
   }, [proposal]);
 
   const initialVote = useMemo(() => {
     if (!address) return null;
-    return votesList.find((vote) => vote.voter?.toLowerCase() === address.toLowerCase())?.choice ?? null;
+    const vote = votesList.find((entry) => entry.voter?.toLowerCase() === address.toLowerCase());
+    if (!vote) return null;
+    return {
+      choice: vote.choice,
+      reason: (vote as { reason?: string | null }).reason ?? null,
+    };
   }, [address, votesList]);
 
-  const currentVote = userVote ?? initialVote;
+  const currentVote = userVote ?? initialVote?.choice ?? null;
+  const currentVoteReason = userVoteReason ?? initialVote?.reason ?? null;
 
   // Handler for proposal actions success (queue/execute)
   const handleActionSuccess = () => {
@@ -96,6 +107,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       reason?: string;
     }) => {
       setUserVote(choice);
+      setUserVoteReason(reason ?? null);
+      setHasRecentVoteConfirmation(true);
 
       const increment = Number(votes);
       if (Number.isFinite(increment)) {
@@ -129,7 +142,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         });
       }
     },
-    [setUserVote, setVoteTotals, setVotesList],
+    [setUserVote, setUserVoteReason, setHasRecentVoteConfirmation, setVoteTotals, setVotesList],
   );
 
   const {
@@ -188,14 +201,15 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       {shouldShowVotingCard ? (
         <Card id="voting-section">
           <CardHeader>
-            <CardTitle>Cast Your Vote</CardTitle>
+            <CardTitle>{currentVote ? "Your Vote" : "Cast Your Vote"}</CardTitle>
           </CardHeader>
           <CardContent>
             <VotingControls
               proposalIdHex={proposal.proposalId as `0x${string}`}
-              proposalNumber={proposal.proposalNumber}
               status={proposal.status}
               existingUserVote={currentVote}
+              existingUserReason={currentVoteReason}
+              showConfirmedButton={hasRecentVoteConfirmation}
               onVoteSuccess={handleVoteConfirmed}
               hasVotingPower={hasVotingPower}
               votingPower={votingPower}
