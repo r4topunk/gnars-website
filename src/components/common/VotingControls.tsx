@@ -5,7 +5,6 @@ import { Check, Loader2, ThumbsUp, ThumbsDown, CircleDashed } from "lucide-react
 import { useAccount } from "wagmi";
 import { Address } from "viem";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Field, FieldContent, FieldDescription, FieldLabel, FieldTitle } from "@/components/ui/field";
@@ -21,7 +20,13 @@ export interface VotingControlsProps {
   proposalNumber: number;
   status: ProposalStatus;
   existingUserVote?: VoteChoice | null;
-  onVoteSuccess?: (choice: VoteChoice, txHash: `0x${string}`) => void;
+  onVoteSuccess?: (params: {
+    choice: VoteChoice;
+    txHash: `0x${string}`;
+    votes: bigint;
+    voter?: Address;
+    reason?: string;
+  }) => void;
   hasVotingPower: boolean;
   votingPower: bigint;
   votesLoading: boolean;
@@ -77,9 +82,10 @@ export function VotingControls({
   isDelegating,
   delegatedTo,
 }: VotingControlsProps) {
-  const { isConnected } = useAccount();
+  const { address: accountAddress, isConnected } = useAccount();
   const [voteChoice, setVoteChoice] = useState<VoteChoice | null>(existingUserVote ?? null);
   const [reason, setReason] = useState("");
+  const [pendingVote, setPendingVote] = useState<{ choice: VoteChoice; reason?: string } | null>(null);
 
   const {
     castVote,
@@ -88,12 +94,9 @@ export function VotingControls({
     isConfirming,
     isConfirmed,
     pendingHash,
+    address: signerAddress,
   } = useCastVote({
     proposalId: proposalIdHex,
-    onSuccess: (hash, choice) => {
-      onVoteSuccess?.(choice, hash);
-      setReason("");
-    },
   });
 
   const hasVoted = Boolean(existingUserVote) || Boolean(isConfirmed);
@@ -116,11 +119,36 @@ export function VotingControls({
     return `You have ${votingPower.toString().trim()} GNAR voting power available`;
   }, [delegatedTo, hasVotingPower, isConnected, isDelegating, votesLoading, votingPower]);
 
+  useEffect(() => {
+    if (!onVoteSuccess || !pendingVote || !pendingHash || !isConfirmed) {
+      return;
+    }
+
+    onVoteSuccess({
+      choice: pendingVote.choice,
+      txHash: pendingHash,
+      votes: votingPower,
+      voter: signerAddress ?? accountAddress,
+      reason: pendingVote.reason,
+    });
+
+    setPendingVote(null);
+    setReason("");
+  }, [accountAddress, isConfirmed, onVoteSuccess, pendingHash, pendingVote, signerAddress, votingPower]);
+
   const isDisabled = status !== ProposalStatus.ACTIVE || !eligibleToVote || hasVoted || isPending || isConfirming;
 
-  const handleConfirmVote = () => {
+  const handleConfirmVote = async () => {
     if (voteChoice) {
-      castVote(voteChoice, reason);
+      const trimmedReason = reason.trim();
+      const normalizedReason = trimmedReason.length > 0 ? trimmedReason : undefined;
+
+      setPendingVote({
+        choice: voteChoice,
+        reason: normalizedReason,
+      });
+
+      await castVote(voteChoice, normalizedReason);
     }
   };
 
@@ -143,13 +171,6 @@ export function VotingControls({
           <Check className="h-4 w-4 text-green-600" />
           You voted {existingUserVote.toLowerCase()} on proposal {proposalNumber}
         </div>
-      )}
-
-      {pendingHash && (isPending || isConfirming) && (
-        <Badge variant="outline" className="flex items-center gap-2 w-fit">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Transaction pending...
-        </Badge>
       )}
 
       <RadioGroup
@@ -215,10 +236,20 @@ export function VotingControls({
         className="w-full"
         size="lg"
       >
-        {isPending || isConfirming ? (
+        {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Confirming Vote...
+            Submitting vote...
+          </>
+        ) : isConfirming ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Waiting for confirmation...
+          </>
+        ) : hasVoted && existingUserVote ? (
+          <>
+            <Check className="mr-2 h-4 w-4" />
+            Vote {existingUserVote.toLowerCase()} confirmed
           </>
         ) : (
           <>

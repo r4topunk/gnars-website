@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 import { VotingControls } from "@/components/common/VotingControls";
 import { useVotes } from "@/hooks/useVotes";
@@ -13,7 +13,7 @@ import { ProposalVotesList } from "@/components/proposals/detail/ProposalVotesLi
 import { ProposalTransactionVisualization } from "@/components/proposals/transaction/ProposalTransactionVisualization";
 import { ProposalMetrics } from "@/components/proposals/ProposalMetrics";
 import { ProposalActions } from "@/components/proposals/detail/ProposalActions";
-import { Proposal } from "@/components/proposals/types";
+import { Proposal, type ProposalVote } from "@/components/proposals/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
@@ -52,11 +52,26 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const router = useRouter();
   const { address, isConnected } = useAccount();
   const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
+  const [voteTotals, setVoteTotals] = useState({
+    forVotes: proposal.forVotes,
+    againstVotes: proposal.againstVotes,
+    abstainVotes: proposal.abstainVotes,
+  });
+  const [votesList, setVotesList] = useState<ProposalVote[]>(() => (proposal.votes ? [...proposal.votes] : []));
+
+  useEffect(() => {
+    setVoteTotals({
+      forVotes: proposal.forVotes,
+      againstVotes: proposal.againstVotes,
+      abstainVotes: proposal.abstainVotes,
+    });
+    setVotesList(proposal.votes ? [...proposal.votes] : []);
+  }, [proposal]);
 
   const initialVote = useMemo(() => {
     if (!address) return null;
-    return proposal.votes?.find((vote) => vote.voter?.toLowerCase() === address.toLowerCase())?.choice ?? null;
-  }, [address, proposal.votes]);
+    return votesList.find((vote) => vote.voter?.toLowerCase() === address.toLowerCase())?.choice ?? null;
+  }, [address, votesList]);
 
   const currentVote = userVote ?? initialVote;
 
@@ -65,6 +80,57 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     // Refresh the page to get updated proposal data
     router.refresh();
   };
+
+  const handleVoteConfirmed = useCallback(
+    ({
+      choice,
+      votes,
+      voter,
+      txHash,
+      reason,
+    }: {
+      choice: ProposalVote["choice"];
+      votes: bigint;
+      voter?: string;
+      txHash: `0x${string}`;
+      reason?: string;
+    }) => {
+      setUserVote(choice);
+
+      const increment = Number(votes);
+      if (Number.isFinite(increment)) {
+        setVoteTotals((prev) => {
+          switch (choice) {
+            case "FOR":
+              return { ...prev, forVotes: prev.forVotes + increment };
+            case "AGAINST":
+              return { ...prev, againstVotes: prev.againstVotes + increment };
+            case "ABSTAIN":
+              return { ...prev, abstainVotes: prev.abstainVotes + increment };
+            default:
+              return prev;
+          }
+        });
+      }
+
+      if (voter) {
+        const lowerVoter = voter.toLowerCase();
+        setVotesList((prev) => {
+          const filtered = prev.filter((vote) => vote.voter.toLowerCase() !== lowerVoter);
+          const updated: ProposalVote = {
+            voter,
+            voterEnsName: undefined,
+            choice,
+            votes: votes.toString(),
+            transactionHash: txHash,
+            reason: reason ?? null,
+          };
+          return [updated, ...filtered];
+        });
+      }
+    },
+    [setUserVote, setVoteTotals, setVotesList],
+  );
 
   const {
     hasVotingPower,
@@ -90,7 +156,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const shouldShowPropdatesTab = hasPropdates || isProposalOwner;
 
   // Show votes tab if there are any votes (for any status: Active, Executed, Defeated, etc.)
-  const shouldShowVotesTab = (proposal.votes?.length ?? 0) > 0;
+  const shouldShowVotesTab = votesList.length > 0;
 
   // Count visible tabs to determine if we should show tabs at all
   const visibleTabsCount = 1 + (shouldShowVotesTab ? 1 : 0) + (shouldShowPropdatesTab ? 1 : 0);
@@ -112,9 +178,9 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         transactionHash={proposal.transactionHash}
       />
       <ProposalMetrics
-        forVotes={String(proposal.forVotes)}
-        againstVotes={String(proposal.againstVotes)}
-        abstainVotes={String(proposal.abstainVotes)}
+        forVotes={String(voteTotals.forVotes)}
+        againstVotes={String(voteTotals.againstVotes)}
+        abstainVotes={String(voteTotals.abstainVotes)}
         quorumVotes={String(proposal.quorumVotes)}
         snapshotBlock={proposal.snapshotBlock}
         endDate={endDate}
@@ -130,7 +196,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
               proposalNumber={proposal.proposalNumber}
               status={proposal.status}
               existingUserVote={currentVote}
-              onVoteSuccess={(choice) => setUserVote(choice)}
+              onVoteSuccess={handleVoteConfirmed}
               hasVotingPower={hasVotingPower}
               votingPower={votingPower}
               votesLoading={votesLoading}
@@ -175,7 +241,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
           {shouldShowVotesTab && (
             <TabsContent value="votes" className="mt-6 space-y-6">
               <ProposalVotesList
-                votes={proposal.votes?.map((v) => ({
+                votes={votesList.map((v) => ({
                   voter: v.voter,
                   choice: v.choice,
                   votes: v.votes,
