@@ -145,7 +145,7 @@ export function VotingControls({
         </div>
       )}
 
-      {pendingHash && (
+      {pendingHash && (isPending || isConfirming) && (
         <Badge variant="outline" className="flex items-center gap-2 w-fit">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           Transaction pending...
