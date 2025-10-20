@@ -64,7 +64,7 @@ export function ProposalVotesList({ title = "Individual Votes", votes, isActive 
                 key={`${vote.voter}-${index}`}
                 className="rounded-lg border bg-card text-card-foreground p-3"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col md:flex-row md:items-center gap-2">
                   <AddressDisplay
                     address={vote.voter}
                     variant="compact"
