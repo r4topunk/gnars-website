@@ -19,7 +19,7 @@ export function formatETH(value: string | number | undefined): string {
     return "0 ETH";
   }
 
-  // Format with appropriate decimal places
+  // Format with appropriate decimal places, removing trailing zeros
   if (numValue >= 1000) {
     return `${numValue.toLocaleString(undefined, {
       minimumFractionDigits: 2,
@@ -31,7 +31,8 @@ export function formatETH(value: string | number | undefined): string {
       maximumFractionDigits: 6
     })} ETH`;
   } else if (numValue >= 0.001) {
-    return `${numValue.toFixed(6)} ETH`;
+    // Use parseFloat to remove trailing zeros
+    return `${parseFloat(numValue.toFixed(6))} ETH`;
   } else {
     return `${numValue.toExponential(2)} ETH`;
   }
