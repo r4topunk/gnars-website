@@ -165,13 +165,6 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
   const saleEnded = saleEnd && now > saleEnd;
   const saleActive = !saleNotStarted && !saleEnded && !!decoded;
 
-  const countdown = (target: number) => {
-    const diff = Math.max(0, target - now);
-    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    return `${d}d ${h}h ${m}m`;
-  };
 
   return (
     <SidebarInset>
@@ -211,7 +204,7 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
               saleStart={saleStart || undefined}
               saleEnd={saleEnd || undefined}
               hasDecoded={Boolean(decoded)}
-              formatCountdown={countdown}
+              tokenAddress={tokenAddress as `0x${string}` | undefined}
             />
             <DroposalDetailsCard
               name={decoded?.name}
