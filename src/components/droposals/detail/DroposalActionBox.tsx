@@ -71,7 +71,7 @@ export function DroposalActionBox({
   };
   return (
     <Card>
-      <CardContent className="p-6 space-y-4">
+      <CardContent className="space-y-4">
         <div>
           <div className="text-xs text-muted-foreground">Price</div>
           <div className="text-lg font-semibold">
@@ -79,7 +79,6 @@ export function DroposalActionBox({
           </div>
         </div>
         <div className="text-sm text-muted-foreground">
-          {saleActive && <span className="text-green-600 dark:text-green-500">Sale is live</span>}
           {saleNotStarted && saleStart ? (
             <span>
               Starts {new Date(saleStart).toLocaleString()} · {formatCountdown(saleStart)}
