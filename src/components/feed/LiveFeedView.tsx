@@ -63,28 +63,54 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
     });
   }, [events, filters]);
 
-  // Group events by day (using UTC to avoid timezone issues)
+  // Group events by day (first 7 days) or week (older events)
   const groupedEvents = useMemo(() => {
     const groups = new Map<string, FeedEvent[]>();
+    const now = new Date();
+    const nowDayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const sevenDaysAgo = nowDayStart - (7 * 24 * 60 * 60 * 1000);
     
     filteredEvents.forEach(event => {
       const date = new Date(event.timestamp * 1000);
-      // Use UTC to get consistent day boundaries
       const dateKey = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
       
-      if (!groups.has(dateKey.toString())) {
-        groups.set(dateKey.toString(), []);
+      let groupKey: string;
+      
+      // Events within last 7 days: group by day
+      if (dateKey >= sevenDaysAgo) {
+        groupKey = `day-${dateKey}`;
+      } else {
+        // Events older than 7 days: group by week
+        // Get the Monday of the week (week starts on Monday)
+        const dayOfWeek = date.getUTCDay(); // 0 = Sunday, 1 = Monday, ...
+        const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Days to subtract to get to Monday
+        const mondayDate = new Date(date);
+        mondayDate.setUTCDate(date.getUTCDate() - daysToMonday);
+        const weekKey = Date.UTC(mondayDate.getUTCFullYear(), mondayDate.getUTCMonth(), mondayDate.getUTCDate());
+        groupKey = `week-${weekKey}`;
       }
-      groups.get(dateKey.toString())!.push(event);
+      
+      if (!groups.has(groupKey)) {
+        groups.set(groupKey, []);
+      }
+      groups.get(groupKey)!.push(event);
     });
 
     // Convert to array and sort by date (newest first)
     return Array.from(groups.entries())
-      .sort((a, b) => parseInt(b[0]) - parseInt(a[0]))
-      .map(([dateKey, dayEvents]) => ({
-        dateKey: parseInt(dateKey),
-        events: dayEvents,
-      }));
+      .sort((a, b) => {
+        const aKey = parseInt(a[0].split('-')[1]);
+        const bKey = parseInt(b[0].split('-')[1]);
+        return bKey - aKey;
+      })
+      .map(([groupKey, groupEvents]) => {
+        const [type, timestamp] = groupKey.split('-');
+        return {
+          dateKey: parseInt(timestamp),
+          events: groupEvents,
+          isWeek: type === 'week',
+        };
+      });
   }, [filteredEvents]);
 
   // Incremental rendering for performance
@@ -146,8 +172,8 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
       ) : (
         <>
           <div className="space-y-8">
-            {groupedEvents.map(({ dateKey, events: dayEvents }) => {
-              // Check if any events from this day are visible
+            {groupedEvents.map(({ dateKey, events: dayEvents, isWeek }) => {
+              // Check if any events from this day/week are visible
               const visibleDayEvents = dayEvents.filter((_, idx) => {
                 const totalPreviousEvents = groupedEvents
                   .filter(g => g.dateKey > dateKey)
@@ -159,8 +185,8 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
 
               return (
                 <div key={dateKey} className="space-y-3">
-                  {/* Day header */}
-                  <DayHeader dateKey={dateKey} />
+                  {/* Day/Week header */}
+                  <GroupHeader dateKey={dateKey} isWeek={isWeek} />
 
                   {/* Events for this day */}
                   <Masonry
@@ -196,31 +222,57 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
 
 // Subcomponents
 
-function DayHeader({ dateKey }: { dateKey: number }) {
+function GroupHeader({ dateKey, isWeek }: { dateKey: number; isWeek?: boolean }) {
   // Calculate label - runs on both server and client
   const now = new Date();
   const nowDayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   const daysDiff = Math.round((nowDayStart - dateKey) / (1000 * 60 * 60 * 24));
   
   let label: string;
-  if (daysDiff === 0) {
-    label = "Today";
-  } else if (daysDiff === 1) {
-    label = "Yesterday";
-  } else if (daysDiff < 7) {
-    label = `${daysDiff} days ago`;
-  } else if (daysDiff < 30) {
-    const weeks = Math.floor(daysDiff / 7);
-    label = weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+  
+  if (isWeek) {
+    // For weekly groups, show week range
+    const weekStart = new Date(dateKey);
+    const weekEnd = new Date(dateKey + (6 * 24 * 60 * 60 * 1000));
+    
+    const weeksDiff = Math.floor(daysDiff / 7);
+    
+    if (weeksDiff === 1) {
+      label = "Last week";
+    } else if (weeksDiff < 4) {
+      label = `${weeksDiff} weeks ago`;
+    } else {
+      // Show date range for older weeks
+      const startStr = weekStart.toLocaleDateString("en-US", { 
+        month: "short", 
+        day: "numeric",
+        timeZone: "UTC"
+      });
+      const endStr = weekEnd.toLocaleDateString("en-US", { 
+        month: "short", 
+        day: "numeric", 
+        year: weekEnd.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+        timeZone: "UTC"
+      });
+      label = `${startStr} - ${endStr}`;
+    }
   } else {
-    // Show actual date for older events
-    const date = new Date(dateKey);
-    label = date.toLocaleDateString("en-US", { 
-      month: "short", 
-      day: "numeric", 
-      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
-      timeZone: "UTC"
-    });
+    // For daily groups (within last 7 days)
+    if (daysDiff === 0) {
+      label = "Today";
+    } else if (daysDiff === 1) {
+      label = "Yesterday";
+    } else if (daysDiff <= 7) {
+      label = `${daysDiff} days ago`;
+    } else {
+      // Fallback for edge cases
+      const date = new Date(dateKey);
+      label = date.toLocaleDateString("en-US", { 
+        month: "short", 
+        day: "numeric",
+        timeZone: "UTC"
+      });
+    }
   }
   
   return (
