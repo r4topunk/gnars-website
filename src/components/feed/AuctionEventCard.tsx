@@ -26,6 +26,10 @@ export function AuctionEventCard({ event, compact }: AuctionEventCardProps) {
   // Removed: timeAgo is redundant since we have day headers
   
   const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
+  
+  // Determine if auction is currently live
+  const now = Math.floor(Date.now() / 1000);
+  const isLive = event.type === "AuctionCreated" && event.endTime > now;
 
   return (
     <Card className={cn(
@@ -49,8 +53,8 @@ export function AuctionEventCard({ event, compact }: AuctionEventCardProps) {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{title}</p>
               </div>
-              {event.priority === "HIGH" && (
-                <Badge variant="outline" className="text-xs">Live</Badge>
+              {isLive && (
+                <Badge className="text-xs bg-green-600 hover:bg-green-700 text-white">Live</Badge>
               )}
             </div>
 
@@ -89,11 +93,17 @@ export function AuctionEventCard({ event, compact }: AuctionEventCardProps) {
 // Subcomponents
 
 function AuctionCreatedContent({ event }: { event: Extract<FeedEvent, { type: "AuctionCreated" }> }) {
+  const now = Math.floor(Date.now() / 1000);
+  const hasEnded = event.endTime <= now;
+  
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold">Gnar #{event.tokenId}</p>
       <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-        Ends {formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}
+        {hasEnded 
+          ? `Ended ${formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}`
+          : `Ends ${formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}`
+        }
       </p>
       {event.imageUrl && (
         <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted relative">
@@ -159,19 +169,25 @@ function AuctionBidContent({ event, compact }: {
 }
 
 function AuctionSettledContent({ event }: { event: Extract<FeedEvent, { type: "AuctionSettled" }> }) {
+  const isZeroAddress = !event.winner || event.winner === "0x0000000000000000000000000000000000000000" || event.winner === "0x0";
+  
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold">Gnar #{event.tokenId}</p>
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs text-muted-foreground">won by</span>
-        <AddressDisplay 
-          address={event.winner}
-          variant="compact"
-          showAvatar={false}
-          showENS={true}
-          showCopy={false}
-          showExplorer={false}
-        />
+        {isZeroAddress ? (
+          <span className="text-xs text-muted-foreground">Unknown</span>
+        ) : (
+          <AddressDisplay 
+            address={event.winner}
+            variant="compact"
+            showAvatar={false}
+            showENS={true}
+            showCopy={false}
+            showExplorer={false}
+          />
+        )}
         <span className="text-xs text-muted-foreground">for</span>
         <span className="text-sm font-bold text-green-600">
           {formatETH(event.amount)}

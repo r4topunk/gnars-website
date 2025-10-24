@@ -21,7 +21,6 @@ import {
   AlertCircle 
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { cn } from "@/lib/utils";
 import type { FeedEvent } from "@/lib/types/feed-events";
@@ -57,11 +56,20 @@ export function GovernanceEventCard({ event, compact }: GovernanceEventCardProps
             {/* Header */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{title}</p>
+                {event.type === "VoteCast" ? (
+                  <p className="text-sm font-medium">
+                    Vote on{" "}
+                    <Link 
+                      href={`/proposals/${event.proposalNumber}`}
+                      className="underline hover:opacity-80"
+                    >
+                      Proposal #{event.proposalNumber}
+                    </Link>
+                  </p>
+                ) : (
+                  <p className="text-sm font-medium">{title}</p>
+                )}
               </div>
-              {event.priority === "HIGH" && (
-                <Badge variant="outline" className="text-xs">New</Badge>
-              )}
             </div>
 
             {/* Event-specific content */}
@@ -156,9 +164,7 @@ function VoteCastContent({ event, compact }: {
           with {event.weight} votes
         </span>
       </div>
-      <p className="text-xs text-muted-foreground">
-        on Proposal #{event.proposalNumber}: {event.proposalTitle}
-      </p>
+      <p className="text-xs font-medium line-clamp-1">{event.proposalTitle}</p>
       {event.reason && !compact && (
         <p className="text-xs italic text-muted-foreground border-l-2 border-muted pl-2 mt-2 line-clamp-2">
           &ldquo;{event.reason}&rdquo;
@@ -220,7 +226,7 @@ function getEventDisplay(event: Extract<FeedEvent, { category: "governance" }>) 
         icon: event.support === "FOR" ? ThumbsUp : event.support === "AGAINST" ? ThumbsDown : MinusCircle,
         iconColor: event.support === "FOR" ? "text-green-600" : event.support === "AGAINST" ? "text-red-600" : "text-gray-600",
         bgColor: event.support === "FOR" ? "bg-green-50 dark:bg-green-950" : event.support === "AGAINST" ? "bg-red-50 dark:bg-red-950" : "bg-gray-50 dark:bg-gray-950",
-        title: "Vote Cast",
+        title: `Vote on Proposal #${event.proposalNumber}`,
         actionText: "View Proposal",
       };
     case "ProposalQueued":

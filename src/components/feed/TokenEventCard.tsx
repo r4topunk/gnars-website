@@ -22,7 +22,11 @@ export interface TokenEventCardProps {
 export function TokenEventCard({ event, compact }: TokenEventCardProps) {
   // Removed: timeAgo is redundant since we have day headers
   
-  const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
+  // Check if token was burned (minted to zero address)
+  const isBurned = event.type === "TokenMinted" && 
+    (!event.recipient || event.recipient === "0x0000000000000000000000000000000000000000" || event.recipient === "0x0");
+  
+  const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event, isBurned);
 
   return (
     <Card className={cn(
@@ -46,9 +50,6 @@ export function TokenEventCard({ event, compact }: TokenEventCardProps) {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{title}</p>
               </div>
-              {event.priority === "HIGH" && (
-                <Badge variant="outline" className="text-xs">New</Badge>
-              )}
             </div>
 
             {/* Event-specific content */}
@@ -83,23 +84,29 @@ export function TokenEventCard({ event, compact }: TokenEventCardProps) {
 // Subcomponents
 
 function TokenMintedContent({ event }: { event: Extract<FeedEvent, { type: "TokenMinted" }> }) {
+  const isZeroAddress = !event.recipient || event.recipient === "0x0000000000000000000000000000000000000000" || event.recipient === "0x0";
+  
   return (
     <div className="space-y-1.5">
       <p className="text-sm font-semibold">Gnar #{event.tokenId}</p>
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-xs text-muted-foreground">minted to</span>
-        <AddressDisplay 
-          address={event.recipient}
-          variant="compact"
-          showAvatar={false}
-          showENS={true}
-          showCopy={false}
-          showExplorer={false}
-        />
-        {event.isFounder && (
-          <Badge variant="secondary" className="text-xs">Founder</Badge>
-        )}
-      </div>
+      {isZeroAddress ? (
+        <p className="text-xs text-muted-foreground">burned</p>
+      ) : (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs text-muted-foreground">minted to</span>
+          <AddressDisplay 
+            address={event.recipient}
+            variant="compact"
+            showAvatar={false}
+            showENS={true}
+            showCopy={false}
+            showExplorer={false}
+          />
+          {event.isFounder && (
+            <Badge variant="secondary" className="text-xs">Founder</Badge>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -162,14 +169,14 @@ function DelegateChangedContent({ event }: { event: Extract<FeedEvent, { type: "
 
 // Helper functions
 
-function getEventDisplay(event: Extract<FeedEvent, { category: "token" | "delegation" }>) {
+function getEventDisplay(event: Extract<FeedEvent, { category: "token" | "delegation" }>, isBurned?: boolean) {
   switch (event.type) {
     case "TokenMinted":
       return {
         icon: Palette,
-        iconColor: "text-purple-600",
-        bgColor: "bg-purple-50 dark:bg-purple-950",
-        title: "Token Minted",
+        iconColor: isBurned ? "text-red-600" : "text-purple-600",
+        bgColor: isBurned ? "bg-red-50 dark:bg-red-950" : "bg-purple-50 dark:bg-purple-950",
+        title: isBurned ? "Token Burned" : "Token Minted",
         actionText: "View Token",
       };
     case "TokenTransferred":

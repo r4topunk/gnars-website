@@ -315,7 +315,7 @@ function transformBidToEvent(b: SubgraphBid): FeedEvent {
     transactionHash: b.transactionHash,
     tokenId: Number(b.auction.token.tokenId),
     bidder: b.bidder,
-    amount: (Number(b.amount) / 1e18).toFixed(4), // Convert from wei to ETH
+    amount: (Number(b.amount) / 1e18).toFixed(5), // Convert from wei to ETH (5 decimals)
     extended: false, // Extended field not available in subgraph
     endTime: Number(b.auction.endTime),
     imageUrl: toHttpUrl(b.auction.token.image),
@@ -325,23 +325,11 @@ function transformBidToEvent(b: SubgraphBid): FeedEvent {
 /**
  * Transform subgraph auction to feed event
  */
-function transformAuctionToEvent(a: SubgraphAuction): FeedEvent {
+function transformAuctionToEvent(a: SubgraphAuction): FeedEvent | null {
+  // Skip settled auctions from this query since we don't have winner/bid data
+  // Settled auctions should come from the bids query instead
   if (a.settled) {
-    // This would need the winning bid data which requires another query
-    // For now, we'll handle settled auctions separately
-    return {
-      id: `auction-settled-${a.id}`,
-      type: "AuctionSettled",
-      category: "auction",
-      priority: "HIGH",
-      timestamp: Number(a.endTime),
-      blockNumber: 0,
-      transactionHash: "",
-      tokenId: Number(a.token.tokenId),
-      winner: "", // Would need bid data
-      amount: "0", // Would need bid data
-      imageUrl: toHttpUrl(a.token.image),
-    };
+    return null;
   }
 
   return {
@@ -576,7 +564,10 @@ async function fetchFeedEventsUncached(hoursBack: number = 24): Promise<FeedEven
 
     // Transform auctions
     if (auctionsData.auctions) {
-      events.push(...auctionsData.auctions.map(transformAuctionToEvent));
+      const auctionEvents = auctionsData.auctions
+        .map(transformAuctionToEvent)
+        .filter((e): e is FeedEvent => e !== null);
+      events.push(...auctionEvents);
     }
 
     // Transform tokens

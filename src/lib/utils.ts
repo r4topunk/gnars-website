@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Format ETH amount with proper decimal places and units
+ * Shows up to 5 decimals, removing trailing zeros
  */
 export function formatETH(value: string | number | undefined): string {
   if (!value || value === "0" || value === "") {
@@ -19,20 +20,15 @@ export function formatETH(value: string | number | undefined): string {
     return "0 ETH";
   }
 
-  // Format with appropriate decimal places, removing trailing zeros
+  // Format with up to 5 decimal places, removing trailing zeros
   if (numValue >= 1000) {
     return `${numValue.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 4
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 5
     })} ETH`;
-  } else if (numValue >= 1) {
-    return `${numValue.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 6
-    })} ETH`;
-  } else if (numValue >= 0.001) {
+  } else if (numValue >= 0.00001) {
     // Use parseFloat to remove trailing zeros
-    return `${parseFloat(numValue.toFixed(6))} ETH`;
+    return `${parseFloat(numValue.toFixed(5))} ETH`;
   } else {
     return `${numValue.toExponential(2)} ETH`;
   }
