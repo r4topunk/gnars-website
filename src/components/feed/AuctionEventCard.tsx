@@ -7,6 +7,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { Palette, DollarSign, Trophy, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -90,11 +91,22 @@ export function AuctionEventCard({ event, compact }: AuctionEventCardProps) {
 
 function AuctionCreatedContent({ event }: { event: Extract<FeedEvent, { type: "AuctionCreated" }> }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <p className="text-sm font-semibold">Gnar #{event.tokenId}</p>
       <p className="text-xs text-muted-foreground">
         Ends {formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}
       </p>
+      {event.imageUrl && (
+        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted relative">
+          <Image
+            src={event.imageUrl}
+            alt={`Gnar #${event.tokenId}`}
+            fill
+            className="object-cover"
+            sizes="96px"
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -108,7 +120,7 @@ function AuctionBidContent({ event, compact }: {
     : null;
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <div className="flex items-center gap-2 flex-wrap">
         <AddressDisplay 
           address={event.bidder}
@@ -132,13 +144,24 @@ function AuctionBidContent({ event, compact }: {
           ⏱️ Auction Extended
         </Badge>
       )}
+      {event.imageUrl && (
+        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted relative">
+          <Image
+            src={event.imageUrl}
+            alt={`Gnar #${event.tokenId}`}
+            fill
+            className="object-cover"
+            sizes="96px"
+          />
+        </div>
+      )}
     </div>
   );
 }
 
 function AuctionSettledContent({ event }: { event: Extract<FeedEvent, { type: "AuctionSettled" }> }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <p className="text-sm font-semibold">Gnar #{event.tokenId}</p>
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs text-muted-foreground">won by</span>
@@ -155,13 +178,24 @@ function AuctionSettledContent({ event }: { event: Extract<FeedEvent, { type: "A
           {formatETH(event.amount)}
         </span>
       </div>
+      {event.imageUrl && (
+        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted relative">
+          <Image
+            src={event.imageUrl}
+            alt={`Gnar #${event.tokenId}`}
+            fill
+            className="object-cover"
+            sizes="96px"
+          />
+        </div>
+      )}
     </div>
   );
 }
 
 function AuctionEndingSoonContent({ event }: { event: Extract<FeedEvent, { type: "AuctionEndingSoon" }> }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <p className="text-sm font-semibold">Gnar #{event.tokenId}</p>
       <div className="flex items-center gap-1.5">
         <Badge variant="destructive" className="text-xs">
@@ -171,6 +205,17 @@ function AuctionEndingSoonContent({ event }: { event: Extract<FeedEvent, { type:
           Current: {formatETH(event.currentBid)}
         </span>
       </div>
+      {event.imageUrl && (
+        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted relative">
+          <Image
+            src={event.imageUrl}
+            alt={`Gnar #${event.tokenId}`}
+            fill
+            className="object-cover"
+            sizes="96px"
+          />
+        </div>
+      )}
     </div>
   );
 }

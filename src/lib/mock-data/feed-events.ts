@@ -117,6 +117,7 @@ export function generateMockFeedEvents(hours: number = 24): FeedEvent[] {
         extended: Math.random() > 0.8,
         endTime: timestamp + 3600,
         previousBid: (parseFloat(amount) - Math.random() * 0.5).toFixed(2),
+        imageUrl: `https://gnars.com/api/gnars/${tokenId}`,
       });
     } else if (rand < 0.3) {
       // Proposal created
@@ -152,6 +153,7 @@ export function generateMockFeedEvents(hours: number = 24): FeedEvent[] {
         tokenId,
         winner: randomAddress(),
         amount: randomAmount(),
+        imageUrl: `https://gnars.com/api/gnars/${tokenId}`,
       });
     } else if (rand < 0.4) {
       // Auction created
@@ -167,6 +169,7 @@ export function generateMockFeedEvents(hours: number = 24): FeedEvent[] {
         tokenId,
         startTime: timestamp,
         endTime: timestamp + 86400,
+        imageUrl: `https://gnars.com/api/gnars/${tokenId}`,
       });
     } else if (rand < 0.5) {
       // Token minted

@@ -92,6 +92,7 @@ const AUCTIONS_QUERY = `
       settled
       token {
         tokenId
+        image
       }
     }
   }
@@ -119,6 +120,7 @@ const BIDS_QUERY = `
       auction {
         token {
           tokenId
+          image
         }
         endTime
       }
@@ -210,6 +212,7 @@ interface SubgraphBid {
   auction: {
     token: {
       tokenId: string;
+      image?: string | null;
     };
     endTime: string;
   };
@@ -229,6 +232,7 @@ interface SubgraphAuction {
   settled: boolean;
   token: {
     tokenId: string;
+    image?: string | null;
   };
 }
 
@@ -287,6 +291,17 @@ function transformVoteToEvent(v: SubgraphVote): FeedEvent {
 }
 
 /**
+ * Convert IPFS URI to HTTP URL
+ */
+function toHttpUrl(uri?: string | null): string | undefined {
+  if (!uri) return undefined;
+  if (uri.startsWith("ipfs://")) {
+    return uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+  }
+  return uri;
+}
+
+/**
  * Transform subgraph bid to feed event
  */
 function transformBidToEvent(b: SubgraphBid): FeedEvent {
@@ -303,6 +318,7 @@ function transformBidToEvent(b: SubgraphBid): FeedEvent {
     amount: (Number(b.amount) / 1e18).toFixed(4), // Convert from wei to ETH
     extended: false, // Extended field not available in subgraph
     endTime: Number(b.auction.endTime),
+    imageUrl: toHttpUrl(b.auction.token.image),
   };
 }
 
@@ -324,6 +340,7 @@ function transformAuctionToEvent(a: SubgraphAuction): FeedEvent {
       tokenId: Number(a.token.tokenId),
       winner: "", // Would need bid data
       amount: "0", // Would need bid data
+      imageUrl: toHttpUrl(a.token.image),
     };
   }
 
@@ -338,6 +355,7 @@ function transformAuctionToEvent(a: SubgraphAuction): FeedEvent {
     tokenId: Number(a.token.tokenId),
     startTime: Number(a.startTime),
     endTime: Number(a.endTime),
+    imageUrl: toHttpUrl(a.token.image),
   };
 }
 
@@ -366,13 +384,6 @@ async function fetchFeedEventsUncached(hoursBack: number = 24): Promise<FeedEven
   const now = Math.floor(Date.now() / 1000);
   const since = now - (hoursBack * 3600);
   const daoAddress = GNARS_ADDRESSES.token.toLowerCase();
-
-  console.log("[feed-events] Fetching events", {
-    daoAddress,
-    since,
-    hoursBack,
-    sinceDate: new Date(since * 1000).toISOString(),
-  });
 
   const events: FeedEvent[] = [];
 
@@ -425,8 +436,6 @@ async function fetchFeedEventsUncached(hoursBack: number = 24): Promise<FeedEven
     if (!proposalsData.proposals?.length && 
         !votesData.proposalVotes?.length && 
         !bidsData.auctionBids?.length) {
-      console.log("[feed-events] No data with time filter, fetching ALL recent data");
-      
       const allDataQuery = `
         query GetAllRecentData($daoAddress: String!) {
           proposals(
@@ -486,17 +495,8 @@ async function fetchFeedEventsUncached(hoursBack: number = 24): Promise<FeedEven
       if (allData.proposalVotes) votesData.proposalVotes = allData.proposalVotes;
     }
 
-    console.log("[feed-events] Subgraph data received", {
-      proposals: proposalsData.proposals?.length || 0,
-      votes: votesData.proposalVotes?.length || 0,
-      bids: bidsData.auctionBids?.length || 0,
-      auctions: auctionsData.auctions?.length || 0,
-      tokens: tokensData.tokens?.length || 0,
-    });
-
     // Transform proposals
     if (proposalsData.proposals && proposalsData.proposals.length > 0) {
-      console.log("[feed-events] First proposal:", proposalsData.proposals[0]);
       events.push(...proposalsData.proposals.map(transformProposalToEvent));
 
       // Add status events for executed/canceled/vetoed proposals
@@ -584,20 +584,8 @@ async function fetchFeedEventsUncached(hoursBack: number = 24): Promise<FeedEven
       events.push(...tokensData.tokens.map(transformTokenToEvent));
     }
 
-    console.log("[feed-events] Total events created:", events.length);
-
     // Sort by timestamp descending
-    const sorted = events.sort((a, b) => b.timestamp - a.timestamp);
-    
-    if (sorted.length > 0) {
-      console.log("[feed-events] Sample events:", sorted.slice(0, 3).map(e => ({
-        type: e.type,
-        timestamp: e.timestamp,
-        date: new Date(e.timestamp * 1000).toISOString(),
-      })));
-    }
-    
-    return sorted;
+    return events.sort((a, b) => b.timestamp - a.timestamp);
   } catch (error) {
     console.error("[feed-events] Error fetching feed events:", error);
     if (error instanceof Error) {

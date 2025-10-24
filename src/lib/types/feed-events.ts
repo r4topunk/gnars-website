@@ -95,6 +95,7 @@ export interface AuctionCreatedEvent extends BaseEvent {
   tokenId: number;
   startTime: number;
   endTime: number;
+  imageUrl?: string;
 }
 
 export interface AuctionBidEvent extends BaseEvent {
@@ -106,6 +107,7 @@ export interface AuctionBidEvent extends BaseEvent {
   extended: boolean;
   endTime: number;
   previousBid?: string;
+  imageUrl?: string;
 }
 
 export interface AuctionSettledEvent extends BaseEvent {
@@ -114,6 +116,7 @@ export interface AuctionSettledEvent extends BaseEvent {
   tokenId: number;
   winner: string;
   amount: string;
+  imageUrl?: string;
 }
 
 // Token Events
@@ -197,6 +200,7 @@ export interface AuctionEndingSoonEvent extends BaseEvent {
   currentBidder: string;
   endTime: number;
   minutesLeft: number;
+  imageUrl?: string;
 }
 
 // Union type of all possible events

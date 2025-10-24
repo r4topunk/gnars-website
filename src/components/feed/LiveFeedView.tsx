@@ -42,32 +42,15 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
       "all": Infinity,
     }[filters.timeRange];
 
-    console.log("[LiveFeedView] Filtering", {
-      totalEvents: events.length,
-      filters,
-      timeRangeSeconds,
-      now,
-    });
-
-    const filtered = events.filter(event => {
+    return events.filter(event => {
       // Time range filter
-      const age = now - event.timestamp;
-      if (age > timeRangeSeconds) {
-        console.log("[LiveFeedView] Filtered out (time):", event.type, "age:", age, "max:", timeRangeSeconds);
-        return false;
-      }
+      if (now - event.timestamp > timeRangeSeconds) return false;
 
       // Priority filter
-      if (!filters.priorities.includes(event.priority)) {
-        console.log("[LiveFeedView] Filtered out (priority):", event.type, event.priority);
-        return false;
-      }
+      if (!filters.priorities.includes(event.priority)) return false;
 
       // Category filter
-      if (!filters.categories.includes(event.category)) {
-        console.log("[LiveFeedView] Filtered out (category):", event.type, event.category);
-        return false;
-      }
+      if (!filters.categories.includes(event.category)) return false;
 
       // Comments filter (only applies to VoteCast events)
       if (filters.showOnlyWithComments) {
@@ -77,19 +60,6 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
 
       return true;
     });
-
-    console.log("[LiveFeedView] Filtered events:", filtered.length);
-    if (filtered.length > 0) {
-      console.log("[LiveFeedView] First 3 events:", filtered.slice(0, 3).map(e => ({
-        type: e.type,
-        category: e.category,
-        priority: e.priority,
-        timestamp: e.timestamp,
-        age: now - e.timestamp,
-      })));
-    }
-
-    return filtered;
   }, [events, filters]);
 
   // Incremental rendering for performance
