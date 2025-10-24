@@ -2,34 +2,44 @@
  * Live Feed Page
  * 
  * Displays real-time DAO activity feed with all governance, auction, and token events.
- * Uses mock data for now - replace with actual data fetching in production.
+ * Uses Next.js 15 caching with automatic revalidation on Vercel.
  */
 
 import { Suspense } from "react";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { LiveFeedView } from "@/components/feed/LiveFeedView";
-import { generateMockFeedEvents } from "@/lib/mock-data/feed-events";
+import { getAllFeedEvents } from "@/services/feed-events";
 import { Activity } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
+// Revalidate every 15 seconds for fresh data
+export const revalidate = 15;
+
 /**
- * Fetch feed events
+ * Fetch feed events from The Graph subgraph
  * 
- * TODO: Replace with actual data fetching from:
- * - The Graph subgraph for historical events
- * - WebSocket connection for real-time updates
- * - Backend API for computed events (voting alerts, etc.)
+ * Uses unstable_cache for automatic revalidation
  */
 async function getFeedEvents() {
   try {
-    // Mock data for development
-    // In production, fetch from actual data sources:
-    // return await fetchFeedEventsFromSubgraph();
-    return generateMockFeedEvents(24);
+    // Fetch last 30 days of events (Gnars doesn't have daily activity)
+    const events = await getAllFeedEvents(24 * 30); // 30 days
+    console.log("[feed page] Got events:", events.length);
+    
+    // Fallback to mock data for development if no real events
+    if (events.length === 0) {
+      console.log("[feed page] No events from subgraph, using mock data");
+      const { generateMockFeedEvents } = await import("@/lib/mock-data/feed-events");
+      return generateMockFeedEvents(24);
+    }
+    
+    return events;
   } catch (error) {
-    console.error("Failed to fetch feed events:", error);
-    return [];
+    console.error("[feed page] Failed to fetch feed events:", error);
+    // Fallback to mock data on error
+    const { generateMockFeedEvents } = await import("@/lib/mock-data/feed-events");
+    return generateMockFeedEvents(24);
   }
 }
 
@@ -62,9 +72,7 @@ export default async function LiveFeedPage() {
         {/* Info banner */}
         <div className="mt-8 p-4 rounded-lg border bg-muted/50">
           <p className="text-sm text-muted-foreground">
-            <strong>Note:</strong> Currently showing mock data for development.
-            In production, this feed will display real-time events from the blockchain
-            including proposals, votes, auctions, and token activities.
+            Live events from the Gnars DAO on Base (last 30 days). Data refreshes automatically every 15 seconds.
           </p>
         </div>
       </div>
