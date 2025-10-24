@@ -18,9 +18,10 @@ import { GNARS_ADDRESSES } from "@/lib/config";
 export interface TokenEventCardProps {
   event: Extract<FeedEvent, { category: "token" | "delegation" }>;
   compact?: boolean;
+  sequenceNumber?: number;
 }
 
-export function TokenEventCard({ event, compact }: TokenEventCardProps) {
+export function TokenEventCard({ event, compact, sequenceNumber }: TokenEventCardProps) {
   // Hide auction mints (normal flow) - only show founder allocations and special mints
   if (event.type === "TokenMinted" && 
       event.recipient?.toLowerCase() === GNARS_ADDRESSES.auction.toLowerCase()) {
@@ -35,10 +36,17 @@ export function TokenEventCard({ event, compact }: TokenEventCardProps) {
 
   return (
     <Card className={cn(
-      "transition-shadow hover:shadow-md",
+      "transition-shadow hover:shadow-md relative",
       compact ? "py-3" : "py-4"
     )}>
       <CardContent className={cn(compact ? "px-4 py-2" : "px-4")}>
+        {/* Sequence number badge */}
+        {sequenceNumber !== undefined && (
+          <div className="absolute top-3 right-3 flex items-center justify-center w-7 h-7 rounded-full bg-muted text-muted-foreground text-xs font-semibold">
+            {sequenceNumber}
+          </div>
+        )}
+        
         <div className="flex items-start gap-3">
           {/* Event icon */}
           <div className={cn(
@@ -49,7 +57,7 @@ export function TokenEventCard({ event, compact }: TokenEventCardProps) {
           </div>
 
           {/* Event content */}
-          <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex-1 min-w-0 space-y-2 pr-8">
             {/* Header */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">

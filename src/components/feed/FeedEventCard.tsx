@@ -16,22 +16,23 @@ import { AdminEventCard } from "./AdminEventCard";
 export interface FeedEventCardProps {
   event: FeedEvent;
   compact?: boolean;
+  sequenceNumber?: number;
 }
 
-export function FeedEventCard({ event, compact = false }: FeedEventCardProps) {
+export function FeedEventCard({ event, compact = false, sequenceNumber }: FeedEventCardProps) {
   // Route to appropriate card component based on event category
   switch (event.category) {
     case "governance":
-      return <GovernanceEventCard event={event} compact={compact} />;
+      return <GovernanceEventCard event={event} compact={compact} sequenceNumber={sequenceNumber} />;
     case "auction":
-      return <AuctionEventCard event={event} compact={compact} />;
+      return <AuctionEventCard event={event} compact={compact} sequenceNumber={sequenceNumber} />;
     case "token":
     case "delegation":
-      return <TokenEventCard event={event} compact={compact} />;
+      return <TokenEventCard event={event} compact={compact} sequenceNumber={sequenceNumber} />;
     case "treasury":
     case "admin":
     case "settings":
-      return <AdminEventCard event={event} compact={compact} />;
+      return <AdminEventCard event={event} compact={compact} sequenceNumber={sequenceNumber} />;
     default:
       return null;
   }

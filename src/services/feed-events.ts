@@ -565,9 +565,32 @@ async function fetchFeedEventsUncached(hoursBack: number = 24): Promise<FeedEven
       events.push(...auctionEvents);
     }
 
-    // Transform tokens
+    // Transform tokens (filter out burns that have corresponding auctions)
     if (tokensData.tokens) {
-      events.push(...tokensData.tokens.map(transformTokenToEvent));
+      const tokenEvents = tokensData.tokens.map(transformTokenToEvent);
+      
+      // Get set of token IDs that have auctions
+      const auctionTokenIds = new Set(
+        auctionsData.auctions?.map(a => Number(a.token.tokenId)) || []
+      );
+      
+      // Filter out burned tokens that have active auctions (to avoid confusion)
+      const filteredTokenEvents = tokenEvents.filter(event => {
+        if (event.type !== "TokenMinted") return true;
+        
+        const isBurned = !event.recipient || 
+          event.recipient === "0x0000000000000000000000000000000000000000" || 
+          event.recipient === "0x0";
+        
+        // If token is burned AND has an auction, don't show the burn event
+        if (isBurned && auctionTokenIds.has(event.tokenId)) {
+          return false;
+        }
+        
+        return true;
+      });
+      
+      events.push(...filteredTokenEvents);
     }
 
     // Sort by timestamp descending

@@ -27,6 +27,7 @@ export interface BaseEvent {
   category: EventCategory;
   priority: EventPriority;
   type: string;
+  sequenceNumber?: number; // Display order number (1 = most recent)
 }
 
 // Governance Events

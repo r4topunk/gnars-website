@@ -8,7 +8,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Masonry from "react-masonry-css";
 import { FeedEvent, FeedFilters } from "@/lib/types/feed-events";
 import { FeedEventCard } from "./FeedEventCard";
 import { FeedFilters as FeedFiltersComponent } from "./FeedFilters";
@@ -173,13 +172,21 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
         <>
           <div className="space-y-8">
             {groupedEvents.map(({ dateKey, events: dayEvents, isWeek }) => {
-              // Check if any events from this day/week are visible
-              const visibleDayEvents = dayEvents.filter((_, idx) => {
+              // Calculate sequence numbers for events
+              const eventsWithSequence = dayEvents.map((event, idx) => {
                 const totalPreviousEvents = groupedEvents
                   .filter(g => g.dateKey > dateKey)
                   .reduce((sum, g) => sum + g.events.length, 0);
-                return totalPreviousEvents + idx < visibleCount;
+                return {
+                  ...event,
+                  sequenceNumber: totalPreviousEvents + idx + 1,
+                };
               });
+
+              // Check if any events from this day/week are visible
+              const visibleDayEvents = eventsWithSequence.filter((event) => 
+                event.sequenceNumber <= visibleCount
+              );
 
               if (visibleDayEvents.length === 0) return null;
 
@@ -188,18 +195,8 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
                   {/* Day/Week header */}
                   <GroupHeader dateKey={dateKey} isWeek={isWeek} />
 
-                  {/* Events for this day */}
-                  <Masonry
-                    breakpointCols={{ default: 2, 640: 1 }}
-                    className="flex -ml-3 w-auto"
-                    columnClassName="pl-3 bg-clip-padding"
-                  >
-                    {visibleDayEvents.map((event) => (
-                      <div key={event.id} className="mb-3">
-                        <FeedEventCard event={event} />
-                      </div>
-                    ))}
-                  </Masonry>
+                  {/* Events for this day - Sequential column layout */}
+                  <SequentialColumns events={visibleDayEvents} />
                 </div>
               );
             })}
@@ -221,6 +218,69 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
 }
 
 // Subcomponents
+
+/**
+ * SequentialColumns - Distributes events sequentially into columns
+ * 
+ * Desktop (2 columns): Events 1,2,3... in left column, then 4,5,6... in right column
+ * Mobile (1 column): All events in single column
+ */
+function SequentialColumns({ events }: { events: FeedEvent[] }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Mobile: single column
+  if (isMobile) {
+    return (
+      <div className="space-y-3">
+        {events.map((event) => (
+          <FeedEventCard 
+            key={event.id} 
+            event={event} 
+            sequenceNumber={event.sequenceNumber}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Desktop: split into two columns sequentially
+  const midpoint = Math.ceil(events.length / 2);
+  const leftColumn = events.slice(0, midpoint);
+  const rightColumn = events.slice(midpoint);
+
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {/* Left column */}
+      <div className="space-y-3">
+        {leftColumn.map((event) => (
+          <FeedEventCard 
+            key={event.id} 
+            event={event} 
+            sequenceNumber={event.sequenceNumber}
+          />
+        ))}
+      </div>
+
+      {/* Right column */}
+      <div className="space-y-3">
+        {rightColumn.map((event) => (
+          <FeedEventCard 
+            key={event.id} 
+            event={event} 
+            sequenceNumber={event.sequenceNumber}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function GroupHeader({ dateKey, isWeek }: { dateKey: number; isWeek?: boolean }) {
   // Calculate label - runs on both server and client
@@ -293,17 +353,20 @@ function LiveFeedSkeleton() {
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-8 w-32" />
       </div>
-      <Masonry
-        breakpointCols={{ default: 2, 640: 1 }}
-        className="flex -ml-3 w-auto"
-        columnClassName="pl-3 bg-clip-padding"
-      >
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="mb-3">
-            <Skeleton className="h-24 w-full" />
-          </div>
-        ))}
-      </Masonry>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Left column */}
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={`left-${i}`} className="h-32 w-full" />
+          ))}
+        </div>
+        {/* Right column - hidden on mobile */}
+        <div className="hidden sm:block space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={`right-${i}`} className="h-32 w-full" />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
