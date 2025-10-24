@@ -326,12 +326,7 @@ function transformBidToEvent(b: SubgraphBid): FeedEvent {
  * Transform subgraph auction to feed event
  */
 function transformAuctionToEvent(a: SubgraphAuction): FeedEvent | null {
-  // Skip settled auctions from this query since we don't have winner/bid data
-  // Settled auctions should come from the bids query instead
-  if (a.settled) {
-    return null;
-  }
-
+  // Show all auctions (both new and settled)
   return {
     id: `auction-${a.id}`,
     type: "AuctionCreated",

@@ -51,7 +51,12 @@ export function AuctionEventCard({ event, compact }: AuctionEventCardProps) {
             {/* Header */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{title}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-sm font-medium">{title}</p>
+                  {event.type === "AuctionBid" && (
+                    <span className="text-xs text-muted-foreground">on Gnar #{event.tokenId}</span>
+                  )}
+                </div>
               </div>
               {isLive && (
                 <Badge className="text-xs bg-green-600 hover:bg-green-700 text-white">Live</Badge>
@@ -143,11 +148,10 @@ function AuctionBidContent({ event, compact }: {
         <span className="text-sm font-bold text-green-600">
           {formatETH(event.amount)}
         </span>
+        {increase && (
+          <span className="text-xs text-muted-foreground">(+{increase}%)</span>
+        )}
       </div>
-      <p className="text-xs text-muted-foreground">
-        on Gnar #{event.tokenId}
-        {increase && ` (+${increase}%)`}
-      </p>
       {event.extended && !compact && (
         <Badge variant="secondary" className="text-xs">
           ⏱️ Auction Extended
@@ -252,7 +256,7 @@ function getEventDisplay(event: Extract<FeedEvent, { category: "auction" }>) {
         icon: DollarSign,
         iconColor: "text-green-600",
         bgColor: "bg-green-50 dark:bg-green-950",
-        title: "New Bid",
+        title: "Bid",
         actionText: "View Auction",
       };
     case "AuctionSettled":
