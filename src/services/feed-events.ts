@@ -148,26 +148,26 @@ const TOKENS_QUERY = `
 `;
 
 /**
- * Query for delegate changes
+ * Query for delegate changes (not yet implemented)
  */
-const DELEGATES_QUERY = `
-  query GetRecentDelegates($daoAddress: String!, $since: BigInt!) {
-    daoTokenOwners(
-      where: { 
-        dao: $daoAddress
-        # Note: We'd need a timestamp field for filtering
-      }
-      orderBy: daoTokenCount
-      orderDirection: desc
-      first: 50
-    ) {
-      id
-      owner
-      delegate
-      daoTokenCount
-    }
-  }
-`;
+// const DELEGATES_QUERY = `
+//   query GetRecentDelegates($daoAddress: String!, $since: BigInt!) {
+//     daoTokenOwners(
+//       where: { 
+//         dao: $daoAddress
+//         # Note: We'd need a timestamp field for filtering
+//       }
+//       orderBy: daoTokenCount
+//       orderDirection: desc
+//       first: 50
+//     ) {
+//       id
+//       owner
+//       delegate
+//       daoTokenCount
+//     }
+//   }
+// `;
 
 // Type definitions for subgraph responses
 interface SubgraphProposal {

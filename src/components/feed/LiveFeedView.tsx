@@ -8,6 +8,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Masonry from "react-masonry-css";
 import { FeedEvent, FeedFilters } from "@/lib/types/feed-events";
 import { FeedEventCard } from "./FeedEventCard";
 import { FeedFilters as FeedFiltersComponent } from "./FeedFilters";
@@ -115,23 +116,29 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
         </div>
       </div>
 
-      {/* Events list */}
+      {/* Events list - Masonry layout with horizontal flow */}
       {filteredEvents.length === 0 ? (
         <EmptyState filters={filters} />
       ) : (
         <>
-          <div className="space-y-3">
+          <Masonry
+            breakpointCols={{ default: 2, 640: 1 }}
+            className="flex -ml-3 w-auto"
+            columnClassName="pl-3 bg-clip-padding"
+          >
             {filteredEvents.slice(0, visibleCount).map((event) => (
-              <FeedEventCard key={event.id} event={event} />
+              <div key={event.id} className="mb-3">
+                <FeedEventCard event={event} />
+              </div>
             ))}
-          </div>
 
-          {/* Loading indicator for more events */}
-          {filteredEvents.length > visibleCount && (
-            <div className="space-y-3">
-              <Skeleton className="h-24 w-full" />
-            </div>
-          )}
+            {/* Loading indicator for more events */}
+            {filteredEvents.length > visibleCount && (
+              <div className="mb-3">
+                <Skeleton className="h-24 w-full" />
+              </div>
+            )}
+          </Masonry>
 
           {/* Infinite scroll sentinel */}
           <div ref={sentinelRef} className="h-10" />
@@ -151,11 +158,17 @@ function LiveFeedSkeleton() {
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-8 w-32" />
       </div>
-      <div className="space-y-3">
+      <Masonry
+        breakpointCols={{ default: 2, 640: 1 }}
+        className="flex -ml-3 w-auto"
+        columnClassName="pl-3 bg-clip-padding"
+      >
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 w-full" />
+          <div key={i} className="mb-3">
+            <Skeleton className="h-24 w-full" />
+          </div>
         ))}
-      </div>
+      </Masonry>
     </div>
   );
 }
@@ -164,7 +177,7 @@ function EmptyState({ filters }: { filters: FeedFilters }) {
   const hasActiveFilters = 
     filters.priorities.length < 3 ||
     filters.categories.length < 7 ||
-    filters.timeRange !== "24h" ||
+    filters.timeRange !== "30d" ||
     filters.showOnlyWithComments;
 
   return (

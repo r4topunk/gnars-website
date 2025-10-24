@@ -259,7 +259,7 @@ function getEventDisplay(event: Extract<FeedEvent, { category: "auction" }>) {
   }
 }
 
-function getEventLink(_event: Extract<FeedEvent, { category: "auction" }>): string {
+function getEventLink(): string {
   return "/auctions";
 }
 

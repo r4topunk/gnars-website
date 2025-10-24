@@ -15,13 +15,14 @@ const SAMPLE_ADDRESSES = [
   "0x5678901234567890123456789012345678901234",
 ];
 
-const SAMPLE_ENS_NAMES = [
-  "alice.eth",
-  "bob.eth",
-  "charlie.eth",
-  "skater.eth",
-  "artist.eth",
-];
+// Unused for now but kept for future ENS resolution feature
+// const SAMPLE_ENS_NAMES = [
+//   "alice.eth",
+//   "bob.eth",
+//   "charlie.eth",
+//   "skater.eth",
+//   "artist.eth",
+// ];
 
 const SAMPLE_PROPOSAL_TITLES = [
   "Treasury Diversification Strategy",
