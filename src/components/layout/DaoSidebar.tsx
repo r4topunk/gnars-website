@@ -141,14 +141,19 @@ export function DaoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { isConnected, chain } = useAccount();
   const { switchChain, isPending } = useSwitchChain();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isRouteActive = React.useCallback(
     (url: string) => {
-      if (!pathname) return false;
+      if (!mounted || !pathname) return false;
       if (url === "/") return pathname === "/";
       return pathname === url || pathname.startsWith(`${url}/`);
     },
-    [pathname],
+    [pathname, mounted],
   );
 
   const isWrongNetwork = isConnected && chain?.id !== base.id;

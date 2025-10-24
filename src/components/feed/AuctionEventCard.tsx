@@ -23,7 +23,7 @@ export interface AuctionEventCardProps {
 }
 
 export function AuctionEventCard({ event, compact }: AuctionEventCardProps) {
-  const timeAgo = formatDistanceToNow(new Date(event.timestamp * 1000), { addSuffix: true });
+  // Removed: timeAgo is redundant since we have day headers
   
   const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
 
@@ -48,7 +48,6 @@ export function AuctionEventCard({ event, compact }: AuctionEventCardProps) {
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{timeAgo}</p>
               </div>
               {event.priority === "HIGH" && (
                 <Badge variant="outline" className="text-xs">Live</Badge>
@@ -93,7 +92,7 @@ function AuctionCreatedContent({ event }: { event: Extract<FeedEvent, { type: "A
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold">Gnar #{event.tokenId}</p>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-muted-foreground" suppressHydrationWarning>
         Ends {formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}
       </p>
       {event.imageUrl && (

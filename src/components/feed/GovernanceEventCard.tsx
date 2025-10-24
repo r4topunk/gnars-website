@@ -32,7 +32,7 @@ export interface GovernanceEventCardProps {
 }
 
 export function GovernanceEventCard({ event, compact }: GovernanceEventCardProps) {
-  const timeAgo = formatDistanceToNow(new Date(event.timestamp * 1000), { addSuffix: true });
+  // Removed: timeAgo is redundant since we have day headers
   
   // Event icon and color based on type
   const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
@@ -58,7 +58,6 @@ export function GovernanceEventCard({ event, compact }: GovernanceEventCardProps
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{timeAgo}</p>
               </div>
               {event.priority === "HIGH" && (
                 <Badge variant="outline" className="text-xs">New</Badge>
@@ -117,7 +116,7 @@ function ProposalCreatedContent({ event }: { event: Extract<FeedEvent, { type: "
           showExplorer={false}
         />
       </div>
-      <div className="text-xs text-muted-foreground">
+      <div className="text-xs text-muted-foreground" suppressHydrationWarning>
         Voting starts {formatDistanceToNow(new Date(event.voteStart * 1000), { addSuffix: true })}
       </div>
     </div>
@@ -178,7 +177,7 @@ function ProposalStatusContent({ event }: {
         Proposal #{event.proposalNumber}: {event.proposalTitle}
       </p>
       {event.type === "ProposalQueued" && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground" suppressHydrationWarning>
           Ready for execution {formatDistanceToNow(new Date(event.eta * 1000), { addSuffix: true })}
         </p>
       )}
@@ -194,7 +193,7 @@ function VotingAlertContent({ event }: {
       <p className="text-sm font-medium">
         Proposal #{event.proposalNumber}: {event.proposalTitle}
       </p>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-muted-foreground" suppressHydrationWarning>
         {event.type === "VotingOpened" 
           ? `Voting ends ${formatDistanceToNow(new Date(event.voteEnd * 1000), { addSuffix: true })}`
           : `Only ${event.hoursLeft}h left to vote!`

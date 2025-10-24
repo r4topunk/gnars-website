@@ -63,6 +63,30 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
     });
   }, [events, filters]);
 
+  // Group events by day (using UTC to avoid timezone issues)
+  const groupedEvents = useMemo(() => {
+    const groups = new Map<string, FeedEvent[]>();
+    
+    filteredEvents.forEach(event => {
+      const date = new Date(event.timestamp * 1000);
+      // Use UTC to get consistent day boundaries
+      const dateKey = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+      
+      if (!groups.has(dateKey.toString())) {
+        groups.set(dateKey.toString(), []);
+      }
+      groups.get(dateKey.toString())!.push(event);
+    });
+
+    // Convert to array and sort by date (newest first)
+    return Array.from(groups.entries())
+      .sort((a, b) => parseInt(b[0]) - parseInt(a[0]))
+      .map(([dateKey, dayEvents]) => ({
+        dateKey: parseInt(dateKey),
+        events: dayEvents,
+      }));
+  }, [filteredEvents]);
+
   // Incremental rendering for performance
   const PAGE_SIZE = 20;
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
@@ -116,29 +140,51 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
         </div>
       </div>
 
-      {/* Events list - Masonry layout with horizontal flow */}
+      {/* Events list - Grouped by day with masonry layout */}
       {filteredEvents.length === 0 ? (
         <EmptyState filters={filters} />
       ) : (
         <>
-          <Masonry
-            breakpointCols={{ default: 2, 640: 1 }}
-            className="flex -ml-3 w-auto"
-            columnClassName="pl-3 bg-clip-padding"
-          >
-            {filteredEvents.slice(0, visibleCount).map((event) => (
-              <div key={event.id} className="mb-3">
-                <FeedEventCard event={event} />
-              </div>
-            ))}
+          <div className="space-y-8">
+            {groupedEvents.map(({ dateKey, events: dayEvents }) => {
+              // Check if any events from this day are visible
+              const visibleDayEvents = dayEvents.filter((_, idx) => {
+                const totalPreviousEvents = groupedEvents
+                  .filter(g => g.dateKey > dateKey)
+                  .reduce((sum, g) => sum + g.events.length, 0);
+                return totalPreviousEvents + idx < visibleCount;
+              });
+
+              if (visibleDayEvents.length === 0) return null;
+
+              return (
+                <div key={dateKey} className="space-y-3">
+                  {/* Day header */}
+                  <DayHeader dateKey={dateKey} />
+
+                  {/* Events for this day */}
+                  <Masonry
+                    breakpointCols={{ default: 2, 640: 1 }}
+                    className="flex -ml-3 w-auto"
+                    columnClassName="pl-3 bg-clip-padding"
+                  >
+                    {visibleDayEvents.map((event) => (
+                      <div key={event.id} className="mb-3">
+                        <FeedEventCard event={event} />
+                      </div>
+                    ))}
+                  </Masonry>
+                </div>
+              );
+            })}
 
             {/* Loading indicator for more events */}
             {filteredEvents.length > visibleCount && (
-              <div className="mb-3">
-                <Skeleton className="h-24 w-full" />
+              <div className="flex justify-center">
+                <Skeleton className="h-24 w-full max-w-md" />
               </div>
             )}
-          </Masonry>
+          </div>
 
           {/* Infinite scroll sentinel */}
           <div ref={sentinelRef} className="h-10" />
@@ -149,6 +195,43 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
 }
 
 // Subcomponents
+
+function DayHeader({ dateKey }: { dateKey: number }) {
+  // Calculate label - runs on both server and client
+  const now = new Date();
+  const nowDayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const daysDiff = Math.round((nowDayStart - dateKey) / (1000 * 60 * 60 * 24));
+  
+  let label: string;
+  if (daysDiff === 0) {
+    label = "Today";
+  } else if (daysDiff === 1) {
+    label = "Yesterday";
+  } else if (daysDiff < 7) {
+    label = `${daysDiff} days ago`;
+  } else if (daysDiff < 30) {
+    const weeks = Math.floor(daysDiff / 7);
+    label = weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+  } else {
+    // Show actual date for older events
+    const date = new Date(dateKey);
+    label = date.toLocaleDateString("en-US", { 
+      month: "short", 
+      day: "numeric", 
+      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+      timeZone: "UTC"
+    });
+  }
+  
+  return (
+    <div className="flex items-center gap-3">
+      <h3 className="text-lg font-semibold text-foreground" suppressHydrationWarning>
+        {label}
+      </h3>
+      <div className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
 
 function LiveFeedSkeleton() {
   return (

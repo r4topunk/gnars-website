@@ -7,7 +7,6 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
 import { Palette, ArrowRightLeft, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +20,7 @@ export interface TokenEventCardProps {
 }
 
 export function TokenEventCard({ event, compact }: TokenEventCardProps) {
-  const timeAgo = formatDistanceToNow(new Date(event.timestamp * 1000), { addSuffix: true });
+  // Removed: timeAgo is redundant since we have day headers
   
   const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
 
@@ -46,7 +45,6 @@ export function TokenEventCard({ event, compact }: TokenEventCardProps) {
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{timeAgo}</p>
               </div>
               {event.priority === "HIGH" && (
                 <Badge variant="outline" className="text-xs">New</Badge>
