@@ -220,9 +220,9 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
 // Subcomponents
 
 /**
- * SequentialColumns - Distributes events sequentially into columns
+ * SequentialColumns - Distributes events in alternating pattern between columns
  * 
- * Desktop (2 columns): Events 1,2,3... in left column, then 4,5,6... in right column
+ * Desktop (2 columns): Events 1,3,5... in left column, 2,4,6... in right column
  * Mobile (1 column): All events in single column
  */
 function SequentialColumns({ events }: { events: FeedEvent[] }) {
@@ -250,10 +250,9 @@ function SequentialColumns({ events }: { events: FeedEvent[] }) {
     );
   }
 
-  // Desktop: split into two columns sequentially
-  const midpoint = Math.ceil(events.length / 2);
-  const leftColumn = events.slice(0, midpoint);
-  const rightColumn = events.slice(midpoint);
+  // Desktop: alternate events between columns (1,3,5... left and 2,4,6... right)
+  const leftColumn = events.filter((_, index) => index % 2 === 0);
+  const rightColumn = events.filter((_, index) => index % 2 === 1);
 
   return (
     <div className="grid grid-cols-2 gap-3">
