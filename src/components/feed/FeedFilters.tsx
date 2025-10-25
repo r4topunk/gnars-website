@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Filter, X } from "lucide-react";
 import { EventCategory, EventPriority, FeedFilters as FeedFiltersType } from "@/lib/types/feed-events";
+import { DEFAULT_FILTERS } from "./LiveFeedView";
 
 export interface FeedFiltersProps {
   filters: FeedFiltersType;
@@ -50,11 +51,14 @@ const TIME_RANGE_LABELS = {
 } as const;
 
 export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
-  const activeFilterCount = 
-    (filters.priorities.length < 3 ? 1 : 0) +
-    (filters.categories.length < 7 ? 1 : 0) +
-    (filters.timeRange !== "24h" ? 1 : 0) +
-    (filters.showOnlyWithComments ? 1 : 0);
+  // Check if current filters match defaults
+  const isDefaultFilters = 
+    filters.priorities.length === DEFAULT_FILTERS.priorities.length &&
+    filters.priorities.every(p => DEFAULT_FILTERS.priorities.includes(p)) &&
+    filters.categories.length === DEFAULT_FILTERS.categories.length &&
+    filters.categories.every(c => DEFAULT_FILTERS.categories.includes(c)) &&
+    filters.timeRange === DEFAULT_FILTERS.timeRange &&
+    filters.showOnlyWithComments === DEFAULT_FILTERS.showOnlyWithComments;
 
   const handleCategoryToggle = (category: EventCategory) => {
     const newCategories = filters.categories.includes(category)
@@ -77,12 +81,7 @@ export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
   };
 
   const handleReset = () => {
-    onFiltersChange({
-      priorities: ["HIGH", "MEDIUM", "LOW"],
-      categories: ["governance", "auction", "token", "delegation", "treasury", "admin", "settings"],
-      timeRange: "24h",
-      showOnlyWithComments: false,
-    });
+    onFiltersChange(DEFAULT_FILTERS);
   };
 
   return (
@@ -177,8 +176,8 @@ export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
         With Comments
       </Button>
 
-      {/* Reset button */}
-      {activeFilterCount > 0 && (
+      {/* Reset button - only show if filters differ from defaults */}
+      {!isDefaultFilters && (
         <Button
           variant="ghost"
           size="sm"

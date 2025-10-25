@@ -9,7 +9,6 @@ import { Suspense } from "react";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { LiveFeedView } from "@/components/feed/LiveFeedView";
 import { getAllFeedEvents } from "@/services/feed-events";
-import { Activity } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -51,17 +50,10 @@ export default async function LiveFeedPage() {
       <div className="container mx-auto py-8 px-4 max-w-4xl">
         {/* Page header */}
         <div className="space-y-2 mb-8">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Activity className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Live Feed</h1>
-              <p className="text-muted-foreground mt-1">
-                Real-time activity from the Gnars DAO
-              </p>
-            </div>
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight">Live Feed</h1>
+          <p className="text-muted-foreground mt-1">
+            Real-time activity from the Gnars DAO
+          </p>
         </div>
 
         {/* Feed content */}

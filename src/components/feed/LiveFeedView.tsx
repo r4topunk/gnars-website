@@ -21,7 +21,7 @@ export interface LiveFeedViewProps {
   error?: Error | null;
 }
 
-const DEFAULT_FILTERS: FeedFilters = {
+export const DEFAULT_FILTERS: FeedFilters = {
   priorities: ["HIGH", "MEDIUM", "LOW"],
   categories: ["governance", "auction", "token", "delegation", "treasury", "admin", "settings"],
   timeRange: "30d",
