@@ -9,7 +9,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
-import { Palette, DollarSign, Trophy, Clock } from "lucide-react";
+import { Palette, DollarSign, Trophy, Clock, Radio } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/ui/address-display";
@@ -67,7 +67,10 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
                 </div>
               </div>
               {isLive && (
-                <Badge className="text-xs bg-green-600 hover:bg-green-700 text-white">Live</Badge>
+                <span className={cn("flex items-center gap-1 text-xs font-medium bg-green-50 dark:bg-green-950 px-2 py-0.5 rounded-md")}>
+                  <Radio className="h-3 w-3 text-green-600" />
+                  <span className="text-green-600">LIVE</span>
+                </span>
               )}
             </div>
 
@@ -89,7 +92,7 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
             {actionText && (
               <div className="pt-1">
                 <Link 
-                  href={getEventLink()}
+                  href={getEventLink(event)}
                   className="text-xs text-primary hover:underline font-medium"
                 >
                   {actionText} →
@@ -256,7 +259,7 @@ function getEventDisplay(event: Extract<FeedEvent, { category: "auction" }>) {
         icon: Palette,
         iconColor: "text-purple-600",
         bgColor: "bg-purple-50 dark:bg-purple-950",
-        title: "New Auction",
+        title: "Auction",
         actionText: "View Auction",
       };
     case "AuctionBid":
@@ -286,7 +289,14 @@ function getEventDisplay(event: Extract<FeedEvent, { category: "auction" }>) {
   }
 }
 
-function getEventLink(): string {
+function getEventLink(event: Extract<FeedEvent, { category: "auction" }>): string {
+  // For AuctionCreated, go to home if auction hasn't ended, otherwise go to auctions page
+  if (event.type === "AuctionCreated") {
+    const now = Math.floor(Date.now() / 1000);
+    const hasEnded = event.endTime <= now;
+    return hasEnded ? "/auctions" : "/";
+  }
+  
   return "/auctions";
 }
 
