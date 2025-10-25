@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { cn } from "@/lib/utils";
 import type { FeedEvent } from "@/lib/types/feed-events";
-import { GNARS_ADDRESSES } from "@/lib/config";
 
 export interface TokenEventCardProps {
   event: Extract<FeedEvent, { category: "token" | "delegation" }>;
@@ -22,12 +21,6 @@ export interface TokenEventCardProps {
 }
 
 export function TokenEventCard({ event, compact, sequenceNumber }: TokenEventCardProps) {
-  // Hide auction mints (normal flow) - only show founder allocations and special mints
-  if (event.type === "TokenMinted" && 
-      event.recipient?.toLowerCase() === GNARS_ADDRESSES.auction.toLowerCase()) {
-    return null;
-  }
-  
   // Check if token was burned (minted to zero address)
   const isBurned = event.type === "TokenMinted" && 
     (!event.recipient || event.recipient === "0x0000000000000000000000000000000000000000" || event.recipient === "0x0");
