@@ -121,6 +121,7 @@ export default function FiniteMural() {
               <div
                 key={seed}
                 style={{
+                  position: "relative",
                   width: tileSize,
                   height: tileSize,
                   borderRadius: 12,
