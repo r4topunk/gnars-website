@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
 import { DaoSidebar } from "@/components/layout/DaoSidebar";
-import { MuralBackground } from "@/components/layout/MuralBackground";
+// import { MuralBackground } from "@/components/layout/MuralBackground";
 import Providers from "@/components/layout/Providers";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import SidebarFloatingTrigger from "@/components/layout/SidebarFloatingTrigger";
@@ -46,7 +46,7 @@ export default function RootLayout({
           <Providers>
             <TooltipProvider>
               <SidebarProvider>
-                <MuralBackground />
+                {/* <MuralBackground /> */}
                 <ScrollToTop />
                 <DaoSidebar />
                 {children}
