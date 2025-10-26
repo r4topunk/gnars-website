@@ -54,6 +54,10 @@ export default function FiniteMural() {
   const maxX = Math.max(0, totalWidth - vw);
   const maxY = Math.max(0, totalHeight - vh);
 
+  // Calculate center position for initial scroll
+  const centerX = -(totalWidth / 2 - vw / 2);
+  const centerY = -(totalHeight / 2 - vh / 2);
+
   // Wheel -> change tile size within bounds (prevent page scroll)
   useEffect(() => {
     const el = containerRef.current;
@@ -98,6 +102,7 @@ export default function FiniteMural() {
           top: -maxY,
           bottom: 0,
         }}
+        initial={{ x: centerX, y: centerY }}
         style={{
           width: totalWidth,
           height: totalHeight,
