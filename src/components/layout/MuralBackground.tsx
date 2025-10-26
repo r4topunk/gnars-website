@@ -8,10 +8,9 @@ import { fetchAllAuctions, type PastAuction } from "@/services/auctions";
  * MuralBackground
  * Interactive mural background displayed across all pages.
  * - Fixed positioning behind page content
- * - Drag to pan within a large finite grid
- * - Mouse wheel changes tile size
+ * - Drag to pan within a large finite grid (50x50 tiles at 96px each)
  * - Displays real NFT images from GNARS auctions
- * - Pointer events disabled except for controls and drag surface
+ * - Pointer events disabled except for drag surface
  */
 
 // --- Helper: deterministic pseudo-random for background colors
@@ -25,10 +24,8 @@ function mulberry32(a: number) {
 }
 
 export function MuralBackground() {
-  // Board size controls
-  const [tileSize, setTileSize] = useState(140);
-  const minSize = 64;
-  const maxSize = 280;
+  // Fixed tile size - no resizing allowed
+  const tileSize = 96;
   const gap = 8;
 
   // Fixed grid dimensions
@@ -90,40 +87,11 @@ export function MuralBackground() {
   const centerX = -(totalWidth / 2 - vw / 2);
   const centerY = -(totalHeight / 2 - vh / 2);
 
-  // Wheel -> change tile size within bounds (prevent page scroll)
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const onWheel = (e: WheelEvent) => {
-      if (e.ctrlKey) return; // allow pinch-zoom / system gestures
-      e.preventDefault();
-      const dir = Math.sign(e.deltaY);
-      const next = Math.min(maxSize, Math.max(minSize, tileSize - dir * 8));
-      setTileSize(next);
-    };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [tileSize, minSize, maxSize]);
-
   return (
     <div 
       ref={containerRef} 
       className="fixed inset-0 z-0 overflow-hidden bg-neutral-100 pointer-events-none"
     >
-      {/* Controls */}
-      <div className="pointer-events-auto absolute left-4 top-4 z-20 flex items-center gap-3 rounded-2xl bg-white/80 p-3 shadow-lg backdrop-blur">
-        <label className="text-sm font-medium">tamanho</label>
-        <input
-          type="range"
-          min={minSize}
-          max={maxSize}
-          value={tileSize}
-          onChange={(e) => setTileSize(parseInt(e.target.value))}
-          className="h-1 w-48"
-        />
-        <span className="tabular-nums text-sm text-neutral-600">{tileSize}px</span>
-        <span className="text-xs text-neutral-400">role a roda do mouse para ajustar</span>
-      </div>
 
       {/* Drag surface with constraints */}
       <motion.div
@@ -209,7 +177,7 @@ export function MuralBackground() {
 
       {/* Hints */}
       <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs text-white shadow">
-        arraste para mover • role para mudar o tamanho
+        arraste para mover
       </div>
     </div>
   );

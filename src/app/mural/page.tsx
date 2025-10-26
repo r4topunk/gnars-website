@@ -16,12 +16,6 @@ export default function MuralPage() {
             <p>
               <strong>Arraste</strong> para mover e explorar a galeria de NFTs
             </p>
-            <p>
-              <strong>Role o mouse</strong> para ajustar o tamanho dos tiles
-            </p>
-            <p>
-              Use os controles no canto superior esquerdo para ajustes precisos
-            </p>
           </div>
           <div className="mt-8 pt-8 border-t">
             <p className="text-sm text-muted-foreground">
