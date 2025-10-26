@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
+import { fetchAllAuctions, type PastAuction } from "@/services/auctions";
 
 // --- Helper: deterministic pseudo-random for background colors
 function mulberry32(a: number) {
@@ -18,7 +18,7 @@ function mulberry32(a: number) {
  * FiniteMural
  * - Drag to pan within a large finite grid
  * - Mouse wheel changes tile size
- * - Images from Picsum with stable seeds
+ * - Displays real NFT images from GNARS auctions
  */
 export default function FiniteMural() {
   // Board size controls
@@ -32,6 +32,35 @@ export default function FiniteMural() {
   const gridRows = 50; // 50 rows
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // NFT auctions data
+  const [auctions, setAuctions] = useState<PastAuction[]>([]);
+  const [isLoadingNFTs, setIsLoadingNFTs] = useState(true);
+
+  // Fetch NFT auctions on mount
+  useEffect(() => {
+    let ignore = false;
+    async function loadNFTs() {
+      try {
+        setIsLoadingNFTs(true);
+        const auctionData = await fetchAllAuctions(1000);
+        console.log("Fetched auctions:", auctionData.length, auctionData.slice(0, 3));
+        if (!ignore && auctionData.length > 0) {
+          setAuctions(auctionData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch auctions:", error);
+      } finally {
+        if (!ignore) {
+          setIsLoadingNFTs(false);
+        }
+      }
+    }
+    void loadNFTs();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   // Viewport size
   const [vw, setVw] = useState<number>(typeof window !== "undefined" ? window.innerWidth : 1280);
@@ -117,10 +146,18 @@ export default function FiniteMural() {
             const col = idx % gridCols;
             const row = Math.floor(idx / gridCols);
             const seed = `${col}_${row}`;
-            const size = Math.max(64, tileSize * 2);
-            const src = `https://picsum.photos/seed/${seed}/${size}`;
             const rand = mulberry32((col * 73856093) ^ (row * 19349663))();
             const bg = `hsl(${Math.floor(rand * 360)} 60% 85%)`;
+            
+            // Use real NFT images if loaded, otherwise show loading state
+            const auction = auctions.length > 0 ? auctions[idx % auctions.length] : null;
+            const imageUrl = auction?.imageUrl;
+            const tokenId = auction?.tokenId;
+            
+            // Debug first few tiles
+            if (idx < 3) {
+              console.log(`Tile ${idx}:`, { isLoadingNFTs, auctionsCount: auctions.length, auction, imageUrl });
+            }
             
             return (
               <div
@@ -135,16 +172,34 @@ export default function FiniteMural() {
                   background: bg,
                 }}
               >
-                <Image
-                  src={src}
-                  alt={seed}
-                  fill
-                  sizes={`${tileSize}px`}
-                  style={{ objectFit: "cover" }}
-                  loading="lazy"
-                  draggable={false}
-                  unoptimized
-                />
+                {!isLoadingNFTs && imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={imageUrl}
+                    alt={`Gnar #${tokenId}`}
+                    style={{ 
+                      width: "100%", 
+                      height: "100%", 
+                      objectFit: "cover" 
+                    }}
+                    loading="lazy"
+                    draggable={false}
+                    onError={(e) => {
+                      if (idx < 3) {
+                        console.error(`Image load error for tile ${idx}, tokenId ${tokenId}:`, imageUrl);
+                      }
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    {isLoadingNFTs ? (
+                      <div className="text-xs text-muted-foreground opacity-50">...</div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground opacity-30">#{tokenId || "?"}</div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
