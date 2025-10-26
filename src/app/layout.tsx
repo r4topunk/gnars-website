@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
-import { DaoSidebar } from "@/components/layout/DaoSidebar";
+import { DaoHeader } from "@/components/layout/DaoHeader";
 // import { MuralBackground } from "@/components/layout/MuralBackground";
 import Providers from "@/components/layout/Providers";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
-import SidebarFloatingTrigger from "@/components/layout/SidebarFloatingTrigger";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -35,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased max-w-screen-xl mx-auto`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"
@@ -45,14 +43,13 @@ export default function RootLayout({
         >
           <Providers>
             <TooltipProvider>
-              <SidebarProvider>
-                {/* <MuralBackground /> */}
-                <ScrollToTop />
-                <DaoSidebar />
+              {/* <MuralBackground /> */}
+              <ScrollToTop />
+              <DaoHeader />
+              <main className="max-w-screen-2xl mx-auto">
                 {children}
-                <Toaster />
-                <SidebarFloatingTrigger />
-              </SidebarProvider>
+              </main>
+              <Toaster />
             </TooltipProvider>
           </Providers>
         </ThemeProvider>
