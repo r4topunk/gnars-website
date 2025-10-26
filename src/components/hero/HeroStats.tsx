@@ -16,7 +16,6 @@ export interface HeroStatsProps {
 export function HeroStats({ stats }: HeroStatsProps) {
   return (
     <div className="flex flex-col justify-center space-y-6">
-      <div className="flex flex-col justify-center space-y-6 bg-background rounded-lg p-4">
       <div className="space-y-4">
         <Badge
           variant="secondary"
@@ -72,7 +71,6 @@ export function HeroStats({ stats }: HeroStatsProps) {
             </div>
           </div>
         )}
-      </div>
       </div>
     </div>
   );
