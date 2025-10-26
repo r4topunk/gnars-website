@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 // --- Helper: deterministic pseudo-random for background colors
 function mulberry32(a: number) {
@@ -65,7 +66,7 @@ export default function FiniteMural() {
       setTileSize(next);
     };
     el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel as any);
+    return () => el.removeEventListener("wheel", onWheel);
   }, [tileSize, minSize, maxSize]);
 
   return (
@@ -128,12 +129,15 @@ export default function FiniteMural() {
                   background: bg,
                 }}
               >
-                <img
+                <Image
                   src={src}
                   alt={seed}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  fill
+                  sizes={`${tileSize}px`}
+                  style={{ objectFit: "cover" }}
                   loading="lazy"
-                  draggable="false"
+                  draggable={false}
+                  unoptimized
                 />
               </div>
             );

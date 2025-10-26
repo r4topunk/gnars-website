@@ -28,7 +28,7 @@ export function useMintDroposal({
   const isReady = Boolean(tokenAddress) && isConnected && Boolean(address);
 
   // Simulate the purchase transaction
-  const { data: simulateData, isError: simulateError } = useSimulateContract({
+  const { isError: simulateError } = useSimulateContract({
     abi: zoraNftMintAbi,
     address: tokenAddress,
     functionName: "purchase",

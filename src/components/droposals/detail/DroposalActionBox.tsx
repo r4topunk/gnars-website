@@ -15,7 +15,6 @@ import { useMintDroposal } from "@/hooks/useMintDroposal";
 
 export interface DroposalActionBoxProps {
   priceEth: string;
-  editionSize: string;
   saleActive: boolean;
   saleNotStarted: boolean;
   saleEnded: boolean;
@@ -27,7 +26,6 @@ export interface DroposalActionBoxProps {
 
 export function DroposalActionBox({
   priceEth,
-  editionSize,
   saleActive,
   saleNotStarted,
   saleEnded,

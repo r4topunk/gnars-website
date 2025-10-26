@@ -197,7 +197,6 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
           <div className="space-y-6 h-fit">
             <DroposalActionBox
               priceEth={priceEth}
-              editionSize={editionSize}
               saleActive={saleActive}
               saleNotStarted={Boolean(saleNotStarted)}
               saleEnded={Boolean(saleEnded)}
