@@ -174,7 +174,7 @@ function DesktopNav() {
       <NavigationMenuList className="items-center">
         {navigationItems.map((item) => {
           // Single link item
-          if ("href" in item) {
+          if ("href" in item && item.href) {
             return (
               <NavigationMenuItem key={item.title}>
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
@@ -289,7 +289,7 @@ function MobileNav() {
         </SheetHeader>
         <nav className="flex flex-col gap-4 mt-8 flex-1 overflow-y-auto">
           {navigationItems.map((item) => {
-            if ("href" in item) {
+            if ("href" in item && item.href) {
               const Icon = item.icon;
               return (
                 <Link
