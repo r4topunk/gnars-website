@@ -14,13 +14,11 @@ import { NftHoldings } from "@/components/treasury/NftHoldings";
 import { TokenHoldings } from "@/components/treasury/TokenHoldings";
 import { TreasuryBalance } from "@/components/treasury/TreasuryBalance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SidebarInset } from "@/components/ui/sidebar";
 import { GNARS_ADDRESSES } from "@/lib/config";
 
 export default function TreasuryPage() {
   return (
-    <SidebarInset>
-      <div className="container mx-auto px-4 py-8">
+    <div className="py-8">
         <div className="space-y-8">
           {/* Page Header */}
           <div className="space-y-2">
@@ -98,6 +96,5 @@ export default function TreasuryPage() {
           </div>
         </div>
       </div>
-    </SidebarInset>
   );
 }

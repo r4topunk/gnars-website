@@ -9,7 +9,6 @@ import { DroposalMetadata } from "@/components/droposals/detail/DroposalMetadata
 import { DroposalSupporters } from "@/components/droposals/detail/DroposalSupporters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { SidebarInset } from "@/components/ui/sidebar";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { decodeDroposalParams, formatDroposalForTable, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
@@ -99,16 +98,14 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
 
   if (!p) {
     return (
-      <SidebarInset>
-        <div className="container mx-auto py-8 px-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Droposal not found</CardTitle>
-            </CardHeader>
-            <CardContent>We couldn&apos;t find this droposal.</CardContent>
-          </Card>
-        </div>
-      </SidebarInset>
+      <div className="py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Droposal not found</CardTitle>
+          </CardHeader>
+          <CardContent>We couldn&apos;t find this droposal.</CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -167,8 +164,7 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
 
 
   return (
-    <SidebarInset>
-      <div className="container mx-auto py-8 px-4 space-y-6">
+    <div className="py-8 space-y-6">
         <DroposalHeader
           proposalNumber={p.proposalNumber}
           title={p.title}
@@ -218,6 +214,5 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
           </div>
         </div>
       </div>
-    </SidebarInset>
   );
 }

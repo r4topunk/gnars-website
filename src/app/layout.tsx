@@ -46,7 +46,7 @@ export default function RootLayout({
               {/* <MuralBackground /> */}
               <ScrollToTop />
               <DaoHeader />
-              <main className="max-w-screen-2xl mx-auto">
+              <main className="max-w-6xl mx-auto px-4">
                 {children}
               </main>
               <Toaster />

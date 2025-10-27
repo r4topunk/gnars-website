@@ -1,6 +1,5 @@
 import { HomeClientComponents } from "@/components/home-client-components";
 import { Proposal } from "@/components/proposals/types";
-import { SidebarInset } from "@/components/ui/sidebar";
 import { listProposals } from "@/services/proposals";
 
 export const dynamic = "force-dynamic";
@@ -19,10 +18,8 @@ export default async function Home() {
   const proposals = await getRecentProposals();
 
   return (
-    <SidebarInset>
-      <main className="flex flex-1 flex-col">
-        <HomeClientComponents proposals={proposals} />
-      </main>
-    </SidebarInset>
+    <div className="flex flex-1 flex-col">
+      <HomeClientComponents proposals={proposals} />
+    </div>
   );
 }

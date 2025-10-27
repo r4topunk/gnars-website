@@ -6,7 +6,6 @@
  */
 
 import { Suspense } from "react";
-import { SidebarInset } from "@/components/ui/sidebar";
 import { LiveFeedView } from "@/components/feed/LiveFeedView";
 import { getAllFeedEvents } from "@/services/feed-events";
 
@@ -46,8 +45,7 @@ export default async function LiveFeedPage() {
   const events = await getFeedEvents();
 
   return (
-    <SidebarInset>
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+    <div className="py-8 max-w-4xl mx-auto">
         {/* Page header */}
         <div className="space-y-2 mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Live Feed</h1>
@@ -68,7 +66,6 @@ export default async function LiveFeedPage() {
           </p>
         </div>
       </div>
-    </SidebarInset>
   );
 }
 

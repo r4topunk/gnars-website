@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { BlogDetail, BlogDetailSkeleton } from "@/components/blogs/detail/BlogDetail";
-import { SidebarInset } from "@/components/ui/sidebar";
 import { Blog } from "@/lib/schemas/blogs";
 import { getBlogBySlug } from "@/services/blogs";
 
@@ -25,24 +24,20 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
   if (!blog) {
     return (
-      <SidebarInset>
-        <div className="container mx-auto py-8 px-4 text-center">
-          <h2 className="text-2xl font-bold text-muted-foreground">Blog Post Not Found</h2>
-          <p className="text-muted-foreground mt-2">
-            The blog post you&apos;re looking for doesn&apos;t exist or has been removed.
-          </p>
-        </div>
-      </SidebarInset>
+      <div className="py-8 text-center">
+        <h2 className="text-2xl font-bold text-muted-foreground">Blog Post Not Found</h2>
+        <p className="text-muted-foreground mt-2">
+          The blog post you&apos;re looking for doesn&apos;t exist or has been removed.
+        </p>
+      </div>
     );
   }
 
   return (
-    <SidebarInset>
-      <div className="container mx-auto py-8 px-4">
-        <Suspense fallback={<BlogDetailSkeleton />}>
-          <BlogDetail blog={blog} />
-        </Suspense>
-      </div>
-    </SidebarInset>
+    <div className="py-8">
+      <Suspense fallback={<BlogDetailSkeleton />}>
+        <BlogDetail blog={blog} />
+      </Suspense>
+    </div>
   );
 }

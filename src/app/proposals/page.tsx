@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { ProposalsGridSkeleton } from "@/components/proposals/ProposalsGrid";
 import { ProposalsView } from "@/components/proposals/ProposalsView";
-import { SidebarInset } from "@/components/ui/sidebar";
 import { listProposals } from "@/services/proposals";
 
 export const dynamic = "force-dynamic";
@@ -19,12 +18,10 @@ export default async function ProposalsPage() {
   const proposals = await getProposals();
 
   return (
-    <SidebarInset>
-      <div className="container mx-auto py-8 px-4">
-        <Suspense fallback={<ProposalsGridSkeleton />}>
-          <ProposalsView proposals={proposals} />
-        </Suspense>
-      </div>
-    </SidebarInset>
+    <div className="py-8">
+      <Suspense fallback={<ProposalsGridSkeleton />}>
+        <ProposalsView proposals={proposals} />
+      </Suspense>
+    </div>
   );
 }

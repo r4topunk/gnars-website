@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { isAddress } from "viem";
 import { MemberDetail } from "@/components/members/MemberDetail";
-import { SidebarInset } from "@/components/ui/sidebar";
 import { resolveAddressFromENS } from "@/lib/ens";
 
 interface MemberPageProps {
@@ -34,10 +33,8 @@ export default async function MemberPage({ params, searchParams }: MemberPagePro
     notFound();
   }
   return (
-    <SidebarInset>
-      <div className="container mx-auto py-8 px-4">
-        <MemberDetail address={address} />
-      </div>
-    </SidebarInset>
+    <div className="py-8">
+      <MemberDetail address={address} />
+    </div>
   );
 }
