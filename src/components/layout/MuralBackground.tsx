@@ -177,7 +177,7 @@ export function MuralBackground() {
 
       {/* Hints */}
       <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs text-white shadow">
-        arraste para mover
+        drag to move
       </div>
     </div>
   );
