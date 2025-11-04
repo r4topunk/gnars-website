@@ -5,9 +5,11 @@ import { formatEther } from "viem";
 import { PastAuctions } from "@/components/auctions/PastAuctions";
 import { FAQ } from "@/components/common/FAQ";
 import { ContractsList } from "@/components/contracts-list";
+import { ActivityFeed } from "@/components/feed/ActivityFeed";
 import { HeroSection } from "@/components/hero-section";
 import { RecentProposals } from "@/components/proposals/recent/RecentProposals";
 import { Proposal } from "@/components/proposals/types";
+import type { FeedEvent } from "@/lib/types/feed-events";
 import {
   ProposalsPerMonthChart,
   MemberActivityChart,
@@ -21,9 +23,10 @@ import { fetchDaoStats } from "@/services/dao";
 
 interface HomeClientComponentsProps {
   proposals: Proposal[];
+  feedEvents: FeedEvent[];
 }
 
-export function HomeClientComponents({ proposals }: HomeClientComponentsProps) {
+export function HomeClientComponents({ proposals, feedEvents }: HomeClientComponentsProps) {
   const isMobile = useIsMobile();
   const recentAuctionsLimit = isMobile ? 3 : 8;
   const { data: recentAuctions, isLoading } = useRecentAuctions(recentAuctionsLimit);
@@ -97,6 +100,11 @@ export function HomeClientComponents({ proposals }: HomeClientComponentsProps) {
             limit={6}
             excludeStatuses={[ProposalStatus.CANCELLED]}
           />
+        </section>
+
+        {/* Activity Feed */}
+        <section>
+          <ActivityFeed events={feedEvents} />
         </section>
 
         {/* Analytics Charts Row */}

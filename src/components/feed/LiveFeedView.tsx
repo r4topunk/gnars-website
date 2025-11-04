@@ -19,6 +19,7 @@ export interface LiveFeedViewProps {
   events: FeedEvent[];
   isLoading?: boolean;
   error?: Error | null;
+  showFilters?: boolean;
 }
 
 export const DEFAULT_FILTERS: FeedFilters = {
@@ -28,7 +29,7 @@ export const DEFAULT_FILTERS: FeedFilters = {
   showOnlyWithComments: false,
 };
 
-export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
+export function LiveFeedView({ events, isLoading, error, showFilters = true }: LiveFeedViewProps) {
   const [filters, setFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
 
   // Filter events based on current filters
@@ -158,12 +159,14 @@ export function LiveFeedView({ events, isLoading, error }: LiveFeedViewProps) {
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <FeedFiltersComponent filters={filters} onFiltersChange={setFilters} />
-        <div className="text-sm text-muted-foreground">
-          {filteredEvents.length} {filteredEvents.length === 1 ? "event" : "events"}
+      {showFilters && (
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <FeedFiltersComponent filters={filters} onFiltersChange={setFilters} />
+          <div className="text-sm text-muted-foreground">
+            {filteredEvents.length} {filteredEvents.length === 1 ? "event" : "events"}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Events list - Grouped by day with masonry layout */}
       {filteredEvents.length === 0 ? (
