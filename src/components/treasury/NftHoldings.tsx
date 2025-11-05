@@ -26,8 +26,14 @@ type TreasuryTokensQuery = {
 };
 
 const TREASURY_TOKENS_GQL = /* GraphQL */ `
-  query TreasuryTokens($dao: ID!, $owner: Bytes!) {
-    tokens(where: { dao: $dao, owner: $owner }, orderBy: tokenId, orderDirection: asc) {
+  query TreasuryTokens($dao: ID!, $owner: Bytes!, $first: Int!, $skip: Int!) {
+    tokens(
+      where: { dao: $dao, owner: $owner }
+      orderBy: tokenId
+      orderDirection: asc
+      first: $first
+      skip: $skip
+    ) {
       tokenId
       image
       mintedAt
@@ -67,12 +73,35 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
         setIsLoading(true);
         setError(null);
         const dao = GNARS_ADDRESSES.token.toLowerCase();
-        const data = await subgraphQuery<TreasuryTokensQuery>(TREASURY_TOKENS_GQL, {
-          dao,
-          owner: treasuryAddress.toLowerCase(),
-        });
+        const owner = treasuryAddress.toLowerCase();
+
+        // Fetch all tokens using pagination (max 1000 per query in The Graph)
+        const BATCH_SIZE = 1000;
+        let allTokens: TreasuryTokensQuery["tokens"] = [];
+        let skip = 0;
+        let hasMore = true;
+
+        while (hasMore && !ignore) {
+          const data = await subgraphQuery<TreasuryTokensQuery>(TREASURY_TOKENS_GQL, {
+            dao,
+            owner,
+            first: BATCH_SIZE,
+            skip,
+          });
+
+          if (ignore) return;
+
+          const tokens = data.tokens || [];
+          allTokens = [...allTokens, ...tokens];
+
+          // If we got less than BATCH_SIZE results, we've reached the end
+          hasMore = tokens.length === BATCH_SIZE;
+          skip += BATCH_SIZE;
+        }
+
         if (ignore) return;
-        const mapped = (data.tokens || []).map((t) => {
+
+        const mapped = allTokens.map((t) => {
           const endTime = t.auction?.endTime ? Number(t.auction.endTime) : undefined;
           const mintedAt = t.mintedAt ? Number(t.mintedAt) : undefined;
           const dateLabel = endTime
