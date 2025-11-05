@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GnarCard } from "@/components/auctions/GnarCard";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { Card, CardContent } from "@/components/ui/card";
@@ -54,6 +54,7 @@ const TREASURY_TOKENS_GQL = /* GraphQL */ `
 `;
 
 export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
+  const PAGE_SIZE = 20;
   const [tokens, setTokens] = useState<
     Array<{
       id: number;
@@ -65,6 +66,8 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let ignore = false;
@@ -143,6 +146,35 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
     };
   }, [treasuryAddress]);
 
+  // Reset visible count when tokens change
+  useEffect(() => {
+    if (!tokens) return;
+    setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), tokens.length));
+  }, [tokens, PAGE_SIZE]);
+
+  // IntersectionObserver to load more on scroll
+  useEffect(() => {
+    if (!sentinelRef.current || isLoading) return;
+    const el = sentinelRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry?.isIntersecting) return;
+
+        setVisibleCount((prev) => {
+          const next = prev + PAGE_SIZE;
+          return next;
+        });
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => {
+      observer.unobserve(el);
+      observer.disconnect();
+    };
+  }, [tokens, isLoading, PAGE_SIZE]);
+
   if (isLoading) {
     return <LoadingGridSkeleton items={8} />;
   }
@@ -182,7 +214,7 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {tokens.map((t) => (
+        {tokens.slice(0, visibleCount).map((t) => (
           <GnarCard
             key={`gnar-${t.id}`}
             tokenId={t.id}
@@ -193,6 +225,7 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
           />
         ))}
       </div>
+      {visibleCount < tokens.length && <div ref={sentinelRef} className="h-10" />}
     </div>
   );
 }
