@@ -103,7 +103,8 @@ function TreasuryTransactionContent({ event }: { event: Extract<FeedEvent, { typ
         <AddressDisplay 
           address={event.recipient}
           variant="compact"
-          showAvatar={false}
+          showAvatar={true}
+          avatarSize="xs"
           showENS={true}
           showCopy={false}
           showExplorer={false}
@@ -135,7 +136,8 @@ function OwnershipTransferredContent({ event }: { event: Extract<FeedEvent, { ty
         <AddressDisplay 
           address={event.previousOwner}
           variant="compact"
-          showAvatar={false}
+          showAvatar={true}
+          avatarSize="xs"
           showENS={true}
           showCopy={false}
           showExplorer={false}
@@ -144,7 +146,8 @@ function OwnershipTransferredContent({ event }: { event: Extract<FeedEvent, { ty
         <AddressDisplay 
           address={event.newOwner}
           variant="compact"
-          showAvatar={false}
+          showAvatar={true}
+          avatarSize="xs"
           showENS={true}
           showCopy={false}
           showExplorer={false}

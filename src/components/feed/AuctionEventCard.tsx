@@ -150,7 +150,8 @@ function AuctionBidContent({ event, compact }: {
         <AddressDisplay 
           address={event.bidder}
           variant="compact"
-          showAvatar={false}
+          showAvatar={true}
+          avatarSize="xs"
           showENS={true}
           showCopy={false}
           showExplorer={false}
@@ -197,7 +198,8 @@ function AuctionSettledContent({ event }: { event: Extract<FeedEvent, { type: "A
           <AddressDisplay 
             address={event.winner}
             variant="compact"
-            showAvatar={false}
+            showAvatar={true}
+            avatarSize="xs"
             showENS={true}
             showCopy={false}
             showExplorer={false}
