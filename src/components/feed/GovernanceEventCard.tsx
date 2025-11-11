@@ -126,7 +126,8 @@ function ProposalCreatedContent({ event }: { event: Extract<FeedEvent, { type: "
         <AddressDisplay 
           address={event.proposer}
           variant="compact"
-          showAvatar={false}
+          showAvatar={true}
+          avatarSize="xs"
           showENS={true}
           showCopy={false}
           showExplorer={false}
@@ -158,7 +159,8 @@ function VoteCastContent({ event, compact }: {
         <AddressDisplay 
           address={event.voter}
           variant="compact"
-          showAvatar={false}
+          showAvatar={true}
+          avatarSize="xs"
           showENS={true}
           showCopy={false}
           showExplorer={false}

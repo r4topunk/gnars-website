@@ -103,7 +103,8 @@ function TokenMintedContent({ event }: { event: Extract<FeedEvent, { type: "Toke
           <AddressDisplay 
             address={event.recipient}
             variant="compact"
-            showAvatar={false}
+            showAvatar={true}
+            avatarSize="xs"
             showENS={true}
             showCopy={false}
             showExplorer={false}
@@ -125,7 +126,8 @@ function TokenTransferredContent({ event }: { event: Extract<FeedEvent, { type: 
         <AddressDisplay 
           address={event.from}
           variant="compact"
-          showAvatar={false}
+          showAvatar={true}
+          avatarSize="xs"
           showENS={true}
           showCopy={false}
           showExplorer={false}
@@ -134,7 +136,8 @@ function TokenTransferredContent({ event }: { event: Extract<FeedEvent, { type: 
         <AddressDisplay 
           address={event.to}
           variant="compact"
-          showAvatar={false}
+          showAvatar={true}
+          avatarSize="xs"
           showENS={true}
           showCopy={false}
           showExplorer={false}
@@ -151,7 +154,8 @@ function DelegateChangedContent({ event }: { event: Extract<FeedEvent, { type: "
         <AddressDisplay 
           address={event.delegator}
           variant="compact"
-          showAvatar={false}
+          showAvatar={true}
+          avatarSize="xs"
           showENS={true}
           showCopy={false}
           showExplorer={false}
@@ -160,7 +164,8 @@ function DelegateChangedContent({ event }: { event: Extract<FeedEvent, { type: "
         <AddressDisplay 
           address={event.toDelegate}
           variant="compact"
-          showAvatar={false}
+          showAvatar={true}
+          avatarSize="xs"
           showENS={true}
           showCopy={false}
           showExplorer={false}

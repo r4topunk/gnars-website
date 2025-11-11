@@ -17,7 +17,7 @@ export interface AddressDisplayProps {
   showCopy?: boolean;
   showExplorer?: boolean;
   className?: string;
-  avatarSize?: "sm" | "md" | "lg";
+  avatarSize?: "xs" | "sm" | "md" | "lg";
   truncateLength?: number;
   customExplorerUrl?: string;
   onAddressClick?: (address: Address) => void;
@@ -81,6 +81,7 @@ export function AddressDisplay({
 
   // Avatar size classes
   const avatarSizeClasses = {
+    xs: "h-4 w-4",
     sm: "h-6 w-6",
     md: "h-8 w-8",
     lg: "h-12 w-12",
@@ -99,7 +100,7 @@ export function AddressDisplay({
   if (variant === "compact") {
     return (
       <div
-        className={`inline-flex items-center gap-2 cursor-pointer hover:text-primary ${className}`}
+        className={`inline-flex items-center ${avatarSize === "xs" ? "gap-1" : "gap-2"} cursor-pointer hover:text-primary ${className}`}
         onClick={handleAddressClick}
       >
         {showAvatar && (
