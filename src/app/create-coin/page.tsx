@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreateCoin } from "@/hooks/useCreateCoin";
 import { cn } from "@/lib/utils";
 import { GNARS_CREATOR_COIN, PLATFORM_REFERRER } from "@/lib/config";
+import Image from "next/image";
 
 // Supported image types for Zora (mime types that display on zora.co)
 const SUPPORTED_IMAGE_TYPES = [
@@ -231,14 +232,14 @@ export default function CreateCoinPage() {
               Coin Created Successfully!
             </CardTitle>
             <CardDescription>
-              Your coin has been deployed on Base. Here's the summary:
+              Your coin has been deployed on Base. Here is the summary:
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Media Preview */}
             <div className="relative border rounded-lg overflow-hidden">
               {createdCoinData.mediaFile.type.startsWith("image/") && (
-                <img
+                <Image
                   src={URL.createObjectURL(createdCoinData.mediaFile)}
                   alt={createdCoinData.name}
                   className="w-full h-80 object-cover"
@@ -422,7 +423,7 @@ export default function CreateCoinPage() {
                   ) : (
                     <div className="relative border rounded-lg overflow-hidden">
                       {mediaType === "image" && mediaUrl && (
-                        <img src={mediaUrl} alt="Preview" className="w-full h-64 object-cover" />
+                        <Image src={mediaUrl} alt="Preview" className="w-full h-64 object-cover" />
                       )}
                       {mediaType === "video" && mediaUrl && (
                         <video src={mediaUrl} controls className="w-full h-64 object-cover" />
@@ -455,7 +456,7 @@ export default function CreateCoinPage() {
               <div className="bg-muted rounded-lg p-4 space-y-2 text-sm">
                 <p className="font-medium">What happens next:</p>
                 <ul className="space-y-1 text-muted-foreground list-disc list-inside">
-                  <li>Your media will be uploaded to Zora's IPFS network</li>
+                  <li>Your media will be uploaded to Zora IPFS network</li>
                   <li>Metadata will be validated and stored on IPFS</li>
                   <li>Your wallet will open to confirm the transaction</li>
                   <li>The coin will be deployed on Base network</li>

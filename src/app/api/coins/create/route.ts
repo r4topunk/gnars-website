@@ -1,9 +1,20 @@
 import { NextRequest } from "next/server";
-import { getCreateCoinCallData, CreateCoinParams, DEFAULT_CONTENT_COIN, DEFAULT_PLATFORM_REFERRER } from "@/lib/zora-helpers";
+import { getCreateCoinCallData, CreateCoinParams, DEFAULT_CONTENT_COIN,DEFAULT_PLATFORM_REFERRER } from "@/lib/zora-helpers";
+import { Address } from "viem";
+
+interface RequestBody {
+  name: string;
+  symbol: string;
+  metadataUri: string;
+  currency?: Address;
+  creator?: Address;
+  startingMarketCap?: string;
+  platformReferrer?: Address;
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = await req.json() as RequestBody;
 
     const { name, symbol, metadataUri, currency, creator, startingMarketCap, platformReferrer } = body;
 
@@ -15,14 +26,14 @@ export async function POST(req: NextRequest) {
     }
 
     const params: CreateCoinParams = {
-      creator: (creator as any) || ("0x0000000000000000000000000000000000000000" as any),
+      creator: creator || "0x0000000000000000000000000000000000000000" as Address,
       name,
       symbol,
       metadata: { type: "RAW_URI", uri: metadataUri },
       currency: currency || DEFAULT_CONTENT_COIN,
-      startingMarketCap,
+      startingMarketCap: startingMarketCap ? BigInt(startingMarketCap) : undefined,
       platformReferrer: platformReferrer || DEFAULT_PLATFORM_REFERRER,
-    } as any;
+    };
 
     const result = await getCreateCoinCallData(params);
 
@@ -30,8 +41,9 @@ export async function POST(req: NextRequest) {
       status: 200,
       headers: { "content-type": "application/json" },
     });
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err?.message || String(err) }), {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { "content-type": "application/json" },
     });

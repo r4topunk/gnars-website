@@ -18,10 +18,8 @@ import {
   useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
-  useReadContract,
   usePublicClient,
 } from "wagmi";
-import { base } from "wagmi/chains";
 import {
   zoraFactoryAbi,
   ZORA_FACTORY_ADDRESS,
@@ -29,6 +27,27 @@ import {
 } from "@/lib/zora/factoryAbi";
 import { encodeContentPoolConfigForCreator } from "@/lib/zora/poolConfig";
 import { PLATFORM_REFERRER } from "@/lib/config";
+
+// Type for CoinCreatedV4 event args
+interface CoinCreatedV4EventArgs {
+  caller: Address;
+  payoutRecipient: Address;
+  platformReferrer: Address;
+  currency: Address;
+  uri: string;
+  name: string;
+  symbol: string;
+  coin: Address;
+  poolKey: {
+    currency0: Address;
+    currency1: Address;
+    fee: number;
+    tickSpacing: number;
+    hooks: Address;
+  };
+  poolKeyHash: Hex;
+  version: string;
+}
 import { 
   createMetadataBuilder, 
   createZoraUploaderForCreator,
@@ -89,7 +108,7 @@ export function useCreateCoin() {
             });
 
             if (decoded.eventName === "CoinCreatedV4") {
-              const args = decoded.args as any;
+              const args = decoded.args as CoinCreatedV4EventArgs;
               const data: CoinDeploymentData = {
                 coin: args.coin,
                 caller: args.caller,
@@ -112,6 +131,7 @@ export function useCreateCoin() {
           }
         }
       } catch (error) {
+        console.log(error);
         // Silent error - deployment succeeded but event parsing failed
       }
     }
@@ -189,6 +209,7 @@ export function useCreateCoin() {
           setPredictedCoinAddress(predicted);
         }
       } catch (error) {
+        console.log("Address prediction failed:", error);
         // Address prediction failed - will get actual address from deployment event
       }
 
@@ -213,8 +234,9 @@ export function useCreateCoin() {
           ],
           value: 0n,
         });
-      } catch (simulationError: any) {
-        throw new Error(`Transaction would fail: ${simulationError.message}`);
+      } catch (simulationError: unknown) {
+        const errorMessage = simulationError instanceof Error ? simulationError.message : String(simulationError);
+        throw new Error(`Transaction would fail: ${errorMessage}`);
       }
 
       // Deploy the coin contract via ZoraFactory
