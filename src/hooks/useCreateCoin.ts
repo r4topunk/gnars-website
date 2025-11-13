@@ -53,12 +53,14 @@ import {
   createZoraUploaderForCreator,
   setApiKey 
 } from "@zoralabs/coins-sdk";
+import { generateVideoThumbnail } from "@/lib/video-thumbnail";
 
 export interface CreateCoinParams {
   name: string;
   symbol: string;
   description?: string;
   mediaFile: File;
+  customThumbnail?: File;
   payoutRecipient?: Address;
   owners?: Address[];
   platformReferrer?: Address;
@@ -87,12 +89,13 @@ export interface CoinDeploymentData {
 export function useCreateCoin() {
   const { address: userAddress } = useAccount();
   const publicClient = usePublicClient();
-  const { data: hash, writeContract, isPending: isWritePending } = useWriteContract();
+  const { data: hash, writeContract, isPending: isWritePending, reset: resetWriteContract } = useWriteContract();
   const { isLoading: isConfirming, isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash });
 
   const [predictedCoinAddress, setPredictedCoinAddress] = useState<Address | null>(null);
   const [deployedCoinAddress, setDeployedCoinAddress] = useState<Address | null>(null);
   const [deploymentData, setDeploymentData] = useState<CoinDeploymentData | null>(null);
+  const [isPreparingTransaction, setIsPreparingTransaction] = useState(false);
 
   // Extract coin deployment data from transaction receipt
   useEffect(() => {
@@ -131,7 +134,7 @@ export function useCreateCoin() {
           }
         }
       } catch (error) {
-        console.log(error);
+        console.log("Error parsing deployment event:", error); --- IGNORE ---
         // Silent error - deployment succeeded but event parsing failed
       }
     }
@@ -143,6 +146,7 @@ export function useCreateCoin() {
       symbol,
       description,
       mediaFile,
+      customThumbnail,
       payoutRecipient,
       owners,
       platformReferrer,
@@ -152,6 +156,9 @@ export function useCreateCoin() {
     if (!userAddress) {
       throw new Error("No wallet connected. Please connect your wallet first.");
     }
+
+    // Set preparing state to show immediate feedback
+    setIsPreparingTransaction(true);
 
     try {
       // Upload metadata (image/video + description) to IPFS via Zora's uploader
@@ -163,8 +170,6 @@ export function useCreateCoin() {
         builder.withDescription(description);
       }
 
-      builder.withImage(mediaFile);
-
       // Authenticate with Zora API for metadata upload
       const apiKey = process.env.NEXT_PUBLIC_ZORA_API_KEY;
       if (!apiKey) {
@@ -173,6 +178,36 @@ export function useCreateCoin() {
       setApiKey(apiKey);
 
       const zoraUploader = createZoraUploaderForCreator(userAddress);
+
+      // Handle different media types (following SkateHive approach)
+      const isImage = mediaFile.type.startsWith("image/");
+      const isVideo = mediaFile.type.startsWith("video/");
+
+      if (isImage) {
+        // Use withImage for image files (SDK validates these)
+        builder.withImage(mediaFile);
+      } else if (isVideo) {
+        // For videos, use withMedia() for the video file and withImage() for thumbnail
+        // Set the video as the main media (animation_url in metadata)
+        builder.withMedia(mediaFile);
+        
+        if (customThumbnail) {
+          // Use the custom thumbnail selected by user
+          builder.withImage(customThumbnail);
+        } else {
+          try {
+            // Auto-generate thumbnail for video
+            const thumbnail = await generateVideoThumbnail(mediaFile);
+            builder.withImage(thumbnail);
+          } catch (thumbnailError) {
+            throw new Error(`Failed to generate video thumbnail: ${thumbnailError instanceof Error ? thumbnailError.message : String(thumbnailError)}`);
+          }
+        }
+      } else {
+        throw new Error(`Unsupported media type: ${mediaFile.type}. Please use an image or video file.`);
+      }
+
+      // Upload the metadata
       const { createMetadataParameters } = await builder.upload(zoraUploader);
       
       const metadataUri = createMetadataParameters.metadata.uri;
@@ -209,7 +244,7 @@ export function useCreateCoin() {
           setPredictedCoinAddress(predicted);
         }
       } catch (error) {
-        console.log("Address prediction failed:", error);
+        console.log("Address prediction failed:", error); --- IGNORE ---
         // Address prediction failed - will get actual address from deployment event
       }
 
@@ -240,6 +275,9 @@ export function useCreateCoin() {
       }
 
       // Deploy the coin contract via ZoraFactory
+      // Clear preparing state as wallet interaction begins
+      setIsPreparingTransaction(false);
+      
       writeContract({
         address: ZORA_FACTORY_ADDRESS,
         abi: zoraFactoryAbi,
@@ -259,17 +297,29 @@ export function useCreateCoin() {
         value: 0n,
       });
     } catch (error) {
+      // Clear preparing state on error
+      setIsPreparingTransaction(false);
       throw error;
     }
+  };
+
+  const resetHook = () => {
+    resetWriteContract();
+    setPredictedCoinAddress(null);
+    setDeployedCoinAddress(null);
+    setDeploymentData(null);
+    setIsPreparingTransaction(false);
   };
 
   return {
     createCoin,
     isPending: isWritePending || isConfirming,
+    isPreparingTransaction,
     isSuccess,
     transactionHash: hash,
     predictedCoinAddress,
     coinAddress: deployedCoinAddress || predictedCoinAddress,
     deploymentData,
+    reset: resetHook,
   };
 }
