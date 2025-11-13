@@ -1,16 +1,16 @@
 /**
  * DaoHeader - Sticky horizontal navigation header
- * 
+ *
  * Main navigation component that replaces the sidebar with a top sticky menu.
  * Features desktop dropdown navigation and mobile sheet menu.
- * 
+ *
  * Public surface:
  * - Responsive navigation (desktop dropdowns, mobile sheet)
  * - Active route highlighting
  * - Wallet connection integration
  * - Theme toggle
  * - Network switching (Base chain)
- * 
+ *
  * Accessibility:
  * - Keyboard navigation support via NavigationMenu
  * - ARIA labels for mobile menu
@@ -25,6 +25,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BookOpen,
+  Coins,
   Gavel,
   Home,
   Menu,
@@ -123,6 +124,12 @@ const navigationItems = [
         icon: Video,
         description: "Video proposals from the community",
       },
+      {
+        title: "Create Coin",
+        href: "/create-coin",
+        icon: Coins,
+        description: "Create a new coin on Zora",
+      },
     ],
   },
 ];
@@ -141,12 +148,12 @@ function DaoLogo() {
       </div>
       <div className="flex flex-col gap-0.5 leading-none">
         <span className="font-semibold text-sm">Gnars DAO</span>
-          <Badge
-            variant="secondary"
+        <Badge
+          variant="secondary"
           className="h-4 px-1.5 text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200"
-          >
+        >
           Base
-          </Badge>
+        </Badge>
       </div>
     </Link>
   );
@@ -180,10 +187,7 @@ function DesktopNav() {
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                   <Link
                     href={item.href}
-                    className={cn(
-                      isRouteActive(item.href) &&
-                        "bg-accent text-accent-foreground",
-                    )}
+                    className={cn(isRouteActive(item.href) && "bg-accent text-accent-foreground")}
                   >
                     {item.title}
                   </Link>
@@ -195,23 +199,24 @@ function DesktopNav() {
           // Dropdown item
           return (
             <NavigationMenuItem key={item.title}>
-              <NavigationMenuTrigger className={cn(
-                isRouteActive(item.items?.[0]?.href || "") && "bg-accent/50"
-              )}>
+              <NavigationMenuTrigger
+                className={cn(isRouteActive(item.items?.[0]?.href || "") && "bg-accent/50")}
+              >
                 {item.title}
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid w-[400px] gap-2 p-2">
                   {item.items?.map((subItem) => {
                     const SubIcon = subItem.icon;
+
                     return (
                       <li key={subItem.title}>
                         <NavigationMenuLink asChild>
                           <Link
-                            href={subItem.href}
+                            href={subItem.href!}
                             className={cn(
                               "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
-                              isRouteActive(subItem.href) && "bg-accent/50",
+                              isRouteActive(subItem.href!) && "bg-accent/50",
                             )}
                           >
                             <SubIcon className="size-5 mt-0.5 text-muted-foreground" />
@@ -314,15 +319,15 @@ function MobileNav() {
                 </div>
                 {item.items?.map((subItem) => {
                   const SubIcon = subItem.icon;
+
                   return (
                     <Link
                       key={subItem.title}
-                      href={subItem.href}
+                      href={subItem.href!}
                       onClick={() => setOpen(false)}
                       className={cn(
                         "flex items-center gap-3 rounded-md p-3 pl-6 text-sm transition-colors hover:bg-accent",
-                        isRouteActive(subItem.href) &&
-                          "bg-accent text-accent-foreground",
+                        isRouteActive(subItem.href!) && "bg-accent text-accent-foreground",
                       )}
                     >
                       <SubIcon className="size-4" />

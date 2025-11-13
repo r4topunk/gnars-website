@@ -18,6 +18,15 @@ export const ZORA_CREATOR = {
   base: "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b",
 } as const;
 
+// Gnars Creator Coin (used as backing currency for content coins)
+export const GNARS_CREATOR_COIN = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b" as const;
+
+// Zora Factory contract on Base
+export const ZORA_FACTORY_ADDRESS = "0x777777751622c0d3258f214F9DF38E35BF45baF3" as const;
+
+// Platform referrer for Zora coin creation (Gnars DAO treasury receives referral rewards)
+export const PLATFORM_REFERRER = GNARS_ADDRESSES.treasury;
+
 // Droposal target (the contract used by Gnars droposals on Base)
 export const DROPOSAL_TARGET = {
   base: "0x58c3ccb2dcb9384e5ab9111cd1a5dea916b0f33c",
