@@ -46,6 +46,27 @@ import {
 import { encodeContentPoolConfigForCreator } from "../src/lib/zora/poolConfig";
 import { GNARS_ADDRESSES, PLATFORM_REFERRER } from "../src/lib/config";
 
+// Type for CoinCreatedV4 event args
+interface CoinCreatedV4EventArgs {
+  caller: Address;
+  payoutRecipient: Address;
+  platformReferrer: Address;
+  currency: Address;
+  uri: string;
+  name: string;
+  symbol: string;
+  coin: Address;
+  poolKey: {
+    currency0: Address;
+    currency1: Address;
+    fee: number;
+    tickSpacing: number;
+    hooks: Address;
+  };
+  poolKeyHash: Hex;
+  version: string;
+}
+
 // ==================== CONFIGURATION ====================
 
 const PAYOUT_RECIPIENT = GNARS_ADDRESSES.treasury; // Gnars DAO Treasury
@@ -122,7 +143,7 @@ async function main() {
   }
 
   // Decode CoinCreatedV4 event
-  let coinCreatedEvent: any = null;
+  let coinCreatedEvent: CoinCreatedV4EventArgs | null = null;
   for (const log of receipt.logs) {
     try {
       const decoded = decodeEventLog({
@@ -131,7 +152,7 @@ async function main() {
         topics: log.topics,
       });
       if (decoded.eventName === "CoinCreatedV4") {
-        coinCreatedEvent = decoded.args;
+        coinCreatedEvent = decoded.args as CoinCreatedV4EventArgs;
         break;
       }
     } catch {

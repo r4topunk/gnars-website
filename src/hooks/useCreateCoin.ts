@@ -134,7 +134,7 @@ export function useCreateCoin() {
           }
         }
       } catch (error) {
-        console.log("Error parsing deployment event:", error); --- IGNORE ---
+        console.log("Error parsing deployment event:", error); 
         // Silent error - deployment succeeded but event parsing failed
       }
     }
@@ -244,7 +244,7 @@ export function useCreateCoin() {
           setPredictedCoinAddress(predicted);
         }
       } catch (error) {
-        console.log("Address prediction failed:", error); --- IGNORE ---
+        console.log("Address prediction failed:", error);
         // Address prediction failed - will get actual address from deployment event
       }
 
