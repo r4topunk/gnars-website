@@ -120,8 +120,8 @@ export function ProposalVotesList({ title = "Individual Votes", votes, isActive 
                         key={member.address}
                         className="rounded-lg border border-dashed bg-muted/30 text-card-foreground p-3"
                       >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-center gap-2 min-w-0">
                             <AddressDisplay
                               address={member.address}
                               variant="compact"
@@ -132,10 +132,10 @@ export function ProposalVotesList({ title = "Individual Votes", votes, isActive 
                             />
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <span>•</span>
-                              <span>{member.votingPower} vote{member.votingPower === 1 ? "" : "s"}</span>
+                              <span className="whitespace-nowrap">{member.votingPower} vote{member.votingPower === 1 ? "" : "s"}</span>
                             </div>
                           </div>
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs self-start sm:self-center shrink-0">
                             {member.votesInWindow} recent vote{member.votesInWindow === 1 ? "" : "s"}
                           </Badge>
                         </div>
