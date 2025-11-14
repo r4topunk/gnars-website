@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { proposalSchema } from "@/components/proposals/schema";
 import { encodeTransactions } from "@/lib/proposal-utils";
+import { formatProposalDescription } from "@/lib/proposal-description-utils";
 
 type ProposalFormValues = z.infer<typeof proposalSchema>;
 
@@ -20,13 +21,13 @@ export async function createProposalAction(formData: ProposalFormValues) {
   // 2. Encode transactions
   const { targets, values, calldatas } = encodeTransactions(transactions);
 
-  // 3. Prepare description
-  const fullDescription = `# ${title}\n\n${description}\n\n**IPFS:** ${ipfsHash}`;
+  // 3. Format description with && separator for Builder SDK
+  const formattedDescription = formatProposalDescription(title, description, ipfsHash);
 
   return {
     targets,
     values,
     calldatas,
-    description: fullDescription,
+    description: formattedDescription,
   };
 }

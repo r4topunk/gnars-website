@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { ProposalStatus } from "@/lib/schemas/proposals";
+import { parseProposalDescription, isLegacyCombinedFormat } from "@/lib/proposal-description-utils";
 
 interface Proposal {
   proposalId: string;
@@ -52,48 +53,62 @@ export function ProposalList() {
           100,
         );
 
-        const mapped: Proposal[] = ((sdkProposals as SdkProposal[] | undefined) ?? []).map((p) => ({
-          proposalId: String(p.proposalId),
-          proposalNumber: Number(p.proposalNumber),
-          title: p.title ?? "",
-          state: (() => {
-            const s = p.state as unknown;
-            if (typeof s === "number") {
-              switch (s) {
-                case 0:
-                  return "PENDING";
-                case 1:
-                  return "ACTIVE";
-                case 2:
-                  return "CANCELED";
-                case 3:
-                  return "DEFEATED";
-                case 4:
-                  return "SUCCEEDED";
-                case 5:
-                  return "QUEUED";
-                case 6:
-                  return "EXPIRED";
-                case 7:
-                  return "EXECUTED";
-                case 8:
-                  return "VETOED";
-                default:
-                  return "PENDING";
+        const mapped: Proposal[] = ((sdkProposals as SdkProposal[] | undefined) ?? []).map((p) => {
+          // Handle legacy proposals that have title+description combined
+          let title = p.title ?? "";
+          let description = p.description ?? "";
+          
+          // Check if title contains combined format (starts with # and has newlines) or if description has combined format
+          if (isLegacyCombinedFormat(title) || (!title || isLegacyCombinedFormat(description))) {
+            const sourceText = isLegacyCombinedFormat(title) ? title : description;
+            const parsed = parseProposalDescription(sourceText);
+            title = parsed.title || title;
+            description = parsed.description || description;
+          }
+          
+          return {
+            proposalId: String(p.proposalId),
+            proposalNumber: Number(p.proposalNumber),
+            title,
+            state: (() => {
+              const s = p.state as unknown;
+              if (typeof s === "number") {
+                switch (s) {
+                  case 0:
+                    return "PENDING";
+                  case 1:
+                    return "ACTIVE";
+                  case 2:
+                    return "CANCELED";
+                  case 3:
+                    return "DEFEATED";
+                  case 4:
+                    return "SUCCEEDED";
+                  case 5:
+                    return "QUEUED";
+                  case 6:
+                    return "EXPIRED";
+                  case 7:
+                    return "EXECUTED";
+                  case 8:
+                    return "VETOED";
+                  default:
+                    return "PENDING";
+                }
               }
-            }
-            const up = String(s).toUpperCase();
-            return up as Proposal["state"];
-          })(),
-          proposer: p.proposer,
-          description: p.description ?? "",
-          createdAt: Number(p.timeCreated ?? 0) * 1000,
-          endBlock: Number(p.voteEnd ?? 0),
-          forVotes: String(p.forVotes ?? "0"),
-          againstVotes: String(p.againstVotes ?? "0"),
-          abstainVotes: String(p.abstainVotes ?? "0"),
-          quorumVotes: String(p.quorumVotes ?? "0"),
-        }));
+              const up = String(s).toUpperCase();
+              return up as Proposal["state"];
+            })(),
+            proposer: p.proposer,
+            description,
+            createdAt: Number(p.timeCreated ?? 0) * 1000,
+            endBlock: Number(p.voteEnd ?? 0),
+            forVotes: String(p.forVotes ?? "0"),
+            againstVotes: String(p.againstVotes ?? "0"),
+            abstainVotes: String(p.abstainVotes ?? "0"),
+            quorumVotes: String(p.quorumVotes ?? "0"),
+          };
+        });
 
         setProposals(mapped);
       } catch (error) {

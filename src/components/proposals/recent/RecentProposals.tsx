@@ -10,6 +10,7 @@ import { Proposal } from "@/components/proposals/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { getProposalStatus, ProposalStatus } from "@/lib/schemas/proposals";
+import { parseProposalDescription, isLegacyCombinedFormat } from "@/lib/proposal-description-utils";
 
 // Re-export for backwards compatibility
 export { type Proposal } from "@/components/proposals/types";
@@ -42,11 +43,23 @@ export function RecentProposals({
         );
         if (!isMounted) return;
         const mapped: Proposal[] = ((sdkProposals as SdkProposal[] | undefined) ?? []).map((p) => {
+          // Handle legacy proposals that have title+description combined
+          let title = p.title ?? "";
+          let description = p.description ?? "";
+          
+          // Check if title contains combined format (starts with # and has newlines) or if description has combined format
+          if (isLegacyCombinedFormat(title) || (!title || isLegacyCombinedFormat(description))) {
+            const sourceText = isLegacyCombinedFormat(title) ? title : description;
+            const parsed = parseProposalDescription(sourceText);
+            title = parsed.title || title;
+            description = parsed.description || description;
+          }
+          
           return {
             proposalId: String(p.proposalId),
             proposalNumber: Number(p.proposalNumber),
-            title: p.title ?? "",
-            description: p.description ?? "",
+            title,
+            description,
             proposer: p.proposer,
             status: getProposalStatus(p.state), // Use the imported getProposalStatus
             proposerEnsName: undefined,

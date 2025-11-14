@@ -8,15 +8,28 @@ import {
 import type { Proposal } from "@/components/proposals/types";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { getProposalStatus } from "@/lib/schemas/proposals";
+import { parseProposalDescription, isLegacyCombinedFormat } from "@/lib/proposal-description-utils";
 
 // Minimal transformation: SDK Proposal → App Proposal
 // The SDK already provides most fields we need via formatAndFetchState()
 function transformProposal(p: SdkProposal): Proposal {
+  // Handle legacy proposals that have title+description combined in the title or description field
+  let title = p.title ?? "";
+  let description = p.description ?? "";
+  
+  // Check if title contains combined format (starts with # and has newlines) or if description has combined format
+  if (isLegacyCombinedFormat(title) || (!title || isLegacyCombinedFormat(description))) {
+    const sourceText = isLegacyCombinedFormat(title) ? title : description;
+    const parsed = parseProposalDescription(sourceText);
+    title = parsed.title || title;
+    description = parsed.description || description;
+  }
+  
   return {
     proposalId: String(p.proposalId),
     proposalNumber: Number(p.proposalNumber),
-    title: p.title ?? "",
-    description: p.description ?? "",
+    title,
+    description,
     proposer: String(p.proposer),
     status: getProposalStatus(p.state),
     proposerEnsName: undefined,
