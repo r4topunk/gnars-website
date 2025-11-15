@@ -22,7 +22,6 @@ export function useProposalsPerMonth(months: number = 12) {
     queryFn: () => fetchProposalsPerMonth(months),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    enabled: typeof window !== "undefined",
   });
 }
 
