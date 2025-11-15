@@ -14,6 +14,7 @@ import { useCreateCoin } from "@/hooks/useCreateCoin";
 import { cn } from "@/lib/utils";
 import { GNARS_CREATOR_COIN, PLATFORM_REFERRER } from "@/lib/config";
 import { VideoThumbnailSelector } from "@/components/ui/video-thumbnail-selector";
+import { PoolConfigDebug } from "@/components/ui/pool-config-debug";
 import Image from "next/image";
 
 // Supported image types for Zora (mime types that display on zora.co)
@@ -646,6 +647,9 @@ export default function CreateCoinPage() {
             </form>
               </CardContent>
             </Card>
+
+            {/* Debug Component - Shows current pool configuration */}
+            <PoolConfigDebug className="mt-6" />
           </>
         )}
       </div>
