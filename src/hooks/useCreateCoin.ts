@@ -1,12 +1,10 @@
 /**
  * useCreateCoin Hook
- * 
+ *
  * Direct contract interaction hook for creating Zora Content Coins
- * backed by Gnars Creator Coin. Uses viem to call ZoraFactory.deploy()
- * instead of the Zora SDK.
- * 
- * This replaces useCreateZoraCoin with direct onchain calls.
- * 
+ * backed by Gnars Creator Coin. Uses Zora's pool config API to get
+ * validated liquidity parameters, then deploys via ZoraFactory.deploy().
+ *
  * @see https://docs.zora.co/coins/contracts/factory
  */
 
@@ -27,6 +25,13 @@ import {
 } from "@/lib/zora/factoryAbi";
 import { encodeContentPoolConfigForCreator } from "@/lib/zora/poolConfig";
 import { PLATFORM_REFERRER } from "@/lib/config";
+import {
+  createMetadataBuilder,
+  createZoraUploaderForCreator,
+  setApiKey,
+} from "@zoralabs/coins-sdk";
+import { generateVideoThumbnail } from "@/lib/video-thumbnail";
+import { getPoolConfig } from "@/lib/zora/api";
 
 // Type for CoinCreatedV4 event args
 interface CoinCreatedV4EventArgs {
@@ -48,12 +53,6 @@ interface CoinCreatedV4EventArgs {
   poolKeyHash: Hex;
   version: string;
 }
-import { 
-  createMetadataBuilder, 
-  createZoraUploaderForCreator,
-  setApiKey 
-} from "@zoralabs/coins-sdk";
-import { generateVideoThumbnail } from "@/lib/video-thumbnail";
 
 export interface CreateCoinParams {
   name: string;
@@ -65,6 +64,7 @@ export interface CreateCoinParams {
   owners?: Address[];
   platformReferrer?: Address;
   salt?: Hex;
+  startingMarketCap?: "LOW" | "HIGH";
 }
 
 export interface CoinDeploymentData {
@@ -151,6 +151,7 @@ export function useCreateCoin() {
       owners,
       platformReferrer,
       salt,
+      startingMarketCap = "LOW",
     } = params;
 
     if (!userAddress) {
@@ -219,10 +220,22 @@ export function useCreateCoin() {
       const finalPayoutRecipient = payoutRecipient || userAddress;
       const finalOwners = owners || [userAddress];
       const finalPlatformReferrer = platformReferrer || PLATFORM_REFERRER;
-      
-      // Encode pool configuration for Doppler Multi-Curve Uni V4
-      // Uses Gnars Creator Coin as backing currency
-      const poolConfig = encodeContentPoolConfigForCreator(GNARS_CREATOR_COIN);
+
+      // Fetch validated pool configuration from Zora's API
+      // This provides optimal liquidity curves for Gnars Creator Coin backing
+      let poolConfig: Hex;
+      try {
+        poolConfig = await getPoolConfig({
+          currency: "CREATOR_COIN",
+          creator_identifier: GNARS_CREATOR_COIN,
+          starting_market_cap: startingMarketCap,
+          chain_id: "8453", // Base
+        });
+      } catch (apiError) {
+        console.warn("Failed to fetch pool config from API, using fallback:", apiError);
+        // Fallback to manual encoding if API fails
+        poolConfig = encodeContentPoolConfigForCreator(GNARS_CREATOR_COIN);
+      }
       
       // Attempt to predict deployment address (optional - will get from event if this fails)
       try {
