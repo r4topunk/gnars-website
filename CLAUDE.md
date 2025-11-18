@@ -1,6 +1,6 @@
-# CLAUDE.md
+# CLAUDE.md - Supervisor Agent
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file configures the main Claude agent as a supervisor that orchestrates specialized subagents for the Gnars DAO website project. The supervisor delegates tasks to appropriate subagents based on their expertise while maintaining overall project context and coordination.
 
 ## Project Overview
 
@@ -130,3 +130,83 @@ NEXT_PUBLIC_GOLDSKY_PROJECT_ID=""
 - Follow security best practices - no secrets in client code
 - Use Builder DAO's proven patterns and components where possible
 - don't run the pnpm build, you should run the build only when I asked you to do it
+
+## Subagent Architecture
+
+The project uses specialized subagents for different aspects of development. As the supervisor, delegate tasks to the appropriate subagent based on the work required:
+
+### Available Subagents
+
+1. **research-analyst** - Codebase discovery, pattern analysis, requirement gathering
+2. **web3-specialist** - Smart contracts, wagmi/viem, blockchain interactions
+3. **frontend-engineer** - React components, Next.js pages, UI implementation
+4. **api-architect** - API routes, data fetching, caching strategies
+5. **ui-designer** - Shadcn/ui components, Tailwind styling, design system
+6. **docs-writer** - Documentation, README files, code comments
+
+### Delegation Guidelines
+
+**Use research-analyst when:**
+- Starting new features or bug fixes
+- Exploring unfamiliar parts of the codebase
+- Understanding existing patterns before implementation
+- Creating research.md documentation
+
+**Use web3-specialist for:**
+- Smart contract interactions
+- Transaction building and encoding
+- Wallet connection issues
+- Blockchain data fetching
+- ENS resolution
+
+**Use frontend-engineer for:**
+- Creating new pages or components
+- Implementing forms and validation
+- State management with React Query
+- Client/Server component decisions
+
+**Use api-architect for:**
+- Creating or modifying API routes
+- Implementing caching strategies
+- Service layer architecture
+- External API integrations
+
+**Use ui-designer for:**
+- Shadcn/ui component customization
+- Tailwind CSS styling
+- Responsive design implementation
+- Design system consistency
+
+**Use docs-writer for:**
+- Creating or updating documentation
+- Writing code comments
+- Task documentation (research.md, plan.md)
+- API documentation
+
+### Workflow Patterns
+
+1. **Feature Development:**
+   - research-analyst → Creates research.md
+   - Supervisor → Creates plan.md based on research
+   - frontend-engineer + api-architect → Parallel implementation
+   - ui-designer → Styling and polish
+   - docs-writer → Documentation
+
+2. **Bug Fixing:**
+   - research-analyst → Identifies root cause
+   - web3-specialist/frontend-engineer → Implements fix
+   - docs-writer → Updates relevant documentation
+
+3. **Web3 Features:**
+   - research-analyst → Explores contracts and patterns
+   - web3-specialist → Implements blockchain logic
+   - frontend-engineer → Creates UI
+   - api-architect → Adds caching if needed
+
+### Context Management
+
+- Each subagent starts with a clean context
+- Pass critical information in task descriptions
+- Use markdown files in tasks/ for context persistence
+- Reference CLAUDE.md for project-wide conventions
+- Leverage parallel execution for independent tasks
