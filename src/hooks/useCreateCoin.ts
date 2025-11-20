@@ -1,37 +1,35 @@
 /**
  * useCreateCoin Hook
  *
- * Direct contract interaction hook for creating Zora Content Coins
- * backed by Gnars Creator Coin. Uses Zora's pool config API to get
- * validated liquidity parameters, then deploys via ZoraFactory.deploy().
+ * Creates Zora Content Coins backed by Gnars Creator Coin using the
+ * official @zoralabs/coins-sdk. This provides validated pool configurations
+ * and proper contract interaction via the SDK.
  *
- * @see https://docs.zora.co/coins/contracts/factory
+ * @see https://docs.zora.co/coins/sdk
  */
 
 "use client";
 
 import { useEffect, useState } from "react";
-import { Address, Hex, keccak256, toBytes, decodeEventLog } from "viem";
+import { Address, Hex, decodeEventLog } from "viem";
 import {
   useAccount,
-  useWriteContract,
+  useSendTransaction,
   useWaitForTransactionReceipt,
-  usePublicClient,
 } from "wagmi";
 import {
   zoraFactoryAbi,
-  ZORA_FACTORY_ADDRESS,
   GNARS_CREATOR_COIN,
 } from "@/lib/zora/factoryAbi";
-import { encodeContentPoolConfigForCreator } from "@/lib/zora/poolConfig";
 import { PLATFORM_REFERRER } from "@/lib/config";
 import {
   createMetadataBuilder,
   createZoraUploaderForCreator,
   setApiKey,
+  createCoinCall,
+  type CreateCoinArgs,
 } from "@zoralabs/coins-sdk";
 import { generateVideoThumbnail } from "@/lib/video-thumbnail";
-import { getPoolConfig } from "@/lib/zora/api";
 
 // Type for CoinCreatedV4 event args
 interface CoinCreatedV4EventArgs {
@@ -63,7 +61,6 @@ export interface CreateCoinParams {
   payoutRecipient?: Address;
   owners?: Address[];
   platformReferrer?: Address;
-  salt?: Hex;
   startingMarketCap?: "LOW" | "HIGH";
 }
 
@@ -88,11 +85,9 @@ export interface CoinDeploymentData {
 
 export function useCreateCoin() {
   const { address: userAddress } = useAccount();
-  const publicClient = usePublicClient();
-  const { data: hash, writeContract, isPending: isWritePending, reset: resetWriteContract } = useWriteContract();
+  const { data: hash, sendTransaction, isPending: isWritePending, reset: resetTransaction } = useSendTransaction();
   const { isLoading: isConfirming, isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash });
 
-  const [predictedCoinAddress, setPredictedCoinAddress] = useState<Address | null>(null);
   const [deployedCoinAddress, setDeployedCoinAddress] = useState<Address | null>(null);
   const [deploymentData, setDeploymentData] = useState<CoinDeploymentData | null>(null);
   const [isPreparingTransaction, setIsPreparingTransaction] = useState(false);
@@ -150,7 +145,6 @@ export function useCreateCoin() {
       payoutRecipient,
       owners,
       platformReferrer,
-      salt,
       startingMarketCap = "LOW",
     } = params;
 
@@ -191,7 +185,7 @@ export function useCreateCoin() {
         // For videos, use withMedia() for the video file and withImage() for thumbnail
         // Set the video as the main media (animation_url in metadata)
         builder.withMedia(mediaFile);
-        
+
         if (customThumbnail) {
           // Use the custom thumbnail selected by user
           builder.withImage(customThumbnail);
@@ -210,104 +204,51 @@ export function useCreateCoin() {
 
       // Upload the metadata
       const { createMetadataParameters } = await builder.upload(zoraUploader);
-      
+
       const metadataUri = createMetadataParameters.metadata.uri;
 
-      // Generate deterministic salt for CREATE2 address prediction
-      const saltBytes = salt || keccak256(toBytes(`${name}-${symbol}-${Date.now()}`));
-
-      // Prepare deployment parameters with defaults
+      // Prepare SDK arguments
       const finalPayoutRecipient = payoutRecipient || userAddress;
-      const finalOwners = owners || [userAddress];
       const finalPlatformReferrer = platformReferrer || PLATFORM_REFERRER;
+      const additionalOwners = owners && owners.length > 0 ? owners : undefined;
 
-      // Fetch validated pool configuration from Zora's API
-      // This provides optimal liquidity curves for Gnars Creator Coin backing
-      let poolConfig: Hex;
-      try {
-        poolConfig = await getPoolConfig({
-          currency: "CREATOR_COIN",
-          creator_identifier: GNARS_CREATOR_COIN,
-          starting_market_cap: startingMarketCap,
-          chain_id: "8453", // Base
-        });
-      } catch (apiError) {
-        console.warn("Failed to fetch pool config from API, using fallback:", apiError);
-        // Fallback to manual encoding if API fails
-        poolConfig = encodeContentPoolConfigForCreator(GNARS_CREATOR_COIN);
-      }
-      
-      // Attempt to predict deployment address (optional - will get from event if this fails)
-      try {
-        const predicted = await publicClient?.readContract({
-          address: ZORA_FACTORY_ADDRESS,
-          abi: zoraFactoryAbi,
-          functionName: "coinAddress",
-          args: [
-            userAddress,              // msgSender
-            name,                     // name
-            symbol,                   // symbol
-            poolConfig,               // poolConfig
-            finalPlatformReferrer,    // platformReferrer
-            saltBytes,                // coinSalt
-          ],
-        });
+      // Use SDK's createCoinCall to get validated transaction parameters
+      // This handles pool configuration, parameter encoding, and API communication
+      const sdkArgs: CreateCoinArgs = {
+        creator: GNARS_CREATOR_COIN,  // Gnars Creator Coin as backing currency
+        name,
+        symbol,
+        metadata: {
+          type: "RAW_URI",
+          uri: metadataUri,
+        },
+        currency: "CREATOR_COIN",
+        chainId: 8453, // Base
+        startingMarketCap,
+        platformReferrer: finalPlatformReferrer,
+        additionalOwners,
+        payoutRecipientOverride: finalPayoutRecipient !== userAddress ? finalPayoutRecipient : undefined,
+      };
 
-        if (predicted) {
-          setPredictedCoinAddress(predicted);
-        }
-      } catch (error) {
-        console.log("Address prediction failed:", error);
-        // Address prediction failed - will get actual address from deployment event
+      console.log("Creator Coin:", GNARS_CREATOR_COIN);
+
+      const txParams = await createCoinCall(sdkArgs);
+
+      if (!txParams || txParams.length === 0) {
+        throw new Error("Failed to generate transaction parameters from SDK");
       }
 
-      // Simulate transaction to validate it will succeed before sending
-      try {
-        await publicClient?.simulateContract({
-          account: userAddress,
-          address: ZORA_FACTORY_ADDRESS,
-          abi: zoraFactoryAbi,
-          functionName: "deploy",
-          args: [
-            finalPayoutRecipient,
-            finalOwners,
-            metadataUri,
-            name,
-            symbol,
-            poolConfig,
-            finalPlatformReferrer,
-            "0x0000000000000000000000000000000000000000" as Address,
-            "0x" as Hex,
-            saltBytes,
-          ],
-          value: 0n,
-        });
-      } catch (simulationError: unknown) {
-        const errorMessage = simulationError instanceof Error ? simulationError.message : String(simulationError);
-        throw new Error(`Transaction would fail: ${errorMessage}`);
-      }
+      // Use the first transaction (SDK returns an array but we only need one for content coins)
+      const { to, data, value } = txParams[0]!;
 
-      // Deploy the coin contract via ZoraFactory
       // Clear preparing state as wallet interaction begins
       setIsPreparingTransaction(false);
-      
-      writeContract({
-        address: ZORA_FACTORY_ADDRESS,
-        abi: zoraFactoryAbi,
-        functionName: "deploy",
-        args: [
-          finalPayoutRecipient,              // payoutRecipient
-          finalOwners,                       // owners[]
-          metadataUri,                       // uri
-          name,                              // name
-          symbol,                            // symbol
-          poolConfig,                        // poolConfig
-          finalPlatformReferrer,             // platformReferrer
-          "0x0000000000000000000000000000000000000000" as Address, // postDeployHook (none)
-          "0x" as Hex,                       // postDeployHookData (empty)
-          saltBytes,                         // coinSalt
-        ],
-        value: 0n,
+
+      // Deploy the coin using SDK-generated parameters
+      sendTransaction({
+        to,
+        data,
+        value,
       });
     } catch (error) {
       // Clear preparing state on error
@@ -317,8 +258,7 @@ export function useCreateCoin() {
   };
 
   const resetHook = () => {
-    resetWriteContract();
-    setPredictedCoinAddress(null);
+    resetTransaction();
     setDeployedCoinAddress(null);
     setDeploymentData(null);
     setIsPreparingTransaction(false);
@@ -330,8 +270,7 @@ export function useCreateCoin() {
     isPreparingTransaction,
     isSuccess,
     transactionHash: hash,
-    predictedCoinAddress,
-    coinAddress: deployedCoinAddress || predictedCoinAddress,
+    coinAddress: deployedCoinAddress,
     deploymentData,
     reset: resetHook,
   };
