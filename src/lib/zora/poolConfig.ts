@@ -1,13 +1,16 @@
 /**
  * Pool Configuration Encoder for Zora Content Coins
- * 
+ *
  * This encodes poolConfig for direct ZoraFactory.deploy() calls.
  * poolConfig chooses: version, backing currency (ETH/ZORA/Creator Coin), and liquidity curves.
- * 
- * ⚠️  IMPORTANT: curveParams placeholder
- * In production, replace the zero-length curveParams with validated bytes from Zora's 
- * configuration API. The placeholder allows compilation but may not reflect optimal curves.
- * 
+ *
+ * ⚠️  NOTE: Fallback only
+ * These functions are now primarily used as fallbacks when Zora's API is unavailable.
+ * The recommended approach is to use `getCreateContentPoolConfig()` from @zoralabs/coins-sdk
+ * which provides validated, optimal pool configurations.
+ *
+ * The hardcoded tick ranges here are placeholders and may not be optimal for production use.
+ *
  * @see https://docs.zora.co/coins/contracts/factory
  */
 

@@ -19,7 +19,8 @@ export const ZORA_CREATOR = {
 } as const;
 
 // Gnars Creator Coin (used as backing currency for content coins)
-export const GNARS_CREATOR_COIN = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b" as const;
+// Updated to the new creator coin address
+export const GNARS_CREATOR_COIN = "0x26331fda472639a54d02053a2b33dce5036c675b" as const;
 
 // Zora Factory contract on Base
 export const ZORA_FACTORY_ADDRESS = "0x777777751622c0d3258f214F9DF38E35BF45baF3" as const;
