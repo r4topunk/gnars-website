@@ -7,6 +7,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -73,14 +74,14 @@ export function VideoThumbnailSelector({
 
       const thumbnailFile = await player.captureFrame();
       const previewUrl = URL.createObjectURL(thumbnailFile);
-      
+
       // Clean up previous URL
       if (thumbnailPreview) {
         URL.revokeObjectURL(thumbnailPreview);
       }
-      
+
       setThumbnailPreview(previewUrl);
-    } catch (error) {
+    } catch {
       // Silent fail - user can still use auto-thumbnail
     }
   }, [thumbnailPreview, isVideoReady]);
@@ -134,7 +135,7 @@ export function VideoThumbnailSelector({
 
       const thumbnailFile = await player.captureFrame();
       onThumbnailSelected(thumbnailFile);
-    } catch (error) {
+    } catch {
       // Handle error silently or show user-friendly message
     } finally {
       setIsGenerating(false);
@@ -176,7 +177,7 @@ export function VideoThumbnailSelector({
                           const thumbnail = await player.captureFrame();
                           onThumbnailSelected(thumbnail);
                         }
-                      } catch (error) {
+                      } catch {
                         // Auto thumbnail generation failed silently
                       } finally {
                         setIsGenerating(false);
@@ -260,9 +261,12 @@ export function VideoThumbnailSelector({
           <div className="space-y-2">
             <Label>Thumbnail Preview</Label>
             <div className="border rounded-lg overflow-hidden max-w-md">
-              <img
+              <Image
                 src={thumbnailPreview}
                 alt="Thumbnail preview"
+                width={800}
+                height={450}
+                unoptimized
                 className="w-full aspect-video object-contain bg-black"
               />
             </div>

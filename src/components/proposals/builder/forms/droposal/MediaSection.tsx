@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { generateVideoThumbnail } from "@/lib/video-thumbnail";
 import { VideoThumbnailSelector } from "@/components/ui/video-thumbnail-selector";
 
 // Supported media types for Zora (same as create-coin page)

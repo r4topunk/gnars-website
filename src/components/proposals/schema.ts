@@ -141,6 +141,26 @@ export const customTransactionSchema = baseTransactionSchema.extend({
   value: nonNegativeNumericStringOptional(),
 });
 
+// Buy Coin transaction (Zora Coins SDK integration)
+export const buyCoinTransactionSchema = baseTransactionSchema.extend({
+  type: z.literal("buy-coin"),
+  coinAddress: addressSchema,
+  ethAmount: positiveNumericString(z.string().min(1, "ETH amount is required")),
+  slippage: nonNegativeNumericString(
+    z.string().min(1, "Slippage is required"),
+  ).refine(
+    (val) => {
+      if (!val) return true;
+      return parseFloat(val) <= 100;
+    },
+    { message: "Slippage must be between 0 and 100" },
+  ),
+  // These fields are populated by the SDK after generation
+  target: addressSchema.optional(),
+  calldata: hexSchema.optional(),
+  value: nonNegativeNumericStringOptional(),
+});
+
 // Discriminated union for all transaction types
 export const transactionSchema = z.discriminatedUnion("type", [
   sendEthTransactionSchema,
@@ -148,6 +168,7 @@ export const transactionSchema = z.discriminatedUnion("type", [
   sendTokensTransactionSchema,
   sendNftsTransactionSchema,
   droposalTransactionSchema,
+  buyCoinTransactionSchema,
   customTransactionSchema,
 ]);
 
@@ -167,4 +188,5 @@ export type SendUsdcTransaction = z.infer<typeof sendUsdcTransactionSchema>;
 export type SendTokensTransaction = z.infer<typeof sendTokensTransactionSchema>;
 export type SendNftsTransaction = z.infer<typeof sendNftsTransactionSchema>;
 export type DroposalTransaction = z.infer<typeof droposalTransactionSchema>;
+export type BuyCoinTransaction = z.infer<typeof buyCoinTransactionSchema>;
 export type CustomTransaction = z.infer<typeof customTransactionSchema>;

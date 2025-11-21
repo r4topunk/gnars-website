@@ -33,7 +33,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       try {
         url = URL.createObjectURL(file);
         setVideoUrl(url);
-      } catch (error) {
+      } catch {
         onError?.("Failed to load video file");
       }
 

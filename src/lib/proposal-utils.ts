@@ -78,6 +78,21 @@ export function encodeTransactions(transactions: TransactionFormValues[]) {
           calldatas.push(nftCalldata);
           break;
 
+        case "buy-coin":
+          // Buy coin transactions store SDK-generated calldata
+          // These fields are populated when the user saves the transaction
+          if (tx.target && tx.calldata) {
+            targets.push(tx.target as `0x${string}`);
+            values.push(tx.value ? parseEther(tx.value) : BigInt(0));
+            calldatas.push(tx.calldata as `0x${string}`);
+          } else {
+            console.error("Buy coin transaction missing SDK-generated data");
+            targets.push("0x" as `0x${string}`);
+            values.push(BigInt(0));
+            calldatas.push("0x" as `0x${string}`);
+          }
+          break;
+
         case "custom":
           targets.push(tx.target as `0x${string}`);
           values.push(tx.value ? parseEther(tx.value) : BigInt(0));

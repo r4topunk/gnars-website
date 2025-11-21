@@ -63,6 +63,12 @@ export function TransactionListItem({
       border: "border-amber-200 dark:border-amber-800",
       text: "text-amber-700 dark:text-amber-300",
     },
+    "buy-coin": {
+      accent: "cyan",
+      bg: "bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/20 dark:to-blue-950/20",
+      border: "border-cyan-200 dark:border-cyan-800",
+      text: "text-cyan-700 dark:text-cyan-300",
+    },
     custom: {
       accent: "slate",
       bg: "bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-950/20 dark:to-gray-950/20",

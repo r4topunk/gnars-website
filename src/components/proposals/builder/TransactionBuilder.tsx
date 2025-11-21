@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Coins, FileImage, Send, Settings, Video } from "lucide-react";
+import { Coins, FileImage, Send, Settings, Video, ArrowLeftRight } from "lucide-react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { TransactionCard } from "@/components/proposals/transaction/TransactionCard";
 import { SendEthTransactionDetails } from "@/components/proposals/transaction/SendEthTransactionDetails";
@@ -10,6 +10,7 @@ import { SendTokensTransactionDetails } from "@/components/proposals/transaction
 import { SendNftsTransactionDetails } from "@/components/proposals/transaction/SendNftsTransactionDetails";
 import { CustomTransactionDetails } from "@/components/proposals/transaction/CustomTransactionDetails";
 import { DroposalTransactionDetails } from "@/components/proposals/transaction/DroposalTransactionDetails";
+import { BuyCoinTransactionDetails } from "@/components/proposals/transaction/BuyCoinTransactionDetails";
 import { TransactionTypeCard } from "@/components/proposals/builder/TransactionTypeCard";
 import { Separator } from "@/components/ui/separator";
 import { type ProposalFormValues, type TransactionFormValues } from "../schema";
@@ -49,6 +50,12 @@ const transactionTypes = [
     label: "Create Droposal",
     description: "Create a Zora NFT drop",
     icon: Video,
+  },
+  {
+    type: "buy-coin",
+    label: "Buy Coin",
+    description: "Purchase content coin",
+    icon: ArrowLeftRight,
   },
   {
     type: "custom",
@@ -146,6 +153,8 @@ export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuild
         return <SendTokensTransactionDetails transaction={transaction} />;
       case "send-nfts":
         return <SendNftsTransactionDetails transaction={transaction} />;
+      case "buy-coin":
+        return <BuyCoinTransactionDetails transaction={transaction} />;
       case "custom":
         return <CustomTransactionDetails transaction={transaction} />;
       case "droposal":
@@ -181,6 +190,7 @@ export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuild
                     | "send-tokens"
                     | "send-nfts"
                     | "droposal"
+                    | "buy-coin"
                     | "custom"
                 }
                 onClick={() => handleAddTransaction(actionType.type)}

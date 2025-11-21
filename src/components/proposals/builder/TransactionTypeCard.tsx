@@ -6,7 +6,7 @@ interface TransactionTypeCardProps {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   description: string;
-  type: "send-eth" | "send-usdc" | "send-tokens" | "send-nfts" | "droposal" | "custom";
+  type: "send-eth" | "send-usdc" | "send-tokens" | "send-nfts" | "droposal" | "buy-coin" | "custom";
   onClick: () => void;
 }
 
@@ -38,6 +38,10 @@ export function TransactionTypeCard({
       droposal: {
         iconBg: "bg-amber-100 dark:bg-amber-900/30",
         iconText: "text-amber-600 dark:text-amber-400",
+      },
+      "buy-coin": {
+        iconBg: "bg-cyan-100 dark:bg-cyan-900/30",
+        iconText: "text-cyan-600 dark:text-cyan-400",
       },
       custom: {
         iconBg: "bg-slate-100 dark:bg-slate-900/30",
