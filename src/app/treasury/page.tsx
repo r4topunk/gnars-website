@@ -12,6 +12,7 @@ import {
 } from "@/components/treasury/DashboardCharts";
 import { NftHoldings } from "@/components/treasury/NftHoldings";
 import { TokenHoldings } from "@/components/treasury/TokenHoldings";
+import { ZoraCoinHoldings } from "@/components/treasury/ZoraCoinHoldings";
 import { TreasuryBalance } from "@/components/treasury/TreasuryBalance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GNARS_ADDRESSES } from "@/lib/config";
@@ -80,6 +81,11 @@ export default function TreasuryPage() {
           {/* Token Holdings Table */}
           <Suspense fallback={<TableSkeleton />}>
             <TokenHoldings treasuryAddress={GNARS_ADDRESSES.treasury} />
+          </Suspense>
+
+          {/* Zora Coin Holdings */}
+          <Suspense fallback={<TableSkeleton />}>
+            <ZoraCoinHoldings treasuryAddress={GNARS_ADDRESSES.treasury} />
           </Suspense>
 
           {/* NFT Holdings Grid */}
