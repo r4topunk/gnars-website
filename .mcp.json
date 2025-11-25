@@ -9,6 +9,14 @@
         "STYLE": "new-york",
         "REGISTRY_URL": "https://ui.shadcn.com/r"
       }
+    },
+    "gnars-subgraph": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["./mcp-subgraph/dist/index.js"],
+      "env": {
+        "DATABASE_PATH": "./mcp-subgraph/data/gnars.db"
+      }
     }
   }
 }
