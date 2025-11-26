@@ -1,17 +1,20 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { AlertTriangle, CheckCircle, ExternalLink, Loader2 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { base } from "wagmi/chains";
 import { useAccount, useWaitForTransactionReceipt, useWriteContract, useSwitchChain } from "wagmi";
 import { toast } from "sonner";
+import Image from "next/image";
 import { TransactionsSummaryList } from "@/components/proposals/preview/TransactionsSummaryList";
+import { ProposalDebugPanel } from "@/components/proposals/ProposalDebugPanel";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { createProposalAction } from "@/app/propose/actions";
 import { GNARS_ADDRESSES } from "@/lib/config";
+import { ipfsToGatewayUrl } from "@/lib/pinata";
 import { type ProposalFormValues } from "./schema";
 
 const governorAbi = [
@@ -31,6 +34,7 @@ const governorAbi = [
 export function ProposalPreview() {
   const { getValues, handleSubmit } = useFormContext<ProposalFormValues>();
   const [isActionPending, startTransition] = useTransition();
+  const [preparedDescription, setPreparedDescription] = useState<string>("");
   const { chain } = useAccount();
   const { switchChainAsync } = useSwitchChain();
 
@@ -45,6 +49,22 @@ export function ProposalPreview() {
 
   // Get current form data
   const data = (watchedData as ProposalFormValues) || getValues();
+
+  // Generate the prepared description for debugging
+  useEffect(() => {
+    const generateDescription = async () => {
+      try {
+        const result = await createProposalAction(data);
+        setPreparedDescription(result.description);
+      } catch (error) {
+        console.error("Error generating description:", error);
+      }
+    };
+
+    if (data.title && data.description) {
+      generateDescription();
+    }
+  }, [data]);
 
   const handleFormSubmit = async (formData: ProposalFormValues) => {
     startTransition(async () => {
@@ -122,8 +142,13 @@ export function ProposalPreview() {
       <Card>
         <CardContent className="p-6">
           {data.bannerImage && (
-            <div className="w-full h-48 bg-muted rounded-lg mb-4 flex items-center justify-center">
-              <p className="text-muted-foreground">Banner Image: {data.bannerImage}</p>
+            <div className="w-full h-48 bg-muted rounded-lg mb-4 overflow-hidden relative">
+              <Image
+                src={ipfsToGatewayUrl(data.bannerImage)}
+                alt="Proposal banner"
+                fill
+                className="object-cover"
+              />
             </div>
           )}
           <h1 className="text-3xl font-bold mb-4">{data.title}</h1>
@@ -139,6 +164,9 @@ export function ProposalPreview() {
 
       {/* Transactions Summary */}
       <TransactionsSummaryList transactions={data.transactions ?? []} />
+
+      {/* Debug Panel */}
+      <ProposalDebugPanel formData={data} preparedDescription={preparedDescription} />
 
       {/* Submit Section */}
       <Card>

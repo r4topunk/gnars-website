@@ -2,14 +2,16 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { Eye, Upload, X } from "lucide-react";
+import { Eye, Loader2, Upload, X } from "lucide-react";
 import { useFormContext } from "react-hook-form";
+import { toast } from "sonner";
 import { Markdown } from "@/components/common/Markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ipfsToGatewayUrl, uploadToPinata } from "@/lib/pinata";
 import { type ProposalFormValues } from "./schema";
 
 export function ProposalDetailsForm() {
@@ -21,37 +23,84 @@ export function ProposalDetailsForm() {
   } = useFormContext<ProposalFormValues>();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const watchedDescription = watch("description");
   const watchedBannerImage = watch("bannerImage");
 
   const handleImageUpload = async (file: File) => {
-    // Create preview
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreview(previewUrl);
+    setIsUploading(true);
+    
+    try {
+      // Create local preview immediately
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
 
-    // In a real implementation, you would upload to IPFS here
-    // For now, we'll store the preview URL
-    // TODO: Implement IPFS upload
-    const ipfsUrl = `ipfs://${file.name}`; // Mock IPFS URL
-    setValue("bannerImage", ipfsUrl);
+      // Show loading toast
+      toast.loading("Uploading image to IPFS...", { id: "image-upload" });
+
+      // Upload to Pinata
+      const result = await uploadToPinata(file, `proposal-banner-${Date.now()}`);
+
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Upload failed");
+      }
+
+      // Store the IPFS URL in form
+      setValue("bannerImage", result.data.ipfsUrl);
+
+      // Update preview to use gateway URL
+      setImagePreview(result.data.gatewayUrl);
+
+      toast.success("Image uploaded successfully!", { id: "image-upload" });
+    } catch (error) {
+      console.error("Upload error:", error);
+      
+      // Clean up preview on error
+      setImagePreview(null);
+      setValue("bannerImage", undefined);
+      
+      toast.error("Failed to upload image", {
+        id: "image-upload",
+        description: error instanceof Error ? error.message : "Please try again",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select an image file");
+        return;
+      }
+      
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        toast.error("File size must be less than 10MB");
+        return;
+      }
+      
       handleImageUpload(file);
     }
   };
 
   const removeImage = () => {
+    if (imagePreview && imagePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreview);
+    }
     setImagePreview(null);
     setValue("bannerImage", undefined);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
+
+  // Convert IPFS URL to gateway URL for display
+  const displayImageUrl = imagePreview || (watchedBannerImage ? ipfsToGatewayUrl(watchedBannerImage) : null);
 
   // Markdown preview is rendered via the shared Markdown component
 
@@ -78,13 +127,13 @@ export function ProposalDetailsForm() {
         <div>
           <Label htmlFor="banner">Banner Image</Label>
           <div className="mt-2">
-            {imagePreview || watchedBannerImage ? (
+            {displayImageUrl ? (
               <div
                 className="relative rounded-lg border overflow-hidden"
                 style={{ aspectRatio: "16 / 9" }}
               >
                 <Image
-                  src={imagePreview || watchedBannerImage || ""}
+                  src={displayImageUrl}
                   alt="Banner preview"
                   fill
                   className="object-cover"
@@ -94,6 +143,7 @@ export function ProposalDetailsForm() {
                   variant="destructive"
                   className="absolute top-2 right-2"
                   onClick={removeImage}
+                  disabled={isUploading}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -101,11 +151,20 @@ export function ProposalDetailsForm() {
             ) : (
               <div
                 className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => !isUploading && fileInputRef.current?.click()}
               >
-                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Click to upload banner image</p>
-                <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 10MB</p>
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-8 w-8 mx-auto mb-2 text-muted-foreground animate-spin" />
+                    <p className="text-sm text-muted-foreground">Uploading to IPFS...</p>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Click to upload banner image</p>
+                    <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 10MB</p>
+                  </>
+                )}
               </div>
             )}
             <input
@@ -114,6 +173,7 @@ export function ProposalDetailsForm() {
               accept="image/*"
               className="hidden"
               onChange={handleFileChange}
+              disabled={isUploading}
             />
           </div>
         </div>
