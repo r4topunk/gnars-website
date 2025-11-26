@@ -11,7 +11,7 @@ const configSchema = z.object({
   syncIntervalMinutes: z.number().min(0).default(5),
 
   // Gnars DAO Token address on Base (used to filter proposals in subgraph)
-  daoAddress: z.string().default("0x3740fea2a46ca4414b4afde16264389642e6596a"),
+  daoAddress: z.string().default("0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17"),
 });
 
 export type Config = z.infer<typeof configSchema>;
