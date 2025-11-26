@@ -55,7 +55,7 @@ export interface DroposalParams {
   fundsRecipient: `0x${string}`;
   defaultAdmin: `0x${string}`;
   saleConfig: DroposalSalesConfig;
-  description: string;
+  collectionDescription: string;
   animationURI: string;
   imageURI: string;
 }
@@ -111,7 +111,7 @@ export function decodeDroposalParams(calldata: string): DroposalParams | null {
       fundsRecipient,
       defaultAdmin,
       saleConfig,
-      description,
+      collectionDescription,
       animationURI,
       imageURI,
     ] = decoded.args;
@@ -132,7 +132,7 @@ export function decodeDroposalParams(calldata: string): DroposalParams | null {
         presaleEnd: saleConfig.presaleEnd,
         presaleMerkleRoot: saleConfig.presaleMerkleRoot,
       },
-      description,
+      collectionDescription,
       animationURI,
       imageURI,
     };
@@ -179,7 +179,7 @@ export function formatDroposalForTable(params: DroposalParams): Array<{
     { parameter: "Max per Address", value: maxPerAddr },
     { parameter: "Public Sale Start", value: startText },
     { parameter: "Public Sale End", value: endText },
-    { parameter: "Description", value: params.description },
+    { parameter: "Collection Description", value: params.collectionDescription },
     { parameter: "Animation URI", value: params.animationURI || "None" },
     { parameter: "Image URI", value: params.imageURI || "None" },
   ];

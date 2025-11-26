@@ -207,7 +207,7 @@ function decodeDroposal(calldata: Hex) {
       fundsRecipient,
       defaultAdmin,
       saleConfig,
-      description,
+      collectionDescription,
       animationURI,
       imageURI,
     ] = args as [
@@ -239,7 +239,7 @@ function decodeDroposal(calldata: Hex) {
       fundsRecipient,
       defaultAdmin,
       saleConfig,
-      description,
+      collectionDescription,
       animationURI,
       imageURI,
     };
@@ -325,7 +325,7 @@ function mapProposalTransaction(
         ...baseTransaction,
         name: decoded?.name ?? "",
         symbol: decoded?.symbol ?? "",
-        description: decoded?.description ?? "",
+        collectionDescription: decoded?.collectionDescription ?? "",
         mediaUrl: decoded?.animationURI ?? "",
         animationUri: decoded?.animationURI ?? "",
         imageUri: decoded?.imageURI ?? "",

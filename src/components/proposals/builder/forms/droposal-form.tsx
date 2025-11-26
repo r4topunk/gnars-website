@@ -110,15 +110,15 @@ export function DroposalForm({ index }: Props) {
           </div>
 
           <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="description">Description *</Label>
+            <Label htmlFor="collectionDescription">Collection Description *</Label>
             <Textarea
-              id="description"
+              id="collectionDescription"
               placeholder="A special edition drop for the Gnars community..."
-              {...register(`transactions.${index}.description` as const)}
+              {...register(`transactions.${index}.collectionDescription` as const)}
               rows={3}
             />
-            {getErrorMessage("description") && (
-              <p className="text-xs text-red-500">{String(getErrorMessage("description"))}</p>
+            {getErrorMessage("collectionDescription") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("collectionDescription"))}</p>
             )}
           </div>
         </CardContent>
@@ -296,18 +296,29 @@ export function DroposalForm({ index }: Props) {
         </CardContent>
       </Card>
 
-      <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="dropDescription">Transaction Description</Label>
-        <Textarea
-          id="dropDescription"
-          placeholder="Describe this droposal transaction..."
-          {...register(`transactions.${index}.description` as const)}
-          rows={2}
-        />
-        {getErrorMessage("description") && (
-          <p className="text-xs text-red-500">{String(getErrorMessage("description"))}</p>
-        )}
-      </div>
+      {/* Transaction Description */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Transaction Description</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid w-full max-w-sm items-center gap-2">
+            <Label htmlFor="transactionDescription">Description (optional)</Label>
+            <Textarea
+              id="transactionDescription"
+              placeholder="Explain why this droposal should be created..."
+              {...register(`transactions.${index}.description` as const)}
+              rows={3}
+            />
+            {getErrorMessage("description") && (
+              <p className="text-xs text-red-500">{String(getErrorMessage("description"))}</p>
+            )}
+            <p className="text-xs text-muted-foreground mt-1">
+              This description will appear in the proposal transaction list
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

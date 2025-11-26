@@ -107,7 +107,7 @@ export const droposalTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("droposal"),
   name: z.string().min(1, "Name is required"),
   symbol: z.string().min(1, "Symbol is required"),
-  description: z.string().min(1, "Description is required"),
+  collectionDescription: z.string().min(1, "Collection description is required"),
   mediaUrl: z.string().optional(),
   animationUri: z.string().optional(),
   imageUri: z.string().optional(),
