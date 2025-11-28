@@ -11,9 +11,14 @@ import { type ProposalFormValues } from "./schema";
 interface ProposalDebugPanelProps {
   formData: ProposalFormValues;
   preparedDescription?: string;
+  encodedTransactions?: {
+    targets: `0x${string}`[];
+    values: bigint[];
+    calldatas: `0x${string}`[];
+  };
 }
 
-export function ProposalDebugPanel({ formData, preparedDescription }: ProposalDebugPanelProps) {
+export function ProposalDebugPanel({ formData, preparedDescription, encodedTransactions }: ProposalDebugPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const copyToClipboard = (text: string, label: string) => {
@@ -162,6 +167,107 @@ export function ProposalDebugPanel({ formData, preparedDescription }: ProposalDe
               <p className="font-mono">{formData.transactions?.length ?? 0} transaction(s)</p>
             </div>
           </div>
+
+          {/* Encoded Transaction Data */}
+          {encodedTransactions && (
+            <div className="space-y-4">
+              <h4 className="font-semibold text-sm">Encoded Transaction Data</h4>
+              
+              {/* Targets */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-muted-foreground">Targets (Contract Addresses)</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(JSON.stringify(encodedTransactions.targets, null, 2), "Targets")}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="bg-muted p-3 rounded-md space-y-1 max-h-40 overflow-y-auto">
+                  {encodedTransactions.targets.map((target, i) => (
+                    <div key={i} className="text-xs font-mono break-all">
+                      <span className="text-muted-foreground">[{i}]</span> {target}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Values */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-muted-foreground">Values (ETH amounts in wei)</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(JSON.stringify(encodedTransactions.values.map(v => v.toString()), null, 2), "Values")}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="bg-muted p-3 rounded-md space-y-1 max-h-40 overflow-y-auto">
+                  {encodedTransactions.values.map((value, i) => (
+                    <div key={i} className="text-xs font-mono break-all">
+                      <span className="text-muted-foreground">[{i}]</span> {value.toString()}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Calldatas */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-muted-foreground">Calldatas (Encoded Function Calls)</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(JSON.stringify(encodedTransactions.calldatas, null, 2), "Calldatas")}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="bg-muted p-3 rounded-md space-y-2 max-h-60 overflow-y-auto">
+                  {encodedTransactions.calldatas.map((calldata, i) => (
+                    <div key={i} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground font-semibold">Transaction {i + 1}:</p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(calldata, `Calldata ${i + 1}`)}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <p className="text-xs font-mono break-all bg-background p-2 rounded">{calldata}</p>
+                      <p className="text-xs text-muted-foreground">Length: {calldata.length} characters</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  💡 Tip: Copy the calldata and decode it on{" "}
+                  <a
+                    href="https://openchain.xyz/signatures"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline"
+                  >
+                    OpenChain
+                  </a>
+                  {" "}or{" "}
+                  <a
+                    href="https://www.4byte.directory/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline"
+                  >
+                    4byte.directory
+                  </a>
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       )}
     </Card>

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { Upload, X } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { type ProposalFormValues } from "@/components/proposals/schema";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { VideoThumbnailSelector } from "@/components/ui/video-thumbnail-selector";
+import { ipfsToGatewayUrl, uploadToPinata } from "@/lib/pinata";
 
 // Supported media types for Zora (same as create-coin page)
 const SUPPORTED_IMAGE_TYPES = [
@@ -42,68 +43,169 @@ interface MediaSectionProps {
 export function MediaSection({ index }: MediaSectionProps) {
   const { setValue, watch } = useFormContext<ProposalFormValues>();
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [mediaError, setMediaError] = useState("");
   const [showThumbnailSelector, setShowThumbnailSelector] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
-  // Cleanup cover preview URL on unmount or change
+  // Cleanup preview URLs on unmount or change
   useEffect(() => {
     return () => {
-      if (coverPreview) {
+      if (coverPreview && coverPreview.startsWith("blob:")) {
         URL.revokeObjectURL(coverPreview);
       }
+      if (mediaPreview && mediaPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(mediaPreview);
+      }
     };
-  }, [coverPreview]);
+  }, [coverPreview, mediaPreview]);
 
   const watchedMediaType = watch(`transactions.${index}.mediaType`);
-  const watchedMediaUrl = watch(`transactions.${index}.mediaUrl`);
-  const watchedCoverUrl = watch(`transactions.${index}.coverUrl`);
-
+  const watchedMediaUrl = watch(`transactions.${index}.animationUri`);
+  const watchedCoverUrl = watch(`transactions.${index}.imageUri`);
   const handleMediaUpload = async (file: File, type: "media" | "cover") => {
-    setIsUploading(true);
-    const previewUrl = URL.createObjectURL(file);
+    const isUploading = type === "media" ? setIsUploadingMedia : setIsUploadingCover;
+    isUploading(true);
 
-    if (type === "media") {
-      const isVideo = file.type.startsWith("video/");
-      
-      setValue(`transactions.${index}.mediaUrl` as const, `ipfs://${file.name}`);
-      setValue(`transactions.${index}.mediaType` as const, file.type);
+    try {
+      // Create local preview immediately
+      const previewUrl = URL.createObjectURL(file);
 
-      // For videos, show thumbnail selector
-      if (isVideo) {
-        setPendingVideoFile(file);
-        setShowThumbnailSelector(true);
-        setIsUploading(false);
-        return;
+      if (type === "media") {
+        const isVideo = file.type.startsWith("video/");
+        setMediaPreview(previewUrl);
+
+        // For videos, show thumbnail selector first
+        if (isVideo) {
+          setPendingVideoFile(file);
+          setShowThumbnailSelector(true);
+          isUploading(false);
+          return;
+        }
+
+        // Show loading toast
+        toast.loading("Uploading media to IPFS...", { id: "media-upload" });
+
+        // Upload to Pinata
+        const result = await uploadToPinata(file, `droposal-media-${Date.now()}`);
+
+        if (!result.success || !result.data) {
+          throw new Error(result.error || "Upload failed");
+        }
+
+        // Store IPFS URL in form fields
+        setValue(`transactions.${index}.animationUri` as const, result.data.ipfsUrl);
+        setValue(`transactions.${index}.imageUri` as const, result.data.ipfsUrl);
+        setValue(`transactions.${index}.mediaType` as const, file.type);
+
+        toast.success("Media uploaded successfully!", { id: "media-upload" });
+      } else {
+        // Cover image upload
+        setCoverPreview(previewUrl);
+
+        toast.loading("Uploading cover to IPFS...", { id: "cover-upload" });
+
+        const result = await uploadToPinata(file, `droposal-cover-${Date.now()}`);
+
+        if (!result.success || !result.data) {
+          throw new Error(result.error || "Upload failed");
+        }
+
+        setValue(`transactions.${index}.imageUri` as const, result.data.ipfsUrl);
+        setValue(`transactions.${index}.coverType` as const, file.type);
+
+        toast.success("Cover uploaded successfully!", { id: "cover-upload" });
       }
-    } else {
-      setCoverPreview(previewUrl);
-      setValue(`transactions.${index}.coverUrl` as const, `ipfs://${file.name}`);
-      setValue(`transactions.${index}.coverType` as const, file.type);
+    } catch (error) {
+      console.error("Upload error:", error);
+
+      const uploadType = type === "media" ? "media" : "cover";
+      const toastId = type === "media" ? "media-upload" : "cover-upload";
+
+      // Clean up on error
+      if (type === "media") {
+        setMediaPreview(null);
+        setValue(`transactions.${index}.animationUri` as const, "");
+        setValue(`transactions.${index}.imageUri` as const, "");
+      } else {
+        setCoverPreview(null);
+        setValue(`transactions.${index}.imageUri` as const, "");
+      }
+
+      toast.error(`Failed to upload ${uploadType}`, {
+        id: toastId,
+        description: error instanceof Error ? error.message : "Please try again",
+      });
+    } finally {
+      isUploading(false);
     }
-    setIsUploading(false);
   };
 
-  const handleThumbnailSelected = (thumbnailFile: File) => {
+  const handleThumbnailSelected = async (thumbnailFile: File) => {
     if (!pendingVideoFile) return;
 
-    // Set the video file data
-    setValue(`transactions.${index}.mediaUrl` as const, `ipfs://${pendingVideoFile.name}`);
-    setValue(`transactions.${index}.mediaType` as const, pendingVideoFile.type);
+    setIsUploadingMedia(true);
+    setIsUploadingCover(true);
 
-    // Set the thumbnail as cover
-    const thumbnailPreview = URL.createObjectURL(thumbnailFile);
-    setCoverPreview(thumbnailPreview);
-    setValue(`transactions.${index}.coverUrl` as const, `ipfs://${thumbnailFile.name}`);
-    setValue(`transactions.${index}.coverType` as const, thumbnailFile.type);
+    try {
+      // Upload video file
+      toast.loading("Uploading video to IPFS...", { id: "video-upload" });
 
-    // Reset state
-    setShowThumbnailSelector(false);
-    setPendingVideoFile(null);
-    toast.success("Video and thumbnail selected!");
+      const videoResult = await uploadToPinata(pendingVideoFile, `droposal-video-${Date.now()}`);
+
+      if (!videoResult.success || !videoResult.data) {
+        throw new Error(videoResult.error || "Video upload failed");
+      }
+
+      setValue(`transactions.${index}.animationUri` as const, videoResult.data.ipfsUrl);
+      setValue(`transactions.${index}.mediaType` as const, pendingVideoFile.type);
+
+      toast.success("Video uploaded!", { id: "video-upload" });
+
+      // Upload thumbnail as cover
+      toast.loading("Uploading thumbnail to IPFS...", { id: "thumbnail-upload" });
+
+      const thumbnailResult = await uploadToPinata(thumbnailFile, `droposal-thumbnail-${Date.now()}`);
+
+      if (!thumbnailResult.success || !thumbnailResult.data) {
+        throw new Error(thumbnailResult.error || "Thumbnail upload failed");
+      }
+
+      setValue(`transactions.${index}.imageUri` as const, thumbnailResult.data.ipfsUrl);
+      setValue(`transactions.${index}.coverType` as const, thumbnailFile.type);
+      setCoverPreview(URL.createObjectURL(thumbnailFile));
+
+      toast.success("Thumbnail uploaded!", { id: "thumbnail-upload" });
+
+      // Reset state
+      setShowThumbnailSelector(false);
+      setPendingVideoFile(null);
+
+      toast.success("Video and thumbnail uploaded successfully!");
+    } catch (error) {
+      console.error("Upload error:", error);
+
+      // Clean up on error
+      if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+      if (coverPreview) URL.revokeObjectURL(coverPreview);
+      setMediaPreview(null);
+      setCoverPreview(null);
+      setValue(`transactions.${index}.animationUri` as const, "");
+      setValue(`transactions.${index}.imageUri` as const, "");
+
+      toast.error("Failed to upload video/thumbnail", {
+        description: error instanceof Error ? error.message : "Please try again",
+      });
+
+      setShowThumbnailSelector(false);
+      setPendingVideoFile(null);
+      setIsUploadingMedia(false);
+      setIsUploadingCover(false);
+    }
   };
 
   const handleThumbnailCancel = () => {
@@ -153,11 +255,12 @@ export function MediaSection({ index }: MediaSectionProps) {
         return;
       }
 
-      // Check file size (max 100MB for droposals which may be larger than coins)
-      const maxSize = 100 * 1024 * 1024;
+      // Check file size - 500MB max for videos, 100MB for other media
+      const maxSize = isVideo ? 500 * 1024 * 1024 : 100 * 1024 * 1024;
+      const maxSizeText = isVideo ? "500MB" : "100MB";
       if (file.size > maxSize) {
-        setMediaError("File size must be less than 100MB");
-        toast.error("File size must be less than 100MB");
+        setMediaError(`File size must be less than ${maxSizeText}`);
+        toast.error(`File size must be less than ${maxSizeText}`);
         return;
       }
 
@@ -184,6 +287,10 @@ export function MediaSection({ index }: MediaSectionProps) {
 
   const removeFile = (type: "media" | "cover") => {
     if (type === "media") {
+      if (mediaPreview && mediaPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(mediaPreview);
+      }
+      setMediaPreview(null);
       setValue(`transactions.${index}.mediaUrl` as const, "");
       setValue(`transactions.${index}.mediaType` as const, undefined);
       setMediaError("");
@@ -198,6 +305,30 @@ export function MediaSection({ index }: MediaSectionProps) {
 
   const showCover = watchedMediaType && !watchedMediaType.startsWith("image");
 
+  // Convert IPFS URLs to gateway URLs for display, or use blob previews
+  const getDisplayUrl = (url: string | undefined, blobPreview: string | null) => {
+    // Prioritize blob preview for file uploads
+    if (blobPreview) return blobPreview;
+    
+    if (!url) return null;
+    
+    // Only convert valid IPFS URLs (not fake ipfs://filename ones)
+    if (url.startsWith("ipfs://")) {
+      const cid = url.replace("ipfs://", "");
+      // Check if it's a valid CID (starts with Qm or b and is long enough)
+      if (cid.length > 40 && (cid.startsWith("Qm") || cid.startsWith("b"))) {
+        return ipfsToGatewayUrl(url);
+      }
+      // Invalid IPFS URL, don't display
+      return null;
+    }
+    
+    return url;
+  };
+
+  const displayMediaUrl = getDisplayUrl(watchedMediaUrl, mediaPreview);
+  const displayCoverUrl = getDisplayUrl(watchedCoverUrl, coverPreview);
+
   return (
     <Card>
       <CardHeader>
@@ -207,10 +338,10 @@ export function MediaSection({ index }: MediaSectionProps) {
         <div>
           <Label>Media File *</Label>
           <div className="mt-2">
-            {watchedMediaUrl ? (
+            {displayMediaUrl ? (
               watchedMediaType?.startsWith("image") ? (
                 <Image
-                  src={watchedMediaUrl}
+                  src={displayMediaUrl}
                   alt="Media preview"
                   width={400}
                   height={225}
@@ -218,7 +349,7 @@ export function MediaSection({ index }: MediaSectionProps) {
                 />
               ) : watchedMediaType?.startsWith("video") ? (
                 <video
-                  src={watchedMediaUrl}
+                  src={displayMediaUrl}
                   className="w-full aspect-video object-contain bg-black rounded-lg border"
                   controls
                 />
@@ -229,7 +360,7 @@ export function MediaSection({ index }: MediaSectionProps) {
                     <p className="text-sm text-muted-foreground">Audio File</p>
                   </div>
                   <audio controls className="w-3/4">
-                    <source src={watchedMediaUrl} type={watchedMediaType} />
+                    <source src={displayMediaUrl} type={watchedMediaType} />
                     Your browser does not support the audio element.
                   </audio>
                 </div>
@@ -258,7 +389,7 @@ export function MediaSection({ index }: MediaSectionProps) {
               accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml,video/mp4,video/webm,video/quicktime,video/x-m4v,audio/mpeg,audio/mp3,audio/wav,audio/ogg"
               className="hidden"
               onChange={(e) => handleFileChange(e, "media")}
-              disabled={isUploading}
+              disabled={isUploadingMedia}
             />
             {mediaError && (
               <p className="text-xs text-red-500 mt-2">{mediaError}</p>
@@ -273,10 +404,10 @@ export function MediaSection({ index }: MediaSectionProps) {
               Cover image for non-image media files
             </p>
             <div className="mt-2">
-              {coverPreview || watchedCoverUrl ? (
+              {displayCoverUrl ? (
                 <div className="relative">
                   <Image
-                    src={coverPreview || watchedCoverUrl || ""}
+                    src={displayCoverUrl}
                     alt="Cover preview"
                     width={400}
                     height={225}
@@ -306,7 +437,7 @@ export function MediaSection({ index }: MediaSectionProps) {
                 accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml"
                 className="hidden"
                 onChange={(e) => handleFileChange(e, "cover")}
-                disabled={isUploading}
+                disabled={isUploadingCover}
               />
             </div>
           </div>

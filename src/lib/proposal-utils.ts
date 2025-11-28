@@ -1,6 +1,6 @@
 import { encodeFunctionData, parseEther, parseUnits } from "viem";
 import { TransactionFormValues } from "@/components/proposals/schema";
-import { TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
+import { TREASURY_TOKEN_ALLOWLIST, DROPOSAL_DEFAULT_MINT_LIMIT, DROPOSAL_TARGET, GNARS_ADDRESSES } from "@/lib/config";
 
 export function encodeTransactions(transactions: TransactionFormValues[]) {
   const targets: `0x${string}`[] = [];
@@ -100,11 +100,68 @@ export function encodeTransactions(transactions: TransactionFormValues[]) {
           break;
 
         case "droposal":
-          // TODO: Implement droposal transaction encoding
-          console.warn("Droposal transaction encoding not yet implemented");
-          targets.push("0x" as `0x${string}`);
+          // Encode droposal using Zora's createEdition function via DROPOSAL_TARGET proxy
+          targets.push(DROPOSAL_TARGET.base as `0x${string}`);
           values.push(BigInt(0));
-          calldatas.push("0x" as `0x${string}`);
+          
+          const droposalCalldata = encodeFunctionData({
+            abi: [
+              {
+                inputs: [
+                  { internalType: "string", name: "name", type: "string" },
+                  { internalType: "string", name: "symbol", type: "string" },
+                  { internalType: "uint64", name: "editionSize", type: "uint64" },
+                  { internalType: "uint16", name: "royaltyBPS", type: "uint16" },
+                  { internalType: "address payable", name: "fundsRecipient", type: "address" },
+                  { internalType: "address", name: "defaultAdmin", type: "address" },
+                  {
+                    components: [
+                      { internalType: "uint104", name: "publicSalePrice", type: "uint104" },
+                      { internalType: "uint32", name: "maxSalePurchasePerAddress", type: "uint32" },
+                      { internalType: "uint64", name: "publicSaleStart", type: "uint64" },
+                      { internalType: "uint64", name: "publicSaleEnd", type: "uint64" },
+                      { internalType: "uint64", name: "presaleStart", type: "uint64" },
+                      { internalType: "uint64", name: "presaleEnd", type: "uint64" },
+                      { internalType: "bytes32", name: "presaleMerkleRoot", type: "bytes32" },
+                    ],
+                    internalType: "struct IERC721Drop.SalesConfiguration",
+                    name: "saleConfig",
+                    type: "tuple",
+                  },
+                  { internalType: "string", name: "description", type: "string" },
+                  { internalType: "string", name: "animationURI", type: "string" },
+                  { internalType: "string", name: "imageURI", type: "string" },
+                ],
+                name: "createEdition",
+                outputs: [{ internalType: "address", name: "", type: "address" }],
+                stateMutability: "nonpayable",
+                type: "function",
+              },
+            ],
+            functionName: "createEdition",
+            args: [
+              tx.name,
+              tx.symbol,
+              BigInt(tx.editionSize || "18446744073709551615"),
+              Number(tx.royaltyPercentage || "5000"),
+              (tx.payoutAddress || GNARS_ADDRESSES.treasury) as `0x${string}`,
+              tx.defaultAdmin as `0x${string}`,
+              {
+                publicSalePrice: parseEther(tx.price || "0"),
+                maxSalePurchasePerAddress: DROPOSAL_DEFAULT_MINT_LIMIT, // Hardcoded to 1,000,000 (effectively unlimited)
+                publicSaleStart: tx.startTime ? BigInt(Math.floor(new Date(tx.startTime).getTime() / 1000)) : BigInt(0),
+                publicSaleEnd: tx.endTime ? BigInt(Math.floor(new Date(tx.endTime).getTime() / 1000)) : BigInt("18446744073709551615"),
+                presaleStart: BigInt(0),
+                presaleEnd: BigInt(0),
+                presaleMerkleRoot: "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`,
+              },
+              tx.collectionDescription || "",
+              tx.animationUri || "",
+              tx.imageUri || "",
+            ],
+          });
+          
+          calldatas.push(droposalCalldata);
           break;
 
         default:

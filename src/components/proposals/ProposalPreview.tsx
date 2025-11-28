@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { createProposalAction } from "@/app/propose/actions";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { ipfsToGatewayUrl } from "@/lib/pinata";
+import { encodeTransactions } from "@/lib/proposal-utils";
 import { type ProposalFormValues } from "./schema";
 
 const governorAbi = [
@@ -32,9 +33,15 @@ const governorAbi = [
 ] as const;
 
 export function ProposalPreview() {
-  const { getValues, handleSubmit } = useFormContext<ProposalFormValues>();
+  const { getValues, handleSubmit, formState: { errors } } = useFormContext<ProposalFormValues>();
   const [isActionPending, startTransition] = useTransition();
   const [preparedDescription, setPreparedDescription] = useState<string>("");
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [encodedTxData, setEncodedTxData] = useState<{
+    targets: `0x${string}`[];
+    values: bigint[];
+    calldatas: `0x${string}`[];
+  } | undefined>();
   const { chain } = useAccount();
   const { switchChainAsync } = useSwitchChain();
 
@@ -50,12 +57,18 @@ export function ProposalPreview() {
   // Get current form data
   const data = (watchedData as ProposalFormValues) || getValues();
 
-  // Generate the prepared description for debugging
+  // Generate the prepared description and encoded transactions for debugging
   useEffect(() => {
     const generateDescription = async () => {
       try {
         const result = await createProposalAction(data);
         setPreparedDescription(result.description);
+        
+        // Also encode the transactions for preview
+        if (data.transactions && data.transactions.length > 0) {
+          const encoded = encodeTransactions(data.transactions);
+          setEncodedTxData(encoded);
+        }
       } catch (error) {
         console.error("Error generating description:", error);
       }
@@ -67,16 +80,23 @@ export function ProposalPreview() {
   }, [data]);
 
   const handleFormSubmit = async (formData: ProposalFormValues) => {
+    console.log("handleFormSubmit called with data:", formData);
+    setValidationError(null);
     startTransition(async () => {
+      console.log("Inside startTransition");
       try {
         // Check if on correct network, switch if needed
         if (chain?.id !== base.id) {
+          console.log("Switching to Base network...");
           toast.info("Switching to Base network...");
           await switchChainAsync({ chainId: base.id });
         }
 
+        console.log("Calling createProposalAction...");
         const preparedTx = await createProposalAction(formData);
+        console.log("Prepared transaction:", preparedTx);
 
+        console.log("Calling writeContract...");
         await writeContract({
           address: GNARS_ADDRESSES.governor as `0x${string}`,
           abi: governorAbi,
@@ -91,10 +111,48 @@ export function ProposalPreview() {
         });
       } catch (error) {
         console.error("Error submitting proposal:", error);
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        setValidationError(errorMessage);
         toast.error("Failed to submit proposal", {
-          description: error instanceof Error ? error.message : "An unknown error occurred",
+          description: errorMessage,
         });
       }
+    });
+  };
+
+  const onValidationError = (errors: any) => {
+    console.error("Form validation errors:", errors);
+    console.log("Full errors object:", JSON.stringify(errors, null, 2));
+    
+    // Collect all error messages
+    const errorMessages: string[] = [];
+    
+    if (errors.title) {
+      errorMessages.push(`Title: ${errors.title.message}`);
+    }
+    if (errors.description) {
+      errorMessages.push(`Description: ${errors.description.message}`);
+    }
+    if (errors.transactions) {
+      errors.transactions.forEach((txError: any, index: number) => {
+        if (txError) {
+          Object.entries(txError).forEach(([field, error]: [string, any]) => {
+            if (error?.message) {
+              errorMessages.push(`Transaction ${index + 1} - ${field}: ${error.message}`);
+            }
+          });
+        }
+      });
+    }
+    
+    const errorMessage = errorMessages.length > 0 
+      ? errorMessages.join("; ") 
+      : "Please fix validation errors before submitting";
+    
+    console.log("Validation error message:", errorMessage);
+    setValidationError(errorMessage);
+    toast.error("Validation Failed", {
+      description: errorMessage,
     });
   };
 
@@ -104,6 +162,16 @@ export function ProposalPreview() {
     !isActionPending &&
     !isWalletPending &&
     !isConfirming;
+
+  // Debug logging
+  useEffect(() => {
+    console.log("ProposalPreview - canSubmit:", canSubmit);
+    console.log("ProposalPreview - title:", data.title);
+    console.log("ProposalPreview - transactions:", data.transactions?.length);
+    console.log("ProposalPreview - isActionPending:", isActionPending);
+    console.log("ProposalPreview - isWalletPending:", isWalletPending);
+    console.log("ProposalPreview - isConfirming:", isConfirming);
+  }, [canSubmit, data.title, data.transactions, isActionPending, isWalletPending, isConfirming]);
 
   if (isSuccess) {
     return (
@@ -166,7 +234,11 @@ export function ProposalPreview() {
       <TransactionsSummaryList transactions={data.transactions ?? []} />
 
       {/* Debug Panel */}
-      <ProposalDebugPanel formData={data} preparedDescription={preparedDescription} />
+      <ProposalDebugPanel 
+        formData={data} 
+        preparedDescription={preparedDescription}
+        encodedTransactions={encodedTxData}
+      />
 
       {/* Submit Section */}
       <Card>
@@ -192,6 +264,13 @@ export function ProposalPreview() {
             </Alert>
           )}
 
+          {validationError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{validationError}</AlertDescription>
+            </Alert>
+          )}
+
           {isWalletPending && (
             <Alert className="mb-4">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -209,7 +288,12 @@ export function ProposalPreview() {
           )}
 
           <Button
-            onClick={handleSubmit(handleFormSubmit)}
+            onClick={(e) => {
+              console.log("Submit button clicked!");
+              console.log("canSubmit:", canSubmit);
+              console.log("Form errors:", errors);
+              handleSubmit(handleFormSubmit, onValidationError)(e);
+            }}
             disabled={!canSubmit}
             size="lg"
             className="w-full"

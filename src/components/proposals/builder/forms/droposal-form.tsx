@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ExternalLink, Info } from "lucide-react";
+import { ExternalLink, Info, ChevronDown, ChevronUp } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { useAccount } from "wagmi";
+import { GNARS_ADDRESSES } from "@/lib/config";
 import { type ProposalFormValues } from "@/components/proposals/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { MediaSection } from "./droposal/MediaSection";
+import { DroposalDebugPanel } from "./droposal/DroposalDebugPanel";
+import { useDaoSettings, calculateDroposalStartDate, type StartTimeCalculation } from "@/hooks/use-dao-settings";
 
 interface Props {
   index: number;
@@ -25,14 +29,19 @@ export function DroposalForm({ index }: Props) {
     watch,
     formState: { errors },
   } = useFormContext<ProposalFormValues>();
-  const [editionType, setEditionType] = useState<"fixed" | "open">("fixed");
+  const [editionType, setEditionType] = useState<"fixed" | "open">("open");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [startTimeCalc, setStartTimeCalc] = useState<StartTimeCalculation | undefined>();
+  
+  // Get DAO settings for auto-calculating start time
+  const { votingDelay, votingPeriod, timelockDelay, isLoading: settingsLoading } = useDaoSettings();
 
   useEffect(() => {
     const currentEditionType = watch(`transactions.${index}.editionType`);
     if (currentEditionType) {
       setEditionType(currentEditionType);
     } else {
-      setValue(`transactions.${index}.editionType` as const, "fixed");
+      setValue(`transactions.${index}.editionType` as const, "open");
     }
   }, [index, watch, setValue]);
 
@@ -44,10 +53,66 @@ export function DroposalForm({ index }: Props) {
     }
   }, [address, index, setValue, watch]);
 
+  // Pre-fill payoutAddress to DAO treasury if empty
+  useEffect(() => {
+    const current = watch(`transactions.${index}.payoutAddress`);
+    if (!current) {
+      setValue(`transactions.${index}.payoutAddress` as const, GNARS_ADDRESSES.treasury);
+    }
+  }, [index, setValue, watch]);
+
+  // Set default royalty to 5000 (50%) if not set
+  useEffect(() => {
+    const currentRoyalty = watch(`transactions.${index}.royaltyPercentage`);
+    if (!currentRoyalty) {
+      setValue(`transactions.${index}.royaltyPercentage` as const, "5000");
+    }
+  }, [index, setValue, watch]);
+
+  // Auto-calculate start time based on DAO settings
+  useEffect(() => {
+    const currentStartTime = watch(`transactions.${index}.startTime`);
+    if (!currentStartTime && !settingsLoading && votingDelay && votingPeriod && timelockDelay) {
+      const calculation = calculateDroposalStartDate(votingDelay, votingPeriod, timelockDelay);
+      setStartTimeCalc(calculation);
+      setValue(`transactions.${index}.startTime` as const, calculation.startDate.toISOString().slice(0, 16));
+    } else if (!settingsLoading && votingDelay && votingPeriod && timelockDelay) {
+      // Still calculate for display even if start time is set
+      const calculation = calculateDroposalStartDate(votingDelay, votingPeriod, timelockDelay);
+      setStartTimeCalc(calculation);
+    }
+  }, [index, setValue, watch, settingsLoading, votingDelay, votingPeriod, timelockDelay]);
+
+  // Set default edition size to max uint64 (unlimited) if edition type is open
+  useEffect(() => {
+    if (editionType === "open") {
+      setValue(`transactions.${index}.editionSize` as const, "18446744073709551615");
+    }
+  }, [editionType, index, setValue]);
+
+  // Watch IPFS CIDs for display (strip ipfs:// prefix for input display)
+  const imageUri = watch(`transactions.${index}.imageUri`) || "";
+  const animationUri = watch(`transactions.${index}.animationUri`) || "";
+  
+  // Display values without ipfs:// prefix
+  const displayImageCid = imageUri.replace(/^ipfs:\/\//, "");
+  const displayAnimationCid = animationUri.replace(/^ipfs:\/\//, "");
+
+  // Handle CID input changes - add ipfs:// prefix when storing
+  const handleImageCidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim().replace(/^ipfs:\/\//, "");
+    setValue(`transactions.${index}.imageUri` as const, value ? `ipfs://${value}` : "");
+  };
+
+  const handleAnimationCidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim().replace(/^ipfs:\/\//, "");
+    setValue(`transactions.${index}.animationUri` as const, value ? `ipfs://${value}` : "");
+  };
+
   const handleEditionTypeChange = (value: "fixed" | "open") => {
     setEditionType(value);
     setValue(`transactions.${index}.editionType` as const, value);
-    setValue(`transactions.${index}.editionSize` as const, value === "open" ? "0" : "100");
+    setValue(`transactions.${index}.editionSize` as const, value === "open" ? "18446744073709551615" : "100");
   };
 
   type FieldErrorLike = { message?: string } | undefined;
@@ -127,6 +192,48 @@ export function DroposalForm({ index }: Props) {
       {/* Media */}
       <MediaSection index={index} />
 
+      {/* IPFS CIDs - Manual Entry */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">IPFS CIDs (Manual Entry)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid w-full max-w-sm items-center gap-2">
+            <Label htmlFor="imageUri">Image/Thumbnail IPFS CID</Label>
+            <div className="flex items-center border rounded-md">
+              <span className="px-3 py-2 text-sm text-muted-foreground bg-muted border-r">ipfs://</span>
+              <Input
+                id="imageUri"
+                placeholder="QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                value={displayImageCid}
+                onChange={handleImageCidChange}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Enter IPFS CID without ipfs:// prefix. For images or video thumbnails.
+            </p>
+          </div>
+
+          <div className="grid w-full max-w-sm items-center gap-2">
+            <Label htmlFor="animationUri">Video/Animation IPFS CID (optional)</Label>
+            <div className="flex items-center border rounded-md">
+              <span className="px-3 py-2 text-sm text-muted-foreground bg-muted border-r">ipfs://</span>
+              <Input
+                id="animationUri"
+                placeholder="QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                value={displayAnimationCid}
+                onChange={handleAnimationCidChange}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Enter IPFS CID for video/animation. Leave empty for image-only drops.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Pricing & Supply */}
       <Card>
         <CardHeader>
@@ -157,168 +264,181 @@ export function DroposalForm({ index }: Props) {
               </a>
             </p>
           </div>
+        </CardContent>
+      </Card>
 
-          <div>
-            <Label>Edition Type *</Label>
-            <RadioGroup
-              value={editionType}
-              onValueChange={handleEditionTypeChange}
-              className="mt-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="fixed" id="fixed" />
-                <Label htmlFor="fixed">Fixed Edition</Label>
+      {/* Advanced Options Toggle */}
+      <Card>
+        <CardHeader className="pb-3">
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full flex items-center justify-between hover:bg-muted"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+          >
+            <CardTitle className="text-base">Advanced Options</CardTitle>
+            {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+        </CardHeader>
+        
+        {showAdvanced && (
+          <CardContent className="space-y-6">
+            {/* Sale Timing */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-sm">Sale Timing</h4>
+              <div className="grid w-full max-w-sm items-center gap-2">
+                <Label htmlFor="startTime">Sale Start Time</Label>
+                <Input
+                  id="startTime"
+                  type="datetime-local"
+                  {...register(`transactions.${index}.startTime` as const)}
+                />
+                {getErrorMessage("startTime") && (
+                  <p className="text-xs text-red-500">{String(getErrorMessage("startTime"))}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Auto-calculated based on proposal timeline: voting delay + voting period + timelock delay + 1 day buffer.
+                </p>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="open" id="open" />
-                <Label htmlFor="open">Open Edition</Label>
-              </div>
-            </RadioGroup>
-          </div>
 
-          {editionType === "fixed" && (
-            <div className="grid w-full max-w-sm items-center gap-2">
-              <Label htmlFor="editionSize">Edition Size *</Label>
-              <Input
-                id="editionSize"
-                type="number"
-                placeholder="100"
-                {...register(`transactions.${index}.editionSize` as const)}
-              />
-              {getErrorMessage("editionSize") && (
-                <p className="text-xs text-red-500">{String(getErrorMessage("editionSize"))}</p>
+              <div className="grid w-full max-w-sm items-center gap-2">
+                <Label htmlFor="endTime">Sale End Time</Label>
+                <Input
+                  id="endTime"
+                  type="datetime-local"
+                  {...register(`transactions.${index}.endTime` as const)}
+                />
+                {getErrorMessage("endTime") && (
+                  <p className="text-xs text-red-500">{String(getErrorMessage("endTime"))}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Leave empty for no end time (indefinite sale).
+                </p>
+              </div>
+            </div>
+
+            {/* Edition Settings */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-sm">Edition Settings</h4>
+              <div>
+                <Label>Edition Type</Label>
+                <RadioGroup
+                  value={editionType}
+                  onValueChange={handleEditionTypeChange}
+                  className="mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="open" id="open" />
+                    <Label htmlFor="open">Open Edition (Unlimited)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="fixed" id="fixed" />
+                    <Label htmlFor="fixed">Fixed Edition (Limited Supply)</Label>
+                  </div>
+                </RadioGroup>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Open edition allows unlimited mints. Fixed edition has a maximum supply.
+                </p>
+              </div>
+
+              {editionType === "fixed" && (
+                <div className="grid w-full max-w-sm items-center gap-2">
+                  <Label htmlFor="editionSize">Edition Size *</Label>
+                  <Input
+                    id="editionSize"
+                    type="number"
+                    placeholder="100"
+                    {...register(`transactions.${index}.editionSize` as const)}
+                  />
+                  {getErrorMessage("editionSize") && (
+                    <p className="text-xs text-red-500">{String(getErrorMessage("editionSize"))}</p>
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </CardContent>
+
+            {/* Royalty Settings */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-sm">Royalty Settings</h4>
+              <div className="grid w-full max-w-sm items-center gap-2">
+                <Label htmlFor="royaltyPercentage">Royalty (Basis Points)</Label>
+                <Input
+                  id="royaltyPercentage"
+                  type="number"
+                  min="0"
+                  max="10000"
+                  placeholder="5000"
+                  {...register(`transactions.${index}.royaltyPercentage` as const)}
+                />
+                {getErrorMessage("royaltyPercentage") && (
+                  <p className="text-xs text-red-500">{String(getErrorMessage("royaltyPercentage"))}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Default: 5000 (50%). Percentage of secondary sales. 10000 = 100%.
+                </p>
+              </div>
+            </div>
+
+            {/* Addresses */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-sm">Address Configuration</h4>
+              <div className="grid w-full max-w-sm items-center gap-2">
+                <Label htmlFor="payoutAddress">Payout Address</Label>
+                <Input
+                  id="payoutAddress"
+                  placeholder={`0x... or ENS name (defaults to ${GNARS_ADDRESSES.treasury.slice(0, 6)}...)`}
+                  {...register(`transactions.${index}.payoutAddress` as const)}
+                />
+                {getErrorMessage("payoutAddress") && (
+                  <p className="text-xs text-red-500">{String(getErrorMessage("payoutAddress"))}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Address that receives mint proceeds and royalties (defaults to DAO treasury)
+                </p>
+              </div>
+
+              <div className="grid w-full max-w-sm items-center gap-2">
+                <Label htmlFor="defaultAdmin">Admin Address</Label>
+                <Input
+                  id="defaultAdmin"
+                  placeholder="0x... or ENS name"
+                  {...register(`transactions.${index}.defaultAdmin` as const)}
+                />
+                {getErrorMessage("defaultAdmin") && (
+                  <p className="text-xs text-red-500">{String(getErrorMessage("defaultAdmin"))}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Address that can manage the collection (defaults to connected wallet)
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        )}
       </Card>
 
-      {/* Sale Timing */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Sale Timing</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="startTime">Sale Start Time</Label>
-            <Input
-              id="startTime"
-              type="datetime-local"
-              {...register(`transactions.${index}.startTime` as const)}
-            />
-            {getErrorMessage("startTime") && (
-              <p className="text-xs text-red-500">{String(getErrorMessage("startTime"))}</p>
-            )}
-          </div>
-
-          <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="endTime">Sale End Time</Label>
-            <Input
-              id="endTime"
-              type="datetime-local"
-              {...register(`transactions.${index}.endTime` as const)}
-            />
-            {getErrorMessage("endTime") && (
-              <p className="text-xs text-red-500">{String(getErrorMessage("endTime"))}</p>
-            )}
-          </div>
-
-          <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="mintLimitPerAddress">Mint Limit per Address</Label>
-            <Input
-              id="mintLimitPerAddress"
-              type="number"
-              placeholder="Leave empty for unlimited"
-              {...register(`transactions.${index}.mintLimitPerAddress` as const)}
-            />
-            {getErrorMessage("mintLimitPerAddress") && (
-              <p className="text-xs text-red-500">
-                {String(getErrorMessage("mintLimitPerAddress"))}
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Revenue & Administration */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Revenue & Administration</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="royaltyPercentage">Royalty Percentage *</Label>
-            <Input
-              id="royaltyPercentage"
-              type="number"
-              min="0"
-              max="100"
-              placeholder="5"
-              {...register(`transactions.${index}.royaltyPercentage` as const)}
-            />
-            {getErrorMessage("royaltyPercentage") && (
-              <p className="text-xs text-red-500">{String(getErrorMessage("royaltyPercentage"))}</p>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">
-              Percentage of secondary sales that go to the payout address
-            </p>
-          </div>
-
-          <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="payoutAddress">Payout Address *</Label>
-            <Input
-              id="payoutAddress"
-              placeholder="0x... or ENS name"
-              {...register(`transactions.${index}.payoutAddress` as const)}
-            />
-            {getErrorMessage("payoutAddress") && (
-              <p className="text-xs text-red-500">{String(getErrorMessage("payoutAddress"))}</p>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">
-              Address that receives mint proceeds and royalties (defaults to DAO treasury)
-            </p>
-          </div>
-
-          <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="defaultAdmin">Admin Address *</Label>
-            <Input
-              id="defaultAdmin"
-              placeholder="0x... or ENS name"
-              {...register(`transactions.${index}.defaultAdmin` as const)}
-            />
-            {getErrorMessage("defaultAdmin") && (
-              <p className="text-xs text-red-500">{String(getErrorMessage("defaultAdmin"))}</p>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">
-              Address that can manage the collection (defaults to connected wallet)
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Transaction Description */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Transaction Description</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="transactionDescription">Description (optional)</Label>
-            <Textarea
-              id="transactionDescription"
-              placeholder="Explain why this droposal should be created..."
-              {...register(`transactions.${index}.description` as const)}
-              rows={3}
-            />
-            {getErrorMessage("description") && (
-              <p className="text-xs text-red-500">{String(getErrorMessage("description"))}</p>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">
-              This description will appear in the proposal transaction list
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Debug Panel */}
+      <DroposalDebugPanel
+        formData={{
+          name: watch(`transactions.${index}.name`),
+          symbol: watch(`transactions.${index}.symbol`),
+          description: watch(`transactions.${index}.collectionDescription`),
+          animationURI: watch(`transactions.${index}.animationUri`),
+          imageURI: watch(`transactions.${index}.imageUri`),
+          price: watch(`transactions.${index}.price`),
+          startTime: watch(`transactions.${index}.startTime`) 
+            ? new Date(watch(`transactions.${index}.startTime`) as string) 
+            : undefined,
+          endTime: watch(`transactions.${index}.endTime`)
+            ? new Date(watch(`transactions.${index}.endTime`) as string)
+            : undefined,
+          payoutAddress: watch(`transactions.${index}.payoutAddress`),
+          defaultAdmin: watch(`transactions.${index}.defaultAdmin`),
+          editionSize: watch(`transactions.${index}.editionSize`),
+          royalty: watch(`transactions.${index}.royaltyPercentage`),
+          transactionDescription: watch(`transactions.${index}.description`),
+        }}
+        startTimeCalculation={startTimeCalc}
+      />
     </div>
   );
 }

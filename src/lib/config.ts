@@ -36,6 +36,9 @@ export const DROPOSAL_TARGET = {
   base: "0x58c3ccb2dcb9384e5ab9111cd1a5dea916b0f33c",
 } as const;
 
+// Default mint limit per address for droposals (effectively unlimited)
+export const DROPOSAL_DEFAULT_MINT_LIMIT = 1000000 as const;
+
 export const SUBGRAPH = {
   // Official Nouns Builder Subgraph URL for Gnars on Base (Goldsky public)
   url: `https://api.goldsky.com/api/public/${process.env.NEXT_PUBLIC_GOLDSKY_PROJECT_ID || "project_cm33ek8kjx6pz010i2c3w8z25"}/subgraphs/nouns-builder-base-mainnet/latest/gn`,

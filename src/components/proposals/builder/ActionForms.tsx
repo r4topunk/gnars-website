@@ -36,6 +36,18 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
     setValue(`transactions.${index}.type` as const, actionType as TransactionFormValues["type"]);
   }, [actionType, index, setValue]);
 
+  // Handle form validation errors
+  const onError = (errors: any) => {
+    console.error("Form validation errors:", errors);
+    if (errors.transactions?.[index]) {
+      const txErrors = errors.transactions[index];
+      const errorMessages = Object.entries(txErrors)
+        .map(([field, error]: [string, any]) => `${field}: ${error?.message}`)
+        .join(", ");
+      setSDKError(`Validation errors: ${errorMessages}`);
+    }
+  };
+
   // Generate SDK calldata for buy-coin transactions
   const handleBuyCoinSubmit = async () => {
     const tx = getValues(`transactions.${index}`);
@@ -155,7 +167,7 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
             Cancel
           </Button>
           <Button
-            onClick={handleSubmit(handleBuyCoinSubmit)}
+            onClick={handleSubmit(handleBuyCoinSubmit, onError)}
             disabled={isGenerating}
           >
             {isGenerating ? (

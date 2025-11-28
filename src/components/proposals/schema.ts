@@ -6,6 +6,12 @@ const addressSchema = z.string().refine((val) => isAddress(val), {
   message: "Invalid Ethereum address",
 });
 
+// Optional address that can be empty
+const optionalAddressSchema = z.string().optional().refine(
+  (val) => !val || isAddress(val),
+  { message: "Invalid Ethereum address" }
+);
+
 // Reusable numeric string validation
 const numericString = <T extends z.ZodType<string | undefined>>(schema: T) => {
   return schema.refine(
@@ -113,21 +119,22 @@ export const droposalTransactionSchema = baseTransactionSchema.extend({
   imageUri: z.string().optional(),
   coverUrl: z.string().optional(),
   price: positiveNumericString(z.string().min(1, "Price is required")),
-  editionType: z.enum(["fixed", "open"]),
-  editionSize: positiveNumericStringOptional(),
+  editionType: z.enum(["fixed", "open"]).default("open"),
+  editionSize: positiveNumericStringOptional().default("18446744073709551615"), // Max uint64 = unlimited/open edition
   startTime: z.string().optional(),
   endTime: z.string().optional(),
-  mintLimitPerAddress: positiveNumericStringOptional(),
-  royaltyPercentage: nonNegativeNumericString(
-    z.string().min(1, "Royalty percentage is required"),
-  ).refine(
+  // mintLimitPerAddress is intentionally not configurable and is hardcoded to 1,000,000 in the transaction encoding
+  // This effectively makes it unlimited per address. See DROPOSAL_DEFAULT_MINT_LIMIT in /lib/config.ts
+  // and the encoding implementation in /lib/proposal-utils.ts (droposal case)
+  // royaltyPercentage defaults to 5000 (50%) if not specified
+  royaltyPercentage: nonNegativeNumericStringOptional().default("5000").refine(
     (val) => {
       if (!val) return true;
-      return parseFloat(val) <= 100;
+      return parseFloat(val) <= 10000; // Max 100% = 10000 basis points
     },
-    { message: "Must be between 0 and 100" },
+    { message: "Must be between 0 and 10000 basis points (100%)" },
   ),
-  payoutAddress: addressSchema,
+  payoutAddress: optionalAddressSchema,
   defaultAdmin: addressSchema,
   mediaType: z.string().optional(),
   coverType: z.string().optional(),

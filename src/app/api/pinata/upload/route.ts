@@ -9,19 +9,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Check file size (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    // Check file size (500MB limit for videos, 100MB for others)
+    const isVideo = file.type.startsWith("video/");
+    const maxSize = isVideo ? 500 * 1024 * 1024 : 100 * 1024 * 1024; // 500MB for videos, 100MB for others
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: "File size exceeds 10MB limit" },
+        { error: `File size exceeds ${isVideo ? '500MB' : '100MB'} limit` },
         { status: 400 }
       );
     }
 
-    // Check file type (only images)
-    if (!file.type.startsWith("image/")) {
+    // Check file type (images, videos, and audio)
+    const allowedTypes = ["image/", "video/", "audio/"];
+    const isAllowedType = allowedTypes.some(type => file.type.startsWith(type));
+    
+    if (!isAllowedType && file.type !== "") {
       return NextResponse.json(
-        { error: "Only image files are allowed" },
+        { error: "Only image, video, and audio files are allowed" },
         { status: 400 }
       );
     }
