@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { ProposalRepository } from "../db/repository.js";
-import type { DbProposal } from "../db/schema.js";
+import { subgraphClient } from "../subgraph/client.js";
+import { calculateProposalStatus, type SubgraphProposal } from "../subgraph/types.js";
 
 export const getProposalSchema = z.object({
   id: z.union([z.string(), z.number()]).describe("Proposal ID (hex string) or proposal number"),
@@ -33,47 +33,54 @@ export interface GetProposalOutput {
   result: "PASSING" | "FAILING" | "TIE" | null;
 }
 
-function computeResult(proposal: DbProposal): "PASSING" | "FAILING" | "TIE" | null {
+function computeResult(proposal: SubgraphProposal): "PASSING" | "FAILING" | "TIE" | null {
+  const status = calculateProposalStatus(proposal);
+
   // Only compute result for active or completed proposals
-  if (["PENDING", "CANCELLED", "VETOED"].includes(proposal.status)) {
+  if (["PENDING", "CANCELLED", "VETOED"].includes(status)) {
     return null;
   }
 
-  if (proposal.for_votes > proposal.against_votes) {
+  const forVotes = parseInt(proposal.forVotes, 10);
+  const againstVotes = parseInt(proposal.againstVotes, 10);
+
+  if (forVotes > againstVotes) {
     return "PASSING";
-  } else if (proposal.against_votes > proposal.for_votes) {
+  } else if (againstVotes > forVotes) {
     return "FAILING";
-  } else if (proposal.for_votes === proposal.against_votes && proposal.for_votes > 0) {
+  } else if (forVotes === againstVotes && forVotes > 0) {
     return "TIE";
   }
 
   return null;
 }
 
-function computeParticipation(proposal: DbProposal): string {
-  const totalVotes = proposal.for_votes + proposal.against_votes + proposal.abstain_votes;
-  if (proposal.quorum_votes === 0) {
+function computeParticipation(proposal: SubgraphProposal): string {
+  const forVotes = parseInt(proposal.forVotes, 10);
+  const againstVotes = parseInt(proposal.againstVotes, 10);
+  const abstainVotes = parseInt(proposal.abstainVotes, 10);
+  const quorumVotes = parseInt(proposal.quorumVotes, 10);
+
+  const totalVotes = forVotes + againstVotes + abstainVotes;
+  if (quorumVotes === 0) {
     return "N/A";
   }
-  const percentage = (totalVotes / proposal.quorum_votes) * 100;
+  const percentage = (totalVotes / quorumVotes) * 100;
   return `${percentage.toFixed(1)}% of quorum`;
 }
 
-export function getProposal(
-  repo: ProposalRepository,
-  input: GetProposalInput
-): GetProposalOutput | null {
-  let proposal: DbProposal | null = null;
+export async function getProposal(input: GetProposalInput): Promise<GetProposalOutput | null> {
+  let proposal: SubgraphProposal | null = null;
 
   if (typeof input.id === "number") {
-    proposal = repo.getProposalByNumber(input.id);
+    proposal = await subgraphClient.fetchProposalByNumber(input.id);
   } else if (input.id.startsWith("0x")) {
-    proposal = repo.getProposalById(input.id);
+    proposal = await subgraphClient.fetchProposalById(input.id);
   } else {
     // Try parsing as number
     const num = parseInt(input.id, 10);
     if (!isNaN(num)) {
-      proposal = repo.getProposalByNumber(num);
+      proposal = await subgraphClient.fetchProposalByNumber(num);
     }
   }
 
@@ -81,27 +88,30 @@ export function getProposal(
     return null;
   }
 
-  const totalVotes = proposal.for_votes + proposal.against_votes + proposal.abstain_votes;
+  const forVotes = parseInt(proposal.forVotes, 10);
+  const againstVotes = parseInt(proposal.againstVotes, 10);
+  const abstainVotes = parseInt(proposal.abstainVotes, 10);
+  const totalVotes = forVotes + againstVotes + abstainVotes;
 
   return {
-    proposalId: proposal.id,
-    proposalNumber: proposal.proposal_number,
-    title: proposal.title,
-    description: proposal.description,
-    status: proposal.status,
+    proposalId: proposal.proposalId,
+    proposalNumber: proposal.proposalNumber,
+    title: proposal.title || "",
+    description: proposal.description || "",
+    status: calculateProposalStatus(proposal),
     proposer: proposal.proposer,
-    forVotes: proposal.for_votes,
-    againstVotes: proposal.against_votes,
-    abstainVotes: proposal.abstain_votes,
-    quorumVotes: proposal.quorum_votes,
-    voteStart: proposal.vote_start,
-    voteEnd: proposal.vote_end,
-    timeCreated: proposal.time_created,
-    executed: proposal.executed === 1,
-    canceled: proposal.canceled === 1,
-    vetoed: proposal.vetoed === 1,
-    queued: proposal.queued === 1,
-    transactionHash: proposal.transaction_hash,
+    forVotes,
+    againstVotes,
+    abstainVotes,
+    quorumVotes: parseInt(proposal.quorumVotes, 10),
+    voteStart: proposal.voteStart,
+    voteEnd: proposal.voteEnd,
+    timeCreated: parseInt(proposal.timeCreated, 10),
+    executed: proposal.executed,
+    canceled: proposal.canceled,
+    vetoed: proposal.vetoed,
+    queued: proposal.queued,
+    transactionHash: proposal.transactionHash,
     totalVotes,
     participationRate: computeParticipation(proposal),
     result: computeResult(proposal),

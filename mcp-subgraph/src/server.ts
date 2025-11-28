@@ -1,6 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
 
 import { getDatabase, closeDatabase } from "./db/connection.js";
 import { ProposalRepository } from "./db/repository.js";
@@ -28,29 +27,30 @@ export function createServer() {
     version: "0.1.0",
   });
 
+  // Database and repository are still needed for embeddings/search
   const db = getDatabase();
   const repo = new ProposalRepository(db);
 
-  // Tool: list_proposals
+  // Tool: list_proposals (fetches directly from subgraph)
   server.tool(
     "list_proposals",
     "List Gnars DAO proposals with optional filtering by status. Returns paginated results. Use format='toon' for ~40% token savings.",
     listProposalsSchema.shape,
     async (params) => {
       const input = listProposalsSchema.parse(params);
-      const result = listProposals(repo, input);
+      const result = await listProposals(input);
       return createMcpResponse(result, input.format as OutputFormat);
     }
   );
 
-  // Tool: get_proposal
+  // Tool: get_proposal (fetches directly from subgraph)
   server.tool(
     "get_proposal",
     "Get detailed information about a specific Gnars DAO proposal by ID or number.",
     getProposalSchema.shape,
     async (params) => {
       const input = getProposalSchema.parse(params);
-      const result = getProposal(repo, input);
+      const result = await getProposal(input);
 
       if (!result) {
         return {
@@ -65,14 +65,14 @@ export function createServer() {
     }
   );
 
-  // Tool: get_proposal_votes
+  // Tool: get_proposal_votes (fetches directly from subgraph)
   server.tool(
     "get_proposal_votes",
     "Get votes for a specific Gnars DAO proposal. Can filter by vote type (FOR, AGAINST, ABSTAIN). Use format='toon' for ~40% token savings.",
     getProposalVotesSchema.shape,
     async (params) => {
       const input = getProposalVotesSchema.parse(params);
-      const result = getProposalVotes(repo, input);
+      const result = await getProposalVotes(input);
 
       if (!result) {
         return {
@@ -85,7 +85,7 @@ export function createServer() {
     }
   );
 
-  // Tool: sync_proposals
+  // Tool: sync_proposals (syncs to local DB for embeddings)
   server.tool(
     "sync_proposals",
     "Sync proposals from the Gnars DAO subgraph to the local database. Use full=true for complete re-sync.",
@@ -99,7 +99,7 @@ export function createServer() {
     }
   );
 
-  // Tool: search_proposals
+  // Tool: search_proposals (uses local DB with embeddings)
   server.tool(
     "search_proposals",
     "Semantic search over Gnars DAO proposals. Use natural language queries to find relevant proposals. Requires index_embeddings to be run first. Use format='toon' for ~40% token savings.",
@@ -111,7 +111,7 @@ export function createServer() {
     }
   );
 
-  // Tool: index_embeddings
+  // Tool: index_embeddings (populates local DB with embeddings)
   server.tool(
     "index_embeddings",
     "Generate embeddings for proposals to enable semantic search. Run after sync_proposals. Only indexes proposals that haven't been indexed yet.",
@@ -167,7 +167,7 @@ export function createServer() {
     }
   );
 
-  // Resource: proposal://{proposalNumber}
+  // Resource: proposal://{proposalNumber} (fetches directly from subgraph)
   server.resource(
     "proposal",
     "proposal://{proposalNumber}",
@@ -178,7 +178,7 @@ export function createServer() {
       }
 
       const proposalNumber = parseInt(match[1], 10);
-      const result = getProposal(repo, { id: proposalNumber });
+      const result = await getProposal({ id: proposalNumber });
 
       if (!result) {
         throw new Error(`Proposal ${proposalNumber} not found`);

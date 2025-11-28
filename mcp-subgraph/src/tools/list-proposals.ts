@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { ProposalRepository } from "../db/repository.js";
-import type { ProposalStatus } from "../subgraph/types.js";
+import { subgraphClient } from "../subgraph/client.js";
+import { calculateProposalStatus } from "../subgraph/types.js";
 
 export const listProposalsSchema = z.object({
   status: z
@@ -46,32 +46,50 @@ export interface ListProposalsOutput {
   hasMore: boolean;
 }
 
-export function listProposals(
-  repo: ProposalRepository,
-  input: ListProposalsInput
-): ListProposalsOutput {
-  const { proposals, total } = repo.listProposals({
-    status: input.status as ProposalStatus | undefined,
-    limit: input.limit,
-    offset: input.offset,
-    order: input.order,
-  });
+export async function listProposals(input: ListProposalsInput): Promise<ListProposalsOutput> {
+  // Fetch from subgraph directly
+  // Note: Subgraph doesn't support status filtering, so we fetch more and filter client-side
+  const fetchLimit = input.status ? 200 : input.limit;
+  const fetchOffset = input.status ? 0 : input.offset;
+
+  const proposals = await subgraphClient.fetchProposals(fetchLimit, fetchOffset);
+
+  // Calculate status for each proposal and optionally filter
+  let processedProposals = proposals.map((p) => ({
+    proposalNumber: p.proposalNumber,
+    title: p.title || "",
+    status: calculateProposalStatus(p),
+    proposer: p.proposer,
+    forVotes: parseInt(p.forVotes, 10),
+    againstVotes: parseInt(p.againstVotes, 10),
+    abstainVotes: parseInt(p.abstainVotes, 10),
+    quorumVotes: parseInt(p.quorumVotes, 10),
+    voteStart: p.voteStart,
+    voteEnd: p.voteEnd,
+    timeCreated: parseInt(p.timeCreated, 10),
+  }));
+
+  // Apply status filter if specified
+  if (input.status) {
+    processedProposals = processedProposals.filter((p) => p.status === input.status);
+  }
+
+  // Apply order (subgraph returns desc by default)
+  if (input.order === "asc") {
+    processedProposals.reverse();
+  }
+
+  // Get total before pagination
+  const total = processedProposals.length;
+
+  // Apply pagination for status-filtered results
+  if (input.status) {
+    processedProposals = processedProposals.slice(input.offset, input.offset + input.limit);
+  }
 
   return {
-    proposals: proposals.map((p) => ({
-      proposalNumber: p.proposal_number,
-      title: p.title,
-      status: p.status,
-      proposer: p.proposer,
-      forVotes: p.for_votes,
-      againstVotes: p.against_votes,
-      abstainVotes: p.abstain_votes,
-      quorumVotes: p.quorum_votes,
-      voteStart: p.vote_start,
-      voteEnd: p.vote_end,
-      timeCreated: p.time_created,
-    })),
+    proposals: processedProposals,
     total,
-    hasMore: input.offset + proposals.length < total,
+    hasMore: input.offset + processedProposals.length < total,
   };
 }
