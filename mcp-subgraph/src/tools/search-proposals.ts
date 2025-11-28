@@ -26,6 +26,10 @@ export const searchProposalsSchema = z.object({
     .max(1)
     .default(0.3)
     .describe("Minimum similarity score (0-1)"),
+  format: z
+    .enum(["json", "toon"])
+    .default("json")
+    .describe("Output format: 'json' (default) or 'toon' for ~40% token savings"),
 });
 
 export type SearchProposalsInput = z.infer<typeof searchProposalsSchema>;

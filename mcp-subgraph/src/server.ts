@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { getDatabase, closeDatabase } from "./db/connection.js";
 import { ProposalRepository } from "./db/repository.js";
+import { createMcpResponse, type OutputFormat } from "./utils/encoder.js";
 
 import { listProposals, listProposalsSchema } from "./tools/list-proposals.js";
 import { getProposal, getProposalSchema } from "./tools/get-proposal.js";
@@ -33,14 +34,12 @@ export function createServer() {
   // Tool: list_proposals
   server.tool(
     "list_proposals",
-    "List Gnars DAO proposals with optional filtering by status. Returns paginated results.",
+    "List Gnars DAO proposals with optional filtering by status. Returns paginated results. Use format='toon' for ~40% token savings.",
     listProposalsSchema.shape,
     async (params) => {
       const input = listProposalsSchema.parse(params);
       const result = listProposals(repo, input);
-      return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-      };
+      return createMcpResponse(result, input.format as OutputFormat);
     }
   );
 
@@ -69,7 +68,7 @@ export function createServer() {
   // Tool: get_proposal_votes
   server.tool(
     "get_proposal_votes",
-    "Get votes for a specific Gnars DAO proposal. Can filter by vote type (FOR, AGAINST, ABSTAIN).",
+    "Get votes for a specific Gnars DAO proposal. Can filter by vote type (FOR, AGAINST, ABSTAIN). Use format='toon' for ~40% token savings.",
     getProposalVotesSchema.shape,
     async (params) => {
       const input = getProposalVotesSchema.parse(params);
@@ -82,9 +81,7 @@ export function createServer() {
         };
       }
 
-      return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-      };
+      return createMcpResponse(result, input.format as OutputFormat);
     }
   );
 
@@ -105,14 +102,12 @@ export function createServer() {
   // Tool: search_proposals
   server.tool(
     "search_proposals",
-    "Semantic search over Gnars DAO proposals. Use natural language queries to find relevant proposals. Requires index_embeddings to be run first.",
+    "Semantic search over Gnars DAO proposals. Use natural language queries to find relevant proposals. Requires index_embeddings to be run first. Use format='toon' for ~40% token savings.",
     searchProposalsSchema.shape,
     async (params) => {
       const input = searchProposalsSchema.parse(params);
       const result = await searchProposals(repo, input);
-      return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-      };
+      return createMcpResponse(result, input.format as OutputFormat);
     }
   );
 
@@ -163,14 +158,12 @@ export function createServer() {
   // Tool: resolve_ens_batch
   server.tool(
     "resolve_ens_batch",
-    "Resolve multiple Ethereum addresses to their ENS names and avatars in a single call. More efficient for resolving many addresses at once.",
+    "Resolve multiple Ethereum addresses to their ENS names and avatars in a single call. More efficient for resolving many addresses at once. Use format='toon' for ~25% token savings.",
     resolveEnsBatchSchema.shape,
     async (params) => {
       const input = resolveEnsBatchSchema.parse(params);
       const result = await resolveEnsBatch(input);
-      return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-      };
+      return createMcpResponse(result, input.format as OutputFormat);
     }
   );
 

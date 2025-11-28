@@ -11,6 +11,10 @@ export const getProposalVotesSchema = z.object({
     .describe("Filter by vote type"),
   limit: z.number().min(1).max(200).default(50).describe("Number of votes to return"),
   offset: z.number().min(0).default(0).describe("Offset for pagination"),
+  format: z
+    .enum(["json", "toon"])
+    .default("json")
+    .describe("Output format: 'json' (default) or 'toon' for ~40% token savings"),
 });
 
 export type GetProposalVotesInput = z.infer<typeof getProposalVotesSchema>;

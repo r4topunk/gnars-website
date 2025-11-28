@@ -20,6 +20,10 @@ export const listProposalsSchema = z.object({
   limit: z.number().min(1).max(100).default(20).describe("Number of proposals to return"),
   offset: z.number().min(0).default(0).describe("Offset for pagination"),
   order: z.enum(["asc", "desc"]).default("desc").describe("Sort order by creation time"),
+  format: z
+    .enum(["json", "toon"])
+    .default("json")
+    .describe("Output format: 'json' (default) or 'toon' for ~40% token savings"),
 });
 
 export type ListProposalsInput = z.infer<typeof listProposalsSchema>;

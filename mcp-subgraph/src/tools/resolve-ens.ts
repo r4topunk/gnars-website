@@ -6,6 +6,10 @@ export const resolveEnsSchema = z.object({
 
 export const resolveEnsBatchSchema = z.object({
   addresses: z.array(z.string()).describe("Array of Ethereum addresses to resolve ENS names for"),
+  format: z
+    .enum(["json", "toon"])
+    .default("json")
+    .describe("Output format: 'json' (default) or 'toon' for ~25% token savings"),
 });
 
 export type ResolveEnsInput = z.infer<typeof resolveEnsSchema>;
