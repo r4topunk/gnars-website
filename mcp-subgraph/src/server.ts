@@ -14,6 +14,12 @@ import {
   searchProposalsSchema,
   indexProposalEmbeddings,
 } from "./tools/search-proposals.js";
+import {
+  resolveEns,
+  resolveEnsSchema,
+  resolveEnsBatch,
+  resolveEnsBatchSchema,
+} from "./tools/resolve-ens.js";
 
 export function createServer() {
   const server = new McpServer({
@@ -136,6 +142,34 @@ export function createServer() {
             ),
           },
         ],
+      };
+    }
+  );
+
+  // Tool: resolve_ens
+  server.tool(
+    "resolve_ens",
+    "Resolve an Ethereum address to its ENS name and avatar. Returns displayName (ENS name or shortened address), name, avatar URL, and the normalized address.",
+    resolveEnsSchema.shape,
+    async (params) => {
+      const input = resolveEnsSchema.parse(params);
+      const result = await resolveEns(input);
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    }
+  );
+
+  // Tool: resolve_ens_batch
+  server.tool(
+    "resolve_ens_batch",
+    "Resolve multiple Ethereum addresses to their ENS names and avatars in a single call. More efficient for resolving many addresses at once.",
+    resolveEnsBatchSchema.shape,
+    async (params) => {
+      const input = resolveEnsBatchSchema.parse(params);
+      const result = await resolveEnsBatch(input);
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
       };
     }
   );
