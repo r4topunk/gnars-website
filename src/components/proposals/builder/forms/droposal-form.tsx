@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ExternalLink, Info, ChevronDown, ChevronUp } from "lucide-react";
+import { ExternalLink, Info, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { useAccount } from "wagmi";
 import { GNARS_ADDRESSES } from "@/lib/config";
@@ -15,7 +15,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { MediaSection } from "./droposal/MediaSection";
 import { DroposalDebugPanel } from "./droposal/DroposalDebugPanel";
+import { SplitRecipientsSection } from "./droposal/SplitRecipientsSection";
+import { SplitDebugPanel } from "./droposal/SplitDebugPanel";
 import { useDaoSettings, calculateDroposalStartDate, type StartTimeCalculation } from "@/hooks/use-dao-settings";
+import { createDefaultSplitConfig } from "@/lib/splits-utils";
+import type { SplitRecipient } from "@/lib/splits-utils";
+import { Switch } from "@/components/ui/switch";
 
 interface Props {
   index: number;
@@ -32,9 +37,27 @@ export function DroposalForm({ index }: Props) {
   const [editionType, setEditionType] = useState<"fixed" | "open">("open");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [startTimeCalc, setStartTimeCalc] = useState<StartTimeCalculation | undefined>();
+  const [useSplit, setUseSplit] = useState(false);
   
   // Get DAO settings for auto-calculating start time
   const { votingDelay, votingPeriod, timelockDelay, isLoading: settingsLoading } = useDaoSettings();
+
+  // Initialize split recipients with default config on mount
+  useEffect(() => {
+    const currentRecipients = watch(`transactions.${index}.splitRecipients`);
+    const currentFee = watch(`transactions.${index}.splitDistributorFee`);
+    
+    if (!currentRecipients || currentRecipients.length === 0) {
+      const defaultConfig = createDefaultSplitConfig(address || "", GNARS_ADDRESSES.treasury);
+      setValue(`transactions.${index}.splitRecipients` as const, defaultConfig.recipients);
+      setValue(`transactions.${index}.splitDistributorFee` as const, defaultConfig.distributorFeePercent);
+    }
+  }, [address, index, setValue, watch]);
+
+  // Watch split fields
+  const splitRecipients = watch(`transactions.${index}.splitRecipients`) as SplitRecipient[] | undefined;
+  const splitDistributorFee = watch(`transactions.${index}.splitDistributorFee`) as number | undefined;
+  const createdSplitAddress = watch(`transactions.${index}.createdSplitAddress`) as string | undefined;
 
   useEffect(() => {
     const currentEditionType = watch(`transactions.${index}.editionType`);
@@ -53,10 +76,11 @@ export function DroposalForm({ index }: Props) {
     }
   }, [address, index, setValue, watch]);
 
-  // Pre-fill payoutAddress to DAO treasury if empty
+  // Pre-fill payoutAddress to DAO treasury if empty (and not using split)
   useEffect(() => {
     const current = watch(`transactions.${index}.payoutAddress`);
-    if (!current) {
+    const isUsingSplit = watch(`transactions.${index}.useSplit`);
+    if (!current && !isUsingSplit) {
       setValue(`transactions.${index}.payoutAddress` as const, GNARS_ADDRESSES.treasury);
     }
   }, [index, setValue, watch]);
@@ -113,6 +137,29 @@ export function DroposalForm({ index }: Props) {
     setEditionType(value);
     setValue(`transactions.${index}.editionType` as const, value);
     setValue(`transactions.${index}.editionSize` as const, value === "open" ? "18446744073709551615" : "100");
+  };
+
+  const handleUseSplitChange = (checked: boolean) => {
+    setUseSplit(checked);
+    setValue(`transactions.${index}.useSplit` as const, checked);
+    
+    // Clear payout address when using split, restore treasury when not
+    if (checked) {
+      setValue(`transactions.${index}.payoutAddress` as const, "");
+    } else {
+      setValue(`transactions.${index}.payoutAddress` as const, GNARS_ADDRESSES.treasury);
+    }
+  };
+
+  const handleSplitRecipientsChange = (recipients: SplitRecipient[], distributorFee: number) => {
+    setValue(`transactions.${index}.splitRecipients` as const, recipients);
+    setValue(`transactions.${index}.splitDistributorFee` as const, distributorFee);
+  };
+
+  const handleSplitCreated = (splitAddress: string) => {
+    setValue(`transactions.${index}.createdSplitAddress` as const, splitAddress);
+    // Optionally auto-set as payout address
+    setValue(`transactions.${index}.payoutAddress` as const, splitAddress);
   };
 
   type FieldErrorLike = { message?: string } | undefined;
@@ -382,20 +429,75 @@ export function DroposalForm({ index }: Props) {
             {/* Addresses */}
             <div className="space-y-4">
               <h4 className="font-semibold text-sm">Address Configuration</h4>
-              <div className="grid w-full max-w-sm items-center gap-2">
-                <Label htmlFor="payoutAddress">Payout Address</Label>
-                <Input
-                  id="payoutAddress"
-                  placeholder={`0x... or ENS name (defaults to ${GNARS_ADDRESSES.treasury.slice(0, 6)}...)`}
-                  {...register(`transactions.${index}.payoutAddress` as const)}
+              
+              {/* Use Split Toggle */}
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                <div className="space-y-1">
+                  <Label htmlFor="use-split" className="text-sm font-semibold cursor-pointer">
+                    Use Revenue Split
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Create a split contract to share NFT sales revenue among multiple recipients
+                  </p>
+                </div>
+                <Switch
+                  id="use-split"
+                  checked={useSplit}
+                  onCheckedChange={handleUseSplitChange}
                 />
-                {getErrorMessage("payoutAddress") && (
-                  <p className="text-xs text-red-500">{String(getErrorMessage("payoutAddress"))}</p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  Address that receives mint proceeds and royalties (defaults to DAO treasury)
-                </p>
               </div>
+
+              {!useSplit ? (
+                // Direct payout address (original behavior)
+                <>
+                  <div className="grid w-full max-w-sm items-center gap-2">
+                    <Label htmlFor="payoutAddress">Payout Address</Label>
+                    <Input
+                      id="payoutAddress"
+                      placeholder={`0x... or ENS name (defaults to ${GNARS_ADDRESSES.treasury.slice(0, 6)}...)`}
+                      {...register(`transactions.${index}.payoutAddress` as const)}
+                    />
+                    {getErrorMessage("payoutAddress") && (
+                      <p className="text-xs text-red-500">{String(getErrorMessage("payoutAddress"))}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Address that receives mint proceeds and royalties (defaults to DAO treasury)
+                    </p>
+                  </div>
+                </>
+              ) : (
+                // Split configuration
+                <div className="space-y-4">
+                  <SplitRecipientsSection
+                    recipients={splitRecipients || []}
+                    distributorFee={splitDistributorFee || 1}
+                    onChange={handleSplitRecipientsChange}
+                  />
+                  
+                  <SplitDebugPanel
+                    recipients={splitRecipients || []}
+                    distributorFee={splitDistributorFee || 1}
+                    onSplitCreated={handleSplitCreated}
+                  />
+
+                  {createdSplitAddress && (
+                    <Alert className="bg-green-50 border-green-200">
+                      <AlertCircle className="h-4 w-4 text-green-600" />
+                      <AlertDescription>
+                        <div className="space-y-2">
+                          <strong className="text-green-900">Split Address Saved:</strong>
+                          <code className="block bg-white px-2 py-1 rounded text-xs border">
+                            {createdSplitAddress}
+                          </code>
+                          <p className="text-xs text-green-900">
+                            This address will be used as the payout recipient for the droposal.
+                          </p>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              )}
 
               <div className="grid w-full max-w-sm items-center gap-2">
                 <Label htmlFor="defaultAdmin">Admin Address</Label>

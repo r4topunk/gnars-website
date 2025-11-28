@@ -138,6 +138,14 @@ export const droposalTransactionSchema = baseTransactionSchema.extend({
   defaultAdmin: addressSchema,
   mediaType: z.string().optional(),
   coverType: z.string().optional(),
+  // Revenue split configuration (optional)
+  useSplit: z.boolean().optional().default(false),
+  splitRecipients: z.array(z.object({
+    address: z.string(),
+    percentAllocation: z.number(),
+  })).optional(),
+  splitDistributorFee: z.number().optional(),
+  createdSplitAddress: z.string().optional(), // Stores the split address after creation
 });
 
 // Custom transaction
