@@ -45,7 +45,6 @@ export function DroposalForm({ index }: Props) {
   // Initialize split recipients with default config on mount
   useEffect(() => {
     const currentRecipients = watch(`transactions.${index}.splitRecipients`);
-    const currentFee = watch(`transactions.${index}.splitDistributorFee`);
     
     if (!currentRecipients || currentRecipients.length === 0) {
       const defaultConfig = createDefaultSplitConfig(address || "", GNARS_ADDRESSES.treasury);

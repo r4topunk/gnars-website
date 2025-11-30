@@ -120,25 +120,25 @@ export function ProposalPreview() {
     });
   };
 
-  const onValidationError = (errors: any) => {
+  const onValidationError = (errors: Record<string, unknown>) => {
     console.error("Form validation errors:", errors);
     console.log("Full errors object:", JSON.stringify(errors, null, 2));
     
     // Collect all error messages
     const errorMessages: string[] = [];
     
-    if (errors.title) {
-      errorMessages.push(`Title: ${errors.title.message}`);
+    if (errors.title && typeof errors.title === 'object' && errors.title !== null && 'message' in errors.title) {
+      errorMessages.push(`Title: ${(errors.title as { message: string }).message}`);
     }
-    if (errors.description) {
-      errorMessages.push(`Description: ${errors.description.message}`);
+    if (errors.description && typeof errors.description === 'object' && errors.description !== null && 'message' in errors.description) {
+      errorMessages.push(`Description: ${(errors.description as { message: string }).message}`);
     }
-    if (errors.transactions) {
-      errors.transactions.forEach((txError: any, index: number) => {
-        if (txError) {
-          Object.entries(txError).forEach(([field, error]: [string, any]) => {
-            if (error?.message) {
-              errorMessages.push(`Transaction ${index + 1} - ${field}: ${error.message}`);
+    if (errors.transactions && Array.isArray(errors.transactions)) {
+      errors.transactions.forEach((txError: unknown, index: number) => {
+        if (txError && typeof txError === 'object' && txError !== null) {
+          Object.entries(txError).forEach(([field, error]: [string, unknown]) => {
+            if (error && typeof error === 'object' && error !== null && 'message' in error) {
+              errorMessages.push(`Transaction ${index + 1} - ${field}: ${(error as { message: string }).message}`);
             }
           });
         }

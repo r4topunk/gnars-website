@@ -11,7 +11,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { SplitRecipient } from "@/lib/splits-utils";
 import {
   validateSplitRecipients,
-  validatePercentage,
   calculateRemainingPercentage,
   autoAdjustPercentages,
 } from "@/lib/splits-utils";

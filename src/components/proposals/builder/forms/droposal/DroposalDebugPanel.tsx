@@ -35,7 +35,7 @@ export function DroposalDebugPanel({ formData, startTimeCalculation }: DroposalD
     try {
       await navigator.clipboard.writeText(text);
       toast.success(`${label} copied to clipboard`);
-    } catch (error) {
+    } catch {
       toast.error(`Failed to copy ${label}`);
     }
   };

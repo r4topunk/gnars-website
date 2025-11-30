@@ -48,7 +48,9 @@ export function useSplitCreation(): UseSplitCreationResult {
       // Initialize Splits SDK client
       const splitsClient = new SplitsClient({
         chainId: 8453, // Base
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         publicClient: publicClient as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         walletClient: walletClient as any,
         includeEnsNames: false,
       });

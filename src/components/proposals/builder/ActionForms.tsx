@@ -37,14 +37,22 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
   }, [actionType, index, setValue]);
 
   // Handle form validation errors
-  const onError = (errors: any) => {
+  const onError = (errors: Record<string, unknown>) => {
     console.error("Form validation errors:", errors);
-    if (errors.transactions?.[index]) {
-      const txErrors = errors.transactions[index];
-      const errorMessages = Object.entries(txErrors)
-        .map(([field, error]: [string, any]) => `${field}: ${error?.message}`)
-        .join(", ");
-      setSDKError(`Validation errors: ${errorMessages}`);
+    if (errors.transactions && typeof errors.transactions === 'object' && errors.transactions !== null) {
+      const transactions = errors.transactions as Record<number, Record<string, unknown>>;
+      const txErrors = transactions[index];
+      if (txErrors) {
+        const errorMessages = Object.entries(txErrors)
+          .map(([field, error]: [string, unknown]) => {
+            if (error && typeof error === 'object' && error !== null && 'message' in error) {
+              return `${field}: ${(error as { message: string }).message}`;
+            }
+            return `${field}: Unknown error`;
+          })
+          .join(", ");
+        setSDKError(`Validation errors: ${errorMessages}`);
+      }
     }
   };
 

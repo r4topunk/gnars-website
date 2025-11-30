@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { Loader2, Upload, X } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { type ProposalFormValues } from "@/components/proposals/schema";
 import { Button } from "@/components/ui/button";
