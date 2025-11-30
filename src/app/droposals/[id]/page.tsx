@@ -204,7 +204,7 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
             <DroposalDetailsCard
               name={decoded?.name}
               title={p.title}
-              description={decoded?.description}
+              description={decoded?.collectionDescription}
             />
             <DroposalAddresses
               fundsRecipient={decoded?.fundsRecipient}

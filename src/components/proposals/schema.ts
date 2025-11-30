@@ -119,15 +119,15 @@ export const droposalTransactionSchema = baseTransactionSchema.extend({
   imageUri: z.string().optional(),
   coverUrl: z.string().optional(),
   price: positiveNumericString(z.string().min(1, "Price is required")),
-  editionType: z.enum(["fixed", "open"]).default("open"),
-  editionSize: positiveNumericStringOptional().default("18446744073709551615"), // Max uint64 = unlimited/open edition
+  editionType: z.enum(["fixed", "open"]).optional(),
+  editionSize: positiveNumericStringOptional(), // Max uint64 = unlimited/open edition
   startTime: z.string().optional(),
   endTime: z.string().optional(),
   // mintLimitPerAddress is intentionally not configurable and is hardcoded to 1,000,000 in the transaction encoding
   // This effectively makes it unlimited per address. See DROPOSAL_DEFAULT_MINT_LIMIT in /lib/config.ts
   // and the encoding implementation in /lib/proposal-utils.ts (droposal case)
   // royaltyPercentage defaults to 5000 (50%) if not specified
-  royaltyPercentage: nonNegativeNumericStringOptional().default("5000").refine(
+  royaltyPercentage: nonNegativeNumericStringOptional().refine(
     (val) => {
       if (!val) return true;
       return parseFloat(val) <= 10000; // Max 100% = 10000 basis points
@@ -139,7 +139,7 @@ export const droposalTransactionSchema = baseTransactionSchema.extend({
   mediaType: z.string().optional(),
   coverType: z.string().optional(),
   // Revenue split configuration (optional)
-  useSplit: z.boolean().optional().default(false),
+  useSplit: z.boolean().optional(),
   splitRecipients: z.array(z.object({
     address: z.string(),
     percentAllocation: z.number(),

@@ -109,7 +109,7 @@ export async function fetchDroposals(max: number = 24): Promise<DroposalListItem
         title: p.title ?? `Proposal #${p.proposalNumber}`,
         name: decoded?.name,
         symbol: decoded?.symbol,
-        description: decoded?.description,
+        description: decoded?.collectionDescription,
         bannerImage,
         animationUrl,
         priceEth,
