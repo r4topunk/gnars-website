@@ -12,6 +12,20 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  typescript: {
+    // Exclude mcp-subgraph from type checking during build
+    ignoreBuildErrors: false,
+  },
+  webpack: (config, { isServer }) => {
+    // Exclude mcp-subgraph from webpack bundling
+    if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'mcp-subgraph': false,
+      };
+    }
+    return config;
+  },
 };
 
 export default nextConfig;

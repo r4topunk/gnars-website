@@ -13,9 +13,10 @@ let embeddingPipeline: FeatureExtractionPipeline | null = null;
 async function getEmbeddingPipeline(): Promise<FeatureExtractionPipeline> {
   if (!embeddingPipeline) {
     console.error("Loading embedding model (first use)...");
-    embeddingPipeline = (await pipeline("feature-extraction", MODEL_NAME, {
+    const pipe = await pipeline("feature-extraction", MODEL_NAME, {
       dtype: "fp32",
-    })) as FeatureExtractionPipeline;
+    });
+    embeddingPipeline = pipe as FeatureExtractionPipeline;
     console.error("Embedding model loaded.");
   }
   return embeddingPipeline as FeatureExtractionPipeline;
