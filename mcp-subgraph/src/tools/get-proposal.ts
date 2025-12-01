@@ -4,6 +4,10 @@ import { calculateProposalStatus, type SubgraphProposal } from "../subgraph/type
 
 export const getProposalSchema = z.object({
   id: z.union([z.string(), z.number()]).describe("Proposal ID (hex string) or proposal number"),
+  hideDescription: z
+    .boolean()
+    .default(false)
+    .describe("If true, omit the description field from the response to reduce token usage"),
 });
 
 export type GetProposalInput = z.infer<typeof getProposalSchema>;
@@ -12,7 +16,7 @@ export interface GetProposalOutput {
   proposalId: string;
   proposalNumber: number;
   title: string;
-  description: string;
+  description?: string;
   status: string;
   proposer: string;
   forVotes: number;
@@ -93,11 +97,10 @@ export async function getProposal(input: GetProposalInput): Promise<GetProposalO
   const abstainVotes = parseInt(proposal.abstainVotes, 10);
   const totalVotes = forVotes + againstVotes + abstainVotes;
 
-  return {
+  const result: GetProposalOutput = {
     proposalId: proposal.proposalId,
     proposalNumber: proposal.proposalNumber,
     title: proposal.title || "",
-    description: proposal.description || "",
     status: calculateProposalStatus(proposal),
     proposer: proposal.proposer,
     forVotes,
@@ -116,4 +119,10 @@ export async function getProposal(input: GetProposalInput): Promise<GetProposalO
     participationRate: computeParticipation(proposal),
     result: computeResult(proposal),
   };
+
+  if (!input.hideDescription) {
+    result.description = proposal.description || "";
+  }
+
+  return result;
 }

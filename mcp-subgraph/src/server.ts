@@ -46,7 +46,7 @@ export function createServer() {
   // Tool: get_proposal (fetches directly from subgraph)
   server.tool(
     "get_proposal",
-    "Get detailed information about a specific Gnars DAO proposal by ID or number.",
+    "Get detailed information about a specific Gnars DAO proposal by ID or number. Use hideDescription=true to omit the description and reduce token usage.",
     getProposalSchema.shape,
     async (params) => {
       const input = getProposalSchema.parse(params);
@@ -178,7 +178,7 @@ export function createServer() {
       }
 
       const proposalNumber = parseInt(match[1], 10);
-      const result = await getProposal({ id: proposalNumber });
+      const result = await getProposal({ id: proposalNumber, hideDescription: false });
 
       if (!result) {
         throw new Error(`Proposal ${proposalNumber} not found`);
