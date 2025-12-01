@@ -21,8 +21,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Gnars DAO",
-  description:
-    "Action sports accelerator and community owned brand. Headless so you can shred more…",
+  description: "Nounish Open Source Action Sports Brand experiment ",
 };
 
 export default function RootLayout({
@@ -32,9 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -46,9 +43,7 @@ export default function RootLayout({
               {/* <MuralBackground /> */}
               <ScrollToTop />
               <DaoHeader />
-              <main className="max-w-6xl mx-auto px-4">
-                {children}
-              </main>
+              <main className="max-w-6xl mx-auto px-4">{children}</main>
               <Toaster />
             </TooltipProvider>
           </Providers>

@@ -51,7 +51,7 @@ export const SUBGRAPH = {
 } as const;
 
 export const DAO_DESCRIPTION =
-  "Action sports accelerator and community owned brand. Headless so you can shred more…";
+  "Nounish Open Source Action Sports Brand experiment ";
 
 // Token contracts we care about for treasury display
 // Provide Base mainnet addresses for known tokens

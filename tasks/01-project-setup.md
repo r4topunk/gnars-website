@@ -32,7 +32,7 @@ This task covers the initial setup of the Next.js project, ensuring all configur
       - Governor: `0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c`
       - Treasury: `0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88`
       - Metadata: `0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58`
-    - [ ] Add the Gnars DAO description: "Action sports accelerator and community owned brand. Headless so you can shred more…".
+    - [ ] Add the Gnars DAO description: "Nounish Open Source Action Sports Brand experiment ".
 
 ### References
 

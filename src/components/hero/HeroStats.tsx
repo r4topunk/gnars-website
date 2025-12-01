@@ -1,7 +1,6 @@
 "use client";
 
 import { TrendingUp, Trophy, Users, Zap } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { CountUp } from "@/components/ui/count-up";
 import { DAO_DESCRIPTION } from "@/lib/config";
 
@@ -17,14 +16,6 @@ export function HeroStats({ stats }: HeroStatsProps) {
   return (
     <div className="flex flex-col justify-center space-y-6">
       <div className="space-y-4">
-        <Badge
-          variant="secondary"
-          className="w-fit bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-        >
-          <Zap className="mr-1 h-3 w-3" />
-          Action Sports DAO
-        </Badge>
-
         <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
           <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
             Gnars DAO
@@ -65,7 +56,12 @@ export function HeroStats({ stats }: HeroStatsProps) {
             </div>
             <div>
               <div className="font-semibold">
-                <CountUp value={parseFloat(stats.treasuryValue || "0")} decimals={1} durationMs={900} /> ETH
+                <CountUp
+                  value={parseFloat(stats.treasuryValue || "0")}
+                  decimals={1}
+                  durationMs={900}
+                />{" "}
+                ETH
               </div>
               <div className="text-xs text-muted-foreground">Treasury</div>
             </div>
@@ -75,5 +71,3 @@ export function HeroStats({ stats }: HeroStatsProps) {
     </div>
   );
 }
-
-
