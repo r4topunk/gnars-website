@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import type { DbProposal, DbVote, DbEmbedding } from "./schema.js";
+import type { DbProposal, DbVote } from "./schema.js";
 import type { SubgraphProposal, SubgraphVote, ProposalStatus } from "../subgraph/types.js";
 import { calculateProposalStatus } from "../subgraph/types.js";
 

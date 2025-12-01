@@ -13,10 +13,9 @@ let embeddingPipeline: FeatureExtractionPipeline | null = null;
 async function getEmbeddingPipeline(): Promise<FeatureExtractionPipeline> {
   if (!embeddingPipeline) {
     console.error("Loading embedding model (first use)...");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     embeddingPipeline = (await pipeline("feature-extraction", MODEL_NAME, {
       dtype: "fp32",
-    })) as any;
+    })) as FeatureExtractionPipeline;
     console.error("Embedding model loaded.");
   }
   return embeddingPipeline as FeatureExtractionPipeline;

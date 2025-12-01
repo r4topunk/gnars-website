@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fetchProposals, fetchProposalByNumber, fetchVotes, SubgraphError } from "../../src/subgraph/client.js";
+import { fetchProposals, fetchProposalByNumber, fetchVotes } from "../../src/subgraph/client.js";
 import { mockProposalsResponse, mockVotesResponse, mockProposal } from "../fixtures/proposals.js";
 
 // Mock fetch globally
