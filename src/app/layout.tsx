@@ -8,7 +8,7 @@ import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { MiniAppProvider } from "@/components/miniapp/MiniAppProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
+import { MINIAPP_EMBED_CONFIG, MINIAPP_CONFIG } from "@/lib/miniapp-config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,7 +23,21 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Gnars DAO",
-  description: "Nounish Open Source Action Sports Brand experiment ",
+  description: "Nounish Open Source Action Sports Brand experiment",
+  // Open Graph metadata for social sharing
+  openGraph: {
+    title: "Gnars DAO",
+    description: "Nounish Open Source Action Sports Brand experiment",
+    images: [MINIAPP_CONFIG.miniapp.ogImageUrl],
+    type: "website",
+  },
+  // Twitter card metadata
+  twitter: {
+    card: "summary_large_image",
+    title: "Gnars DAO",
+    description: "Nounish Open Source Action Sports Brand experiment",
+    images: [MINIAPP_CONFIG.miniapp.ogImageUrl],
+  },
   // Farcaster mini app embed metadata
   other: {
     "fc:miniapp": JSON.stringify(MINIAPP_EMBED_CONFIG),
