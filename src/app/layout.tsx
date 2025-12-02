@@ -5,7 +5,7 @@ import { DaoHeader } from "@/components/layout/DaoHeader";
 // import { MuralBackground } from "@/components/layout/MuralBackground";
 import Providers from "@/components/layout/Providers";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
-import { MiniAppProvider } from "@/components/miniapp/MiniAppProvider";
+import { MiniAppReady } from "@/components/miniapp/MiniAppReady";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { MINIAPP_CONFIG, MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
@@ -59,15 +59,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Providers>
-            <MiniAppProvider>
-              <TooltipProvider>
-                {/* <MuralBackground /> */}
-                <ScrollToTop />
-                <DaoHeader />
-                <main className="max-w-6xl mx-auto px-4">{children}</main>
-                <Toaster />
-              </TooltipProvider>
-            </MiniAppProvider>
+            <TooltipProvider>
+              <MiniAppReady />
+              {/* <MuralBackground /> */}
+              <ScrollToTop />
+              <DaoHeader />
+              <main className="max-w-6xl mx-auto px-4">{children}</main>
+              <Toaster />
+            </TooltipProvider>
           </Providers>
         </ThemeProvider>
       </body>

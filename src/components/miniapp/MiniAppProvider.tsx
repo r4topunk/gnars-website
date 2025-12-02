@@ -59,17 +59,17 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
   const [context, setContext] = useState<MiniAppContextType["context"]>(null);
 
   useEffect(() => {
-    // Call ready() immediately - this is safe to call even outside mini app context
-    // The SDK will handle it gracefully if not in a frame
-    sdk.actions.ready();
-
     const initMiniApp = async () => {
       try {
-        // Check if we're in a mini app context
+        // Check if we're in a mini app context first
         const inMiniApp = await sdk.isInMiniApp();
 
         if (inMiniApp) {
           setIsInMiniApp(true);
+
+          // Call ready() to hide the splash screen
+          // Must be called after confirming we're in a mini app
+          sdk.actions.ready();
 
           // Get the context
           const ctx = await sdk.context;
