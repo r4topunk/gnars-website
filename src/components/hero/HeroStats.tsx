@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, Trophy, Users, Zap } from "lucide-react";
+import { TrendingUp, Trophy, Users } from "lucide-react";
 import { CountUp } from "@/components/ui/count-up";
 import { DAO_DESCRIPTION } from "@/lib/config";
 

@@ -53,7 +53,6 @@ export async function GET() {
       ogTitle: MINIAPP_CONFIG.miniapp.ogTitle,
       ogDescription: MINIAPP_CONFIG.miniapp.ogDescription,
       ogImageUrl: MINIAPP_CONFIG.miniapp.ogImageUrl,
-      noindex: MINIAPP_CONFIG.miniapp.noindex,
     }),
   };
 
