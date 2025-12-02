@@ -8,7 +8,7 @@ import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { MiniAppProvider } from "@/components/miniapp/MiniAppProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { MINIAPP_EMBED_CONFIG, MINIAPP_CONFIG } from "@/lib/miniapp-config";
+import { MINIAPP_CONFIG, MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import "./globals.css";
 
 const geistSans = Geist({
