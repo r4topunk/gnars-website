@@ -9,7 +9,29 @@ import { sdk } from "@farcaster/miniapp-sdk";
  */
 export function MiniAppReady() {
   useEffect(() => {
-    sdk.actions.ready();
+    let cancelled = false;
+
+    const sendReady = async () => {
+      try {
+        const inMiniApp = await sdk.isInMiniApp();
+        if (!inMiniApp || cancelled) {
+          return;
+        }
+
+        await sdk.actions.ready();
+        // eslint-disable-next-line no-console
+        console.debug("[miniapp] ready() called");
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("[miniapp] failed to call ready()", error);
+      }
+    };
+
+    sendReady();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return null;
