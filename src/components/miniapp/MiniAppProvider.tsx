@@ -63,10 +63,10 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
       try {
         // First check if we're in a mini app context
         const inMiniApp = await sdk.isInMiniApp();
-        
+
         if (inMiniApp) {
           setIsInMiniApp(true);
-          
+
           // Get the context
           const ctx = await sdk.context;
           if (ctx) {
