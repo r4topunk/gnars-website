@@ -59,9 +59,13 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
   const [context, setContext] = useState<MiniAppContextType["context"]>(null);
 
   useEffect(() => {
+    // Call ready() immediately - this is safe to call even outside mini app context
+    // The SDK will handle it gracefully if not in a frame
+    sdk.actions.ready();
+
     const initMiniApp = async () => {
       try {
-        // First check if we're in a mini app context
+        // Check if we're in a mini app context
         const inMiniApp = await sdk.isInMiniApp();
 
         if (inMiniApp) {
@@ -72,10 +76,6 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
           if (ctx) {
             setContext(ctx);
           }
-
-          // Signal that the app is ready to be displayed
-          // This hides the splash screen - call it ASAP
-          sdk.actions.ready();
         }
       } catch (error) {
         // Not in a mini app context - this is fine for regular web access
