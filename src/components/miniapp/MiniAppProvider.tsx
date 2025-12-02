@@ -61,17 +61,21 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
   useEffect(() => {
     const initMiniApp = async () => {
       try {
-        // Check if we're in a Farcaster frame context
-        // The SDK will throw or return null if not in a frame
-        const ctx = await sdk.context;
-
-        if (ctx) {
+        // First check if we're in a mini app context
+        const inMiniApp = await sdk.isInMiniApp();
+        
+        if (inMiniApp) {
           setIsInMiniApp(true);
-          setContext(ctx);
+          
+          // Get the context
+          const ctx = await sdk.context;
+          if (ctx) {
+            setContext(ctx);
+          }
 
           // Signal that the app is ready to be displayed
-          // This hides the splash screen
-          await sdk.actions.ready();
+          // This hides the splash screen - call it ASAP
+          sdk.actions.ready();
         }
       } catch (error) {
         // Not in a mini app context - this is fine for regular web access

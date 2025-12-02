@@ -35,7 +35,7 @@ export const MINIAPP_CONFIG = {
     description: DAO_DESCRIPTION,
     homeUrl: BASE_URL,
     iconUrl: `${BASE_URL}/gnars.webp`,
-    splashImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    splashImageUrl: `${BASE_URL}/gnars.webp`,
     splashBackgroundColor: "#000000",
     // Webhook URL for notifications (optional - can be added later)
     webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
@@ -69,7 +69,7 @@ export const MINIAPP_EMBED_CONFIG = {
       type: "launch_miniapp" as const,
       name: "Gnars DAO",
       url: BASE_URL,
-      splashImageUrl: `${BASE_URL}/logo-banner.jpg`,
+      splashImageUrl: `${BASE_URL}/gnars.webp`,
       splashBackgroundColor: "#000000",
     },
   },
