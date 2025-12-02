@@ -10,11 +10,12 @@ import { MINIAPP_CONFIG } from "@/lib/miniapp-config";
  */
 
 function withValidProperties(
-  properties: Record<string, undefined | string | string[] | object>
+  properties: Record<string, undefined | string | string[] | object | boolean>
 ) {
   return Object.fromEntries(
     Object.entries(properties).filter(([, value]) => {
       if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === "boolean") return true;
       if (typeof value === "object" && value !== null) {
         return Object.values(value).some((v) => v !== "" && v !== undefined);
       }
@@ -53,6 +54,7 @@ export async function GET() {
       ogTitle: MINIAPP_CONFIG.miniapp.ogTitle,
       ogDescription: MINIAPP_CONFIG.miniapp.ogDescription,
       ogImageUrl: MINIAPP_CONFIG.miniapp.ogImageUrl,
+      noindex: MINIAPP_CONFIG.miniapp.noindex,
     }),
   };
 
