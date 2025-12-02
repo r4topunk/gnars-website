@@ -7,6 +7,8 @@ import Providers from "@/components/layout/Providers";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { MiniAppProvider } from "@/components/miniapp/MiniAppProvider";
+import { MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -22,6 +24,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Gnars DAO",
   description: "Nounish Open Source Action Sports Brand experiment ",
+  // Farcaster mini app embed metadata
+  other: {
+    "fc:miniapp": JSON.stringify(MINIAPP_EMBED_CONFIG),
+  },
 };
 
 export default function RootLayout({
@@ -39,13 +45,15 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Providers>
-            <TooltipProvider>
-              {/* <MuralBackground /> */}
-              <ScrollToTop />
-              <DaoHeader />
-              <main className="max-w-6xl mx-auto px-4">{children}</main>
-              <Toaster />
-            </TooltipProvider>
+            <MiniAppProvider>
+              <TooltipProvider>
+                {/* <MuralBackground /> */}
+                <ScrollToTop />
+                <DaoHeader />
+                <main className="max-w-6xl mx-auto px-4">{children}</main>
+                <Toaster />
+              </TooltipProvider>
+            </MiniAppProvider>
           </Providers>
         </ThemeProvider>
       </body>
