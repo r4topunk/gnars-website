@@ -63,16 +63,4 @@ export const TREASURY_TOKEN_ALLOWLIST = {
 
 export const TREASURY_TOKEN_ADDRESSES = Object.values(TREASURY_TOKEN_ALLOWLIST);
 
-export const BASE_URL =
-  // Prefer explicit site URL if provided
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  // Fallback to Vercel-provided deployment URL (no protocol by default)
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
-  // Back-compat if someone set NEXT_PUBLIC_VERCEL_URL manually
-  (process.env.NEXT_PUBLIC_VERCEL_URL
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : undefined) ||
-  // Production deployment fallback
-  "https://gnars-shadcn.vercel.app" ||
-  // Local development
-  "http://localhost:3000";
+export const BASE_URL = "https://gnars-shadcn.vercel.app";
