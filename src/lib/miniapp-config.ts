@@ -17,9 +17,9 @@ export const MINIAPP_CONFIG = {
   // Account association - MUST be filled in after signing at base.dev/preview
   // Leave empty strings until you've signed the manifest
   accountAssociation: {
-    header: "",
-    payload: "",
-    signature: "",
+    header: "eyJmaWQiOjIwNzIxLCJ0eXBlIjoiYXV0aCIsImtleSI6IjB4MmQxODgyMzA0YzlBNkZhN0Y5ODdDMUI0MWM5ZkQ1RThDRjA1MTZlMiJ9",
+    payload: "eyJkb21haW4iOiJnbmFycy1zaGFkY24udmVyY2VsLmFwcCJ9",
+    signature: "qToxlEE6sGcA0du5PNIjM5TD8FYLjoqdn/BfdIx7I8xIwoou5KWfj6cS56R4OD0/S3+CoSFE3yUg0LGEDxWhXRs=",
   },
 
   // Base builder configuration - add your Base account address
@@ -41,12 +41,12 @@ export const MINIAPP_CONFIG = {
     webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
     // App store metadata
     primaryCategory: "social" as const,
-    tags: ["dao", "gnars", "governance", "nft", "action-sports", "base"],
+    tags: ["dao", "gnars", "governance", "nft", "base"],
     // Screenshots for app store (add actual screenshot URLs after taking them)
     screenshotUrls: [] as string[],
     // Hero image for app store listing
     heroImageUrl: `${BASE_URL}/logo-banner.jpg`,
-    tagline: "Community-owned action sports brand",
+    tagline: "Action sports DAO on Base",
     // Open Graph metadata
     ogTitle: "Gnars DAO",
     ogDescription: DAO_DESCRIPTION,
