@@ -5,9 +5,9 @@ import { DaoHeader } from "@/components/layout/DaoHeader";
 // import { MuralBackground } from "@/components/layout/MuralBackground";
 import Providers from "@/components/layout/Providers";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
+import { MiniAppProvider } from "@/components/miniapp/MiniAppProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { MiniAppProvider } from "@/components/miniapp/MiniAppProvider";
 import { MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import "./globals.css";
 

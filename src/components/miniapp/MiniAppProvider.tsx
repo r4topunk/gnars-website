@@ -1,14 +1,7 @@
 "use client";
 
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { sdk, type Context } from "@farcaster/miniapp-sdk";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
 
 interface MiniAppContextType {
   /** Whether the app is running inside a Farcaster mini app context */
@@ -113,7 +106,7 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
         console.error("Failed to share via Farcaster:", error);
       }
     },
-    [isInMiniApp]
+    [isInMiniApp],
   );
 
   const openUrl = useCallback(
@@ -124,7 +117,7 @@ export function MiniAppProvider({ children }: MiniAppProviderProps) {
         window.open(url, "_blank");
       }
     },
-    [isInMiniApp]
+    [isInMiniApp],
   );
 
   const close = useCallback(() => {
