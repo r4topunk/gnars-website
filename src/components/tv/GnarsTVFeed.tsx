@@ -128,6 +128,7 @@ export function GnarsTVFeed() {
   const [playCount, setPlayCount] = useState(0);
   const [isBuying, setIsBuying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
@@ -394,6 +395,19 @@ export function GnarsTVFeed() {
     });
   };
 
+  const togglePlayPause = () => {
+    const currentVideo = videoRefs.current[activeIndex];
+    if (currentVideo) {
+      if (currentVideo.paused) {
+        currentVideo.play();
+        setIsPaused(false);
+      } else {
+        currentVideo.pause();
+        setIsPaused(true);
+      }
+    }
+  };
+
   const handleBuyCoin = async (coinAddress: string, coinTitle: string) => {
     if (!isConnected || !address) {
       toast.error("Please connect your wallet first");
@@ -496,6 +510,37 @@ export function GnarsTVFeed() {
                 onEnded={handleVideoEnd}
                 onLoadedData={() => setPlayCount(0)}
               />
+              
+              {/* Play/Pause and Mute controls */}
+              <div className="absolute top-20 right-4 flex flex-col gap-2 z-30">
+                <button
+                  onClick={togglePlayPause}
+                  className="pointer-events-auto w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all"
+                  aria-label={isPaused ? "Play" : "Pause"}
+                >
+                  {isPaused ? (
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                    </svg>
+                  )}
+                </button>
+                <button
+                  onClick={toggleMute}
+                  className="pointer-events-auto w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all"
+                  aria-label={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted ? (
+                    <VolumeX className="w-5 h-5" />
+                  ) : (
+                    <Volume2 className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+
               <div className="pointer-events-none absolute left-4 right-4 bottom-4 bg-black/90 p-3 rounded-xl backdrop-blur-md">
                 {/* Title and Support Button */}
                 <div className="flex items-start justify-between gap-3 mb-2">
