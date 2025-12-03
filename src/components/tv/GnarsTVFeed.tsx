@@ -3,13 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { getProfileCoins, setApiKey, tradeCoin } from "@zoralabs/coins-sdk";
-import type { GetProfileCoinsResponse, TradeParameters } from "@zoralabs/coins-sdk";
+import type { TradeParameters } from "@zoralabs/coins-sdk";
 import { toast } from "sonner";
 import { parseEther } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
 type TVItem = {
   id: string;
