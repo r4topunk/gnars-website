@@ -568,9 +568,13 @@ export function GnarsTVFeed() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
                         <span className="text-[#22c55e] text-xs">▲</span>
-                        <span className="text-white text-xs font-semibold">${Math.round(item.marketCap).toLocaleString()}</span>
+                        <span className="text-white text-xs font-semibold">
+                          ${Math.round(item.marketCap).toLocaleString()}
+                        </span>
                       </div>
-                      <span className="text-white/50 text-xs">ATH ${Math.round(item.allTimeHigh).toLocaleString()}</span>
+                      <span className="text-white/50 text-xs">
+                        ATH ${Math.round(item.allTimeHigh).toLocaleString()}
+                      </span>
                     </div>
                     <div className="relative h-1.5 bg-white/10 rounded-full overflow-hidden">
                       <div
