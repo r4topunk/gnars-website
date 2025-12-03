@@ -14,10 +14,16 @@ type TVItem = {
   id: string;
   title: string;
   creator: string;
+  creatorName?: string;
+  creatorAvatar?: string;
   symbol?: string;
   imageUrl?: string;
   videoUrl?: string;
   coinAddress?: string;
+  marketCap?: number;
+  allTimeHigh?: number;
+  platformReferrer?: string;
+  poolCurrencyTokenAddress?: string;
 };
 
 type CoinMedia = {
@@ -40,6 +46,24 @@ type CoinNode = {
   displayName?: string;
   symbol?: string;
   imageUrl?: string;
+  platformReferrer?: string;
+  platformReferrerAddress?: string;
+  marketCap?: number;
+  allTimeHigh?: number;
+  poolCurrencyToken?: {
+    address?: string;
+    name?: string;
+  };
+  creatorProfile?: {
+    handle?: string;
+    avatar?: {
+      previewImage?: { url?: string; medium?: string; small?: string };
+    };
+    socialAccounts?: {
+      farcaster?: { displayName?: string };
+      twitter?: { displayName?: string };
+    };
+  };
   mediaContent?: CoinMedia;
   media?: CoinMedia;
   coin?: {
@@ -48,6 +72,24 @@ type CoinNode = {
     displayName?: string;
     symbol?: string;
     imageUrl?: string;
+    platformReferrer?: string;
+    platformReferrerAddress?: string;
+    marketCap?: number;
+    allTimeHigh?: number;
+    poolCurrencyToken?: {
+      address?: string;
+      name?: string;
+    };
+    creatorProfile?: {
+      handle?: string;
+      avatar?: {
+        previewImage?: { url?: string; medium?: string; small?: string };
+      };
+      socialAccounts?: {
+        farcaster?: { displayName?: string };
+        twitter?: { displayName?: string };
+      };
+    };
     mediaContent?: CoinMedia;
     media?: CoinMedia;
   };
@@ -63,6 +105,8 @@ const CREATOR_ADDRESSES = [
   "0xa642b91ff941fb68919d1877e9937f3e369dfd68",
   "0x2feb329b9289b60064904fa61fc347157a5aed6a",
   "0xddb4938755c243a4f60a2f2f8f95df4f894c58cc",
+  "0x406fdb58c6739a60bae0dd7c07ee903686344338",
+  "0xc9f669e08820a0f89a5a8d4a5ce85e9236dd83b6",
 ];
 
 const FALLBACK_ITEMS: TVItem[] = [
@@ -198,19 +242,62 @@ export function GnarsTVFeed() {
                   const media = mediaFromCoin(coin);
                   if (!media.videoUrl) return null; // only REAL video coins
 
+                  const creator = coin?.creatorProfile || coin?.coin?.creatorProfile;
+                  const creatorAvatar =
+                    creator?.avatar?.previewImage?.small || creator?.avatar?.previewImage?.medium;
+                  const creatorName =
+                    creator?.socialAccounts?.farcaster?.displayName ||
+                    creator?.socialAccounts?.twitter?.displayName ||
+                    creator?.handle;
+
+                  // Use marketCap as both current and ATH for now (since ATH isn't in the API)
+                  const marketCap = coin?.marketCap || coin?.coin?.marketCap;
+                  const allTimeHigh = marketCap; // Fallback to current marketCap
+                  const platformReferrer = (
+                    coin?.platformReferrerAddress ||
+                    coin?.platformReferrer ||
+                    coin?.coin?.platformReferrerAddress ||
+                    coin?.coin?.platformReferrer ||
+                    ""
+                  ).toLowerCase();
+                  const poolCurrencyTokenAddress = (
+                    coin?.poolCurrencyToken?.address ||
+                    coin?.coin?.poolCurrencyToken?.address ||
+                    ""
+                  ).toLowerCase();
+
+                  // 🎯 LOG REFERRER AND PAIR MATCHING
+                  const isGnarsReferral =
+                    platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88";
+                  const isSpecialPair =
+                    poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
+
+                  console.log(`🏷️ ${coin?.name}:`, {
+                    platformReferrer,
+                    poolCurrencyTokenAddress,
+                    isGnarsReferral,
+                    isSpecialPair,
+                    willShowBadge: isGnarsReferral || isSpecialPair,
+                  });
+
                   return {
                     id: coin?.address || coin?.contract || coin?.id || `${creatorAddress}-${idx}`,
                     title: coin?.name || coin?.displayName || "Untitled Coin",
                     creator: creatorAddress,
+                    creatorName: creatorName,
+                    creatorAvatar: toHttp(creatorAvatar),
                     symbol: coin?.symbol,
                     imageUrl: media.imageUrl || coin?.imageUrl,
                     videoUrl: media.videoUrl,
                     coinAddress: coin?.address || coin?.contract,
+                    marketCap: marketCap,
+                    allTimeHigh: allTimeHigh,
+                    platformReferrer: platformReferrer,
+                    poolCurrencyTokenAddress: poolCurrencyTokenAddress,
                   };
                 })
                 .filter((item): item is TVItem => item !== null);
 
-              console.log("Video items for creator:", creatorAddress, videoItemsForCreator);
               return videoItemsForCreator;
             } catch (err) {
               console.error("[gnars-tv] failed to fetch profile coins", {
@@ -369,8 +456,16 @@ export function GnarsTVFeed() {
 
   return (
     <div className="fixed inset-0 z-40 bg-black text-white">
-      <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/60 to-transparent">
-        <div className="text-sm font-semibold">Gnars TV</div>
+      <div className="absolute left-0 right-0 top-0 z-50 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
+        <div className="text-sm font-semibold pointer-events-auto">Gnars TV</div>
+        <Button
+          onClick={toggleMute}
+          size="icon"
+          variant="secondary"
+          className="pointer-events-auto bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
+        >
+          {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+        </Button>
       </div>
       <div
         ref={fullContainerRef}
@@ -401,43 +496,94 @@ export function GnarsTVFeed() {
                 onEnded={handleVideoEnd}
                 onLoadedData={() => setPlayCount(0)}
               />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 pb-8">
-                <p className="text-lg font-semibold">{item.title}</p>
-                <p className="text-sm text-white/80 mt-1">
-                  Creator {item.creator.slice(0, 6)}…{item.creator.slice(-4)}
-                </p>
-                {item.symbol && <p className="text-xs text-white/60 mt-1">{item.symbol}</p>}
+              <div className="pointer-events-none absolute left-4 right-4 bottom-4 bg-black/90 p-3 rounded-xl backdrop-blur-md">
+                {/* Title and Support Button */}
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <p className="text-base font-semibold flex-1 leading-tight">{item.title}</p>
+                  <div className="flex flex-col items-end gap-1.5">
+                    {item.coinAddress && (
+                      <button
+                        onClick={() => handleBuyCoin(item.coinAddress!, item.title)}
+                        disabled={isBuying || !isConnected}
+                        className="pointer-events-auto px-5 py-2 rounded-full bg-white text-black text-sm font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isBuying ? (
+                          <div className="flex items-center gap-2">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                            <span>Buying...</span>
+                          </div>
+                        ) : (
+                          "Support"
+                        )}
+                      </button>
+                    )}
+                    {/* Special Badges below button */}
+                    {(item.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" ||
+                      item.poolCurrencyTokenAddress ===
+                        "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b") && (
+                      <div className="flex gap-1">
+                        {item.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" && (
+                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50">
+                            <span className="text-amber-400 text-[9px] font-bold">⚡ GNARLY</span>
+                          </div>
+                        )}
+                        {item.poolCurrencyTokenAddress ===
+                          "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b" && (
+                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50">
+                            <span className="text-amber-400 text-[9px] font-bold">🤘 PAIRED</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Creator Info */}
+                <div className="flex items-center gap-2 mb-2.5">
+                  {item.creatorAvatar ? (
+                    <img
+                      src={item.creatorAvatar}
+                      alt={item.creatorName || "Creator"}
+                      width={20}
+                      height={20}
+                      className="rounded-full w-5 h-5 object-cover"
+                      onError={(e) => {
+                        console.error("Failed to load creator avatar:", item.creatorAvatar);
+                        e.currentTarget.style.display = "none";
+                        e.currentTarget.nextElementSibling?.classList.remove("hidden");
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className={`w-5 h-5 rounded-full bg-white/20 flex-shrink-0 ${item.creatorAvatar ? "hidden" : ""}`}
+                  />
+                  <p className="text-xs text-white/70 truncate">
+                    {item.creatorName || `${item.creator.slice(0, 6)}…${item.creator.slice(-4)}`}
+                  </p>
+                </div>
+
+                {/* Market Cap with ATH Progress Bar - Zora style */}
+                {item.marketCap !== undefined && item.allTimeHigh !== undefined && (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[#22c55e] text-xs">▲</span>
+                        <span className="text-white text-xs font-semibold">${Math.round(item.marketCap).toLocaleString()}</span>
+                      </div>
+                      <span className="text-white/50 text-xs">ATH ${Math.round(item.allTimeHigh).toLocaleString()}</span>
+                    </div>
+                    <div className="relative h-1.5 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#22c55e] to-[#16a34a] rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min((item.marketCap / item.allTimeHigh) * 100, 100)}%`,
+                          boxShadow: "0 0 12px rgba(34, 197, 94, 0.6)",
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-
-              <Button
-                onClick={toggleMute}
-                size="icon"
-                variant="secondary"
-                className="pointer-events-auto absolute top-6 right-6 z-20 bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
-              >
-                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-              </Button>
-
-              {item.coinAddress && (
-                <Button
-                  onClick={() => handleBuyCoin(item.coinAddress!, item.title)}
-                  disabled={isBuying || !isConnected}
-                  className="pointer-events-auto absolute bottom-6 right-6 z-20 gap-2 text-black font-bold shadow-lg transition-all border border-white duration-200 hover:scale-105 hover:border-amber-400 hover:text-white hover:bg-black/70 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  size="lg"
-                >
-                  {isBuying ? (
-                    <>
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
-                      <span>Buying...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Image src="/gnars.webp" alt="" width={20} height={20} unoptimized />
-                      <span>Support</span>
-                    </>
-                  )}
-                </Button>
-              )}
             </div>
           ))
         )}
