@@ -2,8 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { getProfileCoins, setApiKey } from "@zoralabs/coins-sdk";
-import type { GetProfileCoinsResponse } from "@zoralabs/coins-sdk";
+import { getProfileCoins, setApiKey, tradeCoin } from "@zoralabs/coins-sdk";
+import type { GetProfileCoinsResponse, TradeParameters } from "@zoralabs/coins-sdk";
+import { toast } from "sonner";
+import { parseEther } from "viem";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -15,6 +18,7 @@ type TVItem = {
   symbol?: string;
   imageUrl?: string;
   videoUrl?: string;
+  coinAddress?: string;
 };
 
 type CoinMedia = {
@@ -78,9 +82,14 @@ export function GnarsTVFeed() {
   const [error, setError] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [playCount, setPlayCount] = useState(0);
+  const [isBuying, setIsBuying] = useState(false);
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+
+  const { address, isConnected } = useAccount();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
 
   const toHttp = (uri?: string | null): string | undefined => {
     if (!uri) return undefined;
@@ -161,6 +170,7 @@ export function GnarsTVFeed() {
                   symbol: coin?.symbol,
                   imageUrl: media.imageUrl || coin?.imageUrl,
                   videoUrl: media.videoUrl,
+                  coinAddress: coin?.address || coin?.contract,
                 };
               });
             } catch (err) {
@@ -250,6 +260,55 @@ export function GnarsTVFeed() {
     }
   };
 
+  const handleBuyCoin = async (coinAddress: string, coinTitle: string) => {
+    if (!isConnected || !address) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    if (!walletClient || !publicClient) {
+      toast.error("Wallet not ready");
+      return;
+    }
+
+    if (!coinAddress) {
+      toast.error("Coin address not available");
+      return;
+    }
+
+    setIsBuying(true);
+    const buyToast = toast.loading(`Buying ${coinTitle}...`);
+
+    try {
+      const tradeParameters: TradeParameters = {
+        sell: { type: "eth" },
+        buy: {
+          type: "erc20",
+          address: coinAddress as `0x${string}`,
+        },
+        amountIn: parseEther("0.00069"), // 0.00069 ETH
+        slippage: 0.05, // 5% slippage tolerance
+        sender: address,
+      };
+
+      const receipt = await tradeCoin({
+        tradeParameters,
+        walletClient,
+        account: walletClient.account,
+        publicClient,
+      });
+
+      toast.success(`Successfully bought ${coinTitle}!`, { id: buyToast });
+    } catch (err) {
+      console.error("Buy coin error:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to buy coin. Please try again.", {
+        id: buyToast,
+      });
+    } finally {
+      setIsBuying(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-40 bg-black text-white">
       <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/60 to-transparent">
@@ -291,6 +350,23 @@ export function GnarsTVFeed() {
                 </p>
                 {item.symbol && <p className="text-xs text-white/60 mt-1">{item.symbol}</p>}
               </div>
+
+              {/* Buy Button with Gnars Logo */}
+              {item.coinAddress && (
+                <button
+                  onClick={() => handleBuyCoin(item.coinAddress!, item.title)}
+                  disabled={isBuying || !isConnected}
+                  className="pointer-events-auto absolute bottom-6 right-6 z-20 flex h-16 w-16 items-center justify-center rounded-full  shadow-lg transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Buy coin"
+                >
+                  <Image src="/gnars.webp" alt="Buy" width={48} height={48} unoptimized />
+                  {isBuying && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    </div>
+                  )}
+                </button>
+              )}
             </div>
           ))
         )}
