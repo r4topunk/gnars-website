@@ -4,9 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { getProfileCoins, setApiKey, tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
+import { Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { parseEther } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { Button } from "@/components/ui/button";
 
 type TVItem = {
   id: string;
@@ -80,6 +82,7 @@ export function GnarsTVFeed() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [playCount, setPlayCount] = useState(0);
   const [isBuying, setIsBuying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
@@ -257,6 +260,16 @@ export function GnarsTVFeed() {
     }
   };
 
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    // Update all video elements
+    videoRefs.current.forEach((video) => {
+      if (video) {
+        video.muted = !isMuted;
+      }
+    });
+  };
+
   const handleBuyCoin = async (coinAddress: string, coinTitle: string) => {
     if (!isConnected || !address) {
       toast.error("Please connect your wallet first");
@@ -298,9 +311,21 @@ export function GnarsTVFeed() {
       toast.success(`Successfully bought ${coinTitle}!`, { id: buyToast });
     } catch (err) {
       console.error("Buy coin error:", err);
-      toast.error(err instanceof Error ? err.message : "Failed to buy coin. Please try again.", {
-        id: buyToast,
-      });
+
+      // Check if user rejected the transaction
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      const isUserRejection =
+        errorMessage.includes("User denied") ||
+        errorMessage.includes("User rejected") ||
+        errorMessage.includes("user rejected");
+
+      if (isUserRejection) {
+        toast.error("Such a tease...rejected the transaction 😢", { id: buyToast });
+      } else {
+        toast.error(err instanceof Error ? err.message : "Failed to buy coin. Please try again.", {
+          id: buyToast,
+        });
+      }
     } finally {
       setIsBuying(false);
     }
@@ -333,7 +358,7 @@ export function GnarsTVFeed() {
                 src={item.videoUrl}
                 poster={item.imageUrl}
                 className="absolute inset-0 h-full w-full object-contain bg-black"
-                muted
+                muted={isMuted}
                 playsInline
                 loop={false}
                 controls={false}
@@ -348,21 +373,36 @@ export function GnarsTVFeed() {
                 {item.symbol && <p className="text-xs text-white/60 mt-1">{item.symbol}</p>}
               </div>
 
+              {/* Mute/Unmute Button */}
+              <Button
+                onClick={toggleMute}
+                size="icon"
+                variant="secondary"
+                className="pointer-events-auto absolute top-6 right-6 z-20 bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
+              >
+                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+              </Button>
+
               {/* Buy Button with Gnars Logo */}
               {item.coinAddress && (
-                <button
+                <Button
                   onClick={() => handleBuyCoin(item.coinAddress!, item.title)}
                   disabled={isBuying || !isConnected}
-                  className="pointer-events-auto absolute bottom-6 right-6 z-20 flex h-16 w-16 items-center justify-center rounded-full  shadow-lg transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="Buy coin"
+                  className="pointer-events-auto absolute bottom-6 right-6 z-20 gap-2 text-black font-bold  shadow-lg transition-all border border-white duration-200 hover:scale-105 hover:border-amber-400 hover:text-white hover:bg-black/70 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  size="lg"
                 >
-                  <Image src="/gnars.webp" alt="Buy" width={48} height={48} unoptimized />
-                  {isBuying && (
-                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
-                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    </div>
+                  {isBuying ? (
+                    <>
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                      <span>Buying...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Image src="/gnars.webp" alt="" width={20} height={20} unoptimized />
+                      <span>Support</span>
+                    </>
                   )}
-                </button>
+                </Button>
               )}
             </div>
           ))
