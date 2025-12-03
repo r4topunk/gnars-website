@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { setApiKey, getProfileCoins } from "@zoralabs/coins-sdk";
+import { getProfileCoins, setApiKey } from "@zoralabs/coins-sdk";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -50,11 +50,7 @@ export function GnarsTVFeed() {
 
   const mediaFromCoin = (coin: any) => {
     const media =
-      coin?.mediaContent ||
-      coin?.media ||
-      coin?.coin?.mediaContent ||
-      coin?.coin?.media ||
-      {};
+      coin?.mediaContent || coin?.media || coin?.coin?.mediaContent || coin?.coin?.media || {};
 
     const preview =
       media?.previewImage?.url ||
@@ -153,7 +149,7 @@ export function GnarsTVFeed() {
         entries.forEach((entry) => {
           const video = entry.target as HTMLVideoElement;
           const idx = Number(video.dataset.index || "0");
-          
+
           if (entry.isIntersecting) {
             setActiveIndex(idx);
             setPlayCount(0);
@@ -302,7 +298,7 @@ export function GnarsTVFeed() {
         <div
           ref={fullContainerRef}
           className="h-screen w-full snap-y snap-mandatory overflow-y-auto overscroll-none"
-          style={{ scrollSnapType: 'y mandatory' }}
+          style={{ scrollSnapType: "y mandatory" }}
         >
           {videoItems.length === 0 ? (
             <div className="flex h-screen w-full items-center justify-center text-sm text-white/70">
@@ -310,10 +306,10 @@ export function GnarsTVFeed() {
             </div>
           ) : (
             videoItems.map((item, idx) => (
-              <div 
-                key={item.id} 
+              <div
+                key={item.id}
                 className="relative h-screen w-full flex-shrink-0"
-                style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
+                style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
               >
                 <video
                   ref={(el) => {
@@ -335,9 +331,7 @@ export function GnarsTVFeed() {
                   <p className="text-sm text-white/80 mt-1">
                     Creator {item.creator.slice(0, 6)}…{item.creator.slice(-4)}
                   </p>
-                  {item.symbol && (
-                    <p className="text-xs text-white/60 mt-1">{item.symbol}</p>
-                  )}
+                  {item.symbol && <p className="text-xs text-white/60 mt-1">{item.symbol}</p>}
                 </div>
               </div>
             ))
@@ -359,11 +353,7 @@ export function GnarsTVFeed() {
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
         <div className="shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setViewMode("full")}
-          >
+          <Button variant="outline" size="sm" onClick={() => setViewMode("full")}>
             Fullscreen
           </Button>
         </div>
