@@ -123,7 +123,7 @@ export const TV_MINIAPP_CONFIG = {
  */
 export const TV_MINIAPP_EMBED_CONFIG = {
   version: "next",
-  imageUrl: `${BASE_URL}/tv-og.png`,
+  imageUrl: `${BASE_URL}/tv-og.gif`,
   button: {
     title: "Watch Gnars TV",
     action: {
