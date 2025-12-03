@@ -106,7 +106,9 @@ export function GnarsTVFeed() {
 
     const previewImage = media?.previewImage;
     const preview =
-      (typeof previewImage === 'object' ? previewImage?.url || previewImage?.medium || previewImage?.small : previewImage) ||
+      (typeof previewImage === "object"
+        ? previewImage?.url || previewImage?.medium || previewImage?.small
+        : previewImage) ||
       media?.previewUrl ||
       media?.image ||
       media?.posterUrl;
@@ -146,7 +148,7 @@ export function GnarsTVFeed() {
                 .map((edge) => {
                   const node = edge?.node;
                   if (!node) return null;
-                  return 'coin' in node ? node.coin : node;
+                  return "coin" in node ? node.coin : node;
                 })
                 .filter((coin): coin is CoinNode => coin !== null);
 
