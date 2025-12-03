@@ -86,3 +86,52 @@ export function isMiniAppConfigured(): boolean {
       MINIAPP_CONFIG.accountAssociation.signature
   );
 }
+
+/**
+ * TV Mini App Configuration
+ * Custom configuration for the Gnars TV video feed
+ */
+export const TV_MINIAPP_CONFIG = {
+  accountAssociation: MINIAPP_CONFIG.accountAssociation,
+  baseBuilder: MINIAPP_CONFIG.baseBuilder,
+  miniapp: {
+    version: "1",
+    name: "Gnars TV",
+    subtitle: "Creator Coins Feed",
+    description:
+      "Watch and support creator coins on Gnars TV - a TikTok-style video feed for Zora creator content. Discover action sports creators and back their coins with just a tap.",
+    homeUrl: `${BASE_URL}/tv`,
+    iconUrl: `${BASE_URL}/gnars.webp`,
+    splashImageUrl: `${BASE_URL}/tv-splash.png`,
+    splashBackgroundColor: "#000000",
+    webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
+    primaryCategory: "social" as const,
+    tags: ["video", "creators", "coins", "zora", "gnars", "base"],
+    screenshotUrls: [] as string[],
+    heroImageUrl: `${BASE_URL}/tv-og.png`,
+    tagline: "Video feed for creator coins",
+    ogTitle: "Gnars TV - Creator Coins Feed",
+    ogDescription:
+      "Watch and support creator coins on Gnars TV - a TikTok-style video feed for Zora creator content",
+    ogImageUrl: `${BASE_URL}/tv-og.png`,
+    noindex: false,
+  },
+} as const;
+
+/**
+ * TV Embed metadata configuration for fc:miniapp meta tag
+ */
+export const TV_MINIAPP_EMBED_CONFIG = {
+  version: "next",
+  imageUrl: `${BASE_URL}/tv-og.png`,
+  button: {
+    title: "Watch Gnars TV",
+    action: {
+      type: "launch_miniapp" as const,
+      name: "Gnars TV",
+      url: `${BASE_URL}/tv`,
+      splashImageUrl: `${BASE_URL}/tv-splash.png`,
+      splashBackgroundColor: "#000000",
+    },
+  },
+};
