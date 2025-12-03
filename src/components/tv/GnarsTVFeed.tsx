@@ -333,58 +333,64 @@ export function GnarsTVFeed() {
         if (cancelled) return;
 
         const flattened = results.flat().filter(Boolean);
-        
+
         // Sort items: Gnars Paired first, then Gnarly, then normal
         const sorted = flattened.sort((a, b) => {
-          const aIsPaired = a.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
+          const aIsPaired =
+            a.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
           const aIsGnarly = a.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88";
-          const bIsPaired = b.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
+          const bIsPaired =
+            b.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
           const bIsGnarly = b.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88";
-          
+
           // Priority: Paired (1) > Gnarly (2) > Normal (3)
           const getPriority = (isPaired: boolean, isGnarly: boolean) => {
             if (isPaired) return 1;
             if (isGnarly) return 2;
             return 3;
           };
-          
+
           const aPriority = getPriority(aIsPaired, aIsGnarly);
           const bPriority = getPriority(bIsPaired, bIsGnarly);
-          
+
           return aPriority - bPriority;
         });
-        
+
         // Shuffle within each priority group to mix creators
-        const paired = sorted.filter(item => item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b");
-        const gnarly = sorted.filter(item => 
-          item.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" && 
-          item.poolCurrencyTokenAddress !== "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+        const paired = sorted.filter(
+          (item) => item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b",
         );
-        const normal = sorted.filter(item => 
-          item.platformReferrer !== "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" &&
-          item.poolCurrencyTokenAddress !== "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+        const gnarly = sorted.filter(
+          (item) =>
+            item.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" &&
+            item.poolCurrencyTokenAddress !== "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b",
         );
-        
+        const normal = sorted.filter(
+          (item) =>
+            item.platformReferrer !== "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" &&
+            item.poolCurrencyTokenAddress !== "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b",
+        );
+
         // Interleave items from different creators within each group
         const interleaveByCreator = (items: TVItem[]) => {
           const byCreator = new Map<string, TVItem[]>();
-          items.forEach(item => {
+          items.forEach((item) => {
             const creator = item.creator;
             if (!byCreator.has(creator)) {
               byCreator.set(creator, []);
             }
             byCreator.get(creator)!.push(item);
           });
-          
+
           // Shuffle each creator's videos
           byCreator.forEach((videos, creator) => {
             byCreator.set(creator, shuffleArray(videos));
           });
-          
+
           const result: TVItem[] = [];
           const creators = Array.from(byCreator.keys());
           let hasMore = true;
-          
+
           while (hasMore) {
             hasMore = false;
             for (const creator of creators) {
@@ -395,16 +401,16 @@ export function GnarsTVFeed() {
               }
             }
           }
-          
+
           return result;
         };
-        
+
         const interleavedPaired = interleaveByCreator(paired);
         const interleavedGnarly = interleaveByCreator(gnarly);
         const interleavedNormal = interleaveByCreator(normal);
-        
+
         const finalItems = [...interleavedPaired, ...interleavedGnarly, ...interleavedNormal];
-        
+
         setItems(finalItems.length ? finalItems : FALLBACK_ITEMS);
       } catch (err) {
         if (cancelled) return;
