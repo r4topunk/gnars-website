@@ -255,15 +255,21 @@ export function GnarsTVFeed() {
 
                   // Calculate ATH from current marketCap + delta
                   const marketCapRaw = coin?.marketCap || coin?.coin?.marketCap;
-                  const marketCapDelta24hRaw = coin?.marketCapDelta24h || coin?.coin?.marketCapDelta24h;
-                  
+                  const marketCapDelta24hRaw =
+                    coin?.marketCapDelta24h || coin?.coin?.marketCapDelta24h;
+
                   // Parse as numbers and handle string/undefined cases
-                  const marketCap = typeof marketCapRaw === 'string' ? parseFloat(marketCapRaw) : (marketCapRaw || 0);
-                  const marketCapDelta24h = typeof marketCapDelta24hRaw === 'string' ? parseFloat(marketCapDelta24hRaw) : (marketCapDelta24hRaw || 0);
-                  
+                  const marketCap =
+                    typeof marketCapRaw === "string" ? parseFloat(marketCapRaw) : marketCapRaw || 0;
+                  const marketCapDelta24h =
+                    typeof marketCapDelta24hRaw === "string"
+                      ? parseFloat(marketCapDelta24hRaw)
+                      : marketCapDelta24hRaw || 0;
+
                   // ATH is current marketCap + positive delta (if delta is negative, ATH is current + abs(delta))
-                  const allTimeHigh = marketCap > 0 ? marketCap + Math.abs(marketCapDelta24h) : marketCap;
-                  
+                  const allTimeHigh =
+                    marketCap > 0 ? marketCap + Math.abs(marketCapDelta24h) : marketCap;
+
                   const platformReferrer = (
                     coin?.platformReferrerAddress ||
                     coin?.platformReferrer ||
