@@ -510,7 +510,7 @@ export function GnarsTVFeed() {
                 onEnded={handleVideoEnd}
                 onLoadedData={() => setPlayCount(0)}
               />
-              
+
               {/* Play/Pause and Mute controls */}
               <div className="absolute top-20 right-4 flex flex-col gap-2 z-30">
                 <button
@@ -533,11 +533,7 @@ export function GnarsTVFeed() {
                   className="pointer-events-auto w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all"
                   aria-label={isMuted ? "Unmute" : "Mute"}
                 >
-                  {isMuted ? (
-                    <VolumeX className="w-5 h-5" />
-                  ) : (
-                    <Volume2 className="w-5 h-5" />
-                  )}
+                  {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                 </button>
               </div>
 
