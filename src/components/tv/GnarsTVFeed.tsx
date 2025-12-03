@@ -101,14 +101,18 @@ type CoinEdge = {
   node?: CoinNode | { coin?: CoinNode };
 };
 
+// TODO: Add all gnars holders/flows shredders + filters and replace with dynamic list
+
 const CREATOR_ADDRESSES = [
-  "0x41cb654d1f47913acab158a8199191d160dabe4a",
+  "0x41cb654d1f47913acab158a8199191d160dabe4a", //vlad
   "0x26331fda472639a54d02053a2b33dce5036c675b",
   "0xa642b91ff941fb68919d1877e9937f3e369dfd68",
   "0x2feb329b9289b60064904fa61fc347157a5aed6a",
-  "0xddb4938755c243a4f60a2f2f8f95df4f894c58cc",
+  "0xddb4938755c243a4f60a2f2f8f95df4f894c58cc", //will dias
   "0x406fdb58c6739a60bae0dd7c07ee903686344338",
   "0xc9f669e08820a0f89a5a8d4a5ce85e9236dd83b6",
+  "0x1f1e8194c2dfcb3aa5cbb797d98ae83dda22c891", //humbertoperes
+  "0xd1195629d9ba1168591b8ecdec9abb1721fcc7d8", // nogenta
 ];
 
 const FALLBACK_ITEMS: TVItem[] = [
