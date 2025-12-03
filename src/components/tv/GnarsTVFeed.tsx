@@ -21,6 +21,7 @@ type TVItem = {
 };
 
 type CoinMedia = {
+  mimeType?: string; // 👈 important: comes from mediaContent.mimeType
   previewImage?: { url?: string; medium?: string; small?: string } | string;
   previewUrl?: string;
   image?: string;
@@ -99,6 +100,19 @@ export function GnarsTVFeed() {
     return uri;
   };
 
+  // Helper to detect video-ish URLs when mimeType is missing
+  const isLikelyVideoUrl = (url?: string | null) => {
+    if (!url) return false;
+    const lower = url.split("?")[0].toLowerCase();
+    return (
+      lower.endsWith(".mp4") ||
+      lower.endsWith(".webm") ||
+      lower.endsWith(".mov") ||
+      lower.endsWith(".m4v") ||
+      lower.endsWith(".ogg")
+    );
+  };
+
   // Fisher-Yates shuffle algorithm for efficient random sorting
   const shuffleArray = <T,>(array: T[]): T[] => {
     const shuffled = [...array];
@@ -113,20 +127,37 @@ export function GnarsTVFeed() {
     const media: CoinMedia =
       coin?.mediaContent || coin?.media || coin?.coin?.mediaContent || coin?.coin?.media || {};
 
+    const mimeType = media?.mimeType;
+
     const previewImage = media?.previewImage;
-    const preview =
+    const previewRaw =
       (typeof previewImage === "object"
         ? previewImage?.url || previewImage?.medium || previewImage?.small
         : previewImage) ||
       media?.previewUrl ||
       media?.image ||
-      media?.posterUrl;
+      media?.posterUrl ||
+      coin?.imageUrl;
 
-    const animation = media?.originalUri || media?.animationUrl || media?.videoUrl || media?.url;
+    const originalRaw = media?.originalUri || media?.animationUrl || media?.videoUrl || media?.url;
+
+    const imageUrl = toHttp(previewRaw);
+
+    let videoUrl: string | undefined;
+
+    // ✅ Primary: trust mimeType from Zora
+    if (mimeType?.startsWith("video/")) {
+      videoUrl = toHttp(originalRaw || previewRaw);
+    }
+
+    // ✅ Fallback: no mimeType, but URL looks like video
+    if (!videoUrl && originalRaw && isLikelyVideoUrl(originalRaw)) {
+      videoUrl = toHttp(originalRaw);
+    }
 
     return {
-      imageUrl: toHttp(preview),
-      videoUrl: toHttp(animation),
+      imageUrl,
+      videoUrl,
     };
   };
 
@@ -143,10 +174,10 @@ export function GnarsTVFeed() {
         }
 
         const results = await Promise.all(
-          CREATOR_ADDRESSES.map(async (address) => {
+          CREATOR_ADDRESSES.map(async (creatorAddress) => {
             try {
               const response = await getProfileCoins({
-                identifier: address,
+                identifier: creatorAddress,
                 count: 20,
               });
 
@@ -161,20 +192,31 @@ export function GnarsTVFeed() {
                 })
                 .filter((coin): coin is CoinNode => coin !== null);
 
-              return coins.map((coin, idx): TVItem => {
-                const media = mediaFromCoin(coin);
-                return {
-                  id: coin?.address || coin?.contract || coin?.id || `${address}-${idx}`,
-                  title: coin?.name || coin?.displayName || "Untitled Coin",
-                  creator: address,
-                  symbol: coin?.symbol,
-                  imageUrl: media.imageUrl || coin?.imageUrl,
-                  videoUrl: media.videoUrl,
-                  coinAddress: coin?.address || coin?.contract,
-                };
-              });
+              // ✅ keep only coins that actually have a video
+              const videoItemsForCreator = coins
+                .map((coin, idx): TVItem | null => {
+                  const media = mediaFromCoin(coin);
+                  if (!media.videoUrl) return null; // only REAL video coins
+
+                  return {
+                    id: coin?.address || coin?.contract || coin?.id || `${creatorAddress}-${idx}`,
+                    title: coin?.name || coin?.displayName || "Untitled Coin",
+                    creator: creatorAddress,
+                    symbol: coin?.symbol,
+                    imageUrl: media.imageUrl || coin?.imageUrl,
+                    videoUrl: media.videoUrl,
+                    coinAddress: coin?.address || coin?.contract,
+                  };
+                })
+                .filter((item): item is TVItem => item !== null);
+
+              console.log("Video items for creator:", creatorAddress, videoItemsForCreator);
+              return videoItemsForCreator;
             } catch (err) {
-              console.error("[gnars-tv] failed to fetch profile coins", { address, err });
+              console.error("[gnars-tv] failed to fetch profile coins", {
+                address: creatorAddress,
+                err,
+              });
               return [] as TVItem[];
             }
           }),
@@ -183,7 +225,6 @@ export function GnarsTVFeed() {
         if (cancelled) return;
 
         const flattened = results.flat().filter(Boolean);
-        // Shuffle the items for variety, but only once when loaded
         const shuffled = shuffleArray(flattened);
         setItems(shuffled.length ? shuffled : FALLBACK_ITEMS);
       } catch (err) {
@@ -207,10 +248,9 @@ export function GnarsTVFeed() {
     setPlayCount(0);
   }, [items]);
 
-  // Memoize and shuffle video items for performance
+  // Only video items (extra safety; items are already filtered)
   const videoItems = useMemo(() => {
-    const videos = items.filter((i) => i.videoUrl);
-    return videos;
+    return items.filter((i) => i.videoUrl);
   }, [items]);
 
   useEffect(() => {
@@ -225,12 +265,10 @@ export function GnarsTVFeed() {
           if (entry.isIntersecting) {
             setActiveIndex(idx);
             setPlayCount(0);
-            // Play the video when it comes into view
             video.play().catch((err) => {
               console.log("Autoplay prevented:", err);
             });
           } else {
-            // Pause videos that are out of view
             video.pause();
           }
         });
@@ -261,8 +299,7 @@ export function GnarsTVFeed() {
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
-    // Update all video elements
+    setIsMuted((prev) => !prev);
     videoRefs.current.forEach((video) => {
       if (video) {
         video.muted = !isMuted;
@@ -296,12 +333,12 @@ export function GnarsTVFeed() {
           type: "erc20",
           address: coinAddress as `0x${string}`,
         },
-        amountIn: parseEther("0.00069"), // 0.00069 ETH
-        slippage: 0.05, // 5% slippage tolerance
+        amountIn: parseEther("0.00069"),
+        slippage: 0.05,
         sender: address,
       };
 
-      const receipt = await tradeCoin({
+      await tradeCoin({
         tradeParameters,
         walletClient,
         account: walletClient.account,
@@ -312,7 +349,6 @@ export function GnarsTVFeed() {
     } catch (err) {
       console.error("Buy coin error:", err);
 
-      // Check if user rejected the transaction
       const errorMessage = err instanceof Error ? err.message : String(err);
       const isUserRejection =
         errorMessage.includes("User denied") ||
@@ -373,7 +409,6 @@ export function GnarsTVFeed() {
                 {item.symbol && <p className="text-xs text-white/60 mt-1">{item.symbol}</p>}
               </div>
 
-              {/* Mute/Unmute Button */}
               <Button
                 onClick={toggleMute}
                 size="icon"
@@ -383,12 +418,11 @@ export function GnarsTVFeed() {
                 {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
               </Button>
 
-              {/* Buy Button with Gnars Logo */}
               {item.coinAddress && (
                 <Button
                   onClick={() => handleBuyCoin(item.coinAddress!, item.title)}
                   disabled={isBuying || !isConnected}
-                  className="pointer-events-auto absolute bottom-6 right-6 z-20 gap-2 text-black font-bold  shadow-lg transition-all border border-white duration-200 hover:scale-105 hover:border-amber-400 hover:text-white hover:bg-black/70 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="pointer-events-auto absolute bottom-6 right-6 z-20 gap-2 text-black font-bold shadow-lg transition-all border border-white duration-200 hover:scale-105 hover:border-amber-400 hover:text-white hover:bg-black/70 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   size="lg"
                 >
                   {isBuying ? (
