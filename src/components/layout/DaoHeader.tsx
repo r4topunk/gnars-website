@@ -31,6 +31,7 @@ import {
   Menu,
   Newspaper,
   PlusCircle,
+  Tv,
   Users,
   Video,
   Vote,
@@ -123,6 +124,12 @@ const navigationItems = [
         href: "/droposals",
         icon: Video,
         description: "Video proposals from the community",
+      },
+      {
+        title: "TV",
+        href: "/tv",
+        icon: Tv,
+        description: "Watch creator coins feed",
       },
       {
         title: "Create Coin",
