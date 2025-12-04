@@ -32,5 +32,9 @@ export default function TVLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <>{children}</>;
+  return (
+    <div className="overflow-hidden">
+      {children}
+    </div>
+  );
 }

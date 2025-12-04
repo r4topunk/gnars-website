@@ -200,22 +200,18 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
       media?.posterUrl ||
       coin?.imageUrl;
 
-    const originalRaw = media?.originalUri || media?.animationUrl || media?.videoUrl || media?.url;
+    const originalRaw = media?.originalUri || media?.videoUrl;
 
     const imageUrl = toHttp(previewRaw);
 
     let videoUrl: string | undefined;
 
-    // ✅ Primary: trust mimeType from Zora
+    // ✅ Only accept explicit video media
     if (mimeType?.startsWith("video/")) {
       videoUrl = toHttp(originalRaw || previewRaw);
+    } else if (!mimeType && media?.videoUrl) {
+      videoUrl = toHttp(media.videoUrl);
     }
-
-    // ✅ Fallback: explicit video/animation/url hints even without mimeType
-    if (!videoUrl && media?.videoUrl) videoUrl = toHttp(media.videoUrl);
-    if (!videoUrl && media?.animationUrl) videoUrl = toHttp(media.animationUrl);
-    if (!videoUrl && media?.url) videoUrl = toHttp(media.url);
-    if (!videoUrl && originalRaw) videoUrl = toHttp(originalRaw);
 
     return {
       imageUrl,
