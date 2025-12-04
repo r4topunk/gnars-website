@@ -1,5 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp";
+import { createServer as createHttpServer } from "node:http";
+import { randomUUID } from "node:crypto";
 
 import { getDatabase, closeDatabase } from "./db/connection.js";
 import { ProposalRepository } from "./db/repository.js";
@@ -202,8 +205,6 @@ export function createServer() {
 export async function runServer() {
   const { server, cleanup } = createServer();
 
-  const transport = new StdioServerTransport();
-
   // Handle cleanup on exit
   process.on("SIGINT", () => {
     cleanup();
@@ -215,5 +216,55 @@ export async function runServer() {
     process.exit(0);
   });
 
-  await server.connect(transport);
+  // Check for SSE mode via environment variable or CLI arg
+  const port = process.env.MCP_PORT || process.argv.includes("--sse") ?
+    parseInt(process.env.MCP_PORT || "3100", 10) : null;
+
+  if (port) {
+    // Run as Streamable HTTP server (compatible with OpenAI, etc.)
+    // Use stateless mode for simplicity with tunnels
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined, // Stateless mode
+      enableJsonResponse: true, // Allow JSON responses for simpler clients
+    });
+
+    await server.connect(transport);
+
+    const httpServer = createHttpServer(async (req, res) => {
+      // Enable CORS for all origins (needed for browser-based clients)
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, mcp-session-id");
+      res.setHeader("Access-Control-Expose-Headers", "mcp-session-id");
+
+      if (req.method === "OPTIONS") {
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+
+      const url = new URL(req.url || "/", `http://localhost:${port}`);
+
+      if (url.pathname === "/mcp" || url.pathname === "/") {
+        // Main MCP endpoint - handles all MCP protocol messages
+        await transport.handleRequest(req, res);
+      } else if (url.pathname === "/health") {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ status: "ok", mode: "streamable-http", port }));
+      } else {
+        res.writeHead(404);
+        res.end("Not found. Use /mcp for MCP protocol or /health for status.");
+      }
+    });
+
+    httpServer.listen(port, () => {
+      console.error(`MCP server running on http://localhost:${port}`);
+      console.error(`  MCP endpoint: http://localhost:${port}/mcp`);
+      console.error(`  Health check: http://localhost:${port}/health`);
+    });
+  } else {
+    // Run as stdio server (default)
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+  }
 }
