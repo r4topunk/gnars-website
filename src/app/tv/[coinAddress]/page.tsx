@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { GnarsTVFeed } from "@/components/tv/GnarsTVFeed";
 import { TV_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
+import { BASE_URL } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ...TV_MINIAPP_EMBED_CONFIG.button,
       action: {
         ...TV_MINIAPP_EMBED_CONFIG.button.action,
-        url: `https://gnars.com/tv/${coinAddress}`,
+        url: `${BASE_URL}/tv/${coinAddress}`,
       },
     },
   };
@@ -97,7 +98,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "fc:frame:image": imageUrl || "",
       "fc:frame:button:1": "Watch on Gnars TV",
       "fc:frame:button:1:action": "link",
-      "fc:frame:button:1:target": `https://gnars.com/tv/${coinAddress}`,
+      "fc:frame:button:1:target": `${BASE_URL}/tv/${coinAddress}`,
       "fc:miniapp": JSON.stringify(miniappEmbed),
     },
   };
