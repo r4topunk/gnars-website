@@ -1,40 +1,30 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Upload, X } from "lucide-react";
 import { useFormContext } from "react-hook-form";
+import { toast } from "sonner";
 import { type ProposalFormValues } from "@/components/proposals/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
 import { VideoThumbnailSelector } from "@/components/ui/video-thumbnail-selector";
 import { ipfsToGatewayUrl, uploadToPinata } from "@/lib/pinata";
 
 // Supported media types for Zora (same as create-coin page)
 const SUPPORTED_IMAGE_TYPES = [
   "image/jpeg",
-  "image/jpg", 
+  "image/jpg",
   "image/png",
   "image/gif",
   "image/webp",
   "image/svg+xml",
 ];
 
-const SUPPORTED_VIDEO_TYPES = [
-  "video/mp4",
-  "video/webm", 
-  "video/quicktime",
-  "video/x-m4v"
-];
+const SUPPORTED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/x-m4v"];
 
-const SUPPORTED_AUDIO_TYPES = [
-  "audio/mpeg",
-  "audio/mp3",
-  "audio/wav",
-  "audio/ogg",
-];
+const SUPPORTED_AUDIO_TYPES = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg"];
 
 interface MediaSectionProps {
   index: number;
@@ -169,7 +159,10 @@ export function MediaSection({ index }: MediaSectionProps) {
       // Upload thumbnail as cover
       toast.loading("Uploading thumbnail to IPFS...", { id: "thumbnail-upload" });
 
-      const thumbnailResult = await uploadToPinata(thumbnailFile, `droposal-thumbnail-${Date.now()}`);
+      const thumbnailResult = await uploadToPinata(
+        thumbnailFile,
+        `droposal-thumbnail-${Date.now()}`,
+      );
 
       if (!thumbnailResult.success || !thumbnailResult.data) {
         throw new Error(thumbnailResult.error || "Thumbnail upload failed");
@@ -309,9 +302,9 @@ export function MediaSection({ index }: MediaSectionProps) {
   const getDisplayUrl = (url: string | undefined, blobPreview: string | null) => {
     // Prioritize blob preview for file uploads
     if (blobPreview) return blobPreview;
-    
+
     if (!url) return null;
-    
+
     // Only convert valid IPFS URLs (not fake ipfs://filename ones)
     if (url.startsWith("ipfs://")) {
       const cid = url.replace("ipfs://", "");
@@ -322,7 +315,7 @@ export function MediaSection({ index }: MediaSectionProps) {
       // Invalid IPFS URL, don't display
       return null;
     }
-    
+
     return url;
   };
 
@@ -335,113 +328,115 @@ export function MediaSection({ index }: MediaSectionProps) {
         <CardTitle className="text-base">Media</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div>
-          <Label>Media File *</Label>
-          <div className="mt-2">
-            {displayMediaUrl ? (
-              watchedMediaType?.startsWith("image") ? (
-                <Image
-                  src={displayMediaUrl}
-                  alt="Media preview"
-                  width={400}
-                  height={225}
-                  className="w-full aspect-video object-contain bg-gray-100 rounded-lg border"
-                />
-              ) : watchedMediaType?.startsWith("video") ? (
-                <video
-                  src={displayMediaUrl}
-                  className="w-full aspect-video object-contain bg-black rounded-lg border"
-                  controls
-                />
-              ) : watchedMediaType?.startsWith("audio") ? (
-                <div className="w-full aspect-video bg-muted rounded-lg border flex flex-col items-center justify-center space-y-4">
-                  <div className="text-center">
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Audio File</p>
-                  </div>
-                  <audio controls className="w-3/4">
-                    <source src={displayMediaUrl} type={watchedMediaType} />
-                    Your browser does not support the audio element.
-                  </audio>
-                </div>
-              ) : (
-                <div className="w-full h-48 bg-muted rounded-lg border flex items-center justify-center">
-                  <p className="text-muted-foreground">Media uploaded</p>
-                </div>
-              )
-            ) : (
-              <div
-                className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
-                onClick={() => mediaInputRef.current?.click()}
-              >
-                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Upload media file (image, video, audio)
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  📸 Choose custom thumbnail for videos
-                </p>
-              </div>
-            )}
-            <input
-              ref={mediaInputRef}
-              type="file"
-              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml,video/mp4,video/webm,video/quicktime,video/x-m4v,audio/mpeg,audio/mp3,audio/wav,audio/ogg"
-              className="hidden"
-              onChange={(e) => handleFileChange(e, "media")}
-              disabled={isUploadingMedia}
-            />
-            {mediaError && (
-              <p className="text-xs text-red-500 mt-2">{mediaError}</p>
-            )}
-          </div>
-        </div>
-
-        {showCover && (
+        {/* Grid layout when both media and cover are shown */}
+        <div
+          className={
+            showCover && displayCoverUrl ? "grid grid-cols-1 md:grid-cols-2 gap-4" : "space-y-4"
+          }
+        >
           <div>
-            <Label>Cover Image</Label>
-            <p className="text-sm text-muted-foreground mb-2">
-              Cover image for non-image media files
-            </p>
+            <Label>Media File *</Label>
             <div className="mt-2">
-              {displayCoverUrl ? (
-                <div className="relative">
+              {displayMediaUrl ? (
+                watchedMediaType?.startsWith("image") ? (
                   <Image
-                    src={displayCoverUrl}
-                    alt="Cover preview"
+                    src={displayMediaUrl}
+                    alt="Media preview"
                     width={400}
                     height={225}
-                    className="w-full aspect-video object-cover rounded-lg border"
+                    className="w-full aspect-video object-contain bg-gray-100 rounded-lg border"
                   />
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="absolute top-2 right-2"
-                    onClick={() => removeFile("cover")}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+                ) : watchedMediaType?.startsWith("video") ? (
+                  <video
+                    src={displayMediaUrl}
+                    className="w-full aspect-video object-contain bg-black rounded-lg border"
+                    controls
+                  />
+                ) : watchedMediaType?.startsWith("audio") ? (
+                  <div className="w-full aspect-video bg-muted rounded-lg border flex flex-col items-center justify-center space-y-4">
+                    <div className="text-center">
+                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">Audio File</p>
+                    </div>
+                    <audio controls className="w-3/4">
+                      <source src={displayMediaUrl} type={watchedMediaType} />
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                ) : (
+                  <div className="w-full h-48 bg-muted rounded-lg border flex items-center justify-center">
+                    <p className="text-muted-foreground">Media uploaded</p>
+                  </div>
+                )
               ) : (
                 <div
-                  className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
-                  onClick={() => coverInputRef.current?.click()}
+                  className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
+                  onClick={() => mediaInputRef.current?.click()}
                 >
-                  <Upload className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">Upload cover image</p>
+                  <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    Upload media file (image, video, audio)
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                    📸 Choose custom thumbnail for videos
+                  </p>
                 </div>
               )}
               <input
-                ref={coverInputRef}
+                ref={mediaInputRef}
                 type="file"
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml,video/mp4,video/webm,video/quicktime,video/x-m4v,audio/mpeg,audio/mp3,audio/wav,audio/ogg"
                 className="hidden"
-                onChange={(e) => handleFileChange(e, "cover")}
-                disabled={isUploadingCover}
+                onChange={(e) => handleFileChange(e, "media")}
+                disabled={isUploadingMedia}
               />
+              {mediaError && <p className="text-xs text-red-500 mt-2">{mediaError}</p>}
             </div>
           </div>
-        )}
+
+          {showCover && (
+            <div>
+              <Label>Cover Image</Label>
+              <div className="mt-2">
+                {displayCoverUrl ? (
+                  <div className="relative">
+                    <Image
+                      src={displayCoverUrl}
+                      alt="Cover preview"
+                      width={400}
+                      height={225}
+                      className="w-full aspect-video object-cover rounded-lg border"
+                    />
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="absolute top-2 right-2"
+                      onClick={() => removeFile("cover")}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
+                    onClick={() => coverInputRef.current?.click()}
+                  >
+                    <Upload className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
+                    <p className="text-xs text-muted-foreground">Upload cover image</p>
+                  </div>
+                )}
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml"
+                  className="hidden"
+                  onChange={(e) => handleFileChange(e, "cover")}
+                  disabled={isUploadingCover}
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Video Thumbnail Selector Modal */}
         {showThumbnailSelector && pendingVideoFile && (

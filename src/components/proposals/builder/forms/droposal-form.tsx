@@ -1,26 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ExternalLink, Info, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronUp, ExternalLink, Info } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { useAccount } from "wagmi";
-import { GNARS_ADDRESSES } from "@/lib/config";
 import { type ProposalFormValues } from "@/components/proposals/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { MediaSection } from "./droposal/MediaSection";
-import { DroposalDebugPanel } from "./droposal/DroposalDebugPanel";
-import { SplitRecipientsSection } from "./droposal/SplitRecipientsSection";
-import { SplitDebugPanel } from "./droposal/SplitDebugPanel";
-import { useDaoSettings, calculateDroposalStartDate, type StartTimeCalculation } from "@/hooks/use-dao-settings";
+import {
+  calculateDroposalStartDate,
+  useDaoSettings,
+  type StartTimeCalculation,
+} from "@/hooks/use-dao-settings";
+import { GNARS_ADDRESSES } from "@/lib/config";
 import { createDefaultSplitConfig } from "@/lib/splits-utils";
 import type { SplitRecipient } from "@/lib/splits-utils";
-import { Switch } from "@/components/ui/switch";
+import { DroposalDebugPanel } from "./droposal/DroposalDebugPanel";
+import { MediaSection } from "./droposal/MediaSection";
+import { SplitDebugPanel } from "./droposal/SplitDebugPanel";
+import { SplitRecipientsSection } from "./droposal/SplitRecipientsSection";
 
 interface Props {
   index: number;
@@ -37,26 +41,35 @@ export function DroposalForm({ index }: Props) {
   const [editionType, setEditionType] = useState<"fixed" | "open">("open");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [startTimeCalc, setStartTimeCalc] = useState<StartTimeCalculation | undefined>();
-  const [useSplit, setUseSplit] = useState(false);
-  
+  const [useSplit, setUseSplit] = useState(true);
+
   // Get DAO settings for auto-calculating start time
   const { votingDelay, votingPeriod, timelockDelay, isLoading: settingsLoading } = useDaoSettings();
 
   // Initialize split recipients with default config on mount
   useEffect(() => {
     const currentRecipients = watch(`transactions.${index}.splitRecipients`);
-    
+
     if (!currentRecipients || currentRecipients.length === 0) {
       const defaultConfig = createDefaultSplitConfig(address || "", GNARS_ADDRESSES.treasury);
       setValue(`transactions.${index}.splitRecipients` as const, defaultConfig.recipients);
-      setValue(`transactions.${index}.splitDistributorFee` as const, defaultConfig.distributorFeePercent);
+      setValue(
+        `transactions.${index}.splitDistributorFee` as const,
+        defaultConfig.distributorFeePercent,
+      );
     }
   }, [address, index, setValue, watch]);
 
   // Watch split fields
-  const splitRecipients = watch(`transactions.${index}.splitRecipients`) as SplitRecipient[] | undefined;
-  const splitDistributorFee = watch(`transactions.${index}.splitDistributorFee`) as number | undefined;
-  const createdSplitAddress = watch(`transactions.${index}.createdSplitAddress`) as string | undefined;
+  const splitRecipients = watch(`transactions.${index}.splitRecipients`) as
+    | SplitRecipient[]
+    | undefined;
+  const splitDistributorFee = watch(`transactions.${index}.splitDistributorFee`) as
+    | number
+    | undefined;
+  const createdSplitAddress = watch(`transactions.${index}.createdSplitAddress`) as
+    | string
+    | undefined;
 
   useEffect(() => {
     const currentEditionType = watch(`transactions.${index}.editionType`);
@@ -98,7 +111,10 @@ export function DroposalForm({ index }: Props) {
     if (!currentStartTime && !settingsLoading && votingDelay && votingPeriod && timelockDelay) {
       const calculation = calculateDroposalStartDate(votingDelay, votingPeriod, timelockDelay);
       setStartTimeCalc(calculation);
-      setValue(`transactions.${index}.startTime` as const, calculation.startDate.toISOString().slice(0, 16));
+      setValue(
+        `transactions.${index}.startTime` as const,
+        calculation.startDate.toISOString().slice(0, 16),
+      );
     } else if (!settingsLoading && votingDelay && votingPeriod && timelockDelay) {
       // Still calculate for display even if start time is set
       const calculation = calculateDroposalStartDate(votingDelay, votingPeriod, timelockDelay);
@@ -116,7 +132,7 @@ export function DroposalForm({ index }: Props) {
   // Watch IPFS CIDs for display (strip ipfs:// prefix for input display)
   const imageUri = watch(`transactions.${index}.imageUri`) || "";
   const animationUri = watch(`transactions.${index}.animationUri`) || "";
-  
+
   // Display values without ipfs:// prefix
   const displayImageCid = imageUri.replace(/^ipfs:\/\//, "");
   const displayAnimationCid = animationUri.replace(/^ipfs:\/\//, "");
@@ -135,13 +151,16 @@ export function DroposalForm({ index }: Props) {
   const handleEditionTypeChange = (value: "fixed" | "open") => {
     setEditionType(value);
     setValue(`transactions.${index}.editionType` as const, value);
-    setValue(`transactions.${index}.editionSize` as const, value === "open" ? "18446744073709551615" : "100");
+    setValue(
+      `transactions.${index}.editionSize` as const,
+      value === "open" ? "18446744073709551615" : "100",
+    );
   };
 
   const handleUseSplitChange = (checked: boolean) => {
     setUseSplit(checked);
     setValue(`transactions.${index}.useSplit` as const, checked);
-    
+
     // Clear payout address when using split, restore treasury when not
     if (checked) {
       setValue(`transactions.${index}.payoutAddress` as const, "");
@@ -179,7 +198,7 @@ export function DroposalForm({ index }: Props) {
           <AlertDescription>
             This creates a Zora ERC721Drop contract.{" "}
             <a
-              href="https://docs.zora.co/contracts/ERC721Drop"
+              href="https://nft-docs.zora.co/contracts/ERC721Drop"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center hover:underline"
@@ -229,7 +248,9 @@ export function DroposalForm({ index }: Props) {
               rows={3}
             />
             {getErrorMessage("collectionDescription") && (
-              <p className="text-xs text-red-500">{String(getErrorMessage("collectionDescription"))}</p>
+              <p className="text-xs text-red-500">
+                {String(getErrorMessage("collectionDescription"))}
+              </p>
             )}
           </div>
         </CardContent>
@@ -247,7 +268,9 @@ export function DroposalForm({ index }: Props) {
           <div className="grid w-full max-w-sm items-center gap-2">
             <Label htmlFor="imageUri">Image/Thumbnail IPFS CID</Label>
             <div className="flex items-center border rounded-md">
-              <span className="px-3 py-2 text-sm text-muted-foreground bg-muted border-r">ipfs://</span>
+              <span className="px-3 py-2 text-sm text-muted-foreground bg-muted border-r">
+                ipfs://
+              </span>
               <Input
                 id="imageUri"
                 placeholder="QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
@@ -264,7 +287,9 @@ export function DroposalForm({ index }: Props) {
           <div className="grid w-full max-w-sm items-center gap-2">
             <Label htmlFor="animationUri">Video/Animation IPFS CID (optional)</Label>
             <div className="flex items-center border rounded-md">
-              <span className="px-3 py-2 text-sm text-muted-foreground bg-muted border-r">ipfs://</span>
+              <span className="px-3 py-2 text-sm text-muted-foreground bg-muted border-r">
+                ipfs://
+              </span>
               <Input
                 id="animationUri"
                 placeholder="QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
@@ -310,6 +335,72 @@ export function DroposalForm({ index }: Props) {
               </a>
             </p>
           </div>
+          {/* Use Split Toggle */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+            <div className="space-y-1">
+              <Label htmlFor="use-split" className="text-sm font-semibold cursor-pointer">
+                Use Revenue Split
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Create a split contract to share NFT sales revenue among multiple recipients
+              </p>
+            </div>
+            <Switch id="use-split" checked={useSplit} onCheckedChange={handleUseSplitChange} />
+          </div>
+
+          {!useSplit ? (
+            // Direct payout address (original behavior)
+            <>
+              <div className="grid w-full max-w-sm items-center gap-2">
+                <Label htmlFor="payoutAddress">Payout Address</Label>
+                <Input
+                  id="payoutAddress"
+                  placeholder={`0x... or ENS name (defaults to ${GNARS_ADDRESSES.treasury.slice(0, 6)}...)`}
+                  {...register(`transactions.${index}.payoutAddress` as const)}
+                />
+                {getErrorMessage("payoutAddress") && (
+                  <p className="text-xs text-red-500">{String(getErrorMessage("payoutAddress"))}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Address that receives mint proceeds and royalties (defaults to DAO treasury)
+                </p>
+              </div>
+            </>
+          ) : (
+            // Split configuration
+            <div className="space-y-4">
+              <SplitRecipientsSection
+                recipients={splitRecipients || []}
+                distributorFee={splitDistributorFee || 0}
+                onChange={handleSplitRecipientsChange}
+              />
+
+              {process.env.NODE_ENV === "development" && (
+                <SplitDebugPanel
+                  recipients={splitRecipients || []}
+                  distributorFee={splitDistributorFee || 0}
+                  onSplitCreated={handleSplitCreated}
+                />
+              )}
+
+              {createdSplitAddress && (
+                <Alert className="bg-green-50 border-green-200">
+                  <AlertCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <strong className="text-green-900">Split Address Saved:</strong>
+                      <code className="block bg-white px-2 py-1 rounded text-xs border">
+                        {createdSplitAddress}
+                      </code>
+                      <p className="text-xs text-green-900">
+                        This address will be used as the payout recipient for the droposal.
+                      </p>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -326,7 +417,7 @@ export function DroposalForm({ index }: Props) {
             {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </CardHeader>
-        
+
         {showAdvanced && (
           <CardContent className="space-y-6">
             {/* Sale Timing */}
@@ -343,7 +434,8 @@ export function DroposalForm({ index }: Props) {
                   <p className="text-xs text-red-500">{String(getErrorMessage("startTime"))}</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Auto-calculated based on proposal timeline: voting delay + voting period + timelock delay + 1 day buffer.
+                  Auto-calculated based on proposal timeline: voting delay + voting period +
+                  timelock delay + 1 day buffer.
                 </p>
               </div>
 
@@ -417,7 +509,9 @@ export function DroposalForm({ index }: Props) {
                   {...register(`transactions.${index}.royaltyPercentage` as const)}
                 />
                 {getErrorMessage("royaltyPercentage") && (
-                  <p className="text-xs text-red-500">{String(getErrorMessage("royaltyPercentage"))}</p>
+                  <p className="text-xs text-red-500">
+                    {String(getErrorMessage("royaltyPercentage"))}
+                  </p>
                 )}
                 <p className="text-xs text-muted-foreground">
                   Default: 5000 (50%). Percentage of secondary sales. 10000 = 100%.
@@ -428,75 +522,6 @@ export function DroposalForm({ index }: Props) {
             {/* Addresses */}
             <div className="space-y-4">
               <h4 className="font-semibold text-sm">Address Configuration</h4>
-              
-              {/* Use Split Toggle */}
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
-                <div className="space-y-1">
-                  <Label htmlFor="use-split" className="text-sm font-semibold cursor-pointer">
-                    Use Revenue Split
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Create a split contract to share NFT sales revenue among multiple recipients
-                  </p>
-                </div>
-                <Switch
-                  id="use-split"
-                  checked={useSplit}
-                  onCheckedChange={handleUseSplitChange}
-                />
-              </div>
-
-              {!useSplit ? (
-                // Direct payout address (original behavior)
-                <>
-                  <div className="grid w-full max-w-sm items-center gap-2">
-                    <Label htmlFor="payoutAddress">Payout Address</Label>
-                    <Input
-                      id="payoutAddress"
-                      placeholder={`0x... or ENS name (defaults to ${GNARS_ADDRESSES.treasury.slice(0, 6)}...)`}
-                      {...register(`transactions.${index}.payoutAddress` as const)}
-                    />
-                    {getErrorMessage("payoutAddress") && (
-                      <p className="text-xs text-red-500">{String(getErrorMessage("payoutAddress"))}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      Address that receives mint proceeds and royalties (defaults to DAO treasury)
-                    </p>
-                  </div>
-                </>
-              ) : (
-                // Split configuration
-                <div className="space-y-4">
-                  <SplitRecipientsSection
-                    recipients={splitRecipients || []}
-                    distributorFee={splitDistributorFee || 1}
-                    onChange={handleSplitRecipientsChange}
-                  />
-                  
-                  <SplitDebugPanel
-                    recipients={splitRecipients || []}
-                    distributorFee={splitDistributorFee || 1}
-                    onSplitCreated={handleSplitCreated}
-                  />
-
-                  {createdSplitAddress && (
-                    <Alert className="bg-green-50 border-green-200">
-                      <AlertCircle className="h-4 w-4 text-green-600" />
-                      <AlertDescription>
-                        <div className="space-y-2">
-                          <strong className="text-green-900">Split Address Saved:</strong>
-                          <code className="block bg-white px-2 py-1 rounded text-xs border">
-                            {createdSplitAddress}
-                          </code>
-                          <p className="text-xs text-green-900">
-                            This address will be used as the payout recipient for the droposal.
-                          </p>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-              )}
 
               <div className="grid w-full max-w-sm items-center gap-2">
                 <Label htmlFor="defaultAdmin">Admin Address</Label>
@@ -517,29 +542,31 @@ export function DroposalForm({ index }: Props) {
         )}
       </Card>
 
-      {/* Debug Panel */}
-      <DroposalDebugPanel
-        formData={{
-          name: watch(`transactions.${index}.name`),
-          symbol: watch(`transactions.${index}.symbol`),
-          description: watch(`transactions.${index}.collectionDescription`),
-          animationURI: watch(`transactions.${index}.animationUri`),
-          imageURI: watch(`transactions.${index}.imageUri`),
-          price: watch(`transactions.${index}.price`),
-          startTime: watch(`transactions.${index}.startTime`) 
-            ? new Date(watch(`transactions.${index}.startTime`) as string) 
-            : undefined,
-          endTime: watch(`transactions.${index}.endTime`)
-            ? new Date(watch(`transactions.${index}.endTime`) as string)
-            : undefined,
-          payoutAddress: watch(`transactions.${index}.payoutAddress`),
-          defaultAdmin: watch(`transactions.${index}.defaultAdmin`),
-          editionSize: watch(`transactions.${index}.editionSize`),
-          royalty: watch(`transactions.${index}.royaltyPercentage`),
-          transactionDescription: watch(`transactions.${index}.description`),
-        }}
-        startTimeCalculation={startTimeCalc}
-      />
+      {/* Debug Panel - Development Only */}
+      {process.env.NODE_ENV === "development" && (
+        <DroposalDebugPanel
+          formData={{
+            name: watch(`transactions.${index}.name`),
+            symbol: watch(`transactions.${index}.symbol`),
+            description: watch(`transactions.${index}.collectionDescription`),
+            animationURI: watch(`transactions.${index}.animationUri`),
+            imageURI: watch(`transactions.${index}.imageUri`),
+            price: watch(`transactions.${index}.price`),
+            startTime: watch(`transactions.${index}.startTime`)
+              ? new Date(watch(`transactions.${index}.startTime`) as string)
+              : undefined,
+            endTime: watch(`transactions.${index}.endTime`)
+              ? new Date(watch(`transactions.${index}.endTime`) as string)
+              : undefined,
+            payoutAddress: watch(`transactions.${index}.payoutAddress`),
+            defaultAdmin: watch(`transactions.${index}.defaultAdmin`),
+            editionSize: watch(`transactions.${index}.editionSize`),
+            royalty: watch(`transactions.${index}.royaltyPercentage`),
+            transactionDescription: watch(`transactions.${index}.description`),
+          }}
+          startTimeCalculation={startTimeCalc}
+        />
+      )}
     </div>
   );
 }

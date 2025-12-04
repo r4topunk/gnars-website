@@ -215,7 +215,7 @@ export function createDefaultSplitConfig(treasuryAddress: string, userAddress?: 
 
   return {
     recipients,
-    distributorFeePercent: 1.0, // 1% default to incentivize bots
+    distributorFeePercent: 0, // 0% minimum fee
     controller: IMMUTABLE_CONTROLLER, // Immutable by default
   };
 }

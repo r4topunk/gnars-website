@@ -210,33 +210,11 @@ export function SplitRecipientsSection({
           </Button>
         </div>
 
-        {/* Distributor Fee */}
-        <div className="space-y-2 pt-4 border-t">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="distributor-fee" className="text-sm">
-              Distributor Fee
-            </Label>
-            <span className="text-sm font-semibold">{distributorFee.toFixed(2)}%</span>
-          </div>
-          <Slider
-            id="distributor-fee"
-            min={0}
-            max={10}
-            step={0.1}
-            value={[distributorFee]}
-            onValueChange={([value]) => onChange(recipients, value)}
-            className="w-full"
-          />
-          <p className="text-xs text-muted-foreground">
-            Fee paid to bots that trigger distribution (recommended: 1-2%)
-          </p>
-        </div>
-
         {/* Info Box */}
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-xs">
-            <strong>How it works:</strong> NFT sales revenue goes to the split contract, then gets distributed to all recipients according to these percentages. The distributor fee incentivizes bots to automatically trigger distributions.
+            <strong>How it works:</strong> NFT sales revenue goes to the split contract, then gets distributed to all recipients according to these percentages.
           </AlertDescription>
         </Alert>
       </CardContent>
