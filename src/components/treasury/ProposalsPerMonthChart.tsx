@@ -7,13 +7,11 @@
 
 "use client";
 
-import { TrendingUp } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -35,9 +33,6 @@ const chartConfig = {
 
 export function ProposalsPerMonthChart() {
   const { data: points = [], isLoading, error } = useProposalsPerMonth(12);
-
-  const totalProposals = points.reduce((sum, p) => sum + p.count, 0);
-  const footerNote = `${totalProposals} proposals over last ${points.length} months`;
 
   if (error) {
     return (
@@ -77,14 +72,6 @@ export function ProposalsPerMonthChart() {
             </div>
           </div>
         </CardContent>
-        <CardFooter>
-          <div className="flex w-full items-center justify-center gap-2 text-sm">
-            <div className="grid gap-2 text-center">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-40" />
-            </div>
-          </div>
-        </CardFooter>
       </Card>
     );
   }
@@ -120,18 +107,6 @@ export function ProposalsPerMonthChart() {
           </ChartContainer>
         </div>
       </CardContent>
-      <CardFooter>
-        <div className="flex w-full items-center justify-center gap-2 text-sm">
-          <div className="grid gap-2 text-center">
-            <div className="flex items-center justify-center gap-2 font-medium leading-none">
-              {footerNote} <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="flex items-center justify-center gap-2 leading-none text-muted-foreground">
-              Source: Gnars Subgraph
-            </div>
-          </div>
-        </div>
-      </CardFooter>
     </Card>
   );
 }
