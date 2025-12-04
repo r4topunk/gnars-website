@@ -1,18 +1,17 @@
 /**
  * VideoThumbnailSelector Component
- * 
+ *
  * Allows users to scrub through a video and select which frame to use as thumbnail
  */
 
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
-import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Check, Pause, Play, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Play, Pause, RotateCcw, Check } from "lucide-react";
 import { VideoPlayer, VideoPlayerRef } from "@/components/ui/video-player";
 
 interface VideoThumbnailSelectorProps {
@@ -21,13 +20,14 @@ interface VideoThumbnailSelectorProps {
   onCancel: () => void;
 }
 
-export function VideoThumbnailSelector({ 
-  videoFile, 
-  onThumbnailSelected, 
-  onCancel 
+export function VideoThumbnailSelector({
+  videoFile,
+  onThumbnailSelected,
+  onCancel,
 }: VideoThumbnailSelectorProps) {
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
-  
+  const pendingSeekRef = useRef<Promise<void> | null>(null);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -58,33 +58,48 @@ export function VideoThumbnailSelector({
     setCurrentTime(newTime);
   }, []);
 
-  const generatePreview = useCallback(async (time?: number) => {
-    try {
-      const player = videoPlayerRef.current;
-      if (!player || !isVideoReady) {
-        return;
+  const generatePreview = useCallback(
+    async (time?: number) => {
+      try {
+        const player = videoPlayerRef.current;
+        if (!player || !isVideoReady) {
+          return;
+        }
+
+        // Wait for any pending seek to complete first
+        if (pendingSeekRef.current) {
+          await pendingSeekRef.current;
+        }
+
+        if (time !== undefined) {
+          player.seekTo(time);
+          // Wait for the seeked event instead of arbitrary timeout
+          const seekPromise = player.waitForSeek();
+          pendingSeekRef.current = seekPromise;
+          await seekPromise;
+          pendingSeekRef.current = null;
+        }
+
+        const thumbnailFile = await player.captureFrame();
+        const previewUrl = URL.createObjectURL(thumbnailFile);
+
+        // Clean up previous URL before setting new one
+        setThumbnailPreview((prevUrl) => {
+          if (prevUrl) {
+            URL.revokeObjectURL(prevUrl);
+          }
+          return previewUrl;
+        });
+      } catch (error) {
+        // Log errors in development for debugging
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('Failed to generate thumbnail preview:', error);
+        }
+        // User can still use auto-thumbnail if preview generation fails
       }
-
-      if (time !== undefined) {
-        player.seekTo(time);
-      }
-
-      // Wait a bit for seek to complete
-      await new Promise(resolve => setTimeout(resolve, 200));
-
-      const thumbnailFile = await player.captureFrame();
-      const previewUrl = URL.createObjectURL(thumbnailFile);
-
-      // Clean up previous URL
-      if (thumbnailPreview) {
-        URL.revokeObjectURL(thumbnailPreview);
-      }
-
-      setThumbnailPreview(previewUrl);
-    } catch {
-      // Silent fail - user can still use auto-thumbnail
-    }
-  }, [thumbnailPreview, isVideoReady]);
+    },
+    [isVideoReady],
+  );
 
   // Generate initial preview when video becomes ready
   useEffect(() => {
@@ -93,6 +108,15 @@ export function VideoThumbnailSelector({
       generatePreview(initialTime);
     }
   }, [isVideoReady, duration, thumbnailPreview, generatePreview]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (thumbnailPreview) {
+        URL.revokeObjectURL(thumbnailPreview);
+      }
+    };
+  }, [thumbnailPreview]);
 
   const togglePlayPause = useCallback(() => {
     const player = videoPlayerRef.current;
@@ -107,14 +131,17 @@ export function VideoThumbnailSelector({
     }
   }, [isPlaying]);
 
-  const handleSliderChange = useCallback((values: number[]) => {
-    const time = values[0];
-    videoPlayerRef.current?.seekTo(time);
-    setCurrentTime(time);
-    if (isVideoReady) {
-      generatePreview(time);
-    }
-  }, [generatePreview, isVideoReady]);
+  const handleSliderChange = useCallback(
+    (values: number[]) => {
+      const time = values[0];
+      videoPlayerRef.current?.seekTo(time);
+      setCurrentTime(time);
+      if (isVideoReady) {
+        generatePreview(time);
+      }
+    },
+    [generatePreview, isVideoReady],
+  );
 
   const resetToDefault = useCallback(() => {
     const defaultTime = Math.min(1, duration * 0.1);
@@ -130,7 +157,7 @@ export function VideoThumbnailSelector({
     try {
       const player = videoPlayerRef.current;
       if (!player) {
-        throw new Error('Video player not available');
+        throw new Error("Video player not available");
       }
 
       const thumbnailFile = await player.captureFrame();
@@ -145,7 +172,7 @@ export function VideoThumbnailSelector({
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -163,7 +190,9 @@ export function VideoThumbnailSelector({
             <div className="w-full aspect-video rounded-lg border bg-red-50 flex flex-col items-center justify-center">
               <div className="text-center p-6">
                 <p className="text-red-600 font-medium">Video Playback Error</p>
-                <div className="text-red-500 text-sm mt-2 mb-4 whitespace-pre-line">{videoError}</div>
+                <div className="text-red-500 text-sm mt-2 mb-4 whitespace-pre-line">
+                  {videoError}
+                </div>
                 <div className="space-y-3">
                   <p className="text-gray-600 text-sm font-medium">
                     No worries! We can extract a thumbnail automatically.
@@ -203,7 +232,7 @@ export function VideoThumbnailSelector({
                 onTimeUpdate={handleTimeUpdate}
                 onDurationChange={handleDurationChange}
               />
-              
+
               {/* Play/Pause Overlay */}
               <Button
                 variant="secondary"
@@ -238,37 +267,16 @@ export function VideoThumbnailSelector({
               step={0.1}
               className="w-full"
             />
-            
+
             <div className="flex justify-between items-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={resetToDefault}
-              >
+              <Button variant="outline" size="sm" onClick={resetToDefault}>
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Reset to Default
               </Button>
-              
+
               <div className="text-sm text-muted-foreground">
                 Current: {formatTime(currentTime)}
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Thumbnail Preview */}
-        {thumbnailPreview && (
-          <div className="space-y-2">
-            <Label>Thumbnail Preview</Label>
-            <div className="border rounded-lg overflow-hidden max-w-md">
-              <Image
-                src={thumbnailPreview}
-                alt="Thumbnail preview"
-                width={800}
-                height={450}
-                unoptimized
-                className="w-full aspect-video object-contain bg-black"
-              />
             </div>
           </div>
         )}
@@ -278,7 +286,7 @@ export function VideoThumbnailSelector({
           <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleSelectThumbnail}
             disabled={isGenerating || !!videoError}
             className="min-w-24"

@@ -18,6 +18,7 @@ export interface VideoPlayerRef {
   play: () => void;
   pause: () => void;
   seekTo: (time: number) => void;
+  waitForSeek: () => Promise<void>;
   captureFrame: () => Promise<File>;
 }
 
@@ -106,6 +107,22 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         if (videoRef.current) {
           videoRef.current.currentTime = time;
         }
+      },
+      waitForSeek: (): Promise<void> => {
+        return new Promise((resolve) => {
+          const video = videoRef.current;
+          if (!video) {
+            resolve();
+            return;
+          }
+          
+          const onSeeked = () => {
+            video.removeEventListener('seeked', onSeeked);
+            resolve();
+          };
+          
+          video.addEventListener('seeked', onSeeked);
+        });
       },
       captureFrame: async (): Promise<File> => {
         const video = videoRef.current;

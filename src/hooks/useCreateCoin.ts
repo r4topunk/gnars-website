@@ -30,6 +30,97 @@ import {
   type CreateCoinArgs,
 } from "@zoralabs/coins-sdk";
 import { generateVideoThumbnail } from "@/lib/video-thumbnail";
+import { getProfile } from "@zoralabs/coins-sdk";
+
+// Type definitions for getProfile response
+interface ProfileResponse {
+  data?: {
+    profile?: {
+      id?: string;
+      handle?: string;
+      displayName?: string;
+      avatar?: {
+        small?: string;
+        medium?: string;
+        blurhash?: string;
+      };
+      creatorCoin?: {
+        address?: string;
+        name?: string;
+        symbol?: string;
+        marketCap?: string;
+        marketCapDelta24h?: string;
+        mediaContent?: {
+          previewImage?: {
+            small?: string;
+            medium?: string;
+            blurhash?: string;
+          };
+        };
+      };
+    };
+  };
+}
+
+/**
+ * Check if a wallet address has a creator coin deployed
+ * Uses the Zora SDK's getProfile function to check for creator coin
+ * @param address - Wallet address to check
+ * @returns Promise with creator coin info or null
+ */
+export async function checkHasCreatorCoin(address: Address): Promise<{
+  hasCreatorCoin: boolean;
+  creatorCoinImage?: string;
+  creatorCoinName?: string;
+} | null> {
+  if (!address) {
+    console.log("[checkHasCreatorCoin] No address provided");
+    return null;
+  }
+  
+  console.log("[checkHasCreatorCoin] Checking creator coin for address:", address);
+  
+  try {
+    // Use SDK's getProfile to check if user has a creator coin
+    console.log("[checkHasCreatorCoin] Fetching profile via SDK...");
+    const response = (await getProfile({
+      identifier: address,
+    })) as ProfileResponse;
+    
+    console.log("[checkHasCreatorCoin] Profile response:", response);
+    
+    const profile = response?.data?.profile;
+    
+    if (profile?.creatorCoin?.address) {
+      const creatorCoinImage = profile.creatorCoin.mediaContent?.previewImage?.medium 
+        || profile.creatorCoin.mediaContent?.previewImage?.small
+        || profile.avatar?.medium
+        || profile.avatar?.small;
+      
+      console.log("[checkHasCreatorCoin] ✅ Creator coin found:", {
+        address: profile.creatorCoin.address,
+        marketCap: profile.creatorCoin.marketCap,
+        name: profile.creatorCoin.name,
+        image: creatorCoinImage,
+      });
+      
+      return {
+        hasCreatorCoin: true,
+        creatorCoinImage,
+        creatorCoinName: profile.creatorCoin.name || profile.displayName,
+      };
+    } else {
+      console.log("[checkHasCreatorCoin] ❌ No creator coin found in profile");
+      return { hasCreatorCoin: false };
+    }
+  } catch (error) {
+    console.log("[checkHasCreatorCoin] ❌ Error fetching profile:", error);
+    if (error instanceof Error) {
+      console.log("[checkHasCreatorCoin] Error message:", error.message);
+    }
+    return null;
+  }
+}
 
 // Type for CoinCreatedV4 event args
 interface CoinCreatedV4EventArgs {
@@ -62,6 +153,7 @@ export interface CreateCoinParams {
   owners?: Address[];
   platformReferrer?: Address;
   startingMarketCap?: "LOW" | "HIGH";
+  useUserCreatorCoin?: boolean;
 }
 
 export interface CoinDeploymentData {
@@ -146,6 +238,7 @@ export function useCreateCoin() {
       owners,
       platformReferrer,
       startingMarketCap = "LOW",
+      useUserCreatorCoin = false,
     } = params;
 
     if (!userAddress) {
@@ -212,10 +305,34 @@ export function useCreateCoin() {
       const finalPlatformReferrer = platformReferrer || PLATFORM_REFERRER;
       const additionalOwners = owners && owners.length > 0 ? owners : undefined;
 
+      // Determine which creator coin to use based on user selection
+      // When useUserCreatorCoin is true, validate user has a creator coin before proceeding
+      let selectedCreator: Address;
+      
+      if (useUserCreatorCoin && userAddress) {
+        console.log("[createCoin] User selected their creator coin, validating...");
+        
+        // Validate that user actually has a deployed creator coin
+        const creatorCoinCheck = await checkHasCreatorCoin(userAddress);
+        
+        if (creatorCoinCheck?.hasCreatorCoin) {
+          console.log("[createCoin] ✅ Creator coin validated, using user's creator coin");
+          selectedCreator = userAddress; // SDK will resolve to their creator coin
+        } else {
+          console.error("[createCoin] ❌ User selected creator coin but none exists");
+          throw new Error(
+            "You don't have a creator coin deployed. Please deploy a creator coin first or use $GNARS backing."
+          );
+        }
+      } else {
+        console.log("[createCoin] Using GNARS creator coin as backing currency");
+        selectedCreator = GNARS_CREATOR_COIN;
+      }
+
       // Use SDK's createCoinCall to get validated transaction parameters
       // This handles pool configuration, parameter encoding, and API communication
       const sdkArgs: CreateCoinArgs = {
-        creator: GNARS_CREATOR_COIN,  // Gnars Creator Coin as backing currency
+        creator: selectedCreator,
         name,
         symbol,
         metadata: {
@@ -230,7 +347,7 @@ export function useCreateCoin() {
         payoutRecipientOverride: finalPayoutRecipient !== userAddress ? finalPayoutRecipient : undefined,
       };
 
-      console.log("Creator Coin:", GNARS_CREATOR_COIN);
+      console.log("Creator Coin:", selectedCreator);
 
       const txParams = await createCoinCall(sdkArgs);
 
