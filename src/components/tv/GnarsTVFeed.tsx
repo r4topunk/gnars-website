@@ -568,7 +568,7 @@ export function GnarsTVFeed() {
   return (
     <div className="fixed inset-0 z-40 bg-black text-white">
       <div className="absolute left-0 right-0 top-0 z-50 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
-        <div className="text-sm font-semibold pointer-events-auto">Gnars TV</div>
+        <div className="text-sm font-semibold pointer-events-auto">Gnar TV</div>
         <Button
           onClick={toggleMute}
           size="icon"

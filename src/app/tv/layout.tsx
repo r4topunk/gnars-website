@@ -4,7 +4,7 @@ import { TV_MINIAPP_CONFIG, TV_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config
 const tvConfig = TV_MINIAPP_CONFIG.miniapp;
 
 export const metadata: Metadata = {
-  title: "Gnars TV - Creator Coins Feed",
+  title: "Gnar TV - Creator Coins Feed",
   description: tvConfig.description,
   // Open Graph metadata for social sharing
   openGraph: {

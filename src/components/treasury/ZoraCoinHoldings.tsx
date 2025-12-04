@@ -1,9 +1,5 @@
 import { cache } from "react";
-import {
-  getProfileBalances,
-  setApiKey,
-  type GetProfileBalancesQuery
-} from "@zoralabs/coins-sdk";
+import { getProfileBalances, setApiKey, type GetProfileBalancesQuery } from "@zoralabs/coins-sdk";
 import { ZoraCoinHoldingsClient, type ZoraCoin } from "./ZoraCoinHoldingsClient";
 
 // SDK response types matching reference script
@@ -26,12 +22,14 @@ interface BalanceEdge {
         large?: string;
       };
       mediaContent?: {
-        previewImage?: {
-          small?: string;
-          medium?: string;
-          large?: string;
-          blurhash?: string | null;
-        } | string;
+        previewImage?:
+          | {
+              small?: string;
+              medium?: string;
+              large?: string;
+              blurhash?: string | null;
+            }
+          | string;
       };
       chainId?: number;
       volume24h?: string;
@@ -127,18 +125,18 @@ const loadZoraCoins = cache(async (treasuryAddress: string): Promise<ZoraCoin[]>
         // Try mediaContent.previewImage first
         if (coin.mediaContent?.previewImage) {
           const previewImage = coin.mediaContent.previewImage;
-          if (typeof previewImage === 'object' && 'small' in previewImage) {
+          if (typeof previewImage === "object" && "small" in previewImage) {
             imageUrl = previewImage.small || previewImage.medium;
-          } else if (typeof previewImage === 'string') {
+          } else if (typeof previewImage === "string") {
             imageUrl = previewImage;
           }
         }
 
         // Fallback to coin.image
         if (!imageUrl && coin.image) {
-          if (typeof coin.image === 'object' && 'small' in coin.image) {
+          if (typeof coin.image === "object" && "small" in coin.image) {
             imageUrl = coin.image.small || coin.image.medium;
-          } else if (typeof coin.image === 'string') {
+          } else if (typeof coin.image === "string") {
             imageUrl = coin.image;
           }
         }
@@ -158,8 +156,6 @@ const loadZoraCoins = cache(async (treasuryAddress: string): Promise<ZoraCoin[]>
           creatorAddress: coin.creator?.address,
           creatorName: coin.creator?.displayName || coin.creator?.handle,
         };
-
-        console.log("Server - Coin data:", { name: coin.name, imageUrl, rawImage: coin.image });
 
         return coinData;
       });
