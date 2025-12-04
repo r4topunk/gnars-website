@@ -23,7 +23,10 @@ export interface VideoPlayerRef {
 }
 
 export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
-  ({ file, className, onError, onLoadedData, onLoadedMetadata, onTimeUpdate, onDurationChange }, ref) => {
+  (
+    { file, className, onError, onLoadedData, onLoadedMetadata, onTimeUpdate, onDurationChange },
+    ref,
+  ) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [videoUrl, setVideoUrl] = useState<string>("");
     const [isLoaded, setIsLoaded] = useState(false);
@@ -72,103 +75,104 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       };
 
       // Add event listeners
-      video.addEventListener('loadedmetadata', handleLoadedMetadata);
-      video.addEventListener('loadeddata', handleLoadedData);
-      video.addEventListener('timeupdate', handleTimeUpdate);
-      video.addEventListener('error', handleError);
+      video.addEventListener("loadedmetadata", handleLoadedMetadata);
+      video.addEventListener("loadeddata", handleLoadedData);
+      video.addEventListener("timeupdate", handleTimeUpdate);
+      video.addEventListener("error", handleError);
 
       // Set the source
       video.src = videoUrl;
       video.load();
 
       return () => {
-        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        video.removeEventListener('loadeddata', handleLoadedData);
-        video.removeEventListener('timeupdate', handleTimeUpdate);
-        video.removeEventListener('error', handleError);
+        video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+        video.removeEventListener("loadeddata", handleLoadedData);
+        video.removeEventListener("timeupdate", handleTimeUpdate);
+        video.removeEventListener("error", handleError);
       };
     }, [videoUrl, file, onError, onLoadedData, onLoadedMetadata, onTimeUpdate, onDurationChange]);
 
     // Expose methods via ref
-    useImperativeHandle(ref, () => ({
-      get currentTime() {
-        return videoRef.current?.currentTime || 0;
-      },
-      get duration() {
-        return videoRef.current?.duration || 0;
-      },
-      play: () => {
-        videoRef.current?.play();
-      },
-      pause: () => {
-        videoRef.current?.pause();
-      },
-      seekTo: (time: number) => {
-        if (videoRef.current) {
-          videoRef.current.currentTime = time;
-        }
-      },
-      waitForSeek: (): Promise<void> => {
-        return new Promise((resolve) => {
-          const video = videoRef.current;
-          if (!video) {
-            resolve();
-            return;
+    useImperativeHandle(
+      ref,
+      () => ({
+        get currentTime() {
+          return videoRef.current?.currentTime || 0;
+        },
+        get duration() {
+          return videoRef.current?.duration || 0;
+        },
+        play: () => {
+          videoRef.current?.play();
+        },
+        pause: () => {
+          videoRef.current?.pause();
+        },
+        seekTo: (time: number) => {
+          if (videoRef.current) {
+            videoRef.current.currentTime = time;
           }
-          
-          const onSeeked = () => {
-            video.removeEventListener('seeked', onSeeked);
-            resolve();
-          };
-          
-          video.addEventListener('seeked', onSeeked);
-        });
-      },
-      captureFrame: async (): Promise<File> => {
-        const video = videoRef.current;
-        if (!video || !isLoaded) {
-          throw new Error("Video not loaded");
-        }
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        if (!ctx) {
-          throw new Error("Canvas not supported");
-        }
-
-        // Set canvas size to video size
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-
-        // Draw current frame
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        // Convert to blob
-        return new Promise((resolve, reject) => {
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const thumbnailFile = new File([blob], `${file.name}_thumbnail.jpg`, {
-                type: 'image/jpeg'
-              });
-              resolve(thumbnailFile);
-            } else {
-              reject(new Error("Failed to capture frame"));
+        },
+        waitForSeek: (): Promise<void> => {
+          return new Promise((resolve) => {
+            const video = videoRef.current;
+            if (!video) {
+              resolve();
+              return;
             }
-          }, 'image/jpeg', 0.8);
-        });
-      }
-    }), [isLoaded, file]);
 
-    return (
-      <video
-        ref={videoRef}
-        className={className}
-        preload="metadata"
-        playsInline
-      />
+            const onSeeked = () => {
+              video.removeEventListener("seeked", onSeeked);
+              resolve();
+            };
+
+            video.addEventListener("seeked", onSeeked);
+          });
+        },
+        captureFrame: async (): Promise<File> => {
+          const video = videoRef.current;
+          if (!video || !isLoaded) {
+            throw new Error("Video not loaded");
+          }
+
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          if (!ctx) {
+            throw new Error("Canvas not supported");
+          }
+
+          // Set canvas size to video size
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+
+          // Draw current frame
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // Convert to blob
+          return new Promise((resolve, reject) => {
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const thumbnailFile = new File([blob], `${file.name}_thumbnail.jpg`, {
+                    type: "image/jpeg",
+                  });
+                  resolve(thumbnailFile);
+                } else {
+                  reject(new Error("Failed to capture frame"));
+                }
+              },
+              "image/jpeg",
+              0.8,
+            );
+          });
+        },
+      }),
+      [isLoaded, file],
     );
-  }
+
+    return <video ref={videoRef} className={className} preload="metadata" playsInline />;
+  },
 );
 
 VideoPlayer.displayName = "VideoPlayer";

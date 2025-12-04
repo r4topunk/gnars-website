@@ -92,8 +92,8 @@ export function VideoThumbnailSelector({
         });
       } catch (error) {
         // Log errors in development for debugging
-        if (process.env.NODE_ENV !== 'production') {
-          console.error('Failed to generate thumbnail preview:', error);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Failed to generate thumbnail preview:", error);
         }
         // User can still use auto-thumbnail if preview generation fails
       }
