@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
-import { getProfileCoins, setApiKey, tradeCoin } from "@zoralabs/coins-sdk";
+import { getCoin, getProfileCoins, setApiKey, tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
-import { Volume2, VolumeX } from "lucide-react";
+import { Share2, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { parseEther } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useMiniApp } from "@/components/miniapp/MiniAppProvider";
 import { Button } from "@/components/ui/button";
 
 type TVItem = {
@@ -126,8 +126,8 @@ const FALLBACK_ITEMS: TVItem[] = [
   },
 ];
 
-export function GnarsTVFeed() {
-  const [items, setItems] = useState<TVItem[]>([]);
+export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: string }) {
+  const [rawItems, setRawItems] = useState<TVItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -142,6 +142,29 @@ export function GnarsTVFeed() {
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const { isInMiniApp, share: miniAppShare } = useMiniApp();
+
+  // Compute sorted items based on priorityCoinAddress
+  const items = useMemo(() => {
+    if (!rawItems.length) return [];
+
+    let sortedItems = [...rawItems];
+
+    // If priorityCoinAddress is provided, move that coin to the top
+    if (priorityCoinAddress) {
+      const normalizedPriority = priorityCoinAddress.toLowerCase();
+      const priorityIndex = sortedItems.findIndex(
+        (item) => item.coinAddress?.toLowerCase() === normalizedPriority,
+      );
+
+      if (priorityIndex > 0) {
+        const priorityItem = sortedItems.splice(priorityIndex, 1)[0];
+        sortedItems = [priorityItem, ...sortedItems];
+      }
+    }
+
+    return sortedItems;
+  }, [rawItems, priorityCoinAddress]);
 
   const toHttp = (uri?: string | null): string | undefined => {
     if (!uri) return undefined;
@@ -149,19 +172,6 @@ export function GnarsTVFeed() {
       return uri.replace("ipfs://", "https://ipfs.io/ipfs/");
     }
     return uri;
-  };
-
-  // Helper to detect video-ish URLs when mimeType is missing
-  const isLikelyVideoUrl = (url?: string | null) => {
-    if (!url) return false;
-    const lower = url.split("?")[0].toLowerCase();
-    return (
-      lower.endsWith(".mp4") ||
-      lower.endsWith(".webm") ||
-      lower.endsWith(".mov") ||
-      lower.endsWith(".m4v") ||
-      lower.endsWith(".ogg")
-    );
   };
 
   // Fisher-Yates shuffle algorithm for efficient random sorting
@@ -201,10 +211,11 @@ export function GnarsTVFeed() {
       videoUrl = toHttp(originalRaw || previewRaw);
     }
 
-    // ✅ Fallback: no mimeType, but URL looks like video
-    if (!videoUrl && originalRaw && isLikelyVideoUrl(originalRaw)) {
-      videoUrl = toHttp(originalRaw);
-    }
+    // ✅ Fallback: explicit video/animation/url hints even without mimeType
+    if (!videoUrl && media?.videoUrl) videoUrl = toHttp(media.videoUrl);
+    if (!videoUrl && media?.animationUrl) videoUrl = toHttp(media.animationUrl);
+    if (!videoUrl && media?.url) videoUrl = toHttp(media.url);
+    if (!videoUrl && originalRaw) videoUrl = toHttp(originalRaw);
 
     return {
       imageUrl,
@@ -213,15 +224,105 @@ export function GnarsTVFeed() {
   };
 
   useEffect(() => {
-    let cancelled = false;
+    const cancelled = { current: false };
+    const normalizedPriority = priorityCoinAddress?.toLowerCase();
 
-    const load = async () => {
+    const mapCoinToItem = (coin: CoinNode, idx: number, creatorAddress: string): TVItem | null => {
+      const media = mediaFromCoin(coin);
+      if (!media.videoUrl) return null; // only REAL video coins
+
+      const creator = coin?.creatorProfile || coin?.coin?.creatorProfile;
+      const creatorAvatar =
+        creator?.avatar?.previewImage?.small || creator?.avatar?.previewImage?.medium;
+      const creatorName =
+        creator?.socialAccounts?.farcaster?.displayName ||
+        creator?.socialAccounts?.twitter?.displayName ||
+        creator?.handle;
+
+      // Calculate ATH from current marketCap + delta
+      const marketCapRaw = coin?.marketCap || coin?.coin?.marketCap;
+      const marketCapDelta24hRaw = coin?.marketCapDelta24h || coin?.coin?.marketCapDelta24h;
+
+      // Parse as numbers and handle string/undefined cases
+      const marketCap =
+        typeof marketCapRaw === "string" ? parseFloat(marketCapRaw) : marketCapRaw || 0;
+      const marketCapDelta24h =
+        typeof marketCapDelta24hRaw === "string"
+          ? parseFloat(marketCapDelta24hRaw)
+          : marketCapDelta24hRaw || 0;
+
+      // ATH is current marketCap + positive delta (if delta is negative, ATH is current + abs(delta))
+      const allTimeHigh = marketCap > 0 ? marketCap + Math.abs(marketCapDelta24h) : marketCap;
+
+      const platformReferrer = (
+        coin?.platformReferrerAddress ||
+        coin?.platformReferrer ||
+        coin?.coin?.platformReferrerAddress ||
+        coin?.coin?.platformReferrer ||
+        ""
+      ).toLowerCase();
+      const poolCurrencyTokenAddress = (
+        coin?.poolCurrencyToken?.address ||
+        coin?.coin?.poolCurrencyToken?.address ||
+        ""
+      ).toLowerCase();
+
+      return {
+        id: coin?.address || coin?.contract || coin?.id || `${creatorAddress}-${idx}`,
+        title: coin?.name || coin?.displayName || "Untitled Coin",
+        creator: creatorAddress,
+        creatorName: creatorName,
+        creatorAvatar: toHttp(creatorAvatar),
+        symbol: coin?.symbol,
+        imageUrl: media.imageUrl || coin?.imageUrl,
+        videoUrl: media.videoUrl,
+        coinAddress: coin?.address || coin?.contract,
+        marketCap: marketCap,
+        allTimeHigh: allTimeHigh,
+        platformReferrer: platformReferrer,
+        poolCurrencyTokenAddress: poolCurrencyTokenAddress,
+      };
+    };
+
+    const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
 
         if (process.env.NEXT_PUBLIC_ZORA_API_KEY) {
           setApiKey(process.env.NEXT_PUBLIC_ZORA_API_KEY);
+        }
+
+        // Always fetch the priority coin directly if provided, so slug pages work even
+        // if it isn't in the curated creator list (or if profile fetch fails).
+        let priorityItem: TVItem | null = null;
+        if (normalizedPriority) {
+          try {
+            const response = await getCoin({
+              address: normalizedPriority as `0x${string}`,
+              chain: 8453,
+            });
+            const coin = response?.data?.zora20Token as CoinNode | undefined;
+            if (coin) {
+              priorityItem = mapCoinToItem(
+                coin,
+                0,
+                coin?.creatorProfile?.handle || normalizedPriority,
+              );
+              if (!priorityItem?.videoUrl) {
+                console.error("[gnars-tv] Priority coin has no playable media", {
+                  address: normalizedPriority,
+                });
+              }
+            }
+          } catch (err) {
+            const message =
+              err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
+            console.error("[gnars-tv] failed to fetch priority coin", {
+              address: normalizedPriority,
+              message,
+            });
+          }
         }
 
         const results = await Promise.all(
@@ -243,99 +344,44 @@ export function GnarsTVFeed() {
                 })
                 .filter((coin): coin is CoinNode => coin !== null);
 
-              // ✅ keep only coins that actually have a video
               const videoItemsForCreator = coins
-                .map((coin, idx): TVItem | null => {
-                  const media = mediaFromCoin(coin);
-                  if (!media.videoUrl) return null; // only REAL video coins
-
-                  const creator = coin?.creatorProfile || coin?.coin?.creatorProfile;
-                  const creatorAvatar =
-                    creator?.avatar?.previewImage?.small || creator?.avatar?.previewImage?.medium;
-                  const creatorName =
-                    creator?.socialAccounts?.farcaster?.displayName ||
-                    creator?.socialAccounts?.twitter?.displayName ||
-                    creator?.handle;
-
-                  // Calculate ATH from current marketCap + delta
-                  const marketCapRaw = coin?.marketCap || coin?.coin?.marketCap;
-                  const marketCapDelta24hRaw =
-                    coin?.marketCapDelta24h || coin?.coin?.marketCapDelta24h;
-
-                  // Parse as numbers and handle string/undefined cases
-                  const marketCap =
-                    typeof marketCapRaw === "string" ? parseFloat(marketCapRaw) : marketCapRaw || 0;
-                  const marketCapDelta24h =
-                    typeof marketCapDelta24hRaw === "string"
-                      ? parseFloat(marketCapDelta24hRaw)
-                      : marketCapDelta24hRaw || 0;
-
-                  // ATH is current marketCap + positive delta (if delta is negative, ATH is current + abs(delta))
-                  const allTimeHigh =
-                    marketCap > 0 ? marketCap + Math.abs(marketCapDelta24h) : marketCap;
-
-                  const platformReferrer = (
-                    coin?.platformReferrerAddress ||
-                    coin?.platformReferrer ||
-                    coin?.coin?.platformReferrerAddress ||
-                    coin?.coin?.platformReferrer ||
-                    ""
-                  ).toLowerCase();
-                  const poolCurrencyTokenAddress = (
-                    coin?.poolCurrencyToken?.address ||
-                    coin?.coin?.poolCurrencyToken?.address ||
-                    ""
-                  ).toLowerCase();
-
-                  // 🎯 LOG REFERRER AND PAIR MATCHING
-                  const isGnarsReferral =
-                    platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88";
-                  const isSpecialPair =
-                    poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
-
-                  console.log(`🏷️ ${coin?.name}:`, {
-                    platformReferrer,
-                    poolCurrencyTokenAddress,
-                    isGnarsReferral,
-                    isSpecialPair,
-                    willShowBadge: isGnarsReferral || isSpecialPair,
-                  });
-
-                  return {
-                    id: coin?.address || coin?.contract || coin?.id || `${creatorAddress}-${idx}`,
-                    title: coin?.name || coin?.displayName || "Untitled Coin",
-                    creator: creatorAddress,
-                    creatorName: creatorName,
-                    creatorAvatar: toHttp(creatorAvatar),
-                    symbol: coin?.symbol,
-                    imageUrl: media.imageUrl || coin?.imageUrl,
-                    videoUrl: media.videoUrl,
-                    coinAddress: coin?.address || coin?.contract,
-                    marketCap: marketCap,
-                    allTimeHigh: allTimeHigh,
-                    platformReferrer: platformReferrer,
-                    poolCurrencyTokenAddress: poolCurrencyTokenAddress,
-                  };
-                })
+                .map((coin, idx) => mapCoinToItem(coin, idx, creatorAddress))
                 .filter((item): item is TVItem => item !== null);
 
               return videoItemsForCreator;
             } catch (err) {
+              const message =
+                err instanceof Error
+                  ? err.message
+                  : typeof err === "string"
+                    ? err
+                    : "Unknown error";
               console.error("[gnars-tv] failed to fetch profile coins", {
                 address: creatorAddress,
-                err,
+                message,
               });
               return [] as TVItem[];
             }
           }),
         );
 
-        if (cancelled) return;
+        if (cancelled.current) return;
 
         const flattened = results.flat().filter(Boolean);
 
-        // Sort items: Gnars Paired first, then Gnarly, then normal
-        const sorted = flattened.sort((a, b) => {
+        // Split out the priority coin to avoid it being moved by sorting.
+        let priorityPinned: TVItem | null = null;
+        let rest = flattened;
+        if (priorityItem) {
+          const withoutDuplicate = flattened.filter(
+            (item) => item.coinAddress?.toLowerCase() !== normalizedPriority,
+          );
+          priorityPinned = priorityItem;
+          rest = withoutDuplicate;
+        }
+
+        // Sort items: Gnars Paired first, then Gnarly, then normal (only for rest)
+        const sorted = rest.sort((a, b) => {
           const aIsPaired =
             a.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
           const aIsGnarly = a.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88";
@@ -409,22 +455,27 @@ export function GnarsTVFeed() {
         const interleavedGnarly = interleaveByCreator(gnarly);
         const interleavedNormal = interleaveByCreator(normal);
 
-        const finalItems = [...interleavedPaired, ...interleavedGnarly, ...interleavedNormal];
+        let finalItems = [...interleavedPaired, ...interleavedGnarly, ...interleavedNormal];
 
-        setItems(finalItems.length ? finalItems : FALLBACK_ITEMS);
+        // Pin priority item to the very top.
+        if (priorityPinned) {
+          finalItems = [priorityPinned, ...finalItems];
+        }
+
+        setRawItems(finalItems.length ? finalItems : FALLBACK_ITEMS);
       } catch (err) {
-        if (cancelled) return;
+        if (cancelled.current) return;
         setError("Unable to load videos right now");
-        setItems(FALLBACK_ITEMS);
+        setRawItems(FALLBACK_ITEMS);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled.current) setLoading(false);
       }
     };
 
-    load();
+    loadData();
 
     return () => {
-      cancelled = true;
+      cancelled.current = true;
     };
   }, []);
 
@@ -450,9 +501,7 @@ export function GnarsTVFeed() {
           if (entry.isIntersecting) {
             setActiveIndex(idx);
             setPlayCount(0);
-            video.play().catch((err) => {
-              console.log("Autoplay prevented:", err);
-            });
+            video.play().catch(() => {});
           } else {
             video.pause();
           }
@@ -501,6 +550,47 @@ export function GnarsTVFeed() {
       } else {
         currentVideo.pause();
         setIsPaused(true);
+      }
+    }
+  };
+
+  const handleShare = async () => {
+    const item = videoItems[activeIndex];
+    const url = item?.coinAddress
+      ? `${window.location.origin}/tv/${item.coinAddress}`
+      : `${window.location.origin}/tv`;
+
+    const shareData = {
+      title: item?.title || "Gnars TV",
+      text: item?.title || "Watch on Gnars TV",
+      url,
+    };
+
+    try {
+      if (isInMiniApp) {
+        await miniAppShare({ text: shareData.text, url: shareData.url });
+      } else if (navigator.share) {
+        await navigator.share(shareData);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard");
+      }
+    } catch (err) {
+      // Don't fallback if user explicitly cancelled
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
+
+      // Fallback to clipboard for actual errors
+      try {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(url);
+          toast.success("Link copied to clipboard");
+        } else {
+          toast.error("Unable to share right now");
+        }
+      } catch {
+        toast.error("Unable to share right now");
       }
     }
   };
@@ -631,6 +721,13 @@ export function GnarsTVFeed() {
                   aria-label={isMuted ? "Unmute" : "Mute"}
                 >
                   {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="pointer-events-auto w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all"
+                  aria-label="Share"
+                >
+                  <Share2 className="w-5 h-5" />
                 </button>
               </div>
 

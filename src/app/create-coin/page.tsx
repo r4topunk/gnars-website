@@ -654,7 +654,7 @@ export default function CreateCoinPage() {
                           <Alert>
                             <Info className="h-4 w-4" />
                             <AlertDescription className="text-xs">
-                              You don't have a creator coin yet. Only $GNARS backing is available.
+                              You don&apos;t have a creator coin yet. Only $GNARS backing is available.
                               To use your own creator coin, deploy one first.
                             </AlertDescription>
                           </Alert>
