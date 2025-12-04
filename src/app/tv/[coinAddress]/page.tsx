@@ -23,13 +23,14 @@ async function getCoinMetadata(coinAddress: string) {
     });
 
     const coin = response?.data?.zora20Token;
-    
+
     if (coin) {
       const media = coin?.mediaContent;
       const previewImage = media?.previewImage;
-      const imageUrl = typeof previewImage === "object" 
-        ? previewImage?.medium || previewImage?.small
-        : previewImage;
+      const imageUrl =
+        typeof previewImage === "object"
+          ? previewImage?.medium || previewImage?.small
+          : previewImage;
 
       return {
         name: coin?.name || "Gnars Coin",
@@ -48,7 +49,7 @@ async function getCoinMetadata(coinAddress: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { coinAddress } = await params;
-  
+
   const metadata = await getCoinMetadata(coinAddress);
 
   if (!metadata) {
