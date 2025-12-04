@@ -131,15 +131,23 @@ export async function GET(request: NextRequest) {
   const start = startTokenId ? BigInt(startTokenId) : 1n;
   const end = endTokenId ? BigInt(endTokenId) : start + 19n;
   const limit = limitParam ? parseInt(limitParam, 10) : undefined;
+  const skipCache = searchParams.has("_t"); // Cache-busting param
 
   const cacheKey = getCacheKey(contractAddress, start.toString(), end.toString());
-  const cached = getFromCache(cacheKey);
-  if (cached) {
-    const limited =
-      limit && cached.supporters.length > limit
-        ? { ...cached, supporters: cached.supporters.slice(0, limit) }
-        : cached;
-    return NextResponse.json(limited);
+
+  // Skip cache if _t param is present (force refresh)
+  if (!skipCache) {
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+      const limited =
+        limit && cached.supporters.length > limit
+          ? { ...cached, supporters: cached.supporters.slice(0, limit) }
+          : cached;
+      return NextResponse.json(limited);
+    }
+  } else {
+    // Clear the cache entry when forcing refresh
+    cache.delete(cacheKey);
   }
 
   try {

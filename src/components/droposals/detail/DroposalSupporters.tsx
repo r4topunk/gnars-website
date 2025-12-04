@@ -5,29 +5,45 @@
  * Renders a grid of supporters (wallets) who minted the edition.
  * Expects the NFT contract `tokenAddress` and optional `totalSupply` to optimize fetching.
  */
+import { RefreshCw } from "lucide-react";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { AddressDisplay, AddressDisplaySkeleton } from "@/components/ui/address-display";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSupporters } from "@/hooks/use-supporters";
 
 export interface DroposalSupportersProps {
   tokenAddress?: `0x${string}` | null;
   totalSupply?: string | null; // string coming from decoded params
+  refreshKey?: number; // increment to force refresh after mint
 }
 
-export function DroposalSupporters({ tokenAddress, totalSupply }: DroposalSupportersProps) {
+export function DroposalSupporters({ tokenAddress, totalSupply, refreshKey = 0 }: DroposalSupportersProps) {
   const totalSupplyBigInt = totalSupply ? BigInt(totalSupply) : null;
-  const { visibleSupporters, isLoading, error } = useSupporters({
+  const { visibleSupporters, isLoading, error, refresh, cached } = useSupporters({
     contractAddress: tokenAddress ?? null,
     totalSupply: totalSupplyBigInt,
     batchSize: 200,
     itemsPerPage: 200,
     autoLoad: Boolean(tokenAddress),
+    refreshKey,
   });
 
   return (
     <Card>
-      <SectionHeader title="Supporters" description="Collectors who minted this drop" />
+      <div className="flex items-center justify-between">
+        <SectionHeader title="Supporters" description="Collectors who minted this drop" />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={refresh}
+          disabled={isLoading}
+          className="mr-4"
+          title={cached ? "Cached data - click to refresh" : "Refresh supporters"}
+        >
+          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+        </Button>
+      </div>
       <CardContent>
         {isLoading && (
           <div className="flex flex-wrap items-center gap-3">

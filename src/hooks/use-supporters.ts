@@ -23,6 +23,7 @@ export interface UseSupportersOptions {
   batchSize?: number; // how many tokenIds to scan per request
   itemsPerPage?: number; // how many supporters to show initially
   autoLoad?: boolean;
+  refreshKey?: number; // increment to force refresh
 }
 
 export interface UseSupportersResult {
@@ -33,6 +34,7 @@ export interface UseSupportersResult {
   error: string | null;
   hasMore: boolean;
   loadMore: () => Promise<void>;
+  refresh: () => void;
   cached: boolean;
 }
 
@@ -42,6 +44,7 @@ export function useSupporters({
   batchSize = 100,
   itemsPerPage = 24,
   autoLoad = true,
+  refreshKey = 0,
 }: UseSupportersOptions): UseSupportersResult {
   const [supporters, setSupporters] = useState<AggregatedHolder[]>([]);
   const [visibleSupporters, setVisibleSupporters] = useState<AggregatedHolder[]>([]);
@@ -52,8 +55,12 @@ export function useSupporters({
   const [nextTokenId, setNextTokenId] = useState<bigint>(1n);
   const [cached, setCached] = useState(false);
   const [visibleCount, setVisibleCount] = useState(itemsPerPage);
+  const [internalRefreshKey, setInternalRefreshKey] = useState(0);
 
   const loadedKey = useRef<string | null>(null);
+
+  // Combine external and internal refresh keys
+  const effectiveRefreshKey = refreshKey + internalRefreshKey;
 
   const canLoad = useMemo(
     () => Boolean(contractAddress) && totalSupply !== undefined && totalSupply !== null,
@@ -62,7 +69,7 @@ export function useSupporters({
 
   useEffect(() => {
     if (!autoLoad || !canLoad) return;
-    const key = `${contractAddress}-${totalSupply}`;
+    const key = `${contractAddress}-${totalSupply}-${effectiveRefreshKey}`;
     if (loadedKey.current === key) return;
     loadedKey.current = key;
 
@@ -82,6 +89,10 @@ export function useSupporters({
           startTokenId: "1",
           endTokenId: initialBatchEnd.toString(),
         });
+        // Add cache-busting param when refreshing
+        if (effectiveRefreshKey > 0) {
+          params.set("_t", Date.now().toString());
+        }
         const res = await fetch(`/api/supporters?${params.toString()}`);
         if (!res.ok) throw new Error(`Failed to fetch supporters: ${res.statusText}`);
         const api: SupportersApiResponse = await res.json();
@@ -105,7 +116,13 @@ export function useSupporters({
     };
 
     fetchInitial();
-  }, [autoLoad, canLoad, contractAddress, totalSupply, batchSize, itemsPerPage]);
+  }, [autoLoad, canLoad, contractAddress, totalSupply, batchSize, itemsPerPage, effectiveRefreshKey]);
+
+  // Refresh function to force re-fetch
+  const refresh = useCallback(() => {
+    loadedKey.current = null; // Reset the loaded key
+    setInternalRefreshKey((k) => k + 1);
+  }, []);
 
   const loadMore = useCallback(async () => {
     if (!hasMore || !contractAddress || isLoadingMore) return;
@@ -170,6 +187,7 @@ export function useSupporters({
     error,
     hasMore,
     loadMore,
+    refresh,
     cached,
   };
 }
