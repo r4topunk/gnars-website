@@ -131,76 +131,74 @@ export function SplitRecipientsSection({
         )}
       </div>
 
-          {/* Recipients List */}
-          <div className="space-y-3">
-            {recipients.map((recipient, index) => (
-              <div key={index} className="flex items-end gap-3">
-                <div className="flex-1">
-                  <Label
-                    htmlFor={`recipient-address-${index}`}
-                    className="text-xs text-muted-foreground"
-                  >
-                    Address or ENS
-                  </Label>
-                  <Input
-                    id={`recipient-address-${index}`}
-                    placeholder="0x... or name.eth"
-                    value={recipient.address}
-                    onChange={(e) => updateRecipientAddress(index, e.target.value)}
-                    className="font-mono text-sm mt-1.5"
-                  />
-                </div>
+      {/* Recipients List */}
+      <div className="space-y-3">
+        {recipients.map((recipient, index) => (
+          <div key={index} className="flex items-end gap-3">
+            <div className="flex-1">
+              <Label
+                htmlFor={`recipient-address-${index}`}
+                className="text-xs text-muted-foreground"
+              >
+                Address or ENS
+              </Label>
+              <Input
+                id={`recipient-address-${index}`}
+                placeholder="0x... or name.eth"
+                value={recipient.address}
+                onChange={(e) => updateRecipientAddress(index, e.target.value)}
+                className="font-mono text-sm mt-1.5"
+              />
+            </div>
 
-                <div className="w-32">
-                  <Label
-                    htmlFor={`recipient-percent-${index}`}
-                    className="text-xs text-muted-foreground"
-                  >
-                    Allocation %
-                  </Label>
-                  <Input
-                    id={`recipient-percent-${index}`}
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={recipient.percentAllocation}
-                    onChange={(e) =>
-                      updateRecipientPercentage(index, parseFloat(e.target.value) || 0)
-                    }
-                    className="text-sm text-right font-semibold mt-1.5"
-                  />
-                </div>
+            <div className="w-32">
+              <Label
+                htmlFor={`recipient-percent-${index}`}
+                className="text-xs text-muted-foreground"
+              >
+                Allocation %
+              </Label>
+              <Input
+                id={`recipient-percent-${index}`}
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                value={recipient.percentAllocation}
+                onChange={(e) => updateRecipientPercentage(index, parseFloat(e.target.value) || 0)}
+                className="text-sm text-right font-semibold mt-1.5"
+              />
+            </div>
 
-                {recipients.length > 2 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeRecipient(index)}
-                    className="h-10 w-10 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
+            {recipients.length > 2 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeRecipient(index)}
+                className="h-10 w-10 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
+        ))}
+      </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={addRecipient}
-              disabled={recipients.length >= 100}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Recipient
-            </Button>
-            <Button variant="outline" size="sm" onClick={distributeEvenly}>
-              Distribute Evenly
-            </Button>
-          </div>
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={addRecipient}
+          disabled={recipients.length >= 100}
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Add Recipient
+        </Button>
+        <Button variant="outline" size="sm" onClick={distributeEvenly}>
+          Distribute Evenly
+        </Button>
+      </div>
     </div>
   );
 }
