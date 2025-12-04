@@ -6,6 +6,7 @@ import { DroposalDetailsCard } from "@/components/droposals/detail/DroposalDetai
 import { DroposalHeader } from "@/components/droposals/detail/DroposalHeader";
 import { DroposalMedia } from "@/components/droposals/detail/DroposalMedia";
 import { DroposalMetadata } from "@/components/droposals/detail/DroposalMetadata";
+import { DroposalMintProvider } from "@/components/droposals/detail/DroposalMintContext";
 import { DroposalSupporters } from "@/components/droposals/detail/DroposalSupporters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -176,43 +177,45 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
         />
         <Separator />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <DroposalMedia
-              mediaAnimation={mediaAnimation}
-              mediaImage={mediaImage}
-              alt={decoded?.name || p.title || "Droposal media"}
-            />
-            <DroposalSupporters
-              tokenAddress={tokenAddress as `0x${string}` | null}
-              totalSupply={decoded?.editionSize?.toString() ?? null}
-            />
-            <DroposalMetadata rows={decoded ? formatDroposalForTable(decoded) : []} />
-          </div>
+        <DroposalMintProvider>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <DroposalMedia
+                mediaAnimation={mediaAnimation}
+                mediaImage={mediaImage}
+                alt={decoded?.name || p.title || "Droposal media"}
+              />
+              <DroposalSupporters
+                tokenAddress={tokenAddress as `0x${string}` | null}
+                totalSupply={decoded?.editionSize?.toString() ?? null}
+              />
+              <DroposalMetadata rows={decoded ? formatDroposalForTable(decoded) : []} />
+            </div>
 
-          <div className="space-y-6 h-fit">
-            <DroposalActionBox
-              priceEth={priceEth}
-              saleActive={saleActive}
-              saleNotStarted={Boolean(saleNotStarted)}
-              saleEnded={Boolean(saleEnded)}
-              saleStart={saleStart || undefined}
-              saleEnd={saleEnd || undefined}
-              hasDecoded={Boolean(decoded)}
-              tokenAddress={tokenAddress as `0x${string}` | undefined}
-            />
-            <DroposalDetailsCard
-              name={decoded?.name}
-              title={p.title}
-              description={decoded?.collectionDescription}
-            />
-            <DroposalAddresses
-              fundsRecipient={decoded?.fundsRecipient}
-              defaultAdmin={decoded?.defaultAdmin}
-              tokenAddress={tokenAddress}
-            />
+            <div className="space-y-6 h-fit">
+              <DroposalActionBox
+                priceEth={priceEth}
+                saleActive={saleActive}
+                saleNotStarted={Boolean(saleNotStarted)}
+                saleEnded={Boolean(saleEnded)}
+                saleStart={saleStart || undefined}
+                saleEnd={saleEnd || undefined}
+                hasDecoded={Boolean(decoded)}
+                tokenAddress={tokenAddress as `0x${string}` | undefined}
+              />
+              <DroposalDetailsCard
+                name={decoded?.name}
+                title={p.title}
+                description={decoded?.collectionDescription}
+              />
+              <DroposalAddresses
+                fundsRecipient={decoded?.fundsRecipient}
+                defaultAdmin={decoded?.defaultAdmin}
+                tokenAddress={tokenAddress}
+              />
+            </div>
           </div>
-        </div>
+        </DroposalMintProvider>
       </div>
   );
 }

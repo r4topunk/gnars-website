@@ -17,6 +17,9 @@ import { GNARS_ADDRESSES } from "@/lib/config";
 // Treasury receives referral rewards
 const MINT_REFERRAL = GNARS_ADDRESSES.treasury as `0x${string}`;
 
+// Toast ID for managing loading states
+const MINT_TOAST_ID = "mint-transaction";
+
 export interface UseMintDroposalArgs {
   tokenAddress: `0x${string}` | undefined;
   priceEth: string;
@@ -24,13 +27,16 @@ export interface UseMintDroposalArgs {
   onError?: (error: Error) => void;
 }
 
+// Mint status for UI feedback
+export type MintStatus = "idle" | "confirming-wallet" | "pending-tx" | "success" | "error";
+
 export function useMintDroposal({
   tokenAddress,
   priceEth,
   onSuccess,
   onError,
 }: UseMintDroposalArgs) {
-  const [isPending, setIsPending] = useState(false);
+  const [mintStatus, setMintStatus] = useState<MintStatus>("idle");
   const { address, isConnected, chain } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const successHandledRef = useRef<string | null>(null);
@@ -56,12 +62,12 @@ export function useMintDroposal({
     args: [address!, 1n, "", MINT_REFERRAL],
     value: simulationPrice,
     query: {
-      enabled: isReady && !isPending && Boolean(address),
+      enabled: isReady && mintStatus === "idle" && Boolean(address),
     },
     chainId: base.id,
   });
 
-  const { writeContractAsync, data: pendingHash } = useWriteContract();
+  const { writeContractAsync, data: pendingHash, reset: resetWrite } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash: pendingHash,
@@ -74,19 +80,32 @@ export function useMintDroposal({
   useEffect(() => {
     if (isSuccess && pendingHash && successHandledRef.current !== pendingHash) {
       successHandledRef.current = pendingHash;
+      setMintStatus("success");
+
+      // Dismiss loading toast and show success
       toast.success("Successfully minted!", {
+        id: MINT_TOAST_ID,
         description: `Transaction: ${pendingHash.slice(0, 10)}…${pendingHash.slice(-4)}`,
+        duration: 5000,
       });
-      setIsPending(false);
+
       onSuccess?.(pendingHash);
+
+      // Reset to idle after showing success briefly
+      setTimeout(() => {
+        setMintStatus("idle");
+        resetWrite();
+      }, 3000);
     }
-  }, [isSuccess, pendingHash, onSuccess]);
+  }, [isSuccess, pendingHash, onSuccess, resetWrite]);
 
   const mint = useCallback(
     async (quantity: number = 1, comment?: string) => {
       if (!isReady || !tokenAddress || !address) {
         toast.error("Unable to mint", {
-          description: "Connect wallet and ensure the sale is active.",
+          description: isConnected
+            ? "Sale is not available."
+            : "Please connect your wallet first.",
         });
         return;
       }
@@ -94,14 +113,18 @@ export function useMintDroposal({
       try {
         // Check if on correct network, switch if needed
         if (chain?.id !== base.id) {
-          toast.info("Switching to Base network...");
+          toast.info("Switching to Base network...", { id: MINT_TOAST_ID });
           await switchChainAsync({ chainId: base.id });
         }
 
-        setIsPending(true);
-        toast.loading("Preparing mint transaction...");
+        // Phase 1: Waiting for wallet confirmation
+        setMintStatus("confirming-wallet");
+        toast.loading("Confirm in your wallet...", {
+          id: MINT_TOAST_ID,
+          description: "Please approve the transaction in your wallet.",
+        });
 
-        // Calculate total price with protocol reward (inline to avoid stale closure)
+        // Calculate total price with protocol reward
         const salePrice = parseFloat(priceEth) * quantity;
         const protocolReward = ZORA_PROTOCOL_REWARD * quantity;
         const totalPrice = parseEther((salePrice + protocolReward).toFixed(18));
@@ -122,16 +145,24 @@ export function useMintDroposal({
           chainId: base.id,
         });
 
-        toast.loading("Waiting for confirmation...", {
-          description: `Transaction: ${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
+        // Phase 2: Transaction submitted, waiting for confirmation
+        setMintStatus("pending-tx");
+        toast.loading("Transaction submitted!", {
+          id: MINT_TOAST_ID,
+          description: `Waiting for confirmation... ${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
         });
       } catch (err: unknown) {
-        setIsPending(false);
+        setMintStatus("error");
         const error = err instanceof Error ? err : new Error("Mint failed");
         const message = error.message;
 
+        // Dismiss loading toast first
+        toast.dismiss(MINT_TOAST_ID);
+
         if (message.includes("rejected") || message.includes("denied")) {
-          toast.error("Transaction cancelled");
+          toast.error("Transaction cancelled", {
+            description: "You rejected the transaction in your wallet.",
+          });
         } else if (message.includes("insufficient funds")) {
           toast.error("Insufficient funds", {
             description: "You don't have enough ETH to complete this purchase.",
@@ -154,6 +185,11 @@ export function useMintDroposal({
         }
 
         onError?.(error);
+
+        // Reset to idle after error
+        setTimeout(() => {
+          setMintStatus("idle");
+        }, 100);
       }
     },
     [
@@ -162,18 +198,23 @@ export function useMintDroposal({
       tokenAddress,
       address,
       isReady,
+      isConnected,
       priceEth,
       onError,
       writeContractAsync,
     ],
   );
 
+  // Derive isPending from status for backwards compatibility
+  const isPending = mintStatus === "confirming-wallet" || mintStatus === "pending-tx" || isConfirming;
+
   return {
     isConnected,
     address,
     isReady,
-    isPending: isPending || isConfirming,
-    isSuccess,
+    isPending,
+    isSuccess: mintStatus === "success",
+    mintStatus,
     simulateError,
     mint,
   };

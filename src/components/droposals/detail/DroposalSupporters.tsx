@@ -11,14 +11,15 @@ import { AddressDisplay, AddressDisplaySkeleton } from "@/components/ui/address-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSupporters } from "@/hooks/use-supporters";
+import { useDroposalMint } from "./DroposalMintContext";
 
 export interface DroposalSupportersProps {
   tokenAddress?: `0x${string}` | null;
   totalSupply?: string | null; // string coming from decoded params
-  refreshKey?: number; // increment to force refresh after mint
 }
 
-export function DroposalSupporters({ tokenAddress, totalSupply, refreshKey = 0 }: DroposalSupportersProps) {
+export function DroposalSupporters({ tokenAddress, totalSupply }: DroposalSupportersProps) {
+  const { refreshKey } = useDroposalMint();
   const totalSupplyBigInt = totalSupply ? BigInt(totalSupply) : null;
   const { visibleSupporters, isLoading, error, refresh, cached } = useSupporters({
     contractAddress: tokenAddress ?? null,

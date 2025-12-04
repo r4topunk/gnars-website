@@ -5,7 +5,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Check, Loader2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMintDroposal } from "@/hooks/useMintDroposal";
 import { ZORA_PROTOCOL_REWARD } from "@/utils/abis/zoraNftMintAbi";
+import { useDroposalMint } from "./DroposalMintContext";
 
 export interface DroposalActionBoxProps {
   priceEth: string;
@@ -37,12 +38,18 @@ export function DroposalActionBox({
 }: DroposalActionBoxProps) {
   const [quantity, setQuantity] = useState(1);
   const [comment, setComment] = useState("");
+  const { triggerRefresh } = useDroposalMint();
 
-  const { mint, isPending, isReady, isConnected } = useMintDroposal({
+  const { mint, isPending, isReady, isConnected, mintStatus } = useMintDroposal({
     tokenAddress,
     priceEth,
     onSuccess: (txHash) => {
       console.log("Mint successful:", txHash);
+      // Reset form after successful mint
+      setQuantity(1);
+      setComment("");
+      // Trigger supporters refresh via context
+      triggerRefresh();
     },
     onError: (error) => {
       console.error("Mint failed:", error);
@@ -61,6 +68,44 @@ export function DroposalActionBox({
   const salePrice = parseFloat(priceEth) * quantity;
   const protocolFee = ZORA_PROTOCOL_REWARD * quantity;
   const totalPrice = (salePrice + protocolFee).toFixed(4);
+
+  // Determine button text based on state
+  const getButtonContent = () => {
+    if (!isConnected) {
+      return (
+        <>
+          <Wallet className="mr-2 h-4 w-4" />
+          Connect Wallet
+        </>
+      );
+    }
+
+    switch (mintStatus) {
+      case "confirming-wallet":
+        return (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Confirm in wallet...
+          </>
+        );
+      case "pending-tx":
+        return (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Minting...
+          </>
+        );
+      case "success":
+        return (
+          <>
+            <Check className="mr-2 h-4 w-4" />
+            Minted!
+          </>
+        );
+      default:
+        return `Collect for ${totalPrice} ETH`;
+    }
+  };
 
   // Countdown logic moved to client component
   const formatCountdown = (target: number) => {
@@ -139,19 +184,12 @@ export function DroposalActionBox({
             </div>
 
             {/* Mint Button */}
-            <Button 
+            <Button
               onClick={handleMint}
-              disabled={!saleActive || !isReady || isPending || !isConnected}
-              className="w-full"
+              disabled={!saleActive || !isReady || isPending}
+              className={`w-full ${mintStatus === "success" ? "bg-green-600 hover:bg-green-700" : ""}`}
             >
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Minting...
-                </>
-              ) : (
-                `Collect for ${totalPrice} ETH`
-              )}
+              {getButtonContent()}
             </Button>
           </div>
         ) : (
