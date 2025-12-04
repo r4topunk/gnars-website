@@ -66,7 +66,7 @@ const faqData = [
   },
   {
     question: "Where do I get $GNARS?",
-    answer: "On Zora under the @gnars profile.",
+    answer: "On Zora under the @gnars profile, Uniswap or Gnars website.",
   },
   {
     question: "What is $GNARS vs a Gnar?",
@@ -76,7 +76,7 @@ const faqData = [
   {
     question: "How do I propose something for funding?",
     answer:
-      "Hold a Gnar and submit a proposal through governance; the DAO votes and, if approved, funds it.",
+      "Hold 12 Gnars and submit a proposal through governance; the DAO votes and, if approved, funds it.",
   },
 ];
 
