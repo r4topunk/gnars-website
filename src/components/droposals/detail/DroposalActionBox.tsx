@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMintDroposal } from "@/hooks/useMintDroposal";
+import { ZORA_PROTOCOL_REWARD } from "@/utils/abis/zoraNftMintAbi";
 
 export interface DroposalActionBoxProps {
   priceEth: string;
@@ -38,7 +39,7 @@ export function DroposalActionBox({
   const [comment, setComment] = useState("");
 
   const { mint, isPending, isReady, isConnected } = useMintDroposal({
-    tokenAddress: tokenAddress || "0x",
+    tokenAddress,
     priceEth,
     onSuccess: (txHash) => {
       console.log("Mint successful:", txHash);
@@ -56,7 +57,10 @@ export function DroposalActionBox({
     await mint(quantity, comment);
   };
 
-  const totalPrice = (parseFloat(priceEth) * quantity).toFixed(4);
+  // Calculate total price including protocol reward fee
+  const salePrice = parseFloat(priceEth) * quantity;
+  const protocolFee = ZORA_PROTOCOL_REWARD * quantity;
+  const totalPrice = (salePrice + protocolFee).toFixed(4);
 
   // Countdown logic moved to client component
   const formatCountdown = (target: number) => {
