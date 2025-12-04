@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import type { SplitRecipient } from "@/lib/splits-utils";
 import {
   autoAdjustPercentages,
   calculateRemainingPercentage,
   validateSplitRecipients,
 } from "@/lib/splits-utils";
+import { SplitFlowChart } from "./SplitFlowChart";
 
 interface SplitRecipientsSectionProps {
   recipients: SplitRecipient[];
@@ -57,8 +57,15 @@ export function SplitRecipientsSection({
   };
 
   const updateRecipientPercentage = (index: number, percent: number) => {
+    // Helper to round to 4 decimal places
+    const roundTo4Decimals = (num: number) => Math.round(num * 10000) / 10000;
+
+    // Clamp the input value between 0 and 100
+    const clampedPercent = roundTo4Decimals(Math.max(0, Math.min(100, percent)));
+
     const newRecipients = [...recipients];
-    newRecipients[index] = { ...newRecipients[index], percentAllocation: percent };
+    newRecipients[index] = { ...newRecipients[index], percentAllocation: clampedPercent };
+
     validateAndUpdate(newRecipients);
   };
 
@@ -71,152 +78,148 @@ export function SplitRecipientsSection({
   const remaining = calculateRemainingPercentage(recipients);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Revenue Split Recipients</CardTitle>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h3 className="text-base font-semibold mb-1">Revenue Split Recipients</h3>
         <p className="text-sm text-muted-foreground">
           Configure how NFT sales revenue will be distributed among recipients
         </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Validation Errors */}
-        {errors.length > 0 && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              <ul className="list-disc list-inside space-y-1">
-                {errors.map((error, i) => (
-                  <li key={i}>{error}</li>
-                ))}
-              </ul>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Total Allocation Display */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Total Allocated:</span>
-            <span
-              className={`font-semibold ${
-                Math.abs(totalPercent - 100) < 0.0001
-                  ? "text-green-600"
-                  : totalPercent > 100
-                    ? "text-red-600"
-                    : "text-yellow-600"
-              }`}
-            >
-              {totalPercent.toFixed(4)}%
-            </span>
-          </div>
-          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all ${
-                Math.abs(totalPercent - 100) < 0.0001
-                  ? "bg-green-600"
-                  : totalPercent > 100
-                    ? "bg-red-600"
-                    : "bg-yellow-600"
-              }`}
-              style={{ width: `${Math.min(totalPercent, 100)}%` }}
-            />
-          </div>
-          {remaining > 0 && (
+        <div className="space-y-3">
+          <div>
+            <h4 className="text-sm font-semibold mb-1">Split Visualization</h4>
             <p className="text-xs text-muted-foreground">
-              Remaining to allocate: {remaining.toFixed(4)}%
+              Visual representation of revenue distribution
             </p>
-          )}
+          </div>
+          <div className="border rounded-lg overflow-hidden">
+            <SplitFlowChart recipients={recipients} />
+          </div>
         </div>
+      </div>
 
-        {/* Recipients List */}
-        <div className="space-y-4">
-          {recipients.map((recipient, index) => (
-            <div key={index} className="space-y-3 p-4 border rounded-lg">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold">Recipient {index + 1}</Label>
+      {/* Validation Errors */}
+      {errors.length > 0 && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <ul className="list-disc list-inside space-y-1">
+              {errors.map((error, i) => (
+                <li key={i}>{error}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr,500px] gap-6">
+        {/* Left Column: Recipients Editor */}
+        <div className="space-y-6">
+          {/* Total Allocation Display */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Total Allocated:</span>
+              <span
+                className={`font-semibold ${
+                  Math.abs(totalPercent - 100) < 0.0001
+                    ? "text-green-600"
+                    : totalPercent > 100
+                      ? "text-red-600"
+                      : "text-yellow-600"
+                }`}
+              >
+                {totalPercent.toFixed(2)}%
+              </span>
+            </div>
+            <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all ${
+                  Math.abs(totalPercent - 100) < 0.0001
+                    ? "bg-green-600"
+                    : totalPercent > 100
+                      ? "bg-red-600"
+                      : "bg-yellow-600"
+                }`}
+                style={{ width: `${Math.min(totalPercent, 100)}%` }}
+              />
+            </div>
+            {remaining > 0.01 && (
+              <p className="text-xs text-muted-foreground">Remaining: {remaining.toFixed(2)}%</p>
+            )}
+          </div>
+
+          {/* Recipients List */}
+          <div className="space-y-3">
+            {recipients.map((recipient, index) => (
+              <div key={index} className="flex items-end gap-3">
+                <div className="flex-1">
+                  <Label
+                    htmlFor={`recipient-address-${index}`}
+                    className="text-xs text-muted-foreground"
+                  >
+                    Address or ENS
+                  </Label>
+                  <Input
+                    id={`recipient-address-${index}`}
+                    placeholder="0x... or name.eth"
+                    value={recipient.address}
+                    onChange={(e) => updateRecipientAddress(index, e.target.value)}
+                    className="font-mono text-sm mt-1.5"
+                  />
+                </div>
+
+                <div className="w-32">
+                  <Label
+                    htmlFor={`recipient-percent-${index}`}
+                    className="text-xs text-muted-foreground"
+                  >
+                    Allocation %
+                  </Label>
+                  <Input
+                    id={`recipient-percent-${index}`}
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={recipient.percentAllocation}
+                    onChange={(e) =>
+                      updateRecipientPercentage(index, parseFloat(e.target.value) || 0)
+                    }
+                    className="text-sm text-right font-semibold mt-1.5"
+                  />
+                </div>
+
                 {recipients.length > 2 && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => removeRecipient(index)}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="h-10 w-10 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
               </div>
+            ))}
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor={`recipient-address-${index}`} className="text-xs">
-                  Address
-                </Label>
-                <Input
-                  id={`recipient-address-${index}`}
-                  placeholder="0x... or ENS name"
-                  value={recipient.address}
-                  onChange={(e) => updateRecipientAddress(index, e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor={`recipient-percent-${index}`} className="text-xs">
-                    Allocation
-                  </Label>
-                  <span className="text-sm font-semibold">
-                    {recipient.percentAllocation.toFixed(2)}%
-                  </span>
-                </div>
-                <Slider
-                  id={`recipient-percent-${index}`}
-                  min={0}
-                  max={100}
-                  step={0.01}
-                  value={[recipient.percentAllocation]}
-                  onValueChange={([value]) => updateRecipientPercentage(index, value)}
-                  className="w-full"
-                />
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  value={recipient.percentAllocation}
-                  onChange={(e) =>
-                    updateRecipientPercentage(index, parseFloat(e.target.value) || 0)
-                  }
-                  className="w-24 text-sm"
-                />
-              </div>
-            </div>
-          ))}
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addRecipient}
+              disabled={recipients.length >= 100}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Recipient
+            </Button>
+            <Button variant="outline" size="sm" onClick={distributeEvenly}>
+              Distribute Evenly
+            </Button>
+          </div>
         </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addRecipient}
-            disabled={recipients.length >= 100}
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Add Recipient
-          </Button>
-          <Button variant="outline" size="sm" onClick={distributeEvenly}>
-            Distribute Evenly
-          </Button>
-        </div>
-
-        {/* Info Box */}
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="text-xs">
-            <strong>How it works:</strong> NFT sales revenue goes to the split contract, then gets
-            distributed to all recipients according to these percentages.
-          </AlertDescription>
-        </Alert>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

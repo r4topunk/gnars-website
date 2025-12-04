@@ -147,3 +147,16 @@ export function useENSOptimistic(address?: string | Address): UseENSResult {
     refetch: fetchENS,
   };
 }
+
+/**
+ * Simplified hook for getting ENS name, avatar, and display name
+ */
+export function useEnsNameAndAvatar(address?: string | Address) {
+  const { data } = useENSOptimistic(address);
+  
+  return {
+    ensName: data?.name || null,
+    ensAvatar: data?.avatar || null,
+    displayName: data?.displayName || null,
+  };
+}

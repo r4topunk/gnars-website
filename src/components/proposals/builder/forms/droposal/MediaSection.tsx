@@ -177,6 +177,8 @@ export function MediaSection({ index }: MediaSectionProps) {
       // Reset state
       setShowThumbnailSelector(false);
       setPendingVideoFile(null);
+      setIsUploadingMedia(false);
+      setIsUploadingCover(false);
 
       toast.success("Video and thumbnail uploaded successfully!");
     } catch (error) {
@@ -204,6 +206,8 @@ export function MediaSection({ index }: MediaSectionProps) {
   const handleThumbnailCancel = () => {
     setShowThumbnailSelector(false);
     setPendingVideoFile(null);
+    setIsUploadingMedia(false);
+    setIsUploadingCover(false);
     if (mediaInputRef.current) {
       mediaInputRef.current.value = "";
     }
@@ -280,18 +284,43 @@ export function MediaSection({ index }: MediaSectionProps) {
 
   const removeFile = (type: "media" | "cover") => {
     if (type === "media") {
+      // Clean up blob URL
       if (mediaPreview && mediaPreview.startsWith("blob:")) {
         URL.revokeObjectURL(mediaPreview);
       }
+
+      // Clear all media-related state and form values
       setMediaPreview(null);
-      setValue(`transactions.${index}.mediaUrl` as const, "");
-      setValue(`transactions.${index}.mediaType` as const, undefined);
+      setValue(`transactions.${index}.animationUri` as const, "", { shouldValidate: true });
+      setValue(`transactions.${index}.imageUri` as const, "", { shouldValidate: true });
+      setValue(`transactions.${index}.mediaType` as const, "", { shouldValidate: true });
+
+      // Also clear cover if it was a video thumbnail
+      if (watchedMediaType?.startsWith("video")) {
+        if (coverPreview && coverPreview.startsWith("blob:")) {
+          URL.revokeObjectURL(coverPreview);
+        }
+        setCoverPreview(null);
+        setValue(`transactions.${index}.coverType` as const, "", { shouldValidate: true });
+      }
+
       setMediaError("");
       if (mediaInputRef.current) mediaInputRef.current.value = "";
     } else {
+      // Clean up blob URL
+      if (coverPreview && coverPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(coverPreview);
+      }
+
+      // Clear cover state and form values
       setCoverPreview(null);
-      setValue(`transactions.${index}.coverUrl` as const, "");
-      setValue(`transactions.${index}.coverType` as const, undefined);
+
+      // Only clear imageUri if we don't have media (for images) or if we have a video
+      if (!watchedMediaType?.startsWith("image")) {
+        setValue(`transactions.${index}.imageUri` as const, "", { shouldValidate: true });
+      }
+      setValue(`transactions.${index}.coverType` as const, "", { shouldValidate: true });
+
       if (coverInputRef.current) coverInputRef.current.value = "";
     }
   };
@@ -336,38 +365,69 @@ export function MediaSection({ index }: MediaSectionProps) {
         >
           <div>
             <Label>Media File *</Label>
-            <div className="mt-2">
+            <div className="mt-2 space-y-2">
               {displayMediaUrl ? (
-                watchedMediaType?.startsWith("image") ? (
-                  <Image
-                    src={displayMediaUrl}
-                    alt="Media preview"
-                    width={400}
-                    height={225}
-                    className="w-full aspect-video object-contain bg-gray-100 rounded-lg border"
-                  />
-                ) : watchedMediaType?.startsWith("video") ? (
-                  <video
-                    src={displayMediaUrl}
-                    className="w-full aspect-video object-contain bg-black rounded-lg border"
-                    controls
-                  />
-                ) : watchedMediaType?.startsWith("audio") ? (
-                  <div className="w-full aspect-video bg-muted rounded-lg border flex flex-col items-center justify-center space-y-4">
-                    <div className="text-center">
-                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">Audio File</p>
-                    </div>
-                    <audio controls className="w-3/4">
-                      <source src={displayMediaUrl} type={watchedMediaType} />
-                      Your browser does not support the audio element.
-                    </audio>
+                <>
+                  <div className="relative">
+                    {watchedMediaType?.startsWith("image") ? (
+                      <Image
+                        src={displayMediaUrl}
+                        alt="Media preview"
+                        width={400}
+                        height={225}
+                        className="w-full aspect-video object-contain bg-gray-100 rounded-lg border"
+                      />
+                    ) : watchedMediaType?.startsWith("video") ? (
+                      <video
+                        src={displayMediaUrl}
+                        className="w-full aspect-video object-contain bg-black rounded-lg border"
+                        controls
+                      />
+                    ) : watchedMediaType?.startsWith("audio") ? (
+                      <div className="w-full aspect-video bg-muted rounded-lg border flex flex-col items-center justify-center space-y-4">
+                        <div className="text-center">
+                          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">Audio File</p>
+                        </div>
+                        <audio controls className="w-3/4">
+                          <source src={displayMediaUrl} type={watchedMediaType} />
+                          Your browser does not support the audio element.
+                        </audio>
+                      </div>
+                    ) : (
+                      <div className="w-full h-48 bg-muted rounded-lg border flex items-center justify-center">
+                        <p className="text-muted-foreground">Media uploaded</p>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="w-full h-48 bg-muted rounded-lg border flex items-center justify-center">
-                    <p className="text-muted-foreground">Media uploaded</p>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        mediaInputRef.current?.click();
+                      }}
+                      disabled={isUploadingMedia}
+                    >
+                      Replace
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        removeFile("media");
+                      }}
+                      disabled={isUploadingMedia}
+                    >
+                      <X className="h-4 w-4" />
+                      Remove
+                    </Button>
                   </div>
-                )
+                </>
               ) : (
                 <div
                   className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"

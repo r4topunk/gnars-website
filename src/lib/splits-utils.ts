@@ -196,20 +196,20 @@ export function createDefaultSplitConfig(treasuryAddress: string, userAddress?: 
   const recipients: SplitRecipient[] = [
     {
       address: treasuryAddress,
-      percentAllocation: 50.0,
+      percentAllocation: 80.0,
     },
   ];
 
   if (userAddress && userAddress !== treasuryAddress) {
     recipients.push({
       address: userAddress,
-      percentAllocation: 50.0,
+      percentAllocation: 20.0,
     });
   } else {
     // If no user address, add a placeholder for second recipient
     recipients.push({
       address: "",
-      percentAllocation: 50.0,
+      percentAllocation: 20.0,
     });
   }
 
@@ -235,12 +235,20 @@ export function calculateRemainingPercentage(recipients: SplitRecipient[]): numb
 export function autoAdjustPercentages(recipients: SplitRecipient[]): SplitRecipient[] {
   if (recipients.length === 0) return [];
   
-  const equalShare = 100 / recipients.length;
+  // Helper to round to 4 decimal places
+  const roundTo4Decimals = (num: number) => Math.round(num * 10000) / 10000;
+  
+  // Calculate base share and round it
+  const baseShare = Math.floor((100 / recipients.length) * 10000) / 10000;
+  
+  // Calculate how much we've allocated so far
+  const allocatedToOthers = baseShare * (recipients.length - 1);
+  
+  // Last recipient gets the remainder to ensure exactly 100%
+  const lastShare = roundTo4Decimals(100 - allocatedToOthers);
   
   return recipients.map((recipient, index) => ({
     ...recipient,
-    percentAllocation: index === recipients.length - 1
-      ? 100 - (equalShare * (recipients.length - 1)) // Last recipient gets remainder to avoid rounding errors
-      : Number(equalShare.toFixed(4)),
+    percentAllocation: index === recipients.length - 1 ? lastShare : baseShare,
   }));
 }

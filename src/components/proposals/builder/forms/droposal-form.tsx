@@ -51,7 +51,7 @@ export function DroposalForm({ index }: Props) {
     const currentRecipients = watch(`transactions.${index}.splitRecipients`);
 
     if (!currentRecipients || currentRecipients.length === 0) {
-      const defaultConfig = createDefaultSplitConfig(address || "", GNARS_ADDRESSES.treasury);
+      const defaultConfig = createDefaultSplitConfig(GNARS_ADDRESSES.treasury, address || "");
       setValue(`transactions.${index}.splitRecipients` as const, defaultConfig.recipients);
       setValue(
         `transactions.${index}.splitDistributorFee` as const,
@@ -258,52 +258,6 @@ export function DroposalForm({ index }: Props) {
 
       {/* Media */}
       <MediaSection index={index} />
-
-      {/* IPFS CIDs - Manual Entry */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">IPFS CIDs (Manual Entry)</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="imageUri">Image/Thumbnail IPFS CID</Label>
-            <div className="flex items-center border rounded-md">
-              <span className="px-3 py-2 text-sm text-muted-foreground bg-muted border-r">
-                ipfs://
-              </span>
-              <Input
-                id="imageUri"
-                placeholder="QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                value={displayImageCid}
-                onChange={handleImageCidChange}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Enter IPFS CID without ipfs:// prefix. For images or video thumbnails.
-            </p>
-          </div>
-
-          <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="animationUri">Video/Animation IPFS CID (optional)</Label>
-            <div className="flex items-center border rounded-md">
-              <span className="px-3 py-2 text-sm text-muted-foreground bg-muted border-r">
-                ipfs://
-              </span>
-              <Input
-                id="animationUri"
-                placeholder="QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                value={displayAnimationCid}
-                onChange={handleAnimationCidChange}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Enter IPFS CID for video/animation. Leave empty for image-only drops.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Pricing & Supply */}
       <Card>
