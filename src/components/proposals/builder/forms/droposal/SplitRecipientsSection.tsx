@@ -79,25 +79,6 @@ export function SplitRecipientsSection({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h3 className="text-base font-semibold mb-1">Revenue Split Recipients</h3>
-        <p className="text-sm text-muted-foreground">
-          Configure how NFT sales revenue will be distributed among recipients
-        </p>
-        <div className="space-y-3">
-          <div>
-            <h4 className="text-sm font-semibold mb-1">Split Visualization</h4>
-            <p className="text-xs text-muted-foreground">
-              Visual representation of revenue distribution
-            </p>
-          </div>
-          <div className="border rounded-lg overflow-hidden">
-            <SplitFlowChart recipients={recipients} />
-          </div>
-        </div>
-      </div>
-
       {/* Validation Errors */}
       {errors.length > 0 && (
         <Alert variant="destructive">
@@ -112,41 +93,43 @@ export function SplitRecipientsSection({
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr,500px] gap-6">
-        {/* Left Column: Recipients Editor */}
-        <div className="space-y-6">
-          {/* Total Allocation Display */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Total Allocated:</span>
-              <span
-                className={`font-semibold ${
-                  Math.abs(totalPercent - 100) < 0.0001
-                    ? "text-green-600"
-                    : totalPercent > 100
-                      ? "text-red-600"
-                      : "text-yellow-600"
-                }`}
-              >
-                {totalPercent.toFixed(2)}%
-              </span>
-            </div>
-            <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all ${
-                  Math.abs(totalPercent - 100) < 0.0001
-                    ? "bg-green-600"
-                    : totalPercent > 100
-                      ? "bg-red-600"
-                      : "bg-yellow-600"
-                }`}
-                style={{ width: `${Math.min(totalPercent, 100)}%` }}
-              />
-            </div>
-            {remaining > 0.01 && (
-              <p className="text-xs text-muted-foreground">Remaining: {remaining.toFixed(2)}%</p>
-            )}
-          </div>
+      {/* Split Visualization */}
+      <div className="border rounded-lg overflow-hidden">
+        <SplitFlowChart recipients={recipients} />
+      </div>
+
+      {/* Total Allocation Display */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Total Allocated:</span>
+          <span
+            className={`font-semibold ${
+              Math.abs(totalPercent - 100) < 0.0001
+                ? "text-green-600"
+                : totalPercent > 100
+                  ? "text-red-600"
+                  : "text-yellow-600"
+            }`}
+          >
+            {totalPercent.toFixed(2)}%
+          </span>
+        </div>
+        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all ${
+              Math.abs(totalPercent - 100) < 0.0001
+                ? "bg-green-600"
+                : totalPercent > 100
+                  ? "bg-red-600"
+                  : "bg-yellow-600"
+            }`}
+            style={{ width: `${Math.min(totalPercent, 100)}%` }}
+          />
+        </div>
+        {remaining > 0.01 && (
+          <p className="text-xs text-muted-foreground">Remaining: {remaining.toFixed(2)}%</p>
+        )}
+      </div>
 
           {/* Recipients List */}
           <div className="space-y-3">
@@ -218,8 +201,6 @@ export function SplitRecipientsSection({
               Distribute Evenly
             </Button>
           </div>
-        </div>
-      </div>
     </div>
   );
 }
