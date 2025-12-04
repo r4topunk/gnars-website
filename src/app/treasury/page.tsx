@@ -8,7 +8,7 @@ import {
 import {
   ProposalsPerMonthChart,
   MemberActivityChart,
-  TreasuryAllocationChart,
+  AuctionBidsPerMonthChart,
 } from "@/components/treasury/DashboardCharts";
 import { NftHoldings } from "@/components/treasury/NftHoldings";
 import { TokenHoldings } from "@/components/treasury/TokenHoldings";
@@ -68,7 +68,7 @@ export default function TreasuryPage() {
           {/* Charts */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="lg:col-span-1 min-w-0">
-              <TreasuryAllocationChart />
+              <AuctionBidsPerMonthChart />
             </div>
             <div className="lg:col-span-1 min-w-0">
               <ProposalsPerMonthChart />

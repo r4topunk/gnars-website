@@ -13,7 +13,7 @@ import type { FeedEvent } from "@/lib/types/feed-events";
 import {
   ProposalsPerMonthChart,
   MemberActivityChart,
-  TreasuryAllocationChart,
+  AuctionBidsPerMonthChart,
 } from "@/components/treasury/DashboardCharts";
 import { useRecentAuctions } from "@/hooks/use-auctions";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -109,8 +109,8 @@ export function HomeClientComponents({ proposals, feedEvents }: HomeClientCompon
 
         {/* Analytics Charts Row */}
         <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <AuctionBidsPerMonthChart />
           <ProposalsPerMonthChart />
-          <TreasuryAllocationChart />
           <MemberActivityChart />
         </section>
 

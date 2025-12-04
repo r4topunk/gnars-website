@@ -68,7 +68,7 @@ export function useMemberActivity(limit: number = 12) {
     queryFn: () => fetchRecentProposalsWithVoters(limit),
     select: (data) => {
       return data
-        .slice(0, 6)
+        .slice(0, 12)
         .reverse() // oldest to newest for nicer left-to-right feel
         .map(
           (r): MemberActivityData => ({

@@ -1,6 +1,6 @@
 /**
- * ProposalsPerMonthChart - Proposal activity over time
- * Shows proposal counts per month for the last 12 months using bar chart
+ * AuctionBidsPerMonthChart - Auction bid revenue over time
+ * Shows total ETH bid value per month for the last 12 months using bar chart
  * Accessibility: Full keyboard navigation, screen reader support via recharts
  * Performance: Uses React Query for caching and background updates
  */
@@ -24,27 +24,26 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useProposalsPerMonth } from "@/hooks/use-proposals-per-month";
+import { useAuctionBidsPerMonth } from "@/hooks/use-auction-bids-per-month";
 
 const chartConfig = {
-  count: {
-    label: "Proposals",
+  value: {
+    label: "ETH",
     color: "var(--chart-4)", // Yellow - consistent with other charts
   },
 } satisfies ChartConfig;
 
-export function ProposalsPerMonthChart() {
-  const { data: points = [], isLoading, error } = useProposalsPerMonth(12);
+export function AuctionBidsPerMonthChart() {
+  const { data: points = [], totalValue, isLoading, error } = useAuctionBidsPerMonth(12);
 
-  const totalProposals = points.reduce((sum, p) => sum + p.count, 0);
-  const footerNote = `${totalProposals} proposals over last ${points.length} months`;
+  const footerNote = `${totalValue.toFixed(2)} ETH over last ${points.length} months`;
 
   if (error) {
     return (
       <Card className="flex flex-col">
         <CardHeader>
-          <CardTitle>Proposal Activity</CardTitle>
-          <CardDescription>Unable to load proposal data</CardDescription>
+          <CardTitle>Auction Revenue</CardTitle>
+          <CardDescription>Unable to load auction data</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
           <div className="flex h-[200px] items-center justify-center text-muted-foreground">
@@ -60,8 +59,8 @@ export function ProposalsPerMonthChart() {
       <Card className="flex flex-col">
         <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
           <div className="grid flex-1 gap-1 text-center sm:text-left">
-            <CardTitle>Proposal Activity</CardTitle>
-            <CardDescription>Proposals per month over the last 12 months</CardDescription>
+            <CardTitle>Auction Revenue</CardTitle>
+            <CardDescription>ETH earned from auctions per month</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
@@ -93,8 +92,8 @@ export function ProposalsPerMonthChart() {
     <Card className="flex flex-col overflow-hidden">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Proposal Activity</CardTitle>
-          <CardDescription>Proposals per month over the last 12 months</CardDescription>
+          <CardTitle>Auction Revenue</CardTitle>
+          <CardDescription>ETH earned from auctions per month</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0 overflow-hidden">
@@ -107,13 +106,29 @@ export function ProposalsPerMonthChart() {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tickFormatter={(v) => String(v).slice(0, 3)}
+                tickFormatter={(v) => String(v).split(" ")[0]}
               />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    indicator="dot"
+                    formatter={(value, name) => {
+                      const numValue = Number(value);
+                      return (
+                        <div className="flex w-full items-center justify-between gap-4">
+                          <span className="text-muted-foreground">{name}</span>
+                          <span className="font-mono font-medium">{numValue.toFixed(3)} ETH</span>
+                        </div>
+                      );
+                    }}
+                  />
+                }
+              />
               <Bar
-                dataKey="count"
-                name="Proposals"
-                fill="var(--color-count)"
+                dataKey="value"
+                name="ETH"
+                fill="var(--color-value)"
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>
@@ -135,4 +150,3 @@ export function ProposalsPerMonthChart() {
     </Card>
   );
 }
-
