@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { GnarsTVFeed } from "@/components/tv/GnarsTVFeed";
-import { TV_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import { BASE_URL } from "@/lib/config";
+import { TV_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 
 export const dynamic = "force-dynamic";
 
@@ -94,7 +94,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     // Farcaster Frame metadata + mini app embed with coin thumbnail
     other: {
-      "fc:frame": "vNext",
+      "fc:frame:version": "vNext",
       "fc:frame:image": imageUrl || "",
       "fc:frame:button:1": "Watch on Gnars TV",
       "fc:frame:button:1:action": "link",
