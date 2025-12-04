@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, AlertCircle } from "lucide-react";
+import { AlertCircle, Plus, Trash2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { SplitRecipient } from "@/lib/splits-utils";
 import {
-  validateSplitRecipients,
-  calculateRemainingPercentage,
   autoAdjustPercentages,
+  calculateRemainingPercentage,
+  validateSplitRecipients,
 } from "@/lib/splits-utils";
 
 interface SplitRecipientsSectionProps {
@@ -133,9 +133,7 @@ export function SplitRecipientsSection({
           {recipients.map((recipient, index) => (
             <div key={index} className="space-y-3 p-4 border rounded-lg">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold">
-                  Recipient {index + 1}
-                </Label>
+                <Label className="text-sm font-semibold">Recipient {index + 1}</Label>
                 {recipients.length > 2 && (
                   <Button
                     variant="ghost"
@@ -214,7 +212,8 @@ export function SplitRecipientsSection({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-xs">
-            <strong>How it works:</strong> NFT sales revenue goes to the split contract, then gets distributed to all recipients according to these percentages.
+            <strong>How it works:</strong> NFT sales revenue goes to the split contract, then gets
+            distributed to all recipients according to these percentages.
           </AlertDescription>
         </Alert>
       </CardContent>
