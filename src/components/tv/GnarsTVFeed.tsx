@@ -5,6 +5,7 @@ import Image from "next/image";
 import { getCoin, getProfileCoins, setApiKey, tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
 import { ChevronDown, Share2, Volume2, VolumeX } from "lucide-react";
+import { FaEthereum } from "react-icons/fa";
 import { toast } from "sonner";
 import { parseEther } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
@@ -730,15 +731,15 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                 </button>
               </div>
 
-              <div className="pointer-events-none absolute left-5 right-5 bottom-5 bg-black/80 p-4 rounded-2xl backdrop-blur-lg border border-white/10">
+              <div className="pointer-events-none absolute left-3 right-3 md:left-5 md:right-5 bottom-3 md:bottom-5 bg-black/40 md:bg-black/60 p-2.5 md:p-4 rounded-xl md:rounded-2xl backdrop-blur-md md:backdrop-blur-lg border border-white/5 md:border-white/10">
                 {/* Title and Support Button */}
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <p className="text-lg font-bold flex-1 leading-snug">{item.title}</p>
-                  <div className="flex flex-col items-end gap-1.5">
+                <div className="flex items-start justify-between gap-2 md:gap-4 mb-2 md:mb-3">
+                  <p className="text-base md:text-lg font-bold flex-1 leading-tight md:leading-snug">{item.title}</p>
+                  <div className="flex flex-col items-end gap-1 md:gap-1.5">
                     {item.coinAddress && (
                       <div className="pointer-events-auto relative">
                         {showAmountMenu && (
-                          <div className="absolute right-0 bottom-full mb-3 w-44 rounded-2xl bg-black/90 backdrop-blur-xl shadow-2xl border border-white/20 overflow-hidden z-50">
+                          <div className="absolute right-0 bottom-full mb-2 md:mb-3 w-40 md:w-44 rounded-xl md:rounded-2xl bg-black/95 backdrop-blur-xl shadow-2xl border border-white/20 overflow-hidden z-50">
                             {[
                               { label: "0.00042 ETH", value: "0.00042" },
                               { label: "0.00069 ETH", value: "0.00069" },
@@ -753,43 +754,37 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                                   setSupportAmount(option.value);
                                   setShowAmountMenu(false);
                                 }}
-                                className="w-full px-4 py-2.5 text-left text-sm font-semibold text-white hover:bg-white/15 active:bg-white/25 transition-all border-b border-white/10 last:border-b-0"
+                                className="w-full px-3 md:px-4 py-2 md:py-2.5 text-left text-xs md:text-sm font-semibold text-white hover:bg-white/15 active:bg-white/25 transition-all border-b border-white/10 last:border-b-0"
                               >
                                 {option.label}
                               </button>
                             ))}
                           </div>
                         )}
-                        <div className="flex rounded-full bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 text-black overflow-hidden shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+                        <div className="flex rounded-full bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 text-black overflow-hidden shadow-lg md:shadow-xl hover:shadow-xl md:hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all">
                           <button
                             onClick={() => handleBuyCoin(item.coinAddress!, item.title)}
                             disabled={isBuying || !isConnected}
-                            className="px-5 py-2.5 text-sm font-extrabold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="px-3 md:px-5 py-1.5 md:py-2.5 text-xs md:text-sm font-extrabold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 md:gap-2"
                           >
                             {isBuying ? (
-                              <div className="flex items-center gap-2">
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                              <div className="flex items-center gap-1.5 md:gap-2">
+                                <div className="h-3.5 w-3.5 md:h-4 md:w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
                                 <span>Buying...</span>
                               </div>
                             ) : (
                               <>
                                 <span className="whitespace-nowrap">Buy {supportAmount}</span>
-                                <Image
-                                  src="/gnars.webp"
-                                  alt="Gnars"
-                                  width={18}
-                                  height={18}
-                                  className="rounded-full"
-                                />
+                                <FaEthereum className="w-3.5 h-3.5 md:w-4 md:h-4" />
                               </>
                             )}
                           </button>
                           <button
                             onClick={() => setShowAmountMenu(!showAmountMenu)}
                             disabled={isBuying || !isConnected}
-                            className="px-2.5 border-l border-black/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            className="px-2 md:px-2.5 border-l border-black/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                           >
-                            <ChevronDown className="h-3.5 w-3.5" />
+                            <ChevronDown className="h-3 w-3 md:h-3.5 md:w-3.5" />
                           </button>
                         </div>
                       </div>
@@ -798,18 +793,18 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                     {(item.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" ||
                       item.poolCurrencyTokenAddress ===
                         "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b") && (
-                      <div className="flex gap-1.5">
+                      <div className="flex gap-1 md:gap-1.5">
                         {item.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" && (
-                          <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40">
-                            <span className="text-amber-300 text-[10px] font-extrabold tracking-tight">
+                          <div className="inline-flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full bg-amber-500/20 border border-amber-400/40">
+                            <span className="text-amber-300 text-[9px] md:text-[10px] font-extrabold tracking-tight">
                               ⚡ GNARLY
                             </span>
                           </div>
                         )}
                         {item.poolCurrencyTokenAddress ===
                           "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b" && (
-                          <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40">
-                            <span className="text-amber-300 text-[10px] font-extrabold tracking-tight">
+                          <div className="inline-flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full bg-amber-500/20 border border-amber-400/40">
+                            <span className="text-amber-300 text-[9px] md:text-[10px] font-extrabold tracking-tight">
                               🤘 PAIRED
                             </span>
                           </div>
@@ -820,14 +815,14 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                 </div>
 
                 {/* Creator Info */}
-                <div className="flex items-center gap-2.5 mb-3">
+                <div className="flex items-center gap-2 md:gap-2.5 mb-2 md:mb-3">
                   {item.creatorAvatar ? (
                     <Image
                       src={item.creatorAvatar}
                       alt={item.creatorName || "Creator"}
-                      width={24}
-                      height={24}
-                      className="rounded-full w-6 h-6 object-cover ring-1 ring-white/20"
+                      width={20}
+                      height={20}
+                      className="rounded-full w-5 h-5 md:w-6 md:h-6 object-cover ring-1 ring-white/20"
                       onError={(e) => {
                         console.error("Failed to load creator avatar:", item.creatorAvatar);
                         e.currentTarget.style.display = "none";
@@ -836,33 +831,56 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                     />
                   ) : null}
                   <div
-                    className={`w-6 h-6 rounded-full bg-white/15 flex-shrink-0 ring-1 ring-white/20 ${item.creatorAvatar ? "hidden" : ""}`}
+                    className={`w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/15 flex-shrink-0 ring-1 ring-white/20 ${item.creatorAvatar ? "hidden" : ""}`}
                   />
-                  <p className="text-sm font-medium text-white/80 truncate">
+                  <p className="text-xs md:text-sm font-medium text-white/80 truncate">
                     {item.creatorName || `${item.creator.slice(0, 6)}…${item.creator.slice(-4)}`}
                   </p>
                 </div>
 
                 {/* Market Cap with ATH Progress Bar - Zora style */}
                 {item.marketCap !== undefined && item.allTimeHigh !== undefined && (
-                  <div className="space-y-1.5">
+                  <div className="space-y-1 md:space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[#22c55e] text-sm font-bold">▲</span>
-                        <span className="text-white text-sm font-bold">
+                      <div className="flex items-center gap-1 md:gap-1.5">
+                        <span className="text-[#22c55e] text-xs md:text-sm font-bold">▲</span>
+                        <span className="text-white text-xs md:text-sm font-bold">
                           ${Math.round(item.marketCap).toLocaleString()}
                         </span>
                       </div>
-                      <span className="text-white/60 text-xs font-medium">
+                      <span className="text-white/60 text-[10px] md:text-xs font-medium">
                         ATH ${Math.round(item.allTimeHigh).toLocaleString()}
                       </span>
                     </div>
-                    <div className="relative h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div className="relative h-1.5 md:h-2 bg-white/10 overflow-hidden rounded-sm">
                       <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#22c55e] to-[#16a34a] rounded-full transition-all duration-500"
+                        className={`absolute inset-y-0 left-0 transition-all duration-500 ${
+                          item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+                            ? "bg-[#fbbf24]"
+                            : "bg-[#22c55e]"
+                        } ${
+                          Math.min((item.marketCap / item.allTimeHigh) * 100, 100) >= 95
+                            ? "animate-pulse"
+                            : ""
+                        }`}
                         style={{
                           width: `${Math.min((item.marketCap / item.allTimeHigh) * 100, 100)}%`,
-                          boxShadow: "0 0 16px rgba(34, 197, 94, 0.5)",
+                          filter:
+                            Math.min((item.marketCap / item.allTimeHigh) * 100, 100) >= 95
+                              ? item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+                                ? "drop-shadow(0 0 12px rgba(251, 191, 36, 1)) drop-shadow(0 0 24px rgba(251, 191, 36, 1)) drop-shadow(0 0 36px rgba(251, 191, 36, 0.9)) drop-shadow(0 0 48px rgba(251, 191, 36, 0.7))"
+                                : "drop-shadow(0 0 12px rgba(34, 197, 94, 1)) drop-shadow(0 0 24px rgba(34, 197, 94, 1)) drop-shadow(0 0 36px rgba(34, 197, 94, 0.9)) drop-shadow(0 0 48px rgba(34, 197, 94, 0.7))"
+                              : item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+                                ? "drop-shadow(0 0 4px rgba(251, 191, 36, 0.6))"
+                                : "drop-shadow(0 0 4px rgba(34, 197, 94, 0.6))",
+                          boxShadow:
+                            Math.min((item.marketCap / item.allTimeHigh) * 100, 100) >= 95
+                              ? item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+                                ? "0 0 40px rgba(251, 191, 36, 1), 0 0 80px rgba(251, 191, 36, 1), 0 0 120px rgba(251, 191, 36, 0.8), 0 0 160px rgba(251, 191, 36, 0.6), inset 0 0 20px rgba(251, 191, 36, 0.5)"
+                                : "0 0 40px rgba(34, 197, 94, 1), 0 0 80px rgba(34, 197, 94, 1), 0 0 120px rgba(34, 197, 94, 0.8), 0 0 160px rgba(34, 197, 94, 0.6), inset 0 0 20px rgba(34, 197, 94, 0.5)"
+                              : item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+                                ? "0 0 12px rgba(251, 191, 36, 0.5)"
+                                : "0 0 12px rgba(34, 197, 94, 0.5)",
                         }}
                       />
                     </div>
