@@ -801,13 +801,17 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                       <div className="flex gap-1.5">
                         {item.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" && (
                           <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40">
-                            <span className="text-amber-300 text-[10px] font-extrabold tracking-tight">⚡ GNARLY</span>
+                            <span className="text-amber-300 text-[10px] font-extrabold tracking-tight">
+                              ⚡ GNARLY
+                            </span>
                           </div>
                         )}
                         {item.poolCurrencyTokenAddress ===
                           "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b" && (
                           <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40">
-                            <span className="text-amber-300 text-[10px] font-extrabold tracking-tight">🤘 PAIRED</span>
+                            <span className="text-amber-300 text-[10px] font-extrabold tracking-tight">
+                              🤘 PAIRED
+                            </span>
                           </div>
                         )}
                       </div>
