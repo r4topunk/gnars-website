@@ -2,7 +2,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createServer as createHttpServer } from "node:http";
-import { randomUUID } from "node:crypto";
 
 import { getDatabase, closeDatabase } from "./db/connection.js";
 import { ProposalRepository } from "./db/repository.js";

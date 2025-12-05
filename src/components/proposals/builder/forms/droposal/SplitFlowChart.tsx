@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import Image from "next/image";
 import { useAccount } from "wagmi";
 import { useEnsNameAndAvatar } from "@/hooks/use-ens";
 import { GNARS_ADDRESSES } from "@/lib/config";

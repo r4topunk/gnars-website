@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { getCoin, getProfileCoins, setApiKey, tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
 import { Share2, Volume2, VolumeX } from "lucide-react";
@@ -772,7 +773,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                 {/* Creator Info */}
                 <div className="flex items-center gap-2 mb-2.5">
                   {item.creatorAvatar ? (
-                    <img
+                    <Image
                       src={item.creatorAvatar}
                       alt={item.creatorName || "Creator"}
                       width={20}

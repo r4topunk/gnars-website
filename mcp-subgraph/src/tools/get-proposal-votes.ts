@@ -50,19 +50,6 @@ function supportToString(support: number): "FOR" | "AGAINST" | "ABSTAIN" {
   }
 }
 
-function supportFromString(support: string): 0 | 1 | 2 | undefined {
-  switch (support) {
-    case "AGAINST":
-      return 0;
-    case "FOR":
-      return 1;
-    case "ABSTAIN":
-      return 2;
-    default:
-      return undefined;
-  }
-}
-
 export async function getProposalVotes(
   input: GetProposalVotesInput
 ): Promise<GetProposalVotesOutput | null> {
