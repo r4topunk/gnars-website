@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { getCoin, getProfileCoins, setApiKey, tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
-import { Share2, Volume2, VolumeX } from "lucide-react";
+import { ChevronDown, Share2, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { parseEther } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
@@ -136,6 +136,8 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
   const [isBuying, setIsBuying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
+  const [supportAmount, setSupportAmount] = useState("0.00042");
+  const [showAmountMenu, setShowAmountMenu] = useState(false);
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
@@ -618,7 +620,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
           type: "erc20",
           address: coinAddress as `0x${string}`,
         },
-        amountIn: parseEther("0.00069"),
+        amountIn: parseEther(supportAmount),
         slippage: 0.05,
         sender: address,
       };
@@ -654,15 +656,15 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
 
   return (
     <div className="fixed inset-0 z-40 bg-black text-white">
-      <div className="absolute left-0 right-0 top-0 z-50 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
-        <div className="text-sm font-semibold pointer-events-auto">Gnar TV</div>
+      <div className="absolute left-0 right-0 top-0 z-50 flex items-center justify-between px-5 py-4 bg-gradient-to-b from-black/70 to-transparent pointer-events-none">
+        <div className="text-base font-bold pointer-events-auto tracking-tight">Gnar TV</div>
         <Button
           onClick={toggleMute}
           size="icon"
           variant="secondary"
-          className="pointer-events-auto bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
+          className="pointer-events-auto bg-black/40 text-white hover:bg-black/60 backdrop-blur-md border border-white/10 rounded-full"
         >
-          {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
         </Button>
       </div>
       <div
@@ -696,73 +698,116 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
               />
 
               {/* Play/Pause and Mute controls */}
-              <div className="absolute top-20 right-4 flex flex-col gap-2 z-30">
+              <div className="absolute top-24 right-5 flex flex-col gap-3 z-30">
                 <button
                   onClick={togglePlayPause}
-                  className="pointer-events-auto w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all"
+                  className="pointer-events-auto w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/60 hover:scale-105 active:scale-95 transition-all"
                   aria-label={isPaused ? "Play" : "Pause"}
                 >
                   {isPaused ? (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
                     </svg>
                   ) : (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
                     </svg>
                   )}
                 </button>
                 <button
                   onClick={toggleMute}
-                  className="pointer-events-auto w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all"
+                  className="pointer-events-auto w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/60 hover:scale-105 active:scale-95 transition-all"
                   aria-label={isMuted ? "Unmute" : "Mute"}
                 >
-                  {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                  {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={handleShare}
-                  className="pointer-events-auto w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all"
+                  className="pointer-events-auto w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/60 hover:scale-105 active:scale-95 transition-all"
                   aria-label="Share"
                 >
-                  <Share2 className="w-5 h-5" />
+                  <Share2 className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="pointer-events-none absolute left-4 right-4 bottom-4 bg-black/90 p-3 rounded-xl backdrop-blur-md">
+              <div className="pointer-events-none absolute left-5 right-5 bottom-5 bg-black/80 p-4 rounded-2xl backdrop-blur-lg border border-white/10">
                 {/* Title and Support Button */}
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <p className="text-base font-semibold flex-1 leading-tight">{item.title}</p>
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <p className="text-lg font-bold flex-1 leading-snug">{item.title}</p>
                   <div className="flex flex-col items-end gap-1.5">
                     {item.coinAddress && (
-                      <button
-                        onClick={() => handleBuyCoin(item.coinAddress!, item.title)}
-                        disabled={isBuying || !isConnected}
-                        className="pointer-events-auto px-5 py-2 rounded-full bg-white text-black text-sm font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isBuying ? (
-                          <div className="flex items-center gap-2">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
-                            <span>Buying...</span>
+                      <div className="pointer-events-auto relative">
+                        {showAmountMenu && (
+                          <div className="absolute right-0 bottom-full mb-3 w-44 rounded-2xl bg-black/90 backdrop-blur-xl shadow-2xl border border-white/20 overflow-hidden z-50">
+                            {[
+                              { label: "0.00042 ETH", value: "0.00042" },
+                              { label: "0.00069 ETH", value: "0.00069" },
+                              { label: "0.001 ETH", value: "0.001" },
+                              { label: "0.005 ETH", value: "0.005" },
+                              { label: "0.01 ETH", value: "0.01" },
+                              { label: "0.05 ETH", value: "0.05" },
+                            ].map((option) => (
+                              <button
+                                key={option.value}
+                                onClick={() => {
+                                  setSupportAmount(option.value);
+                                  setShowAmountMenu(false);
+                                }}
+                                className="w-full px-4 py-2.5 text-left text-sm font-semibold text-white hover:bg-white/15 active:bg-white/25 transition-all border-b border-white/10 last:border-b-0"
+                              >
+                                {option.label}
+                              </button>
+                            ))}
                           </div>
-                        ) : (
-                          "Support"
                         )}
-                      </button>
+                        <div className="flex rounded-full bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 text-black overflow-hidden shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+                          <button
+                            onClick={() => handleBuyCoin(item.coinAddress!, item.title)}
+                            disabled={isBuying || !isConnected}
+                            className="px-5 py-2.5 text-sm font-extrabold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          >
+                            {isBuying ? (
+                              <div className="flex items-center gap-2">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                                <span>Buying...</span>
+                              </div>
+                            ) : (
+                              <>
+                                <span className="whitespace-nowrap">Buy {supportAmount}</span>
+                                <Image
+                                  src="/gnars.webp"
+                                  alt="Gnars"
+                                  width={18}
+                                  height={18}
+                                  className="rounded-full"
+                                />
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setShowAmountMenu(!showAmountMenu)}
+                            disabled={isBuying || !isConnected}
+                            className="px-2.5 border-l border-black/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                          >
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
                     )}
                     {/* Special Badges below button */}
                     {(item.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" ||
                       item.poolCurrencyTokenAddress ===
                         "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b") && (
-                      <div className="flex gap-1">
+                      <div className="flex gap-1.5">
                         {item.platformReferrer === "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" && (
-                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50">
-                            <span className="text-amber-400 text-[9px] font-bold">⚡ GNARLY</span>
+                          <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40">
+                            <span className="text-amber-300 text-[10px] font-extrabold tracking-tight">⚡ GNARLY</span>
                           </div>
                         )}
                         {item.poolCurrencyTokenAddress ===
                           "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b" && (
-                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50">
-                            <span className="text-amber-400 text-[9px] font-bold">🤘 PAIRED</span>
+                          <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40">
+                            <span className="text-amber-300 text-[10px] font-extrabold tracking-tight">🤘 PAIRED</span>
                           </div>
                         )}
                       </div>
@@ -771,14 +816,14 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                 </div>
 
                 {/* Creator Info */}
-                <div className="flex items-center gap-2 mb-2.5">
+                <div className="flex items-center gap-2.5 mb-3">
                   {item.creatorAvatar ? (
                     <Image
                       src={item.creatorAvatar}
                       alt={item.creatorName || "Creator"}
-                      width={20}
-                      height={20}
-                      className="rounded-full w-5 h-5 object-cover"
+                      width={24}
+                      height={24}
+                      className="rounded-full w-6 h-6 object-cover ring-1 ring-white/20"
                       onError={(e) => {
                         console.error("Failed to load creator avatar:", item.creatorAvatar);
                         e.currentTarget.style.display = "none";
@@ -787,33 +832,33 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                     />
                   ) : null}
                   <div
-                    className={`w-5 h-5 rounded-full bg-white/20 flex-shrink-0 ${item.creatorAvatar ? "hidden" : ""}`}
+                    className={`w-6 h-6 rounded-full bg-white/15 flex-shrink-0 ring-1 ring-white/20 ${item.creatorAvatar ? "hidden" : ""}`}
                   />
-                  <p className="text-xs text-white/70 truncate">
+                  <p className="text-sm font-medium text-white/80 truncate">
                     {item.creatorName || `${item.creator.slice(0, 6)}…${item.creator.slice(-4)}`}
                   </p>
                 </div>
 
                 {/* Market Cap with ATH Progress Bar - Zora style */}
                 {item.marketCap !== undefined && item.allTimeHigh !== undefined && (
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <span className="text-[#22c55e] text-xs">▲</span>
-                        <span className="text-white text-xs font-semibold">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[#22c55e] text-sm font-bold">▲</span>
+                        <span className="text-white text-sm font-bold">
                           ${Math.round(item.marketCap).toLocaleString()}
                         </span>
                       </div>
-                      <span className="text-white/50 text-xs">
+                      <span className="text-white/60 text-xs font-medium">
                         ATH ${Math.round(item.allTimeHigh).toLocaleString()}
                       </span>
                     </div>
-                    <div className="relative h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="relative h-2 bg-white/10 rounded-full overflow-hidden">
                       <div
                         className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#22c55e] to-[#16a34a] rounded-full transition-all duration-500"
                         style={{
                           width: `${Math.min((item.marketCap / item.allTimeHigh) * 100, 100)}%`,
-                          boxShadow: "0 0 12px rgba(34, 197, 94, 0.6)",
+                          boxShadow: "0 0 16px rgba(34, 197, 94, 0.5)",
                         }}
                       />
                     </div>
