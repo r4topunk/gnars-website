@@ -734,7 +734,9 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
               <div className="pointer-events-none absolute left-3 right-3 md:left-5 md:right-5 bottom-3 md:bottom-5 bg-black/40 md:bg-black/60 p-2.5 md:p-4 rounded-xl md:rounded-2xl backdrop-blur-md md:backdrop-blur-lg border border-white/5 md:border-white/10">
                 {/* Title and Support Button */}
                 <div className="flex items-start justify-between gap-2 md:gap-4 mb-2 md:mb-3">
-                  <p className="text-base md:text-lg font-bold flex-1 leading-tight md:leading-snug">{item.title}</p>
+                  <p className="text-base md:text-lg font-bold flex-1 leading-tight md:leading-snug">
+                    {item.title}
+                  </p>
                   <div className="flex flex-col items-end gap-1 md:gap-1.5">
                     {item.coinAddress && (
                       <div className="pointer-events-auto relative">
@@ -855,7 +857,8 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                     <div className="relative h-1.5 md:h-2 bg-white/10 overflow-hidden rounded-sm">
                       <div
                         className={`absolute inset-y-0 left-0 transition-all duration-500 ${
-                          item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+                          item.poolCurrencyTokenAddress ===
+                          "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
                             ? "bg-[#fbbf24]"
                             : "bg-[#22c55e]"
                         } ${
@@ -867,18 +870,22 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                           width: `${Math.min((item.marketCap / item.allTimeHigh) * 100, 100)}%`,
                           filter:
                             Math.min((item.marketCap / item.allTimeHigh) * 100, 100) >= 95
-                              ? item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+                              ? item.poolCurrencyTokenAddress ===
+                                "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
                                 ? "drop-shadow(0 0 12px rgba(251, 191, 36, 1)) drop-shadow(0 0 24px rgba(251, 191, 36, 1)) drop-shadow(0 0 36px rgba(251, 191, 36, 0.9)) drop-shadow(0 0 48px rgba(251, 191, 36, 0.7))"
                                 : "drop-shadow(0 0 12px rgba(34, 197, 94, 1)) drop-shadow(0 0 24px rgba(34, 197, 94, 1)) drop-shadow(0 0 36px rgba(34, 197, 94, 0.9)) drop-shadow(0 0 48px rgba(34, 197, 94, 0.7))"
-                              : item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+                              : item.poolCurrencyTokenAddress ===
+                                  "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
                                 ? "drop-shadow(0 0 4px rgba(251, 191, 36, 0.6))"
                                 : "drop-shadow(0 0 4px rgba(34, 197, 94, 0.6))",
                           boxShadow:
                             Math.min((item.marketCap / item.allTimeHigh) * 100, 100) >= 95
-                              ? item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+                              ? item.poolCurrencyTokenAddress ===
+                                "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
                                 ? "0 0 40px rgba(251, 191, 36, 1), 0 0 80px rgba(251, 191, 36, 1), 0 0 120px rgba(251, 191, 36, 0.8), 0 0 160px rgba(251, 191, 36, 0.6), inset 0 0 20px rgba(251, 191, 36, 0.5)"
                                 : "0 0 40px rgba(34, 197, 94, 1), 0 0 80px rgba(34, 197, 94, 1), 0 0 120px rgba(34, 197, 94, 0.8), 0 0 160px rgba(34, 197, 94, 0.6), inset 0 0 20px rgba(34, 197, 94, 0.5)"
-                              : item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+                              : item.poolCurrencyTokenAddress ===
+                                  "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
                                 ? "0 0 12px rgba(251, 191, 36, 0.5)"
                                 : "0 0 12px rgba(34, 197, 94, 0.5)",
                         }}
