@@ -27,7 +27,9 @@ type MinimalSdkProposal = {
 };
 
 async function fetchRecentProposalsWithVoters(limit: number): Promise<ProposalWithVotes[]> {
-  const { proposals } = await getProposals(CHAIN.id, GNARS_ADDRESSES.token, limit);
+  // Fetch extra proposals to account for cancelled ones being filtered out
+  const fetchLimit = Math.ceil(limit * 1.5);
+  const { proposals } = await getProposals(CHAIN.id, GNARS_ADDRESSES.token, fetchLimit);
   const list = (proposals as MinimalSdkProposal[] | undefined) ?? [];
 
   return list
