@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { FaEthereum } from "react-icons/fa";
 import type { TVItem } from "./types";
-import { isGnarly, isGnarsPaired, isDroposal } from "./utils";
+import { isDroposal, isGnarly, isGnarsPaired } from "./utils";
 
 interface TVVideoCardProps {
   item: TVItem;
@@ -303,15 +303,19 @@ interface DroposalPriceInfoProps {
   isFree: boolean;
 }
 
-function DroposalPriceInfo({ priceEth, quantity, totalPrice, editionSize, isFree }: DroposalPriceInfoProps) {
+function DroposalPriceInfo({
+  priceEth,
+  quantity,
+  totalPrice,
+  editionSize,
+  isFree,
+}: DroposalPriceInfoProps) {
   return (
     <div className="space-y-1 md:space-y-1.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 md:gap-2">
           {isFree ? (
-            <span className="text-indigo-300 text-xs md:text-sm font-bold">
-              Free Mint
-            </span>
+            <span className="text-indigo-300 text-xs md:text-sm font-bold">Free Mint</span>
           ) : (
             <>
               <span className="text-indigo-300 text-xs md:text-sm font-bold">

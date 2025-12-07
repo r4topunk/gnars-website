@@ -263,25 +263,22 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   );
 
   // Mint droposal handler - opens droposal page for full minting experience
-  const handleMintDroposal = useCallback(
-    (item: TVItem, quantity: number) => {
-      if (!item.proposalNumber) {
-        toast.error("Unable to find droposal details");
-        return;
-      }
+  const handleMintDroposal = useCallback((item: TVItem, quantity: number) => {
+    if (!item.proposalNumber) {
+      toast.error("Unable to find droposal details");
+      return;
+    }
 
-      // Open droposal detail page in new tab for full mint experience
-      // This leverages existing infrastructure and allows user to see full details
-      const url = `/droposals/${item.proposalNumber}`;
-      
-      toast.info(`Opening droposal #${item.proposalNumber}...`, {
-        description: `Mint ${quantity} NFT${quantity > 1 ? "s" : ""} on the detail page`,
-      });
-      
-      window.open(url, "_blank");
-    },
-    [],
-  );
+    // Open droposal detail page in new tab for full mint experience
+    // This leverages existing infrastructure and allows user to see full details
+    const url = `/droposals/${item.proposalNumber}`;
+
+    toast.info(`Opening droposal #${item.proposalNumber}...`, {
+      description: `Mint ${quantity} NFT${quantity > 1 ? "s" : ""} on the detail page`,
+    });
+
+    window.open(url, "_blank");
+  }, []);
 
   return (
     <div className="fixed inset-0 z-40 bg-black text-white">
