@@ -4,7 +4,7 @@ import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { FaEthereum } from "react-icons/fa";
 import type { TVItem } from "./types";
-import { isGnarsPaired, isGnarly } from "./utils";
+import { isGnarly, isGnarsPaired } from "./utils";
 
 interface TVVideoCardProps {
   item: TVItem;
@@ -164,9 +164,7 @@ function MarketCapProgress({ marketCap, allTimeHigh, isPaired }: MarketCapProgre
   const isNearATH = percentage >= 95;
 
   const barColor = isPaired ? "bg-[#fbbf24]" : "bg-[#22c55e]";
-  const glowColor = isPaired
-    ? "rgba(251, 191, 36, 1)"
-    : "rgba(34, 197, 94, 1)";
+  const glowColor = isPaired ? "rgba(251, 191, 36, 1)" : "rgba(34, 197, 94, 1)";
 
   return (
     <div className="space-y-1 md:space-y-1.5">

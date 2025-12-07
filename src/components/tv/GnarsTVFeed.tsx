@@ -7,11 +7,11 @@ import { toast } from "sonner";
 import { parseEther } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { useMiniApp } from "@/components/miniapp/MiniAppProvider";
-import { TVHeader } from "./TVHeader";
 import { TVControls } from "./TVControls";
+import { TVHeader } from "./TVHeader";
+import { TVEmptyState, TVEndOfFeed, TVLoadingMore } from "./TVLoadingStates";
 import { TVVideoCardInfo } from "./TVVideoCardInfo";
-import { TVEmptyState, TVLoadingMore, TVEndOfFeed } from "./TVLoadingStates";
-import { useTVFeed, usePreloadTrigger } from "./useTVFeed";
+import { usePreloadTrigger, useTVFeed } from "./useTVFeed";
 
 interface GnarsTVFeedProps {
   priorityCoinAddress?: string;
@@ -49,14 +49,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   const videoItems = useMemo(() => items.filter((i) => i.videoUrl), [items]);
 
   // Trigger preload when near end
-  usePreloadTrigger(
-    activeIndex,
-    videoItems.length,
-    hasMoreContent,
-    loadingMore,
-    loading,
-    loadMore,
-  );
+  usePreloadTrigger(activeIndex, videoItems.length, hasMoreContent, loadingMore, loading, loadMore);
 
   // Reset index when items change
   useEffect(() => {
