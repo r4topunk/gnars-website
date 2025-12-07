@@ -520,7 +520,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
   const handleVideoEnd = () => {
     if (!videoItems.length) return;
     const nextIndex = (activeIndex + 1) % videoItems.length;
-    
+
     // In autoplay/fullscreen mode, always advance to next video
     if (isAutoplayMode) {
       setPlayCount(0);
@@ -533,7 +533,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
       }
       return;
     }
-    
+
     // Normal mode: play twice before advancing
     if (playCount + 1 >= 2) {
       setPlayCount(0);
