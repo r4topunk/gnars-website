@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { getCoin, getProfileCoins, setApiKey, tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
-import { ChevronDown, Share2, Volume2, VolumeX } from "lucide-react";
+import { ChevronDown, Maximize, Minimize, Share2, Volume2, VolumeX } from "lucide-react";
 import { FaEthereum } from "react-icons/fa";
 import { toast } from "sonner";
 import { parseEther } from "viem";
@@ -139,6 +139,8 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
   const [isPaused, setIsPaused] = useState(false);
   const [supportAmount, setSupportAmount] = useState("0.00042");
   const [showAmountMenu, setShowAmountMenu] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isAutoplayMode, setIsAutoplayMode] = useState(false);
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
@@ -518,6 +520,21 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
   const handleVideoEnd = () => {
     if (!videoItems.length) return;
     const nextIndex = (activeIndex + 1) % videoItems.length;
+    
+    // In autoplay/fullscreen mode, always advance to next video
+    if (isAutoplayMode) {
+      setPlayCount(0);
+      setActiveIndex(nextIndex);
+
+      const container = fullContainerRef.current;
+      if (container) {
+        const targetTop = nextIndex * container.clientHeight;
+        container.scrollTo({ top: targetTop, behavior: "smooth" });
+      }
+      return;
+    }
+    
+    // Normal mode: play twice before advancing
     if (playCount + 1 >= 2) {
       setPlayCount(0);
       setActiveIndex(nextIndex);
@@ -553,6 +570,43 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
       }
     }
   };
+
+  const toggleFullscreen = async () => {
+    const container = fullContainerRef.current?.parentElement;
+    if (!container) return;
+
+    try {
+      if (!document.fullscreenElement) {
+        await container.requestFullscreen();
+        setIsFullscreen(true);
+        setIsAutoplayMode(true);
+        setIsMuted(false);
+        // Unmute all videos when entering fullscreen
+        videoRefs.current.forEach((video) => {
+          if (video) video.muted = false;
+        });
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+        setIsAutoplayMode(false);
+      }
+    } catch (err) {
+      console.error("Fullscreen error:", err);
+    }
+  };
+
+  // Listen for fullscreen changes (e.g., user presses Escape)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        setIsFullscreen(false);
+        setIsAutoplayMode(false);
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
 
   const handleShare = async () => {
     const item = videoItems[activeIndex];
@@ -700,6 +754,17 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
 
               {/* Play/Pause and Mute controls */}
               <div className="absolute top-24 right-5 flex flex-col gap-3 z-30">
+                <button
+                  onClick={toggleFullscreen}
+                  className="pointer-events-auto w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/60 hover:scale-105 active:scale-95 transition-all"
+                  aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                >
+                  {isFullscreen ? (
+                    <Minimize className="w-4 h-4" />
+                  ) : (
+                    <Maximize className="w-4 h-4" />
+                  )}
+                </button>
                 <button
                   onClick={togglePlayPause}
                   className="pointer-events-auto w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/60 hover:scale-105 active:scale-95 transition-all"
