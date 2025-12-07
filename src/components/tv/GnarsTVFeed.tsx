@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { getCoin, getProfileCoins, setApiKey, tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
@@ -105,8 +105,8 @@ type CoinEdge = {
 
 // TODO: Add all gnars holders/flows shredders + filters and replace with dynamic list
 
-const CREATOR_ADDRESSES = [
-  "0x41cb654d1f47913acab158a8199191d160dabe4a", //vlad
+const CREATOR_EXTERNAL_ADDRESSES = [
+  "0xe8337b1f017ccf5461aea1d2e8bb1b00b76b993a", // shrimpdaddy
   "0x26331fda472639a54d02053a2b33dce5036c675b",
   "0xa642b91ff941fb68919d1877e9937f3e369dfd68",
   "0x2feb329b9289b60064904fa61fc347157a5aed6a", // zima
@@ -115,22 +115,31 @@ const CREATOR_ADDRESSES = [
   "0xc9f669e08820a0f89a5a8d4a5ce85e9236dd83b6",
   "0x1f1e8194c2dfcb3aa5cbb797d98ae83dda22c891", //humbertoperes
   "0xd1195629d9ba1168591b8ecdec9abb1721fcc7d8", // nogenta
+  "0x0d7c91d415af609d3920b1e790fe7dfa72be789a", // alexandrefeliz
+  "0x41cb654d1f47913acab158a8199191d160dabe4a", //vlad
+  "0xb8f1e6f08bf1972084a16f824849e4ce5468e9e9", // rodrigo panajotti
 ];
 
 const FALLBACK_ITEMS: TVItem[] = [
   {
     id: "fallback-gnars",
     title: "Gnars DAO",
-    creator: CREATOR_ADDRESSES[0],
+    creator: CREATOR_EXTERNAL_ADDRESSES[0],
     symbol: "GNAR",
     imageUrl: "/gnars.webp",
     videoUrl: undefined,
   },
 ];
 
+// Pagination config
+const INITIAL_COINS_PER_CREATOR = 50; // Load more initially to get more video content
+const LOAD_MORE_COINS_PER_CREATOR = 50; // Bigger batches for subsequent loads
+const PRELOAD_THRESHOLD = 10; // Load more when 10 videos from the end (gives buffer time)
+
 export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: string }) {
   const [rawItems, setRawItems] = useState<TVItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [playCount, setPlayCount] = useState(0);
@@ -141,6 +150,16 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
   const [showAmountMenu, setShowAmountMenu] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAutoplayMode, setIsAutoplayMode] = useState(false);
+  const [hasMoreContent, setHasMoreContent] = useState(true);
+
+  // Track pagination cursors per creator
+  const creatorCursorsRef = useRef<Map<string, { cursor: string | null; hasMore: boolean }>>(
+    new Map(),
+  );
+  // Track already loaded coin addresses to prevent duplicates
+  const loadedCoinAddressesRef = useRef<Set<string>>(new Set());
+  // Ref to call loadData from outside the effect
+  const loadDataRef = useRef<((isLoadMore?: boolean) => Promise<void>) | null>(null);
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
@@ -286,19 +305,30 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
       };
     };
 
-    const loadData = async () => {
+    const loadData = async (isLoadMore = false) => {
       try {
-        setLoading(true);
+        if (isLoadMore) {
+          setLoadingMore(true);
+        } else {
+          setLoading(true);
+          // Reset pagination state on fresh load
+          creatorCursorsRef.current = new Map();
+          loadedCoinAddressesRef.current = new Set();
+        }
         setError(null);
 
         if (process.env.NEXT_PUBLIC_ZORA_API_KEY) {
           setApiKey(process.env.NEXT_PUBLIC_ZORA_API_KEY);
         }
 
+        const coinsPerCreator = isLoadMore
+          ? LOAD_MORE_COINS_PER_CREATOR
+          : INITIAL_COINS_PER_CREATOR;
+
         // Always fetch the priority coin directly if provided, so slug pages work even
         // if it isn't in the curated creator list (or if profile fetch fails).
         let priorityItem: TVItem | null = null;
-        if (normalizedPriority) {
+        if (normalizedPriority && !isLoadMore) {
           try {
             const response = await getCoin({
               address: normalizedPriority as `0x${string}`,
@@ -311,6 +341,9 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                 0,
                 coin?.creatorProfile?.handle || normalizedPriority,
               );
+              if (priorityItem?.coinAddress) {
+                loadedCoinAddressesRef.current.add(priorityItem.coinAddress.toLowerCase());
+              }
               if (!priorityItem?.videoUrl) {
                 console.error("[gnars-tv] Priority coin has no playable media", {
                   address: normalizedPriority,
@@ -327,16 +360,44 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
           }
         }
 
+        // Track which creators still have content
+        let creatorsWithMoreContent = 0;
+
         const results = await Promise.all(
-          CREATOR_ADDRESSES.map(async (creatorAddress) => {
+          CREATOR_EXTERNAL_ADDRESSES.map(async (creatorAddress) => {
+            // Check if this creator has more content
+            const cursorInfo = creatorCursorsRef.current.get(creatorAddress);
+            if (cursorInfo && !cursorInfo.hasMore) {
+              return [] as TVItem[]; // Skip exhausted creators
+            }
+
             try {
               const response = await getProfileCoins({
                 identifier: creatorAddress,
-                count: 20,
+                count: coinsPerCreator,
+                ...(cursorInfo?.cursor ? { after: cursorInfo.cursor } : {}),
               });
 
-              const edges: CoinEdge[] =
-                (response?.data?.profile?.createdCoins?.edges as CoinEdge[]) || [];
+              const createdCoins = response?.data?.profile?.createdCoins;
+              const edges: CoinEdge[] = (createdCoins?.edges as CoinEdge[]) || [];
+              const pageInfo = createdCoins?.pageInfo as
+                | { endCursor?: string; hasNextPage?: boolean }
+                | undefined;
+
+              // Determine if there's more content:
+              // - Use hasNextPage if available
+              // - Otherwise, assume more content if we got a full page
+              const hasNextPage = pageInfo?.hasNextPage ?? edges.length >= coinsPerCreator;
+
+              // Update cursor for this creator
+              creatorCursorsRef.current.set(creatorAddress, {
+                cursor: pageInfo?.endCursor || null,
+                hasMore: hasNextPage,
+              });
+
+              if (hasNextPage) {
+                creatorsWithMoreContent++;
+              }
 
               const coins = edges
                 .map((edge) => {
@@ -348,7 +409,18 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
 
               const videoItemsForCreator = coins
                 .map((coin, idx) => mapCoinToItem(coin, idx, creatorAddress))
-                .filter((item): item is TVItem => item !== null);
+                .filter((item): item is TVItem => {
+                  if (!item) return false;
+                  // Skip already loaded coins
+                  const addr = item.coinAddress?.toLowerCase();
+                  if (addr && loadedCoinAddressesRef.current.has(addr)) {
+                    return false;
+                  }
+                  if (addr) {
+                    loadedCoinAddressesRef.current.add(addr);
+                  }
+                  return true;
+                });
 
               return videoItemsForCreator;
             } catch (err) {
@@ -362,12 +434,17 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
                 address: creatorAddress,
                 message,
               });
+              // Mark as exhausted on error to avoid retrying
+              creatorCursorsRef.current.set(creatorAddress, { cursor: null, hasMore: false });
               return [] as TVItem[];
             }
           }),
         );
 
         if (cancelled.current) return;
+
+        // Update whether there's more content to load
+        setHasMoreContent(creatorsWithMoreContent > 0);
 
         const flattened = results.flat().filter(Boolean);
 
@@ -403,7 +480,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
 
           return aPriority - bPriority;
         });
-
+        // TODO: Add skatehive platform referrer badge
         // Shuffle within each priority group to mix creators
         const paired = sorted.filter(
           (item) => item.poolCurrencyTokenAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b",
@@ -436,7 +513,8 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
           });
 
           const result: TVItem[] = [];
-          const creators = Array.from(byCreator.keys());
+          // Shuffle creator order so the feed varies between sessions
+          const creators = shuffleArray(Array.from(byCreator.keys()));
           let hasMore = true;
 
           while (hasMore) {
@@ -459,28 +537,42 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
 
         let finalItems = [...interleavedPaired, ...interleavedGnarly, ...interleavedNormal];
 
-        // Pin priority item to the very top.
-        if (priorityPinned) {
+        // Pin priority item to the very top (only on initial load).
+        if (priorityPinned && !isLoadMore) {
           finalItems = [priorityPinned, ...finalItems];
         }
 
-        setRawItems(finalItems.length ? finalItems : FALLBACK_ITEMS);
+        if (isLoadMore) {
+          // Append new items to existing ones
+          setRawItems((prev) => [...prev, ...finalItems]);
+        } else {
+          setRawItems(finalItems.length ? finalItems : FALLBACK_ITEMS);
+        }
       } catch (err) {
         if (cancelled.current) return;
-        setError("Unable to load videos right now");
-        setRawItems(FALLBACK_ITEMS);
-        console.log("[gnars-tv] loadData error:", err);
+        if (!isLoadMore) {
+          setError("Unable to load videos right now");
+          setRawItems(FALLBACK_ITEMS);
+        }
+        console.error("[gnars-tv] loadData error:", err);
       } finally {
-        if (!cancelled.current) setLoading(false);
+        if (!cancelled.current) {
+          setLoading(false);
+          setLoadingMore(false);
+        }
       }
     };
+
+    // Store loadData for external calls (load more)
+    loadDataRef.current = loadData;
 
     loadData();
 
     return () => {
       cancelled.current = true;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [priorityCoinAddress]);
 
   useEffect(() => {
     setActiveIndex(0);
@@ -491,6 +583,22 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
   const videoItems = useMemo(() => {
     return items.filter((i) => i.videoUrl);
   }, [items]);
+
+  // Load more content when approaching the end of the feed
+  const loadMoreContent = useCallback(() => {
+    if (loadingMore || !hasMoreContent || !loadDataRef.current) return;
+    loadDataRef.current(true);
+  }, [loadingMore, hasMoreContent]);
+
+  // Trigger load more when user is near the end
+  useEffect(() => {
+    if (!videoItems.length || loading) return;
+
+    const remainingVideos = videoItems.length - activeIndex - 1;
+    if (remainingVideos <= PRELOAD_THRESHOLD && hasMoreContent && !loadingMore) {
+      loadMoreContent();
+    }
+  }, [activeIndex, videoItems.length, hasMoreContent, loadingMore, loading, loadMoreContent]);
 
   useEffect(() => {
     if (!videoItems.length) return;
@@ -962,6 +1070,21 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
               </div>
             </div>
           ))
+        )}
+        {/* Loading more indicator */}
+        {loadingMore && (
+          <div className="flex h-24 w-full items-center justify-center text-sm text-white/70">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              <span>Loading more videos...</span>
+            </div>
+          </div>
+        )}
+        {/* End of feed indicator */}
+        {!hasMoreContent && videoItems.length > 0 && !loading && (
+          <div className="flex h-24 w-full items-center justify-center text-sm text-white/50">
+            You&apos;ve seen all {videoItems.length} videos 🎬
+          </div>
         )}
       </div>
     </div>
