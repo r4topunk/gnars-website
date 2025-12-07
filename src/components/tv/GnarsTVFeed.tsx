@@ -4,15 +4,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
 import { toast } from "sonner";
-import { parseEther } from "viem";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { createPublicClient, http, parseEther } from "viem";
+import { base } from "viem/chains";
+import { useAccount, usePublicClient, useWalletClient, useWriteContract, useSwitchChain } from "wagmi";
 import { useMiniApp } from "@/components/miniapp/MiniAppProvider";
+import { GNARS_ADDRESSES } from "@/lib/config";
+import { zoraNftMintAbi, ZORA_PROTOCOL_REWARD } from "@/utils/abis/zoraNftMintAbi";
 import { TVControls } from "./TVControls";
 import { TVHeader } from "./TVHeader";
 import { TVEmptyState, TVEndOfFeed, TVLoadingMore } from "./TVLoadingStates";
 import { TVVideoCardInfo } from "./TVVideoCardInfo";
 import type { TVItem } from "./types";
 import { usePreloadTrigger, useTVFeed } from "./useTVFeed";
+
+// Treasury receives referral rewards
+const MINT_REFERRAL = GNARS_ADDRESSES.treasury as `0x${string}`;
 
 interface GnarsTVFeedProps {
   priorityCoinAddress?: string;
@@ -36,11 +42,15 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+  // Cache for resolved token addresses (droposal ID -> token address)
+  const tokenAddressCacheRef = useRef<Map<string, string>>(new Map());
 
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
   const { isInMiniApp, share: miniAppShare } = useMiniApp();
+  const { switchChainAsync } = useSwitchChain();
+  const { writeContractAsync } = useWriteContract();
 
   // Fetch TV feed data
   const { items, loading, loadingMore, error, hasMoreContent, loadMore } = useTVFeed({
@@ -262,23 +272,143 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     [isConnected, address, walletClient, publicClient, supportAmount],
   );
 
-  // Mint droposal handler - opens droposal page for full minting experience
-  const handleMintDroposal = useCallback((item: TVItem, quantity: number) => {
-    if (!item.proposalNumber) {
-      toast.error("Unable to find droposal details");
-      return;
+  // Resolve token address from execution transaction hash
+  const resolveTokenAddress = useCallback(async (item: TVItem): Promise<string | null> => {
+    // Check cache first
+    const cached = tokenAddressCacheRef.current.get(item.id);
+    if (cached) return cached;
+
+    // If already have tokenAddress, cache and return
+    if (item.tokenAddress) {
+      tokenAddressCacheRef.current.set(item.id, item.tokenAddress);
+      return item.tokenAddress;
     }
 
-    // Open droposal detail page in new tab for full mint experience
-    // This leverages existing infrastructure and allows user to see full details
-    const url = `/droposals/${item.proposalNumber}`;
+    // Need to resolve from execution transaction hash
+    if (!item.executionTransactionHash) {
+      return null;
+    }
 
-    toast.info(`Opening droposal #${item.proposalNumber}...`, {
-      description: `Mint ${quantity} NFT${quantity > 1 ? "s" : ""} on the detail page`,
-    });
+    try {
+      const client = createPublicClient({ chain: base, transport: http() });
+      const receipt = await client.getTransactionReceipt({
+        hash: item.executionTransactionHash as `0x${string}`,
+      });
 
-    window.open(url, "_blank");
+      if (receipt.logs && receipt.logs.length > 0) {
+        const tokenAddr = receipt.logs[0]?.address;
+        if (tokenAddr) {
+          tokenAddressCacheRef.current.set(item.id, tokenAddr);
+          return tokenAddr;
+        }
+      }
+    } catch (err) {
+      console.error("[gnars-tv] Failed to resolve token address:", err);
+    }
+
+    return null;
   }, []);
+
+  // Mint droposal handler - mints directly from TV feed
+  const handleMintDroposal = useCallback(
+    async (item: TVItem, quantity: number) => {
+      if (!isConnected || !address) {
+        toast.error("Please connect your wallet first");
+        return;
+      }
+
+      const mintToast = toast.loading(`Preparing to mint ${item.title}...`);
+      setIsBuying(true);
+
+      try {
+        // Check if on correct network, switch if needed
+        if (chain?.id !== base.id) {
+          toast.loading("Switching to Base network...", { id: mintToast });
+          await switchChainAsync({ chainId: base.id });
+        }
+
+        // Resolve token address (may need to fetch from execution receipt)
+        toast.loading("Resolving NFT contract...", { id: mintToast });
+        const tokenAddress = await resolveTokenAddress(item);
+
+        if (!tokenAddress) {
+          toast.error("Unable to find NFT contract", {
+            id: mintToast,
+            description: "This droposal may not be ready for minting yet.",
+          });
+          return;
+        }
+
+        // Calculate total price with protocol reward
+        const priceEth = item.priceEth ? parseFloat(item.priceEth) : 0;
+        const salePrice = priceEth * quantity;
+        const protocolReward = ZORA_PROTOCOL_REWARD * quantity;
+        const totalPrice = parseEther((salePrice + protocolReward).toFixed(18));
+
+        // Wait for wallet confirmation
+        toast.loading("Confirm in your wallet...", {
+          id: mintToast,
+          description: `Minting ${quantity} NFT${quantity > 1 ? "s" : ""} for ${(salePrice + protocolReward).toFixed(5)} ETH`,
+        });
+
+        // Execute mint transaction
+        const txHash = await writeContractAsync({
+          abi: zoraNftMintAbi,
+          address: tokenAddress as `0x${string}`,
+          functionName: "mintWithRewards",
+          args: [
+            address, // recipient
+            BigInt(quantity), // quantity
+            "", // comment
+            MINT_REFERRAL, // mintReferral (treasury)
+          ],
+          value: totalPrice,
+          chainId: base.id,
+        });
+
+        toast.success(`Successfully minted ${item.title}!`, {
+          id: mintToast,
+          description: `Transaction: ${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
+        });
+      } catch (err) {
+        console.error("Mint droposal error:", err);
+
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        const isUserRejection =
+          errorMessage.includes("rejected") ||
+          errorMessage.includes("denied") ||
+          errorMessage.includes("User rejected");
+
+        if (isUserRejection) {
+          toast.error("Transaction cancelled", {
+            id: mintToast,
+            description: "You rejected the transaction in your wallet.",
+          });
+        } else if (errorMessage.includes("insufficient funds")) {
+          toast.error("Insufficient funds", {
+            id: mintToast,
+            description: "You don't have enough ETH to complete this mint.",
+          });
+        } else if (
+          errorMessage.includes("Sale_Inactive") ||
+          errorMessage.includes("sale not active")
+        ) {
+          toast.error("Sale not active", {
+            id: mintToast,
+            description: "The sale is not currently active.",
+          });
+        } else {
+          toast.error("Mint failed", {
+            id: mintToast,
+            description: errorMessage.slice(0, 100),
+          });
+        }
+      } finally {
+        setIsBuying(false);
+      }
+    },
+    [isConnected, address, chain, switchChainAsync, writeContractAsync, resolveTokenAddress],
+  );
 
   return (
     <div className="fixed inset-0 z-40 bg-black text-white">

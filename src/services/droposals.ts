@@ -19,6 +19,7 @@ type ProposalsQuery = {
     queued?: boolean;
     executedAt?: string | null;
     transactionHash?: string | null;
+    executionTransactionHash?: string | null;
   }>;
 };
 
@@ -44,6 +45,7 @@ const PROPOSALS_GQL = /* GraphQL */ `
       queued
       executedAt
       transactionHash
+      executionTransactionHash
     }
   }
 `;
@@ -64,6 +66,7 @@ export type DroposalListItem = {
   createdAt: number;
   executedAt?: number;
   tokenAddress?: string;
+  executionTransactionHash?: string;
 };
 
 export async function fetchDroposals(max: number = 24): Promise<DroposalListItem[]> {
@@ -118,6 +121,7 @@ export async function fetchDroposals(max: number = 24): Promise<DroposalListItem
         editionSize: decoded?.editionSize?.toString(),
         createdAt: Number(p.timeCreated) * 1000,
         executedAt: p.executedAt ? Number(p.executedAt) * 1000 : undefined,
+        executionTransactionHash: p.executionTransactionHash ?? undefined,
       });
       break; // one droposal per proposal entry
     }

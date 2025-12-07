@@ -146,6 +146,8 @@ export function mapCoinToTVItem(
     ""
   ).toLowerCase();
 
+  const uniqueHolders = coin?.uniqueHolders || coin?.coin?.uniqueHolders;
+
   return {
     id: coin?.address || coin?.contract || coin?.id || `${creatorAddress}-${idx}`,
     title: coin?.name || coin?.displayName || "Untitled Coin",
@@ -160,6 +162,7 @@ export function mapCoinToTVItem(
     allTimeHigh: allTimeHigh,
     platformReferrer: platformReferrer,
     poolCurrencyTokenAddress: poolCurrencyTokenAddress,
+    uniqueHolders: uniqueHolders,
   };
 }
 
@@ -256,6 +259,7 @@ export function mapDroposalToTVItem(droposal: DroposalListItem): TVItem | null {
     title: droposal.name || droposal.title,
     creator: droposal.fundsRecipient || GNARS_TREASURY,
     creatorName: "Gnars DAO",
+    creatorAvatar: "/gnars.webp", // Use Gnars logo for droposals
     symbol: droposal.symbol,
     imageUrl: droposal.bannerImage,
     videoUrl: droposal.animationUrl,
@@ -264,7 +268,8 @@ export function mapDroposalToTVItem(droposal: DroposalListItem): TVItem | null {
     priceEth: droposal.priceEth,
     proposalNumber: droposal.proposalNumber,
     editionSize: droposal.editionSize,
+    description: droposal.description,
     tokenAddress: droposal.tokenAddress, // May be undefined, resolved lazily
-    transactionHash: undefined, // Not available from list, would need execution receipt
+    executionTransactionHash: droposal.executionTransactionHash, // For resolving tokenAddress
   };
 }
