@@ -47,23 +47,27 @@ pnpm build     # Production build (only when requested)
 ## Coding Conventions
 
 ### Components
+
 - Server Components by default; add `"use client"` only for interactivity
 - Max 200 lines per file; extract hooks/subcomponents if larger
 - Use named exports; default only for Next.js page/layout files
 - Every async view needs: loading skeleton, error state, empty state
 
 ### Hooks & Data
+
 - Hooks in `src/hooks/` wrap TanStack Query with typed `queryKey` patterns
 - Services in `src/services/` handle subgraph queries + transformations
 - Avoid `useEffect` for data fetching—use Query hooks or server fetching
 
 ### Web3 Patterns
+
 - All contract addresses centralized in `src/lib/config.ts`
 - Use `@buildeross/sdk` for proposal data (see `src/services/proposals.ts`)
 - Use `@zoralabs/coins-sdk` for content coin creation/trading
 - Transaction encoding: `src/lib/proposal-utils.ts`
 
 ### Styling
+
 - Class order: layout → box → typography → visuals → state → responsive
 - Use `cn()` for conditional classes, `cva` for component variants
 - Never overwrite Shadcn component internals—extend via className
