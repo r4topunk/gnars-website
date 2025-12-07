@@ -27,6 +27,11 @@ export const GNARS_TREASURY = "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88";
 export const GNARS_CREATOR_COIN = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
 export const SKATEHIVE_REFERRER = "0xb4964e1eca55db36a94e8aeffbfbab48529a2f6c";
 
+// Broken droposal contracts to exclude from TV feed
+export const BROKEN_DROPOSAL_CONTRACTS = [
+  "0x9e1038b1ff820849edf6eff36a93d7eadc917026",
+];
+
 // Pagination config
 export const INITIAL_COINS_PER_CREATOR = 50;
 export const LOAD_MORE_COINS_PER_CREATOR = 50;
@@ -261,6 +266,11 @@ export function isDroposal(item: TVItem): boolean {
 export function mapDroposalToTVItem(droposal: DroposalListItem): TVItem | null {
   // Only include droposals with video content (animationUrl)
   if (!droposal.animationUrl) return null;
+
+  // Exclude broken droposal contracts
+  if (droposal.tokenAddress && BROKEN_DROPOSAL_CONTRACTS.includes(droposal.tokenAddress.toLowerCase())) {
+    return null;
+  }
 
   return {
     id: `droposal-${droposal.proposalId}`,
