@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ChevronDown, Eye, EyeOff, Info } from "lucide-react";
 import { FaEthereum } from "react-icons/fa";
 import type { TVItem } from "./types";
-import { isDroposal, isGnarly, isGnarsPaired } from "./utils";
+import { isDroposal, isGnarly, isGnarsPaired, isSkatehive } from "./utils";
 
 interface TVVideoCardProps {
   item: TVItem;
@@ -55,6 +55,7 @@ export function TVVideoCardInfo({
 
   const isPaired = isGnarsPaired(item);
   const isGnarlyItem = isGnarly(item);
+  const isSkatehiveItem = isSkatehive(item);
   const isDroposalItem = isDroposal(item);
 
   // Calculate droposal pricing
@@ -225,9 +226,16 @@ export function TVVideoCardInfo({
 
       {/* Control buttons row - at bottom right */}
       <div className="flex items-center justify-end gap-2">
-        {/* Special badges - show GNARLY/PAIRED inline */}
-        {(isGnarlyItem || isPaired) && !isDroposalItem && (
+        {/* Special badges - show GNARLY/PAIRED/SKATEHIVE inline */}
+        {(isGnarlyItem || isPaired || isSkatehiveItem) && !isDroposalItem && (
           <div className="flex gap-1 mr-auto">
+            {isSkatehiveItem && (
+              <div className="inline-flex items-center px-1.5 md:px-2 py-0.5 md:py-1 rounded-full bg-green-500/20 border border-green-400/40">
+                <span className="text-green-300 text-[9px] md:text-[10px] font-extrabold tracking-tight">
+                  🛹 SKATEHIVE
+                </span>
+              </div>
+            )}
             {isGnarlyItem && (
               <div className="inline-flex items-center px-1.5 md:px-2 py-0.5 md:py-1 rounded-full bg-amber-500/20 border border-amber-400/40">
                 <span className="text-amber-300 text-[9px] md:text-[10px] font-extrabold tracking-tight">

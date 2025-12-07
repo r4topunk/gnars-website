@@ -25,6 +25,7 @@ export const CREATOR_ADDRESSES = [
 // Gnars-related contract addresses
 export const GNARS_TREASURY = "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88";
 export const GNARS_CREATOR_COIN = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
+export const SKATEHIVE_REFERRER = "0xb4964e1eca55db36a94e8aeffbfbab48529a2f6c";
 
 // Pagination config
 export const INITIAL_COINS_PER_CREATOR = 50;
@@ -238,6 +239,13 @@ export function isGnarsPaired(item: TVItem): boolean {
  */
 export function isGnarly(item: TVItem): boolean {
   return item.platformReferrer === GNARS_TREASURY;
+}
+
+/**
+ * Check if an item was created on Skatehive
+ */
+export function isSkatehive(item: TVItem): boolean {
+  return item.platformReferrer === SKATEHIVE_REFERRER;
 }
 
 /**
