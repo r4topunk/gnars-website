@@ -11,6 +11,7 @@ import { TVControls } from "./TVControls";
 import { TVHeader } from "./TVHeader";
 import { TVEmptyState, TVEndOfFeed, TVLoadingMore } from "./TVLoadingStates";
 import { TVVideoCardInfo } from "./TVVideoCardInfo";
+import type { TVItem } from "./types";
 import { usePreloadTrigger, useTVFeed } from "./useTVFeed";
 
 interface GnarsTVFeedProps {
@@ -31,6 +32,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   const [showAmountMenu, setShowAmountMenu] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAutoplayMode, setIsAutoplayMode] = useState(false);
+  const [mintQuantity, setMintQuantity] = useState(1);
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
@@ -260,6 +262,27 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     [isConnected, address, walletClient, publicClient, supportAmount],
   );
 
+  // Mint droposal handler - opens droposal page for full minting experience
+  const handleMintDroposal = useCallback(
+    (item: TVItem, quantity: number) => {
+      if (!item.proposalNumber) {
+        toast.error("Unable to find droposal details");
+        return;
+      }
+
+      // Open droposal detail page in new tab for full mint experience
+      // This leverages existing infrastructure and allows user to see full details
+      const url = `/droposals/${item.proposalNumber}`;
+      
+      toast.info(`Opening droposal #${item.proposalNumber}...`, {
+        description: `Mint ${quantity} NFT${quantity > 1 ? "s" : ""} on the detail page`,
+      });
+      
+      window.open(url, "_blank");
+    },
+    [],
+  );
+
   return (
     <div className="fixed inset-0 z-40 bg-black text-white">
       <TVHeader isMuted={isMuted} onToggleMute={toggleMute} />
@@ -309,9 +332,12 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
                 isConnected={isConnected}
                 supportAmount={supportAmount}
                 showAmountMenu={showAmountMenu}
+                mintQuantity={mintQuantity}
                 onBuy={handleBuyCoin}
+                onMint={handleMintDroposal}
                 onAmountMenuToggle={setShowAmountMenu}
                 onAmountSelect={setSupportAmount}
+                onQuantitySelect={setMintQuantity}
               />
             </div>
           ))

@@ -3,6 +3,7 @@
  */
 
 import type { CoinMedia, CoinNode, TVItem } from "./types";
+import type { DroposalListItem } from "@/services/droposals";
 
 // Curated creator addresses for the TV feed
 export const CREATOR_ADDRESSES = [
@@ -234,4 +235,36 @@ export function isGnarsPaired(item: TVItem): boolean {
  */
 export function isGnarly(item: TVItem): boolean {
   return item.platformReferrer === GNARS_TREASURY;
+}
+
+/**
+ * Check if an item is a droposal (NFT drop)
+ */
+export function isDroposal(item: TVItem): boolean {
+  return item.isDroposal === true;
+}
+
+/**
+ * Map a DroposalListItem to a TVItem (only if it has video content)
+ */
+export function mapDroposalToTVItem(droposal: DroposalListItem): TVItem | null {
+  // Only include droposals with video content (animationUrl)
+  if (!droposal.animationUrl) return null;
+
+  return {
+    id: `droposal-${droposal.proposalId}`,
+    title: droposal.name || droposal.title,
+    creator: droposal.fundsRecipient || GNARS_TREASURY,
+    creatorName: "Gnars DAO",
+    symbol: droposal.symbol,
+    imageUrl: droposal.bannerImage,
+    videoUrl: droposal.animationUrl,
+    // Droposal-specific fields
+    isDroposal: true,
+    priceEth: droposal.priceEth,
+    proposalNumber: droposal.proposalNumber,
+    editionSize: droposal.editionSize,
+    tokenAddress: droposal.tokenAddress, // May be undefined, resolved lazily
+    transactionHash: undefined, // Not available from list, would need execution receipt
+  };
 }

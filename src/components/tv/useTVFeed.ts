@@ -10,8 +10,11 @@ import {
   PRELOAD_THRESHOLD,
   FALLBACK_ITEMS,
   mapCoinToTVItem,
+  mapDroposalToTVItem,
   sortByPriority,
+  shuffleArray,
 } from "./utils";
+import { fetchDroposals } from "@/services/droposals";
 
 interface UseTVFeedOptions {
   priorityCoinAddress?: string;
@@ -94,8 +97,23 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
 
         let creatorsWithMoreContent = 0;
 
-        const results = await Promise.all(
-          CREATOR_ADDRESSES.map(async (creatorAddress) => {
+        // Fetch droposals in parallel with coins (only on initial load)
+        const droposalItemsPromise = !isLoadMore
+          ? fetchDroposals(50)
+              .then((droposals) =>
+                droposals
+                  .map(mapDroposalToTVItem)
+                  .filter((item): item is TVItem => item !== null)
+              )
+              .catch((err) => {
+                console.error("[gnars-tv] failed to fetch droposals", err);
+                return [] as TVItem[];
+              })
+          : Promise.resolve([] as TVItem[]);
+
+        const [results, droposalItems] = await Promise.all([
+          Promise.all(
+            CREATOR_ADDRESSES.map(async (creatorAddress) => {
             const cursorInfo = creatorCursorsRef.current.get(creatorAddress);
             if (cursorInfo && !cursorInfo.hasMore) {
               return [] as TVItem[];
@@ -157,7 +175,9 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
               return [] as TVItem[];
             }
           }),
-        );
+          ),
+          droposalItemsPromise,
+        ]);
 
         if (cancelled.current) return;
 
@@ -173,11 +193,37 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
           );
         }
 
-        // Sort by priority and interleave
-        const sorted = sortByPriority(rest);
+        // Sort coins by priority and interleave
+        const sortedCoins = sortByPriority(rest);
+
+        // Merge droposals with coins: shuffle droposals and interleave randomly
+        let combined: TVItem[];
+        if (droposalItems.length > 0 && !isLoadMore) {
+          // Shuffle droposals for variety
+          const shuffledDroposals = shuffleArray(droposalItems);
+          // Interleave droposals into the coin feed at regular intervals
+          combined = [];
+          const interval = Math.max(3, Math.floor(sortedCoins.length / shuffledDroposals.length));
+          let droposalIndex = 0;
+          for (let i = 0; i < sortedCoins.length; i++) {
+            combined.push(sortedCoins[i]);
+            // Insert a droposal every `interval` items
+            if ((i + 1) % interval === 0 && droposalIndex < shuffledDroposals.length) {
+              combined.push(shuffledDroposals[droposalIndex]);
+              droposalIndex++;
+            }
+          }
+          // Append remaining droposals at the end
+          while (droposalIndex < shuffledDroposals.length) {
+            combined.push(shuffledDroposals[droposalIndex]);
+            droposalIndex++;
+          }
+        } else {
+          combined = sortedCoins;
+        }
 
         // Pin priority item to the top (only on initial load)
-        const finalItems = priorityItem && !isLoadMore ? [priorityItem, ...sorted] : sorted;
+        const finalItems = priorityItem && !isLoadMore ? [priorityItem, ...combined] : combined;
 
         if (isLoadMore) {
           setRawItems((prev) => [...prev, ...finalItems]);

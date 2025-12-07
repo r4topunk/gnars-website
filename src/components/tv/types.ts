@@ -16,6 +16,13 @@ export type TVItem = {
   allTimeHigh?: number;
   platformReferrer?: string;
   poolCurrencyTokenAddress?: string;
+  // Droposal-specific fields
+  isDroposal?: boolean;
+  priceEth?: string;
+  proposalNumber?: number;
+  editionSize?: string;
+  tokenAddress?: string; // NFT contract address, resolved lazily
+  transactionHash?: string; // For resolving tokenAddress from receipt
 };
 
 export type CoinMedia = {

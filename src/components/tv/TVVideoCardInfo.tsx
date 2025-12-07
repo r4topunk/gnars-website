@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { FaEthereum } from "react-icons/fa";
 import type { TVItem } from "./types";
-import { isGnarly, isGnarsPaired } from "./utils";
+import { isGnarly, isGnarsPaired, isDroposal } from "./utils";
 
 interface TVVideoCardProps {
   item: TVItem;
@@ -12,9 +13,12 @@ interface TVVideoCardProps {
   isConnected: boolean;
   supportAmount: string;
   showAmountMenu: boolean;
+  mintQuantity: number;
   onBuy: (coinAddress: string, title: string) => void;
+  onMint: (item: TVItem, quantity: number) => void;
   onAmountMenuToggle: (show: boolean) => void;
   onAmountSelect: (amount: string) => void;
+  onQuantitySelect: (quantity: number) => void;
 }
 
 const AMOUNT_OPTIONS = [
@@ -26,6 +30,10 @@ const AMOUNT_OPTIONS = [
   { label: "0.05 ETH", value: "0.05" },
 ];
 
+const QUANTITY_OPTIONS = [1, 2, 3, 4, 5];
+
+const ZORA_PROTOCOL_FEE = 0.000777;
+
 /**
  * Info overlay for a TV video card showing title, creator, and market data
  */
@@ -35,22 +43,94 @@ export function TVVideoCardInfo({
   isConnected,
   supportAmount,
   showAmountMenu,
+  mintQuantity,
   onBuy,
+  onMint,
   onAmountMenuToggle,
   onAmountSelect,
+  onQuantitySelect,
 }: TVVideoCardProps) {
   const isPaired = isGnarsPaired(item);
   const isGnarlyItem = isGnarly(item);
+  const isDroposalItem = isDroposal(item);
+
+  // Calculate droposal pricing
+  const droposalPrice = item.priceEth ? parseFloat(item.priceEth) : 0;
+  const isFreeDroposal = droposalPrice === 0;
+  const totalDroposalPrice = (droposalPrice + ZORA_PROTOCOL_FEE) * mintQuantity;
 
   return (
     <div className="pointer-events-none absolute left-3 right-3 md:left-5 md:right-5 bottom-3 md:bottom-5 bg-black/40 md:bg-black/60 p-2.5 md:p-4 rounded-xl md:rounded-2xl backdrop-blur-md md:backdrop-blur-lg border border-white/5 md:border-white/10">
       {/* Title and Support Button */}
       <div className="flex items-start justify-between gap-2 md:gap-4 mb-2 md:mb-3">
-        <p className="text-base md:text-lg font-bold flex-1 leading-tight md:leading-snug">
-          {item.title}
-        </p>
+        <div className="flex-1">
+          <p className="text-base md:text-lg font-bold leading-tight md:leading-snug">
+            {item.title}
+          </p>
+          {/* Link to full droposal page */}
+          {isDroposalItem && item.proposalNumber && (
+            <Link
+              href={`/droposals/${item.proposalNumber}`}
+              className="pointer-events-auto text-xs text-indigo-300 hover:text-indigo-200 transition-colors"
+            >
+              View Droposal #{item.proposalNumber} →
+            </Link>
+          )}
+        </div>
         <div className="flex flex-col items-end gap-1 md:gap-1.5">
-          {item.coinAddress && (
+          {/* Droposal Mint Button */}
+          {isDroposalItem && (
+            <div className="pointer-events-auto relative">
+              {showAmountMenu && (
+                <div className="absolute right-0 bottom-full mb-2 md:mb-3 w-32 md:w-36 rounded-xl md:rounded-2xl bg-black/95 backdrop-blur-xl shadow-2xl border border-white/20 overflow-hidden z-50">
+                  {QUANTITY_OPTIONS.map((qty) => (
+                    <button
+                      key={qty}
+                      onClick={() => {
+                        onQuantitySelect(qty);
+                        onAmountMenuToggle(false);
+                      }}
+                      className={`w-full px-3 md:px-4 py-2 md:py-2.5 text-left text-xs md:text-sm font-semibold text-white hover:bg-white/15 active:bg-white/25 transition-all border-b border-white/10 last:border-b-0 ${mintQuantity === qty ? "bg-white/10" : ""}`}
+                    >
+                      {qty} {qty === 1 ? "NFT" : "NFTs"}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="flex rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 text-white overflow-hidden shadow-lg md:shadow-xl hover:shadow-xl md:hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+                <button
+                  onClick={() => onMint(item, mintQuantity)}
+                  disabled={isBuying || !isConnected}
+                  className="px-3 md:px-5 py-1.5 md:py-2.5 text-xs md:text-sm font-extrabold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 md:gap-2"
+                >
+                  {isBuying ? (
+                    <div className="flex items-center gap-1.5 md:gap-2">
+                      <div className="h-3.5 w-3.5 md:h-4 md:w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <span>Minting...</span>
+                    </div>
+                  ) : isFreeDroposal ? (
+                    <>
+                      <span className="whitespace-nowrap">Free Mint ×{mintQuantity}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="whitespace-nowrap">Mint ×{mintQuantity}</span>
+                      <FaEthereum className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => onAmountMenuToggle(!showAmountMenu)}
+                  disabled={isBuying || !isConnected}
+                  className="px-2 md:px-2.5 border-l border-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronDown className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+          {/* Coin Buy Button */}
+          {!isDroposalItem && item.coinAddress && (
             <div className="pointer-events-auto relative">
               {showAmountMenu && (
                 <div className="absolute right-0 bottom-full mb-2 md:mb-3 w-40 md:w-44 rounded-xl md:rounded-2xl bg-black/95 backdrop-blur-xl shadow-2xl border border-white/20 overflow-hidden z-50">
@@ -97,16 +177,23 @@ export function TVVideoCardInfo({
             </div>
           )}
           {/* Special Badges below button */}
-          {(isGnarlyItem || isPaired) && (
+          {(isGnarlyItem || isPaired || isDroposalItem) && (
             <div className="flex gap-1 md:gap-1.5">
-              {isGnarlyItem && (
+              {isDroposalItem && (
+                <div className="inline-flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full bg-indigo-500/20 border border-indigo-400/40">
+                  <span className="text-indigo-300 text-[9px] md:text-[10px] font-extrabold tracking-tight">
+                    🎨 NFT DROP
+                  </span>
+                </div>
+              )}
+              {isGnarlyItem && !isDroposalItem && (
                 <div className="inline-flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full bg-amber-500/20 border border-amber-400/40">
                   <span className="text-amber-300 text-[9px] md:text-[10px] font-extrabold tracking-tight">
                     ⚡ GNARLY
                   </span>
                 </div>
               )}
-              {isPaired && (
+              {isPaired && !isDroposalItem && (
                 <div className="inline-flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full bg-amber-500/20 border border-amber-400/40">
                   <span className="text-amber-300 text-[9px] md:text-[10px] font-extrabold tracking-tight">
                     🤘 PAIRED
@@ -141,8 +228,19 @@ export function TVVideoCardInfo({
         </p>
       </div>
 
-      {/* Market Cap with ATH Progress Bar */}
-      {item.marketCap !== undefined && item.allTimeHigh !== undefined && (
+      {/* Droposal Pricing Info */}
+      {isDroposalItem && (
+        <DroposalPriceInfo
+          priceEth={droposalPrice}
+          quantity={mintQuantity}
+          totalPrice={totalDroposalPrice}
+          editionSize={item.editionSize}
+          isFree={isFreeDroposal}
+        />
+      )}
+
+      {/* Market Cap with ATH Progress Bar (only for coins, not droposals) */}
+      {!isDroposalItem && item.marketCap !== undefined && item.allTimeHigh !== undefined && (
         <MarketCapProgress
           marketCap={item.marketCap}
           allTimeHigh={item.allTimeHigh}
@@ -192,6 +290,51 @@ function MarketCapProgress({ marketCap, allTimeHigh, isPaired }: MarketCapProgre
               : `0 0 12px ${glowColor.replace("1)", "0.5)")}`,
           }}
         />
+      </div>
+    </div>
+  );
+}
+
+interface DroposalPriceInfoProps {
+  priceEth: number;
+  quantity: number;
+  totalPrice: number;
+  editionSize?: string;
+  isFree: boolean;
+}
+
+function DroposalPriceInfo({ priceEth, quantity, totalPrice, editionSize, isFree }: DroposalPriceInfoProps) {
+  return (
+    <div className="space-y-1 md:space-y-1.5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 md:gap-2">
+          {isFree ? (
+            <span className="text-indigo-300 text-xs md:text-sm font-bold">
+              Free Mint
+            </span>
+          ) : (
+            <>
+              <span className="text-indigo-300 text-xs md:text-sm font-bold">
+                {priceEth.toFixed(4)} ETH
+              </span>
+              <span className="text-white/50 text-[10px] md:text-xs">per NFT</span>
+            </>
+          )}
+        </div>
+        {editionSize && (
+          <span className="text-white/60 text-[10px] md:text-xs font-medium">
+            {editionSize === "1000000" ? "Open Edition" : `${editionSize} editions`}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center justify-between text-[10px] md:text-xs">
+        <span className="text-white/50">
+          Total ({quantity} NFT{quantity > 1 ? "s" : ""})
+        </span>
+        <span className="text-white font-semibold flex items-center gap-1">
+          {totalPrice.toFixed(5)} ETH
+          <span className="text-white/40 text-[9px]">(incl. fee)</span>
+        </span>
       </div>
     </div>
   );
