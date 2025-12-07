@@ -6,10 +6,16 @@ import type { TradeParameters } from "@zoralabs/coins-sdk";
 import { toast } from "sonner";
 import { createPublicClient, http, parseEther } from "viem";
 import { base } from "viem/chains";
-import { useAccount, usePublicClient, useWalletClient, useWriteContract, useSwitchChain } from "wagmi";
+import {
+  useAccount,
+  usePublicClient,
+  useSwitchChain,
+  useWalletClient,
+  useWriteContract,
+} from "wagmi";
 import { useMiniApp } from "@/components/miniapp/MiniAppProvider";
 import { GNARS_ADDRESSES } from "@/lib/config";
-import { zoraNftMintAbi, ZORA_PROTOCOL_REWARD } from "@/utils/abis/zoraNftMintAbi";
+import { ZORA_PROTOCOL_REWARD, zoraNftMintAbi } from "@/utils/abis/zoraNftMintAbi";
 import { TVControls } from "./TVControls";
 import { TVHeader } from "./TVHeader";
 import { TVEmptyState, TVEndOfFeed, TVLoadingMore } from "./TVLoadingStates";

@@ -313,14 +313,18 @@ export function TVVideoCardInfo({
             {!isDroposalItem && item.uniqueHolders !== undefined && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-white/50">Holders</span>
-                <span className="text-white font-medium">{item.uniqueHolders.toLocaleString()}</span>
+                <span className="text-white font-medium">
+                  {item.uniqueHolders.toLocaleString()}
+                </span>
               </div>
             )}
             {/* ATH (coins only) */}
             {!isDroposalItem && item.allTimeHigh !== undefined && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-white/50">All-Time High</span>
-                <span className="text-white font-medium">${Math.round(item.allTimeHigh).toLocaleString()}</span>
+                <span className="text-white font-medium">
+                  ${Math.round(item.allTimeHigh).toLocaleString()}
+                </span>
               </div>
             )}
             {/* Contract Address */}
@@ -333,7 +337,8 @@ export function TVVideoCardInfo({
                   rel="noopener noreferrer"
                   className="pointer-events-auto text-blue-400 hover:text-blue-300 font-mono transition-colors"
                 >
-                  {(item.coinAddress || item.tokenAddress)?.slice(0, 6)}…{(item.coinAddress || item.tokenAddress)?.slice(-4)}
+                  {(item.coinAddress || item.tokenAddress)?.slice(0, 6)}…
+                  {(item.coinAddress || item.tokenAddress)?.slice(-4)}
                 </a>
               </div>
             )}
@@ -407,12 +412,7 @@ interface DroposalPriceInfoProps {
   isFree: boolean;
 }
 
-function DroposalPriceInfo({
-  priceEth,
-  quantity,
-  totalPrice,
-  isFree,
-}: DroposalPriceInfoProps) {
+function DroposalPriceInfo({ priceEth, quantity, totalPrice, isFree }: DroposalPriceInfoProps) {
   return (
     <div className="space-y-1 md:space-y-1.5">
       <div className="flex items-center gap-1.5 md:gap-2">
