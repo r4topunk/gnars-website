@@ -129,25 +129,6 @@ export function DroposalForm({ index }: Props) {
     }
   }, [editionType, index, setValue]);
 
-  // Watch IPFS CIDs for display (strip ipfs:// prefix for input display)
-  const imageUri = watch(`transactions.${index}.imageUri`) || "";
-  const animationUri = watch(`transactions.${index}.animationUri`) || "";
-
-  // Display values without ipfs:// prefix
-  const displayImageCid = imageUri.replace(/^ipfs:\/\//, "");
-  const displayAnimationCid = animationUri.replace(/^ipfs:\/\//, "");
-
-  // Handle CID input changes - add ipfs:// prefix when storing
-  const handleImageCidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.trim().replace(/^ipfs:\/\//, "");
-    setValue(`transactions.${index}.imageUri` as const, value ? `ipfs://${value}` : "");
-  };
-
-  const handleAnimationCidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.trim().replace(/^ipfs:\/\//, "");
-    setValue(`transactions.${index}.animationUri` as const, value ? `ipfs://${value}` : "");
-  };
-
   const handleEditionTypeChange = (value: "fixed" | "open") => {
     setEditionType(value);
     setValue(`transactions.${index}.editionType` as const, value);
