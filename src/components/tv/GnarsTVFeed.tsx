@@ -469,6 +469,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: { priorityCoinAddress?: str
         if (cancelled.current) return;
         setError("Unable to load videos right now");
         setRawItems(FALLBACK_ITEMS);
+        console.log("[gnars-tv] loadData error:", err);
       } finally {
         if (!cancelled.current) setLoading(false);
       }
