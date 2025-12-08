@@ -21,8 +21,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useMemberActivity } from "@/hooks/use-member-activity";
+import { BarChartSkeleton } from "./BarChartSkeleton";
 
 const chartConfig = {
   voters: {
@@ -60,24 +60,7 @@ export function MemberActivityChart() {
           </div>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
-          <div className="h-[200px] w-full space-y-3 p-4">
-            <div className="flex justify-between items-end space-x-2">
-              <Skeleton className="h-16 w-8" />
-              <Skeleton className="h-12 w-8" />
-              <Skeleton className="h-20 w-8" />
-              <Skeleton className="h-14 w-8" />
-              <Skeleton className="h-18 w-8" />
-              <Skeleton className="h-10 w-8" />
-            </div>
-            <div className="flex justify-between">
-              <Skeleton className="h-3 w-6" />
-              <Skeleton className="h-3 w-6" />
-              <Skeleton className="h-3 w-6" />
-              <Skeleton className="h-3 w-6" />
-              <Skeleton className="h-3 w-6" />
-              <Skeleton className="h-3 w-6" />
-            </div>
-          </div>
+          <BarChartSkeleton />
         </CardContent>
       </Card>
     );
