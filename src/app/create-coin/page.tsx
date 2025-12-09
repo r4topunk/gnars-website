@@ -229,11 +229,11 @@ export default function CreateCoinPage() {
       return;
     }
 
-    // Check file size (max 50MB for better upload performance)
-    const maxSize = 50 * 1024 * 1024;
+    // Check file size (max 420MB for better upload performance)
+    const maxSize = 420 * 1024 * 1024;
     if (file.size > maxSize) {
-      setMediaError("File size must be less than 50MB");
-      toast.error("File size must be less than 50MB");
+      setMediaError("File size must be less than 420MB");
+      toast.error("File size must be less than 420MB");
       return;
     }
 
@@ -654,8 +654,8 @@ export default function CreateCoinPage() {
                           <Alert>
                             <Info className="h-4 w-4" />
                             <AlertDescription className="text-xs">
-                              You don&apos;t have a creator coin yet. Only $GNARS backing is available.
-                              To use your own creator coin, deploy one first.
+                              You don&apos;t have a creator coin yet. Only $GNARS backing is
+                              available. To use your own creator coin, deploy one first.
                             </AlertDescription>
                           </Alert>
                         )}
@@ -697,7 +697,8 @@ export default function CreateCoinPage() {
                           <p className="text-xs text-muted-foreground">
                             Images: JPEG, PNG, GIF, WebP, SVG
                             <br />
-                            Videos: MP4 (recommended), WebM, MOV • Max: 50MB
+                            Videos: MP4 (recommended), WebM, MOV • Max: 420MB (but please keep it
+                            small!)
                             <br />
                             <span className="text-blue-600 dark:text-blue-400">
                               📸 Choose custom thumbnail for videos

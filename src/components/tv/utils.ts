@@ -32,6 +32,9 @@ export const BROKEN_DROPOSAL_CONTRACTS = [
   "0x9e1038b1ff820849edf6eff36a93d7eadc917026",
 ];
 
+// Broken droposal proposal numbers to exclude from TV feed
+export const BROKEN_DROPOSAL_PROPOSALS = [69];
+
 // Pagination config
 export const INITIAL_COINS_PER_CREATOR = 50;
 export const LOAD_MORE_COINS_PER_CREATOR = 50;
@@ -267,7 +270,12 @@ export function mapDroposalToTVItem(droposal: DroposalListItem): TVItem | null {
   // Only include droposals with video content (animationUrl)
   if (!droposal.animationUrl) return null;
 
-  // Exclude broken droposal contracts
+  // Exclude broken droposals by proposal number
+  if (BROKEN_DROPOSAL_PROPOSALS.includes(droposal.proposalNumber)) {
+    return null;
+  }
+
+  // Exclude broken droposal contracts (if tokenAddress is available)
   if (droposal.tokenAddress && BROKEN_DROPOSAL_CONTRACTS.includes(droposal.tokenAddress.toLowerCase())) {
     return null;
   }
