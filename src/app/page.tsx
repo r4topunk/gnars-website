@@ -1,40 +1,73 @@
-import { HomeClientComponents } from "@/components/home-client-components";
-import { Proposal } from "@/components/proposals/types";
-import { listProposals } from "@/services/proposals";
-import { getAllFeedEvents } from "@/services/feed-events";
-import type { FeedEvent } from "@/lib/types/feed-events";
+import { Suspense } from "react";
+import { AuctionSpotlight } from "@/components/hero/AuctionSpotlight";
+import { RecentProposalsSection } from "@/components/home/RecentProposalsSection";
+import { ActivityFeedSection } from "@/components/home/ActivityFeedSection";
+import { HeroStatsValues } from "@/components/home/HeroStatsValues";
+import { HomeStaticContent } from "@/components/home/HomeStaticContent";
+import {
+  HeroStatsSkeleton,
+  RecentProposalsSkeleton,
+  ActivityFeedSkeleton,
+} from "@/components/skeletons/home-skeletons";
+import { DAO_DESCRIPTION } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
-async function getRecentProposals(): Promise<Proposal[]> {
-  try {
-    // Fetch all proposals for the feed (defaults to 200)
-    const proposals = await listProposals();
-    return proposals;
-  } catch (error) {
-    console.error("Failed to fetch recent proposals:", error);
-    return [];
-  }
-}
-
-async function getFeedEvents(): Promise<FeedEvent[]> {
-  try {
-    // Fetch last 30 days of events (same as feed page)
-    const events = await getAllFeedEvents(24 * 30); // 30 days
-    return events;
-  } catch (error) {
-    console.error("Failed to fetch feed events:", error);
-    return [];
-  }
-}
-
-export default async function Home() {
-  const proposals = await getRecentProposals();
-  const feedEvents = await getFeedEvents();
-
+export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
-      <HomeClientComponents proposals={proposals} feedEvents={feedEvents} />
+      {/* Hero Section - Static content renders immediately */}
+      <section className="relative overflow-hidden">
+        <div className="relative bg-background z-10 py-8 md:py-10 lg:py-12">
+          <div className="mx-auto max-w-6xl">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
+              {/* Left Column - Brand & Stats */}
+              <div className="flex flex-col justify-center space-y-6">
+                <div className="space-y-4">
+                  <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
+                    <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+                      Gnars DAO
+                    </span>
+                  </h1>
+                  <p className="text-lg text-muted-foreground md:text-xl">
+                    {DAO_DESCRIPTION}
+                  </p>
+                </div>
+
+                {/* Stats - Only this part streams in */}
+                <Suspense fallback={<HeroStatsSkeleton />}>
+                  <HeroStatsValues />
+                </Suspense>
+              </div>
+
+              {/* Right Column - Auction (Client Component) */}
+              <div className="flex items-center justify-center">
+                <AuctionSpotlight />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard Grid */}
+      <div className="flex flex-1 flex-col gap-6 py-8">
+        {/* Recent Proposals Section */}
+        <section>
+          <Suspense fallback={<RecentProposalsSkeleton />}>
+            <RecentProposalsSection limit={6} />
+          </Suspense>
+        </section>
+
+        {/* Activity Feed */}
+        <section>
+          <Suspense fallback={<ActivityFeedSkeleton />}>
+            <ActivityFeedSection daysBack={30} />
+          </Suspense>
+        </section>
+
+        {/* Static/Client-side content: Charts, Auctions, FAQ, Contracts */}
+        <HomeStaticContent />
+      </div>
     </div>
   );
 }
