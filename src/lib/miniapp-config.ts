@@ -17,9 +17,9 @@ export const MINIAPP_CONFIG = {
   // Account association - MUST be filled in after signing at base.dev/preview
   // Leave empty strings until you've signed the manifest
   accountAssociation: {
-    header: "eyJmaWQiOjIwNzIxLCJ0eXBlIjoiYXV0aCIsImtleSI6IjB4MmQxODgyMzA0YzlBNkZhN0Y5ODdDMUI0MWM5ZkQ1RThDRjA1MTZlMiJ9",
-    payload: "eyJkb21haW4iOiJnbmFycy1zaGFkY24udmVyY2VsLmFwcCJ9",
-    signature: "qToxlEE6sGcA0du5PNIjM5TD8FYLjoqdn/BfdIx7I8xIwoou5KWfj6cS56R4OD0/S3+CoSFE3yUg0LGEDxWhXRs=",
+    header: "eyJmaWQiOjUzODgzOSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDk3Yjc4ZDdCM2M2NmMyZmZiOTYxYWEwQURCNmNlNjcyQTM3MTZEOEMifQ",
+    payload: "eyJkb21haW4iOiJnbmFycy5jb20ifQ",
+    signature: "qm+dqd4UcCOzjAYvNCDaoQOp1A4PoXAm9B6Qv6D4iJ9kzFZ4zjVpoL3s21y2UckqPC+QPO2/HkKuRzoU8GmV4xs=",
   },
 
   // Base builder configuration - add your Base account address
