@@ -12,9 +12,13 @@ export interface ENSResolveResult {
   avatar: string | null;
 }
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour for client-side cache
 const localEnsCache = new Map<string, { data: ENSResolveResult; timestamp: number }>();
 const localNameToAddressCache = new Map<string, { address: Address | null; timestamp: number }>();
+
+// Request deduplication - prevents multiple simultaneous requests for the same address
+const pendingRequests = new Map<string, Promise<ENSData>>();
+const pendingNameRequests = new Map<string, Promise<Address | null>>();
 
 function getApiBase(): string {
   if (typeof window !== "undefined") return "";
@@ -27,25 +31,9 @@ function shorten(address: Address): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-export async function resolveENS(address: string | Address): Promise<ENSData> {
-  if (!address || !isAddress(address)) {
-    throw new Error("Invalid Ethereum address");
-  }
-
-  const normalized = address.toLowerCase() as Address;
-
-  const cached = localEnsCache.get(normalized);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return {
-      name: cached.data.name,
-      avatar: cached.data.avatar,
-      displayName: cached.data.name || shorten(normalized),
-      address: normalized,
-    };
-  }
-
+async function fetchENSInternal(normalized: Address): Promise<ENSData> {
   const baseUrl = getApiBase();
-  const res = await fetch(`${baseUrl}/api/ens?address=${normalized}`, { cache: "no-store" });
+  const res = await fetch(`${baseUrl}/api/ens?address=${normalized}`);
   if (!res.ok) {
     return {
       name: null,
@@ -69,19 +57,41 @@ export async function resolveENS(address: string | Address): Promise<ENSData> {
   };
 }
 
-export async function resolveAddressFromENS(name: string): Promise<Address | null> {
-  const trimmed = (name || "").trim().toLowerCase();
-  if (!trimmed || !trimmed.includes(".")) return null;
-
-  const cached = localNameToAddressCache.get(trimmed);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.address;
+export async function resolveENS(address: string | Address): Promise<ENSData> {
+  if (!address || !isAddress(address)) {
+    throw new Error("Invalid Ethereum address");
   }
 
-  const baseUrl = getApiBase();
-  const res = await fetch(`${baseUrl}/api/ens?name=${encodeURIComponent(trimmed)}`, {
-    cache: "no-store",
+  const normalized = address.toLowerCase() as Address;
+
+  // Check cache first
+  const cached = localEnsCache.get(normalized);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return {
+      name: cached.data.name,
+      avatar: cached.data.avatar,
+      displayName: cached.data.name || shorten(normalized),
+      address: normalized,
+    };
+  }
+
+  // Check if there's already a pending request for this address
+  const pending = pendingRequests.get(normalized);
+  if (pending) {
+    return pending;
+  }
+
+  // Create new request and store it for deduplication
+  const request = fetchENSInternal(normalized).finally(() => {
+    pendingRequests.delete(normalized);
   });
+  pendingRequests.set(normalized, request);
+  return request;
+}
+
+async function fetchNameInternal(trimmed: string): Promise<Address | null> {
+  const baseUrl = getApiBase();
+  const res = await fetch(`${baseUrl}/api/ens?name=${encodeURIComponent(trimmed)}`);
   if (!res.ok) {
     localNameToAddressCache.set(trimmed, { address: null, timestamp: Date.now() });
     return null;
@@ -91,6 +101,30 @@ export async function resolveAddressFromENS(name: string): Promise<Address | nul
   const normalized = value && isAddress(value) ? (value as Address) : null;
   localNameToAddressCache.set(trimmed, { address: normalized, timestamp: Date.now() });
   return normalized;
+}
+
+export async function resolveAddressFromENS(name: string): Promise<Address | null> {
+  const trimmed = (name || "").trim().toLowerCase();
+  if (!trimmed || !trimmed.includes(".")) return null;
+
+  // Check cache first
+  const cached = localNameToAddressCache.get(trimmed);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.address;
+  }
+
+  // Check if there's already a pending request for this name
+  const pending = pendingNameRequests.get(trimmed);
+  if (pending) {
+    return pending;
+  }
+
+  // Create new request and store it for deduplication
+  const request = fetchNameInternal(trimmed).finally(() => {
+    pendingNameRequests.delete(trimmed);
+  });
+  pendingNameRequests.set(trimmed, request);
+  return request;
 }
 
 export async function resolveENSBatch(
@@ -107,7 +141,6 @@ export async function resolveENSBatch(
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ addresses: valid }),
-    cache: "no-store",
   });
 
   const result = new Map<Address, ENSData>();
@@ -141,6 +174,8 @@ export async function resolveENSBatch(
 export function clearENSCache(): void {
   localEnsCache.clear();
   localNameToAddressCache.clear();
+  pendingRequests.clear();
+  pendingNameRequests.clear();
 }
 
 export function getENSCacheStats(): { size: number; hitRate: number } {

@@ -19,10 +19,17 @@ type EnsRequestBody = {
   name?: string;
 };
 
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours - ENS names rarely change
+const EDGE_CACHE_SECONDS = 86400; // 24 hours for Vercel edge cache
+const STALE_WHILE_REVALIDATE = 604800; // 7 days
 
 const ensCache = new Map<string, { data: ENSResolveResult; timestamp: number }>();
 const nameToAddressCache = new Map<string, { address: Address | null; timestamp: number }>();
+
+// Cache headers for Vercel edge caching
+const cacheHeaders = {
+  "Cache-Control": `public, s-maxage=${EDGE_CACHE_SECONDS}, stale-while-revalidate=${STALE_WHILE_REVALIDATE}`,
+};
 
 function now(): number {
   return Date.now();
@@ -163,7 +170,7 @@ async function handleSingle(addressParam: string) {
 
   const base = await resolveEnsForAddress(normalized);
   const ens = buildENSData(normalized, base);
-  return NextResponse.json({ ens });
+  return NextResponse.json({ ens }, { headers: cacheHeaders });
 }
 
 async function handleBatch(addressesParam: string[]) {
@@ -186,12 +193,12 @@ async function handleBatch(addressesParam: string[]) {
   for (const [addr, data] of results) {
     ensMap[addr] = data;
   }
-  return NextResponse.json({ ensMap });
+  return NextResponse.json({ ensMap }, { headers: cacheHeaders });
 }
 
 async function handleName(nameParam: string) {
   const address = await resolveNameToAddress(String(nameParam || ""));
-  return NextResponse.json({ address });
+  return NextResponse.json({ address }, { headers: cacheHeaders });
 }
 
 export async function GET(request: Request) {

@@ -12,6 +12,7 @@ import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
 import { type Proposal as UiProposal } from "@/components/proposals/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { resolveENS } from "@/lib/ens";
 import { getProposalStatus } from "@/lib/schemas/proposals";
 import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
 
@@ -136,18 +137,15 @@ export function MemberDetail({ address }: MemberDetailProps) {
     };
   }, [address]);
 
-  // ENS name + avatar (non-blocking, best-effort)
+  // ENS name + avatar (non-blocking, best-effort) - uses cached ENS API
   useEffect(() => {
     let ignore = false;
     async function loadEns() {
       try {
-        const res = await fetch(`https://api.ensideas.com/ens/resolve/${address}`);
-        if (!res.ok) return;
-        const data = (await res.json()) as { name?: string; displayName?: string; avatar?: string };
+        const data = await resolveENS(address);
         if (ignore) return;
-        const name = data.displayName || data.name || null;
-        setEnsName(name);
-        setEnsAvatar(data.avatar || null);
+        setEnsName(data.name);
+        setEnsAvatar(data.avatar);
       } catch {
         // ignore
       }
