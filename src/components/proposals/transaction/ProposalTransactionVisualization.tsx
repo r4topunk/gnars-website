@@ -271,7 +271,6 @@ function mapProposalTransaction(
   const baseTransaction = {
     type,
     id: `proposal-tx-${index}`,
-    description: `Transaction ${index + 1}`,
     rawCalldata: calldata ?? "0x",
   } as const;
 

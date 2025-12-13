@@ -94,28 +94,9 @@ export function TransactionCard({
             </div>
 
             {/* Transaction Info */}
-            <div className="flex-1 space-y-2">
-              {/* Header with number and type badge */}
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-sm font-semibold text-foreground">Tx #{index + 1}</h3>
-                <Badge
-                  variant="secondary"
-                  className={cn(
-                    "text-xs font-medium px-2 py-0.5",
-                    styles.text,
-                    "bg-opacity-10 border-0",
-                  )}
-                >
-                  {label}
-                </Badge>
-              </div>
-
-              {/* Description */}
-              {transaction.description && (
-                <p className="text-sm text-muted-foreground leading-relaxed pr-4">
-                  {transaction.description}
-                </p>
-              )}
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground leading-tight">Tx #{index + 1}</h3>
+              <span className={cn("text-xs leading-tight", styles.text)}>{label}</span>
             </div>
           </div>
 
