@@ -160,10 +160,6 @@ export function TVVideoPlayer({
     );
   }
 
-  // Determine if poster should be visible
-  // Poster stays visible until video has actually rendered frames
-  const showPoster = !hasFirstFrame || loadState === "waiting" || loadState === "error";
-  
   // Determine if video should be visible
   // Video is visible when it has rendered at least one frame and is playing/ready
   const showVideo = hasFirstFrame && (loadState === "playing" || loadState === "canplay");

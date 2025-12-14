@@ -113,14 +113,17 @@ export function useVideoPreloader(
     // Not supported on Safari or Firefox
     try {
       const nav = navigator as Navigator & {
-        connection?: EventTarget & { addEventListener?: (type: string, listener: () => void) => void };
+        connection?: EventTarget & { 
+          addEventListener?: (type: string, listener: () => void) => void;
+          removeEventListener?: (type: string, listener: () => void) => void;
+        };
       };
 
       if (nav.connection && typeof nav.connection.addEventListener === "function") {
         nav.connection.addEventListener("change", updateConnection);
         return () => {
-          if (nav.connection && typeof (nav.connection as any).removeEventListener === "function") {
-            (nav.connection as any).removeEventListener("change", updateConnection);
+          if (nav.connection && typeof nav.connection.removeEventListener === "function") {
+            nav.connection.removeEventListener("change", updateConnection);
           }
         };
       }
