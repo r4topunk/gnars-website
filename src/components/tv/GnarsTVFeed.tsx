@@ -20,8 +20,10 @@ import { TVControls } from "./TVControls";
 import { TVHeader } from "./TVHeader";
 import { TVEmptyState, TVEndOfFeed, TVLoadingMore } from "./TVLoadingStates";
 import { TVVideoCardInfo } from "./TVVideoCardInfo";
+import { TVVideoPlayer } from "./TVVideoPlayer";
 import type { TVItem } from "./types";
 import { usePreloadTrigger, useTVFeed } from "./useTVFeed";
+import { useVideoPreloader, useRenderBuffer } from "./useVideoPreloader";
 
 // Treasury receives referral rewards
 const MINT_REFERRAL = GNARS_ADDRESSES.treasury as `0x${string}`;
@@ -33,6 +35,11 @@ interface GnarsTVFeedProps {
 /**
  * Full-screen TikTok-style video feed for Gnars TV
  * Displays content coins from curated creators with buying functionality
+ * 
+ * Performance optimizations:
+ * - Virtualized rendering: only mounts videos within buffer distance
+ * - Intelligent preloading: preloads next videos based on connection quality
+ * - Smooth transitions: poster → video with fade animations
  */
 export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -47,7 +54,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   const [mintQuantity, setMintQuantity] = useState(1);
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
-  const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+  const containerRefs = useRef<Array<HTMLDivElement | null>>([]);
   // Cache for resolved token addresses (droposal ID -> token address)
   const tokenAddressCacheRef = useRef<Map<string, string>>(new Map());
 
@@ -66,8 +73,20 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   // Filter to only video items
   const videoItems = useMemo(() => items.filter((i) => i.videoUrl), [items]);
 
+  // Get render buffer based on connection quality
+  const renderBuffer = useRenderBuffer();
+
+  // Preload upcoming videos
+  useVideoPreloader(videoItems, activeIndex, !loading);
+
   // Trigger preload when near end
   usePreloadTrigger(activeIndex, videoItems.length, hasMoreContent, loadingMore, loading, loadMore);
+
+  // Helper to check if a video should be rendered
+  const shouldRenderVideo = useCallback(
+    (index: number) => Math.abs(index - activeIndex) <= renderBuffer,
+    [activeIndex, renderBuffer]
+  );
 
   // Reset index when items change
   useEffect(() => {
@@ -75,29 +94,26 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     setPlayCount(0);
   }, [items.length]);
 
-  // Intersection observer for video playback
+  // Intersection observer for detecting active video (observes containers, not videos)
   useEffect(() => {
     if (!videoItems.length) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const video = entry.target as HTMLVideoElement;
-          const idx = Number(video.dataset.index || "0");
-
           if (entry.isIntersecting) {
+            const container = entry.target as HTMLDivElement;
+            const idx = Number(container.dataset.index || "0");
             setActiveIndex(idx);
             setPlayCount(0);
-            video.play().catch(() => {});
-          } else {
-            video.pause();
           }
         });
       },
       { threshold: 0.6 },
     );
 
-    videoRefs.current.forEach((el) => el && observer.observe(el));
+    // Observe container divs instead of video elements
+    containerRefs.current.forEach((el) => el && observer.observe(el));
 
     return () => observer.disconnect();
   }, [videoItems.length]);
@@ -121,26 +137,21 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     }
   }, [videoItems.length, activeIndex, isAutoplayMode, playCount]);
 
-  // Mute toggle
+  // Mute toggle - just update state, TVVideoPlayer handles the rest
   const toggleMute = useCallback(() => {
-    setIsMuted((prev) => {
-      const newMuted = !prev;
-      videoRefs.current.forEach((video) => {
-        if (video) video.muted = newMuted;
-      });
-      return newMuted;
-    });
+    setIsMuted((prev) => !prev);
   }, []);
 
-  // Play/pause toggle
+  // Play/pause toggle - find video element in active container
   const togglePlayPause = useCallback(() => {
-    const currentVideo = videoRefs.current[activeIndex];
-    if (currentVideo) {
-      if (currentVideo.paused) {
-        currentVideo.play();
+    const container = containerRefs.current[activeIndex];
+    const video = container?.querySelector("video");
+    if (video) {
+      if (video.paused) {
+        video.play();
         setIsPaused(false);
       } else {
-        currentVideo.pause();
+        video.pause();
         setIsPaused(true);
       }
     }
@@ -157,9 +168,6 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         setIsFullscreen(true);
         setIsAutoplayMode(true);
         setIsMuted(false);
-        videoRefs.current.forEach((video) => {
-          if (video) video.muted = false;
-        });
       } else {
         await document.exitFullscreen();
         setIsFullscreen(false);
@@ -257,19 +265,78 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
       } catch (err) {
         console.error("Buy coin error:", err);
 
-        const errorMessage = err instanceof Error ? err.message : String(err);
+        // Recursively extract all error messages from the cause chain
+        const extractErrorMessages = (error: unknown): string => {
+          const messages: string[] = [];
+          let current = error;
+          
+          while (current) {
+            if (current instanceof Error) {
+              messages.push(current.message);
+              current = 'cause' in current ? current.cause : null;
+            } else {
+              messages.push(String(current));
+              break;
+            }
+          }
+          
+          return messages.join(' ').toLowerCase();
+        };
+        
+        const fullError = extractErrorMessages(err);
+        
+        // Detect common error types - check rejection FIRST and be comprehensive
         const isUserRejection =
-          errorMessage.includes("User denied") ||
-          errorMessage.includes("User rejected") ||
-          errorMessage.includes("user rejected");
+          fullError.includes("user denied") ||
+          fullError.includes("user rejected") ||
+          fullError.includes("rejected") ||
+          fullError.includes("cancelled") ||
+          fullError.includes("canceled") ||
+          fullError.includes("action_rejected") ||
+          fullError.includes("user cancelled");
 
+        const isInsufficientFunds =
+          fullError.includes("insufficient funds") ||
+          fullError.includes("insufficient balance");
+
+        const isNetworkError =
+          !isUserRejection && // Don't match network if it's a rejection
+          (fullError.includes("network") ||
+           fullError.includes("rpc") ||
+           fullError.includes("unknown rpc error"));
+
+        const isGasError =
+          !isUserRejection && // Don't match gas if it's a rejection
+          (fullError.includes("intrinsic gas too low") ||
+           (fullError.includes("gas") && fullError.includes("insufficient")));
+
+        // Show friendly error messages
         if (isUserRejection) {
-          toast.error("Such a tease...rejected the transaction 😢", { id: buyToast });
+          toast.error("Transaction cancelled", {
+            id: buyToast,
+            description: "You rejected the transaction in your wallet.",
+          });
+        } else if (isInsufficientFunds) {
+          toast.error("Insufficient balance", {
+            id: buyToast,
+            description: "You don't have enough ETH to complete this purchase.",
+          });
+        } else if (isGasError) {
+          toast.error("Gas issue", {
+            id: buyToast,
+            description: "Not enough ETH to pay for gas fees.",
+          });
+        } else if (isNetworkError) {
+          toast.error("Network error", {
+            id: buyToast,
+            description: "Unable to connect to network. Please try again.",
+          });
         } else {
-          toast.error(
-            err instanceof Error ? err.message : "Failed to buy coin. Please try again.",
-            { id: buyToast },
-          );
+          // Generic error - show a simplified message
+          toast.error("Transaction failed", {
+            id: buyToast,
+            description: "Unable to complete purchase. Please try again.",
+          });
         }
       } finally {
         setIsBuying(false);
@@ -427,53 +494,62 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         {videoItems.length === 0 ? (
           <TVEmptyState loading={loading} error={error} />
         ) : (
-          videoItems.map((item, idx) => (
-            <div
-              key={item.id}
-              className="relative h-screen w-full flex-shrink-0 snap-start snap-always"
-            >
-              <video
+          videoItems.map((item, idx) => {
+            const isActive = idx === activeIndex;
+            const shouldRender = shouldRenderVideo(idx);
+
+            return (
+              <div
+                key={item.id}
                 ref={(el) => {
-                  videoRefs.current[idx] = el;
+                  containerRefs.current[idx] = el;
                 }}
                 data-index={idx}
-                src={item.videoUrl}
-                poster={item.imageUrl}
-                className="absolute inset-0 h-full w-full object-contain bg-black"
-                muted={isMuted}
-                playsInline
-                loop={false}
-                controls={false}
-                preload="metadata"
-                onEnded={handleVideoEnd}
-                onLoadedData={() => setPlayCount(0)}
-              />
+                className="relative h-screen w-full flex-shrink-0 snap-start snap-always"
+              >
+                {/* Optimized video player with virtualization */}
+                <TVVideoPlayer
+                  src={item.videoUrl!}
+                  poster={item.imageUrl}
+                  isActive={isActive}
+                  isMuted={isMuted}
+                  shouldRender={shouldRender}
+                  onEnded={handleVideoEnd}
+                  onLoadedData={() => setPlayCount(0)}
+                  index={idx}
+                />
 
-              <TVControls
-                isMuted={isMuted}
-                isPaused={isPaused}
-                isFullscreen={isFullscreen}
-                onToggleMute={toggleMute}
-                onTogglePlayPause={togglePlayPause}
-                onToggleFullscreen={toggleFullscreen}
-                onShare={handleShare}
-              />
+                {/* Only render controls and info for nearby videos */}
+                {shouldRender && (
+                  <>
+                    <TVControls
+                      isMuted={isMuted}
+                      isPaused={isPaused}
+                      isFullscreen={isFullscreen}
+                      onToggleMute={toggleMute}
+                      onTogglePlayPause={togglePlayPause}
+                      onToggleFullscreen={toggleFullscreen}
+                      onShare={handleShare}
+                    />
 
-              <TVVideoCardInfo
-                item={item}
-                isBuying={isBuying}
-                isConnected={isConnected}
-                supportAmount={supportAmount}
-                showAmountMenu={showAmountMenu}
-                mintQuantity={mintQuantity}
-                onBuy={handleBuyCoin}
-                onMint={handleMintDroposal}
-                onAmountMenuToggle={setShowAmountMenu}
-                onAmountSelect={setSupportAmount}
-                onQuantitySelect={setMintQuantity}
-              />
-            </div>
-          ))
+                    <TVVideoCardInfo
+                      item={item}
+                      isBuying={isBuying}
+                      isConnected={isConnected}
+                      supportAmount={supportAmount}
+                      showAmountMenu={showAmountMenu}
+                      mintQuantity={mintQuantity}
+                      onBuy={handleBuyCoin}
+                      onMint={handleMintDroposal}
+                      onAmountMenuToggle={setShowAmountMenu}
+                      onAmountSelect={setSupportAmount}
+                      onQuantitySelect={setMintQuantity}
+                    />
+                  </>
+                )}
+              </div>
+            );
+          })
         )}
 
         {loadingMore && <TVLoadingMore />}
