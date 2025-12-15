@@ -91,7 +91,14 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
               }
             }
           } catch (err) {
-            console.error("[gnars-tv] failed to fetch priority coin", err);
+            // If priority coin fetch fails, fall back to the normal feed.
+            // Log with context so the failure is observable in production.
+            console.error("[gnars-tv] Failed to fetch priority coin", {
+              coinAddress: normalizedPriority,
+              chainId: 8453,
+              isLoadMore,
+              error: err,
+            });
           }
         }
 
@@ -105,8 +112,7 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
                   .map(mapDroposalToTVItem)
                   .filter((item): item is TVItem => item !== null)
               )
-              .catch((err) => {
-                console.error("[gnars-tv] failed to fetch droposals", err);
+              .catch(() => {
                 return [] as TVItem[];
               })
           : Promise.resolve([] as TVItem[]);
@@ -137,6 +143,8 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
               creatorCursorsRef.current.set(creatorAddress, {
                 cursor: pageInfo?.endCursor || null,
                 hasMore: hasNextPage,
+                error: undefined,
+                lastErrorAt: undefined,
               });
 
               if (hasNextPage) {
@@ -167,11 +175,23 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
 
               return videoItemsForCreator;
             } catch (err) {
-              console.error("[gnars-tv] failed to fetch profile coins", {
-                address: creatorAddress,
-                error: err,
+              // In development, creator fetch failures are common (rate limits, empty profiles)
+              // Log as warning in dev, error in production for monitoring
+              const logLevel = process.env.NODE_ENV === "production" ? "error" : "warn";
+              const errorMsg = err instanceof Error ? err.message : String(err);
+              console[logLevel](`[gnars-tv] Failed to fetch coins for creator ${creatorAddress}:`, errorMsg);
+
+              const existing = creatorCursorsRef.current.get(creatorAddress);
+              // Don't retry if we failed recently (within last 60 seconds)
+              const shouldAllowRetry = !existing?.lastErrorAt || 
+                                       (Date.now() - existing.lastErrorAt > 60000);
+              
+              creatorCursorsRef.current.set(creatorAddress, {
+                cursor: existing?.cursor ?? null,
+                hasMore: shouldAllowRetry ? (existing?.hasMore ?? false) : false,
+                error: err instanceof Error ? err.message : String(err),
+                lastErrorAt: Date.now(),
               });
-              creatorCursorsRef.current.set(creatorAddress, { cursor: null, hasMore: false });
               return [] as TVItem[];
             }
           }),
@@ -230,13 +250,12 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
         } else {
           setRawItems(finalItems.length ? finalItems : FALLBACK_ITEMS);
         }
-      } catch (err) {
+      } catch {
         if (cancelled.current) return;
         if (!isLoadMore) {
           setError("Unable to load videos right now");
           setRawItems(FALLBACK_ITEMS);
         }
-        console.error("[gnars-tv] loadData error:", err);
       } finally {
         if (!cancelled.current) {
           setLoading(false);

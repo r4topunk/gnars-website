@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { getConnectionQuality } from "./useVideoPreloader";
+import { usePerformanceTracking } from "./useVideoPreloader";
 
 type LoadState = "idle" | "loading" | "canplay" | "playing" | "error" | "waiting";
 
@@ -40,7 +40,11 @@ export function TVVideoPlayer({
   const [loadProgress, setLoadProgress] = useState(0);
   const [hasFirstFrame, setHasFirstFrame] = useState(false);
   const mountedRef = useRef(true);
-  const connectionQuality = useRef(getConnectionQuality());
+  const loadStartTime = useRef<number>(0);
+
+  // Track performance for adaptive loading
+  // Pass the actual load start timestamp (set by handleLoadStart event)
+  const { recordLoadSuccess } = usePerformanceTracking(src, loadStartTime);
 
   // Track mount state for async operations
   useEffect(() => {
@@ -55,6 +59,7 @@ export function TVVideoPlayer({
     setLoadState("idle");
     setLoadProgress(0);
     setHasFirstFrame(false);
+    loadStartTime.current = 0;
   }, [src]);
 
   // Handle video events
@@ -66,10 +71,9 @@ export function TVVideoPlayer({
   const handlePlaying = useCallback(() => {
     if (!mountedRef.current) return;
     setLoadState("playing");
-    // Mark that we have rendered at least one frame
-    // This ensures poster stays visible until video actually shows content
     setHasFirstFrame(true);
-  }, []);
+    recordLoadSuccess();
+  }, [recordLoadSuccess]);
 
   const handleError = useCallback(() => {
     if (!mountedRef.current) return;
@@ -78,6 +82,7 @@ export function TVVideoPlayer({
 
   const handleLoadStart = useCallback(() => {
     if (!mountedRef.current) return;
+    loadStartTime.current = performance.now();
     setLoadState("loading");
     setLoadProgress(0);
   }, []);
@@ -87,11 +92,11 @@ export function TVVideoPlayer({
     onLoadedData?.();
   }, [onLoadedData]);
 
-  // Track buffering/waiting state - show poster again if buffering
+  // Track buffering/waiting state
   const handleWaiting = useCallback(() => {
     if (!mountedRef.current) return;
     setLoadState("waiting");
-    // Don't reset hasFirstFrame - we keep showing video if it was playing
+    // Don't reset hasFirstFrame - keep video visible even when buffering
   }, []);
 
   // Track load progress for slow connections
@@ -113,6 +118,13 @@ export function TVVideoPlayer({
     const video = videoRef.current;
     if (!video || !shouldRender) return;
 
+    // Ensure autoplay preconditions are set before attempting to play.
+    // On iOS/Safari, missing muted/playsinline at the moment of play() can cause
+    // the first autoplay attempt to be rejected until a user gesture occurs.
+    video.muted = isMuted;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+
     if (isActive) {
       // Try to play when active
       const playPromise = video.play();
@@ -129,7 +141,7 @@ export function TVVideoPlayer({
       setHasFirstFrame(false);
       setLoadState("idle");
     }
-  }, [isActive, shouldRender]);
+  }, [isActive, shouldRender, isMuted]);
 
   // Update mute state
   useEffect(() => {
@@ -161,8 +173,9 @@ export function TVVideoPlayer({
   }
 
   // Determine if video should be visible
-  // Video is visible when it has rendered at least one frame and is playing/ready
-  const showVideo = hasFirstFrame && (loadState === "playing" || loadState === "canplay");
+  // Once video has shown first frame, keep it visible even during buffering
+  // Only hide on error or when video hasn't started yet
+  const showVideo = hasFirstFrame && loadState !== "error";
 
   return (
     <div className="absolute inset-0 bg-black">
@@ -181,8 +194,8 @@ export function TVVideoPlayer({
         />
       )}
 
-      {/* Loading indicator - adapts to connection quality */}
-      {isActive && (loadState === "loading" || loadState === "waiting") && (
+      {/* Loading indicator - only show if no poster available */}
+      {isActive && !poster && (loadState === "loading" || loadState === "waiting") && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           {/* Loading gif */}
           <div className="relative w-16 h-16">
@@ -196,8 +209,8 @@ export function TVVideoPlayer({
             />
           </div>
           
-          {/* Progress indicator on slow connections */}
-          {connectionQuality.current !== "fast" && loadProgress > 0 && (
+          {/* Progress indicator (only when we have progress) */}
+          {loadProgress > 0 && (
             <div className="mt-4 w-32">
               <div className="h-1 bg-white/20 rounded-full overflow-hidden">
                 <div 
@@ -224,6 +237,7 @@ export function TVVideoPlayer({
         }`}
         muted={isMuted}
         playsInline
+        autoPlay={isActive}
         loop={false}
         controls={false}
         // Only preload active video fully, others just metadata

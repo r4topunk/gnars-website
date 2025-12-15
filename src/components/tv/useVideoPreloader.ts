@@ -1,99 +1,126 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import type { TVItem } from "./types";
 
-// Connection quality detection
-type ConnectionQuality = "slow" | "medium" | "fast";
-
-type NetworkInfo = {
-  effectiveType?: string;
-  downlink?: number;
-  saveData?: boolean;
-  rtt?: number; // Round-trip time in ms
-};
+/**
+ * Performance tier based on actual measured video load times
+ * This is MORE reliable than Network Information API (not available on Safari/iOS)
+ */
+type PerformanceTier = "conservative" | "balanced" | "aggressive";
 
 /**
- * Detect connection quality using Network Information API
- * Falls back to "fast" if API unavailable
- * 
- * Note: Network Information API is not supported on:
- * - Safari (iOS/macOS)
- * - Older Firefox versions
- * - Internet Explorer
+ * Performance metrics tracker
+ * Learns from actual video load times to adapt preloading strategy
  */
-export function getConnectionQuality(): ConnectionQuality {
-  // SSR check
-  if (typeof navigator === "undefined") return "fast";
+class PerformanceTracker {
+  private loadTimes: number[] = [];
+  private readonly MAX_SAMPLES = 10;
+  private readonly SLOW_THRESHOLD = 3000; // 3s
+  private readonly FAST_THRESHOLD = 1000; // 1s
 
-  const nav = navigator as Navigator & { connection?: NetworkInfo };
-
-  // If API not available (Safari, older browsers), assume fast
-  // This is safer than assuming slow since the video element itself
-  // has connection-aware loading built in
-  if (!nav.connection) return "fast";
-
-  try {
-    // Respect data saver mode - always slow
-    if (nav.connection.saveData) return "slow";
-
-    const effectiveType = nav.connection.effectiveType;
-    const downlink = nav.connection.downlink;
-    const rtt = nav.connection.rtt;
-
-    // 2G or slow-2g is definitely slow
-    if (effectiveType && ["slow-2g", "2g"].includes(effectiveType)) {
-      return "slow";
+  recordLoadTime(ms: number) {
+    this.loadTimes.push(ms);
+    if (this.loadTimes.length > this.MAX_SAMPLES) {
+      this.loadTimes.shift();
     }
-
-    // 3G is medium - we can do some preloading but be conservative
-    if (effectiveType === "3g") {
-      return "medium";
-    }
-
-    // Check actual metrics for more accuracy
-    if (downlink !== undefined) {
-      if (downlink < 0.5) return "slow";    // < 500 Kbps
-      if (downlink < 2) return "medium";   // < 2 Mbps
-    }
-
-    // High latency is also a problem
-    if (rtt !== undefined && rtt > 500) {
-      return "medium";
-    }
-  } catch (err) {
-    // If any error occurs reading connection properties, fallback to fast
-    console.warn("[preloader] Failed to detect connection quality:", err);
-    return "fast";
   }
 
-  return "fast";
+  getAverageLoadTime(): number {
+    if (this.loadTimes.length === 0) return 0;
+    return this.loadTimes.reduce((a, b) => a + b, 0) / this.loadTimes.length;
+  }
+
+  getTier(): PerformanceTier {
+    // Start conservative until we have data
+    if (this.loadTimes.length < 3) return "conservative";
+
+    const avg = this.getAverageLoadTime();
+    
+    // Check data saver mode (available on most browsers)
+    if (typeof navigator !== "undefined") {
+      const nav = navigator as Navigator & { 
+        connection?: { saveData?: boolean } 
+      };
+      if (nav.connection?.saveData) return "conservative";
+    }
+
+    if (avg > this.SLOW_THRESHOLD) return "conservative";
+    if (avg < this.FAST_THRESHOLD) return "aggressive";
+    return "balanced";
+  }
+
+  getMetrics() {
+    return {
+      samples: this.loadTimes.length,
+      average: Math.round(this.getAverageLoadTime()),
+      tier: this.getTier(),
+    };
+  }
 }
+
+// Global singleton tracker
+const performanceTracker = new PerformanceTracker();
 
 interface PreloaderConfig {
   /** Number of videos ahead to preload */
   preloadAhead: number;
   /** Number of videos behind to keep preloaded */
   preloadBehind: number;
-  /** Use low-priority fetch */
-  lowPriority: boolean;
 }
 
-const PRELOADER_CONFIG: Record<ConnectionQuality, PreloaderConfig> = {
-  fast: { preloadAhead: 3, preloadBehind: 1, lowPriority: false },
-  medium: { preloadAhead: 2, preloadBehind: 0, lowPriority: true },
-  slow: { preloadAhead: 1, preloadBehind: 0, lowPriority: true },
+/**
+ * Conservative defaults optimized for real-world performance
+ * Based on TikTok/Instagram Reels patterns:
+ * - Always preload next video (seamless swipe up)
+ * - Keep previous video ready (seamless swipe down)
+ * - Don't waste bandwidth on videos user might never see
+ */
+const PRELOADER_CONFIG: Record<PerformanceTier, PreloaderConfig> = {
+  aggressive: { preloadAhead: 2, preloadBehind: 1 },
+  balanced: { preloadAhead: 1, preloadBehind: 1 },
+  conservative: { preloadAhead: 1, preloadBehind: 0 },
 };
+
+/**
+ * Hook to track video load performance and adapt strategy
+ * 
+ * Measures the REAL load time: from loadstart event to playing event
+ * This gives us actual user-perceived performance metrics
+ */
+export function usePerformanceTracking(
+  videoUrl: string | undefined,
+  loadStartTimeRef: MutableRefObject<number>,
+) {
+  const hasRecordedRef = useRef(false);
+
+  // Reset tracking when URL changes
+  useEffect(() => {
+    hasRecordedRef.current = false;
+  }, [videoUrl]);
+
+  const recordLoadSuccess = () => {
+    // Only record once per video load
+    if (hasRecordedRef.current || loadStartTimeRef.current === 0) return;
+    
+    // Calculate actual load time: from loadstart to playing
+    const loadTime = performance.now() - loadStartTimeRef.current;
+    performanceTracker.recordLoadTime(loadTime);
+    hasRecordedRef.current = true;
+  };
+
+  return { recordLoadSuccess };
+}
 
 /**
  * Hook to intelligently preload videos near the active index.
  * Uses <link rel="preload"> for efficient browser-level preloading.
  * 
- * Features:
- * - Connection-aware: preloads fewer videos on slow connections
- * - Deduplicates: tracks what's already preloaded
- * - Cleanup: removes old preload links to avoid memory bloat
- * - Priority: preloads in order of proximity to active video
+ * Performance-first approach:
+ * - Learns from actual load times (not unreliable Network API)
+ * - Defaults to 2 videos: 1 ahead + 1 behind (TikTok pattern)
+ * - Adapts based on real-world performance
+ * - Minimal bandwidth waste on slow connections
  */
 export function useVideoPreloader(
   items: TVItem[],
@@ -101,44 +128,34 @@ export function useVideoPreloader(
   enabled = true
 ) {
   const preloadedUrlsRef = useRef<Map<string, HTMLLinkElement>>(new Map());
-  const connectionQualityRef = useRef<ConnectionQuality>(getConnectionQuality());
+  const [tier, setTier] = useState<PerformanceTier>(() => performanceTracker.getTier());
 
-  // Update connection quality periodically
+  // Update tier periodically based on learned performance
   useEffect(() => {
-    const updateConnection = () => {
-      connectionQualityRef.current = getConnectionQuality();
-    };
-
-    // Listen for connection changes (Chrome, Edge, some Android browsers)
-    // Not supported on Safari or Firefox
-    try {
-      const nav = navigator as Navigator & {
-        connection?: EventTarget & { 
-          addEventListener?: (type: string, listener: () => void) => void;
-          removeEventListener?: (type: string, listener: () => void) => void;
-        };
-      };
-
-      if (nav.connection && typeof nav.connection.addEventListener === "function") {
-        nav.connection.addEventListener("change", updateConnection);
-        return () => {
-          if (nav.connection && typeof nav.connection.removeEventListener === "function") {
-            nav.connection.removeEventListener("change", updateConnection);
-          }
-        };
+    const interval = setInterval(() => {
+      const newTier = performanceTracker.getTier();
+      if (newTier !== tier) {
+        setTier(newTier);
       }
-    } catch (err) {
-      // Silently fail - connection listener is optional enhancement
-      console.warn("[preloader] Connection change listener failed:", err);
-    }
+    }, 5000); // Check every 5s
+
+    return () => clearInterval(interval);
+  }, [tier]);
+
+  // Cleanup ONLY on unmount
+  useEffect(() => {
+    const preloadedUrls = preloadedUrlsRef.current;
+    return () => {
+      preloadedUrls.forEach((link) => link.remove());
+      preloadedUrls.clear();
+    };
   }, []);
 
   // Preload videos near the active index
   useEffect(() => {
     if (!enabled || items.length === 0) return;
 
-    const quality = connectionQualityRef.current;
-    const config = PRELOADER_CONFIG[quality];
+    const config = PRELOADER_CONFIG[tier];
     const preloadedUrls = preloadedUrlsRef.current;
 
     // Calculate which indices to preload
@@ -165,7 +182,6 @@ export function useVideoPreloader(
       .map((idx) => items[idx]?.videoUrl)
       .filter((url): url is string => !!url && !preloadedUrls.has(url));
 
-    // Create preload links
     urlsToPreload.forEach((url) => {
       try {
         const link = document.createElement("link");
@@ -180,9 +196,8 @@ export function useVideoPreloader(
           document.head.appendChild(link);
           preloadedUrls.set(url, link);
         }
-      } catch (err) {
+      } catch {
         // If preload fails, just skip it - video will load when played
-        console.warn(`[preloader] Failed to preload video: ${url}`, err);
       }
     });
 
@@ -198,71 +213,32 @@ export function useVideoPreloader(
         try {
           link.remove();
           preloadedUrls.delete(url);
-        } catch (err) {
+        } catch {
           // Silently handle removal failures
-          console.warn(`[preloader] Failed to remove preload link: ${url}`, err);
           preloadedUrls.delete(url);
         }
       }
     });
 
-    // Cleanup on unmount
-    return () => {
-      try {
-        preloadedUrls.forEach((link) => link.remove());
-        preloadedUrls.clear();
-      } catch (err) {
-        console.warn("[preloader] Cleanup failed:", err);
-      }
-    };
-  }, [items, activeIndex, enabled]);
+  }, [items, activeIndex, enabled, tier]);
 }
 
 /**
  * Buffer distance calculation for virtualization.
- * Determines how many videos to render based on connection quality.
+ * Conservative default: only render 2 videos total (current + 1 ahead)
+ * This is optimal for:
+ * - Memory efficiency
+ * - Smooth scroll performance  
+ * - Works great on mobile
  */
 export function useRenderBuffer(): number {
-  const quality = getConnectionQuality();
-  // Render more videos on fast connections for smoother scrolling
-  switch (quality) {
-    case "fast": return 2;
-    case "medium": return 2;  // Keep 2 for smooth scroll, but preload less
-    case "slow": return 1;    // Minimal rendering on slow connections
+  const tier = performanceTracker.getTier();
+  // Always keep render buffer tight - only mount what's visible/next
+  switch (tier) {
+    case "aggressive": return 2; // Current + 2 ahead/behind
+    case "balanced": return 1;   // Current + 1 ahead/behind (default)
+    case "conservative": return 1; // Minimal
   }
 }
 
-/**
- * Hook to check if a video index should be rendered.
- * Implements virtualization - only renders nearby videos.
- */
-export function useShouldRenderVideo(
-  index: number,
-  activeIndex: number,
-  bufferSize = 2
-): boolean {
-  return Math.abs(index - activeIndex) <= bufferSize;
-}
 
-/**
- * Hook to get optimized preload strategy for a video.
- * Returns the appropriate preload attribute value based on connection.
- */
-export function useVideoPreloadStrategy(
-  index: number,
-  activeIndex: number
-): "auto" | "metadata" | "none" {
-  const distance = Math.abs(index - activeIndex);
-  const quality = getConnectionQuality();
-
-  if (distance === 0) return "auto"; // Active video - load fully
-
-  // On slow connections, only load active video fully
-  if (quality === "slow") {
-    return distance === 1 ? "metadata" : "none";
-  }
-
-  // On medium/fast, preload adjacent videos
-  if (distance <= 1) return "metadata";
-  return "none";
-}

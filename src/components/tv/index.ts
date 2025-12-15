@@ -9,9 +9,9 @@
  *
  * Performance optimizations:
  * - Virtualized rendering: only mounts videos within buffer distance
- * - Intelligent preloading: uses <link rel="preload"> based on connection quality
+ * - Intelligent preloading: uses <link rel="preload"> based on measured performance
  * - Smooth transitions: poster → video with fade animations
- * - Connection-aware: adapts preload strategy for slow connections
+ * - Adaptive strategy: learns from real load times to optimize preloading
  *
  * Components:
  * - GnarsTVFeed: Main feed container with virtualization
@@ -24,8 +24,8 @@
  * Hooks:
  * - useTVFeed: Fetches and manages feed content with pagination (coins + droposals)
  * - usePreloadTrigger: Triggers loading more content before reaching end
- * - useVideoPreloader: Intelligent video preloading based on connection
- * - useRenderBuffer: Connection-aware virtualization buffer
+ * - useVideoPreloader: Intelligent video preloading based on measured performance
+ * - useRenderBuffer: Adaptive virtualization buffer (learns from real load times)
  */
 
 export { GnarsTVFeed } from "./GnarsTVFeed";
@@ -35,6 +35,6 @@ export { TVControls } from "./TVControls";
 export { TVVideoCardInfo } from "./TVVideoCardInfo";
 export { TVEmptyState, TVLoadingMore, TVEndOfFeed } from "./TVLoadingStates";
 export { useTVFeed, usePreloadTrigger } from "./useTVFeed";
-export { useVideoPreloader, useRenderBuffer, useShouldRenderVideo } from "./useVideoPreloader";
+export { useVideoPreloader, useRenderBuffer } from "./useVideoPreloader";
 export * from "./types";
 export * from "./utils";

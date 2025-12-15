@@ -82,6 +82,76 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   // Trigger preload when near end
   usePreloadTrigger(activeIndex, videoItems.length, hasMoreContent, loadingMore, loading, loadMore);
 
+  // Optimize scroll detection with Intersection Observer
+  // This is more performant than scroll events and works better on mobile
+  // Based on MDN best practices: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
+  useEffect(() => {
+    const containers = containerRefs.current;
+    if (containers.length === 0 || !fullContainerRef.current) return;
+
+    // Observer options optimized for vertical video feed
+    const observerOptions: IntersectionObserverInit = {
+      root: fullContainerRef.current,
+      // Small negative margin ensures video is considered active slightly before fully visible
+      // This provides smoother transitions on fast scrolling
+      rootMargin: "-10% 0px -10% 0px",
+      // 0.5 threshold means callback fires when 50% of video is visible
+      // Perfect for snap scrolling - video becomes active when centered
+      threshold: 0.5,
+    };
+
+    // Callback runs on main thread - keep it fast!
+    // Use requestIdleCallback for non-critical work if available
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      // Process entries in order of intersection ratio (most visible first)
+      // This ensures the most visible video becomes active first
+      const sortedEntries = [...entries].sort(
+        (a, b) => b.intersectionRatio - a.intersectionRatio
+      );
+
+      sortedEntries.forEach((entry) => {
+        // Only consider entries that are actually intersecting
+        // entry.isIntersecting is more reliable than checking ratio > 0
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          const idx = parseInt(entry.target.getAttribute("data-index") || "0", 10);
+          
+          // Use requestIdleCallback for state updates if available
+          // Falls back to immediate execution on browsers that don't support it
+          const updateState = () => {
+            setActiveIndex((current) => {
+              // Only update if actually changed to prevent unnecessary re-renders
+              if (current !== idx) {
+                setPlayCount(0);
+                return idx;
+              }
+              return current;
+            });
+          };
+
+          // For the active video index, responsiveness matters more than saving a tiny
+          // amount of main-thread work; update immediately.
+          updateState();
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, observerOptions);
+
+    // Observe all video containers
+    // Note: observer.observe() is called immediately for each element
+    // The callback will fire for each element's initial intersection state
+    containers.forEach((container) => {
+      if (container) {
+        observer.observe(container);
+      }
+    });
+
+    // Cleanup: Always disconnect observer to prevent memory leaks
+    return () => {
+      observer.disconnect();
+    };
+  }, [videoItems]);
+
   // Helper to check if a video should be rendered
   const shouldRenderVideo = useCallback(
     (index: number) => Math.abs(index - activeIndex) <= renderBuffer,
@@ -93,30 +163,6 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     setActiveIndex(0);
     setPlayCount(0);
   }, [items.length]);
-
-  // Intersection observer for detecting active video (observes containers, not videos)
-  useEffect(() => {
-    if (!videoItems.length) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const container = entry.target as HTMLDivElement;
-            const idx = Number(container.dataset.index || "0");
-            setActiveIndex(idx);
-            setPlayCount(0);
-          }
-        });
-      },
-      { threshold: 0.6 },
-    );
-
-    // Observe container divs instead of video elements
-    containerRefs.current.forEach((el) => el && observer.observe(el));
-
-    return () => observer.disconnect();
-  }, [videoItems.length]);
 
   // Handle video end - play twice then advance
   const handleVideoEnd = useCallback(() => {
@@ -173,8 +219,8 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         setIsFullscreen(false);
         setIsAutoplayMode(false);
       }
-    } catch (err) {
-      console.error("Fullscreen error:", err);
+    } catch {
+      // Silently ignore fullscreen errors (often due to browser gesture policies)
     }
   }, []);
 
@@ -263,8 +309,6 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
 
         toast.success(`Successfully bought ${coinTitle}!`, { id: buyToast });
       } catch (err) {
-        console.error("Buy coin error:", err);
-
         // Recursively extract all error messages from the cause chain
         const extractErrorMessages = (error: unknown): string => {
           const messages: string[] = [];
@@ -375,8 +419,8 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
           return tokenAddr;
         }
       }
-    } catch (err) {
-      console.error("[gnars-tv] Failed to resolve token address:", err);
+    } catch {
+      // If token address resolution fails, treat as unresolved.
     }
 
     return null;
@@ -444,8 +488,6 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
           description: `Transaction: ${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
         });
       } catch (err) {
-        console.error("Mint droposal error:", err);
-
         const errorMessage = err instanceof Error ? err.message : String(err);
         const isUserRejection =
           errorMessage.includes("rejected") ||
@@ -490,6 +532,14 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
       <div
         ref={fullContainerRef}
         className="h-screen w-full snap-y snap-mandatory overflow-y-auto overscroll-none"
+        style={{
+          // Hardware acceleration for smoother scrolling
+          WebkitOverflowScrolling: "touch",
+          // Optimize scroll performance
+          willChange: "scroll-position",
+          // Contain layout to improve paint performance
+          contain: "layout style paint",
+        }}
       >
         {videoItems.length === 0 ? (
           <TVEmptyState loading={loading} error={error} />

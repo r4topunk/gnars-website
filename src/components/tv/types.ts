@@ -107,4 +107,8 @@ export type CoinEdge = {
 export type CreatorCursor = {
   cursor: string | null;
   hasMore: boolean;
+  /** Last fetch error (transient). If present, creator is not necessarily exhausted. */
+  error?: unknown;
+  /** Epoch ms when `error` was recorded. */
+  lastErrorAt?: number;
 };
