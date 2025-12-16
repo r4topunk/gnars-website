@@ -32,6 +32,7 @@ import {
   Newspaper,
   PlusCircle,
   Tv,
+  UserCheck,
   Users,
   Video,
   Vote,
@@ -40,6 +41,7 @@ import {
 import { toast } from "sonner";
 import { useAccount, useSwitchChain } from "wagmi";
 import { base } from "wagmi/chains";
+import { DelegationModal } from "@/components/layout/DelegationModal";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -90,6 +92,12 @@ const navigationItems = [
         href: "/propose",
         icon: PlusCircle,
         description: "Submit a new proposal to the DAO",
+      },
+      {
+        title: "Delegation",
+        href: "#delegation",
+        icon: UserCheck,
+        description: "Manage your voting delegation",
       },
     ],
   },
@@ -169,6 +177,7 @@ function DaoLogo() {
 function DesktopNav() {
   const pathname = usePathname();
   const [mounted, setMounted] = React.useState(false);
+  const [delegationModalOpen, setDelegationModalOpen] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
@@ -184,69 +193,96 @@ function DesktopNav() {
   );
 
   return (
-    <NavigationMenu className="hidden md:flex">
-      <NavigationMenuList className="items-center">
-        {navigationItems.map((item) => {
-          // Single link item
-          if ("href" in item && item.href) {
+    <>
+      <DelegationModal open={delegationModalOpen} onOpenChange={setDelegationModalOpen} />
+      <NavigationMenu className="hidden md:flex">
+        <NavigationMenuList className="items-center">
+          {navigationItems.map((item) => {
+            // Single link item
+            if ("href" in item && item.href) {
+              return (
+                <NavigationMenuItem key={item.title}>
+                  <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                    <Link
+                      href={item.href}
+                      className={cn(isRouteActive(item.href) && "bg-accent text-accent-foreground")}
+                    >
+                      {item.title}
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              );
+            }
+
+            // Dropdown item
             return (
               <NavigationMenuItem key={item.title}>
-                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link
-                    href={item.href}
-                    className={cn(isRouteActive(item.href) && "bg-accent text-accent-foreground")}
-                  >
-                    {item.title}
-                  </Link>
-                </NavigationMenuLink>
+                <NavigationMenuTrigger
+                  className={cn(isRouteActive(item.items?.[0]?.href || "") && "bg-accent/50")}
+                >
+                  {item.title}
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-2 p-2">
+                    {item.items?.map((subItem) => {
+                      const SubIcon = subItem.icon;
+                      const isDelegation = subItem.href === "#delegation";
+
+                      if (isDelegation) {
+                        return (
+                          <li key={subItem.title}>
+                            <NavigationMenuLink asChild>
+                              <button
+                                onClick={() => setDelegationModalOpen(true)}
+                                className="flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors w-full text-left"
+                              >
+                                <SubIcon className="size-5 mt-0.5 text-muted-foreground" />
+                                <div className="flex flex-col gap-1">
+                                  <div className="text-sm font-medium leading-none">
+                                    {subItem.title}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground line-clamp-2 leading-snug">
+                                    {subItem.description}
+                                  </p>
+                                </div>
+                              </button>
+                            </NavigationMenuLink>
+                          </li>
+                        );
+                      }
+
+                      return (
+                        <li key={subItem.title}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href={subItem.href!}
+                              className={cn(
+                                "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
+                                isRouteActive(subItem.href!) && "bg-accent/50",
+                              )}
+                            >
+                              <SubIcon className="size-5 mt-0.5 text-muted-foreground" />
+                              <div className="flex flex-col gap-1">
+                                <div className="text-sm font-medium leading-none">
+                                  {subItem.title}
+                                </div>
+                                <p className="text-sm text-muted-foreground line-clamp-2 leading-snug">
+                                  {subItem.description}
+                                </p>
+                              </div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </NavigationMenuContent>
               </NavigationMenuItem>
             );
-          }
-
-          // Dropdown item
-          return (
-            <NavigationMenuItem key={item.title}>
-              <NavigationMenuTrigger
-                className={cn(isRouteActive(item.items?.[0]?.href || "") && "bg-accent/50")}
-              >
-                {item.title}
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-2 p-2">
-                  {item.items?.map((subItem) => {
-                    const SubIcon = subItem.icon;
-
-                    return (
-                      <li key={subItem.title}>
-                        <NavigationMenuLink asChild>
-                          <Link
-                            href={subItem.href!}
-                            className={cn(
-                              "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
-                              isRouteActive(subItem.href!) && "bg-accent/50",
-                            )}
-                          >
-                            <SubIcon className="size-5 mt-0.5 text-muted-foreground" />
-                            <div className="flex flex-col gap-1">
-                              <div className="text-sm font-medium leading-none">
-                                {subItem.title}
-                              </div>
-                              <p className="text-sm text-muted-foreground line-clamp-2 leading-snug">
-                                {subItem.description}
-                              </p>
-                            </div>
-                          </Link>
-                        </NavigationMenuLink>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          );
-        })}
-      </NavigationMenuList>
-    </NavigationMenu>
+          })}
+        </NavigationMenuList>
+      </NavigationMenu>
+    </>
   );
 }
 
@@ -254,6 +290,7 @@ function MobileNav() {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
+  const [delegationModalOpen, setDelegationModalOpen] = React.useState(false);
   const { isConnected, chain } = useAccount();
   const { switchChain, isPending } = useSwitchChain();
   const isWrongNetwork = isConnected && chain?.id !== base.id;
@@ -288,78 +325,98 @@ function MobileNav() {
   }, [switchChain, isPending]);
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <Menu className="size-5" />
-          <span className="sr-only">Toggle menu</span>
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-        <SheetHeader>
-          <SheetTitle className="text-left">Navigation</SheetTitle>
-        </SheetHeader>
-        <nav className="flex flex-col gap-4 mt-8 flex-1 overflow-y-auto">
-          {navigationItems.map((item) => {
-            if ("href" in item && item.href) {
-              const Icon = item.icon;
+    <>
+      <DelegationModal open={delegationModalOpen} onOpenChange={setDelegationModalOpen} />
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="md:hidden">
+            <Menu className="size-5" />
+            <span className="sr-only">Toggle menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+          <SheetHeader>
+            <SheetTitle className="text-left">Navigation</SheetTitle>
+          </SheetHeader>
+          <nav className="flex flex-col gap-4 mt-8 flex-1 overflow-y-auto">
+            {navigationItems.map((item) => {
+              if ("href" in item && item.href) {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.title}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md p-3 text-sm font-medium transition-colors hover:bg-accent",
+                      isRouteActive(item.href) && "bg-accent text-accent-foreground",
+                    )}
+                  >
+                    <Icon className="size-5" />
+                    {item.title}
+                  </Link>
+                );
+              }
+
               return (
-                <Link
-                  key={item.title}
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md p-3 text-sm font-medium transition-colors hover:bg-accent",
-                    isRouteActive(item.href) && "bg-accent text-accent-foreground",
-                  )}
-                >
-                  <Icon className="size-5" />
-                  {item.title}
-                </Link>
-              );
-            }
+                <div key={item.title} className="flex flex-col gap-2">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">
+                    {item.title}
+                  </div>
+                  {item.items?.map((subItem) => {
+                    const SubIcon = subItem.icon;
+                    const isDelegation = subItem.href === "#delegation";
 
-            return (
-              <div key={item.title} className="flex flex-col gap-2">
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">
-                  {item.title}
+                    if (isDelegation) {
+                      return (
+                        <button
+                          key={subItem.title}
+                          onClick={() => {
+                            setOpen(false);
+                            setDelegationModalOpen(true);
+                          }}
+                          className="flex items-center gap-3 rounded-md p-3 pl-6 text-sm transition-colors hover:bg-accent w-full text-left"
+                        >
+                          <SubIcon className="size-4" />
+                          {subItem.title}
+                        </button>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={subItem.title}
+                        href={subItem.href!}
+                        onClick={() => setOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 rounded-md p-3 pl-6 text-sm transition-colors hover:bg-accent",
+                          isRouteActive(subItem.href!) && "bg-accent text-accent-foreground",
+                        )}
+                      >
+                        <SubIcon className="size-4" />
+                        {subItem.title}
+                      </Link>
+                    );
+                  })}
                 </div>
-                {item.items?.map((subItem) => {
-                  const SubIcon = subItem.icon;
-
-                  return (
-                    <Link
-                      key={subItem.title}
-                      href={subItem.href!}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 rounded-md p-3 pl-6 text-sm transition-colors hover:bg-accent",
-                        isRouteActive(subItem.href!) && "bg-accent text-accent-foreground",
-                      )}
-                    >
-                      <SubIcon className="size-4" />
-                      {subItem.title}
-                    </Link>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </nav>
-        <SheetFooter className="border-t mt-4">
-          {isWrongNetwork && (
-            <Badge
-              variant="secondary"
-              className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors w-full justify-center"
-              onClick={handleSwitchNetwork}
-            >
-              {isPending ? "Switching..." : "Switch to Base"}
-            </Badge>
-          )}
-          <ConnectButton />
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+              );
+            })}
+          </nav>
+          <SheetFooter className="border-t mt-4">
+            {isWrongNetwork && (
+              <Badge
+                variant="secondary"
+                className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors w-full justify-center"
+                onClick={handleSwitchNetwork}
+              >
+                {isPending ? "Switching..." : "Switch to Base"}
+              </Badge>
+            )}
+            <ConnectButton />
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
 
