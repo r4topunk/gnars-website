@@ -106,14 +106,14 @@ export function AuctionSpotlight() {
     }
   }, [bidAmount, isValidBid]);
 
-  // Check if auctions are paused - cache for 5 minutes since this rarely changes
+  // Check if auctions are paused - cache for 30 seconds since this can change
   const { data: isPaused } = useReadContract({
     address: GNARS_ADDRESSES.auction as `0x${string}`,
     abi: auctionAbi,
     functionName: "paused",
     chainId: CHAIN.id,
     query: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 30 * 1000, // 30 seconds
       refetchInterval: false,
     },
   });
