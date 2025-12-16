@@ -47,7 +47,7 @@ export function DelegationModal({ open, onOpenChange }: DelegationModalProps) {
   const [delegateAddress, setDelegateAddress] = React.useState("");
   const [isChanging, setIsChanging] = React.useState(false);
 
-  // Read token balance
+  // Read token balance - only when modal is open
   const { data: balanceData } = useReadContracts({
     contracts: [
       {
@@ -67,35 +67,25 @@ export function DelegationModal({ open, onOpenChange }: DelegationModalProps) {
       },
     ],
     query: {
-      enabled: Boolean(address),
+      enabled: open && Boolean(address),
+      refetchInterval: false,
     },
   });
 
   const tokenBalance = balanceData?.[0]?.result ?? 0n;
 
-  // Debug: Log modal state
-  React.useEffect(() => {
-    console.log("[DelegationModal] Modal state changed:", { 
-      open, 
-      isConnected, 
-      address,
-      tokenBalance: tokenBalance.toString(),
-      hasTokens: tokenBalance > 0n,
-    });
-  }, [open, isConnected, address, tokenBalance]);
-
-  // Fetch voting data
+  // Fetch voting data - only when modal is open
   const votesData = useVotes({
     chainId: 8453,
     collectionAddress: GNARS_ADDRESSES.token as Address,
     governorAddress: GNARS_ADDRESSES.governor as Address,
     signerAddress: address,
+    enabled: open,
   });
 
   // Delegation hook
   const { delegate, isPending, isConfirming, isConfirmed, pendingHash } = useDelegate({
     onSuccess: (txHash, delegatee) => {
-      console.log("[DelegationModal] Delegation successful:", { txHash, delegatee });
       toast.success("Delegation updated!", {
         description: `Successfully delegated to ${formatAddress(delegatee)}`,
       });
@@ -110,20 +100,6 @@ export function DelegationModal({ open, onOpenChange }: DelegationModalProps) {
   const currentDelegate = votesData.delegatedTo;
   const isSelfDelegated = currentDelegate?.toLowerCase() === address?.toLowerCase();
   const votingPower = votesData.votes;
-
-  // Debug: Log voting data
-  React.useEffect(() => {
-    console.log("[DelegationModal] Voting data:", {
-      tokenBalance: tokenBalance.toString(),
-      currentDelegate,
-      isSelfDelegated,
-      votingPower: votingPower?.toString(),
-      isLoading: votesData.isLoading,
-      hasVotingPower: votesData.hasVotingPower,
-      isDelegating: votesData.isDelegating,
-      balanceMatchesVotes: tokenBalance === votingPower,
-    });
-  }, [tokenBalance, currentDelegate, isSelfDelegated, votingPower, votesData.isLoading, votesData.hasVotingPower, votesData.isDelegating]);
 
   React.useEffect(() => {
     if (address) {

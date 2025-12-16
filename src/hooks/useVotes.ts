@@ -34,6 +34,7 @@ interface UseVotesArgs {
   collectionAddress?: Address;
   governorAddress?: Address;
   signerAddress?: Address;
+  enabled?: boolean;
 }
 
 interface UseVotesResult {
@@ -65,12 +66,14 @@ export const useVotes = ({
   collectionAddress,
   governorAddress,
   signerAddress,
+  enabled: enabledProp = true,
 }: UseVotesArgs): UseVotesResult => {
-  const enabled = Boolean(collectionAddress && governorAddress && signerAddress);
+  const enabled = Boolean(collectionAddress && governorAddress && signerAddress) && enabledProp;
 
   const { data, isLoading } = useReadContracts({
     query: {
       enabled,
+      refetchInterval: false,
     },
     allowFailure: false,
     contracts: enabled

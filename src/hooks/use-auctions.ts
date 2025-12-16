@@ -5,8 +5,8 @@ export function useRecentAuctions(limit: number) {
   return useQuery<PastAuction[]>({
     queryKey: ["recent-auctions", limit],
     queryFn: () => fetchRecentAuctions(limit),
-    refetchOnMount: true,
-    staleTime: 0,
+    staleTime: 30 * 1000, // 30 seconds - balance freshness vs calls
+    refetchInterval: false, // Manual refresh only
   });
 }
 
@@ -14,7 +14,7 @@ export function useAllAuctions(limit?: number) {
   return useQuery<PastAuction[]>({
     queryKey: ["all-auctions", limit],
     queryFn: () => fetchAllAuctions(limit),
-    refetchOnMount: true,
-    staleTime: 0,
+    staleTime: 2 * 60 * 1000, // 2 minutes - historical data doesn't change often
+    refetchInterval: false,
   });
 }

@@ -50,6 +50,10 @@ export function useDaoSettings(): DaoSettings {
         chainId: CHAIN.id,
       },
     ],
+    query: {
+      staleTime: 10 * 60 * 1000, // 10 minutes - settings rarely change
+      refetchInterval: false,
+    },
   });
 
   const votingDelay = data?.[0]?.result ?? 0n;
