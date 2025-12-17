@@ -4,12 +4,12 @@ import { RecentProposalsSection } from "@/components/home/RecentProposalsSection
 import { ActivityFeedSection } from "@/components/home/ActivityFeedSection";
 import { HeroStatsValues } from "@/components/home/HeroStatsValues";
 import { HomeStaticContent } from "@/components/home/HomeStaticContent";
+import { AnimatedDescription } from "@/components/home/AnimatedDescription";
 import {
   HeroStatsSkeleton,
   RecentProposalsSkeleton,
   ActivityFeedSkeleton,
 } from "@/components/skeletons/home-skeletons";
-import { DAO_DESCRIPTION } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -29,9 +29,7 @@ export default function Home() {
                       Gnars DAO
                     </span>
                   </h1>
-                  <p className="text-lg text-muted-foreground md:text-xl">
-                    {DAO_DESCRIPTION}
-                  </p>
+                  <AnimatedDescription />
                 </div>
 
                 {/* Stats - Only this part streams in */}

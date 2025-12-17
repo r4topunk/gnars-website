@@ -51,7 +51,16 @@ export const SUBGRAPH = {
 } as const;
 
 export const DAO_DESCRIPTION =
-  "Nounish Open Source Action Sports Brand experiment ";
+  "Nounish Open Source Action Sports Brand experiment";
+
+export const HOMEPAGE_DESCRIPTIONS = [
+  "Nounish Open Source Action Sports Brand experiment",
+  "Funding extreme sports athletes and creators worldwide",
+  "Building the future of shredding",
+  "Empowering athletes through collective governance",
+  "Has funded 15 skatable sculptures around the world",
+  "é foda pra caralho!"
+] as const;
 
 // Token contracts we care about for treasury display
 // Provide Base mainnet addresses for known tokens
