@@ -1,6 +1,9 @@
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 
+// Helper to delay between batched queries to avoid rate limits
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export type MemberOverview = {
   address: string;
   delegate: string;
@@ -373,7 +376,8 @@ export async function fetchActiveVotesForVoters(
   const chunks: string[][] = [];
   for (let i = 0; i < unique.length; i += 100) chunks.push(unique.slice(i, i + 100));
 
-  for (const voters of chunks) {
+  for (let i = 0; i < chunks.length; i++) {
+    const voters = chunks[i];
     let skip = 0;
     while (true) {
       const data = await subgraphQuery<ActiveVotesBatchQuery>(ACTIVE_VOTES_BATCH_GQL, {
@@ -389,6 +393,8 @@ export async function fetchActiveVotesForVoters(
       if (rows.length < PAGE) break;
       skip += PAGE;
     }
+    // Small delay between chunks to avoid rate limits
+    if (i < chunks.length - 1) await delay(100);
   }
 
   return counts;
@@ -485,7 +491,8 @@ export async function fetchVotesCountForVoters(
   const uniqueAddresses = Array.from(new Set(addresses.map((a) => a.toLowerCase())));
   const chunks = chunkArray(uniqueAddresses, 100);
 
-  for (const voters of chunks) {
+  for (let i = 0; i < chunks.length; i++) {
+    const voters = chunks[i];
     let skip = 0;
     while (true) {
       const data = await subgraphQuery<VotesCountBatchQuery>(VOTES_COUNT_BATCH_GQL, {
@@ -502,6 +509,8 @@ export async function fetchVotesCountForVoters(
       if (votes.length < 1000) break;
       skip += 1000;
     }
+    // Small delay between chunks to avoid rate limits
+    if (i < chunks.length - 1) await delay(100);
   }
 
   return counts;
@@ -541,7 +550,8 @@ export async function fetchVoteSupportForVoters(
   const uniqueAddresses = Array.from(new Set(addresses.map((a) => a.toLowerCase())));
   const chunks = chunkArray(uniqueAddresses, 100);
 
-  for (const voters of chunks) {
+  for (let i = 0; i < chunks.length; i++) {
+    const voters = chunks[i];
     let skip = 0;
     while (true) {
       const data = await subgraphQuery<VotesSupportBatchQuery>(VOTES_SUPPORT_BATCH_GQL, {
@@ -560,6 +570,8 @@ export async function fetchVoteSupportForVoters(
       if (votes.length < 1000) break;
       skip += 1000;
     }
+    // Small delay between chunks to avoid rate limits
+    if (i < chunks.length - 1) await delay(100);
   }
 
   return supportMap;

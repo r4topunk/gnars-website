@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import {
   fetchActiveVotesForVoters,
   fetchAllMembers,
@@ -8,11 +9,13 @@ import {
   type MemberListItem,
 } from "@/services/members";
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const search = (searchParams.get("search") || "").toLowerCase();
-
+/**
+ * Cached function to fetch and enrich member data.
+ * Uses Next.js unstable_cache for reliable caching in serverless environments.
+ * Revalidates every 5 minutes to prevent subgraph rate limit abuse.
+ */
+const getCachedMembers = unstable_cache(
+  async (): Promise<MemberListItem[]> => {
     const members = await fetchAllMembers();
     const owners = members.map((m) => m.owner);
     const [votesCountMap, activeVotesMap, nonCanceledCount, voteSupportMap] = await Promise.all([
@@ -22,7 +25,7 @@ export async function GET(request: Request) {
       fetchVoteSupportForVoters(owners),
     ]);
 
-    const withCounts: MemberListItem[] = members.map((m) => {
+    return members.map((m) => {
       const key = m.owner.toLowerCase();
       const castVotes = votesCountMap[key] || 0;
       const activeVotes = activeVotesMap[key] || 0;
@@ -38,13 +41,27 @@ export async function GET(request: Request) {
         likePct,
       };
     });
+  },
+  ["members-list"],
+  {
+    revalidate: 300, // 5 minutes
+    tags: ["members"],
+  },
+);
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const search = (searchParams.get("search") || "").toLowerCase();
+
+    const members = await getCachedMembers();
 
     const filtered: MemberListItem[] = search
-      ? withCounts.filter(
+      ? members.filter(
           (m) =>
             m.owner.toLowerCase().includes(search) || m.delegate.toLowerCase().includes(search),
         )
-      : withCounts;
+      : members;
 
     return NextResponse.json({ members: filtered });
   } catch (error) {
