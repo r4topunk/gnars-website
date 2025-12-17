@@ -17,9 +17,9 @@
 "use client";
 
 import * as React from "react";
-import { Copy, ExternalLink, Info, Loader2, UserCheck } from "lucide-react";
+import { Copy, ExternalLink, Loader2, UserCheck } from "lucide-react";
 import { toast } from "sonner";
-import { Address, Hex } from "viem";
+import { Address } from "viem";
 import { useAccount, useReadContracts } from "wagmi";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { useVotes } from "@/hooks/useVotes";
