@@ -34,6 +34,8 @@ export { TVHeader } from "./TVHeader";
 export { TVControls } from "./TVControls";
 export { TVVideoCardInfo } from "./TVVideoCardInfo";
 export { TVEmptyState, TVLoadingMore, TVEndOfFeed } from "./TVLoadingStates";
+export { FaultyTerminal } from "./FaultyTerminal";
+export { FuzzyText } from "./FuzzyText";
 export { useTVFeed, usePreloadTrigger } from "./useTVFeed";
 export { useVideoPreloader, useRenderBuffer } from "./useVideoPreloader";
 export * from "./types";
