@@ -99,7 +99,7 @@ export const TV_MINIAPP_CONFIG = {
     name: "Gnar TV",
     subtitle: "Creator Coins Feed",
     description:
-      "Watch and support creator coins on Gnar TV - a TikTok-style video feed for Zora creator content. Discover action sports creators and back their coins with just a tap.",
+      "Gnarliest Zora Video Feed of the worldwide web. Take the kids out of the living room, the stunts here are performed by complete retards.",
     homeUrl: `${BASE_URL}/tv`,
     iconUrl: `${BASE_URL}/gnars.webp`,
     splashImageUrl: `${BASE_URL}/tv-splash.png`,
@@ -112,7 +112,7 @@ export const TV_MINIAPP_CONFIG = {
     tagline: "Video feed for creator coins",
     ogTitle: "Gnar TV - Creator Coins Feed",
     ogDescription:
-      "Watch and support creator coins on Gnar TV - a TikTok-style video feed for Zora creator content",
+      "Gnarliest Zora Video Feed of the worldwide web. Take the kids out of the living room, the stunts here are performed by complete retards.",
     ogImageUrl: `${BASE_URL}/tv-og.png`,
     noindex: false,
   },
