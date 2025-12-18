@@ -1,6 +1,8 @@
 "use client";
 
 import { Maximize, Minimize, Share2, Volume2, VolumeX } from "lucide-react";
+import { TVInfiniteMenu } from "./TVInfiniteMenu";
+import type { TVItem } from "./types";
 
 interface TVControlsProps {
   isMuted: boolean;
@@ -10,10 +12,14 @@ interface TVControlsProps {
   onTogglePlayPause: () => void;
   onToggleFullscreen: () => void;
   onShare: () => void;
+  // Menu props
+  videoItems?: TVItem[];
+  currentIndex?: number;
+  onMenuItemClick?: (index: number) => void;
 }
 
 /**
- * Side controls for the TV player (fullscreen, play/pause, mute, share)
+ * Side controls for the TV player (fullscreen, play/pause, mute, share, menu)
  */
 export function TVControls({
   isMuted,
@@ -23,6 +29,9 @@ export function TVControls({
   onTogglePlayPause,
   onToggleFullscreen,
   onShare,
+  videoItems = [],
+  currentIndex = 0,
+  onMenuItemClick,
 }: TVControlsProps) {
   return (
     <div className="absolute top-24 right-5 flex flex-col gap-3 z-30">
@@ -52,6 +61,15 @@ export function TVControls({
       <ControlButton onClick={onShare} ariaLabel="Share">
         <Share2 className="w-4 h-4" />
       </ControlButton>
+
+      {/* Menu Button - Integrated with TVInfiniteMenu */}
+      {videoItems.length > 0 && onMenuItemClick && (
+        <TVInfiniteMenu
+          items={videoItems}
+          currentIndex={currentIndex}
+          onItemClick={onMenuItemClick}
+        />
+      )}
     </div>
   );
 }

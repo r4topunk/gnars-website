@@ -52,8 +52,14 @@ const TextType = ({
   const [isVisible, setIsVisible] = useState(!startOnVisible);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const containerRef = useRef<HTMLElement>(null);
+  const onSentenceCompleteRef = useRef(onSentenceComplete);
 
   const textArray = useMemo(() => (Array.isArray(text) ? text : [text]), [text]);
+
+  // Update callback ref without triggering typing effect restart
+  useEffect(() => {
+    onSentenceCompleteRef.current = onSentenceComplete;
+  }, [onSentenceComplete]);
 
   const getRandomSpeed = useCallback(() => {
     if (!variableSpeed) return typingSpeed;
@@ -87,13 +93,20 @@ const TextType = ({
   useEffect(() => {
     if (showCursor && cursorRef.current) {
       gsap.set(cursorRef.current, { opacity: 1 });
-      gsap.to(cursorRef.current, {
+      const tween = gsap.to(cursorRef.current, {
         opacity: 0,
         duration: cursorBlinkDuration,
         repeat: -1,
         yoyo: true,
         ease: 'power2.inOut'
       });
+
+      return () => {
+        tween.kill();
+        if (cursorRef.current) {
+          gsap.set(cursorRef.current, { opacity: 1 });
+        }
+      };
     }
   }, [showCursor, cursorBlinkDuration]);
 
@@ -113,8 +126,8 @@ const TextType = ({
             return;
           }
 
-          if (onSentenceComplete) {
-            onSentenceComplete(textArray[currentTextIndex], currentTextIndex);
+          if (onSentenceCompleteRef.current) {
+            onSentenceCompleteRef.current(textArray[currentTextIndex], currentTextIndex);
           }
 
           setCurrentTextIndex(prev => (prev + 1) % textArray.length);
@@ -164,7 +177,7 @@ const TextType = ({
     isVisible,
     reverseMode,
     variableSpeed,
-    onSentenceComplete
+    getRandomSpeed
   ]);
 
   const shouldHideCursor =

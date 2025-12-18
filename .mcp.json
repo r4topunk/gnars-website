@@ -3,7 +3,9 @@
     "shadcn-registry": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@reuvenorg/shadcn-registry-manager"],
+      "args": [
+        "@reuvenorg/shadcn-registry-manager"
+      ],
       "env": {
         "WORKSPACE_DIR": "/Users/r4to/Script/gnars-website",
         "STYLE": "new-york",
@@ -13,10 +15,20 @@
     "gnars-subgraph": {
       "type": "stdio",
       "command": "node",
-      "args": ["./mcp-subgraph/dist/index.js"],
+      "args": [
+        "./mcp-subgraph/dist/index.js"
+      ],
       "env": {
         "DATABASE_PATH": "./mcp-subgraph/data/gnars.db"
       }
+    },
+    "shadcn": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ]
     }
   }
 }

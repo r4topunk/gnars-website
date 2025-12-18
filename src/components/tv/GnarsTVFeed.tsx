@@ -580,6 +580,15 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
                       onTogglePlayPause={togglePlayPause}
                       onToggleFullscreen={toggleFullscreen}
                       onShare={handleShare}
+                      videoItems={videoItems}
+                      currentIndex={activeIndex}
+                      onMenuItemClick={(index) => {
+                        setActiveIndex(index);
+                        setPlayCount(0);
+                        containerRefs.current[index]?.scrollIntoView({
+                          behavior: "instant",
+                        });
+                      }}
                     />
 
                     <TVVideoCardInfo

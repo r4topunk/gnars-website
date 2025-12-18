@@ -36,6 +36,7 @@ export { TVVideoCardInfo } from "./TVVideoCardInfo";
 export { TVEmptyState, TVLoadingMore, TVEndOfFeed } from "./TVLoadingStates";
 export { FaultyTerminal } from "./FaultyTerminal";
 export { FuzzyText } from "./FuzzyText";
+export { TVInfiniteMenu } from "./TVInfiniteMenu";
 export { useTVFeed, usePreloadTrigger } from "./useTVFeed";
 export { useVideoPreloader, useRenderBuffer } from "./useVideoPreloader";
 export * from "./types";
