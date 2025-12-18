@@ -22,6 +22,11 @@ interface TVControlsProps {
   // Buy All Modal props
   showBuyAllModal?: boolean;
   onBuyAllModalChange?: (show: boolean) => void;
+  sharedStrategy?: {
+    name: string;
+    coins: string[];
+    eth: string;
+  } | null;
 }
 
 /**
@@ -41,6 +46,7 @@ export function TVControls({
   onMenuItemClick,
   showBuyAllModal,
   onBuyAllModalChange,
+  sharedStrategy,
 }: TVControlsProps) {
   // Uncontrolled fallback for backward compatibility
   const [localModalState, setLocalModalState] = useState(false);
@@ -56,7 +62,12 @@ export function TVControls({
 
   return (
     <>
-      <BuyAllModal isOpen={effectiveModalOpen} onClose={() => handleModalChange(false)} items={videoItems} />
+      <BuyAllModal 
+        isOpen={effectiveModalOpen} 
+        onClose={() => handleModalChange(false)} 
+        items={videoItems}
+        sharedStrategy={sharedStrategy}
+      />
       <div 
       className={`absolute top-24 right-5 flex flex-col gap-3 z-30 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       aria-hidden={!showControls}

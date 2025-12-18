@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
 import { toast } from "sonner";
@@ -42,6 +43,7 @@ interface GnarsTVFeedProps {
  * - Smooth transitions: poster → video with fade animations
  */
 export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
+  const searchParams = useSearchParams();
   const [activeIndex, setActiveIndex] = useState(0);
   const [playCount, setPlayCount] = useState(0);
   const [isBuying, setIsBuying] = useState(false);
@@ -54,12 +56,34 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   const [mintQuantity, setMintQuantity] = useState(1);
   const [showControls, setShowControls] = useState(true);
   const [showBuyAllModal, setShowBuyAllModal] = useState(false);
+  const [sharedStrategy, setSharedStrategy] = useState<{
+    name: string;
+    coins: string[];
+    eth: string;
+  } | null>(null);
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
   const containerRefs = useRef<Array<HTMLDivElement | null>>([]);
   // Cache for resolved token addresses (droposal ID -> token address)
   const tokenAddressCacheRef = useRef<Map<string, string>>(new Map());
   const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check for shared strategy in URL
+  useEffect(() => {
+    const strategyName = searchParams?.get("strategy");
+    const coinsParam = searchParams?.get("coins");
+    const ethParam = searchParams?.get("eth");
+
+    if (strategyName && coinsParam) {
+      const coinAddresses = coinsParam.split(",").filter(Boolean);
+      setSharedStrategy({
+        name: strategyName,
+        coins: coinAddresses,
+        eth: ethParam || "0.01",
+      });
+      setShowBuyAllModal(true);
+    }
+  }, [searchParams]);
 
   const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -631,6 +655,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
                       }}
                       showBuyAllModal={showBuyAllModal}
                       onBuyAllModalChange={setShowBuyAllModal}
+                      sharedStrategy={sharedStrategy}
                     />
 
                     <TVVideoCardInfo

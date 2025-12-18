@@ -19,17 +19,25 @@ interface BuyAllModalProps {
   isOpen: boolean;
   onClose: () => void;
   items: TVItem[];
+  sharedStrategy?: {
+    name: string;
+    coins: string[];
+    eth: string;
+  } | null;
 }
 
 /**
  * Modal for buying multiple content coins in bulk
  */
-export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
+export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllModalProps) {
   const [mounted, setMounted] = useState(false);
   const [ethAmount, setEthAmount] = useState("0.01");
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [step, setStep] = useState<ModalStep>("select");
   const [error, setError] = useState<string | null>(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [strategyName, setStrategyName] = useState("");
+  const [displayStrategyName, setDisplayStrategyName] = useState<string | null>(null);
 
   // Filter to only coins (not droposals) and take first 20
   const contentCoins = useMemo(() => {
@@ -80,19 +88,36 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
   });
 
   // Pre-select first 10 items when modal opens, preferring paired coins
+  // OR use shared strategy if provided
   useEffect(() => {
     if (isOpen && contentCoins.length > 0) {
-      // Prefer paired coins (those with poolCurrencyTokenAddress)
-      const pairedCoins = contentCoins.filter((item) => item.poolCurrencyTokenAddress);
-      const unpairedCoins = contentCoins.filter((item) => !item.poolCurrencyTokenAddress);
-      const sortedCoins = [...pairedCoins, ...unpairedCoins];
+      // Check if we have a shared strategy
+      if (sharedStrategy && sharedStrategy.coins.length > 0) {
+        // Find items matching the shared coin addresses
+        const sharedCoinSet = new Set(sharedStrategy.coins.map((addr) => addr.toLowerCase()));
+        const matchingItems = contentCoins.filter((item) => 
+          item.coinAddress && sharedCoinSet.has(item.coinAddress.toLowerCase())
+        );
+        
+        setSelectedItems(new Set(matchingItems.map((item) => item.id)));
+        setEthAmount(sharedStrategy.eth);
+        setDisplayStrategyName(sharedStrategy.name);
+        setStep("confirm"); // Open directly in confirmation/preview step
+      } else {
+        // Default behavior: prefer paired coins
+        const pairedCoins = contentCoins.filter((item) => item.poolCurrencyTokenAddress);
+        const unpairedCoins = contentCoins.filter((item) => !item.poolCurrencyTokenAddress);
+        const sortedCoins = [...pairedCoins, ...unpairedCoins];
+        
+        const preSelected = new Set(sortedCoins.slice(0, 10).map((item) => item.id));
+        setSelectedItems(preSelected);
+        setDisplayStrategyName(null);
+        setStep("select");
+      }
       
-      const preSelected = new Set(sortedCoins.slice(0, 10).map((item) => item.id));
-      setSelectedItems(preSelected);
-      setStep("select");
       setError(null);
     }
-  }, [isOpen, contentCoins]);
+  }, [isOpen, contentCoins, sharedStrategy]);
 
   // Ensure component is mounted (client-side only for portal)
   useEffect(() => {
@@ -140,6 +165,37 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
 
   const deselectAll = () => {
     setSelectedItems(new Set());
+  };
+
+  const handleShare = () => {
+    setShowShareDialog(true);
+  };
+
+  const handleGenerateShareLink = () => {
+    if (!strategyName.trim()) {
+      setError("Please enter a strategy name");
+      return;
+    }
+
+    const selectedItemsData = contentCoins.filter((item) => selectedItems.has(item.id));
+    const coinAddresses = selectedItemsData.map((item) => item.coinAddress).filter(Boolean);
+    
+    const params = new URLSearchParams();
+    params.set("strategy", strategyName.trim());
+    params.set("coins", coinAddresses.join(","));
+    params.set("eth", ethAmount);
+    
+    const shareUrl = `${window.location.origin}/tv?${params.toString()}`;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setShowShareDialog(false);
+      setStrategyName("");
+      // Show success feedback
+      alert("Strategy link copied to clipboard!");
+    }).catch(() => {
+      setError("Failed to copy to clipboard");
+    });
   };
 
   const handleProceedToConfirm = () => {
@@ -302,6 +358,17 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
           </div>
 
           <div className="p-6 border-t border-border">
+            <div className="flex gap-3 mb-3">
+              <button
+                onClick={handleShare}
+                className="w-full px-4 py-2 text-sm font-medium rounded-xl transition-all bg-secondary text-secondary-foreground hover:bg-secondary/80 flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+                Share Strategy
+              </button>
+            </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setStep("select")}
@@ -541,9 +608,15 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
               {step === "error" && "Error"}
               {step === "select" && "Buy Content Coins"}
             </h2>
-            {step === "select" && (
+            {(step === "select" || step === "confirm") && (
               <p className="text-muted-foreground text-sm mt-1">
-                Select creators to support with your ETH
+                {displayStrategyName ? (
+                  <span>
+                    <strong className="text-[#FBBF23]">{displayStrategyName}</strong> strategy
+                  </span>
+                ) : (
+                  step === "select" ? "Select creators to support with your ETH" : ""
+                )}
               </p>
             )}
           </div>
@@ -561,6 +634,47 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
         {/* Dynamic Content */}
         {renderContent()}
       </div>
+
+      {/* Share Strategy Dialog */}
+      {showShareDialog && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-10">
+          <div className="bg-background border border-border rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-lg font-bold text-foreground mb-4">Share Your Strategy</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Give your selection a name and share it with others!
+            </p>
+            <input
+              type="text"
+              value={strategyName}
+              onChange={(e) => setStrategyName(e.target.value)}
+              placeholder="e.g., SkateHive Crew, Gnars Squad..."
+              className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#FBBF23] mb-4"
+              autoFocus
+            />
+            {error && (
+              <p className="text-sm text-red-600 dark:text-red-400 mb-4">{error}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowShareDialog(false);
+                  setStrategyName("");
+                  setError(null);
+                }}
+                className="flex-1 px-4 py-2 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGenerateShareLink}
+                className="flex-1 px-4 py-2 rounded-xl bg-[#FBBF23] text-black hover:bg-[#F59E0B] transition-all font-medium"
+              >
+                Copy Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>,
     document.body
   );
