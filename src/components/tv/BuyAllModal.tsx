@@ -8,6 +8,9 @@ import { FaEthereum } from "react-icons/fa";
 import { parseEther } from "viem";
 import type { TVItem } from "./types";
 import { useBatchCoinPurchase } from "@/hooks/use-batch-coin-purchase";
+import { GNARS_CREATOR_COIN } from "@/lib/config";
+
+const SKATEHIVE_REFERRER = "0xb4964e1eca55db36a94e8aeffbfbab48529a2f6c";
 
 type ModalStep = "select" | "confirm" | "executing" | "success" | "error";
 
@@ -36,7 +39,14 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
 
   // Selected coins with amounts
   const selectedCoins = useMemo(() => {
-    const totalEth = parseEther(ethAmount || "0");
+    let totalEth = 0n;
+    try {
+      totalEth = parseEther(ethAmount || "0");
+    } catch (error) {
+      // Invalid input - default to 0
+      console.warn("Invalid ETH amount:", ethAmount, error);
+    }
+    
     const ethPerCoin = selectedItems.size > 0 ? totalEth / BigInt(selectedItems.size) : 0n;
     
     return contentCoins
@@ -88,19 +98,28 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
     setMounted(true);
   }, []);
 
+  const handleClose = () => {
+    if (step === "executing" || isPreparing || isPending) {
+      return; // Don't allow closing during transaction
+    }
+    setStep("select");
+    setError(null);
+    onClose();
+  };
+
   // Close on escape key
   useEffect(() => {
     if (!isOpen) return;
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        handleClose();
       }
     };
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClose]);
 
   const toggleItem = (itemId: string) => {
     setSelectedItems((prev) => {
@@ -160,15 +179,6 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
     } catch (err) {
       // Error handling done in hook callbacks
     }
-  };
-
-  const handleClose = () => {
-    if (step === "executing" || isPreparing || isPending) {
-      return; // Don't allow closing during transaction
-    }
-    setStep("select");
-    setError(null);
-    onClose();
   };
 
   // Update step based on transaction state
@@ -278,8 +288,7 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
 
             <div className="p-4 border rounded-xl bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
               <p className="text-sm text-foreground">
-                💡 <strong>Note:</strong> This will execute {selectedCount} purchases in a single
-                transaction. Gas fees will be optimized for the batch.
+                💡 <strong>Note:</strong> This will submit {selectedCount} purchases sequentially. Each purchase requires your approval and will incur its own gas fee.
               </p>
             </div>
           </div>
@@ -410,6 +419,34 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
                         fill
                         className="object-cover"
                       />
+                      {/* Badges for Gnars paired and/or SkateHive referred */}
+                      {(() => {
+                        const isGnarsPaired = item.poolCurrencyTokenAddress?.toLowerCase() === GNARS_CREATOR_COIN.toLowerCase();
+                        const isSkatehive = item.platformReferrer?.toLowerCase() === SKATEHIVE_REFERRER.toLowerCase();
+                        
+                        return (
+                          <>
+                            {isGnarsPaired && (
+                              <div className="absolute bottom-0 right-0 w-5 h-5 rounded-tl-md bg-white dark:bg-black border-l border-t border-border flex items-center justify-center z-10">
+                                <Image
+                                  src="/gnars.webp"
+                                  alt="Gnars paired"
+                                  width={16}
+                                  height={16}
+                                  className="object-contain"
+                                />
+                              </div>
+                            )}
+                            {isSkatehive && (
+                              <div className={`absolute bottom-0 w-5 h-5 rounded-tl-md bg-white dark:bg-black border-l border-t border-border flex items-center justify-center z-10 ${
+                                isGnarsPaired ? "right-5" : "right-0"
+                              }`}>
+                                <span className="text-xs">🛹</span>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
 
                     {/* Info */}

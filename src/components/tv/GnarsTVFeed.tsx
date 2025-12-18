@@ -53,6 +53,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   const [isAutoplayMode, setIsAutoplayMode] = useState(true);
   const [mintQuantity, setMintQuantity] = useState(1);
   const [showControls, setShowControls] = useState(true);
+  const [showBuyAllModal, setShowBuyAllModal] = useState(false);
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
   const containerRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -168,7 +169,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
 
   // Handle video end - play twice then advance
   const handleVideoEnd = useCallback(() => {
-    if (!videoItems.length) return;
+    if (!videoItems.length || showBuyAllModal) return;
     const nextIndex = (activeIndex + 1) % videoItems.length;
 
     if (isAutoplayMode || playCount + 1 >= 2) {
@@ -183,7 +184,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     } else {
       setPlayCount((prev) => prev + 1);
     }
-  }, [videoItems.length, activeIndex, isAutoplayMode, playCount]);
+  }, [videoItems.length, activeIndex, isAutoplayMode, playCount, showBuyAllModal]);
 
   // Mute toggle - just update state, TVVideoPlayer handles the rest
   const toggleMute = useCallback(() => {
@@ -628,6 +629,8 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
                           behavior: "instant",
                         });
                       }}
+                      showBuyAllModal={showBuyAllModal}
+                      onBuyAllModalChange={setShowBuyAllModal}
                     />
 
                     <TVVideoCardInfo

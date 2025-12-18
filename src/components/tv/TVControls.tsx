@@ -19,6 +19,9 @@ interface TVControlsProps {
   videoItems?: TVItem[];
   currentIndex?: number;
   onMenuItemClick?: (index: number) => void;
+  // Buy All Modal props
+  showBuyAllModal?: boolean;
+  onBuyAllModalChange?: (show: boolean) => void;
 }
 
 /**
@@ -36,12 +39,24 @@ export function TVControls({
   videoItems = [],
   currentIndex = 0,
   onMenuItemClick,
+  showBuyAllModal,
+  onBuyAllModalChange,
 }: TVControlsProps) {
-  const [showBuyAllModal, setShowBuyAllModal] = useState(false);
+  // Uncontrolled fallback for backward compatibility
+  const [localModalState, setLocalModalState] = useState(false);
+  const isControlled = showBuyAllModal !== undefined;
+  const effectiveModalOpen = isControlled ? showBuyAllModal : localModalState;
+
+  const handleModalChange = (newValue: boolean) => {
+    onBuyAllModalChange?.(newValue);
+    if (!isControlled) {
+      setLocalModalState(newValue);
+    }
+  };
 
   return (
     <>
-      <BuyAllModal isOpen={showBuyAllModal} onClose={() => setShowBuyAllModal(false)} items={videoItems} />
+      <BuyAllModal isOpen={effectiveModalOpen} onClose={() => handleModalChange(false)} items={videoItems} />
       <div 
       className={`absolute top-24 right-5 flex flex-col gap-3 z-30 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       aria-hidden={!showControls}
@@ -84,7 +99,7 @@ export function TVControls({
 
       {/* Gnars Buy All Button */}
       <button
-        onClick={() => setShowBuyAllModal(true)}
+        onClick={() => handleModalChange(true)}
         className="pointer-events-auto w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-black/60 hover:scale-105 active:scale-95 transition-all text-white"
         aria-label="Buy all content"
       >
