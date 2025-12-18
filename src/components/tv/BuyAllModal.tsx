@@ -9,6 +9,7 @@ import { parseEther } from "viem";
 import type { TVItem } from "./types";
 import { useBatchCoinPurchase } from "@/hooks/use-batch-coin-purchase";
 import { GNARS_CREATOR_COIN } from "@/lib/config";
+import { PurchaseFlowChart } from "./PurchaseFlowChart";
 
 const SKATEHIVE_REFERRER = "0xb4964e1eca55db36a94e8aeffbfbab48529a2f6c";
 
@@ -259,9 +260,16 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
 
     // Confirmation State
     if (step === "confirm") {
+      const selectedItemsData = contentCoins.filter((item) => selectedItems.has(item.id));
+
       return (
         <>
           <div className="flex-1 overflow-y-auto p-6">
+            {/* Flow Chart Visualization */}
+            <div className="mb-6">
+              <PurchaseFlowChart items={selectedItemsData} ethPerCoin={ethPerCoin} totalEth={ethAmount} />
+            </div>
+
             <div className="p-6 mb-6 rounded-xl bg-muted">
               <h3 className="mb-4 font-semibold text-foreground">Purchase Summary</h3>
               <div className="space-y-3">
