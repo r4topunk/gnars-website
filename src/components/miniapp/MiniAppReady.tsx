@@ -19,10 +19,8 @@ export function MiniAppReady() {
         }
 
         await sdk.actions.ready();
-        // eslint-disable-next-line no-console
         console.debug("[miniapp] ready() called");
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("[miniapp] failed to call ready()", error);
       }
     };

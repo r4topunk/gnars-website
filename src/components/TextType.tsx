@@ -92,8 +92,9 @@ const TextType = ({
 
   useEffect(() => {
     if (showCursor && cursorRef.current) {
-      gsap.set(cursorRef.current, { opacity: 1 });
-      const tween = gsap.to(cursorRef.current, {
+      const cursor = cursorRef.current;
+      gsap.set(cursor, { opacity: 1 });
+      const tween = gsap.to(cursor, {
         opacity: 0,
         duration: cursorBlinkDuration,
         repeat: -1,
@@ -103,9 +104,7 @@ const TextType = ({
 
       return () => {
         tween.kill();
-        if (cursorRef.current) {
-          gsap.set(cursorRef.current, { opacity: 1 });
-        }
+        gsap.set(cursor, { opacity: 1 });
       };
     }
   }, [showCursor, cursorBlinkDuration]);
