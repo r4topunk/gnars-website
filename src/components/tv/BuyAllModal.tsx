@@ -66,17 +66,15 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
       }));
   }, [contentCoins, selectedItems, ethAmount]);
 
-  // Initialize batch purchase hook (sequential swaps - works with any wallet)
+  // Initialize batch purchase hook (Multicall3 - single atomic transaction)
   const {
     executeBatchPurchase,
     isPreparing,
     isPending,
     isConfirmed,
     error: txError,
-    id,
-    currentSwapIndex,
+    txHash,
     totalSwaps,
-    completedSwaps,
   } = useBatchCoinPurchase({
     coins: selectedCoins,
     slippageBps: 500,
@@ -264,12 +262,17 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
           </div>
           <h3 className="text-2xl font-bold mb-2 text-foreground">Purchase Successful!</h3>
           <p className="text-center mb-6 text-muted-foreground">
-            You successfully purchased {selectedCount} content coins
+            You successfully purchased {selectedCount} content coins in a single transaction
           </p>
-          {id && (
-            <p className="text-xs font-mono text-muted-foreground/60">
-              Batch ID: {String(id).slice(0, 8)}...{String(id).slice(-8)}
-            </p>
+          {txHash && (
+            <a
+              href={`https://basescan.org/tx/${txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-mono text-[#FBBF23] hover:underline"
+            >
+              View on Basescan: {txHash.slice(0, 8)}...{txHash.slice(-8)}
+            </a>
           )}
         </div>
       );
@@ -302,13 +305,13 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
         <div className="flex-1 flex flex-col items-center justify-center p-12">
           <Loader2 className="w-16 h-16 animate-spin mb-6 text-[#FBBF23] dark:text-[#FBBF23]" />
           <h3 className="text-2xl font-bold mb-2 text-foreground">
-            {isPreparing && "Preparing swaps..."}
-            {isPending && `Purchasing coin ${currentSwapIndex + 1} of ${totalSwaps}...`}
+            {isPreparing && "Preparing batch transaction..."}
+            {isPending && "Confirming transaction..."}
             {!isPreparing && !isPending && "Processing..."}
           </h3>
           <p className="text-center text-muted-foreground">
-            {isPending && `${completedSwaps} of ${totalSwaps} completed`}
-            {!isPending && "Generating swap data for each coin"}
+            {isPreparing && `Generating swap data for ${totalSwaps} coins`}
+            {isPending && "Waiting for blockchain confirmation"}
           </p>
         </div>
       );
@@ -350,9 +353,9 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
               </div>
             </div>
 
-            <div className="p-4 border rounded-xl bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
+            <div className="p-4 border rounded-xl bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
               <p className="text-sm text-foreground">
-                💡 <strong>Note:</strong> This will submit {selectedCount} purchases sequentially. Each purchase requires your approval and will incur its own gas fee.
+                ⚡ <strong>Multicall3:</strong> All {selectedCount} purchases will execute in a single atomic transaction. One approval, one gas fee.
               </p>
             </div>
           </div>

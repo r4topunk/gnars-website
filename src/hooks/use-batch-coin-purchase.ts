@@ -1,9 +1,41 @@
 import { useState } from "react";
 import { useAccount, useSendTransaction, usePublicClient } from "wagmi";
 import { createTradeCall, type TradeParameters } from "@zoralabs/coins-sdk";
-import type { Address } from "viem";
+import { encodeFunctionData, type Address, type Hex } from "viem";
 
-const ZORA_ROUTER = "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD";
+// Multicall3 address (same on all EVM chains)
+const MULTICALL3: Address = "0xcA11bde05977b3631167028862bE2a173976CA11";
+
+// Multicall3 ABI for aggregate3Value
+const MULTICALL3_ABI = [
+  {
+    name: "aggregate3Value",
+    type: "function",
+    stateMutability: "payable",
+    inputs: [
+      {
+        name: "calls",
+        type: "tuple[]",
+        components: [
+          { name: "target", type: "address" },
+          { name: "allowFailure", type: "bool" },
+          { name: "value", type: "uint256" },
+          { name: "callData", type: "bytes" },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "returnData",
+        type: "tuple[]",
+        components: [
+          { name: "success", type: "bool" },
+          { name: "returnData", type: "bytes" },
+        ],
+      },
+    ],
+  },
+] as const;
 
 export interface CoinToBuy {
   address: Address;
@@ -13,13 +45,20 @@ export interface CoinToBuy {
 export interface UseBatchCoinPurchaseParams {
   coins: CoinToBuy[];
   slippageBps?: number;
-  onSuccess?: (id: string) => void;
+  onSuccess?: (hash: string) => void;
   onError?: (error: Error) => void;
 }
 
+interface MulticallCall {
+  target: Address;
+  allowFailure: boolean;
+  value: bigint;
+  callData: Hex;
+}
+
 /**
- * Batch purchase multiple content coins sequentially
- * Executes one swap at a time - works with any wallet
+ * Batch purchase multiple content coins in a SINGLE transaction using Multicall3
+ * Atomic execution - if one swap fails, all revert
  */
 export function useBatchCoinPurchase({
   coins,
@@ -30,121 +69,168 @@ export function useBatchCoinPurchase({
   const { address: userAddress } = useAccount();
   const publicClient = usePublicClient();
   const [isPreparingSwaps, setIsPreparingSwaps] = useState(false);
-  const [currentSwapIndex, setCurrentSwapIndex] = useState(0);
-  const [completedSwaps, setCompletedSwaps] = useState<string[]>([]);
-  const [swapCalls, setSwapCalls] = useState<Array<{ to: Address; data: `0x${string}`; value: bigint }> | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [preparedCalls, setPreparedCalls] = useState<MulticallCall[]>([]);
+  const [totalValue, setTotalValue] = useState<bigint>(BigInt(0));
 
   const { sendTransactionAsync } = useSendTransaction();
 
   const executeBatchPurchase = async () => {
     if (!userAddress) {
-      const error = new Error("Wallet not connected");
-      onError?.(error);
-      throw error;
+      const err = new Error("Wallet not connected");
+      setError(err);
+      onError?.(err);
+      throw err;
+    }
+
+    if (!publicClient) {
+      const err = new Error("Public client not available");
+      setError(err);
+      onError?.(err);
+      throw err;
     }
 
     try {
       setIsPreparingSwaps(true);
-      setCurrentSwapIndex(0);
-      setCompletedSwaps([]);
+      setError(null);
+      setIsConfirmed(false);
+      setTxHash(null);
 
-      // Generate swap calls for each coin
-      const calls = await Promise.all(
-        coins.map(async (coin) => {
-          const tradeParams: TradeParameters = {
-            sell: { type: "eth" },
-            buy: { type: "erc20", address: coin.address },
-            amountIn: coin.ethAmount,
-            slippage: slippageBps / 10000,
-            sender: userAddress,
-          };
+      // ---------------------------------------------------------------------------
+      // 1) Generate swap calls for each coin
+      // ---------------------------------------------------------------------------
+      console.log(`Preparing ${coins.length} swaps...`);
 
-          const quote = await createTradeCall(tradeParams);
-          const targetAddress = (quote.call.target || ZORA_ROUTER) as Address;
+      const calls: MulticallCall[] = [];
+      let totalEthValue = BigInt(0);
 
-          return {
-            to: targetAddress,
-            data: quote.call.data as `0x${string}`,
-            value: BigInt(quote.call.value),
-            coinAddress: coin.address,
-          };
-        })
-      );
+      for (const coin of coins) {
+        const tradeParams: TradeParameters = {
+          sell: { type: "eth" },
+          buy: { type: "erc20", address: coin.address },
+          amountIn: coin.ethAmount,
+          slippage: slippageBps / 10000,
+          sender: userAddress,
+        };
 
-      setSwapCalls(calls);
-      setIsPreparingSwaps(false);
+        const quoteResp = await createTradeCall(tradeParams);
 
-      // Execute swaps sequentially with confirmations
-      const txHashes: string[] = [];
-      for (let i = 0; i < calls.length; i++) {
-        setCurrentSwapIndex(i);
-        const call = calls[i];
-
-        try {
-          const hash = await sendTransactionAsync({
-            to: call.to,
-            data: call.data,
-            value: call.value,
-          });
-          
-          // Wait for confirmation before proceeding
-          if (publicClient) {
-            const receipt = await publicClient.waitForTransactionReceipt({ 
-              hash,
-              confirmations: 2,
-            });
-            
-            if (receipt.status === 'reverted') {
-              throw new Error(`Swap ${i + 1} reverted`);
-            }
-            
-            // Small delay to ensure wallet RPC catches up
-            await new Promise(resolve => setTimeout(resolve, 2000));
-          }
-
-          txHashes.push(hash);
-          setCompletedSwaps((prev) => [...prev, hash]);
-          
-        } catch (err) {
-          const errorMsg = err instanceof Error ? err.message : String(err);
-          
-          // If it's a user rejection, stop everything
-          if (errorMsg.includes('User rejected') || errorMsg.includes('denied')) {
-            onError?.(new Error(`Purchase cancelled. Completed ${txHashes.length} of ${calls.length} swaps.`));
-            return;
-          }
-          
-          // Continue with remaining swaps even if one fails
+        if (!quoteResp.success) {
+          console.warn(`Quote failed for ${coin.address}, skipping`);
+          continue;
         }
+
+        calls.push({
+          target: quoteResp.call.target as Address,
+          allowFailure: false, // Atomic: if one fails, revert all
+          value: BigInt(quoteResp.call.value),
+          callData: quoteResp.call.data as Hex,
+        });
+
+        totalEthValue += BigInt(quoteResp.call.value);
       }
 
-      if (txHashes.length === calls.length) {
-        onSuccess?.(txHashes.join(","));
-      } else {
-        onError?.(new Error(`Only ${txHashes.length} of ${calls.length} swaps succeeded`));
+      if (calls.length === 0) {
+        throw new Error("No valid swap calls generated");
       }
-    } catch (error) {
-      const err = error as Error;
-      onError?.(err);
-      throw err;
-    } finally {
+
+      setPreparedCalls(calls);
+      setTotalValue(totalEthValue);
+
+      console.log(`Prepared ${calls.length} swaps, total: ${Number(totalEthValue) / 1e18} ETH`);
+
+      // ---------------------------------------------------------------------------
+      // 2) Encode multicall data
+      // ---------------------------------------------------------------------------
+      const multicallData = encodeFunctionData({
+        abi: MULTICALL3_ABI,
+        functionName: "aggregate3Value",
+        args: [calls],
+      });
+
+      // ---------------------------------------------------------------------------
+      // 3) Simulate transaction before sending
+      // ---------------------------------------------------------------------------
+      console.log("Simulating transaction...");
+
+      try {
+        await publicClient.call({
+          account: userAddress,
+          to: MULTICALL3,
+          data: multicallData,
+          value: totalEthValue,
+        });
+        console.log("Simulation OK");
+      } catch (simError: unknown) {
+        const message = simError instanceof Error ? simError.message : String(simError);
+        console.error("Simulation failed:", message);
+        throw new Error(`Transaction would fail: ${message}`);
+      }
+
       setIsPreparingSwaps(false);
+      setIsPending(true);
+
+      // ---------------------------------------------------------------------------
+      // 4) Send single multicall transaction
+      // ---------------------------------------------------------------------------
+      console.log("Sending batch transaction...");
+
+      const hash = await sendTransactionAsync({
+        to: MULTICALL3,
+        data: multicallData,
+        value: totalEthValue,
+      });
+
+      console.log(`Tx hash: ${hash}`);
+      setTxHash(hash);
+
+      // ---------------------------------------------------------------------------
+      // 5) Wait for confirmation
+      // ---------------------------------------------------------------------------
+      console.log("Waiting for confirmation...");
+
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+        confirmations: 1,
+      });
+
+      if (receipt.status === "reverted") {
+        throw new Error("Transaction reverted");
+      }
+
+      console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
+
+      setIsConfirmed(true);
+      setIsPending(false);
+      onSuccess?.(hash);
+
+      return hash;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error);
+      setIsPreparingSwaps(false);
+      setIsPending(false);
+      onError?.(error);
+      throw error;
     }
   };
-
-  const isExecuting = currentSwapIndex > 0 && currentSwapIndex < (swapCalls?.length || 0);
-  const isConfirmed = completedSwaps.length === swapCalls?.length && swapCalls?.length > 0;
 
   return {
     executeBatchPurchase,
     isPreparing: isPreparingSwaps,
-    isPending: isExecuting,
+    isPending,
     isConfirmed,
-    error: null,
-    id: completedSwaps.join(","),
-    currentSwapIndex,
-    totalSwaps: swapCalls?.length || 0,
-    completedSwaps: completedSwaps.length,
-    swapCalls,
+    error,
+    txHash,
+    // Legacy compatibility
+    id: txHash,
+    currentSwapIndex: 0,
+    totalSwaps: preparedCalls.length || coins.length,
+    completedSwaps: isConfirmed ? preparedCalls.length : 0,
+    swapCalls: preparedCalls,
+    totalValue,
   };
 }
