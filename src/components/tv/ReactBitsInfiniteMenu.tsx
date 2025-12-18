@@ -941,8 +941,9 @@ class InfiniteGridMenu {
     
     // Detect mobile or slow connection for smaller textures
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const isSlowConnection = (navigator as any).connection?.effectiveType === '2g' || 
-                              (navigator as any).connection?.effectiveType === 'slow-2g';
+    const connection = 'connection' in navigator ? (navigator as { connection?: { effectiveType?: string } }).connection : undefined;
+    const isSlowConnection = connection?.effectiveType === '2g' || 
+                              connection?.effectiveType === 'slow-2g';
     const cellSize = (isMobile || isSlowConnection) ? 256 : 512;
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d")!;
