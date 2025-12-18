@@ -8,6 +8,7 @@ interface TVControlsProps {
   isMuted: boolean;
   isPaused: boolean;
   isFullscreen: boolean;
+  showControls: boolean;
   onToggleMute: () => void;
   onTogglePlayPause: () => void;
   onToggleFullscreen: () => void;
@@ -25,6 +26,7 @@ export function TVControls({
   isMuted,
   isPaused,
   isFullscreen,
+  showControls,
   onToggleMute,
   onTogglePlayPause,
   onToggleFullscreen,
@@ -34,7 +36,10 @@ export function TVControls({
   onMenuItemClick,
 }: TVControlsProps) {
   return (
-    <div className="absolute top-24 right-5 flex flex-col gap-3 z-30">
+    <div 
+      className={`absolute top-24 right-5 flex flex-col gap-3 z-30 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      aria-hidden={!showControls}
+    >
       <ControlButton
         onClick={onToggleFullscreen}
         ariaLabel={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}

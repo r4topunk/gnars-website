@@ -50,13 +50,15 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   const [supportAmount, setSupportAmount] = useState("0.00042");
   const [showAmountMenu, setShowAmountMenu] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isAutoplayMode, setIsAutoplayMode] = useState(false);
+  const [isAutoplayMode, setIsAutoplayMode] = useState(true);
   const [mintQuantity, setMintQuantity] = useState(1);
+  const [showControls, setShowControls] = useState(true);
 
   const fullContainerRef = useRef<HTMLDivElement | null>(null);
   const containerRefs = useRef<Array<HTMLDivElement | null>>([]);
   // Cache for resolved token addresses (droposal ID -> token address)
   const tokenAddressCacheRef = useRef<Map<string, string>>(new Map());
+  const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -235,6 +237,42 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  // Auto-hide controls after 3 seconds of inactivity
+  useEffect(() => {
+    const resetHideTimer = () => {
+      // Show controls on mouse movement
+      setShowControls(true);
+      
+      // Clear existing timer
+      if (hideControlsTimerRef.current) {
+        clearTimeout(hideControlsTimerRef.current);
+      }
+      
+      // Hide controls after 3 seconds of no movement
+      hideControlsTimerRef.current = setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+    };
+
+    const container = fullContainerRef.current;
+    if (!container) return;
+
+    // Reset timer on mouse movement
+    container.addEventListener("mousemove", resetHideTimer);
+    container.addEventListener("touchstart", resetHideTimer);
+    
+    // Initial timer
+    resetHideTimer();
+
+    return () => {
+      container.removeEventListener("mousemove", resetHideTimer);
+      container.removeEventListener("touchstart", resetHideTimer);
+      if (hideControlsTimerRef.current) {
+        clearTimeout(hideControlsTimerRef.current);
+      }
+    };
   }, []);
 
   // Share handler
@@ -576,6 +614,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
                       isMuted={isMuted}
                       isPaused={isPaused}
                       isFullscreen={isFullscreen}
+                      showControls={showControls}
                       onToggleMute={toggleMute}
                       onTogglePlayPause={togglePlayPause}
                       onToggleFullscreen={toggleFullscreen}
@@ -598,6 +637,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
                       supportAmount={supportAmount}
                       showAmountMenu={showAmountMenu}
                       mintQuantity={mintQuantity}
+                      showControls={showControls}
                       onBuy={handleBuyCoin}
                       onMint={handleMintDroposal}
                       onAmountMenuToggle={setShowAmountMenu}
