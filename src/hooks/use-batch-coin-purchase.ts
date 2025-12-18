@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAccount, useSendTransaction, useWaitForTransactionReceipt, usePublicClient } from "wagmi";
+import { useAccount, useSendTransaction, usePublicClient } from "wagmi";
 import { createTradeCall, type TradeParameters } from "@zoralabs/coins-sdk";
 import type { Address } from "viem";
 
@@ -32,7 +32,7 @@ export function useBatchCoinPurchase({
   const [isPreparingSwaps, setIsPreparingSwaps] = useState(false);
   const [currentSwapIndex, setCurrentSwapIndex] = useState(0);
   const [completedSwaps, setCompletedSwaps] = useState<string[]>([]);
-  const [swapCalls, setSwapCalls] = useState<any[] | null>(null);
+  const [swapCalls, setSwapCalls] = useState<Array<{ to: Address; data: `0x${string}`; value: bigint }> | null>(null);
 
   const { sendTransactionAsync } = useSendTransaction();
 

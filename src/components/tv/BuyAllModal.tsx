@@ -176,7 +176,7 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
     
     try {
       await executeBatchPurchase();
-    } catch (err) {
+    } catch {
       // Error handling done in hook callbacks
     }
   };
