@@ -12,7 +12,7 @@ interface PurchaseFlowChartProps {
   totalEth: string;
 }
 
-function shortenText(text: string, maxLength = 15): string {
+function shortenText(text: string, maxLength = 18): string {
   if (!text) return "Unknown";
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength - 3)}...`;
@@ -78,10 +78,10 @@ function CoinNode({
       )}
 
       {/* Label - simplified to reduce clutter */}
-      <text x={x + 25} y={y - 2} className="text-[11px] sm:text-xs font-medium fill-foreground">
+      <text x={x + 25} y={y - 2} className="text-[10px] sm:text-[13px] font-medium fill-foreground">
         {displayName}
       </text>
-      <text x={x + 25} y={y + 11} className="text-[9px] sm:text-[10px] fill-muted-foreground">
+      <text x={x + 25} y={y + 11} className="text-[8px] sm:text-[11px] fill-muted-foreground">
         {creatorName}
       </text>
     </g>
@@ -108,17 +108,19 @@ export function PurchaseFlowChart({ items, ethPerCoin, totalEth }: PurchaseFlowC
   const chartHeight = Math.max(minHeight, validItems.length * itemHeight);
   const padding = 40;
   const availableHeight = chartHeight - padding * 2;
-  // Responsive positioning - use percentage-based for mobile
+  
+  // Desktop uses more horizontal space, mobile is compact
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-  const sourceX = isMobile ? 60 : 80;
-  const targetX = isMobile ? 280 : 380;
+  const sourceX = isMobile ? 70 : 100;
+  const targetX = isMobile ? 280 : 520; // Balanced for desktop without overflow
+  const svgWidth = isMobile ? 450 : 800; // Fixed SVG width for proper scaling
 
   return (
     <div 
-      className="relative w-full bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg overflow-auto border border-border max-h-[600px] sm:max-h-none"
-      style={{ height: `${chartHeight}px` }}
+      className="relative w-full bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-border overflow-auto max-h-[500px] sm:max-h-none sm:overflow-hidden"
+      style={{ height: `${isMobile ? Math.min(chartHeight, 500) : chartHeight}px` }}
     >
-      <svg width="100%" height="100%" className="overflow-visible">
+      <svg width={svgWidth} height="100%" viewBox={`0 0 ${svgWidth} ${chartHeight}`} className="w-full h-full">
         <defs>
           {/* Amber gradient for flows */}
           <linearGradient id="purchaseFlowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
