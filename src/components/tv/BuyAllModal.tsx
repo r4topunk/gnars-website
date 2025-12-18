@@ -2,7 +2,7 @@
 
 import { X, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Image from "next/image";
 import { FaEthereum } from "react-icons/fa";
 import { parseEther } from "viem";
@@ -98,14 +98,14 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
     setMounted(true);
   }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (step === "executing" || isPreparing || isPending) {
       return; // Don't allow closing during transaction
     }
     setStep("select");
     setError(null);
     onClose();
-  };
+  }, [step, isPreparing, isPending, onClose]);
 
   // Close on escape key
   useEffect(() => {
@@ -376,6 +376,14 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
             <div className="space-y-2">
               {contentCoins.map((item) => {
                 const isSelected = selectedItems.has(item.id);
+                // Safely compute badge flags with explicit null checks
+                const isGnarsPaired = 
+                  item.poolCurrencyTokenAddress != null &&
+                  item.poolCurrencyTokenAddress.toLowerCase() === GNARS_CREATOR_COIN.toLowerCase();
+                const isSkatehive = 
+                  item.platformReferrer != null &&
+                  item.platformReferrer.toLowerCase() === SKATEHIVE_REFERRER.toLowerCase();
+                
                 return (
                   <button
                     key={item.id}
@@ -420,33 +428,24 @@ export function BuyAllModal({ isOpen, onClose, items }: BuyAllModalProps) {
                         className="object-cover"
                       />
                       {/* Badges for Gnars paired and/or SkateHive referred */}
-                      {(() => {
-                        const isGnarsPaired = item.poolCurrencyTokenAddress?.toLowerCase() === GNARS_CREATOR_COIN.toLowerCase();
-                        const isSkatehive = item.platformReferrer?.toLowerCase() === SKATEHIVE_REFERRER.toLowerCase();
-                        
-                        return (
-                          <>
-                            {isGnarsPaired && (
-                              <div className="absolute bottom-0 right-0 w-5 h-5 rounded-tl-md bg-white dark:bg-black border-l border-t border-border flex items-center justify-center z-10">
-                                <Image
-                                  src="/gnars.webp"
-                                  alt="Gnars paired"
-                                  width={16}
-                                  height={16}
-                                  className="object-contain"
-                                />
-                              </div>
-                            )}
-                            {isSkatehive && (
-                              <div className={`absolute bottom-0 w-5 h-5 rounded-tl-md bg-white dark:bg-black border-l border-t border-border flex items-center justify-center z-10 ${
-                                isGnarsPaired ? "right-5" : "right-0"
-                              }`}>
-                                <span className="text-xs">🛹</span>
-                              </div>
-                            )}
-                          </>
-                        );
-                      })()}
+                      {isGnarsPaired && (
+                        <div className="absolute bottom-0 right-0 w-5 h-5 rounded-tl-md bg-white dark:bg-black border-l border-t border-border flex items-center justify-center z-10">
+                          <Image
+                            src="/gnars.webp"
+                            alt="Gnars paired"
+                            width={16}
+                            height={16}
+                            className="object-contain"
+                          />
+                        </div>
+                      )}
+                      {isSkatehive && (
+                        <div className={`absolute bottom-0 w-5 h-5 rounded-tl-md bg-white dark:bg-black border-l border-t border-border flex items-center justify-center z-10 ${
+                          isGnarsPaired ? "right-5" : "right-0"
+                        }`}>
+                          <span className="text-xs">🛹</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Info */}
