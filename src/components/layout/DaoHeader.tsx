@@ -68,6 +68,11 @@ import { cn } from "@/lib/utils";
 // Navigation structure
 const navigationItems = [
   {
+    title: "TV",
+    href: "/tv",
+    icon: Tv,
+  },
+  {
     title: "Dashboard",
     href: "/",
     icon: Home,
@@ -132,12 +137,6 @@ const navigationItems = [
         href: "/droposals",
         icon: Video,
         description: "Video proposals from the community",
-      },
-      {
-        title: "TV",
-        href: "/tv",
-        icon: Tv,
-        description: "Watch creator coins feed",
       },
       {
         title: "Create Coin",
