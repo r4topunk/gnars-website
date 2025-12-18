@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Maximize, Minimize, Share2, Volume2, VolumeX } from "lucide-react";
 import { TVInfiniteMenu } from "./TVInfiniteMenu";
+import { BuyAllModal } from "./BuyAllModal";
 import type { TVItem } from "./types";
 
 interface TVControlsProps {
@@ -35,8 +37,12 @@ export function TVControls({
   currentIndex = 0,
   onMenuItemClick,
 }: TVControlsProps) {
+  const [showBuyAllModal, setShowBuyAllModal] = useState(false);
+
   return (
-    <div 
+    <>
+      <BuyAllModal isOpen={showBuyAllModal} onClose={() => setShowBuyAllModal(false)} items={videoItems} />
+      <div 
       className={`absolute top-24 right-5 flex flex-col gap-3 z-30 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       aria-hidden={!showControls}
     >
@@ -75,7 +81,30 @@ export function TVControls({
           onItemClick={onMenuItemClick}
         />
       )}
-    </div>
+
+      {/* Gnars Buy All Button */}
+      <button
+        onClick={() => setShowBuyAllModal(true)}
+        className="pointer-events-auto w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-black/60 hover:scale-105 active:scale-95 transition-all text-white"
+        aria-label="Buy all content"
+      >
+        <svg
+          className="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
+        >
+          <path d="M18 12.5V10a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1.4"/>
+          <path d="M14 11V9a2 2 0 1 0-4 0v2"/>
+          <path d="M10 10.5V5a2 2 0 1 0-4 0v9"/>
+          <path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6C7.5 21.14 9.2 22 12 22h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v5"/>
+        </svg>
+      </button>
+      </div>
+    </>
   );
 }
 
