@@ -14,6 +14,48 @@ interface TV3DModelProps {
   playDuration?: number;
 }
 
+// Pre-calculated constants
+const ROTATION_ANGLE = Math.PI / 8;
+const MAX_OSCILLATION = Math.PI / 12;
+
+// Shared geometries (created once, reused)
+const sharedGeometries = {
+  cabinet: new THREE.BoxGeometry(2.4, 1.6, 0.9),
+  frontPanel: new THREE.BoxGeometry(2.3, 1.5, 0.12),
+  borderFrame: new THREE.BoxGeometry(2.35, 1.55, 0.02),
+  screenBezel: new THREE.BoxGeometry(1.4, 1.2, 0.04),
+  innerBezel: new THREE.BoxGeometry(1.25, 1.05, 0.02),
+  screen: new THREE.PlaneGeometry(1.15, 0.95),
+  controlPanel: new THREE.BoxGeometry(0.55, 1.2, 0.04),
+  button: new THREE.BoxGeometry(0.12, 0.06, 0.12),
+  speakerLine: new THREE.BoxGeometry(0.4, 0.04, 0.02),
+  indicator: new THREE.BoxGeometry(0.06, 0.06, 0.02),
+  base: new THREE.BoxGeometry(2.4, 0.1, 0.9),
+  antennaBase: new THREE.BoxGeometry(0.25, 0.12, 0.2),
+  antenna: new THREE.CylinderGeometry(0.025, 0.035, 0.9, 8),
+  antennaTip: new THREE.SphereGeometry(0.04, 8, 8),
+};
+
+// Shared materials (using cheaper Lambert instead of Standard where possible)
+const sharedMaterials = {
+  wood: new THREE.MeshLambertMaterial({ color: "#8B5A2B" }),
+  cream: new THREE.MeshLambertMaterial({ color: "#E8DCC8" }),
+  white: new THREE.MeshLambertMaterial({ color: "#FFFFFF" }),
+  darkBezel: new THREE.MeshLambertMaterial({ color: "#2C2C2C" }),
+  innerBezel: new THREE.MeshLambertMaterial({ color: "#1a1a1a" }),
+  screenBg: new THREE.MeshBasicMaterial({ color: "#000" }),
+  controlPanel: new THREE.MeshLambertMaterial({ color: "#D4C4A8" }),
+  buttonRed: new THREE.MeshLambertMaterial({ color: "#CC3333" }),
+  buttonGreen: new THREE.MeshLambertMaterial({ color: "#33AA33" }),
+  buttonBlue: new THREE.MeshLambertMaterial({ color: "#3366CC" }),
+  speaker: new THREE.MeshLambertMaterial({ color: "#A89070" }),
+  indicator: new THREE.MeshLambertMaterial({ color: "#333333" }),
+  baseDark: new THREE.MeshLambertMaterial({ color: "#2A1F14" }),
+  antennaBaseMat: new THREE.MeshLambertMaterial({ color: "#1a1a1a" }),
+  antennaMetal: new THREE.MeshStandardMaterial({ color: "#C0C0C0", metalness: 0.9, roughness: 0.2 }),
+  antennaTipMat: new THREE.MeshStandardMaterial({ color: "#D0D0D0", metalness: 0.9, roughness: 0.2 }),
+};
+
 // Convert ipfs.io URLs to faster gateway
 function toFastIPFS(url?: string): string | undefined {
   if (!url) return undefined;
@@ -21,6 +63,15 @@ function toFastIPFS(url?: string): string | undefined {
     .replace("https://ipfs.io/ipfs/", "https://dweb.link/ipfs/")
     .replace("https://cloudflare-ipfs.com/ipfs/", "https://dweb.link/ipfs/");
 }
+
+// Vertex shader (shared by all screen effects)
+const crtVertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
 
 // Static color bars shader (no animation - much lighter)
 const colorBarsShader = `
@@ -31,7 +82,6 @@ const colorBarsShader = `
     vec2 center = uv - 0.5;
     float dist = dot(center, center);
 
-    // Slight barrel distortion
     uv = uv + center * dist * 0.08;
 
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
@@ -42,84 +92,59 @@ const colorBarsShader = `
     vec3 color;
     float x = uv.x;
 
-    // Classic SMPTE color bars
-    if (x < 0.143) color = vec3(0.75, 0.75, 0.75);      // Gray
-    else if (x < 0.286) color = vec3(0.75, 0.75, 0.0);  // Yellow
-    else if (x < 0.429) color = vec3(0.0, 0.75, 0.75);  // Cyan
-    else if (x < 0.571) color = vec3(0.0, 0.75, 0.0);   // Green
-    else if (x < 0.714) color = vec3(0.75, 0.0, 0.75);  // Magenta
-    else if (x < 0.857) color = vec3(0.75, 0.0, 0.0);   // Red
-    else color = vec3(0.0, 0.0, 0.75);                  // Blue
+    // SMPTE color bars
+    if (x < 0.143) color = vec3(0.75, 0.75, 0.75);
+    else if (x < 0.286) color = vec3(0.75, 0.75, 0.0);
+    else if (x < 0.429) color = vec3(0.0, 0.75, 0.75);
+    else if (x < 0.571) color = vec3(0.0, 0.75, 0.0);
+    else if (x < 0.714) color = vec3(0.75, 0.0, 0.75);
+    else if (x < 0.857) color = vec3(0.75, 0.0, 0.0);
+    else color = vec3(0.0, 0.0, 0.75);
 
-    // Simple scanlines (static)
-    float scanline = mod(gl_FragCoord.y, 3.0) < 1.0 ? 0.9 : 1.0;
-    color *= scanline;
-
-    // Vignette
-    color *= 1.0 - dist * 1.2;
+    // Scanlines + vignette
+    color *= (mod(gl_FragCoord.y, 3.0) < 1.0 ? 0.9 : 1.0) * (1.0 - dist * 1.2);
 
     gl_FragColor = vec4(color, 1.0);
   }
 `;
 
+// Shared shader material for color bars (created once)
+const colorBarsShaderMaterial = new THREE.ShaderMaterial({
+  vertexShader: crtVertexShader,
+  fragmentShader: colorBarsShader,
+});
+
 // Color bars component - static, no useFrame for better performance
 function ColorBarsScreen() {
   return (
-    <mesh position={[0, 0, 0.521]}>
-      <planeGeometry args={[1.15, 0.95]} />
-      <shaderMaterial
-        vertexShader={crtVertexShader}
-        fragmentShader={colorBarsShader}
-      />
-    </mesh>
+    <mesh position={[0, 0, 0.521]} geometry={sharedGeometries.screen} material={colorBarsShaderMaterial} />
   );
 }
 
-// CRT Shader for retro TV effect
-const crtVertexShader = `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-
 const crtFragmentShader = `
   uniform sampler2D uTexture;
-  uniform float uTime;
   varying vec2 vUv;
 
   void main() {
-    // Barrel distortion (CRT curvature)
     vec2 uv = vUv;
     vec2 center = uv - 0.5;
     float dist = dot(center, center);
+
+    // Barrel distortion
     uv = uv + center * dist * 0.1;
 
-    // Check bounds
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
       gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
       return;
     }
 
-    // Sample texture
     vec4 color = texture2D(uTexture, uv);
 
-    // Scanlines
+    // Scanlines + vignette + color tint combined
     float scanline = sin(uv.y * 400.0) * 0.08;
-    color.rgb -= scanline;
-
-    // Vignette
     float vignette = 1.0 - dist * 1.5;
-    color.rgb *= vignette;
 
-    // Slight green/blue tint for old CRT look
-    color.r *= 0.95;
-    color.g *= 1.0;
-    color.b *= 0.98;
-
-    // Brightness boost
-    color.rgb *= 1.1;
+    color.rgb = (color.rgb - scanline) * vignette * vec3(1.045, 1.1, 1.078);
 
     gl_FragColor = color;
   }
@@ -138,17 +163,10 @@ function VideoScreen({ videoUrl }: { videoUrl: string }) {
 
   const uniforms = useMemo(() => ({
     uTexture: { value: texture },
-    uTime: { value: 0 },
   }), [texture]);
 
-  // Update texture uniform when it changes
-  useEffect(() => {
-    uniforms.uTexture.value = texture;
-  }, [texture, uniforms]);
-
   return (
-    <mesh position={[0, 0, 0.521]}>
-      <planeGeometry args={[1.15, 0.95]} />
+    <mesh position={[0, 0, 0.521]} geometry={sharedGeometries.screen}>
       <shaderMaterial
         uniforms={uniforms}
         vertexShader={crtVertexShader}
@@ -159,12 +177,10 @@ function VideoScreen({ videoUrl }: { videoUrl: string }) {
 }
 
 // Fallback screen when no video
+const fallbackMaterial = new THREE.MeshBasicMaterial({ color: "#111" });
 function FallbackScreen() {
   return (
-    <mesh position={[0, 0, 0.521]}>
-      <planeGeometry args={[1.15, 0.95]} />
-      <meshBasicMaterial color="#111" />
-    </mesh>
+    <mesh position={[0, 0, 0.521]} geometry={sharedGeometries.screen} material={fallbackMaterial} />
   );
 }
 
@@ -207,54 +223,32 @@ export function TV3DModel({
     return () => clearTimeout(timer);
   }, [currentVideoUrl, playDuration, onNextVideo, showStatic]);
 
-  // Auto-rotate with oscillation (±15 degrees from center)
-  const maxAngle = Math.PI / 12;
-
   useFrame((_, delta) => {
     if (groupRef.current && autoRotate) {
       rotationTimeRef.current += delta * rotationSpeed;
-      groupRef.current.rotation.y = Math.sin(rotationTimeRef.current) * maxAngle;
+      groupRef.current.rotation.y = Math.sin(rotationTimeRef.current) * MAX_OSCILLATION;
     }
   });
 
   return (
     <group ref={groupRef}>
-      {/* Main cabinet - brown wood sides */}
-      <mesh position={[0, 0, 0]}>
-        <boxGeometry args={[2.4, 1.6, 0.9]} />
-        <meshStandardMaterial color="#8B5A2B" roughness={0.85} />
-      </mesh>
+      {/* Main cabinet */}
+      <mesh position={[0, 0, 0]} geometry={sharedGeometries.cabinet} material={sharedMaterials.wood} />
 
-      {/* Front panel - cream/beige */}
-      <mesh position={[0, 0, 0.4]}>
-        <boxGeometry args={[2.3, 1.5, 0.12]} />
-        <meshStandardMaterial color="#E8DCC8" roughness={0.6} />
-      </mesh>
+      {/* Front panel */}
+      <mesh position={[0, 0, 0.4]} geometry={sharedGeometries.frontPanel} material={sharedMaterials.cream} />
 
       {/* White border frame */}
-      <mesh position={[0, 0, 0.47]}>
-        <boxGeometry args={[2.35, 1.55, 0.02]} />
-        <meshStandardMaterial color="#FFFFFF" roughness={0.5} />
-      </mesh>
+      <mesh position={[0, 0, 0.47]} geometry={sharedGeometries.borderFrame} material={sharedMaterials.white} />
 
-      {/* Screen area - left side */}
       {/* Dark bezel around screen */}
-      <mesh position={[-0.35, 0.05, 0.48]}>
-        <boxGeometry args={[1.4, 1.2, 0.04]} />
-        <meshStandardMaterial color="#2C2C2C" roughness={0.9} />
-      </mesh>
+      <mesh position={[-0.35, 0.05, 0.48]} geometry={sharedGeometries.screenBezel} material={sharedMaterials.darkBezel} />
 
-      {/* Inner screen bezel - darker */}
-      <mesh position={[-0.35, 0.05, 0.5]}>
-        <boxGeometry args={[1.25, 1.05, 0.02]} />
-        <meshStandardMaterial color="#1a1a1a" roughness={0.95} />
-      </mesh>
+      {/* Inner screen bezel */}
+      <mesh position={[-0.35, 0.05, 0.5]} geometry={sharedGeometries.innerBezel} material={sharedMaterials.innerBezel} />
 
       {/* Screen background */}
-      <mesh position={[-0.35, 0.05, 0.52]}>
-        <planeGeometry args={[1.15, 0.95]} />
-        <meshBasicMaterial color="#000" />
-      </mesh>
+      <mesh position={[-0.35, 0.05, 0.52]} geometry={sharedGeometries.screen} material={sharedMaterials.screenBg} />
 
       {/* Video or Static Screen */}
       <group position={[-0.35, 0.05, 0]}>
@@ -269,78 +263,37 @@ export function TV3DModel({
         )}
       </group>
 
-      {/* Right side control panel */}
-      {/* Control panel background - slightly darker beige */}
-      <mesh position={[0.85, 0.05, 0.48]}>
-        <boxGeometry args={[0.55, 1.2, 0.04]} />
-        <meshStandardMaterial color="#D4C4A8" roughness={0.7} />
-      </mesh>
+      {/* Control panel */}
+      <mesh position={[0.85, 0.05, 0.48]} geometry={sharedGeometries.controlPanel} material={sharedMaterials.controlPanel} />
 
-      {/* Colored buttons - Red, Green, Blue */}
-      <mesh position={[0.85, 0.35, 0.52]} rotation={[Math.PI / 2, 0, 0]}>
-        <boxGeometry args={[0.12, 0.06, 0.12]} />
-        <meshStandardMaterial color="#CC3333" roughness={0.4} />
-      </mesh>
-      <mesh position={[0.85, 0.18, 0.52]} rotation={[Math.PI / 2, 0, 0]}>
-        <boxGeometry args={[0.12, 0.06, 0.12]} />
-        <meshStandardMaterial color="#33AA33" roughness={0.4} />
-      </mesh>
-      <mesh position={[0.85, 0.01, 0.52]} rotation={[Math.PI / 2, 0, 0]}>
-        <boxGeometry args={[0.12, 0.06, 0.12]} />
-        <meshStandardMaterial color="#3366CC" roughness={0.4} />
-      </mesh>
+      {/* Colored buttons */}
+      <mesh position={[0.85, 0.35, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonRed} />
+      <mesh position={[0.85, 0.18, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonGreen} />
+      <mesh position={[0.85, 0.01, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonBlue} />
 
-      {/* Speaker grille - horizontal lines */}
-      {[-0.18, -0.26, -0.34, -0.42].map((y, i) => (
-        <mesh key={i} position={[0.85, y, 0.5]}>
-          <boxGeometry args={[0.4, 0.04, 0.02]} />
-          <meshStandardMaterial color="#A89070" roughness={0.8} />
-        </mesh>
-      ))}
+      {/* Speaker grille */}
+      <mesh position={[0.85, -0.18, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
+      <mesh position={[0.85, -0.26, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
+      <mesh position={[0.85, -0.34, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
+      <mesh position={[0.85, -0.42, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
 
-      {/* Small indicator dots at bottom left of front panel */}
-      <mesh position={[-0.95, -0.6, 0.5]}>
-        <boxGeometry args={[0.06, 0.06, 0.02]} />
-        <meshStandardMaterial color="#333333" roughness={0.5} />
-      </mesh>
-      <mesh position={[-0.82, -0.6, 0.5]}>
-        <boxGeometry args={[0.06, 0.06, 0.02]} />
-        <meshStandardMaterial color="#333333" roughness={0.5} />
-      </mesh>
+      {/* Indicator dots */}
+      <mesh position={[-0.95, -0.6, 0.5]} geometry={sharedGeometries.indicator} material={sharedMaterials.indicator} />
+      <mesh position={[-0.82, -0.6, 0.5]} geometry={sharedGeometries.indicator} material={sharedMaterials.indicator} />
 
-      {/* Bottom base - dark brown/black strip */}
-      <mesh position={[0, -0.85, 0]}>
-        <boxGeometry args={[2.4, 0.1, 0.9]} />
-        <meshStandardMaterial color="#2A1F14" roughness={0.9} />
-      </mesh>
+      {/* Bottom base */}
+      <mesh position={[0, -0.85, 0]} geometry={sharedGeometries.base} material={sharedMaterials.baseDark} />
 
-      {/* Antenna base - black box on top */}
-      <mesh position={[0, 0.88, 0]}>
-        <boxGeometry args={[0.25, 0.12, 0.2]} />
-        <meshStandardMaterial color="#1a1a1a" roughness={0.8} />
-      </mesh>
+      {/* Antenna base */}
+      <mesh position={[0, 0.88, 0]} geometry={sharedGeometries.antennaBase} material={sharedMaterials.antennaBaseMat} />
 
       {/* Left antenna */}
-      <mesh position={[-0.25, 1.35, 0]} rotation={[0, 0, Math.PI / 8]}>
-        <cylinderGeometry args={[0.025, 0.035, 0.9, 8]} />
-        <meshStandardMaterial color="#C0C0C0" metalness={0.9} roughness={0.2} />
-      </mesh>
-      {/* Left antenna tip */}
-      <mesh position={[-0.42, 1.75, 0]} rotation={[0, 0, Math.PI / 8]}>
-        <sphereGeometry args={[0.04, 8, 8]} />
-        <meshStandardMaterial color="#D0D0D0" metalness={0.9} roughness={0.2} />
-      </mesh>
+      <mesh position={[-0.25, 1.35, 0]} rotation={[0, 0, ROTATION_ANGLE]} geometry={sharedGeometries.antenna} material={sharedMaterials.antennaMetal} />
+      <mesh position={[-0.42, 1.75, 0]} rotation={[0, 0, ROTATION_ANGLE]} geometry={sharedGeometries.antennaTip} material={sharedMaterials.antennaTipMat} />
 
       {/* Right antenna */}
-      <mesh position={[0.25, 1.35, 0]} rotation={[0, 0, -Math.PI / 8]}>
-        <cylinderGeometry args={[0.025, 0.035, 0.9, 8]} />
-        <meshStandardMaterial color="#C0C0C0" metalness={0.9} roughness={0.2} />
-      </mesh>
-      {/* Right antenna tip */}
-      <mesh position={[0.42, 1.75, 0]} rotation={[0, 0, -Math.PI / 8]}>
-        <sphereGeometry args={[0.04, 8, 8]} />
-        <meshStandardMaterial color="#D0D0D0" metalness={0.9} roughness={0.2} />
-      </mesh>
+      <mesh position={[0.25, 1.35, 0]} rotation={[0, 0, -ROTATION_ANGLE]} geometry={sharedGeometries.antenna} material={sharedMaterials.antennaMetal} />
+      <mesh position={[0.42, 1.75, 0]} rotation={[0, 0, -ROTATION_ANGLE]} geometry={sharedGeometries.antennaTip} material={sharedMaterials.antennaTipMat} />
     </group>
   );
 }
