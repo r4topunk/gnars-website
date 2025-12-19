@@ -41,3 +41,6 @@ export { useTVFeed, usePreloadTrigger } from "./useTVFeed";
 export { useVideoPreloader, useRenderBuffer } from "./useVideoPreloader";
 export * from "./types";
 export * from "./utils";
+export { Gnar3DTV } from "./Gnar3DTV";
+export { Gnar3DTVScene } from "./Gnar3DTVScene";
+export { TV3DModel } from "./TV3DModel";

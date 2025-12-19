@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { AuctionSpotlight } from "@/components/hero/AuctionSpotlight";
+import { Gnar3DTV } from "@/components/tv";
 import { RecentProposalsSection } from "@/components/home/RecentProposalsSection";
 import { ActivityFeedSection } from "@/components/home/ActivityFeedSection";
 import { HeroStatsValues } from "@/components/home/HeroStatsValues";
@@ -38,9 +38,9 @@ export default function Home() {
                 </Suspense>
               </div>
 
-              {/* Right Column - Auction (Client Component) */}
+              {/* Right Column - 3D TV (Client Component) */}
               <div className="flex items-center justify-center">
-                <AuctionSpotlight />
+                <Gnar3DTV autoRotate={true} />
               </div>
             </div>
           </div>
