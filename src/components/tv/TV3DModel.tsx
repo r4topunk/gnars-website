@@ -22,37 +22,18 @@ function toFastIPFS(url?: string): string | undefined {
     .replace("https://cloudflare-ipfs.com/ipfs/", "https://dweb.link/ipfs/");
 }
 
-// Static noise texture generator
-function createStaticTexture(): THREE.DataTexture {
-  const size = 128;
-  const data = new Uint8Array(size * size * 4);
-
-  for (let i = 0; i < size * size * 4; i += 4) {
-    const noise = Math.random() * 255;
-    data[i] = noise;
-    data[i + 1] = noise;
-    data[i + 2] = noise;
-    data[i + 3] = 255;
-  }
-
-  const texture = new THREE.DataTexture(data, size, size);
-  texture.needsUpdate = true;
-  return texture;
-}
-
-// CRT shader for color bars with scanlines and curvature
-const colorBarsCrtShader = `
-  uniform float uTime;
+// Static color bars shader (no animation - much lighter)
+const colorBarsShader = `
   varying vec2 vUv;
 
   void main() {
-    // Barrel distortion (CRT curvature)
     vec2 uv = vUv;
     vec2 center = uv - 0.5;
     float dist = dot(center, center);
-    uv = uv + center * dist * 0.1;
 
-    // Check bounds
+    // Slight barrel distortion
+    uv = uv + center * dist * 0.08;
+
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
       gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
       return;
@@ -60,65 +41,35 @@ const colorBarsCrtShader = `
 
     vec3 color;
     float x = uv.x;
-    float y = uv.y;
 
-    // Top part: color bars
-    if (y > 0.3) {
-      if (x < 0.125) color = vec3(1.0, 1.0, 1.0);
-      else if (x < 0.25) color = vec3(1.0, 1.0, 0.0);
-      else if (x < 0.375) color = vec3(0.0, 1.0, 1.0);
-      else if (x < 0.5) color = vec3(0.0, 1.0, 0.0);
-      else if (x < 0.625) color = vec3(1.0, 0.0, 1.0);
-      else if (x < 0.75) color = vec3(1.0, 0.0, 0.0);
-      else if (x < 0.875) color = vec3(0.0, 0.0, 1.0);
-      else color = vec3(0.0, 0.0, 0.0);
-    } else {
-      // Bottom part: animated static noise
-      float noise = fract(sin(dot(uv + uTime, vec2(12.9898, 78.233))) * 43758.5453);
-      color = vec3(noise);
-    }
+    // Classic SMPTE color bars
+    if (x < 0.143) color = vec3(0.75, 0.75, 0.75);      // Gray
+    else if (x < 0.286) color = vec3(0.75, 0.75, 0.0);  // Yellow
+    else if (x < 0.429) color = vec3(0.0, 0.75, 0.75);  // Cyan
+    else if (x < 0.571) color = vec3(0.0, 0.75, 0.0);   // Green
+    else if (x < 0.714) color = vec3(0.75, 0.0, 0.75);  // Magenta
+    else if (x < 0.857) color = vec3(0.75, 0.0, 0.0);   // Red
+    else color = vec3(0.0, 0.0, 0.75);                  // Blue
 
-    // Scanlines
-    float scanline = sin(uv.y * 400.0) * 0.1;
-    color -= scanline;
+    // Simple scanlines (static)
+    float scanline = mod(gl_FragCoord.y, 3.0) < 1.0 ? 0.9 : 1.0;
+    color *= scanline;
 
     // Vignette
-    float vignette = 1.0 - dist * 1.5;
-    color *= vignette;
-
-    // Flickering effect
-    float flicker = 0.97 + 0.03 * sin(uTime * 10.0);
-    color *= flicker;
+    color *= 1.0 - dist * 1.2;
 
     gl_FragColor = vec4(color, 1.0);
   }
 `;
 
-// Color bars component (classic TV test pattern) with CRT effect
+// Color bars component - static, no useFrame for better performance
 function ColorBarsScreen() {
-  const timeRef = useRef(0);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-
-  const uniforms = useMemo(() => ({
-    uTime: { value: 0 },
-  }), []);
-
-  // Animate
-  useFrame((_, delta) => {
-    timeRef.current += delta;
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value = timeRef.current;
-    }
-  });
-
   return (
-    <mesh position={[0, 0.1, 0.451]}>
-      <planeGeometry args={[1.45, 1.05]} />
+    <mesh position={[0, 0, 0.521]}>
+      <planeGeometry args={[1.15, 0.95]} />
       <shaderMaterial
-        ref={materialRef}
-        uniforms={uniforms}
         vertexShader={crtVertexShader}
-        fragmentShader={colorBarsCrtShader}
+        fragmentShader={colorBarsShader}
       />
     </mesh>
   );
@@ -196,8 +147,8 @@ function VideoScreen({ videoUrl }: { videoUrl: string }) {
   }, [texture, uniforms]);
 
   return (
-    <mesh position={[0, 0.1, 0.451]}>
-      <planeGeometry args={[1.45, 1.05]} />
+    <mesh position={[0, 0, 0.521]}>
+      <planeGeometry args={[1.15, 0.95]} />
       <shaderMaterial
         uniforms={uniforms}
         vertexShader={crtVertexShader}
@@ -210,8 +161,8 @@ function VideoScreen({ videoUrl }: { videoUrl: string }) {
 // Fallback screen when no video
 function FallbackScreen() {
   return (
-    <mesh position={[0, 0.1, 0.451]}>
-      <planeGeometry args={[1.45, 1.05]} />
+    <mesh position={[0, 0, 0.521]}>
+      <planeGeometry args={[1.15, 0.95]} />
       <meshBasicMaterial color="#111" />
     </mesh>
   );
@@ -256,8 +207,8 @@ export function TV3DModel({
     return () => clearTimeout(timer);
   }, [currentVideoUrl, playDuration, onNextVideo, showStatic]);
 
-  // Auto-rotate with oscillation (±30 degrees from center)
-  const maxAngle = Math.PI / 6;
+  // Auto-rotate with oscillation (±15 degrees from center)
+  const maxAngle = Math.PI / 12;
 
   useFrame((_, delta) => {
     if (groupRef.current && autoRotate) {
@@ -268,69 +219,127 @@ export function TV3DModel({
 
   return (
     <group ref={groupRef}>
-      {/* TV Cabinet - Retro wood style */}
+      {/* Main cabinet - brown wood sides */}
       <mesh position={[0, 0, 0]}>
-        <boxGeometry args={[2.2, 1.8, 0.8]} />
-        <meshStandardMaterial color="#8B7355" roughness={0.8} />
+        <boxGeometry args={[2.4, 1.6, 0.9]} />
+        <meshStandardMaterial color="#8B5A2B" roughness={0.85} />
       </mesh>
 
-      {/* TV Front panel */}
-      <mesh position={[0, 0, 0.35]}>
-        <boxGeometry args={[2.1, 1.7, 0.12]} />
-        <meshStandardMaterial color="#5D4E37" roughness={0.7} />
+      {/* Front panel - cream/beige */}
+      <mesh position={[0, 0, 0.4]}>
+        <boxGeometry args={[2.3, 1.5, 0.12]} />
+        <meshStandardMaterial color="#E8DCC8" roughness={0.6} />
       </mesh>
 
-      {/* Screen bezel */}
-      <mesh position={[0, 0.1, 0.42]}>
-        <boxGeometry args={[1.6, 1.2, 0.05]} />
-        <meshStandardMaterial color="#2a2a2a" roughness={0.9} />
+      {/* White border frame */}
+      <mesh position={[0, 0, 0.47]}>
+        <boxGeometry args={[2.35, 1.55, 0.02]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={0.5} />
+      </mesh>
+
+      {/* Screen area - left side */}
+      {/* Dark bezel around screen */}
+      <mesh position={[-0.35, 0.05, 0.48]}>
+        <boxGeometry args={[1.4, 1.2, 0.04]} />
+        <meshStandardMaterial color="#2C2C2C" roughness={0.9} />
+      </mesh>
+
+      {/* Inner screen bezel - darker */}
+      <mesh position={[-0.35, 0.05, 0.5]}>
+        <boxGeometry args={[1.25, 1.05, 0.02]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.95} />
       </mesh>
 
       {/* Screen background */}
-      <mesh position={[0, 0.1, 0.45]}>
-        <planeGeometry args={[1.45, 1.05]} />
+      <mesh position={[-0.35, 0.05, 0.52]}>
+        <planeGeometry args={[1.15, 0.95]} />
         <meshBasicMaterial color="#000" />
       </mesh>
 
       {/* Video or Static Screen */}
-      {showStatic ? (
-        <ColorBarsScreen />
-      ) : currentVideoUrl ? (
-        <Suspense fallback={<ColorBarsScreen />}>
-          <VideoScreen videoUrl={currentVideoUrl} />
-        </Suspense>
-      ) : (
-        <FallbackScreen />
-      )}
+      <group position={[-0.35, 0.05, 0]}>
+        {showStatic ? (
+          <ColorBarsScreen />
+        ) : currentVideoUrl ? (
+          <Suspense fallback={<ColorBarsScreen />}>
+            <VideoScreen videoUrl={currentVideoUrl} />
+          </Suspense>
+        ) : (
+          <FallbackScreen />
+        )}
+      </group>
 
-      {/* Control panel */}
-      <mesh position={[0, -0.65, 0.38]}>
-        <boxGeometry args={[1.8, 0.25, 0.1]} />
-        <meshStandardMaterial color="#5D4E37" roughness={0.7} />
-      </mesh>
-
-      {/* Knobs */}
-      <mesh position={[-0.5, -0.65, 0.45]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.06, 0.06, 0.04, 16]} />
-        <meshStandardMaterial color="#c0c0c0" metalness={0.8} roughness={0.3} />
-      </mesh>
-      <mesh position={[0, -0.65, 0.45]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.06, 0.06, 0.04, 16]} />
-        <meshStandardMaterial color="#c0c0c0" metalness={0.8} roughness={0.3} />
-      </mesh>
-      <mesh position={[0.5, -0.65, 0.45]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.06, 0.06, 0.04, 16]} />
-        <meshStandardMaterial color="#c0c0c0" metalness={0.8} roughness={0.3} />
+      {/* Right side control panel */}
+      {/* Control panel background - slightly darker beige */}
+      <mesh position={[0.85, 0.05, 0.48]}>
+        <boxGeometry args={[0.55, 1.2, 0.04]} />
+        <meshStandardMaterial color="#D4C4A8" roughness={0.7} />
       </mesh>
 
-      {/* Legs */}
-      <mesh position={[-0.8, -1.05, 0]}>
-        <boxGeometry args={[0.15, 0.3, 0.15]} />
-        <meshStandardMaterial color="#4A3728" roughness={0.8} />
+      {/* Colored buttons - Red, Green, Blue */}
+      <mesh position={[0.85, 0.35, 0.52]} rotation={[Math.PI / 2, 0, 0]}>
+        <boxGeometry args={[0.12, 0.06, 0.12]} />
+        <meshStandardMaterial color="#CC3333" roughness={0.4} />
       </mesh>
-      <mesh position={[0.8, -1.05, 0]}>
-        <boxGeometry args={[0.15, 0.3, 0.15]} />
-        <meshStandardMaterial color="#4A3728" roughness={0.8} />
+      <mesh position={[0.85, 0.18, 0.52]} rotation={[Math.PI / 2, 0, 0]}>
+        <boxGeometry args={[0.12, 0.06, 0.12]} />
+        <meshStandardMaterial color="#33AA33" roughness={0.4} />
+      </mesh>
+      <mesh position={[0.85, 0.01, 0.52]} rotation={[Math.PI / 2, 0, 0]}>
+        <boxGeometry args={[0.12, 0.06, 0.12]} />
+        <meshStandardMaterial color="#3366CC" roughness={0.4} />
+      </mesh>
+
+      {/* Speaker grille - horizontal lines */}
+      {[-0.18, -0.26, -0.34, -0.42].map((y, i) => (
+        <mesh key={i} position={[0.85, y, 0.5]}>
+          <boxGeometry args={[0.4, 0.04, 0.02]} />
+          <meshStandardMaterial color="#A89070" roughness={0.8} />
+        </mesh>
+      ))}
+
+      {/* Small indicator dots at bottom left of front panel */}
+      <mesh position={[-0.95, -0.6, 0.5]}>
+        <boxGeometry args={[0.06, 0.06, 0.02]} />
+        <meshStandardMaterial color="#333333" roughness={0.5} />
+      </mesh>
+      <mesh position={[-0.82, -0.6, 0.5]}>
+        <boxGeometry args={[0.06, 0.06, 0.02]} />
+        <meshStandardMaterial color="#333333" roughness={0.5} />
+      </mesh>
+
+      {/* Bottom base - dark brown/black strip */}
+      <mesh position={[0, -0.85, 0]}>
+        <boxGeometry args={[2.4, 0.1, 0.9]} />
+        <meshStandardMaterial color="#2A1F14" roughness={0.9} />
+      </mesh>
+
+      {/* Antenna base - black box on top */}
+      <mesh position={[0, 0.88, 0]}>
+        <boxGeometry args={[0.25, 0.12, 0.2]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.8} />
+      </mesh>
+
+      {/* Left antenna */}
+      <mesh position={[-0.25, 1.35, 0]} rotation={[0, 0, Math.PI / 8]}>
+        <cylinderGeometry args={[0.025, 0.035, 0.9, 8]} />
+        <meshStandardMaterial color="#C0C0C0" metalness={0.9} roughness={0.2} />
+      </mesh>
+      {/* Left antenna tip */}
+      <mesh position={[-0.42, 1.75, 0]} rotation={[0, 0, Math.PI / 8]}>
+        <sphereGeometry args={[0.04, 8, 8]} />
+        <meshStandardMaterial color="#D0D0D0" metalness={0.9} roughness={0.2} />
+      </mesh>
+
+      {/* Right antenna */}
+      <mesh position={[0.25, 1.35, 0]} rotation={[0, 0, -Math.PI / 8]}>
+        <cylinderGeometry args={[0.025, 0.035, 0.9, 8]} />
+        <meshStandardMaterial color="#C0C0C0" metalness={0.9} roughness={0.2} />
+      </mesh>
+      {/* Right antenna tip */}
+      <mesh position={[0.42, 1.75, 0]} rotation={[0, 0, -Math.PI / 8]}>
+        <sphereGeometry args={[0.04, 8, 8]} />
+        <meshStandardMaterial color="#D0D0D0" metalness={0.9} roughness={0.2} />
       </mesh>
     </group>
   );

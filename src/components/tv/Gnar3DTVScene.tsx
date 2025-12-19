@@ -21,7 +21,7 @@ export function Gnar3DTVScene({
   return (
     <div className="h-full w-full">
       <Canvas
-        camera={{ position: [0, 0.3, 3.5], fov: 50 }}
+        camera={{ position: [1, 1, 4], fov: 60 }}
         gl={{
           antialias: false,
           alpha: true,

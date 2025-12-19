@@ -1,20 +1,13 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useTVFeed } from "./useTVFeed";
 
 const Gnar3DTVScene = dynamic(() => import("./Gnar3DTVScene").then((mod) => mod.Gnar3DTVScene), {
   ssr: false,
-  loading: () => (
-    <div className="flex h-[400px] w-full items-center justify-center rounded-xl bg-muted">
-      <div className="flex flex-col items-center gap-2">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        <span className="text-sm text-muted-foreground">Loading TV...</span>
-      </div>
-    </div>
-  ),
+  loading: () => null, // No loading indicator
 });
 
 interface Gnar3DTVProps {
@@ -26,6 +19,7 @@ interface Gnar3DTVProps {
 export function Gnar3DTV({ autoRotate = true, className = "", playDuration = 5 }: Gnar3DTVProps) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Fetch TV feed data
   const { items } = useTVFeed({});
@@ -35,6 +29,12 @@ export function Gnar3DTV({ autoRotate = true, className = "", playDuration = 5 }
 
   // Current video
   const currentVideo = videoItems[currentIndex];
+
+  // Trigger fade-in animation after mount
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Handle auto-advance to next video
   const handleNextVideo = useCallback(() => {
@@ -48,7 +48,12 @@ export function Gnar3DTV({ autoRotate = true, className = "", playDuration = 5 }
   }, [router]);
 
   return (
-    <div className={`w-full cursor-pointer ${className}`} onClick={handleTVClick}>
+    <div
+      className={`w-full cursor-pointer transition-all duration-700 ease-out ${className} ${
+        isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
+      }`}
+      onClick={handleTVClick}
+    >
       <div className="aspect-square overflow-hidden">
         <Gnar3DTVScene
           videoUrl={currentVideo?.videoUrl}
