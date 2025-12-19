@@ -13,10 +13,9 @@ const Gnar3DTVScene = dynamic(() => import("./Gnar3DTVScene").then((mod) => mod.
 interface Gnar3DTVProps {
   autoRotate?: boolean;
   className?: string;
-  playDuration?: number;
 }
 
-export function Gnar3DTV({ autoRotate = true, className = "", playDuration = 5 }: Gnar3DTVProps) {
+export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -59,7 +58,6 @@ export function Gnar3DTV({ autoRotate = true, className = "", playDuration = 5 }
           videoUrl={currentVideo?.videoUrl}
           autoRotate={autoRotate}
           onNextVideo={handleNextVideo}
-          playDuration={playDuration}
         />
       </div>
     </div>

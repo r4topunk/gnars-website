@@ -9,14 +9,12 @@ interface Gnar3DTVSceneProps {
   videoUrl?: string;
   autoRotate?: boolean;
   onNextVideo?: () => void;
-  playDuration?: number;
 }
 
 export function Gnar3DTVScene({
   videoUrl,
   autoRotate = true,
   onNextVideo,
-  playDuration = 3,
 }: Gnar3DTVSceneProps) {
   return (
     <div className="h-full w-full">
@@ -45,7 +43,6 @@ export function Gnar3DTVScene({
             videoUrl={videoUrl}
             autoRotate={autoRotate}
             onNextVideo={onNextVideo}
-            playDuration={playDuration}
           />
         </Suspense>
 

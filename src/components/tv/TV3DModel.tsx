@@ -11,7 +11,6 @@ interface TV3DModelProps {
   autoRotate?: boolean;
   rotationSpeed?: number;
   onNextVideo?: () => void;
-  playDuration?: number;
 }
 
 // Pre-calculated constants
@@ -189,7 +188,6 @@ export function TV3DModel({
   autoRotate = true,
   rotationSpeed = 0.2,
   onNextVideo,
-  playDuration = 3,
 }: TV3DModelProps) {
   const groupRef = useRef<Group>(null);
   const rotationTimeRef = useRef(0);
@@ -212,16 +210,17 @@ export function TV3DModel({
     }
   }, [videoUrl, currentVideoUrl]);
 
-  // Auto-advance after playDuration seconds
+  // Auto-advance after random 7-13 seconds
   useEffect(() => {
     if (!currentVideoUrl || showStatic) return;
 
+    const randomDuration = 7 + Math.random() * 6; // 7 to 13 seconds
     const timer = setTimeout(() => {
       onNextVideo?.();
-    }, playDuration * 1000);
+    }, randomDuration * 1000);
 
     return () => clearTimeout(timer);
-  }, [currentVideoUrl, playDuration, onNextVideo, showStatic]);
+  }, [currentVideoUrl, onNextVideo, showStatic]);
 
   useFrame((_, delta) => {
     if (groupRef.current && autoRotate) {
