@@ -242,6 +242,9 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
           combined = sortedCoins;
         }
 
+        // Reverse to show latest videos first
+        combined.reverse();
+
         // Pin priority item to the top (only on initial load)
         const finalItems = priorityItem && !isLoadMore ? [priorityItem, ...combined] : combined;
 
