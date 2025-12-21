@@ -285,6 +285,313 @@ const defaultPlasticConfig = {
   yellowing: 0.4,
 };
 
+// Dark rubber/plastic shader for bezels and antenna base
+const darkRubberVertexShader = `
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+
+  void main() {
+    vPosition = position;
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const darkRubberFragmentShader = `
+  uniform vec3 uBaseColor;
+  uniform float uPixelSize;
+  uniform float uNoiseIntensity;
+  uniform float uWearAmount;
+
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
+
+  void main() {
+    vec2 coord = vPosition.xy + vPosition.z * 0.5;
+    vec2 pixelCoord = floor(coord / uPixelSize) * uPixelSize;
+
+    // Noise for rubber texture
+    float noise = hash(pixelCoord * 80.0);
+    noise = (noise - 0.5) * uNoiseIntensity;
+
+    // Base color with wear/scuff marks
+    vec3 color = uBaseColor;
+
+    // Wear effect - lighter spots where rubber is worn
+    float wearNoise = hash(pixelCoord * 15.0);
+    if (wearNoise > (1.0 - uWearAmount * 0.3)) {
+      color += vec3(0.12, 0.11, 0.10);
+    }
+
+    // Add fine grain noise
+    color += vec3(noise * 0.6);
+
+    // Quantize for pixel art
+    color = floor(color * 12.0) / 12.0;
+
+    // Brighter lighting
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 1.0));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+    float lighting = 0.75 + diff * 0.35;
+
+    // Matte finish (no specular)
+    color = color * lighting;
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
+
+// Colored button plastic shader
+const buttonPlasticVertexShader = `
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+
+  void main() {
+    vPosition = position;
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const buttonPlasticFragmentShader = `
+  uniform vec3 uBaseColor;
+  uniform float uPixelSize;
+
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
+
+  void main() {
+    vec2 coord = vPosition.xy;
+    vec2 pixelCoord = floor(coord / uPixelSize) * uPixelSize;
+
+    // Subtle noise for plastic surface
+    float noise = hash(pixelCoord * 100.0);
+    noise = (noise - 0.5) * 0.06;
+
+    vec3 color = uBaseColor + vec3(noise);
+
+    // Quantize for pixel art
+    color = floor(color * 10.0) / 10.0;
+
+    // Brighter lighting for buttons
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 1.0));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+    float lighting = 0.7 + diff * 0.4;
+
+    // Plastic specular highlight
+    vec3 viewDir = normalize(vec3(0.0, 0.0, 1.0));
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(vNormal, halfDir), 0.0), 32.0) * 0.3;
+
+    color = color * lighting + vec3(spec);
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
+
+// Metal grill shader for speaker
+const metalGrillVertexShader = `
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+
+  void main() {
+    vPosition = position;
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const metalGrillFragmentShader = `
+  uniform vec3 uBaseColor;
+  uniform float uPixelSize;
+
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
+
+  void main() {
+    vec2 coord = vPosition.xy;
+    vec2 pixelCoord = floor(coord / uPixelSize) * uPixelSize;
+
+    // Metallic noise pattern
+    float noise = hash(pixelCoord * 60.0);
+    noise = (noise - 0.5) * 0.12;
+
+    // Horizontal line pattern for grill
+    float linePattern = step(0.5, fract(coord.y / 0.02));
+
+    vec3 color = uBaseColor;
+    color += vec3(noise);
+    color *= 0.9 + linePattern * 0.1;
+
+    // Quantize
+    color = floor(color * 10.0) / 10.0;
+
+    // Brighter metallic lighting
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 1.0));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+    float lighting = 0.6 + diff * 0.5;
+
+    // Metallic specular
+    vec3 viewDir = normalize(vec3(0.0, 0.0, 1.0));
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(vNormal, halfDir), 0.0), 24.0) * 0.25;
+
+    color = color * lighting + vec3(spec * 0.9, spec * 0.8, spec * 0.7);
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
+
+// Brushed metal shader for antennas
+const brushedMetalVertexShader = `
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+  varying vec3 vWorldPos;
+
+  void main() {
+    vPosition = position;
+    vNormal = normalize(normalMatrix * normal);
+    vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const brushedMetalFragmentShader = `
+  uniform vec3 uBaseColor;
+  uniform float uPixelSize;
+  uniform float uBrushDirection; // 0 = horizontal, 1 = vertical
+
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+  varying vec3 vWorldPos;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
+
+  void main() {
+    // Use cylindrical coordinates for antenna
+    vec2 coord = vec2(vPosition.y, atan(vPosition.x, vPosition.z));
+    vec2 pixelCoord = floor(coord / uPixelSize) * uPixelSize;
+
+    // Brushed metal streaks along length
+    float streak = hash(vec2(pixelCoord.y * 200.0, floor(pixelCoord.x * 50.0)));
+    streak = (streak - 0.5) * 0.10;
+
+    // Fine grain noise
+    float noise = hash(pixelCoord * 100.0) * 0.04 - 0.02;
+
+    vec3 color = uBaseColor + vec3(streak + noise);
+
+    // Quantize for pixel art
+    color = floor(color * 14.0) / 14.0;
+
+    // Brighter metallic lighting
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 1.0));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+    float lighting = 0.55 + diff * 0.55;
+
+    // Strong specular for metal
+    vec3 viewDir = normalize(vec3(0.0, 0.0, 1.0));
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(vNormal, halfDir), 0.0), 48.0) * 0.45;
+
+    color = color * lighting + vec3(spec);
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
+
+// Dark wood shader for base (reuses wood logic but darker)
+const darkWoodFragmentShader = `
+  uniform float uPixelSize;
+  uniform float uGrainIntensity;
+  uniform float uGrainScale;
+
+  varying vec3 vPosition;
+  varying vec3 vNormalObject;
+  varying vec3 vNormalWorld;
+
+  vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+  vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+  vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+  float snoise(vec2 v) {
+    const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+    vec2 i  = floor(v + dot(v, C.yy));
+    vec2 x0 = v - i + dot(i, C.xx);
+    vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+    vec4 x12 = x0.xyxy + C.xxzz;
+    x12.xy -= i1;
+    i = mod289(i);
+    vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+    vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+    m = m*m; m = m*m;
+    vec3 x = 2.0 * fract(p * C.www) - 1.0;
+    vec3 h = abs(x) - 0.5;
+    vec3 ox = floor(x + 0.5);
+    vec3 a0 = x - ox;
+    m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+    vec3 g;
+    g.x = a0.x * x0.x + h.x * x0.y;
+    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+    return 130.0 * dot(m, g);
+  }
+
+  void main() {
+    vec3 absNormal = abs(vNormalObject);
+    vec2 woodCoord;
+
+    if (absNormal.y > 0.5) {
+      woodCoord = vec2(vPosition.x, vPosition.z);
+    } else if (absNormal.x > 0.5) {
+      woodCoord = vec2(vPosition.z, vPosition.y);
+    } else {
+      woodCoord = vec2(vPosition.x, vPosition.y);
+    }
+
+    vec2 pixelCoord = floor(woodCoord / uPixelSize) * uPixelSize;
+
+    float grain = snoise(vec2(pixelCoord.x * 1.0, pixelCoord.y * uGrainScale)) * uGrainIntensity;
+    grain += snoise(vec2(pixelCoord.x * 2.0, pixelCoord.y * uGrainScale * 2.0)) * 0.5 * uGrainIntensity;
+    grain = grain * 0.5 + 0.5;
+
+    float pattern = floor(grain * 4.0) / 4.0;
+
+    // Slightly lighter dark wood colors
+    vec3 colorDark = vec3(0.12, 0.08, 0.04);
+    vec3 colorMid = vec3(0.18, 0.12, 0.07);
+    vec3 colorLight = vec3(0.24, 0.16, 0.10);
+    vec3 colorHighlight = vec3(0.30, 0.20, 0.13);
+
+    vec3 color;
+    if (pattern < 0.25) color = colorDark;
+    else if (pattern < 0.5) color = colorMid;
+    else if (pattern < 0.75) color = colorLight;
+    else color = colorHighlight;
+
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 1.0));
+    float diff = max(dot(vNormalWorld, lightDir), 0.0);
+    float lighting = 0.5 + floor(diff * 3.0) / 5.0;
+
+    color = color * lighting;
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
+
 // Vintage Plastic Panel component
 function VintagePlasticPanel({
   geometry,
@@ -333,6 +640,148 @@ function VintagePlasticPanel({
         ref={materialRef}
         vertexShader={plasticVertexShader}
         fragmentShader={plasticFragmentShader}
+        uniforms={uniforms}
+      />
+    </mesh>
+  );
+}
+
+// Dark rubber component for bezels
+function DarkRubberPanel({
+  geometry,
+  position,
+  baseColor = [0.17, 0.17, 0.17] as [number, number, number],
+  pixelSize = 0.02,
+  noiseIntensity = 0.08,
+  wearAmount = 0.5,
+}: {
+  geometry: THREE.BufferGeometry;
+  position: [number, number, number];
+  baseColor?: [number, number, number];
+  pixelSize?: number;
+  noiseIntensity?: number;
+  wearAmount?: number;
+}) {
+  const uniforms = useMemo(() => ({
+    uBaseColor: { value: new THREE.Vector3(...baseColor) },
+    uPixelSize: { value: pixelSize },
+    uNoiseIntensity: { value: noiseIntensity },
+    uWearAmount: { value: wearAmount },
+  }), [baseColor, pixelSize, noiseIntensity, wearAmount]);
+
+  return (
+    <mesh position={position} geometry={geometry}>
+      <shaderMaterial
+        vertexShader={darkRubberVertexShader}
+        fragmentShader={darkRubberFragmentShader}
+        uniforms={uniforms}
+      />
+    </mesh>
+  );
+}
+
+// Colored plastic button component
+function PlasticButton({
+  geometry,
+  position,
+  rotation,
+  baseColor,
+}: {
+  geometry: THREE.BufferGeometry;
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  baseColor: [number, number, number];
+}) {
+  const uniforms = useMemo(() => ({
+    uBaseColor: { value: new THREE.Vector3(...baseColor) },
+    uPixelSize: { value: 0.015 },
+  }), [baseColor]);
+
+  return (
+    <mesh position={position} rotation={rotation} geometry={geometry}>
+      <shaderMaterial
+        vertexShader={buttonPlasticVertexShader}
+        fragmentShader={buttonPlasticFragmentShader}
+        uniforms={uniforms}
+      />
+    </mesh>
+  );
+}
+
+// Metal grill component for speaker
+function MetalGrill({
+  geometry,
+  position,
+  baseColor = [0.66, 0.56, 0.44] as [number, number, number],
+}: {
+  geometry: THREE.BufferGeometry;
+  position: [number, number, number];
+  baseColor?: [number, number, number];
+}) {
+  const uniforms = useMemo(() => ({
+    uBaseColor: { value: new THREE.Vector3(...baseColor) },
+    uPixelSize: { value: 0.012 },
+  }), [baseColor]);
+
+  return (
+    <mesh position={position} geometry={geometry}>
+      <shaderMaterial
+        vertexShader={metalGrillVertexShader}
+        fragmentShader={metalGrillFragmentShader}
+        uniforms={uniforms}
+      />
+    </mesh>
+  );
+}
+
+// Brushed metal component for antennas
+function BrushedMetal({
+  geometry,
+  position,
+  rotation,
+  baseColor = [0.75, 0.75, 0.75] as [number, number, number],
+}: {
+  geometry: THREE.BufferGeometry;
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  baseColor?: [number, number, number];
+}) {
+  const uniforms = useMemo(() => ({
+    uBaseColor: { value: new THREE.Vector3(...baseColor) },
+    uPixelSize: { value: 0.02 },
+    uBrushDirection: { value: 1.0 },
+  }), [baseColor]);
+
+  return (
+    <mesh position={position} rotation={rotation} geometry={geometry}>
+      <shaderMaterial
+        vertexShader={brushedMetalVertexShader}
+        fragmentShader={brushedMetalFragmentShader}
+        uniforms={uniforms}
+      />
+    </mesh>
+  );
+}
+
+// Dark wood base component
+function DarkWoodBase({
+  geometry,
+  position,
+}: {
+  geometry: THREE.BufferGeometry;
+  position: [number, number, number];
+}) {
+  const uniforms = useMemo(() => ({
+    uPixelSize: { value: 0.03 },
+    uGrainIntensity: { value: 0.9 },
+    uGrainScale: { value: 3.0 },
+  }), []);
+
+  return (
+    <mesh position={position} geometry={geometry}>
+      <shaderMaterial
+        vertexShader={woodVertexShader}
+        fragmentShader={darkWoodFragmentShader}
         uniforms={uniforms}
       />
     </mesh>
@@ -590,11 +1039,21 @@ export function TV3DModel({
       {/* Main cabinet with dynamic wood texture */}
       <WoodCabinet config={textureConfig?.wood} />
 
-      {/* Dark bezel around screen */}
-      <mesh position={[-0.35, 0.05, 0.48]} geometry={sharedGeometries.screenBezel} material={sharedMaterials.darkBezel} />
+      {/* Dark bezel around screen - with rubber texture */}
+      <DarkRubberPanel
+        geometry={sharedGeometries.screenBezel}
+        position={[-0.35, 0.05, 0.48]}
+        baseColor={[0.22, 0.22, 0.22]}
+        wearAmount={0.4}
+      />
 
-      {/* Inner screen bezel */}
-      <mesh position={[-0.35, 0.05, 0.5]} geometry={sharedGeometries.innerBezel} material={sharedMaterials.innerBezel} />
+      {/* Inner screen bezel - darker rubber texture */}
+      <DarkRubberPanel
+        geometry={sharedGeometries.innerBezel}
+        position={[-0.35, 0.05, 0.5]}
+        baseColor={[0.15, 0.15, 0.15]}
+        wearAmount={0.2}
+      />
 
       {/* Screen background */}
       <mesh position={[-0.35, 0.05, 0.52]} geometry={sharedGeometries.screen} material={sharedMaterials.screenBg} />
@@ -619,34 +1078,82 @@ export function TV3DModel({
         config={textureConfig?.controlPanel}
       />
 
-      {/* Colored buttons */}
-      <mesh position={[0.775, 0.35, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonRed} />
-      <mesh position={[0.775, 0.18, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonGreen} />
-      <mesh position={[0.775, 0.01, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonBlue} />
+      {/* Colored buttons with plastic texture */}
+      <PlasticButton
+        geometry={sharedGeometries.button}
+        position={[0.775, 0.35, 0.52]}
+        rotation={[Math.PI / 2, 0, 0]}
+        baseColor={[0.85, 0.25, 0.25]}
+      />
+      <PlasticButton
+        geometry={sharedGeometries.button}
+        position={[0.775, 0.18, 0.52]}
+        rotation={[Math.PI / 2, 0, 0]}
+        baseColor={[0.25, 0.70, 0.25]}
+      />
+      <PlasticButton
+        geometry={sharedGeometries.button}
+        position={[0.775, 0.01, 0.52]}
+        rotation={[Math.PI / 2, 0, 0]}
+        baseColor={[0.25, 0.45, 0.85]}
+      />
 
-      {/* Speaker grille */}
-      <mesh position={[0.775, -0.18, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
-      <mesh position={[0.775, -0.26, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
-      <mesh position={[0.775, -0.34, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
-      <mesh position={[0.775, -0.42, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
+      {/* Speaker grille with metallic texture */}
+      <MetalGrill geometry={sharedGeometries.speakerLine} position={[0.775, -0.18, 0.5]} />
+      <MetalGrill geometry={sharedGeometries.speakerLine} position={[0.775, -0.26, 0.5]} />
+      <MetalGrill geometry={sharedGeometries.speakerLine} position={[0.775, -0.34, 0.5]} />
+      <MetalGrill geometry={sharedGeometries.speakerLine} position={[0.775, -0.42, 0.5]} />
 
-      {/* Indicator dots */}
-      <mesh position={[-0.95, -0.6, 0.5]} geometry={sharedGeometries.indicator} material={sharedMaterials.indicator} />
-      <mesh position={[-0.82, -0.6, 0.5]} geometry={sharedGeometries.indicator} material={sharedMaterials.indicator} />
+      {/* Indicator dots with dark rubber texture */}
+      <DarkRubberPanel
+        geometry={sharedGeometries.indicator}
+        position={[-0.95, -0.6, 0.5]}
+        baseColor={[0.25, 0.25, 0.25]}
+        wearAmount={0.3}
+      />
+      <DarkRubberPanel
+        geometry={sharedGeometries.indicator}
+        position={[-0.82, -0.6, 0.5]}
+        baseColor={[0.25, 0.25, 0.25]}
+        wearAmount={0.3}
+      />
 
-      {/* Bottom base */}
-      <mesh position={[0, -0.85, 0]} geometry={sharedGeometries.base} material={sharedMaterials.baseDark} />
+      {/* Bottom base with dark wood texture */}
+      <DarkWoodBase geometry={sharedGeometries.base} position={[0, -0.85, 0]} />
 
-      {/* Antenna base */}
-      <mesh position={[0, 0.88, 0]} geometry={sharedGeometries.antennaBase} material={sharedMaterials.antennaBaseMat} />
+      {/* Antenna base with dark rubber texture */}
+      <DarkRubberPanel
+        geometry={sharedGeometries.antennaBase}
+        position={[0, 0.88, 0]}
+        baseColor={[0.18, 0.18, 0.18]}
+        wearAmount={0.5}
+      />
 
-      {/* Left antenna */}
-      <mesh position={[-0.25, 1.35, 0]} rotation={[0, 0, ROTATION_ANGLE]} geometry={sharedGeometries.antenna} material={sharedMaterials.antennaMetal} />
-      <mesh position={[-0.42, 1.75, 0]} rotation={[0, 0, ROTATION_ANGLE]} geometry={sharedGeometries.antennaTip} material={sharedMaterials.antennaTipMat} />
+      {/* Left antenna with brushed metal texture */}
+      <BrushedMetal
+        geometry={sharedGeometries.antenna}
+        position={[-0.25, 1.35, 0]}
+        rotation={[0, 0, ROTATION_ANGLE]}
+      />
+      <BrushedMetal
+        geometry={sharedGeometries.antennaTip}
+        position={[-0.42, 1.75, 0]}
+        rotation={[0, 0, ROTATION_ANGLE]}
+        baseColor={[0.82, 0.82, 0.82]}
+      />
 
-      {/* Right antenna */}
-      <mesh position={[0.25, 1.35, 0]} rotation={[0, 0, -ROTATION_ANGLE]} geometry={sharedGeometries.antenna} material={sharedMaterials.antennaMetal} />
-      <mesh position={[0.42, 1.75, 0]} rotation={[0, 0, -ROTATION_ANGLE]} geometry={sharedGeometries.antennaTip} material={sharedMaterials.antennaTipMat} />
+      {/* Right antenna with brushed metal texture */}
+      <BrushedMetal
+        geometry={sharedGeometries.antenna}
+        position={[0.25, 1.35, 0]}
+        rotation={[0, 0, -ROTATION_ANGLE]}
+      />
+      <BrushedMetal
+        geometry={sharedGeometries.antennaTip}
+        position={[0.42, 1.75, 0]}
+        rotation={[0, 0, -ROTATION_ANGLE]}
+        baseColor={[0.82, 0.82, 0.82]}
+      />
 
       {/* Stickers on TV body */}
       <TVStickers />

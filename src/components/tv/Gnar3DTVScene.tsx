@@ -30,6 +30,9 @@ export function Gnar3DTVScene({
           failIfMajorPerformanceCaveat: false,
           preserveDrawingBuffer: true,
         }}
+        onCreated={({ gl }) => {
+          gl.setClearColor(0x000000, 0);
+        }}
         style={{ background: "transparent" }}
         dpr={1}
       >

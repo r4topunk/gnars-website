@@ -76,13 +76,13 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
   if (isFullscreen) {
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-300 pt-16"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm animate-in fade-in duration-300 pt-16"
         onClick={handleClose}
       >
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute right-4 top-4 z-50 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+          className="absolute right-4 top-4 z-50 rounded-full bg-foreground/10 p-2 text-foreground transition-colors hover:bg-foreground/20"
           aria-label="Close fullscreen"
         >
           <X className="h-6 w-6" />
