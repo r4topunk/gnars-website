@@ -5,14 +5,14 @@ import { useFrame } from "@react-three/fiber";
 import { useVideoTexture, useTexture } from "@react-three/drei";
 import type { Group } from "three";
 import * as THREE from "three";
-import type { WoodTextureSettings } from "./WoodTextureControls";
+import type { TVTextureConfig, PlasticConfig } from "./TVTextureControls";
 
 interface TV3DModelProps {
   videoUrl?: string;
   autoRotate?: boolean;
   rotationSpeed?: number;
   onNextVideo?: () => void;
-  woodSettings?: WoodTextureSettings;
+  textureConfig?: TVTextureConfig;
 }
 
 // Pre-calculated constants
@@ -22,8 +22,6 @@ const MAX_OSCILLATION = Math.PI / 12;
 // Shared geometries (created once, reused)
 const sharedGeometries = {
   cabinet: new THREE.BoxGeometry(2.4, 1.6, 0.9),
-  frontPanel: new THREE.BoxGeometry(2.3, 1.5, 0.12),
-  borderFrame: new THREE.BoxGeometry(2.35, 1.55, 0.02),
   screenBezel: new THREE.BoxGeometry(1.4, 1.2, 0.04),
   innerBezel: new THREE.BoxGeometry(1.25, 1.05, 0.02),
   screen: new THREE.PlaneGeometry(1.15, 0.95),
@@ -157,49 +155,50 @@ const woodFragmentShader = `
   }
 `;
 
-// Default wood settings (dark-walnut)
-const defaultWoodSettings = {
+// Default wood config
+const defaultWoodConfig = {
   pixelSize: 0.035,
   grainIntensity: 1.0,
   grainScale: 2.5,
+  quantizeLevels: 4,
+  lightingIntensity: 0.35,
   colorDark: [0.18, 0.10, 0.05] as [number, number, number],
   colorMid: [0.28, 0.18, 0.10] as [number, number, number],
   colorLight: [0.38, 0.25, 0.15] as [number, number, number],
   colorHighlight: [0.48, 0.32, 0.20] as [number, number, number],
-  lightingIntensity: 0.35,
-  quantizeLevels: 4,
 };
 
 // Wood Cabinet component with dynamic uniforms
-function WoodCabinet({ settings = defaultWoodSettings }: { settings?: Partial<typeof defaultWoodSettings> }) {
+function WoodCabinet({ config }: { config?: TVTextureConfig["wood"] }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const settings = config ?? defaultWoodConfig;
 
   const uniforms = useMemo(() => ({
-    uPixelSize: { value: settings.pixelSize ?? defaultWoodSettings.pixelSize },
-    uGrainIntensity: { value: settings.grainIntensity ?? defaultWoodSettings.grainIntensity },
-    uGrainScale: { value: settings.grainScale ?? defaultWoodSettings.grainScale },
-    uQuantizeLevels: { value: settings.quantizeLevels ?? defaultWoodSettings.quantizeLevels },
-    uLightingIntensity: { value: settings.lightingIntensity ?? defaultWoodSettings.lightingIntensity },
-    uColorDark: { value: new THREE.Vector3(...(settings.colorDark ?? defaultWoodSettings.colorDark)) },
-    uColorMid: { value: new THREE.Vector3(...(settings.colorMid ?? defaultWoodSettings.colorMid)) },
-    uColorLight: { value: new THREE.Vector3(...(settings.colorLight ?? defaultWoodSettings.colorLight)) },
-    uColorHighlight: { value: new THREE.Vector3(...(settings.colorHighlight ?? defaultWoodSettings.colorHighlight)) },
+    uPixelSize: { value: settings.pixelSize },
+    uGrainIntensity: { value: settings.grainIntensity },
+    uGrainScale: { value: settings.grainScale },
+    uQuantizeLevels: { value: settings.quantizeLevels },
+    uLightingIntensity: { value: settings.lightingIntensity },
+    uColorDark: { value: new THREE.Vector3(...settings.colorDark) },
+    uColorMid: { value: new THREE.Vector3(...settings.colorMid) },
+    uColorLight: { value: new THREE.Vector3(...settings.colorLight) },
+    uColorHighlight: { value: new THREE.Vector3(...settings.colorHighlight) },
   }), []);
 
-  // Update uniforms when settings change
+  // Update uniforms when config changes
   useEffect(() => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uPixelSize.value = settings.pixelSize ?? defaultWoodSettings.pixelSize;
-      materialRef.current.uniforms.uGrainIntensity.value = settings.grainIntensity ?? defaultWoodSettings.grainIntensity;
-      materialRef.current.uniforms.uGrainScale.value = settings.grainScale ?? defaultWoodSettings.grainScale;
-      materialRef.current.uniforms.uQuantizeLevels.value = settings.quantizeLevels ?? defaultWoodSettings.quantizeLevels;
-      materialRef.current.uniforms.uLightingIntensity.value = settings.lightingIntensity ?? defaultWoodSettings.lightingIntensity;
-      materialRef.current.uniforms.uColorDark.value.set(...(settings.colorDark ?? defaultWoodSettings.colorDark));
-      materialRef.current.uniforms.uColorMid.value.set(...(settings.colorMid ?? defaultWoodSettings.colorMid));
-      materialRef.current.uniforms.uColorLight.value.set(...(settings.colorLight ?? defaultWoodSettings.colorLight));
-      materialRef.current.uniforms.uColorHighlight.value.set(...(settings.colorHighlight ?? defaultWoodSettings.colorHighlight));
+    if (materialRef.current && config) {
+      materialRef.current.uniforms.uPixelSize.value = config.pixelSize;
+      materialRef.current.uniforms.uGrainIntensity.value = config.grainIntensity;
+      materialRef.current.uniforms.uGrainScale.value = config.grainScale;
+      materialRef.current.uniforms.uQuantizeLevels.value = config.quantizeLevels;
+      materialRef.current.uniforms.uLightingIntensity.value = config.lightingIntensity;
+      materialRef.current.uniforms.uColorDark.value.set(...config.colorDark);
+      materialRef.current.uniforms.uColorMid.value.set(...config.colorMid);
+      materialRef.current.uniforms.uColorLight.value.set(...config.colorLight);
+      materialRef.current.uniforms.uColorHighlight.value.set(...config.colorHighlight);
     }
-  }, [settings]);
+  }, [config]);
 
   return (
     <mesh position={[0, 0, 0]} geometry={sharedGeometries.cabinet}>
@@ -213,14 +212,139 @@ function WoodCabinet({ settings = defaultWoodSettings }: { settings?: Partial<ty
   );
 }
 
+// Vintage plastic shader for front panel
+const plasticVertexShader = `
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+
+  void main() {
+    vPosition = position;
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const plasticFragmentShader = `
+  uniform vec3 uBaseColor;
+  uniform float uPixelSize;
+  uniform float uNoiseIntensity;
+  uniform float uYellowing;
+
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+
+  // Simple hash for noise
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
+
+  void main() {
+    // Pixelate coordinates
+    vec2 coord = vPosition.xy;
+    vec2 pixelCoord = floor(coord / uPixelSize) * uPixelSize;
+
+    // Generate noise for plastic texture
+    float noise = hash(pixelCoord * 50.0);
+    noise = (noise - 0.5) * uNoiseIntensity;
+
+    // Base color with slight variation
+    vec3 color = uBaseColor;
+
+    // Add yellowing (aging effect) - more yellow in some areas
+    float yellowNoise = hash(pixelCoord * 10.0);
+    vec3 yellowTint = vec3(0.05, 0.03, -0.02) * uYellowing * yellowNoise;
+    color += yellowTint;
+
+    // Add noise variation
+    color += vec3(noise * 0.6, noise * 0.5, noise * 0.4);
+
+    // Quantize colors for pixel art look
+    color = floor(color * 16.0) / 16.0;
+
+    // Simple lighting
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 1.0));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+    float lighting = 0.5 + diff * 0.5;
+
+    // Subtle specular for plastic sheen
+    vec3 viewDir = normalize(vec3(0.0, 0.0, 1.0));
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(vNormal, halfDir), 0.0), 16.0) * 0.1;
+
+    color = color * lighting + vec3(spec);
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
+
+// Default plastic config
+const defaultPlasticConfig = {
+  baseColor: [0.91, 0.86, 0.78] as [number, number, number],
+  pixelSize: 0.025,
+  noiseIntensity: 0.06,
+  yellowing: 0.4,
+};
+
+// Vintage Plastic Panel component
+function VintagePlasticPanel({
+  geometry,
+  position,
+  config,
+  colorOffset = [0, 0, 0],
+}: {
+  geometry: THREE.BufferGeometry;
+  position: [number, number, number];
+  config?: PlasticConfig;
+  colorOffset?: [number, number, number];
+}) {
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const settings = config ?? defaultPlasticConfig;
+
+  const adjustedColor: [number, number, number] = [
+    settings.baseColor[0] + colorOffset[0],
+    settings.baseColor[1] + colorOffset[1],
+    settings.baseColor[2] + colorOffset[2],
+  ];
+
+  const uniforms = useMemo(() => ({
+    uBaseColor: { value: new THREE.Vector3(...adjustedColor) },
+    uPixelSize: { value: settings.pixelSize },
+    uNoiseIntensity: { value: settings.noiseIntensity },
+    uYellowing: { value: settings.yellowing },
+  }), []);
+
+  // Update uniforms when config changes
+  useEffect(() => {
+    if (materialRef.current && config) {
+      materialRef.current.uniforms.uBaseColor.value.set(
+        config.baseColor[0] + colorOffset[0],
+        config.baseColor[1] + colorOffset[1],
+        config.baseColor[2] + colorOffset[2]
+      );
+      materialRef.current.uniforms.uPixelSize.value = config.pixelSize;
+      materialRef.current.uniforms.uNoiseIntensity.value = config.noiseIntensity;
+      materialRef.current.uniforms.uYellowing.value = config.yellowing;
+    }
+  }, [config, colorOffset]);
+
+  return (
+    <mesh position={position} geometry={geometry}>
+      <shaderMaterial
+        ref={materialRef}
+        vertexShader={plasticVertexShader}
+        fragmentShader={plasticFragmentShader}
+        uniforms={uniforms}
+      />
+    </mesh>
+  );
+}
+
 // Shared materials (using cheaper Lambert instead of Standard where possible)
 const sharedMaterials = {
-  cream: new THREE.MeshLambertMaterial({ color: "#E8DCC8" }),
   white: new THREE.MeshLambertMaterial({ color: "#FFFFFF" }),
   darkBezel: new THREE.MeshLambertMaterial({ color: "#2C2C2C" }),
   innerBezel: new THREE.MeshLambertMaterial({ color: "#1a1a1a" }),
   screenBg: new THREE.MeshBasicMaterial({ color: "#000" }),
-  controlPanel: new THREE.MeshLambertMaterial({ color: "#D4C4A8" }),
   buttonRed: new THREE.MeshLambertMaterial({ color: "#CC3333" }),
   buttonGreen: new THREE.MeshLambertMaterial({ color: "#33AA33" }),
   buttonBlue: new THREE.MeshLambertMaterial({ color: "#3366CC" }),
@@ -419,7 +543,7 @@ export function TV3DModel({
   autoRotate = true,
   rotationSpeed = 0.2,
   onNextVideo,
-  woodSettings,
+  textureConfig,
 }: TV3DModelProps) {
   const groupRef = useRef<Group>(null);
   const rotationTimeRef = useRef(0);
@@ -464,13 +588,7 @@ export function TV3DModel({
   return (
     <group ref={groupRef}>
       {/* Main cabinet with dynamic wood texture */}
-      <WoodCabinet settings={woodSettings} />
-
-      {/* Front panel */}
-      <mesh position={[0, 0, 0.4]} geometry={sharedGeometries.frontPanel} material={sharedMaterials.cream} />
-
-      {/* White border frame */}
-      <mesh position={[0, 0, 0.47]} geometry={sharedGeometries.borderFrame} material={sharedMaterials.white} />
+      <WoodCabinet config={textureConfig?.wood} />
 
       {/* Dark bezel around screen */}
       <mesh position={[-0.35, 0.05, 0.48]} geometry={sharedGeometries.screenBezel} material={sharedMaterials.darkBezel} />
@@ -494,19 +612,23 @@ export function TV3DModel({
         )}
       </group>
 
-      {/* Control panel */}
-      <mesh position={[0.85, 0.05, 0.48]} geometry={sharedGeometries.controlPanel} material={sharedMaterials.controlPanel} />
+      {/* Control panel with vintage plastic texture */}
+      <VintagePlasticPanel
+        geometry={sharedGeometries.controlPanel}
+        position={[0.775, 0.05, 0.48]}
+        config={textureConfig?.controlPanel}
+      />
 
       {/* Colored buttons */}
-      <mesh position={[0.85, 0.35, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonRed} />
-      <mesh position={[0.85, 0.18, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonGreen} />
-      <mesh position={[0.85, 0.01, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonBlue} />
+      <mesh position={[0.775, 0.35, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonRed} />
+      <mesh position={[0.775, 0.18, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonGreen} />
+      <mesh position={[0.775, 0.01, 0.52]} rotation={[Math.PI / 2, 0, 0]} geometry={sharedGeometries.button} material={sharedMaterials.buttonBlue} />
 
       {/* Speaker grille */}
-      <mesh position={[0.85, -0.18, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
-      <mesh position={[0.85, -0.26, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
-      <mesh position={[0.85, -0.34, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
-      <mesh position={[0.85, -0.42, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
+      <mesh position={[0.775, -0.18, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
+      <mesh position={[0.775, -0.26, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
+      <mesh position={[0.775, -0.34, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
+      <mesh position={[0.775, -0.42, 0.5]} geometry={sharedGeometries.speakerLine} material={sharedMaterials.speaker} />
 
       {/* Indicator dots */}
       <mesh position={[-0.95, -0.6, 0.5]} geometry={sharedGeometries.indicator} material={sharedMaterials.indicator} />
