@@ -4,20 +4,30 @@ import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { TV3DModel } from "./TV3DModel";
+import {
+  WoodTextureControls,
+  useWoodTextureSettings,
+  WOOD_PRESETS,
+} from "./WoodTextureControls";
 
 interface Gnar3DTVSceneProps {
   videoUrl?: string;
   autoRotate?: boolean;
   onNextVideo?: () => void;
+  showWoodControls?: boolean;
 }
 
 export function Gnar3DTVScene({
   videoUrl,
   autoRotate = true,
   onNextVideo,
+  showWoodControls = false,
 }: Gnar3DTVSceneProps) {
+  const { settings, setSettings, controlsVisible, toggleControls } =
+    useWoodTextureSettings("dark-walnut");
+
   return (
-    <div className="h-full w-full">
+    <div className="relative h-full w-full">
       <Canvas
         camera={{ position: [1, 1, 4], fov: 60 }}
         gl={{
@@ -43,6 +53,7 @@ export function Gnar3DTVScene({
             videoUrl={videoUrl}
             autoRotate={autoRotate}
             onNextVideo={onNextVideo}
+            woodSettings={settings}
           />
         </Suspense>
 
@@ -55,6 +66,19 @@ export function Gnar3DTVScene({
           enableZoom={false}
         />
       </Canvas>
+
+      {/* Wood Texture Controls Panel */}
+      {showWoodControls && (
+        <WoodTextureControls
+          settings={settings}
+          onSettingsChange={setSettings}
+          visible={controlsVisible}
+          onToggleVisibility={toggleControls}
+        />
+      )}
     </div>
   );
 }
+
+// Export presets for external use
+export { WOOD_PRESETS };

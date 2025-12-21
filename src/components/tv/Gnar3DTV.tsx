@@ -97,6 +97,7 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
             videoUrl={currentVideo?.videoUrl}
             autoRotate={false}
             onNextVideo={handleNextVideo}
+            showWoodControls={true}
           />
         </div>
       </div>
