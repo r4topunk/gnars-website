@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState, Suspense, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useVideoTexture } from "@react-three/drei";
+import { useVideoTexture, useTexture } from "@react-three/drei";
 import type { Group } from "three";
 import * as THREE from "three";
 
@@ -33,6 +33,8 @@ const sharedGeometries = {
   antennaBase: new THREE.BoxGeometry(0.25, 0.12, 0.2),
   antenna: new THREE.CylinderGeometry(0.025, 0.035, 0.9, 8),
   antennaTip: new THREE.SphereGeometry(0.04, 8, 8),
+  sticker: new THREE.PlaneGeometry(0.25, 0.25),
+  stickerLarge: new THREE.PlaneGeometry(0.35, 0.35),
 };
 
 // Shared materials (using cheaper Lambert instead of Standard where possible)
@@ -183,6 +185,60 @@ function FallbackScreen() {
   );
 }
 
+// Sticker component with texture
+interface StickerProps {
+  imagePath: string;
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: number;
+}
+
+function Sticker({ imagePath, position, rotation = [0, 0, 0], scale = 1 }: StickerProps) {
+  const texture = useTexture(imagePath);
+
+  // Ensure texture uses correct color space and premultiplied alpha
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.premultiplyAlpha = true;
+  texture.needsUpdate = true;
+
+  const baseSize = 0.25;
+
+  return (
+    <mesh position={position} rotation={rotation} scale={scale} renderOrder={1}>
+      <planeGeometry args={[baseSize, baseSize]} />
+      <meshBasicMaterial
+        map={texture}
+        transparent={true}
+        alphaTest={0.1}
+        side={THREE.DoubleSide}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
+// Stickers wrapper component
+function TVStickers() {
+  return (
+    <Suspense fallback={null}>
+      {/* Gnars sticker - back of TV, left side */}
+      <Sticker
+        imagePath="/gnars.webp"
+        position={[-0.5, 0.2, -0.46]}
+        rotation={[0, Math.PI, 0.1]}
+        scale={1.3}
+      />
+      {/* Zorb sticker - back of TV, right side */}
+      <Sticker
+        imagePath="/Zorb.png"
+        position={[0.5, -0.2, -0.46]}
+        rotation={[0, Math.PI, -0.15]}
+        scale={1.5}
+      />
+    </Suspense>
+  );
+}
+
 export function TV3DModel({
   videoUrl: rawVideoUrl,
   autoRotate = true,
@@ -293,6 +349,9 @@ export function TV3DModel({
       {/* Right antenna */}
       <mesh position={[0.25, 1.35, 0]} rotation={[0, 0, -ROTATION_ANGLE]} geometry={sharedGeometries.antenna} material={sharedMaterials.antennaMetal} />
       <mesh position={[0.42, 1.75, 0]} rotation={[0, 0, -ROTATION_ANGLE]} geometry={sharedGeometries.antennaTip} material={sharedMaterials.antennaTipMat} />
+
+      {/* Stickers on TV body */}
+      <TVStickers />
     </group>
   );
 }
