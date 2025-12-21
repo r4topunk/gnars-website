@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 // Cache external CoinGecko fetches for 4 hours
 const COINGECKO_REVALIDATE_SECONDS = 60 * 60 * 4;
 
+// WETH address on Base - we'll use ETH price for this
+const WETH_ADDRESS_BASE = "0x4200000000000000000000000000000000000006";
+
 type PricesRequest = {
   addresses?: string[];
 };
@@ -12,6 +15,21 @@ function normalizeAddresses(addrs: string[]): string[] {
     .map((a) => (typeof a === "string" ? a : ""))
     .map((a) => a.toLowerCase())
     .filter(Boolean);
+}
+
+async function fetchEthPrice(apiKey: string): Promise<number> {
+  const url = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd";
+  const res = await fetch(url, {
+    headers: { "user-agent": "gnars-website/treasury", "x-cg-demo-api-key": apiKey },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    return 0;
+  }
+
+  const data = (await res.json()) as { ethereum?: { usd?: number } };
+  return Number(data?.ethereum?.usd ?? 0) || 0;
 }
 
 async function handlePrices(addresses: string[]) {
@@ -24,31 +42,42 @@ async function handlePrices(addresses: string[]) {
     return NextResponse.json({ error: "missing_coingecko_key" }, { status: 400 });
   }
 
-  const params = new URLSearchParams({
-    contract_addresses: addresses.join(","),
-    vs_currencies: "usd",
-  });
+  // Filter out WETH since we'll fetch ETH price separately
+  const tokenAddresses = addresses.filter((a) => a.toLowerCase() !== WETH_ADDRESS_BASE.toLowerCase());
+  const includesWeth = addresses.some((a) => a.toLowerCase() === WETH_ADDRESS_BASE.toLowerCase());
 
-  const url = `https://api.coingecko.com/api/v3/simple/token_price/base?${params.toString()}`;
-  const res = await fetch(url, {
-    headers: { "user-agent": "gnars-website/treasury", "x-cg-demo-api-key": apiKey },
-    next: { revalidate: COINGECKO_REVALIDATE_SECONDS },
-  });
+  // Fetch token prices and ETH price in parallel
+  const [tokenData, ethPrice] = await Promise.all([
+    tokenAddresses.length > 0
+      ? (async () => {
+          const params = new URLSearchParams({
+            contract_addresses: tokenAddresses.join(","),
+            vs_currencies: "usd",
+          });
+          const url = `https://api.coingecko.com/api/v3/simple/token_price/base?${params.toString()}`;
+          const res = await fetch(url, {
+            headers: { "user-agent": "gnars-website/treasury", "x-cg-demo-api-key": apiKey },
+            next: { revalidate: COINGECKO_REVALIDATE_SECONDS },
+          });
+          if (!res.ok) return {};
+          return (await res.json()) as Record<string, { usd?: number }>;
+        })()
+      : Promise.resolve({}),
+    includesWeth ? fetchEthPrice(apiKey) : Promise.resolve(0),
+  ]);
 
-  if (!res.ok) {
-    const text = await res.text();
-    return NextResponse.json(
-      { error: "coingecko_error", status: res.status, body: text },
-      { status: 200 },
-    );
-  }
-
-  const data = (await res.json()) as Record<string, { usd?: number }>;
   const normalized: Record<string, { usd: number }> = {};
-  for (const [addr, price] of Object.entries(data)) {
+
+  // Add token prices
+  for (const [addr, price] of Object.entries(tokenData)) {
     const key = addr.toLowerCase();
     const usd = Number(price?.usd ?? 0) || 0;
     normalized[key] = { usd };
+  }
+
+  // Add WETH price using ETH price
+  if (includesWeth && ethPrice > 0) {
+    normalized[WETH_ADDRESS_BASE.toLowerCase()] = { usd: ethPrice };
   }
 
   return NextResponse.json({ prices: normalized });

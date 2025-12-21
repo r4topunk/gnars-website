@@ -21,6 +21,11 @@ interface PriceResponse {
   prices?: Record<string, { usd?: number }>;
 }
 
+interface EthPriceResponse {
+  usd: number;
+  error?: string;
+}
+
 interface TreasurySnapshot {
   usdTotal: number;
   ethBalance: number;
@@ -30,7 +35,7 @@ interface TreasurySnapshot {
 const loadTreasurySnapshot = cache(async (treasuryAddress: string): Promise<TreasurySnapshot> => {
   const baseUrl = await getBaseUrl();
 
-  const [ethRes, tokenRes, priceRes, auctionSalesWei] = await Promise.all([
+  const [ethRes, tokenRes, priceRes, ethPriceRes, auctionSalesWei] = await Promise.all([
     fetchJson<{ result?: string }>(`${baseUrl}/api/alchemy`, {
       method: "POST",
       body: JSON.stringify({
@@ -51,11 +56,19 @@ const loadTreasurySnapshot = cache(async (treasuryAddress: string): Promise<Trea
         addresses: TREASURY_TOKEN_ADDRESSES.map((a) => String(a).toLowerCase()),
       }),
     }).catch(() => ({ prices: {} })),
+    // Fetch ETH price from our API route
+    fetchJson<EthPriceResponse>(`${baseUrl}/api/eth-price`, {
+      method: "GET",
+    }).catch(() => ({ usd: 0 })),
     fetchTotalAuctionSalesWei().catch(() => BigInt(0)),
   ]);
 
   const ethBalanceWei = BigInt(ethRes.result ?? "0x0");
   const ethBalance = Number(formatEther(ethBalanceWei));
+
+  // Get ETH price from our API route
+  const ethPrice = ethPriceRes?.usd ?? 0;
+
 
   const tokenBalances = (tokenRes.result?.tokenBalances ?? []).filter((token) => {
     const balance = token.tokenBalance?.toLowerCase();
@@ -63,17 +76,29 @@ const loadTreasurySnapshot = cache(async (treasuryAddress: string): Promise<Trea
   });
 
   const prices: Record<string, { usd: number }> = priceRes.prices ?? {};
+  const wethAddress = String(TREASURY_TOKEN_ALLOWLIST.WETH).toLowerCase();
+
+  // Build price lookup, using ETH price for WETH
   const priceLookup = Object.fromEntries(
     Object.entries(prices).map(([address, value]) => [
       address.toLowerCase(),
-      Number(value?.usd ?? 0) || 0,
+      address.toLowerCase() === wethAddress ? ethPrice : Number(value?.usd ?? 0) || 0,
     ]),
   );
+  // Ensure WETH has the ETH price even if not in prices response
+  priceLookup[wethAddress] = ethPrice;
+
+  // Known decimals for tokens (Alchemy doesn't return decimals in getTokenBalances)
+  const DECIMALS: Record<string, number> = {
+    [String(TREASURY_TOKEN_ALLOWLIST.USDC).toLowerCase()]: 6,
+    [String(TREASURY_TOKEN_ALLOWLIST.WETH).toLowerCase()]: 18,
+    [String(TREASURY_TOKEN_ALLOWLIST.SENDIT).toLowerCase()]: 18,
+  };
 
   const tokensUsd = tokenBalances.reduce((sum, token) => {
     const address = token.contractAddress ? String(token.contractAddress).toLowerCase() : null;
     if (!address) return sum;
-    const decimals = Number(token.decimals ?? 18);
+    const decimals = DECIMALS[address] ?? 18;
     const raw = token.tokenBalance ?? "0x0";
     const parsed = Number.parseInt(raw, 16);
     const balance = Number.isFinite(parsed) ? parsed / Math.pow(10, decimals) : 0;
@@ -81,10 +106,11 @@ const loadTreasurySnapshot = cache(async (treasuryAddress: string): Promise<Trea
     return sum + balance * price;
   }, 0);
 
-  const wethAddress = String(TREASURY_TOKEN_ALLOWLIST.WETH).toLowerCase();
-  const ethPrice = priceLookup[wethAddress] ?? 0;
-  const usdTotal = tokensUsd + ethBalance * ethPrice;
+  // Calculate total: tokens USD + native ETH USD
+  const nativeEthUsd = ethBalance * ethPrice;
+  const usdTotal = tokensUsd + nativeEthUsd;
   const totalAuctionSales = Number(formatEther(auctionSalesWei));
+
 
   return {
     usdTotal,

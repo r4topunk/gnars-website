@@ -3,7 +3,6 @@ import {
   MetricSkeleton,
   NftGridSkeleton,
   TableSkeleton,
-  TreasuryValueSkeleton,
 } from "@/components/skeletons/treasury-skeletons";
 import {
   ProposalsPerMonthChart,
@@ -31,38 +30,38 @@ export default function TreasuryPage() {
 
           {/* KPIs */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <Suspense fallback={<TreasuryValueSkeleton />}>
-              <Card className="gap-2">
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Total Treasury Value</CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card className="gap-2">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Total Treasury Value</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Suspense fallback={<MetricSkeleton />}>
                   <TreasuryBalance treasuryAddress={GNARS_ADDRESSES.treasury} />
-                </CardContent>
-              </Card>
-            </Suspense>
+                </Suspense>
+              </CardContent>
+            </Card>
 
-            <Suspense fallback={<MetricSkeleton />}>
-              <Card className="gap-2">
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">ETH Balance</CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card className="gap-2">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">ETH Balance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Suspense fallback={<MetricSkeleton />}>
                   <TreasuryBalance treasuryAddress={GNARS_ADDRESSES.treasury} metric="eth" />
-                </CardContent>
-              </Card>
-            </Suspense>
+                </Suspense>
+              </CardContent>
+            </Card>
 
-            <Suspense fallback={<MetricSkeleton />}>
-              <Card className="gap-2">
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Total Auction Sales</CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card className="gap-2">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Total Auction Sales</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Suspense fallback={<MetricSkeleton />}>
                   <TreasuryBalance treasuryAddress={GNARS_ADDRESSES.treasury} metric="auctions" />
-                </CardContent>
-              </Card>
-            </Suspense>
+                </Suspense>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Charts */}
