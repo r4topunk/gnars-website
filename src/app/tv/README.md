@@ -18,26 +18,32 @@ This route hosts **Gnar TV**, a TikTok-style feed that lets the DAO surface vide
 
 ### Sources
 
-1. **Zora coins** via `@zoralabs/coins-sdk` (`src/components/tv/useTVFeed.ts`):
-   - `CREATOR_ADDRESSES` defines the curated Base addresses (Gnars artists, Skatehive, etc.) whose created coins are eligible for the feed.
-   - `getProfileCoins` is called per creator with cursor-based pagination. `INITIAL_COINS_PER_CREATOR` items are grabbed on first load and `LOAD_MORE_COINS_PER_CREATOR` when preloading more.
-   - When a coin slug (`/tv/[coinAddress]`) is requested, `getCoin` runs upfront and the resulting `TVItem` is pinned to the top of the merged feed.
-2. **Droposals** via `fetchDroposals` (`src/services/droposals.ts`):
+The TV feed pulls content from three sources:
+
+1. **Coins bought by Gnars Treasury** via `getProfileBalances`:
+   - Fetches all coins the Gnars Treasury holds on Base
+   - Filters to only coins with video content
+   - These are coins the DAO has directly invested in
+
+2. **Videos from creators whose creator coins Gnars holds** via `getProfileCoins`:
+   - For each creator coin in the treasury's holdings, fetches that creator's video content
+   - Uses `INITIAL_COINS_PER_CREATOR` items per creator
+   - This surfaces content from creators the DAO supports
+
+3. **Droposals** via `fetchDroposals` (`src/services/droposals.ts`):
    - Pulls executed proposals targeting the droposal factory (`DROPOSAL_TARGET.base`) out of the Gnars Builder subgraph.
    - `decodeDroposalParams` extracts sale config, media URIs, and deployment transaction hashes so the feed can show prices and later resolve the ERC-721 address for minting.
    - Droposals without playable video, or with known-bad contracts/proposal numbers, are skipped.
 
+When a coin slug (`/tv/[coinAddress]`) is requested, `getCoin` runs upfront and the resulting `TVItem` is pinned to the top of the merged feed.
+
 ### Assembly & Prioritization
 
 - `mapCoinToTVItem` normalizes media, market data, creator profile info, and referral metadata. Only entries with a video (`mimeType` starts with `video/`) become feed items.
-- Duplicate coin addresses are filtered out via `loadedCoinAddressesRef` so pagination can be aggressive without repeating content.
-- `sortByPriority` splits items into:
-  1. **Paired** — liquidity pools backed by `GNARS_CREATOR_COIN`.
-  2. **Gnarly** — platform referrer equals the Gnars treasury.
-  3. **Normal** — everything else.
-  Each bucket is shuffled per creator (`interleaveByCreator`) to avoid clumping by account.
+- Duplicate coin addresses are filtered out via `loadedCoinAddressesRef` so content isn't repeated.
+- `interleaveByCreator` shuffles content per creator to avoid clumping by account and ensure variety.
 - On initial load droposals are shuffled and interleaved every `interval` coins so governance-funded drops show up regularly without overwhelming the feed.
-- `usePreloadTrigger` monitors the IntersectionObserver-driven `activeIndex`; when the user is within `PRELOAD_THRESHOLD` of the end it fetches more coins across all creators. `hasMoreContent` mirrors whether at least one creator still has next-page data.
+- `usePreloadTrigger` monitors the IntersectionObserver-driven `activeIndex` to trigger preloading when the user approaches the end of content.
 - Errors (API issues, empty feeds) fall back to `FALLBACK_ITEMS` so the UI still renders and invites the user to try again.
 
 ## Client & Player Behavior (`src/components/tv/GnarsTVFeed.tsx`)
@@ -54,7 +60,7 @@ This route hosts **Gnar TV**, a TikTok-style feed that lets the DAO surface vide
   - Requires the user to connect a wallet via Wagmi.
   - Builds `tradeCoin` params with ETH as `sell` and the coin ERC-20 as `buy`, using the support amount chosen via the dropdown (defaults to 0.00042 ETH).
   - Applies 5% slippage, surfaces human-friendly errors (user rejection, insufficient funds, gas, network) via `sonner` toasts.
-  - Any Zora platform referral rewards are already encoded in the coin’s metadata, so buys from the TV route directly benefit the DAO when applicable.
+  - Any Zora platform referral rewards are already encoded in the coin's metadata, so buys from the TV route directly benefit the DAO when applicable.
 - **Mint droposal** (`handleMintDroposal`):
   - Forces the wallet onto Base (switches chain if necessary).
   - Resolves the ERC-721 address lazily either from the droposal metadata or by reading the execution transaction receipt (`resolveTokenAddress` using Viem public client).
@@ -64,7 +70,7 @@ This route hosts **Gnar TV**, a TikTok-style feed that lets the DAO surface vide
 ## Metadata & Mini-App Integration
 
 - `src/app/tv/layout.tsx` injects OG/Twitter tags plus `fc:miniapp` metadata from `TV_MINIAPP_CONFIG` so the `/tv` route can be embedded inside Farcaster clients or other platforms that read those tags.
-- The `[coinAddress]` page dynamically rewrites OG/Twitter/Frame content per coin, swapping in the coin’s poster image and a frame button pointing back to `/tv/[coinAddress]`.
+- The `[coinAddress]` page dynamically rewrites OG/Twitter/Frame content per coin, swapping in the coin's poster image and a frame button pointing back to `/tv/[coinAddress]`.
 - `TV_MINIAPP_EMBED_CONFIG` ensures any share from the feed includes a mini-app preview with `tv-og.gif` so casts show motion.
 
 ## Environment & Configuration
@@ -76,12 +82,13 @@ This route hosts **Gnar TV**, a TikTok-style feed that lets the DAO surface vide
 
 ## Extending or Debugging
 
-- Add or remove creator feeds by editing `CREATOR_ADDRESSES` in `src/components/tv/utils.ts`. The order in that array implicitly determines whose content is fetched/paginated first.
-- Tune feed pacing by adjusting `INITIAL_COINS_PER_CREATOR`, `LOAD_MORE_COINS_PER_CREATOR`, or `PRELOAD_THRESHOLD`.
+- The feed dynamically pulls from Gnars Treasury holdings - no manual curation needed. As the DAO buys more creator coins, the feed automatically expands.
+- Tune feed pacing by adjusting `INITIAL_COINS_PER_CREATOR` or `PRELOAD_THRESHOLD` in `src/components/tv/utils.ts`.
 - To feature additional DAO-specific badge logic, extend `utils.ts` with a predicate similar to `isGnarsPaired`, then render a badge inside `TVVideoCardInfo`.
 - If the feed looks empty in production, check:
   1. API key availability/logs around `[gnars-tv]` errors in `useTVFeed`.
-  2. Droposal decoding failures (e.g., new droposal ABI) inside `fetchDroposals`.
-  3. Environment settings for `BASE_URL` so the mini-app manifest is correct.
+  2. Gnars Treasury holdings - ensure the treasury has bought creator coins with video content.
+  3. Droposal decoding failures (e.g., new droposal ABI) inside `fetchDroposals`.
+  4. Environment settings for `BASE_URL` so the mini-app manifest is correct.
 
 This README should give contributors enough context to modify or extend the TV route without reverse engineering the feed each time. If you add new behaviors (e.g., different referrer programs, additional chains, or new sharing endpoints) please update this document so the DAO keeps a canonical reference of how Gnar TV works.

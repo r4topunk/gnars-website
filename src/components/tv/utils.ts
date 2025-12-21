@@ -1,29 +1,19 @@
 /**
  * Configuration and utility functions for Gnars TV
+ *
+ * Data sources:
+ * 1. Coins bought by Gnars Treasury (with video content)
+ * 2. Videos from creators whose creator coins Gnars holds
+ * 3. Droposals (NFT drops from DAO proposals)
  */
 
 import type { CoinMedia, CoinNode, TVItem } from "./types";
 import type { DroposalListItem } from "@/services/droposals";
 
-// Curated creator addresses for the TV feed
-export const CREATOR_ADDRESSES = [
-  "0xe8337b1f017ccf5461aea1d2e8bb1b00b76b993a", // shrimpdaddy
-  "0x26331fda472639a54d02053a2b33dce5036c675b",
-  "0xa642b91ff941fb68919d1877e9937f3e369dfd68",
-  "0x2feb329b9289b60064904fa61fc347157a5aed6a", // zima
-  "0xddb4938755c243a4f60a2f2f8f95df4f894c58cc", // will dias
-  "0x406fdb58c6739a60bae0dd7c07ee903686344338",
-  "0xc9f669e08820a0f89a5a8d4a5ce85e9236dd83b6",
-  "0x1f1e8194c2dfcb3aa5cbb797d98ae83dda22c891", // humbertoperes
-  "0xd1195629d9ba1168591b8ecdec9abb1721fcc7d8", // nogenta
-  "0x0d7c91d415af609d3920b1e790fe7dfa72be789a", // alexandrefeliz
-  "0x41cb654d1f47913acab158a8199191d160dabe4a", // vlad
-  "0xb8f1e6f08bf1972084a16f824849e4ce5468e9e9", // rodrigo panajotti
-  "0x3f9896f06e23f8229f50566f20a96ba39ce78071", // Isaac Houston 
-];
-
 // Gnars-related contract addresses
 export const GNARS_TREASURY = "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88";
+// Gnars Zora handle (has creator coin holdings)
+export const GNARS_ZORA_HANDLE = "gnars";
 export const GNARS_CREATOR_COIN = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
 export const SKATEHIVE_REFERRER = "0xb4964e1eca55db36a94e8aeffbfbab48529a2f6c";
 
@@ -37,7 +27,6 @@ export const BROKEN_DROPOSAL_PROPOSALS = [69];
 
 // Pagination config
 export const INITIAL_COINS_PER_CREATOR = 50;
-export const LOAD_MORE_COINS_PER_CREATOR = 50;
 export const PRELOAD_THRESHOLD = 10;
 
 // Fallback items when no content is available
@@ -45,7 +34,7 @@ export const FALLBACK_ITEMS: TVItem[] = [
   {
     id: "fallback-gnars",
     title: "Gnars DAO",
-    creator: CREATOR_ADDRESSES[0],
+    creator: GNARS_TREASURY,
     symbol: "GNAR",
     imageUrl: "/gnars.webp",
     videoUrl: undefined,
@@ -157,6 +146,8 @@ export function mapCoinToTVItem(
 
   const uniqueHolders = coin?.uniqueHolders || coin?.coin?.uniqueHolders;
 
+  const createdAt = coin?.createdAt || coin?.coin?.createdAt;
+
   return {
     id: coin?.address || coin?.contract || coin?.id || `${creatorAddress}-${idx}`,
     title: coin?.name || coin?.displayName || "Untitled Coin",
@@ -172,6 +163,7 @@ export function mapCoinToTVItem(
     platformReferrer: platformReferrer,
     poolCurrencyTokenAddress: poolCurrencyTokenAddress,
     uniqueHolders: uniqueHolders,
+    createdAt: createdAt,
   };
 }
 
@@ -280,6 +272,10 @@ export function mapDroposalToTVItem(droposal: DroposalListItem): TVItem | null {
     return null;
   }
 
+  // Use executedAt if available, otherwise createdAt (timestamps are in milliseconds)
+  const timestamp = droposal.executedAt || droposal.createdAt;
+  const createdAt = timestamp ? new Date(timestamp).toISOString() : undefined;
+
   return {
     id: `droposal-${droposal.proposalId}`,
     title: droposal.name || droposal.title,
@@ -289,6 +285,7 @@ export function mapDroposalToTVItem(droposal: DroposalListItem): TVItem | null {
     symbol: droposal.symbol,
     imageUrl: droposal.bannerImage,
     videoUrl: droposal.animationUrl,
+    createdAt: createdAt,
     // Droposal-specific fields
     isDroposal: true,
     priceEth: droposal.priceEth,

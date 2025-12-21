@@ -17,6 +17,7 @@ export type TVItem = {
   platformReferrer?: string;
   poolCurrencyTokenAddress?: string;
   uniqueHolders?: number;
+  createdAt?: string; // ISO date string for temporal sorting
   // Droposal-specific fields
   isDroposal?: boolean;
   priceEth?: string;
@@ -47,6 +48,7 @@ export type CoinNode = {
   displayName?: string;
   symbol?: string;
   imageUrl?: string;
+  createdAt?: string;
   platformReferrer?: string;
   platformReferrerAddress?: string;
   marketCap?: number;
@@ -111,4 +113,15 @@ export type CreatorCursor = {
   error?: unknown;
   /** Epoch ms when `error` was recorded. */
   lastErrorAt?: number;
+};
+
+/** Balance node from getProfileBalances */
+export type BalanceNode = {
+  balance: string;
+  id: string;
+  coin?: CoinNode;
+};
+
+export type BalanceEdge = {
+  node: BalanceNode;
 };
