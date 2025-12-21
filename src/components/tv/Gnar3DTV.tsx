@@ -21,7 +21,7 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Fetch TV feed data
-  const { items } = useTVFeed({});
+  const { items, creatorCoinImages } = useTVFeed({});
 
   // Filter to only video items
   const videoItems = useMemo(() => items.filter((i) => i.videoUrl), [items]);
@@ -97,6 +97,7 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
             videoUrl={currentVideo?.videoUrl}
             autoRotate={false}
             onNextVideo={handleNextVideo}
+            creatorCoinImages={creatorCoinImages}
           />
         </div>
       </div>
@@ -115,6 +116,7 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
           videoUrl={currentVideo?.videoUrl}
           autoRotate={autoRotate}
           onNextVideo={handleNextVideo}
+          creatorCoinImages={creatorCoinImages}
         />
       </div>
     </div>

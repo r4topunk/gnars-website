@@ -7,12 +7,20 @@ import type { Group } from "three";
 import * as THREE from "three";
 import type { TVTextureConfig, PlasticConfig } from "./TVTextureControls";
 
+// Creator coin image type
+interface CreatorCoinImage {
+  coinAddress: string;
+  imageUrl: string;
+  symbol?: string;
+}
+
 interface TV3DModelProps {
   videoUrl?: string;
   autoRotate?: boolean;
   rotationSpeed?: number;
   onNextVideo?: () => void;
   textureConfig?: TVTextureConfig;
+  creatorCoinImages?: CreatorCoinImage[];
 }
 
 // Pre-calculated constants
@@ -988,10 +996,19 @@ const stickerFragmentShader = `
 const stickerBorderFragmentShader = `
   uniform sampler2D uTexture;
   uniform float uPixelSize;
+  uniform float uIsCircle;
 
   varying vec2 vUv;
 
   void main() {
+    // Circle mask
+    if (uIsCircle > 0.5) {
+      vec2 center = vUv - 0.5;
+      if (length(center) > 0.5) {
+        discard;
+      }
+    }
+
     // Pixelate UV coordinates
     vec2 pixelUv = floor(vUv / uPixelSize) * uPixelSize + uPixelSize * 0.5;
 
@@ -1008,6 +1025,57 @@ const stickerBorderFragmentShader = `
   }
 `;
 
+// Sticker fragment shader with circle support
+const stickerFragmentShaderWithShape = `
+  uniform sampler2D uTexture;
+  uniform float uPixelSize;
+  uniform float uWearAmount;
+  uniform float uColorLevels;
+  uniform float uIsCircle;
+
+  varying vec2 vUv;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
+
+  void main() {
+    // Circle mask
+    if (uIsCircle > 0.5) {
+      vec2 center = vUv - 0.5;
+      if (length(center) > 0.5) {
+        discard;
+      }
+    }
+
+    // Pixelate UV coordinates
+    vec2 pixelUv = floor(vUv / uPixelSize) * uPixelSize + uPixelSize * 0.5;
+
+    // Sample texture
+    vec4 texColor = texture2D(uTexture, pixelUv);
+
+    // Skip transparent pixels
+    if (texColor.a < 0.1) {
+      discard;
+    }
+
+    // Quantize colors for pixel art look
+    vec3 color = floor(texColor.rgb * uColorLevels) / uColorLevels;
+
+    // Subtle random wear spots
+    float wearNoise = hash(pixelUv * 50.0);
+    float wear = step(1.0 - uWearAmount * 0.05, wearNoise);
+
+    // Very slight vintage tint
+    color += vec3(0.01, 0.005, -0.005);
+
+    // Apply subtle wear - lighter spots
+    color = mix(color, color + vec3(0.08), wear);
+
+    gl_FragColor = vec4(color, texColor.a);
+  }
+`;
+
 // Sticker component with texture
 interface StickerProps {
   imagePath: string;
@@ -1017,6 +1085,7 @@ interface StickerProps {
   pixelSize?: number;
   wearAmount?: number;
   borderScale?: number;
+  isCircle?: boolean;
 }
 
 function Sticker({
@@ -1027,6 +1096,7 @@ function Sticker({
   pixelSize = 0.025,
   wearAmount = 0.5,
   borderScale = 1.1,
+  isCircle = false,
 }: StickerProps) {
   const texture = useTexture(imagePath);
 
@@ -1041,12 +1111,14 @@ function Sticker({
     uPixelSize: { value: pixelSize },
     uWearAmount: { value: wearAmount },
     uColorLevels: { value: 12.0 },
-  }), [texture, pixelSize, wearAmount]);
+    uIsCircle: { value: isCircle ? 1.0 : 0.0 },
+  }), [texture, pixelSize, wearAmount, isCircle]);
 
   const borderUniforms = useMemo(() => ({
     uTexture: { value: texture },
     uPixelSize: { value: pixelSize },
-  }), [texture, pixelSize]);
+    uIsCircle: { value: isCircle ? 1.0 : 0.0 },
+  }), [texture, pixelSize, isCircle]);
 
   const baseSize = 0.25;
 
@@ -1069,7 +1141,7 @@ function Sticker({
         <planeGeometry args={[baseSize, baseSize]} />
         <shaderMaterial
           vertexShader={stickerVertexShader}
-          fragmentShader={stickerFragmentShader}
+          fragmentShader={stickerFragmentShaderWithShape}
           uniforms={uniforms}
           transparent={true}
           side={THREE.DoubleSide}
@@ -1080,11 +1152,208 @@ function Sticker({
   );
 }
 
-// Stickers wrapper component
+// Proxy image URL through wsrv.nl to bypass CORS
+function proxyImageUrl(url?: string): string | undefined {
+  if (!url) return undefined;
+
+  // Convert IPFS URLs first
+  let httpUrl = url;
+  if (url.startsWith("ipfs://")) {
+    httpUrl = url.replace("ipfs://", "https://ipfs.io/ipfs/");
+  }
+
+  // Use wsrv.nl as CORS proxy for external images
+  // This service adds proper CORS headers
+  // Also resize to 256px for performance (stickers don't need high res)
+  return `https://wsrv.nl/?url=${encodeURIComponent(httpUrl)}&w=256&h=256&fit=cover`;
+}
+
+// Dynamic sticker that loads from URL
+interface DynamicStickerProps {
+  imageUrl: string;
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: number;
+  isCircle?: boolean;
+}
+
+function DynamicSticker({
+  imageUrl: rawImageUrl,
+  position,
+  rotation = [0, 0, 0],
+  scale = 1,
+  isCircle = false,
+}: DynamicStickerProps) {
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const imageUrl = proxyImageUrl(rawImageUrl) || rawImageUrl;
+
+  useEffect(() => {
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = "anonymous";
+    loader.load(
+      imageUrl,
+      (loadedTexture) => {
+        loadedTexture.colorSpace = THREE.SRGBColorSpace;
+        loadedTexture.minFilter = THREE.NearestFilter;
+        loadedTexture.magFilter = THREE.NearestFilter;
+        setTexture(loadedTexture);
+      },
+      undefined,
+      (error) => {
+        console.warn("[DynamicSticker] Failed to load texture:", imageUrl, error);
+      }
+    );
+    return () => {
+      if (texture) texture.dispose();
+    };
+  }, [imageUrl]);
+
+  const uniforms = useMemo(() => {
+    if (!texture) return null;
+    return {
+      uTexture: { value: texture },
+      uPixelSize: { value: 0.025 },
+      uWearAmount: { value: 0.3 },
+      uColorLevels: { value: 12.0 },
+      uIsCircle: { value: isCircle ? 1.0 : 0.0 },
+    };
+  }, [texture, isCircle]);
+
+  const borderUniforms = useMemo(() => {
+    if (!texture) return null;
+    return {
+      uTexture: { value: texture },
+      uPixelSize: { value: 0.025 },
+      uIsCircle: { value: isCircle ? 1.0 : 0.0 },
+    };
+  }, [texture, isCircle]);
+
+  if (!texture || !uniforms || !borderUniforms) return null;
+
+  const baseSize = 0.25;
+
+  return (
+    <group position={position} rotation={rotation} scale={scale}>
+      {/* White border behind */}
+      <mesh position={[0, 0, -0.001]} scale={1.1} renderOrder={0}>
+        <planeGeometry args={[baseSize, baseSize]} />
+        <shaderMaterial
+          vertexShader={stickerVertexShader}
+          fragmentShader={stickerBorderFragmentShader}
+          uniforms={borderUniforms}
+          transparent={true}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+      {/* Main sticker */}
+      <mesh renderOrder={1}>
+        <planeGeometry args={[baseSize, baseSize]} />
+        <shaderMaterial
+          vertexShader={stickerVertexShader}
+          fragmentShader={stickerFragmentShaderWithShape}
+          uniforms={uniforms}
+          transparent={true}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+// Generate stable random sticker positions based on coin address
+function generateStickerPosition(seed: string, index: number): {
+  position: [number, number, number];
+  rotation: [number, number, number];
+  scale: number;
+  isCircle: boolean;
+} {
+  // Simple hash function for deterministic randomness
+  const hash = (str: string) => {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+      h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+    }
+    return h;
+  };
+
+  const h = hash(seed + index.toString());
+  const random = (offset: number) => {
+    const x = Math.sin(h + offset) * 10000;
+    return x - Math.floor(x);
+  };
+
+  // Distribute stickers only on left and right sides (back has static stickers)
+  const faceSelector = random(0);
+  let position: [number, number, number];
+  let rotation: [number, number, number];
+
+  if (faceSelector < 0.5) {
+    // Left side (50% chance) - sticker faces outward (-X direction)
+    const z = (random(1) - 0.5) * 0.7;
+    const y = (random(2) - 0.5) * 1.2;
+    position = [-1.21, y, z];
+    rotation = [0, -Math.PI / 2, (random(3) - 0.5) * 0.3];
+  } else {
+    // Right side (50% chance) - sticker faces outward (+X direction)
+    const z = (random(1) - 0.5) * 0.7;
+    const y = (random(2) - 0.5) * 1.2;
+    position = [1.21, y, z];
+    rotation = [0, Math.PI / 2, (random(3) - 0.5) * 0.3];
+  }
+
+  return {
+    position,
+    rotation,
+    scale: 0.6 + random(4) * 0.5, // 0.6 to 1.1
+    isCircle: random(5) > 0.5,
+  };
+}
+
+// Component to render dynamic stickers from creator coin images
+interface DynamicStickersProps {
+  items: CreatorCoinImage[];
+  maxStickers?: number;
+}
+
+function DynamicStickers({ items, maxStickers = 8 }: DynamicStickersProps) {
+  // Take up to maxStickers
+  const stickerItems = useMemo(() => {
+    console.log("[DynamicStickers] Received items:", items.length);
+    const filtered = items.slice(0, maxStickers);
+
+    if (filtered.length > 0) {
+      console.log("[DynamicStickers] Rendering", filtered.length, "creator coin stickers:",
+        filtered.map(i => `${i.symbol || i.coinAddress.slice(0, 8)} (${i.imageUrl.slice(0, 50)}...)`).join(", "));
+    } else {
+      console.log("[DynamicStickers] No stickers to render");
+    }
+
+    return filtered;
+  }, [items, maxStickers]);
+
+  return (
+    <>
+      {stickerItems.map((item, index) => {
+        const props = generateStickerPosition(item.coinAddress, index);
+        return (
+          <DynamicSticker
+            key={item.coinAddress}
+            imageUrl={item.imageUrl}
+            {...props}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+// Stickers wrapper component (static stickers on back of TV)
 function TVStickers() {
   return (
     <Suspense fallback={null}>
-      {/* Base logo - top left */}
+      {/* Base logo - top left (back) */}
       <Sticker
         imagePath="/base-logo.png"
         position={[-0.65, 0.35, -0.46]}
@@ -1093,7 +1362,7 @@ function TVStickers() {
         pixelSize={0.02}
         wearAmount={0.3}
       />
-      {/* Gnars sticker - top right */}
+      {/* Gnars sticker - top right (back) */}
       <Sticker
         imagePath="/gnars.webp"
         position={[0.55, 0.4, -0.46]}
@@ -1102,7 +1371,7 @@ function TVStickers() {
         pixelSize={0.02}
         wearAmount={0.4}
       />
-      {/* Zorb sticker - bottom left */}
+      {/* Zorb sticker - bottom left (back) */}
       <Sticker
         imagePath="/Zorb.png"
         position={[-0.6, -0.35, -0.46]}
@@ -1111,7 +1380,7 @@ function TVStickers() {
         pixelSize={0.025}
         wearAmount={0.6}
       />
-      {/* Higher arrow - center */}
+      {/* Higher arrow - center (back) */}
       <Sticker
         imagePath="/higher-arrow.png"
         position={[0, 0, -0.46]}
@@ -1120,7 +1389,7 @@ function TVStickers() {
         pixelSize={0.02}
         wearAmount={0.3}
       />
-      {/* Skatehive - bottom right */}
+      {/* Skatehive - bottom right (back) */}
       <Sticker
         imagePath="/skatehive-logo.png"
         position={[0.6, -0.3, -0.46]}
@@ -1139,6 +1408,7 @@ export function TV3DModel({
   rotationSpeed = 0.2,
   onNextVideo,
   textureConfig,
+  creatorCoinImages = [],
 }: TV3DModelProps) {
   const groupRef = useRef<Group>(null);
   const rotationTimeRef = useRef(0);
@@ -1303,6 +1573,13 @@ export function TV3DModel({
 
       {/* Stickers on TV body */}
       <TVStickers />
+
+      {/* Dynamic stickers from creator coins that Gnars holds */}
+      {creatorCoinImages.length > 0 && (
+        <Suspense fallback={null}>
+          <DynamicStickers items={creatorCoinImages} maxStickers={8} />
+        </Suspense>
+      )}
     </group>
   );
 }

@@ -5,17 +5,20 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { TV3DModel } from "./TV3DModel";
 import { useTVTextureControls, TV_PRESETS } from "./TVTextureControls";
+import type { CreatorCoinImage } from "./useTVFeed";
 
 interface Gnar3DTVSceneProps {
   videoUrl?: string;
   autoRotate?: boolean;
   onNextVideo?: () => void;
+  creatorCoinImages?: CreatorCoinImage[];
 }
 
 export function Gnar3DTVScene({
   videoUrl,
   autoRotate = true,
   onNextVideo,
+  creatorCoinImages = [],
 }: Gnar3DTVSceneProps) {
   const { config } = useTVTextureControls();
 
@@ -50,6 +53,7 @@ export function Gnar3DTVScene({
             autoRotate={autoRotate}
             onNextVideo={onNextVideo}
             textureConfig={config}
+            creatorCoinImages={creatorCoinImages}
           />
         </Suspense>
 

@@ -17,8 +17,16 @@ interface UseTVFeedOptions {
   priorityCoinAddress?: string;
 }
 
+// Creator coin image for stickers
+export interface CreatorCoinImage {
+  coinAddress: string;
+  imageUrl: string;
+  symbol?: string;
+}
+
 interface UseTVFeedReturn {
   items: TVItem[];
+  creatorCoinImages: CreatorCoinImage[];
   loading: boolean;
   loadingMore: boolean;
   error: string | null;
@@ -36,6 +44,7 @@ interface UseTVFeedReturn {
  */
 export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedReturn {
   const [rawItems, setRawItems] = useState<TVItem[]>([]);
+  const [creatorCoinImages, setCreatorCoinImages] = useState<CreatorCoinImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,10 +122,13 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
         // Process Gnars holdings
         const balanceEdges = (gnarsBalancesResult?.data?.profile?.coinBalances?.edges || []) as BalanceEdge[];
 
-        // Separate into: video coins and creator handles
+        // Separate into: video coins, creator handles, and coin images for stickers
         // Creator coins typically have symbol matching the handle (e.g., "skatehacker", "zimardrp")
         const videoCoinsFromHoldings: TVItem[] = [];
         const creatorHandles: string[] = [];
+        const coinImages: CreatorCoinImage[] = [];
+
+        console.log("[gnars-tv] Processing", balanceEdges.length, "balance edges");
 
         for (const edge of balanceEdges) {
           const coin = edge.node?.coin;
@@ -124,6 +136,45 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
 
           const coinAddress = coin.address?.toLowerCase();
           if (!coinAddress || loadedCoinAddressesRef.current.has(coinAddress)) continue;
+
+          // Extract coin image for stickers (profile image of the creator coin)
+          const coinMedia = coin.mediaContent || coin.media;
+          const coinPreviewImage = coinMedia?.previewImage;
+
+          // Try multiple sources for the image
+          const creatorAvatar = coin.creatorProfile?.avatar?.previewImage;
+          const creatorAvatarUrl = typeof creatorAvatar === 'object'
+            ? creatorAvatar?.medium || creatorAvatar?.small || creatorAvatar?.url
+            : creatorAvatar;
+
+          const coinImageUrl =
+            (typeof coinPreviewImage === 'object'
+              ? coinPreviewImage?.medium || coinPreviewImage?.small || coinPreviewImage?.url
+              : coinPreviewImage) ||
+            coinMedia?.previewUrl ||
+            coinMedia?.image ||
+            coin.imageUrl ||
+            creatorAvatarUrl; // Fallback to creator avatar
+
+          console.log("[gnars-tv] Coin:", coin.symbol, "imageUrl:", coinImageUrl ? "found" : "NOT FOUND", {
+            coinImageUrl,
+            hasMediaContent: !!coinMedia,
+            hasCreatorAvatar: !!creatorAvatarUrl,
+            rawImageUrl: coin.imageUrl,
+          });
+
+          if (coinImageUrl) {
+            // Convert IPFS URLs to HTTP
+            const httpImageUrl = coinImageUrl.startsWith('ipfs://')
+              ? coinImageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')
+              : coinImageUrl;
+
+            coinImages.push({
+              coinAddress,
+              imageUrl: httpImageUrl,
+              symbol: coin.symbol,
+            });
+          }
 
           // Check if this coin has video content
           const tvItem = mapCoinToTVItem(coin, 0, coin.creatorProfile?.handle || coinAddress);
@@ -139,6 +190,10 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
             creatorHandles.push(symbol);
           }
         }
+
+        // Store creator coin images for stickers
+        console.log("[gnars-tv] Total creator coin images collected:", coinImages.length, coinImages.map(c => c.symbol).join(", "));
+        setCreatorCoinImages(coinImages);
 
         // Fetch videos from creators whose creator coins Gnars holds
         const creatorVideosPromises = creatorHandles.map(async (creatorIdentifier) => {
@@ -218,6 +273,7 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
 
   return {
     items: rawItems,
+    creatorCoinImages,
     loading,
     loadingMore,
     error,
