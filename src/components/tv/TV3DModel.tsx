@@ -578,11 +578,11 @@ const darkWoodFragmentShader = `
 
     float pattern = floor(grain * 4.0) / 4.0;
 
-    // Slightly lighter dark wood colors
-    vec3 colorDark = vec3(0.12, 0.08, 0.04);
-    vec3 colorMid = vec3(0.18, 0.12, 0.07);
-    vec3 colorLight = vec3(0.24, 0.16, 0.10);
-    vec3 colorHighlight = vec3(0.30, 0.20, 0.13);
+    // Very dark wood colors
+    vec3 colorDark = vec3(0.05, 0.03, 0.02);
+    vec3 colorMid = vec3(0.09, 0.06, 0.03);
+    vec3 colorLight = vec3(0.13, 0.09, 0.05);
+    vec3 colorHighlight = vec3(0.17, 0.11, 0.07);
 
     vec3 color;
     if (pattern < 0.25) color = colorDark;
@@ -780,9 +780,9 @@ function DarkWoodBase({
   position: [number, number, number];
 }) {
   const uniforms = useMemo(() => ({
-    uPixelSize: { value: 0.03 },
-    uGrainIntensity: { value: 0.9 },
-    uGrainScale: { value: 3.0 },
+    uPixelSize: { value: 0.05 },       // Larger pixels = more pixelated look
+    uGrainIntensity: { value: 1.8 },   // Very pronounced grain
+    uGrainScale: { value: 8.0 },       // Dense grain patterns
   }), []);
 
   return (
