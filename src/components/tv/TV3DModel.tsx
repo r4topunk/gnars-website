@@ -933,35 +933,150 @@ function FallbackScreen() {
   );
 }
 
+// Vintage sticker shader - pixelated with wear effects
+const stickerVertexShader = `
+  varying vec2 vUv;
+
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const stickerFragmentShader = `
+  uniform sampler2D uTexture;
+  uniform float uPixelSize;
+  uniform float uWearAmount;
+  uniform float uColorLevels;
+
+  varying vec2 vUv;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
+
+  void main() {
+    // Pixelate UV coordinates
+    vec2 pixelUv = floor(vUv / uPixelSize) * uPixelSize + uPixelSize * 0.5;
+
+    // Sample texture
+    vec4 texColor = texture2D(uTexture, pixelUv);
+
+    // Skip transparent pixels
+    if (texColor.a < 0.1) {
+      discard;
+    }
+
+    // Quantize colors for pixel art look
+    vec3 color = floor(texColor.rgb * uColorLevels) / uColorLevels;
+
+    // Subtle random wear spots
+    float wearNoise = hash(pixelUv * 50.0);
+    float wear = step(1.0 - uWearAmount * 0.05, wearNoise);
+
+    // Very slight vintage tint
+    color += vec3(0.01, 0.005, -0.005);
+
+    // Apply subtle wear - lighter spots
+    color = mix(color, color + vec3(0.08), wear);
+
+    gl_FragColor = vec4(color, texColor.a);
+  }
+`;
+
+// White border shader for sticker background
+const stickerBorderFragmentShader = `
+  uniform sampler2D uTexture;
+  uniform float uPixelSize;
+
+  varying vec2 vUv;
+
+  void main() {
+    // Pixelate UV coordinates
+    vec2 pixelUv = floor(vUv / uPixelSize) * uPixelSize + uPixelSize * 0.5;
+
+    // Sample texture alpha
+    float alpha = texture2D(uTexture, pixelUv).a;
+
+    // Only render where there's content
+    if (alpha < 0.1) {
+      discard;
+    }
+
+    // White color with slight off-white tint
+    gl_FragColor = vec4(0.95, 0.93, 0.90, 1.0);
+  }
+`;
+
 // Sticker component with texture
 interface StickerProps {
   imagePath: string;
   position: [number, number, number];
   rotation?: [number, number, number];
   scale?: number;
+  pixelSize?: number;
+  wearAmount?: number;
+  borderScale?: number;
 }
 
-function Sticker({ imagePath, position, rotation = [0, 0, 0], scale = 1 }: StickerProps) {
+function Sticker({
+  imagePath,
+  position,
+  rotation = [0, 0, 0],
+  scale = 1,
+  pixelSize = 0.025,
+  wearAmount = 0.5,
+  borderScale = 1.1,
+}: StickerProps) {
   const texture = useTexture(imagePath);
 
-  // Ensure texture uses correct color space and premultiplied alpha
+  // Ensure texture uses correct color space
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.premultiplyAlpha = true;
+  texture.minFilter = THREE.NearestFilter;
+  texture.magFilter = THREE.NearestFilter;
   texture.needsUpdate = true;
+
+  const uniforms = useMemo(() => ({
+    uTexture: { value: texture },
+    uPixelSize: { value: pixelSize },
+    uWearAmount: { value: wearAmount },
+    uColorLevels: { value: 12.0 },
+  }), [texture, pixelSize, wearAmount]);
+
+  const borderUniforms = useMemo(() => ({
+    uTexture: { value: texture },
+    uPixelSize: { value: pixelSize },
+  }), [texture, pixelSize]);
 
   const baseSize = 0.25;
 
   return (
-    <mesh position={position} rotation={rotation} scale={scale} renderOrder={1}>
-      <planeGeometry args={[baseSize, baseSize]} />
-      <meshBasicMaterial
-        map={texture}
-        transparent={true}
-        alphaTest={0.1}
-        side={THREE.DoubleSide}
-        depthWrite={false}
-      />
-    </mesh>
+    <group position={position} rotation={rotation} scale={scale}>
+      {/* White border behind */}
+      <mesh position={[0, 0, -0.001]} scale={borderScale} renderOrder={0}>
+        <planeGeometry args={[baseSize, baseSize]} />
+        <shaderMaterial
+          vertexShader={stickerVertexShader}
+          fragmentShader={stickerBorderFragmentShader}
+          uniforms={borderUniforms}
+          transparent={true}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+      {/* Main sticker */}
+      <mesh renderOrder={1}>
+        <planeGeometry args={[baseSize, baseSize]} />
+        <shaderMaterial
+          vertexShader={stickerVertexShader}
+          fragmentShader={stickerFragmentShader}
+          uniforms={uniforms}
+          transparent={true}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
   );
 }
 
@@ -969,19 +1084,50 @@ function Sticker({ imagePath, position, rotation = [0, 0, 0], scale = 1 }: Stick
 function TVStickers() {
   return (
     <Suspense fallback={null}>
-      {/* Gnars sticker - back of TV, left side */}
+      {/* Base logo - top left */}
+      <Sticker
+        imagePath="/base-logo.png"
+        position={[-0.65, 0.35, -0.46]}
+        rotation={[0, Math.PI, 0.12]}
+        scale={4}
+        pixelSize={0.02}
+        wearAmount={0.3}
+      />
+      {/* Gnars sticker - top right */}
       <Sticker
         imagePath="/gnars.webp"
-        position={[-0.5, 0.2, -0.46]}
-        rotation={[0, Math.PI, 0.1]}
+        position={[0.55, 0.4, -0.46]}
+        rotation={[0, Math.PI, -0.1]}
         scale={1.3}
+        pixelSize={0.02}
+        wearAmount={0.4}
       />
-      {/* Zorb sticker - back of TV, right side */}
+      {/* Zorb sticker - bottom left */}
       <Sticker
         imagePath="/Zorb.png"
-        position={[0.5, -0.2, -0.46]}
-        rotation={[0, Math.PI, -0.15]}
+        position={[-0.6, -0.35, -0.46]}
+        rotation={[0, Math.PI, 0.08]}
         scale={1.5}
+        pixelSize={0.025}
+        wearAmount={0.6}
+      />
+      {/* Higher arrow - center */}
+      <Sticker
+        imagePath="/higher-arrow.png"
+        position={[0, 0, -0.46]}
+        rotation={[0, Math.PI, 0.05]}
+        scale={1.2}
+        pixelSize={0.02}
+        wearAmount={0.3}
+      />
+      {/* Skatehive - bottom right */}
+      <Sticker
+        imagePath="/skatehive-logo.png"
+        position={[0.6, -0.3, -0.46]}
+        rotation={[0, Math.PI, -0.08]}
+        scale={1.4}
+        pixelSize={0.02}
+        wearAmount={0.4}
       />
     </Suspense>
   );
