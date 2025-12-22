@@ -209,7 +209,7 @@ export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedR
               .map((edge) => {
                 const node = edge?.node;
                 if (!node) return null;
-                const coin = "coin" in node ? node.coin : node;
+                const coin = ("coin" in node ? node.coin : node) as CoinNode | undefined;
                 if (!coin) return null;
 
                 const addr = (coin.address || coin.contract)?.toLowerCase();

@@ -59,10 +59,10 @@ async function handlePrices(addresses: string[]) {
             headers: { "user-agent": "gnars-website/treasury", "x-cg-demo-api-key": apiKey },
             next: { revalidate: COINGECKO_REVALIDATE_SECONDS },
           });
-          if (!res.ok) return {};
+          if (!res.ok) return {} as Record<string, { usd?: number }>;
           return (await res.json()) as Record<string, { usd?: number }>;
         })()
-      : Promise.resolve({}),
+      : Promise.resolve({} as Record<string, { usd?: number }>),
     includesWeth ? fetchEthPrice(apiKey) : Promise.resolve(0),
   ]);
 

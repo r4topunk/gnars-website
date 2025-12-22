@@ -77,6 +77,7 @@ export type CoinNode = {
     displayName?: string;
     symbol?: string;
     imageUrl?: string;
+    createdAt?: string;
     platformReferrer?: string;
     platformReferrerAddress?: string;
     marketCap?: number;
