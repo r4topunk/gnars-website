@@ -43,6 +43,7 @@ const sharedGeometries = {
   antennaTip: new THREE.SphereGeometry(0.04, 8, 8),
   sticker: new THREE.PlaneGeometry(0.25, 0.25),
   stickerLarge: new THREE.PlaneGeometry(0.35, 0.35),
+  stickerBase: new THREE.PlaneGeometry(0.25, 0.25),
 };
 
 // Procedural wood shader with uniforms
@@ -910,6 +911,7 @@ const crtFragmentShader = `
 // Video Screen component that uses VideoTexture with CRT effect
 function VideoScreen({ videoUrl }: { videoUrl: string }) {
   const { invalidate } = useThree();
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
   const texture = useVideoTexture(videoUrl, {
     muted: true,
     loop: true,
@@ -919,6 +921,25 @@ function VideoScreen({ videoUrl }: { videoUrl: string }) {
 
   texture.colorSpace = THREE.SRGBColorSpace;
 
+  // Update texture uniform and cleanup on unmount
+  useEffect(() => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTexture.value = texture;
+    }
+    return () => {
+      // Dispose texture and video element on cleanup
+      if (texture) {
+        const videoElement = texture.image as HTMLVideoElement;
+        if (videoElement) {
+          videoElement.pause();
+          videoElement.src = "";
+          videoElement.load();
+        }
+        texture.dispose();
+      }
+    };
+  }, [texture]);
+
   // Continuously invalidate while video is playing to update texture
   // Skip when tab is hidden to save resources
   useFrame(() => {
@@ -927,16 +948,13 @@ function VideoScreen({ videoUrl }: { videoUrl: string }) {
     }
   });
 
-  const uniforms = useMemo(() => ({
-    uTexture: { value: texture },
-  }), [texture]);
-
   return (
     <mesh position={[0, 0, 0.521]} geometry={sharedGeometries.screen}>
       <shaderMaterial
-        uniforms={uniforms}
+        ref={materialRef}
         vertexShader={crtVertexShader}
         fragmentShader={crtFragmentShader}
+        uniforms={{ uTexture: { value: texture } }}
       />
     </mesh>
   );
@@ -957,47 +975,6 @@ const stickerVertexShader = `
   void main() {
     vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-
-const stickerFragmentShader = `
-  uniform sampler2D uTexture;
-  uniform float uPixelSize;
-  uniform float uWearAmount;
-  uniform float uColorLevels;
-
-  varying vec2 vUv;
-
-  float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-  }
-
-  void main() {
-    // Pixelate UV coordinates
-    vec2 pixelUv = floor(vUv / uPixelSize) * uPixelSize + uPixelSize * 0.5;
-
-    // Sample texture
-    vec4 texColor = texture2D(uTexture, pixelUv);
-
-    // Skip transparent pixels
-    if (texColor.a < 0.1) {
-      discard;
-    }
-
-    // Quantize colors for pixel art look
-    vec3 color = floor(texColor.rgb * uColorLevels) / uColorLevels;
-
-    // Subtle random wear spots
-    float wearNoise = hash(pixelUv * 50.0);
-    float wear = step(1.0 - uWearAmount * 0.05, wearNoise);
-
-    // Very slight vintage tint
-    color += vec3(0.01, 0.005, -0.005);
-
-    // Apply subtle wear - lighter spots
-    color = mix(color, color + vec3(0.08), wear);
-
-    gl_FragColor = vec4(color, texColor.a);
   }
 `;
 
@@ -1129,34 +1106,39 @@ function Sticker({
     uIsCircle: { value: isCircle ? 1.0 : 0.0 },
   }), [texture, pixelSize, isCircle]);
 
-  const baseSize = 0.25;
+  // Memoize materials to prevent recreation every render
+  const borderMaterial = useMemo(() => new THREE.ShaderMaterial({
+    vertexShader: stickerVertexShader,
+    fragmentShader: stickerBorderFragmentShader,
+    uniforms: borderUniforms,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  }), [borderUniforms]);
+
+  const mainMaterial = useMemo(() => new THREE.ShaderMaterial({
+    vertexShader: stickerVertexShader,
+    fragmentShader: stickerFragmentShaderWithShape,
+    uniforms: uniforms,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  }), [uniforms]);
+
+  // Cleanup materials on unmount
+  useEffect(() => {
+    return () => {
+      borderMaterial.dispose();
+      mainMaterial.dispose();
+    };
+  }, [borderMaterial, mainMaterial]);
 
   return (
     <group position={position} rotation={rotation} scale={scale}>
       {/* White border behind */}
-      <mesh position={[0, 0, -0.001]} scale={borderScale} renderOrder={0}>
-        <planeGeometry args={[baseSize, baseSize]} />
-        <shaderMaterial
-          vertexShader={stickerVertexShader}
-          fragmentShader={stickerBorderFragmentShader}
-          uniforms={borderUniforms}
-          transparent={true}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
+      <mesh position={[0, 0, -0.001]} scale={borderScale} renderOrder={0} geometry={sharedGeometries.stickerBase} material={borderMaterial} />
       {/* Main sticker */}
-      <mesh renderOrder={1}>
-        <planeGeometry args={[baseSize, baseSize]} />
-        <shaderMaterial
-          vertexShader={stickerVertexShader}
-          fragmentShader={stickerFragmentShaderWithShape}
-          uniforms={uniforms}
-          transparent={true}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
+      <mesh renderOrder={1} geometry={sharedGeometries.stickerBase} material={mainMaterial} />
     </group>
   );
 }
@@ -1194,17 +1176,24 @@ function DynamicSticker({
   isCircle = false,
 }: DynamicStickerProps) {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const textureRef = useRef<THREE.Texture | null>(null);
   const imageUrl = proxyImageUrl(rawImageUrl) || rawImageUrl;
 
   useEffect(() => {
+    let cancelled = false;
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = "anonymous";
     loader.load(
       imageUrl,
       (loadedTexture) => {
+        if (cancelled) {
+          loadedTexture.dispose();
+          return;
+        }
         loadedTexture.colorSpace = THREE.SRGBColorSpace;
         loadedTexture.minFilter = THREE.NearestFilter;
         loadedTexture.magFilter = THREE.NearestFilter;
+        textureRef.current = loadedTexture;
         setTexture(loadedTexture);
       },
       undefined,
@@ -1213,7 +1202,11 @@ function DynamicSticker({
       }
     );
     return () => {
-      if (texture) texture.dispose();
+      cancelled = true;
+      if (textureRef.current) {
+        textureRef.current.dispose();
+        textureRef.current = null;
+      }
     };
   }, [imageUrl]);
 
@@ -1237,36 +1230,47 @@ function DynamicSticker({
     };
   }, [texture, isCircle]);
 
-  if (!texture || !uniforms || !borderUniforms) return null;
+  // Memoize materials
+  const borderMaterial = useMemo(() => {
+    if (!borderUniforms) return null;
+    return new THREE.ShaderMaterial({
+      vertexShader: stickerVertexShader,
+      fragmentShader: stickerBorderFragmentShader,
+      uniforms: borderUniforms,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+  }, [borderUniforms]);
 
-  const baseSize = 0.25;
+  const mainMaterial = useMemo(() => {
+    if (!uniforms) return null;
+    return new THREE.ShaderMaterial({
+      vertexShader: stickerVertexShader,
+      fragmentShader: stickerFragmentShaderWithShape,
+      uniforms: uniforms,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+  }, [uniforms]);
+
+  // Cleanup materials on unmount
+  useEffect(() => {
+    return () => {
+      borderMaterial?.dispose();
+      mainMaterial?.dispose();
+    };
+  }, [borderMaterial, mainMaterial]);
+
+  if (!texture || !borderMaterial || !mainMaterial) return null;
 
   return (
     <group position={position} rotation={rotation} scale={scale}>
       {/* White border behind */}
-      <mesh position={[0, 0, -0.001]} scale={1.1} renderOrder={0}>
-        <planeGeometry args={[baseSize, baseSize]} />
-        <shaderMaterial
-          vertexShader={stickerVertexShader}
-          fragmentShader={stickerBorderFragmentShader}
-          uniforms={borderUniforms}
-          transparent={true}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
+      <mesh position={[0, 0, -0.001]} scale={1.1} renderOrder={0} geometry={sharedGeometries.stickerBase} material={borderMaterial} />
       {/* Main sticker */}
-      <mesh renderOrder={1}>
-        <planeGeometry args={[baseSize, baseSize]} />
-        <shaderMaterial
-          vertexShader={stickerVertexShader}
-          fragmentShader={stickerFragmentShaderWithShape}
-          uniforms={uniforms}
-          transparent={true}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
+      <mesh renderOrder={1} geometry={sharedGeometries.stickerBase} material={mainMaterial} />
     </group>
   );
 }
