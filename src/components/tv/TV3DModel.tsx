@@ -911,7 +911,6 @@ const crtFragmentShader = `
 // Video Screen component that uses VideoTexture with CRT effect
 function VideoScreen({ videoUrl }: { videoUrl: string }) {
   const { invalidate } = useThree();
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
   const texture = useVideoTexture(videoUrl, {
     muted: true,
     loop: true,
@@ -921,24 +920,9 @@ function VideoScreen({ videoUrl }: { videoUrl: string }) {
 
   texture.colorSpace = THREE.SRGBColorSpace;
 
-  // Update texture uniform and cleanup on unmount
-  useEffect(() => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTexture.value = texture;
-    }
-    return () => {
-      // Dispose texture and video element on cleanup
-      if (texture) {
-        const videoElement = texture.image as HTMLVideoElement;
-        if (videoElement) {
-          videoElement.pause();
-          videoElement.src = "";
-          videoElement.load();
-        }
-        texture.dispose();
-      }
-    };
-  }, [texture]);
+  const uniforms = useMemo(() => ({
+    uTexture: { value: texture },
+  }), [texture]);
 
   // Continuously invalidate while video is playing to update texture
   // Skip when tab is hidden to save resources
@@ -951,10 +935,9 @@ function VideoScreen({ videoUrl }: { videoUrl: string }) {
   return (
     <mesh position={[0, 0, 0.521]} geometry={sharedGeometries.screen}>
       <shaderMaterial
-        ref={materialRef}
         vertexShader={crtVertexShader}
         fragmentShader={crtFragmentShader}
-        uniforms={{ uTexture: { value: texture } }}
+        uniforms={uniforms}
       />
     </mesh>
   );
