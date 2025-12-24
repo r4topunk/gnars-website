@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { X } from "lucide-react";
+import { X, Maximize2 } from "lucide-react";
 import { useTVFeed } from "./useTVFeed";
 
 const Gnar3DTVScene = dynamic(() => import("./Gnar3DTVScene").then((mod) => mod.Gnar3DTVScene), {
@@ -82,7 +82,7 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute right-4 top-4 z-50 rounded-full bg-foreground/10 p-2 text-foreground transition-colors hover:bg-foreground/20"
+          className="absolute right-4 top-20 z-50 rounded-lg bg-black/60 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
           aria-label="Close fullscreen"
         >
           <X className="h-6 w-6" />
@@ -90,7 +90,7 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
 
         {/* TV container - full viewport */}
         <div
-          className="h-full w-full max-h-screen max-w-screen"
+          className="h-full w-full max-h-screen max-w-screen cursor-grab active:cursor-grabbing"
           onClick={(e) => e.stopPropagation()}
         >
           <Gnar3DTVScene
@@ -106,10 +106,9 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
 
   return (
     <div
-      className={`w-full cursor-pointer transition-all duration-700 ease-out ${className} ${
+      className={`group relative w-full cursor-grab transition-all duration-700 ease-out active:cursor-grabbing ${className} ${
         isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
       }`}
-      onClick={handleTVClick}
     >
       <div className="aspect-square overflow-hidden">
         <Gnar3DTVScene
@@ -119,6 +118,15 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
           creatorCoinImages={creatorCoinImages}
         />
       </div>
+
+      {/* Fullscreen button - appears on hover */}
+      <button
+        onClick={handleTVClick}
+        className="absolute right-3 top-3 z-10 rounded-lg bg-black/60 p-2 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-black/80 group-hover:opacity-100"
+        aria-label="Enter fullscreen"
+      >
+        <Maximize2 className="h-5 w-5" />
+      </button>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState, Suspense, useMemo } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useVideoTexture, useTexture } from "@react-three/drei";
 import type { Group } from "three";
 import * as THREE from "three";
@@ -909,6 +909,7 @@ const crtFragmentShader = `
 
 // Video Screen component that uses VideoTexture with CRT effect
 function VideoScreen({ videoUrl }: { videoUrl: string }) {
+  const { invalidate } = useThree();
   const texture = useVideoTexture(videoUrl, {
     muted: true,
     loop: true,
@@ -917,6 +918,14 @@ function VideoScreen({ videoUrl }: { videoUrl: string }) {
   });
 
   texture.colorSpace = THREE.SRGBColorSpace;
+
+  // Continuously invalidate while video is playing to update texture
+  // Skip when tab is hidden to save resources
+  useFrame(() => {
+    if (document.visibilityState === "visible") {
+      invalidate();
+    }
+  });
 
   const uniforms = useMemo(() => ({
     uTexture: { value: texture },
@@ -1414,22 +1423,41 @@ export function TV3DModel({
   const rotationTimeRef = useRef(0);
   const [showStatic, setShowStatic] = useState(true); // Start with static/color bars
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | undefined>();
+  const [isTabVisible, setIsTabVisible] = useState(true);
+  const { invalidate } = useThree();
 
   // Use faster IPFS gateway
   const videoUrl = toFastIPFS(rawVideoUrl);
+
+  // Pause animation when tab is not visible (Page Visibility API)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const visible = document.visibilityState === "visible";
+      setIsTabVisible(visible);
+      if (visible) {
+        // Request a new frame when becoming visible
+        invalidate();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [invalidate]);
 
   // Handle video URL changes with static transition
   useEffect(() => {
     if (videoUrl && videoUrl !== currentVideoUrl) {
       // Show static during transition (including first video load)
       setShowStatic(true);
+      invalidate(); // Request render for static screen
       const timer = setTimeout(() => {
         setCurrentVideoUrl(videoUrl);
         setShowStatic(false);
+        invalidate(); // Request render for video screen
       }, 800); // Static duration
       return () => clearTimeout(timer);
     }
-  }, [videoUrl, currentVideoUrl]);
+  }, [videoUrl, currentVideoUrl, invalidate]);
 
   // Auto-advance after random 7-13 seconds
   useEffect(() => {
@@ -1444,9 +1472,14 @@ export function TV3DModel({
   }, [currentVideoUrl, onNextVideo, showStatic]);
 
   useFrame((_, delta) => {
+    // Skip animation when tab is hidden
+    if (!isTabVisible) return;
+
     if (groupRef.current && autoRotate) {
       rotationTimeRef.current += delta * rotationSpeed;
       groupRef.current.rotation.y = Math.sin(rotationTimeRef.current) * MAX_OSCILLATION;
+      // Request next frame for continuous animation
+      invalidate();
     }
   });
 

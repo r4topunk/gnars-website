@@ -26,12 +26,12 @@ export function Gnar3DTVScene({
     <div className="relative h-full w-full">
       <Canvas
         camera={{ position: [1, 1, 4], fov: 60 }}
+        frameloop="demand"
         gl={{
           antialias: false,
           alpha: true,
           powerPreference: "low-power",
           failIfMajorPerformanceCaveat: false,
-          preserveDrawingBuffer: true,
         }}
         onCreated={({ gl }) => {
           gl.setClearColor(0x000000, 0);
@@ -39,12 +39,10 @@ export function Gnar3DTVScene({
         style={{ background: "transparent" }}
         dpr={1}
       >
-        {/* Lighting - bright setup for retro TV */}
-        <ambientLight intensity={4} />
-        <directionalLight position={[5, 5, 5]} intensity={3} />
-        <directionalLight position={[-5, 5, -5]} intensity={2} />
-        <directionalLight position={[0, 3, 5]} intensity={2} />
-        <pointLight position={[0, 2, 4]} intensity={2} />
+        {/* Lighting - simplified for better performance */}
+        <ambientLight intensity={3.5} />
+        <directionalLight position={[5, 5, 5]} intensity={2.5} />
+        <directionalLight position={[-3, 3, -3]} intensity={1.5} />
 
         {/* TV Model */}
         <Suspense fallback={null}>
