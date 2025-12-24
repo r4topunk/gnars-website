@@ -1488,19 +1488,19 @@ export function TV3DModel({
       {/* Main cabinet with dynamic wood texture */}
       <WoodCabinet config={textureConfig?.wood} />
 
-      {/* Dark bezel around screen - with rubber texture */}
+      {/* Bezel around screen - with rubber texture */}
       <DarkRubberPanel
         geometry={sharedGeometries.screenBezel}
         position={[-0.35, 0.05, 0.48]}
-        baseColor={[0.22, 0.22, 0.22]}
+        baseColor={[0.35, 0.35, 0.35]}
         wearAmount={0.4}
       />
 
-      {/* Inner screen bezel - darker rubber texture */}
+      {/* Inner screen bezel - slightly darker rubber texture */}
       <DarkRubberPanel
         geometry={sharedGeometries.innerBezel}
         position={[-0.35, 0.05, 0.5]}
-        baseColor={[0.15, 0.15, 0.15]}
+        baseColor={[0.28, 0.28, 0.28]}
         wearAmount={0.2}
       />
 
