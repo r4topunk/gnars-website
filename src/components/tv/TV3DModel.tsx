@@ -25,7 +25,7 @@ interface TV3DModelProps {
 
 // Pre-calculated constants
 const ROTATION_ANGLE = Math.PI / 8;
-const MAX_OSCILLATION = Math.PI / 6; // ~30 degrees
+const MAX_OSCILLATION = Math.PI / 4.5; // ~40 degrees
 const TARGET_FPS = 12;
 const FRAME_INTERVAL = 1 / TARGET_FPS; // ~83ms between frames
 
