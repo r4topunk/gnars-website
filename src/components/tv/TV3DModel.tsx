@@ -1403,7 +1403,7 @@ function TVStickers() {
 export function TV3DModel({
   videoUrl: rawVideoUrl,
   autoRotate = true,
-  rotationSpeed = 0.35,
+  rotationSpeed = 0.22,
   onNextVideo,
   textureConfig,
   creatorCoinImages = [],

@@ -37,7 +37,7 @@ export function Gnar3DTVScene({
           gl.setClearColor(0x000000, 0);
         }}
         style={{ background: "transparent" }}
-        dpr={1}
+        dpr={0.6}
       >
         {/* Lighting - simplified for better performance */}
         <ambientLight intensity={3.5} />

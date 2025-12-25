@@ -53,6 +53,7 @@
     "gl-matrix": "^3.4.4",
     "gsap": "^3.14.2",
     "import-in-the-middle": "^1.14.2",
+    "leva": "^0.10.1",
     "lucide-react": "^0.542.0",
     "minisearch": "^7.1.2",
     "next": "15.5.7",
