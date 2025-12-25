@@ -98,6 +98,7 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
             autoRotate={true}
             onNextVideo={handleNextVideo}
             creatorCoinImages={creatorCoinImages}
+            cameraPosition={[0, 1, 3]}
           />
         </div>
       </div>
