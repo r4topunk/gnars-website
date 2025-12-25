@@ -95,7 +95,7 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
         >
           <Gnar3DTVScene
             videoUrl={currentVideo?.videoUrl}
-            autoRotate={false}
+            autoRotate={true}
             onNextVideo={handleNextVideo}
             creatorCoinImages={creatorCoinImages}
           />

@@ -26,6 +26,8 @@ interface TV3DModelProps {
 // Pre-calculated constants
 const ROTATION_ANGLE = Math.PI / 8;
 const MAX_OSCILLATION = Math.PI / 12;
+const TARGET_FPS = 12;
+const FRAME_INTERVAL = 1 / TARGET_FPS; // ~83ms between frames
 
 // Shared geometries (created once, reused)
 const sharedGeometries = {
@@ -1408,6 +1410,7 @@ export function TV3DModel({
 }: TV3DModelProps) {
   const groupRef = useRef<Group>(null);
   const rotationTimeRef = useRef(0);
+  const frameAccumulator = useRef(0);
   const [showStatic, setShowStatic] = useState(true); // Start with static/color bars
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | undefined>();
   const [isTabVisible, setIsTabVisible] = useState(true);
@@ -1463,8 +1466,15 @@ export function TV3DModel({
     if (!isTabVisible) return;
 
     if (groupRef.current && autoRotate) {
-      rotationTimeRef.current += delta * rotationSpeed;
-      groupRef.current.rotation.y = Math.sin(rotationTimeRef.current) * MAX_OSCILLATION;
+      // Accumulate time and only update at target FPS (12 FPS)
+      frameAccumulator.current += delta;
+
+      if (frameAccumulator.current >= FRAME_INTERVAL) {
+        rotationTimeRef.current += frameAccumulator.current * rotationSpeed;
+        groupRef.current.rotation.y = Math.sin(rotationTimeRef.current) * MAX_OSCILLATION;
+        frameAccumulator.current = 0;
+      }
+
       // Request next frame for continuous animation
       invalidate();
     }
