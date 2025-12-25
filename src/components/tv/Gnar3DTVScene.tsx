@@ -12,7 +12,6 @@ interface Gnar3DTVSceneProps {
   autoRotate?: boolean;
   onNextVideo?: () => void;
   creatorCoinImages?: CreatorCoinImage[];
-  cameraPosition?: [number, number, number];
 }
 
 export function Gnar3DTVScene({
@@ -20,14 +19,13 @@ export function Gnar3DTVScene({
   autoRotate = true,
   onNextVideo,
   creatorCoinImages = [],
-  cameraPosition = [0, 0.5, 4],
 }: Gnar3DTVSceneProps) {
   const { config } = useTVTextureControls();
 
   return (
     <div className="relative h-full w-full">
       <Canvas
-        camera={{ position: cameraPosition, fov: 60 }}
+        camera={{ position: [0, 0.5, 4], fov: 60 }}
         frameloop="demand"
         gl={{
           antialias: false,
