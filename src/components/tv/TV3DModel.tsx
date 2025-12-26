@@ -26,8 +26,8 @@ interface TV3DModelProps {
 // Pre-calculated constants
 const ROTATION_ANGLE = Math.PI / 8;
 const MAX_OSCILLATION = Math.PI / 4.5; // ~40 degrees
-const TARGET_FPS = 12;
-const FRAME_INTERVAL = 1 / TARGET_FPS; // ~83ms between frames
+const TARGET_FPS = 24;
+const FRAME_INTERVAL = 1 / TARGET_FPS; // ~42ms between frames
 
 // Shared geometries (created once, reused)
 const sharedGeometries = {
@@ -912,7 +912,6 @@ const crtFragmentShader = `
 
 // Video Screen component that uses VideoTexture with CRT effect
 function VideoScreen({ videoUrl }: { videoUrl: string }) {
-  const { invalidate } = useThree();
   const texture = useVideoTexture(videoUrl, {
     muted: true,
     loop: true,
@@ -921,17 +920,25 @@ function VideoScreen({ videoUrl }: { videoUrl: string }) {
   });
 
   texture.colorSpace = THREE.SRGBColorSpace;
+  // Use nearest filter for pixelated look and better performance
+  texture.minFilter = THREE.NearestFilter;
+  texture.magFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
 
   const uniforms = useMemo(() => ({
     uTexture: { value: texture },
   }), [texture]);
 
-  // Continuously invalidate while video is playing to update texture
-  // Skip when tab is hidden to save resources
+  // Cleanup texture on unmount
+  useEffect(() => {
+    return () => {
+      texture.dispose();
+    };
+  }, [texture]);
+
+  // Update texture on each frame (controlled by parent's 24fps heartbeat)
   useFrame(() => {
-    if (document.visibilityState === "visible") {
-      invalidate();
-    }
+    texture.needsUpdate = true;
   });
 
   return (
@@ -1410,28 +1417,30 @@ export function TV3DModel({
 }: TV3DModelProps) {
   const groupRef = useRef<Group>(null);
   const rotationTimeRef = useRef(0);
-  const frameAccumulator = useRef(0);
+  const lastFrameTime = useRef(performance.now());
   const [showStatic, setShowStatic] = useState(true); // Start with static/color bars
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | undefined>();
-  const [isTabVisible, setIsTabVisible] = useState(true);
   const { invalidate } = useThree();
 
   // Use faster IPFS gateway
   const videoUrl = toFastIPFS(rawVideoUrl);
 
-  // Pause animation when tab is not visible (Page Visibility API)
+  // 24fps heartbeat - controls the entire animation rate
+  // Uses setInterval for precise timing independent of render loop
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      const visible = document.visibilityState === "visible";
-      setIsTabVisible(visible);
-      if (visible) {
-        // Request a new frame when becoming visible
+    const intervalMs = 1000 / TARGET_FPS; // ~42ms for 24fps
+
+    const tick = () => {
+      if (document.visibilityState === "visible") {
         invalidate();
       }
     };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    const intervalId = setInterval(tick, intervalMs);
+    // Trigger initial frame
+    invalidate();
+
+    return () => clearInterval(intervalId);
   }, [invalidate]);
 
   // Handle video URL changes with static transition
@@ -1461,22 +1470,19 @@ export function TV3DModel({
     return () => clearTimeout(timer);
   }, [currentVideoUrl, onNextVideo, showStatic]);
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     // Skip animation when tab is hidden
-    if (!isTabVisible) return;
+    if (document.visibilityState !== "visible") return;
 
     if (groupRef.current && autoRotate) {
-      // Accumulate time and only update at target FPS (12 FPS)
-      frameAccumulator.current += delta;
+      // Calculate delta time manually for smooth animation
+      const now = performance.now();
+      const delta = (now - lastFrameTime.current) / 1000;
+      lastFrameTime.current = now;
 
-      if (frameAccumulator.current >= FRAME_INTERVAL) {
-        rotationTimeRef.current += frameAccumulator.current * rotationSpeed;
-        groupRef.current.rotation.y = Math.sin(rotationTimeRef.current) * MAX_OSCILLATION;
-        frameAccumulator.current = 0;
-      }
-
-      // Request next frame for continuous animation
-      invalidate();
+      // Update rotation based on elapsed time
+      rotationTimeRef.current += delta * rotationSpeed;
+      groupRef.current.rotation.y = Math.sin(rotationTimeRef.current) * MAX_OSCILLATION;
     }
   });
 
