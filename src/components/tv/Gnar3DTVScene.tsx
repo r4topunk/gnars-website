@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
+import type { WebGLRenderer } from "three";
 import { TV3DModel } from "./TV3DModel";
 import { useTVTextureControls, TV_PRESETS } from "./TVTextureControls";
 import type { CreatorCoinImage } from "./useTVFeed";
@@ -22,6 +23,18 @@ export function Gnar3DTVScene({
 }: Gnar3DTVSceneProps) {
   const { config } = useTVTextureControls();
 
+  // Configure renderer for memory efficiency
+  const handleCreated = useCallback(({ gl }: { gl: WebGLRenderer }) => {
+    gl.setClearColor(0x000000, 0);
+    // Disable auto-clearing to have more control
+    gl.autoClear = true;
+    gl.autoClearColor = true;
+    gl.autoClearDepth = true;
+    gl.autoClearStencil = true;
+    // Reset render info each frame to prevent accumulation
+    gl.info.autoReset = true;
+  }, []);
+
   return (
     <div className="relative h-full w-full">
       <Canvas
@@ -32,10 +45,15 @@ export function Gnar3DTVScene({
           alpha: true,
           powerPreference: "low-power",
           failIfMajorPerformanceCaveat: false,
+          // Don't preserve drawing buffer - allows GPU to discard after compositing
+          preserveDrawingBuffer: false,
+          // Prefer low power GPU on multi-GPU systems
+          precision: "lowp",
+          // Limit pixel ratio for memory savings
+          depth: true,
+          stencil: false,
         }}
-        onCreated={({ gl }) => {
-          gl.setClearColor(0x000000, 0);
-        }}
+        onCreated={handleCreated}
         style={{ background: "transparent" }}
         dpr={0.6}
       >

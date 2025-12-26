@@ -1425,14 +1425,26 @@ export function TV3DModel({
   // Use faster IPFS gateway
   const videoUrl = toFastIPFS(rawVideoUrl);
 
+  // Get the WebGL renderer for cleanup
+  const { gl } = useThree();
+
   // 24fps heartbeat - controls the entire animation rate
   // Uses setInterval for precise timing independent of render loop
   useEffect(() => {
     const intervalMs = 1000 / TARGET_FPS; // ~42ms for 24fps
+    let frameCount = 0;
 
     const tick = () => {
       if (document.visibilityState === "visible") {
         invalidate();
+        frameCount++;
+
+        // Every ~30 seconds (720 frames at 24fps), clear render lists to prevent memory bloat
+        if (frameCount >= 720) {
+          frameCount = 0;
+          // Dispose of cached render lists to free memory
+          gl.renderLists.dispose();
+        }
       }
     };
 
@@ -1441,7 +1453,7 @@ export function TV3DModel({
     invalidate();
 
     return () => clearInterval(intervalId);
-  }, [invalidate]);
+  }, [invalidate, gl]);
 
   // Handle video URL changes with static transition
   useEffect(() => {
