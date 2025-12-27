@@ -21,6 +21,7 @@ interface TV3DModelProps {
   onNextVideo?: () => void;
   textureConfig?: TVTextureConfig;
   creatorCoinImages?: CreatorCoinImage[];
+  isVisible?: boolean;
 }
 
 // Pre-calculated constants
@@ -911,11 +912,11 @@ const crtFragmentShader = `
 `;
 
 // Video Screen component that uses VideoTexture with CRT effect
-function VideoScreen({ videoUrl }: { videoUrl: string }) {
+function VideoScreen({ videoUrl, isVisible = true }: { videoUrl: string; isVisible?: boolean }) {
   const texture = useVideoTexture(videoUrl, {
     muted: true,
     loop: true,
-    start: true,
+    start: isVisible, // Only auto-start if visible
     crossOrigin: "anonymous",
   });
 
@@ -929,16 +930,40 @@ function VideoScreen({ videoUrl }: { videoUrl: string }) {
     uTexture: { value: texture },
   }), [texture]);
 
+  // Pause/play video based on visibility
+  useEffect(() => {
+    const video = texture.image as HTMLVideoElement;
+    if (!video) return;
+
+    if (isVisible) {
+      video.play().catch(() => {
+        // Autoplay might be blocked, ignore
+      });
+    } else {
+      video.pause();
+    }
+  }, [isVisible, texture]);
+
   // Cleanup texture on unmount
   useEffect(() => {
     return () => {
+      // Pause video before disposing
+      const video = texture.image as HTMLVideoElement;
+      if (video) {
+        video.pause();
+        video.src = ""; // Release video decoder
+        video.load(); // Force release
+      }
       texture.dispose();
     };
   }, [texture]);
 
   // Update texture on each frame (controlled by parent's 24fps heartbeat)
+  // Only update if visible
   useFrame(() => {
-    texture.needsUpdate = true;
+    if (isVisible) {
+      texture.needsUpdate = true;
+    }
   });
 
   return (
@@ -1414,6 +1439,7 @@ export function TV3DModel({
   onNextVideo,
   textureConfig,
   creatorCoinImages = [],
+  isVisible = true,
 }: TV3DModelProps) {
   const groupRef = useRef<Group>(null);
   const rotationTimeRef = useRef(0);
@@ -1435,7 +1461,8 @@ export function TV3DModel({
     let frameCount = 0;
 
     const tick = () => {
-      if (document.visibilityState === "visible") {
+      // Only render if tab is visible AND component is in viewport
+      if (document.visibilityState === "visible" && isVisible) {
         invalidate();
         frameCount++;
 
@@ -1449,11 +1476,13 @@ export function TV3DModel({
     };
 
     const intervalId = setInterval(tick, intervalMs);
-    // Trigger initial frame
-    invalidate();
+    // Trigger initial frame if visible
+    if (isVisible) {
+      invalidate();
+    }
 
     return () => clearInterval(intervalId);
-  }, [invalidate, gl]);
+  }, [invalidate, gl, isVisible]);
 
   // Handle video URL changes with static transition
   useEffect(() => {
@@ -1483,8 +1512,8 @@ export function TV3DModel({
   }, [currentVideoUrl, onNextVideo, showStatic]);
 
   useFrame(() => {
-    // Skip animation when tab is hidden
-    if (document.visibilityState !== "visible") return;
+    // Skip animation when not visible
+    if (!isVisible || document.visibilityState !== "visible") return;
 
     if (groupRef.current && autoRotate) {
       // Calculate delta time manually for smooth animation
@@ -1528,7 +1557,7 @@ export function TV3DModel({
           <ColorBarsScreen />
         ) : currentVideoUrl ? (
           <Suspense fallback={<ColorBarsScreen />}>
-            <VideoScreen videoUrl={currentVideoUrl} />
+            <VideoScreen videoUrl={currentVideoUrl} isVisible={isVisible} />
           </Suspense>
         ) : (
           <FallbackScreen />

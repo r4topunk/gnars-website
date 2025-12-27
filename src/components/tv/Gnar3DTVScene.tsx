@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import type { WebGLRenderer } from "three";
@@ -22,6 +22,25 @@ export function Gnar3DTVScene({
   creatorCoinImages = [],
 }: Gnar3DTVSceneProps) {
   const { config } = useTVTextureControls();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(true);
+
+  // Intersection Observer to track visibility
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Consider visible if at least 10% is in viewport
+        setIsVisible(entries[0]?.isIntersecting ?? false);
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
 
   // Configure renderer for memory efficiency
   const handleCreated = useCallback(({ gl }: { gl: WebGLRenderer }) => {
@@ -36,7 +55,7 @@ export function Gnar3DTVScene({
   }, []);
 
   return (
-    <div className="relative h-full w-full">
+    <div ref={containerRef} className="relative h-full w-full">
       <Canvas
         camera={{ position: [0, 0.5, 4], fov: 60 }}
         frameloop="demand"
@@ -70,6 +89,7 @@ export function Gnar3DTVScene({
             onNextVideo={onNextVideo}
             textureConfig={config}
             creatorCoinImages={creatorCoinImages}
+            isVisible={isVisible}
           />
         </Suspense>
 
