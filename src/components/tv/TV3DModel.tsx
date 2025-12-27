@@ -26,7 +26,7 @@ interface TV3DModelProps {
 
 // Pre-calculated constants
 const ROTATION_ANGLE = Math.PI / 8;
-const MAX_OSCILLATION = Math.PI / 4.5; // ~40 degrees
+const MAX_OSCILLATION = Math.PI / 6; // ~30 degrees
 const TARGET_FPS = 24;
 const FRAME_INTERVAL = 1 / TARGET_FPS; // ~42ms between frames
 
@@ -951,8 +951,6 @@ function VideoScreen({ videoUrl, isVisible = true }: { videoUrl: string; isVisib
       const video = texture.image as HTMLVideoElement;
       if (video) {
         video.pause();
-        video.src = ""; // Release video decoder
-        video.load(); // Force release
       }
       texture.dispose();
     };
