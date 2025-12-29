@@ -10,11 +10,13 @@ import type { FeedEvent } from "@/lib/types/feed-events";
 
 interface ActivityFeedProps {
   events: FeedEvent[];
+  responsive?: boolean;
+  singleColumn?: boolean;
 }
 
-export function ActivityFeed({ events }: ActivityFeedProps) {
+export function ActivityFeed({ events, responsive = false, singleColumn = false }: ActivityFeedProps) {
   return (
-    <Card>
+    <Card className={responsive ? "h-full flex flex-col" : ""}>
       <SectionHeader
         title="Live Feed"
         description="Real-time activity from the Gnars DAO"
@@ -27,10 +29,14 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
           </Button>
         }
       />
-      <CardContent className="space-y-4">
+      <CardContent className={responsive ? "flex-1 min-h-0 flex flex-col" : ""}>
         {/* Scrollable Inner Container */}
-        <div className="overflow-y-auto rounded-lg border bg-background/50 p-4 max-h-[500px]">
-          <LiveFeedView events={events} showFilters={false} />
+        <div
+          className={`overflow-y-auto rounded-lg border bg-background/50 p-4 ${
+            responsive ? "flex-1 min-h-0" : "max-h-[500px]"
+          }`}
+        >
+          <LiveFeedView events={events} showFilters={false} singleColumn={singleColumn} />
         </div>
       </CardContent>
     </Card>

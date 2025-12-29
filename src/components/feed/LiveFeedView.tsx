@@ -20,6 +20,7 @@ export interface LiveFeedViewProps {
   isLoading?: boolean;
   error?: Error | null;
   showFilters?: boolean;
+  singleColumn?: boolean;
 }
 
 export const DEFAULT_FILTERS: FeedFilters = {
@@ -29,7 +30,7 @@ export const DEFAULT_FILTERS: FeedFilters = {
   showOnlyWithComments: false,
 };
 
-export function LiveFeedView({ events, isLoading, error, showFilters = true }: LiveFeedViewProps) {
+export function LiveFeedView({ events, isLoading, error, showFilters = true, singleColumn = false }: LiveFeedViewProps) {
   const [filters, setFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
 
   // Filter events based on current filters
@@ -199,7 +200,7 @@ export function LiveFeedView({ events, isLoading, error, showFilters = true }: L
                   <GroupHeader dateKey={dateKey} isWeek={isWeek} />
 
                   {/* Events for this day - Sequential column layout */}
-                  <SequentialColumns events={visibleDayEvents} />
+                  <SequentialColumns events={visibleDayEvents} singleColumn={singleColumn} />
                 </div>
               );
             })}
@@ -224,11 +225,12 @@ export function LiveFeedView({ events, isLoading, error, showFilters = true }: L
 
 /**
  * SequentialColumns - Distributes events in alternating pattern between columns
- * 
+ *
  * Desktop (2 columns): Events 1,3,5... in left column, 2,4,6... in right column
  * Mobile (1 column): All events in single column
+ * singleColumn prop forces single column layout regardless of screen size
  */
-function SequentialColumns({ events }: { events: FeedEvent[] }) {
+function SequentialColumns({ events, singleColumn = false }: { events: FeedEvent[]; singleColumn?: boolean }) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -238,14 +240,14 @@ function SequentialColumns({ events }: { events: FeedEvent[] }) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Mobile: single column
-  if (isMobile) {
+  // Single column mode or mobile: single column
+  if (singleColumn || isMobile) {
     return (
       <div className="space-y-3">
         {events.map((event) => (
-          <FeedEventCard 
-            key={event.id} 
-            event={event} 
+          <FeedEventCard
+            key={event.id}
+            event={event}
             sequenceNumber={event.sequenceNumber}
           />
         ))}
@@ -262,9 +264,9 @@ function SequentialColumns({ events }: { events: FeedEvent[] }) {
       {/* Left column */}
       <div className="space-y-3">
         {leftColumn.map((event) => (
-          <FeedEventCard 
-            key={event.id} 
-            event={event} 
+          <FeedEventCard
+            key={event.id}
+            event={event}
             sequenceNumber={event.sequenceNumber}
           />
         ))}
@@ -273,9 +275,9 @@ function SequentialColumns({ events }: { events: FeedEvent[] }) {
       {/* Right column */}
       <div className="space-y-3">
         {rightColumn.map((event) => (
-          <FeedEventCard 
-            key={event.id} 
-            event={event} 
+          <FeedEventCard
+            key={event.id}
+            event={event}
             sequenceNumber={event.sequenceNumber}
           />
         ))}

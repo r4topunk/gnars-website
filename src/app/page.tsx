@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Gnar3DTV } from "@/components/tv";
+import { AuctionSpotlight } from "@/components/hero/AuctionSpotlight";
 import { RecentProposalsSection } from "@/components/home/RecentProposalsSection";
 import { ActivityFeedSection } from "@/components/home/ActivityFeedSection";
 import { HeroStatsValues } from "@/components/home/HeroStatsValues";
@@ -56,11 +57,19 @@ export default function Home() {
           </Suspense>
         </section>
 
-        {/* Activity Feed */}
-        <section>
-          <Suspense fallback={<ActivityFeedSkeleton />}>
-            <ActivityFeedSection daysBack={30} />
-          </Suspense>
+        {/* Auction + Activity Feed - Side by side on desktop */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Auction Spotlight - determines row height on desktop */}
+          <AuctionSpotlight />
+
+          {/* Activity Feed - fixed height on mobile, matches auction on desktop via absolute */}
+          <div className="relative h-[500px] lg:h-auto">
+            <div className="lg:absolute lg:inset-0 h-full">
+              <Suspense fallback={<ActivityFeedSkeleton responsive />}>
+                <ActivityFeedSection daysBack={30} responsive singleColumn />
+              </Suspense>
+            </div>
+          </div>
         </section>
 
         {/* Static/Client-side content: Charts, Auctions, FAQ, Contracts */}

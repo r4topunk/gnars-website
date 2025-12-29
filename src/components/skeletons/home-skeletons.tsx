@@ -58,9 +58,9 @@ export function RecentProposalsSkeleton() {
   );
 }
 
-export function ActivityFeedSkeleton() {
+export function ActivityFeedSkeleton({ responsive = false }: { responsive?: boolean } = {}) {
   return (
-    <Card>
+    <Card className={responsive ? "h-full flex flex-col" : ""}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -70,8 +70,12 @@ export function ActivityFeedSkeleton() {
           <Skeleton className="h-9 w-32" />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="overflow-y-auto rounded-lg border bg-background/50 p-4 max-h-[500px] space-y-4">
+      <CardContent className={responsive ? "flex-1 min-h-0 flex flex-col" : ""}>
+        <div
+          className={`overflow-y-auto rounded-lg border bg-background/50 p-4 space-y-4 ${
+            responsive ? "flex-1 min-h-0" : "max-h-[500px]"
+          }`}
+        >
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="flex items-start gap-3 p-3 rounded-lg border">
               <Skeleton className="h-10 w-10 rounded-full" />

@@ -214,7 +214,7 @@ export function AuctionSpotlight() {
   }, [isConfirmed, settleTxHash]);
 
   return (
-    <Card className="w-full max-w-md bg-card">
+    <Card className="w-full bg-card">
       <CardContent className="py-2">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
