@@ -1,0 +1,24 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: UniswapV4PoolManager
+    network: base
+    source:
+      address: "0x498581fF718922c3f8e6A244956aF099B2652b2b"
+      abi: UniswapV4PoolManager
+      startBlock: 40200340
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - GnarsPairedCoin
+      abis:
+        - name: UniswapV4PoolManager
+          file: ./abis/UniswapV4PoolManager.json
+      eventHandlers:
+        - event: Initialize(indexed bytes32,indexed address,indexed address,uint24,int24,address,uint160,int24)
+          handler: handleInitialize
+      file: ./src/mapping.ts

@@ -1,0 +1,14 @@
+{
+  "name": "gnars-zora-coins-subgraph",
+  "version": "1.0.0",
+  "description": "Subgraph for indexing Zora coins paired with GNARS Creator Coin",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "goldsky subgraph deploy gnars-zora-coins/1.0 --path ."
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "^0.71.0",
+    "@graphprotocol/graph-ts": "^0.32.0"
+  }
+}

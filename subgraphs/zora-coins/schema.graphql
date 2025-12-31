@@ -1,0 +1,35 @@
+"""
+Coin created with GNARS Creator Coin as backing currency
+Indexed from Uniswap V4 Pool Manager Initialize events
+"""
+type GnarsPairedCoin @entity {
+  "Unique identifier (pool id)"
+  id: ID!
+
+  "Coin contract address (currency1 in the pool)"
+  coin: Bytes!
+
+  "GNARS Creator Coin address (currency0 in the pool)"
+  backingCurrency: Bytes!
+
+  "Pool ID from Uniswap V4"
+  poolId: Bytes!
+
+  "Pool fee"
+  fee: BigInt!
+
+  "Tick spacing"
+  tickSpacing: Int!
+
+  "Hooks contract address"
+  hooks: Bytes!
+
+  "Block number when created"
+  blockNumber: BigInt!
+
+  "Block timestamp"
+  blockTimestamp: BigInt!
+
+  "Transaction hash"
+  transactionHash: Bytes!
+}
