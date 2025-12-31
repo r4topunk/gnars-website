@@ -817,10 +817,18 @@ const sharedMaterials = {
   antennaTipMat: new THREE.MeshStandardMaterial({ color: "#D0D0D0", metalness: 0.9, roughness: 0.2 }),
 };
 
-// Convert ipfs.io URLs to faster gateway
+// Convert IPFS URIs and gateways to faster gateway
 function toFastIPFS(url?: string): string | undefined {
   if (!url) return undefined;
-  return url
+
+  // First convert ipfs:// protocol to HTTP gateway
+  let httpUrl = url;
+  if (url.startsWith("ipfs://")) {
+    httpUrl = url.replace("ipfs://", "https://dweb.link/ipfs/");
+  }
+
+  // Then convert other gateways to faster one
+  return httpUrl
     .replace("https://ipfs.io/ipfs/", "https://dweb.link/ipfs/")
     .replace("https://cloudflare-ipfs.com/ipfs/", "https://dweb.link/ipfs/");
 }

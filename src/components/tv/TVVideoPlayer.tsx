@@ -1,8 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { usePerformanceTracking } from "./useVideoPreloader";
+
+/**
+ * Convert IPFS URIs to HTTP gateway URLs
+ */
+function toHttpUrl(url: string): string {
+  if (url.startsWith("ipfs://")) {
+    return url.replace("ipfs://", "https://dweb.link/ipfs/");
+  }
+  return url;
+}
 
 type LoadState = "idle" | "loading" | "canplay" | "playing" | "error" | "waiting";
 
@@ -37,6 +47,9 @@ export function TVVideoPlayer({
 }: TVVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [loadState, setLoadState] = useState<LoadState>("idle");
+
+  // Convert IPFS URLs to HTTP gateway
+  const videoSrc = useMemo(() => toHttpUrl(src), [src]);
   const [loadProgress, setLoadProgress] = useState(0);
   const [hasFirstFrame, setHasFirstFrame] = useState(false);
   const mountedRef = useRef(true);
@@ -44,7 +57,7 @@ export function TVVideoPlayer({
 
   // Track performance for adaptive loading
   // Pass the actual load start timestamp (set by handleLoadStart event)
-  const { recordLoadSuccess } = usePerformanceTracking(src, loadStartTime);
+  const { recordLoadSuccess } = usePerformanceTracking(videoSrc, loadStartTime);
 
   // Track mount state for async operations
   useEffect(() => {
@@ -60,7 +73,7 @@ export function TVVideoPlayer({
     setLoadProgress(0);
     setHasFirstFrame(false);
     loadStartTime.current = 0;
-  }, [src]);
+  }, [videoSrc]);
 
   // Handle video events
   const handleCanPlay = useCallback(() => {
@@ -230,7 +243,7 @@ export function TVVideoPlayer({
       <video
         ref={videoRef}
         data-index={index}
-        src={src}
+        src={videoSrc}
         poster={poster}
         className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${
           showVideo ? "opacity-100" : "opacity-0"

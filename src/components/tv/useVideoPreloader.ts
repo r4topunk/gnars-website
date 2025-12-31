@@ -4,6 +4,16 @@ import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import type { TVItem } from "./types";
 
 /**
+ * Convert IPFS URIs to HTTP gateway URLs
+ */
+function toHttpUrl(url: string): string {
+  if (url.startsWith("ipfs://")) {
+    return url.replace("ipfs://", "https://dweb.link/ipfs/");
+  }
+  return url;
+}
+
+/**
  * Performance tier based on actual measured video load times
  * This is MORE reliable than Network Information API (not available on Safari/iOS)
  */
@@ -186,8 +196,9 @@ export function useVideoPreloader(
       try {
         const link = document.createElement("link");
         link.rel = "preload";
-        link.as = "video";
-        link.href = url;
+        link.as = "fetch";
+        link.crossOrigin = "anonymous";
+        link.href = toHttpUrl(url);
         // Don't block rendering
         link.setAttribute("fetchpriority", "low");
         
