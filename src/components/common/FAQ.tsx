@@ -23,6 +23,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const faqData = [
   {
+    question: "What is Gnars DAO?",
     answer:
       "Gnars is a community-owned action-sports brand. Instead of an individual or small marketing team deciding what gets funded behind a closed budget, decisions are made collectively and in public. Gnars also explores innovative ways to fund athletes and sustain its community by applying cutting-edge blockchain technology to the action-sports world—now on Base.",
   },
@@ -69,8 +70,20 @@ export function FAQ() {
   return (
     <Card>
       <SectionHeader
-        title="Questions? Answers."
-        description="Everything you need to know about Gnars DAO"
+        title="F.A.Q."
+        description={
+          <span>
+            For deeper dive visit{" "}
+            <a
+              href="https://gnars.center"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-primary hover:text-primary/80"
+            >
+              gnars.center
+            </a>
+          </span>
+        }
       />
       <CardContent>
         <Accordion type="single" collapsible className="w-full">
