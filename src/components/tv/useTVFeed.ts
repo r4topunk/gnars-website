@@ -5,9 +5,6 @@ import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import type { TVItem, CoinNode } from "./types";
 import { PRELOAD_THRESHOLD, FALLBACK_ITEMS, mapCoinToTVItem } from "./utils";
 
-// Gnars addresses
-const GNARS_COIN_ADDRESS = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
-
 interface UseTVFeedOptions {
   priorityCoinAddress?: string;
 }
