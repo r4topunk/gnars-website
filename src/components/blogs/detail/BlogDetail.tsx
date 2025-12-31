@@ -86,7 +86,6 @@ export function BlogDetail({ blog }: BlogDetailProps) {
               fill
               sizes="(max-width: 768px) 100vw, 896px"
               className={`object-cover transition-opacity duration-300 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
-              priority
               onLoadingComplete={() => setIsImageLoaded(true)}
               onError={() => {
                 if (bannerSrc !== "/logo-banner.jpg") setBannerSrc("/logo-banner.jpg");

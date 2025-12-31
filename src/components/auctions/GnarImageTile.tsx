@@ -19,8 +19,6 @@ export function GnarImageTile({ imageUrl, tokenId, className }: GnarImageTilePro
           fill
           className="object-cover"
           sizes="(max-width: 768px) 90vw, 512px"
-          priority
-          quality={90}
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center text-muted-foreground">

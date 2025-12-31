@@ -129,6 +129,7 @@ function AuctionCreatedContent({ event }: { event: Extract<FeedEvent, { type: "A
             fill
             className="object-cover"
             sizes="96px"
+            unoptimized
           />
         </div>
       )}
@@ -177,6 +178,7 @@ function AuctionBidContent({ event, compact }: {
             fill
             className="object-cover"
             sizes="96px"
+            unoptimized
           />
         </div>
       )}
@@ -218,6 +220,7 @@ function AuctionSettledContent({ event }: { event: Extract<FeedEvent, { type: "A
             fill
             className="object-cover"
             sizes="96px"
+            unoptimized
           />
         </div>
       )}
@@ -245,6 +248,7 @@ function AuctionEndingSoonContent({ event }: { event: Extract<FeedEvent, { type:
             fill
             className="object-cover"
             sizes="96px"
+            unoptimized
           />
         </div>
       )}
