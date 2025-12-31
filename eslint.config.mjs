@@ -19,6 +19,7 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
       "references/**",
+      "subgraphs/**",
     ],
   },
   // Disable rules that conflict with Prettier's formatting

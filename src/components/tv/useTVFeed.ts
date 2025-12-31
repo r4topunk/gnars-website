@@ -1,89 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  getCoin,
-  getCoinHolders,
-  getProfile,
-  getProfileCoins,
-  setApiKey,
-} from "@zoralabs/coins-sdk";
-import { createPublicClient, http, parseAbi } from "viem";
-import { base } from "viem/chains";
-import type { TVItem, CoinNode, CoinEdge } from "./types";
-import {
-  INITIAL_COINS_PER_CREATOR,
-  PRELOAD_THRESHOLD,
-  FALLBACK_ITEMS,
-  mapCoinToTVItem,
-  mapDroposalToTVItem,
-} from "./utils";
-import { fetchDroposals } from "@/services/droposals";
-import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
+import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
+import type { TVItem, CoinNode } from "./types";
+import { PRELOAD_THRESHOLD, FALLBACK_ITEMS, mapCoinToTVItem } from "./utils";
 
 // Gnars addresses
 const GNARS_COIN_ADDRESS = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
-const GNARS_NFT_ADDRESS = "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17";
-const GNARS_PROFILE_HANDLE = "gnars";
-
-// Minimum requirements to be a qualified creator
-const MIN_COIN_BALANCE = 300_000; // 300k Gnars coins
-const MIN_NFT_BALANCE = 1; // At least 1 DAO NFT
-
-// RPC client for checking NFT balances
-// Uses Alchemy if available, otherwise falls back to public RPC
-const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-const rpcUrl = alchemyKey
-  ? `https://base-mainnet.g.alchemy.com/v2/${alchemyKey}`
-  : "https://mainnet.base.org";
-
-const viemClient = createPublicClient({
-  chain: base,
-  transport: http(rpcUrl),
-});
-
-const erc721Abi = parseAbi([
-  "function balanceOf(address owner) view returns (uint256)",
-]);
 
 interface UseTVFeedOptions {
   priorityCoinAddress?: string;
-}
-
-// Zora SDK response types (not exported by SDK)
-interface TokenBalanceNode {
-  balance: string;
-  ownerProfile?: {
-    __typename?: string;
-    handle?: string;
-    avatar?: {
-      previewImage?: {
-        medium?: string;
-        small?: string;
-      };
-    };
-  };
-}
-
-interface TokenBalanceEdge {
-  node?: TokenBalanceNode;
-}
-
-interface LinkedWalletNode {
-  walletAddress?: string;
-}
-
-interface LinkedWalletEdge {
-  node?: LinkedWalletNode;
-}
-
-interface ZoraProfileWithWallets {
-  publicWallet?: {
-    walletAddress?: string;
-  };
-  linkedWallets?: {
-    edges?: LinkedWalletEdge[];
-  };
 }
 
 // Creator profile for stickers
@@ -93,12 +19,24 @@ export interface CreatorCoinImage {
   symbol?: string;
 }
 
-interface QualifiedCreator {
-  handle: string;
-  avatarUrl: string | null;
-  coinBalance: number;
-  nftBalance: number;
-  wallets: string[];
+interface APIFeedResponse {
+  items: TVItem[];
+  creators: Array<{
+    handle: string;
+    avatarUrl: string | null;
+    coinBalance: number;
+    nftBalance: number;
+  }>;
+  stats: {
+    total: number;
+    withVideo: number;
+    withImage: number;
+    gnarsPaired: number;
+    droposals: number;
+    creatorsCount: number;
+  };
+  fetchedAt: string;
+  durationMs: number;
 }
 
 interface UseTVFeedReturn {
@@ -112,197 +50,14 @@ interface UseTVFeedReturn {
 }
 
 /**
- * Fetch qualified creators - holders with both Gnars coin AND DAO NFT
- */
-async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
-  console.log("[gnars-tv] Fetching Gnars coin holders...");
-
-  const qualifiedCreators: QualifiedCreator[] = [];
-  const seenHandles = new Set<string>();
-
-  let cursor: string | undefined;
-  let page = 1;
-
-  // Fetch coin holders (paginated)
-  while (page <= 5) {
-    try {
-      const result = await getCoinHolders({
-        address: GNARS_COIN_ADDRESS as `0x${string}`,
-        chainId: 8453,
-        count: 50,
-        after: cursor,
-      });
-
-      const tokenBalances = result?.data?.zora20Token?.tokenBalances;
-      const edges = tokenBalances?.edges || [];
-      const pageInfo = tokenBalances?.pageInfo;
-
-      for (const edge of edges as TokenBalanceEdge[]) {
-        const node = edge.node;
-        if (!node) continue;
-
-        const profile = node.ownerProfile;
-        const hasZoraAccount = profile?.__typename === "GraphQLAccountProfile";
-        const handle = profile?.handle;
-
-        if (!hasZoraAccount || !handle || seenHandles.has(handle)) continue;
-        seenHandles.add(handle);
-
-        // Parse coin balance
-        const rawBalance = node.balance || "0";
-        const balanceNum = Number(BigInt(rawBalance)) / 1e18;
-
-        // Skip if below minimum coin balance
-        if (balanceNum < MIN_COIN_BALANCE) continue;
-
-        // Get all linked wallets for this profile
-        try {
-          const profileResult = await getProfile({ identifier: handle });
-          const fullProfile = profileResult?.data?.profile;
-          if (!fullProfile) continue;
-
-          const wallets: string[] = [];
-
-          // Public wallet
-          if (fullProfile.publicWallet?.walletAddress) {
-            wallets.push(fullProfile.publicWallet.walletAddress.toLowerCase());
-          }
-
-          // Linked wallets
-          const profileWithWallets = fullProfile as ZoraProfileWithWallets;
-          const linkedEdges = profileWithWallets.linkedWallets?.edges || [];
-          for (const linkedEdge of linkedEdges) {
-            const addr = linkedEdge.node?.walletAddress?.toLowerCase();
-            if (addr && !wallets.includes(addr)) {
-              wallets.push(addr);
-            }
-          }
-
-          // Check NFT balance across all wallets
-          let totalNfts = 0;
-          for (const wallet of wallets) {
-            try {
-              const nftBalance = await viemClient.readContract({
-                address: GNARS_NFT_ADDRESS as `0x${string}`,
-                abi: erc721Abi,
-                functionName: "balanceOf",
-                args: [wallet as `0x${string}`],
-              });
-              totalNfts += Number(nftBalance);
-            } catch {
-              // Skip on error
-            }
-          }
-
-          // Only include if has minimum NFTs
-          if (totalNfts >= MIN_NFT_BALANCE) {
-            const avatarUrl =
-              profile?.avatar?.previewImage?.medium ||
-              profile?.avatar?.previewImage?.small ||
-              null;
-
-            qualifiedCreators.push({
-              handle,
-              avatarUrl,
-              coinBalance: balanceNum,
-              nftBalance: totalNfts,
-              wallets,
-            });
-
-            console.log(
-              `[gnars-tv] Qualified creator: ${handle} (${balanceNum.toFixed(0)} coins, ${totalNfts} NFTs)`
-            );
-          }
-        } catch (err) {
-          console.warn(`[gnars-tv] Failed to check profile ${handle}:`, err);
-        }
-      }
-
-      if (!pageInfo?.hasNextPage) break;
-      cursor = pageInfo.endCursor;
-      page++;
-    } catch (err) {
-      console.warn("[gnars-tv] Failed to fetch coin holders page:", err);
-      break;
-    }
-  }
-
-  console.log(`[gnars-tv] Found ${qualifiedCreators.length} qualified creators`);
-  return qualifiedCreators;
-}
-
-/**
- * Fetch GNARS-paired coins from the subgraph and get their details from Zora
- */
-async function fetchPairedCoinsFromSubgraph(
-  loadedAddresses: Set<string>
-): Promise<TVItem[]> {
-  console.log("[gnars-tv] Fetching GNARS-paired coins from subgraph...");
-
-  try {
-    // Fetch paired coins from our Goldsky subgraph
-    const pairedCoins = await fetchGnarsPairedCoins({ first: 100 });
-
-    if (!pairedCoins.length) {
-      console.log("[gnars-tv] No paired coins found in subgraph");
-      return [];
-    }
-
-    console.log(`[gnars-tv] Found ${pairedCoins.length} paired coins in subgraph`);
-
-    // Fetch details for each coin from Zora SDK
-    const items: TVItem[] = [];
-
-    for (const pairedCoin of pairedCoins) {
-      const coinAddress = pairedCoin.coin.toLowerCase();
-
-      // Skip if already loaded
-      if (loadedAddresses.has(coinAddress)) continue;
-
-      try {
-        const response = await getCoin({
-          address: coinAddress as `0x${string}`,
-          chain: 8453,
-        });
-
-        const coin = response?.data?.zora20Token as CoinNode | undefined;
-        if (!coin) continue;
-
-        const creatorHandle =
-          coin?.creatorProfile?.handle || pairedCoin.coin.slice(0, 10);
-
-        const item = mapCoinToTVItem(coin, 0, creatorHandle);
-
-        if (item) {
-          // Force mark as GNARS paired since we know it from subgraph
-          item.poolCurrencyTokenAddress = GNARS_COIN_ADDRESS;
-          items.push(item);
-          loadedAddresses.add(coinAddress);
-        }
-      } catch (err) {
-        console.warn(
-          `[gnars-tv] Failed to fetch paired coin ${coinAddress}:`,
-          err
-        );
-      }
-    }
-
-    console.log(`[gnars-tv] Loaded ${items.length} GNARS-paired coins with video`);
-    return items;
-  } catch (err) {
-    console.warn("[gnars-tv] Failed to fetch paired coins from subgraph:", err);
-    return [];
-  }
-}
-
-/**
  * Hook to fetch and manage TV feed content
  *
- * Data sources:
- * 1. GNARS-paired coins from our subgraph (highest priority)
+ * Data is fetched from /api/tv/feed which caches results for 1 hour.
+ * Sources:
+ * 1. GNARS-paired coins from subgraph (highest priority)
  * 2. Videos from qualified creators (300k+ coins AND 1+ NFT)
- * 3. Droposals (NFT drops from DAO proposals)
- * 4. Content from Gnars profile
+ * 3. Content from Gnars profile
+ * 4. Droposals (NFT drops from DAO proposals)
  */
 export function useTVFeed({
   priorityCoinAddress,
@@ -316,9 +71,7 @@ export function useTVFeed({
   const [error, setError] = useState<string | null>(null);
   const [hasMoreContent, setHasMoreContent] = useState(false);
 
-  // Track already loaded coin addresses to prevent duplicates
   const loadedCoinAddressesRef = useRef<Set<string>>(new Set());
-
   const normalizedPriority = priorityCoinAddress?.toLowerCase();
 
   useEffect(() => {
@@ -333,6 +86,8 @@ export function useTVFeed({
         if (process.env.NEXT_PUBLIC_ZORA_API_KEY) {
           setApiKey(process.env.NEXT_PUBLIC_ZORA_API_KEY);
         }
+
+        console.log("[gnars-tv] Fetching feed from API...");
 
         // Fetch priority coin directly if provided
         let priorityItem: TVItem | null = null;
@@ -363,160 +118,60 @@ export function useTVFeed({
           }
         }
 
-        // Fetch data in parallel
-        const [pairedCoinItems, qualifiedCreators, droposalItems, gnarsProfileItems] = await Promise.all([
-          // 1. Fetch GNARS-paired coins from subgraph (highest priority)
-          fetchPairedCoinsFromSubgraph(loadedCoinAddressesRef.current).catch((err) => {
-            console.warn("[gnars-tv] Failed to fetch paired coins:", err);
-            return [] as TVItem[];
-          }),
+        // Fetch from API (cached)
+        const response = await fetch("/api/tv/feed");
 
-          // 2. Fetch qualified creators (coin + NFT holders)
-          fetchQualifiedCreators().catch((err) => {
-            console.warn("[gnars-tv] Failed to fetch qualified creators:", err);
-            return [] as QualifiedCreator[];
-          }),
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
 
-          // 3. Fetch droposals
-          fetchDroposals(50)
-            .then((droposals) =>
-              droposals
-                .map(mapDroposalToTVItem)
-                .filter((item): item is TVItem => item !== null)
-            )
-            .catch(() => [] as TVItem[]),
-
-          // 4. Fetch content from Gnars profile
-          (async () => {
-            try {
-              const response = await getProfileCoins({
-                identifier: GNARS_PROFILE_HANDLE,
-                count: 50,
-              });
-              const edges = (response?.data?.profile?.createdCoins?.edges ||
-                []) as CoinEdge[];
-              return edges
-                .map((edge) => {
-                  const node = edge?.node;
-                  if (!node) return null;
-                  const coin = ("coin" in node ? node.coin : node) as
-                    | CoinNode
-                    | undefined;
-                  if (!coin) return null;
-
-                  const addr = (coin.address || coin.contract)?.toLowerCase();
-                  if (addr && loadedCoinAddressesRef.current.has(addr))
-                    return null;
-
-                  const item = mapCoinToTVItem(coin as CoinNode, 0, GNARS_PROFILE_HANDLE);
-                  if (item && addr) {
-                    loadedCoinAddressesRef.current.add(addr);
-                  }
-                  return item;
-                })
-                .filter((item): item is TVItem => item !== null);
-            } catch (err) {
-              console.warn("[gnars-tv] Failed to fetch Gnars profile content:", err);
-              return [] as TVItem[];
-            }
-          })(),
-        ]);
+        const data: APIFeedResponse = await response.json();
 
         if (cancelled.current) return;
 
-        // Build sticker images from qualified creators' avatars
-        const coinImages: CreatorCoinImage[] = qualifiedCreators
+        console.log(
+          `[gnars-tv] API returned ${data.items.length} items in ${data.durationMs}ms`
+        );
+        console.log(
+          `[gnars-tv] Stats: ${data.stats.withVideo} videos, ${data.stats.gnarsPaired} GNARS-paired, ${data.stats.creatorsCount} creators`
+        );
+
+        // Build sticker images from creator avatars
+        const coinImages: CreatorCoinImage[] = data.creators
           .filter((c) => c.avatarUrl)
           .map((c) => ({
-            coinAddress: c.handle, // Use handle as identifier
+            coinAddress: c.handle,
             imageUrl: c.avatarUrl!,
             symbol: c.handle,
           }));
 
-        console.log(
-          "[gnars-tv] Creator avatars for stickers:",
-          coinImages.map((c) => c.symbol).join(", ")
-        );
         setCreatorCoinImages(coinImages);
 
-        // Fetch videos from each qualified creator
-        const creatorHandles = qualifiedCreators.map((c) => c.handle);
-        console.log("[gnars-tv] Fetching content from creators:", creatorHandles.join(", "));
+        // Filter out priority coin if already in list
+        let items = data.items;
+        if (priorityItem?.coinAddress) {
+          items = items.filter(
+            (item) =>
+              item.coinAddress?.toLowerCase() !==
+              priorityItem!.coinAddress?.toLowerCase()
+          );
+        }
 
-        const creatorVideosPromises = creatorHandles.map(
-          async (creatorIdentifier) => {
-            try {
-              const response = await getProfileCoins({
-                identifier: creatorIdentifier,
-                count: INITIAL_COINS_PER_CREATOR,
-              });
+        // Add priority item at the top
+        const finalItems = priorityItem ? [priorityItem, ...items] : items;
 
-              const edges = (response?.data?.profile?.createdCoins?.edges ||
-                []) as CoinEdge[];
-
-              return edges
-                .map((edge) => {
-                  const node = edge?.node;
-                  if (!node) return null;
-                  const coin = ("coin" in node ? node.coin : node) as
-                    | CoinNode
-                    | undefined;
-                  if (!coin) return null;
-
-                  const addr = (coin.address || coin.contract)?.toLowerCase();
-                  if (addr && loadedCoinAddressesRef.current.has(addr))
-                    return null;
-
-                  const item = mapCoinToTVItem(
-                    coin as CoinNode,
-                    0,
-                    creatorIdentifier
-                  );
-                  if (item && addr) {
-                    loadedCoinAddressesRef.current.add(addr);
-                  }
-                  return item;
-                })
-                .filter((item): item is TVItem => item !== null);
-            } catch (err) {
-              console.warn(
-                `[gnars-tv] Failed to fetch coins for creator ${creatorIdentifier}:`,
-                err
-              );
-              return [];
-            }
+        // Track loaded addresses
+        for (const item of finalItems) {
+          if (item.coinAddress) {
+            loadedCoinAddressesRef.current.add(item.coinAddress.toLowerCase());
           }
-        );
+        }
 
-        const creatorVideosResults = await Promise.all(creatorVideosPromises);
-        const creatorVideos = creatorVideosResults.flat();
-
-        if (cancelled.current) return;
-
-        // Combine all video sources (paired coins have highest priority)
-        const allItems = [...pairedCoinItems, ...creatorVideos, ...gnarsProfileItems, ...droposalItems];
-
-        console.log(
-          `[gnars-tv] Content sources: ${pairedCoinItems.length} paired coins, ${creatorVideos.length} from creators, ${gnarsProfileItems.length} from Gnars profile, ${droposalItems.length} from droposals`
-        );
-
-        // Sort by createdAt (newest first)
-        const sortedItems = allItems.sort((a, b) => {
-          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return dateB - dateA;
-        });
-
-        // Pin priority item to the top
-        const finalItems = priorityItem
-          ? [priorityItem, ...sortedItems]
-          : sortedItems;
-
-        console.log(`[gnars-tv] Total items: ${finalItems.length}`);
         setRawItems(finalItems.length ? finalItems : FALLBACK_ITEMS);
         setHasMoreContent(false);
-      } catch {
+      } catch (err) {
         if (cancelled.current) return;
+        console.error("[gnars-tv] Feed fetch error:", err);
         setError("Unable to load videos right now");
         setRawItems(FALLBACK_ITEMS);
       } finally {
