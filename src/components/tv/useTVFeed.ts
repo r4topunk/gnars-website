@@ -19,6 +19,7 @@ import {
   mapDroposalToTVItem,
 } from "./utils";
 import { fetchDroposals } from "@/services/droposals";
+import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 
 // Gnars addresses
 const GNARS_COIN_ADDRESS = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
@@ -231,11 +232,77 @@ async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
 }
 
 /**
+ * Fetch GNARS-paired coins from the subgraph and get their details from Zora
+ */
+async function fetchPairedCoinsFromSubgraph(
+  loadedAddresses: Set<string>
+): Promise<TVItem[]> {
+  console.log("[gnars-tv] Fetching GNARS-paired coins from subgraph...");
+
+  try {
+    // Fetch paired coins from our Goldsky subgraph
+    const pairedCoins = await fetchGnarsPairedCoins({ first: 100 });
+
+    if (!pairedCoins.length) {
+      console.log("[gnars-tv] No paired coins found in subgraph");
+      return [];
+    }
+
+    console.log(`[gnars-tv] Found ${pairedCoins.length} paired coins in subgraph`);
+
+    // Fetch details for each coin from Zora SDK
+    const items: TVItem[] = [];
+
+    for (const pairedCoin of pairedCoins) {
+      const coinAddress = pairedCoin.coin.toLowerCase();
+
+      // Skip if already loaded
+      if (loadedAddresses.has(coinAddress)) continue;
+
+      try {
+        const response = await getCoin({
+          address: coinAddress as `0x${string}`,
+          chain: 8453,
+        });
+
+        const coin = response?.data?.zora20Token as CoinNode | undefined;
+        if (!coin) continue;
+
+        const creatorHandle =
+          coin?.creatorProfile?.handle || pairedCoin.coin.slice(0, 10);
+
+        const item = mapCoinToTVItem(coin, 0, creatorHandle);
+
+        if (item) {
+          // Force mark as GNARS paired since we know it from subgraph
+          item.poolCurrencyTokenAddress = GNARS_COIN_ADDRESS;
+          items.push(item);
+          loadedAddresses.add(coinAddress);
+        }
+      } catch (err) {
+        console.warn(
+          `[gnars-tv] Failed to fetch paired coin ${coinAddress}:`,
+          err
+        );
+      }
+    }
+
+    console.log(`[gnars-tv] Loaded ${items.length} GNARS-paired coins with video`);
+    return items;
+  } catch (err) {
+    console.warn("[gnars-tv] Failed to fetch paired coins from subgraph:", err);
+    return [];
+  }
+}
+
+/**
  * Hook to fetch and manage TV feed content
  *
  * Data sources:
- * 1. Videos from qualified creators (300k+ coins AND 1+ NFT)
- * 2. Droposals (NFT drops from DAO proposals)
+ * 1. GNARS-paired coins from our subgraph (highest priority)
+ * 2. Videos from qualified creators (300k+ coins AND 1+ NFT)
+ * 3. Droposals (NFT drops from DAO proposals)
+ * 4. Content from Gnars profile
  */
 export function useTVFeed({
   priorityCoinAddress,
@@ -297,14 +364,20 @@ export function useTVFeed({
         }
 
         // Fetch data in parallel
-        const [qualifiedCreators, droposalItems, gnarsProfileItems] = await Promise.all([
-          // 1. Fetch qualified creators (coin + NFT holders)
+        const [pairedCoinItems, qualifiedCreators, droposalItems, gnarsProfileItems] = await Promise.all([
+          // 1. Fetch GNARS-paired coins from subgraph (highest priority)
+          fetchPairedCoinsFromSubgraph(loadedCoinAddressesRef.current).catch((err) => {
+            console.warn("[gnars-tv] Failed to fetch paired coins:", err);
+            return [] as TVItem[];
+          }),
+
+          // 2. Fetch qualified creators (coin + NFT holders)
           fetchQualifiedCreators().catch((err) => {
             console.warn("[gnars-tv] Failed to fetch qualified creators:", err);
             return [] as QualifiedCreator[];
           }),
 
-          // 2. Fetch droposals
+          // 3. Fetch droposals
           fetchDroposals(50)
             .then((droposals) =>
               droposals
@@ -313,7 +386,7 @@ export function useTVFeed({
             )
             .catch(() => [] as TVItem[]),
 
-          // 3. Fetch content from Gnars profile
+          // 4. Fetch content from Gnars profile
           (async () => {
             try {
               const response = await getProfileCoins({
@@ -420,11 +493,11 @@ export function useTVFeed({
 
         if (cancelled.current) return;
 
-        // Combine all video sources
-        const allItems = [...creatorVideos, ...gnarsProfileItems, ...droposalItems];
+        // Combine all video sources (paired coins have highest priority)
+        const allItems = [...pairedCoinItems, ...creatorVideos, ...gnarsProfileItems, ...droposalItems];
 
         console.log(
-          `[gnars-tv] Content sources: ${creatorVideos.length} from creators, ${gnarsProfileItems.length} from Gnars profile, ${droposalItems.length} from droposals`
+          `[gnars-tv] Content sources: ${pairedCoinItems.length} paired coins, ${creatorVideos.length} from creators, ${gnarsProfileItems.length} from Gnars profile, ${droposalItems.length} from droposals`
         );
 
         // Sort by createdAt (newest first)

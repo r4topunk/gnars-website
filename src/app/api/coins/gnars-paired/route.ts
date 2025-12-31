@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  getGnarsPairedCoins,
-  getGnarsReferredCoins,
-  getCoinsByCreator,
+  fetchGnarsPairedCoins,
+  getGnarsPairedCoinByAddress,
+  getSubgraphStatus,
 } from "@/lib/zora-coins-subgraph";
 
 export const runtime = "edge";
@@ -10,45 +10,46 @@ export const runtime = "edge";
 /**
  * GET /api/coins/gnars-paired
  *
- * Fetch coins paired with Gnars Creator Coin or referred by Gnars.
+ * Fetch coins paired with GNARS Creator Coin.
  *
  * Query params:
- * - type: "paired" (default) | "referred" | "creator"
- * - creator: (required if type=creator) creator address
+ * - address: (optional) get a specific coin by address
  * - limit: number of results (default 50, max 100)
  * - offset: pagination offset (default 0)
+ * - status: if "true", returns subgraph sync status
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
-  const type = searchParams.get("type") || "paired";
-  const creator = searchParams.get("creator");
+  const address = searchParams.get("address");
+  const status = searchParams.get("status");
   const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 100);
   const offset = parseInt(searchParams.get("offset") || "0", 10);
 
   try {
-    let coins;
-
-    switch (type) {
-      case "referred":
-        coins = await getGnarsReferredCoins(limit, offset);
-        break;
-
-      case "creator":
-        if (!creator) {
-          return NextResponse.json(
-            { error: "creator address is required for type=creator" },
-            { status: 400 }
-          );
-        }
-        coins = await getCoinsByCreator(creator, limit, offset);
-        break;
-
-      case "paired":
-      default:
-        coins = await getGnarsPairedCoins(limit, offset);
-        break;
+    // Return subgraph status
+    if (status === "true") {
+      const syncStatus = await getSubgraphStatus();
+      return NextResponse.json(syncStatus);
     }
+
+    // Get specific coin by address
+    if (address) {
+      const coin = await getGnarsPairedCoinByAddress(address);
+      if (!coin) {
+        return NextResponse.json(
+          { error: "Coin not found or not GNARS-paired" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json({ coin });
+    }
+
+    // Get list of paired coins
+    const coins = await fetchGnarsPairedCoins({
+      first: limit,
+      skip: offset,
+    });
 
     return NextResponse.json({
       coins,

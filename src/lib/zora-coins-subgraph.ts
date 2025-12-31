@@ -1,39 +1,30 @@
 /**
  * Zora Coins Subgraph Client
  *
- * Client for querying the Goldsky subgraph that indexes CoinCreatedV4 events
- * from the Zora Factory contract on Base.
+ * Client for querying the Goldsky subgraph that indexes GNARS-paired coins
+ * from Uniswap V4 Pool Manager Initialize events on Base.
  *
- * @see /subgraphs/zora-coins/README.md for setup instructions
+ * @see /subgraphs/zora-coins for the subgraph source
  */
-
-import { GNARS_CREATOR_COIN, GNARS_ADDRESSES } from "@/lib/config";
 
 // Subgraph URL - set after deploying to Goldsky
 const ZORA_COINS_SUBGRAPH_URL =
   process.env.NEXT_PUBLIC_ZORA_COINS_SUBGRAPH_URL || "";
 
-export interface ZoraCoinCreated {
+/**
+ * GNARS-paired coin from the subgraph
+ */
+export interface GnarsPairedCoin {
   id: string;
-  caller: string;
   coin: string;
-  name: string;
-  symbol: string;
-  uri: string;
-  currency: string;
-  payoutRecipient: string;
-  platformReferrer: string;
-  poolKeyHash: string;
-  version: string;
-  block_number: string;
-  timestamp_: string;
-  transactionHash_: string;
-  // Pool key fields (flattened by Goldsky)
-  poolKey_currency0: string;
-  poolKey_currency1: string;
-  poolKey_fee: string;
-  poolKey_tickSpacing: number;
-  poolKey_hooks: string;
+  backingCurrency: string;
+  poolId: string;
+  fee: string;
+  tickSpacing: number;
+  hooks: string;
+  blockNumber: string;
+  blockTimestamp: string;
+  transactionHash: string;
 }
 
 interface SubgraphResponse<T> {
@@ -41,8 +32,17 @@ interface SubgraphResponse<T> {
   errors?: Array<{ message: string }>;
 }
 
-interface CoinCreatedV4sResponse {
-  coinCreatedV4S: ZoraCoinCreated[];
+interface GnarsPairedCoinsResponse {
+  gnarsPairedCoins: GnarsPairedCoin[];
+}
+
+interface SubgraphMeta {
+  _meta: {
+    block: {
+      number: number;
+    };
+    hasIndexingErrors?: boolean;
+  };
 }
 
 async function querySubgraph<T>(
@@ -78,200 +78,134 @@ async function querySubgraph<T>(
 }
 
 /**
- * Fetch coins paired with Gnars Creator Coin
+ * Fetch GNARS-paired coins from the subgraph
  * These are content coins that use $GNARS as their backing currency
  */
-export async function getGnarsPairedCoins(
-  first: number = 50,
-  skip: number = 0
-): Promise<ZoraCoinCreated[]> {
+export async function fetchGnarsPairedCoins(options?: {
+  first?: number;
+  skip?: number;
+  orderBy?: "blockNumber" | "blockTimestamp";
+  orderDirection?: "asc" | "desc";
+}): Promise<GnarsPairedCoin[]> {
+  const {
+    first = 100,
+    skip = 0,
+    orderBy = "blockNumber",
+    orderDirection = "desc",
+  } = options || {};
+
   const query = `
-    query GnarsPairedCoins($first: Int!, $skip: Int!, $currency: String!) {
-      coinCreatedV4S(
+    query GnarsPairedCoins($first: Int!, $skip: Int!, $orderBy: GnarsPairedCoin_orderBy!, $orderDirection: OrderDirection!) {
+      gnarsPairedCoins(
         first: $first
         skip: $skip
-        where: { currency: $currency }
-        orderBy: block_number
-        orderDirection: desc
+        orderBy: $orderBy
+        orderDirection: $orderDirection
       ) {
         id
-        caller
         coin
-        name
-        symbol
-        uri
-        currency
-        payoutRecipient
-        platformReferrer
-        poolKeyHash
-        version
-        block_number
-        timestamp_
-        transactionHash_
-        poolKey_currency0
-        poolKey_currency1
-        poolKey_fee
-        poolKey_tickSpacing
-        poolKey_hooks
+        backingCurrency
+        poolId
+        fee
+        tickSpacing
+        hooks
+        blockNumber
+        blockTimestamp
+        transactionHash
       }
     }
   `;
 
-  const result = await querySubgraph<CoinCreatedV4sResponse>(query, {
+  const result = await querySubgraph<GnarsPairedCoinsResponse>(query, {
     first,
     skip,
-    currency: GNARS_CREATOR_COIN.toLowerCase(),
+    orderBy,
+    orderDirection,
   });
 
-  return result.coinCreatedV4S;
-}
-
-/**
- * Fetch coins created with Gnars as platform referrer
- * These are coins where Gnars treasury receives referral rewards
- */
-export async function getGnarsReferredCoins(
-  first: number = 50,
-  skip: number = 0
-): Promise<ZoraCoinCreated[]> {
-  const query = `
-    query GnarsReferredCoins($first: Int!, $skip: Int!, $referrer: String!) {
-      coinCreatedV4S(
-        first: $first
-        skip: $skip
-        where: { platformReferrer: $referrer }
-        orderBy: block_number
-        orderDirection: desc
-      ) {
-        id
-        caller
-        coin
-        name
-        symbol
-        uri
-        currency
-        payoutRecipient
-        platformReferrer
-        poolKeyHash
-        version
-        block_number
-        timestamp_
-        transactionHash_
-      }
-    }
-  `;
-
-  const result = await querySubgraph<CoinCreatedV4sResponse>(query, {
-    first,
-    skip,
-    referrer: GNARS_ADDRESSES.treasury.toLowerCase(),
-  });
-
-  return result.coinCreatedV4S;
-}
-
-/**
- * Fetch coins created by a specific address
- */
-export async function getCoinsByCreator(
-  creator: string,
-  first: number = 50,
-  skip: number = 0
-): Promise<ZoraCoinCreated[]> {
-  const query = `
-    query CoinsByCreator($first: Int!, $skip: Int!, $creator: String!) {
-      coinCreatedV4S(
-        first: $first
-        skip: $skip
-        where: { caller: $creator }
-        orderBy: block_number
-        orderDirection: desc
-      ) {
-        id
-        caller
-        coin
-        name
-        symbol
-        uri
-        currency
-        payoutRecipient
-        platformReferrer
-        poolKeyHash
-        version
-        block_number
-        timestamp_
-        transactionHash_
-      }
-    }
-  `;
-
-  const result = await querySubgraph<CoinCreatedV4sResponse>(query, {
-    first,
-    skip,
-    creator: creator.toLowerCase(),
-  });
-
-  return result.coinCreatedV4S;
+  return result.gnarsPairedCoins || [];
 }
 
 /**
  * Get a specific coin by its address
  */
-export async function getCoinByAddress(
+export async function getGnarsPairedCoinByAddress(
   coinAddress: string
-): Promise<ZoraCoinCreated | null> {
+): Promise<GnarsPairedCoin | null> {
   const query = `
-    query CoinByAddress($coin: String!) {
-      coinCreatedV4S(
+    query GnarsPairedCoinByAddress($coin: Bytes!) {
+      gnarsPairedCoins(
         first: 1
         where: { coin: $coin }
       ) {
         id
-        caller
         coin
-        name
-        symbol
-        uri
-        currency
-        payoutRecipient
-        platformReferrer
-        poolKeyHash
-        version
-        block_number
-        timestamp_
-        transactionHash_
+        backingCurrency
+        poolId
+        fee
+        tickSpacing
+        hooks
+        blockNumber
+        blockTimestamp
+        transactionHash
       }
     }
   `;
 
-  const result = await querySubgraph<CoinCreatedV4sResponse>(query, {
+  const result = await querySubgraph<GnarsPairedCoinsResponse>(query, {
     coin: coinAddress.toLowerCase(),
   });
 
-  return result.coinCreatedV4S[0] ?? null;
+  return result.gnarsPairedCoins?.[0] ?? null;
 }
 
 /**
- * Check if a coin is paired with Gnars Creator Coin
+ * Check if a coin is GNARS-paired
  */
 export async function isGnarsPairedCoin(coinAddress: string): Promise<boolean> {
-  const coin = await getCoinByAddress(coinAddress);
-  if (!coin) return false;
-  return coin.currency.toLowerCase() === GNARS_CREATOR_COIN.toLowerCase();
+  const coin = await getGnarsPairedCoinByAddress(coinAddress);
+  return coin !== null;
 }
 
 /**
- * Get total count of Gnars paired coins
+ * Get subgraph sync status
+ */
+export async function getSubgraphStatus(): Promise<{
+  blockNumber: number;
+  hasIndexingErrors: boolean;
+}> {
+  const query = `
+    query SubgraphStatus {
+      _meta {
+        block {
+          number
+        }
+        hasIndexingErrors
+      }
+    }
+  `;
+
+  const result = await querySubgraph<SubgraphMeta>(query);
+
+  return {
+    blockNumber: result._meta.block.number,
+    hasIndexingErrors: result._meta.hasIndexingErrors || false,
+  };
+}
+
+/**
+ * Get total count of GNARS-paired coins
  */
 export async function getGnarsPairedCoinsCount(): Promise<number> {
-  // The Graph doesn't support direct count, so we paginate
-  // For a more efficient count, consider adding a counter entity in a custom subgraph
   let total = 0;
   let hasMore = true;
   const pageSize = 1000;
 
   while (hasMore) {
-    const coins = await getGnarsPairedCoins(pageSize, total);
+    const coins = await fetchGnarsPairedCoins({
+      first: pageSize,
+      skip: total,
+    });
     total += coins.length;
     hasMore = coins.length === pageSize;
   }
