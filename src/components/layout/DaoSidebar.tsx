@@ -98,7 +98,7 @@ const daoNavigation = [
         icon: Newspaper,
       },
       {
-        title: "Droposals",
+        title: "Drops",
         url: "/droposals",
         icon: Video,
       },

@@ -9,8 +9,11 @@ export default async function DroposalsPage() {
   return (
     <div className="py-8 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Droposals</h1>
-        <p className="text-muted-foreground mt-1">Discover and collect community NFT drops</p>
+        <h1 className="text-3xl font-bold">Gnars Drops</h1>
+        <p className="text-muted-foreground mt-1">
+          Drops are Gnarly Highquality videos or assets created and approved by the community. In
+          order to create a Drop you need to create a droposal.
+        </p>
       </div>
       <DroposalsGrid items={items} />
     </div>

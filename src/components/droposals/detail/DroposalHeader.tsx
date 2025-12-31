@@ -36,7 +36,7 @@ export function DroposalHeader(props: DroposalHeaderProps) {
       </div>
       <div className="hidden lg:flex items-center gap-2">
         <Button asChild variant="outline" size="sm">
-          <Link href="/droposals">Back to Droposals</Link>
+          <Link href="/droposals">Back to Drops</Link>
         </Button>
       </div>
     </div>
