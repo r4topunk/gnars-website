@@ -5,6 +5,29 @@ import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import type { TVItem, CoinNode } from "./types";
 import { PRELOAD_THRESHOLD, FALLBACK_ITEMS, mapCoinToTVItem } from "./utils";
 
+/**
+ * Convert IPFS URIs to HTTP gateway URLs
+ */
+function toHttpUrl(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  if (url.startsWith("ipfs://")) {
+    return url.replace("ipfs://", "https://dweb.link/ipfs/");
+  }
+  return url;
+}
+
+/**
+ * Normalize all IPFS URLs in a TVItem to HTTP
+ */
+function normalizeItemUrls(item: TVItem): TVItem {
+  return {
+    ...item,
+    videoUrl: toHttpUrl(item.videoUrl),
+    imageUrl: toHttpUrl(item.imageUrl),
+    creatorAvatar: toHttpUrl(item.creatorAvatar),
+  };
+}
+
 interface UseTVFeedOptions {
   priorityCoinAddress?: string;
 }
@@ -133,19 +156,19 @@ export function useTVFeed({
           `[gnars-tv] Stats: ${data.stats.withVideo} videos, ${data.stats.gnarsPaired} GNARS-paired, ${data.stats.creatorsCount} creators`
         );
 
-        // Build sticker images from creator avatars
+        // Build sticker images from creator avatars (normalize IPFS URLs)
         const coinImages: CreatorCoinImage[] = data.creators
           .filter((c) => c.avatarUrl)
           .map((c) => ({
             coinAddress: c.handle,
-            imageUrl: c.avatarUrl!,
+            imageUrl: toHttpUrl(c.avatarUrl) || c.avatarUrl!,
             symbol: c.handle,
           }));
 
         setCreatorCoinImages(coinImages);
 
-        // Filter out priority coin if already in list
-        let items = data.items;
+        // Filter out priority coin if already in list and normalize URLs
+        let items = data.items.map(normalizeItemUrls);
         if (priorityItem?.coinAddress) {
           items = items.filter(
             (item) =>
@@ -154,8 +177,9 @@ export function useTVFeed({
           );
         }
 
-        // Add priority item at the top
-        const finalItems = priorityItem ? [priorityItem, ...items] : items;
+        // Add priority item at the top (also normalized)
+        const normalizedPriorityItem = priorityItem ? normalizeItemUrls(priorityItem) : null;
+        const finalItems = normalizedPriorityItem ? [normalizedPriorityItem, ...items] : items;
 
         // Track loaded addresses
         for (const item of finalItems) {
