@@ -23,46 +23,26 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const faqData = [
   {
-    question: "What is a Gnar?",
     answer:
-      "A Gnar is an on-chain membership NFT for the action-sports community. Each Gnar gives you a vote in Gnars DAO. Artwork is CC0 (public domain).",
-  },
-  {
-    question: "What is Gnars DAO?",
-    answer:
-      "A community-owned action-sports brand funding athletes and creators via on-chain auctions and a shared treasury—now on Base.",
-  },
-  {
-    question: "Where do auctions happen?",
-    answer: "On Base. The DAO and treasury migrated to Base for cheaper, faster participation.",
+      "Gnars is a community-owned action-sports brand. Instead of an individual or small marketing team deciding what gets funded behind a closed budget, decisions are made collectively and in public. Gnars also explores innovative ways to fund athletes and sustain its community by applying cutting-edge blockchain technology to the action-sports world—now on Base.",
   },
   {
     question: "How do auctions work?",
     answer:
-      "New Gnars are auctioned continuously on-chain. Anyone can bid; the winner mints the Gnar and funds flow to the DAO treasury to back proposals.",
+      "New Gnars are auctioned continuously onchain. Anyone can bid; the winner mints the Gnar and funds flow to the DAO treasury to back proposals.",
   },
   {
-    question: "Who can own a Gnar, and what does it mean?",
-    answer:
-      "Anyone can win an auction or buy on secondary. Holding a Gnar equals one vote in Gnars DAO.",
-  },
-  {
-    question: "Are Gnars free to use?",
+    question: "Are Gnars artwork free to use?",
     answer: "Yes. CC0—use, remix, commercialize, no permission needed.",
   },
   {
-    question: "What kinds of projects does Gnars fund?",
+    question: "What kinds of projects does Gnars Dao funds?",
     answer:
-      "Athlete sponsorships, community infrastructure, creative media, and education/safety initiatives.",
-  },
-  {
-    question: "Who created Gnars?",
-    answer:
-      "Launched by Nounish builders and action-sports enthusiasts; stewarded by Gnars DAO via on-chain governance.",
+      "Community infrastructure, creative media, tooling creation, sales partnerships, education initiatives and others",
   },
   {
     question: "What happened to the old Ethereum (L1) Gnars?",
-    answer: "L1 pieces remain as collectibles; governance and new drops are on Base.",
+    answer: "Nothing, they are fucking dope and still exist!",
   },
   {
     question: "Where do I get $GNARS?",
@@ -77,6 +57,11 @@ const faqData = [
     question: "How do I propose something for funding?",
     answer:
       "Hold 12 Gnars and submit a proposal through governance; the DAO votes and, if approved, funds it.",
+  },
+  {
+    question: "How do I participate in Gnar TV?",
+    answer:
+      "Use /create-coin page to create a creator coin on Zora, then mint a video and hold 300k $Gnars in your wallet",
   },
 ];
 
