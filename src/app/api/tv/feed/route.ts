@@ -26,11 +26,14 @@ const MIN_NFT_BALANCE = 1;
 const MAX_CONCURRENT_PROFILE_FETCHES = 10;
 const MAX_CONCURRENT_COIN_FETCHES = 15;
 
-// RPC client
-const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+// RPC client - prefer server-side ALCHEMY_API_KEY, fallback to NEXT_PUBLIC_ for compatibility
+const alchemyKey = process.env.ALCHEMY_API_KEY || process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 const rpcUrl = alchemyKey
   ? `https://base-mainnet.g.alchemy.com/v2/${alchemyKey}`
   : "https://mainnet.base.org";
+
+// Debug logging for RPC configuration
+console.log(`[api/tv] RPC config: using ${alchemyKey ? "Alchemy" : "public Base"} endpoint`);
 
 const viemClient = createPublicClient({
   chain: base,
@@ -189,15 +192,21 @@ async function batchCheckNftBalances(
     });
 
     const balances = new Map<string, number>();
+    let successCount = 0;
+    let failCount = 0;
+
     for (let i = 0; i < wallets.length; i++) {
       const result = results[i];
       if (result.status === "success") {
+        successCount++;
         balances.set(wallets[i].toLowerCase(), Number(result.result));
       } else {
+        failCount++;
         balances.set(wallets[i].toLowerCase(), 0);
       }
     }
 
+    console.log(`[api/tv] Multicall results: ${successCount} success, ${failCount} failed`);
     return balances;
   } catch (err) {
     console.warn("[api/tv] Multicall failed, falling back to individual calls:", err);
