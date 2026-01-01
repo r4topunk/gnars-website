@@ -15,6 +15,7 @@ export const GNARS_ADDRESSES = {
   governor: "0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c",
   treasury: "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88",
   metadata: "0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58",
+  gnarsErc20: "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b", // $GNARS ERC20 token
 } as const;
 
 export const ZORA_CREATOR = {
