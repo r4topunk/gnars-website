@@ -14,7 +14,11 @@ import { GNARS_ADDRESSES } from "@/lib/config";
 
 const contracts = [
   { name: "Token (NFT)", address: GNARS_ADDRESSES.token, description: "Gnars NFT contract" },
-  { name: "$GNARS (ERC20)", address: "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b", description: "$GNARS ERC20 token contract" },
+  {
+    name: "$GNARS (ERC20)",
+    address: "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b",
+    description: "$GNARS ERC20 token contract",
+  },
   { name: "Auction", address: GNARS_ADDRESSES.auction, description: "Auction house contract" },
   { name: "Governor", address: GNARS_ADDRESSES.governor, description: "Governance contract" },
   { name: "Treasury", address: GNARS_ADDRESSES.treasury, description: "Treasury contract" },
