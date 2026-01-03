@@ -2,15 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Upload, X, Link } from "lucide-react";
+import { Link, Upload, X } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { type ProposalFormValues } from "@/components/proposals/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { VideoThumbnailSelector } from "@/components/ui/video-thumbnail-selector";
 import { ipfsToGatewayUrl, uploadToPinata } from "@/lib/pinata";
 
@@ -457,9 +463,7 @@ export function MediaSection({ index }: MediaSectionProps) {
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleManualUrlSubmit}>
-                  Set URLs
-                </Button>
+                <Button onClick={handleManualUrlSubmit}>Set URLs</Button>
               </div>
             </div>
           </DialogContent>
