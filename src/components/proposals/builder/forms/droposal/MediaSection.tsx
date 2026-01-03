@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Link } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { type ProposalFormValues } from "@/components/proposals/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { VideoThumbnailSelector } from "@/components/ui/video-thumbnail-selector";
 import { ipfsToGatewayUrl, uploadToPinata } from "@/lib/pinata";
 
@@ -39,6 +41,9 @@ export function MediaSection({ index }: MediaSectionProps) {
   const [mediaError, setMediaError] = useState("");
   const [showThumbnailSelector, setShowThumbnailSelector] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
+  const [isManualInputOpen, setIsManualInputOpen] = useState(false);
+  const [manualMediaUrl, setManualMediaUrl] = useState("");
+  const [manualCoverUrl, setManualCoverUrl] = useState("");
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -351,10 +356,114 @@ export function MediaSection({ index }: MediaSectionProps) {
   const displayMediaUrl = getDisplayUrl(watchedMediaUrl, mediaPreview);
   const displayCoverUrl = getDisplayUrl(watchedCoverUrl, coverPreview);
 
+  // Validate IPFS CID
+  const isValidIpfsCid = (url: string) => {
+    if (!url) return false;
+    if (url.startsWith("ipfs://")) {
+      const cid = url.replace("ipfs://", "");
+      return cid.length > 40 && (cid.startsWith("Qm") || cid.startsWith("b"));
+    }
+    return false;
+  };
+
+  const handleManualUrlSubmit = () => {
+    let hasError = false;
+
+    // Validate and set media URL
+    if (manualMediaUrl) {
+      if (!isValidIpfsCid(manualMediaUrl)) {
+        toast.error("Invalid IPFS URL for media. Must start with ipfs:// followed by a valid CID");
+        hasError = true;
+      } else {
+        setValue(`transactions.${index}.animationUri` as const, manualMediaUrl);
+        setValue(`transactions.${index}.imageUri` as const, manualMediaUrl);
+        setValue(`transactions.${index}.mediaType` as const, ""); // Unknown type for manual input
+        setMediaPreview(null); // Clear blob preview since we have IPFS URL
+      }
+    }
+
+    // Validate and set cover URL
+    if (manualCoverUrl) {
+      if (!isValidIpfsCid(manualCoverUrl)) {
+        toast.error("Invalid IPFS URL for cover. Must start with ipfs:// followed by a valid CID");
+        hasError = true;
+      } else {
+        setValue(`transactions.${index}.imageUri` as const, manualCoverUrl);
+        setValue(`transactions.${index}.coverType` as const, ""); // Unknown type for manual input
+        setCoverPreview(null); // Clear blob preview since we have IPFS URL
+      }
+    }
+
+    if (!hasError) {
+      setIsManualInputOpen(false);
+      setManualMediaUrl("");
+      setManualCoverUrl("");
+      toast.success("IPFS URLs set successfully!");
+    }
+  };
+
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-base">Media</CardTitle>
+        <Dialog open={isManualInputOpen} onOpenChange={setIsManualInputOpen}>
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              title="Manually input IPFS CIDs"
+            >
+              <Link className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Manual IPFS Input</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="manual-media-url">Media IPFS URL</Label>
+                <Input
+                  id="manual-media-url"
+                  placeholder="ipfs://QmExample..."
+                  value={manualMediaUrl}
+                  onChange={(e) => setManualMediaUrl(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter the IPFS URL for your media file
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="manual-cover-url">Cover IPFS URL (optional)</Label>
+                <Input
+                  id="manual-cover-url"
+                  placeholder="ipfs://QmExample..."
+                  value={manualCoverUrl}
+                  onChange={(e) => setManualCoverUrl(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter the IPFS URL for your cover image
+                </p>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsManualInputOpen(false);
+                    setManualMediaUrl("");
+                    setManualCoverUrl("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleManualUrlSubmit}>
+                  Set URLs
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Grid layout when both media and cover are shown */}
