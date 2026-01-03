@@ -76,31 +76,7 @@ export function ProposalWizard() {
     );
   }
 
-  if (isConnected && !isLoading && !hasThreshold) {
-    return (
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Insufficient Voting Power</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              You need at least {proposalVotesRequired?.toString() || "N/A"} votes to create a
-              proposal.
-              {votes !== undefined && (
-                <>
-                  {" "}
-                  You currently have {votes.toString()} votes.
-                  {isDelegating && delegatedTo && <> Your votes are delegated to {delegatedTo}.</>}
-                </>
-              )}
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Voting power restriction removed: all users can access the proposal wizard
 
   return (
     <FormProvider {...methods}>
