@@ -16,7 +16,7 @@ const contracts = [
   { name: "Token (NFT)", address: GNARS_ADDRESSES.token, description: "Gnars NFT contract" },
   {
     name: "$GNARS (ERC20)",
-    address: "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b",
+    address: GNARS_ADDRESSES.gnarsErc20,
     description: "$GNARS ERC20 token contract",
   },
   { name: "Auction", address: GNARS_ADDRESSES.auction, description: "Auction house contract" },
