@@ -156,6 +156,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     collectionAddress: GNARS_ADDRESSES.token,
     governorAddress: GNARS_ADDRESSES.governor,
     signerAddress: address ?? undefined,
+    snapshotBlock: proposal.snapshotBlock ? BigInt(proposal.snapshotBlock) : undefined,
   });
 
   // Fetch propdates to determine if the tab should be shown

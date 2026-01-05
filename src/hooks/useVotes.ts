@@ -11,6 +11,16 @@ const tokenAbi = [
     outputs: [{ name: "", type: "uint256" }],
   },
   {
+    name: "getPastVotes",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "account", type: "address" },
+      { name: "blockNumber", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
     name: "delegates",
     type: "function",
     stateMutability: "view",
@@ -34,6 +44,7 @@ interface UseVotesArgs {
   collectionAddress?: Address;
   governorAddress?: Address;
   signerAddress?: Address;
+  snapshotBlock?: bigint;
   enabled?: boolean;
 }
 
@@ -66,6 +77,7 @@ export const useVotes = ({
   collectionAddress,
   governorAddress,
   signerAddress,
+  snapshotBlock,
   enabled: enabledProp = true,
 }: UseVotesArgs): UseVotesResult => {
   const enabled = Boolean(collectionAddress && governorAddress && signerAddress) && enabledProp;
@@ -78,13 +90,21 @@ export const useVotes = ({
     allowFailure: false,
     contracts: enabled
       ? ([
-          {
-            address: collectionAddress!,
-            abi: tokenAbi,
-            functionName: "getVotes",
-            args: [signerAddress!],
-            chainId,
-          },
+          snapshotBlock
+            ? {
+                address: collectionAddress!,
+                abi: tokenAbi,
+                functionName: "getPastVotes",
+                args: [signerAddress!, snapshotBlock],
+                chainId,
+              }
+            : {
+                address: collectionAddress!,
+                abi: tokenAbi,
+                functionName: "getVotes",
+                args: [signerAddress!],
+                chainId,
+              },
           {
             address: collectionAddress!,
             abi: tokenAbi,
