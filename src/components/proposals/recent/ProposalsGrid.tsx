@@ -13,7 +13,7 @@ export function ProposalsGrid({ proposals }: ProposalsGridProps) {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {proposals.map((proposal, i) => (
         <AnimatedListItem key={proposal.proposalId} delayMs={i * 50}>
-          <ProposalCard proposal={proposal} />
+          <ProposalCard proposal={proposal} showBanner={true} />
         </AnimatedListItem>
       ))}
     </div>
