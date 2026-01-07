@@ -17,7 +17,7 @@ export default function VotesDebugPage() {
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-6">Votes Debug Page</h1>
-      
+
       <div className="space-y-4">
         <div className="rounded-lg border p-4">
           <h2 className="text-lg font-semibold mb-2">Test Configuration</h2>
@@ -47,9 +47,11 @@ export default function VotesDebugPage() {
         <div className="rounded-lg border p-4">
           <h2 className="text-lg font-semibold mb-2">Raw Data (JSON)</h2>
           <pre className="text-xs overflow-auto">
-            {JSON.stringify(votesData, (key, value) =>
-              typeof value === 'bigint' ? value.toString() : value
-            , 2)}
+            {JSON.stringify(
+              votesData,
+              (key, value) => (typeof value === "bigint" ? value.toString() : value),
+              2,
+            )}
           </pre>
         </div>
       </div>

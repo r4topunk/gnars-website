@@ -1,23 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { VotingControls } from "@/components/common/VotingControls";
-import { useVotes } from "@/hooks/useVotes";
-import { usePropdates } from "@/hooks/use-propdates";
-import { CHAIN, GNARS_ADDRESSES, IS_DEV } from "@/lib/config";
 import { Propdates } from "@/components/proposals/detail/Propdates";
+import { ProposalActions } from "@/components/proposals/detail/ProposalActions";
 import { ProposalDescriptionCard } from "@/components/proposals/detail/ProposalDescriptionCard";
 import { ProposalHeader } from "@/components/proposals/detail/ProposalHeader";
 import { ProposalVotesList } from "@/components/proposals/detail/ProposalVotesList";
-import { ProposalTransactionVisualization } from "@/components/proposals/transaction/ProposalTransactionVisualization";
 import { ProposalMetrics } from "@/components/proposals/ProposalMetrics";
-import { ProposalActions } from "@/components/proposals/detail/ProposalActions";
+import { ProposalTransactionVisualization } from "@/components/proposals/transaction/ProposalTransactionVisualization";
 import { Proposal, type ProposalVote } from "@/components/proposals/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { usePropdates } from "@/hooks/use-propdates";
+import { useVotes } from "@/hooks/useVotes";
+import { CHAIN, GNARS_ADDRESSES, IS_DEV } from "@/lib/config";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
-import { useRouter } from "next/navigation";
 
 interface ProposalDetailProps {
   proposal: Proposal;
@@ -59,7 +59,9 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     againstVotes: proposal.againstVotes,
     abstainVotes: proposal.abstainVotes,
   });
-  const [votesList, setVotesList] = useState<ProposalVote[]>(() => (proposal.votes ? [...proposal.votes] : []));
+  const [votesList, setVotesList] = useState<ProposalVote[]>(() =>
+    proposal.votes ? [...proposal.votes] : [],
+  );
 
   useEffect(() => {
     setVoteTotals({
@@ -163,9 +165,10 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const { propdates } = usePropdates(proposal.proposalId);
 
   // Show propdates tab if there's at least one propdate OR the connected user is the proposal owner
-  const isProposalOwner = address && proposal.proposer 
-    ? address.toLowerCase() === proposal.proposer.toLowerCase()
-    : false;
+  const isProposalOwner =
+    address && proposal.proposer
+      ? address.toLowerCase() === proposal.proposer.toLowerCase()
+      : false;
   const hasPropdates = (propdates?.length ?? 0) > 0;
   const shouldShowPropdatesTab = hasPropdates || isProposalOwner;
 
@@ -228,14 +231,12 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       {shouldShowTabs ? (
         <Tabs defaultValue="details" className="w-full">
           <div className="overflow-x-auto">
-            <TabsList className={`grid w-full ${visibleTabsCount === 2 ? 'grid-cols-2' : 'grid-cols-3'} min-w-fit`}>
+            <TabsList
+              className={`grid w-full ${visibleTabsCount === 2 ? "grid-cols-2" : "grid-cols-3"} min-w-fit`}
+            >
               <TabsTrigger value="details">Details</TabsTrigger>
-              {shouldShowVotesTab && (
-                <TabsTrigger value="votes">Votes</TabsTrigger>
-              )}
-              {shouldShowPropdatesTab && (
-                <TabsTrigger value="propdates">Propdates</TabsTrigger>
-              )}
+              {shouldShowVotesTab && <TabsTrigger value="votes">Votes</TabsTrigger>}
+              {shouldShowPropdatesTab && <TabsTrigger value="propdates">Propdates</TabsTrigger>}
             </TabsList>
           </div>
           <TabsContent value="details" className="space-y-6 mt-6">
