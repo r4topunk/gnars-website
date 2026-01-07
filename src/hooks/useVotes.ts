@@ -86,16 +86,6 @@ export const useVotes = ({
   const enabled = Boolean(collectionAddress && governorAddress && signerAddress) && enabledProp;
   const hasSubgraphVoteWeight = voteWeightFromSubgraph !== undefined && voteWeightFromSubgraph > 0;
 
-  console.log('[useVotes] Contract call params:', {
-    snapshotBlock: snapshotBlock?.toString(),
-    snapshotBlockType: typeof snapshotBlock,
-    snapshotBlockIsBigInt: typeof snapshotBlock === 'bigint',
-    signerAddress,
-    usingHistoricalQuery: Boolean(snapshotBlock),
-    hasSubgraphVoteWeight,
-    voteWeightFromSubgraph,
-  });
-
   const { data, isLoading } = useReadContracts({
     query: {
       enabled,
@@ -150,14 +140,6 @@ export const useVotes = ({
       : [],
   });
 
-  console.log('[useVotes] Contract response:', {
-    hasData: Boolean(data),
-    votesResult: data?.[0]?.result?.toString(),
-    votesStatus: data?.[0]?.status,
-    delegatesAtSnapshot: data?.[1]?.result,
-    isDelegatingAtSnapshot: data?.[1]?.result !== signerAddress,
-  });
-
   if (!enabled || !data || isLoading) {
     return { ...emptyResult, isLoading };
   }
@@ -171,12 +153,6 @@ export const useVotes = ({
     if (delegates === undefined || proposalThreshold === undefined) {
       return { ...emptyResult, isLoading: false };
     }
-
-    console.log('[useVotes] Using subgraph vote weight:', {
-      voteWeightFromSubgraph,
-      votingPower: votingPower.toString(),
-      proposalThreshold: proposalThreshold.toString(),
-    });
 
     return {
       isLoading,

@@ -170,23 +170,6 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       : undefined,
   });
 
-  console.log("[ProposalDetail] Vote check:", {
-    proposalSnapshotBlock: proposal.snapshotBlock,
-    snapshotBlockType: typeof proposal.snapshotBlock,
-    convertedSnapshot: proposal.snapshotBlock
-      ? BigInt(proposal.snapshotBlock).toString()
-      : "undefined",
-    walletAddress: address,
-    hasVotingPower,
-    votingPower: votingPower.toString(),
-    currentVote,
-    hasAlreadyVoted: Boolean(currentVote),
-    voteFromList: userVoteFromSubgraph,
-    usingSubgraphWeight: userVoteFromSubgraph?.votes
-      ? Number(userVoteFromSubgraph.votes)
-      : undefined,
-  });
-
   // Fetch propdates to determine if the tab should be shown
   const { propdates } = usePropdates(proposal.proposalId);
 
