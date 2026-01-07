@@ -181,7 +181,11 @@ export function VotingControls({
   }
 
   if (!eligibleToVote) {
-    return helperText ? <p className="text-sm text-muted-foreground">{helperText}</p> : null;
+    return (
+      <div className="space-y-4" suppressHydrationWarning>
+        {helperText ? <p className="text-sm text-muted-foreground">{helperText}</p> : null}
+      </div>
+    );
   }
 
   return (

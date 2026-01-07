@@ -87,6 +87,7 @@ export const useVotes = ({
       enabled,
       refetchInterval: false,
     },
+    allowFailure: false,
     contracts: enabled
       ? (snapshotBlock
           ? [
@@ -136,17 +137,11 @@ export const useVotes = ({
       : [],
   });
 
-  if (!enabled || !data || isLoading) {
+  if (!data || isLoading || data.some((d) => d === undefined || d === null)) {
     return { ...emptyResult, isLoading };
   }
 
-  const votes = data[0]?.result as bigint | undefined;
-  const delegates = data[1]?.result as Address | undefined;
-  const proposalThreshold = data[2]?.result as bigint | undefined;
-
-  if (votes === undefined || delegates === undefined || proposalThreshold === undefined) {
-    return { ...emptyResult, isLoading: false };
-  }
+  const [votes, delegates, proposalThreshold] = data as [bigint, Address, bigint];
 
   return {
     isLoading,
