@@ -1,10 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import Image from "next/image";
 import { FaEthereum } from "react-icons/fa";
-import type { TVItem } from "./types";
 import { GNARS_CREATOR_COIN } from "@/lib/config";
+import type { TVItem } from "./types";
 
 interface PurchaseFlowChartProps {
   items: TVItem[];
@@ -31,7 +30,7 @@ function CoinNode({
   y: number;
   index: number;
 }) {
-  const isGnarsPaired = 
+  const isGnarsPaired =
     item.poolCurrencyTokenAddress != null &&
     item.poolCurrencyTokenAddress.toLowerCase() === GNARS_CREATOR_COIN.toLowerCase();
 
@@ -61,13 +60,13 @@ function CoinNode({
         clipPath={`url(#${clipId})`}
       />
 
-      <circle 
-        cx={x} 
-        cy={y} 
-        r="16" 
-        fill="none" 
-        stroke={isGnarsPaired ? "#10b981" : "#FBBF23"} 
-        strokeWidth="2" 
+      <circle
+        cx={x}
+        cy={y}
+        r="16"
+        fill="none"
+        stroke={isGnarsPaired ? "#10b981" : "#FBBF23"}
+        strokeWidth="2"
       />
 
       {/* Gnars badge if paired */}
@@ -89,10 +88,7 @@ function CoinNode({
 }
 
 export function PurchaseFlowChart({ items, ethPerCoin, totalEth }: PurchaseFlowChartProps) {
-  const validItems = useMemo(
-    () => items.filter((item) => item.coinAddress),
-    [items],
-  );
+  const validItems = useMemo(() => items.filter((item) => item.coinAddress), [items]);
 
   if (validItems.length === 0) {
     return (
@@ -108,19 +104,24 @@ export function PurchaseFlowChart({ items, ethPerCoin, totalEth }: PurchaseFlowC
   const chartHeight = Math.max(minHeight, validItems.length * itemHeight);
   const padding = 40;
   const availableHeight = chartHeight - padding * 2;
-  
+
   // Desktop uses more horizontal space, mobile is compact
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
   const sourceX = isMobile ? 70 : 100;
   const targetX = isMobile ? 280 : 520; // Balanced for desktop without overflow
   const svgWidth = isMobile ? 450 : 800; // Fixed SVG width for proper scaling
 
   return (
-    <div 
+    <div
       className="relative w-full bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-border overflow-auto max-h-[500px] sm:max-h-none sm:overflow-hidden"
       style={{ height: `${isMobile ? Math.min(chartHeight, 500) : chartHeight}px` }}
     >
-      <svg width={svgWidth} height="100%" viewBox={`0 0 ${svgWidth} ${chartHeight}`} className="w-full h-full">
+      <svg
+        width={svgWidth}
+        height="100%"
+        viewBox={`0 0 ${svgWidth} ${chartHeight}`}
+        className="w-full h-full"
+      >
         <defs>
           {/* Amber gradient for flows */}
           <linearGradient id="purchaseFlowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -149,17 +150,39 @@ export function PurchaseFlowChart({ items, ethPerCoin, totalEth }: PurchaseFlowC
         {/* Source node (ETH Amount) */}
         <g>
           <circle cx={sourceX} cy={chartHeight / 2} r="20" fill="#FBBF23" opacity="0.3" />
-          <circle cx={sourceX} cy={chartHeight / 2} r="16" fill="#FBBF23" opacity="0.9" filter="url(#purchaseGlow)" />
+          <circle
+            cx={sourceX}
+            cy={chartHeight / 2}
+            r="16"
+            fill="#FBBF23"
+            opacity="0.9"
+            filter="url(#purchaseGlow)"
+          />
           {/* Ethereum diamond symbol - larger and more visible */}
           <g transform={`translate(${sourceX}, ${chartHeight / 2})`}>
             {/* Main diamond shape */}
             <path d="M0,-8 L6,0 L0,6 L-6,0 Z" fill="#1a1a1a" className="dark:fill-white" />
             {/* Top facet - light */}
-            <path d="M0,-8 L6,0 L0,3 Z" fill="#ffffff" className="dark:fill-gray-200" opacity="0.95" />
+            <path
+              d="M0,-8 L6,0 L0,3 Z"
+              fill="#ffffff"
+              className="dark:fill-gray-200"
+              opacity="0.95"
+            />
             {/* Bottom facet - medium */}
-            <path d="M0,-8 L-6,0 L0,3 Z" fill="#e5e5e5" className="dark:fill-gray-300" opacity="0.85" />
+            <path
+              d="M0,-8 L-6,0 L0,3 Z"
+              fill="#e5e5e5"
+              className="dark:fill-gray-300"
+              opacity="0.85"
+            />
             {/* Bottom triangle */}
-            <path d="M-6,0 L0,6 L6,0 Z" fill="#666666" className="dark:fill-gray-400" opacity="0.7" />
+            <path
+              d="M-6,0 L0,6 L6,0 Z"
+              fill="#666666"
+              className="dark:fill-gray-400"
+              opacity="0.7"
+            />
           </g>
           <text
             x={sourceX}
@@ -215,7 +238,9 @@ export function PurchaseFlowChart({ items, ethPerCoin, totalEth }: PurchaseFlowC
               <path
                 key={`flow-${item.id}`}
                 d={path}
-                stroke={isGnarsPaired ? "url(#gnarsPurchaseFlowGradient)" : "url(#purchaseFlowGradient)"}
+                stroke={
+                  isGnarsPaired ? "url(#gnarsPurchaseFlowGradient)" : "url(#purchaseFlowGradient)"
+                }
                 strokeWidth={flowHeight}
                 fill="none"
                 strokeLinecap="round"
