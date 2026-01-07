@@ -1,5 +1,7 @@
 import { cookieStorage, createConfig, createStorage, fallback, http } from "wagmi";
+import { coinbaseWallet, injected, metaMask, walletConnect } from "wagmi/connectors";
 import { base } from "wagmi/chains";
+import { farcasterWallet } from "@/lib/farcaster-connector";
 
 // Multiple Base RPC endpoints for failover
 // Ordered by reliability and rate limit tolerance
@@ -53,6 +55,36 @@ export function createTransports() {
 export function createSsrStorage() {
   return createStorage({
     storage: cookieStorage,
+  });
+}
+
+/**
+ * Create wagmi configuration
+ * Only call this on the client side (in a 'use client' component)
+ */
+export function getWagmiConfig() {
+  return createConfig({
+    chains,
+    connectors: [
+      // Farcaster wallet - first priority when in mini app context
+      farcasterWallet(),
+      // MetaMask
+      metaMask(),
+      // Injected wallets (other browser wallets)
+      // injected(),
+      // WalletConnect - safe here because we're in a Client Component
+      ...(process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
+        ? [
+            walletConnect({
+              projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
+            }),
+          ]
+        : []),
+      coinbaseWallet({ appName: "Gnars DAO" }),
+    ],
+    transports: createTransports(),
+    ssr: true,
+    storage: createSsrStorage(),
   });
 }
 
