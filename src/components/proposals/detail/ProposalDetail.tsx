@@ -149,7 +149,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
 
   // Find user's vote from subgraph
   const userVoteFromSubgraph = votesList.find(
-    (v) => v.voter?.toLowerCase() === address?.toLowerCase()
+    (v) => v.voter?.toLowerCase() === address?.toLowerCase(),
   );
 
   const {
@@ -165,20 +165,26 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     signerAddress: address ?? undefined,
     snapshotBlock: proposal.snapshotBlock ? BigInt(proposal.snapshotBlock) : undefined,
     // Use vote weight from subgraph if available (more reliable than getPastVotes)
-    voteWeightFromSubgraph: userVoteFromSubgraph?.votes ? Number(userVoteFromSubgraph.votes) : undefined,
+    voteWeightFromSubgraph: userVoteFromSubgraph?.votes
+      ? Number(userVoteFromSubgraph.votes)
+      : undefined,
   });
 
-  console.log('[ProposalDetail] Vote check:', {
+  console.log("[ProposalDetail] Vote check:", {
     proposalSnapshotBlock: proposal.snapshotBlock,
     snapshotBlockType: typeof proposal.snapshotBlock,
-    convertedSnapshot: proposal.snapshotBlock ? BigInt(proposal.snapshotBlock).toString() : 'undefined',
+    convertedSnapshot: proposal.snapshotBlock
+      ? BigInt(proposal.snapshotBlock).toString()
+      : "undefined",
     walletAddress: address,
     hasVotingPower,
     votingPower: votingPower.toString(),
     currentVote,
     hasAlreadyVoted: Boolean(currentVote),
     voteFromList: userVoteFromSubgraph,
-    usingSubgraphWeight: userVoteFromSubgraph?.votes ? Number(userVoteFromSubgraph.votes) : undefined,
+    usingSubgraphWeight: userVoteFromSubgraph?.votes
+      ? Number(userVoteFromSubgraph.votes)
+      : undefined,
   });
 
   // Fetch propdates to determine if the tab should be shown
