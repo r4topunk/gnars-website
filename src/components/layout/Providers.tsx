@@ -2,7 +2,7 @@
 
 import { type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { type Config, WagmiProvider } from "wagmi";
+import { WagmiProvider, type Config } from "wagmi";
 import { getWagmiConfig } from "@/lib/wagmi";
 
 // Create singleton instances outside component to prevent re-creation
