@@ -94,31 +94,31 @@ export const useVotes = ({
             ? {
                 address: collectionAddress!,
                 abi: tokenAbi,
-                functionName: "getPastVotes",
+                functionName: "getPastVotes" as const,
                 args: [signerAddress!, snapshotBlock],
                 chainId,
               }
             : {
                 address: collectionAddress!,
                 abi: tokenAbi,
-                functionName: "getVotes",
+                functionName: "getVotes" as const,
                 args: [signerAddress!],
                 chainId,
               },
           {
             address: collectionAddress!,
             abi: tokenAbi,
-            functionName: "delegates",
+            functionName: "delegates" as const,
             args: [signerAddress!],
             chainId,
           },
           {
             address: governorAddress!,
             abi: governorAbi,
-            functionName: "proposalThreshold",
+            functionName: "proposalThreshold" as const,
             chainId,
           },
-        ] as const satisfies readonly unknown[])
+        ] as const)
       : [],
   });
 
