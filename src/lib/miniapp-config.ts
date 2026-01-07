@@ -52,7 +52,7 @@ export const MINIAPP_CONFIG = {
     ogDescription: DAO_DESCRIPTION,
     ogImageUrl: `${BASE_URL}/logo-banner.jpg`,
     // Set to true during development/testing, false when ready for public indexing
-    noindex: true,
+    noindex: false,
   },
 } as const;
 
@@ -131,6 +131,55 @@ export const TV_MINIAPP_EMBED_CONFIG = {
       name: "Gnar TV",
       url: `${BASE_URL}/tv`,
       splashImageUrl: `${BASE_URL}/tv-splash.png`,
+      splashBackgroundColor: "#000000",
+    },
+  },
+};
+
+/**
+ * Proposals Mini App Configuration
+ * Custom configuration for governance proposals
+ */
+export const PROPOSALS_MINIAPP_CONFIG = {
+  accountAssociation: MINIAPP_CONFIG.accountAssociation,
+  baseBuilder: MINIAPP_CONFIG.baseBuilder,
+  miniapp: {
+    version: "1",
+    name: "Gnars Proposals",
+    subtitle: "DAO Governance",
+    description:
+      "Browse and vote on Gnars DAO governance proposals. Participate in on-chain decision making for the action sports DAO.",
+    homeUrl: `${BASE_URL}/proposals`,
+    iconUrl: `${BASE_URL}/gnars.webp`,
+    splashImageUrl: `${BASE_URL}/gnars.webp`,
+    splashBackgroundColor: "#000000",
+    webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
+    primaryCategory: "social" as const,
+    tags: ["dao", "governance", "proposals", "voting", "gnars", "base"],
+    screenshotUrls: [] as string[],
+    heroImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    tagline: "DAO governance on Base",
+    ogTitle: "Gnars DAO Proposals",
+    ogDescription:
+      "Browse and vote on Gnars DAO governance proposals. Participate in on-chain decision making.",
+    ogImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    noindex: false,
+  },
+} as const;
+
+/**
+ * Proposals Embed metadata configuration for fc:miniapp meta tag
+ */
+export const PROPOSALS_MINIAPP_EMBED_CONFIG = {
+  version: "next",
+  imageUrl: `${BASE_URL}/logo-banner.jpg`,
+  button: {
+    title: "View Proposals",
+    action: {
+      type: "launch_miniapp" as const,
+      name: "Gnars Proposals",
+      url: `${BASE_URL}/proposals`,
+      splashImageUrl: `${BASE_URL}/gnars.webp`,
       splashBackgroundColor: "#000000",
     },
   },
