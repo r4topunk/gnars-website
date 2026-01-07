@@ -1,16 +1,16 @@
 import { Suspense } from "react";
-import { Gnar3DTV } from "@/components/tv";
 import { AuctionSpotlight } from "@/components/hero/AuctionSpotlight";
-import { RecentProposalsSection } from "@/components/home/RecentProposalsSection";
 import { ActivityFeedSection } from "@/components/home/ActivityFeedSection";
+import { AnimatedDescription } from "@/components/home/AnimatedDescription";
 import { HeroStatsValues } from "@/components/home/HeroStatsValues";
 import { HomeStaticContent } from "@/components/home/HomeStaticContent";
-import { AnimatedDescription } from "@/components/home/AnimatedDescription";
+import { RecentProposalsSection } from "@/components/home/RecentProposalsSection";
 import {
+  ActivityFeedSkeleton,
   HeroStatsSkeleton,
   RecentProposalsSkeleton,
-  ActivityFeedSkeleton,
 } from "@/components/skeletons/home-skeletons";
+import { Gnar3DTV } from "@/components/tv";
 
 export const dynamic = "force-dynamic";
 
