@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { MinusCircle, ThumbsDown, ThumbsUp } from "lucide-react";
+// import { MinusCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
 import { Proposal } from "@/components/proposals/types";
 import { extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils";
