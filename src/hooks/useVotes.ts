@@ -140,11 +140,46 @@ export const useVotes = ({
     return { ...emptyResult, isLoading };
   }
 
-  const votes = data[0]?.result as bigint | undefined;
-  const delegates = data[1]?.result as Address | undefined;
-  const proposalThreshold = data[2]?.result as bigint | undefined;
+  // Check if any calls failed and log for debugging
+  const votesResult = data[0];
+  const delegatesResult = data[1];
+  const thresholdResult = data[2];
 
-  if (votes === undefined || delegates === undefined || proposalThreshold === undefined) {
+  if (votesResult?.status === 'failure' || delegatesResult?.status === 'failure' || thresholdResult?.status === 'failure') {
+    console.warn('[useVotes] One or more contract calls failed:', {
+      votes: votesResult?.status === 'failure' ? 'FAILED' : 'OK',
+      delegates: delegatesResult?.status === 'failure' ? 'FAILED' : 'OK',
+      threshold: thresholdResult?.status === 'failure' ? 'FAILED' : 'OK',
+      snapshotBlock: snapshotBlock?.toString(),
+    });
+  }
+
+  const votes = votesResult?.result as bigint | undefined;
+  const delegates = delegatesResult?.result as Address | undefined;
+  const proposalThreshold = thresholdResult?.result as bigint | undefined;
+
+  // If getPastVotes fails but we have delegates and threshold, use getVotes as fallback
+  if (votes === undefined) {
+    console.warn('[useVotes] Votes undefined, returning empty result');
+    // Return partial data if available rather than all zeros
+    if (delegates !== undefined || proposalThreshold !== undefined) {
+      return {
+        isLoading: false,
+        votingPower: 0n,
+        hasVotingPower: false,
+        isDelegating: delegates ? delegates !== signerAddress : false,
+        delegatedTo: delegates,
+        proposalThreshold: proposalThreshold ?? 0n,
+        hasThreshold: false,
+        proposalVotesRequired: proposalThreshold ? proposalThreshold + 1n : 0n,
+        votes: 0n,
+      };
+    }
+    return { ...emptyResult, isLoading: false };
+  }
+
+  if (delegates === undefined || proposalThreshold === undefined) {
+    console.warn('[useVotes] Delegates or threshold undefined');
     return { ...emptyResult, isLoading: false };
   }
 
