@@ -21,9 +21,11 @@ export function DroposalMedia({ mediaImage, mediaAnimation, alt }: DroposalMedia
       {mediaAnimation ? (
         <video
           src={mediaAnimation}
+          poster={mediaImage}
           className="h-full w-full object-cover"
           controls
           preload="metadata"
+          playsInline
         />
       ) : mediaImage ? (
         <Image src={mediaImage} alt={alt} fill className="object-cover" />
