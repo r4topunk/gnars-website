@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -47,10 +46,10 @@ const typeStyles: Record<
     text: "text-fuchsia-700 dark:text-fuchsia-300",
   },
   droposal: {
-    accent: "amber",
-    bg: "bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20",
-    border: "border-amber-200 dark:border-amber-800",
-    text: "text-amber-700 dark:text-amber-300",
+    accent: "slate",
+    bg: "bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-950/20 dark:to-gray-950/20",
+    border: "border-slate-200 dark:border-slate-800",
+    text: "text-slate-700 dark:text-slate-300",
   },
   "buy-coin": {
     accent: "cyan",
@@ -94,7 +93,9 @@ export function TransactionCard({
 
             {/* Transaction Info */}
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-foreground leading-tight">Tx #{index + 1}</h3>
+              <h3 className="text-sm font-semibold text-foreground leading-tight">
+                Tx #{index + 1}
+              </h3>
               <span className={cn("text-xs leading-tight", styles.text)}>{label}</span>
             </div>
           </div>
@@ -133,27 +134,7 @@ export function TransactionCard({
       </CardHeader>
 
       {/* Transaction Details */}
-      <CardContent className="relative pt-0">
-        <div className="rounded-lg bg-muted/30 p-4 space-y-4">
-          {children}
-
-          {variant === "detail" && transaction.rawCalldata !== undefined && transaction.rawCalldata !== "0x" && (
-            <div className="space-y-2 max-w-full">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">Calldata</p>
-              <div className="rounded-md bg-background border px-3 py-2 font-mono text-xs overflow-x-auto whitespace-pre-wrap break-all max-h-20">
-                <Link
-                  href={`https://calldata.swiss-knife.xyz/decoder?calldata=${transaction.rawCalldata}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground hover:underline"
-                >
-                  {transaction.rawCalldata}
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-      </CardContent>
+      <CardContent className="relative pt-0 px-2 pb-2 sm:px-4 sm:pb-4">{children}</CardContent>
     </Card>
   );
 }
