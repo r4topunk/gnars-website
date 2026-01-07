@@ -176,9 +176,10 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const visibleTabsCount = 1 + (shouldShowVotesTab ? 1 : 0) + (shouldShowPropdatesTab ? 1 : 0);
   const shouldShowTabs = visibleTabsCount > 1;
 
-  // Show voting card only if proposal is active AND (user is connected and has voting power, or in dev mode)
+  // Show voting card only if proposal is active AND user is connected
+  // TODO: Re-enable hasVotingPower check after fixing useVotes hook
   const isProposalActive = proposal.status === "Active";
-  const shouldShowVotingCard = isProposalActive && (IS_DEV || (isConnected && hasVotingPower));
+  const shouldShowVotingCard = isProposalActive && isConnected;
 
   const endDate = proposal.endDate ? new Date(proposal.endDate) : undefined;
 
