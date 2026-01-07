@@ -179,10 +179,10 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const visibleTabsCount = 1 + (shouldShowVotesTab ? 1 : 0) + (shouldShowPropdatesTab ? 1 : 0);
   const shouldShowTabs = visibleTabsCount > 1;
 
-  // Show voting card only if proposal is active AND user is connected
+  // Show voting card for active proposals (connection check moved to VotingControls to avoid hydration issues)
   // TODO: Re-enable hasVotingPower check after fixing useVotes hook
   const isProposalActive = proposal.status === "Active";
-  const shouldShowVotingCard = isProposalActive && isConnected;
+  const shouldShowVotingCard = isProposalActive;
 
   const endDate = proposal.endDate ? new Date(proposal.endDate) : undefined;
 
@@ -206,7 +206,9 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       {shouldShowVotingCard ? (
         <Card id="voting-section">
           <CardHeader>
-            <CardTitle>{currentVote ? "Your Vote" : "Cast Your Vote"}</CardTitle>
+            <CardTitle suppressHydrationWarning>
+              {currentVote ? "Your Vote" : "Cast Your Vote"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <VotingControls
