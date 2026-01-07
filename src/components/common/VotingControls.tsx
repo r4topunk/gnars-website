@@ -1,16 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Loader2, ThumbsUp, ThumbsDown, CircleDashed } from "lucide-react";
-import { useAccount } from "wagmi";
+import { Check, CircleDashed, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Address } from "viem";
+import { useAccount } from "wagmi";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldTitle,
+} from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Field, FieldContent, FieldDescription, FieldLabel, FieldTitle } from "@/components/ui/field";
+import { Textarea } from "@/components/ui/textarea";
 import { useCastVote } from "@/hooks/useCastVote";
-import { ProposalStatus } from "@/lib/schemas/proposals";
 import { IS_DEV } from "@/lib/config";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 import { cn } from "@/lib/utils";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
@@ -53,10 +59,13 @@ const VOTE_ICONS: Record<VoteChoice, typeof ThumbsUp> = {
   ABSTAIN: CircleDashed,
 };
 
-const VOTE_COLORS: Record<VoteChoice, { 
-  selected: string;
-  iconSelected: string;
-}> = {
+const VOTE_COLORS: Record<
+  VoteChoice,
+  {
+    selected: string;
+    iconSelected: string;
+  }
+> = {
   FOR: {
     selected: "!bg-green-50 !border-green-500 dark:!bg-green-950/40 dark:!border-green-600",
     iconSelected: "text-green-700 dark:text-green-400",
@@ -87,7 +96,9 @@ export function VotingControls({
   const { address: accountAddress, isConnected } = useAccount();
   const [voteChoice, setVoteChoice] = useState<VoteChoice | null>(existingUserVote ?? null);
   const [reason, setReason] = useState("");
-  const [pendingVote, setPendingVote] = useState<{ choice: VoteChoice; reason?: string } | null>(null);
+  const [pendingVote, setPendingVote] = useState<{ choice: VoteChoice; reason?: string } | null>(
+    null,
+  );
 
   const {
     castVote,
@@ -127,8 +138,7 @@ export function VotingControls({
       return "You had no voting power at the proposal snapshot. Only tokens held and delegated before the snapshot can vote.";
     }
     if (IS_DEV && !hasVotingPower) return "DEV MODE: Voting enabled without voting power";
-    if (isDelegating)
-      return `Voting power delegated to ${delegatedTo ?? "another address"}`;
+    if (isDelegating) return `Voting power delegated to ${delegatedTo ?? "another address"}`;
     return `You have ${votingPower.toString()} votes (based on snapshot)`;
   }, [delegatedTo, hasVotingPower, isConnected, isDelegating, votesLoading, votingPower]);
 
@@ -147,9 +157,18 @@ export function VotingControls({
 
     setPendingVote(null);
     setReason(pendingVote.reason ?? "");
-  }, [accountAddress, isConfirmed, onVoteSuccess, pendingHash, pendingVote, signerAddress, votingPower]);
+  }, [
+    accountAddress,
+    isConfirmed,
+    onVoteSuccess,
+    pendingHash,
+    pendingVote,
+    signerAddress,
+    votingPower,
+  ]);
 
-  const isDisabled = status !== ProposalStatus.ACTIVE || !eligibleToVote || hasVoted || isPending || isConfirming;
+  const isDisabled =
+    status !== ProposalStatus.ACTIVE || !eligibleToVote || hasVoted || isPending || isConfirming;
   const shouldShowButton =
     !existingUserVote ||
     Boolean(showConfirmedButton) ||
@@ -201,25 +220,23 @@ export function VotingControls({
           const isSelected = voteChoice === choice;
           const colors = VOTE_COLORS[choice];
           return (
-            <FieldLabel 
-              key={choice} 
-              htmlFor={`vote-${choice}`}
-            >
-              <Field 
-                orientation="horizontal" 
-                className={cn(
-                  "justify-between transition-colors",
-                  isSelected && colors.selected
-                )}
+            <FieldLabel key={choice} htmlFor={`vote-${choice}`}>
+              <Field
+                orientation="horizontal"
+                className={cn("justify-between transition-colors", isSelected && colors.selected)}
               >
                 <FieldContent className="flex-row items-center gap-2">
-                  <Icon className={cn(
-                    "h-5 w-5 shrink-0 transition-colors",
-                    isSelected ? colors.iconSelected : "text-muted-foreground"
-                  )} />
+                  <Icon
+                    className={cn(
+                      "h-5 w-5 shrink-0 transition-colors",
+                      isSelected ? colors.iconSelected : "text-muted-foreground",
+                    )}
+                  />
                   <div className="flex flex-col gap-0.5">
                     <FieldTitle>{VOTE_LABELS[choice]}</FieldTitle>
-                    <FieldDescription className="text-xs">{VOTE_DESCRIPTIONS[choice]}</FieldDescription>
+                    <FieldDescription className="text-xs">
+                      {VOTE_DESCRIPTIONS[choice]}
+                    </FieldDescription>
                   </div>
                 </FieldContent>
                 <RadioGroupItem id={`vote-${choice}`} value={choice} className="shrink-0" />
@@ -230,9 +247,7 @@ export function VotingControls({
       </RadioGroup>
 
       <div className="space-y-2">
-        <FieldDescription className="text-xs">
-          Optional comment (shared on-chain)
-        </FieldDescription>
+        <FieldDescription className="text-xs">Optional comment (shared on-chain)</FieldDescription>
         <Textarea
           id="vote-reason"
           value={reason}
@@ -243,9 +258,7 @@ export function VotingControls({
         />
       </div>
 
-      {helperText && !hasVoted && (
-        <p className="text-xs text-muted-foreground">{helperText}</p>
-      )}
+      {helperText && !hasVoted && <p className="text-xs text-muted-foreground">{helperText}</p>}
 
       {shouldShowButton ? (
         <Button
