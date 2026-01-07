@@ -147,6 +147,11 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     [setUserVote, setUserVoteReason, setHasRecentVoteConfirmation, setVoteTotals, setVotesList],
   );
 
+  // Find user's vote from subgraph
+  const userVoteFromSubgraph = votesList.find(
+    (v) => v.voter?.toLowerCase() === address?.toLowerCase()
+  );
+
   const {
     hasVotingPower,
     votingPower,
@@ -159,6 +164,21 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     governorAddress: GNARS_ADDRESSES.governor,
     signerAddress: address ?? undefined,
     snapshotBlock: proposal.snapshotBlock ? BigInt(proposal.snapshotBlock) : undefined,
+    // Use vote weight from subgraph if available (more reliable than getPastVotes)
+    voteWeightFromSubgraph: userVoteFromSubgraph?.votes ? Number(userVoteFromSubgraph.votes) : undefined,
+  });
+
+  console.log('[ProposalDetail] Vote check:', {
+    proposalSnapshotBlock: proposal.snapshotBlock,
+    snapshotBlockType: typeof proposal.snapshotBlock,
+    convertedSnapshot: proposal.snapshotBlock ? BigInt(proposal.snapshotBlock).toString() : 'undefined',
+    walletAddress: address,
+    hasVotingPower,
+    votingPower: votingPower.toString(),
+    currentVote,
+    hasAlreadyVoted: Boolean(currentVote),
+    voteFromList: userVoteFromSubgraph,
+    usingSubgraphWeight: userVoteFromSubgraph?.votes ? Number(userVoteFromSubgraph.votes) : undefined,
   });
 
   // Fetch propdates to determine if the tab should be shown
@@ -180,7 +200,6 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const shouldShowTabs = visibleTabsCount > 1;
 
   // Show voting card for active proposals (connection check moved to VotingControls to avoid hydration issues)
-  // TODO: Re-enable hasVotingPower check after fixing useVotes hook
   const isProposalActive = proposal.status === "Active";
   const shouldShowVotingCard = isProposalActive;
 

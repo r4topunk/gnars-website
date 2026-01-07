@@ -46,6 +46,8 @@ interface UseVotesArgs {
   signerAddress?: Address;
   snapshotBlock?: bigint;
   enabled?: boolean;
+  // Optional: voting power from subgraph (more reliable than getPastVotes)
+  voteWeightFromSubgraph?: number;
 }
 
 interface UseVotesResult {
@@ -79,8 +81,20 @@ export const useVotes = ({
   signerAddress,
   snapshotBlock,
   enabled: enabledProp = true,
+  voteWeightFromSubgraph,
 }: UseVotesArgs): UseVotesResult => {
   const enabled = Boolean(collectionAddress && governorAddress && signerAddress) && enabledProp;
+  const hasSubgraphVoteWeight = voteWeightFromSubgraph !== undefined && voteWeightFromSubgraph > 0;
+
+  console.log('[useVotes] Contract call params:', {
+    snapshotBlock: snapshotBlock?.toString(),
+    snapshotBlockType: typeof snapshotBlock,
+    snapshotBlockIsBigInt: typeof snapshotBlock === 'bigint',
+    signerAddress,
+    usingHistoricalQuery: Boolean(snapshotBlock),
+    hasSubgraphVoteWeight,
+    voteWeightFromSubgraph,
+  });
 
   const { data, isLoading } = useReadContracts({
     query: {
@@ -88,7 +102,7 @@ export const useVotes = ({
       refetchInterval: false,
     },
     contracts: enabled
-      ? (snapshotBlock
+      ? (snapshotBlock && !hasSubgraphVoteWeight // Skip getPastVotes if we have subgraph data
           ? [
               {
                 address: collectionAddress!,
@@ -136,52 +150,56 @@ export const useVotes = ({
       : [],
   });
 
+  console.log('[useVotes] Contract response:', {
+    hasData: Boolean(data),
+    votesResult: data?.[0]?.result?.toString(),
+    votesStatus: data?.[0]?.status,
+    delegatesAtSnapshot: data?.[1]?.result,
+    isDelegatingAtSnapshot: data?.[1]?.result !== signerAddress,
+  });
+
   if (!enabled || !data || isLoading) {
     return { ...emptyResult, isLoading };
   }
 
-  // Check if any calls failed and log for debugging
-  const votesResult = data[0];
-  const delegatesResult = data[1];
-  const thresholdResult = data[2];
+  // If we have subgraph vote weight, use that instead of contract data
+  if (hasSubgraphVoteWeight) {
+    const votingPower = BigInt(voteWeightFromSubgraph!);
+    const delegates = data[0]?.result as Address | undefined;
+    const proposalThreshold = data[1]?.result as bigint | undefined;
 
-  if (votesResult?.status === 'failure' || delegatesResult?.status === 'failure' || thresholdResult?.status === 'failure') {
-    console.warn('[useVotes] One or more contract calls failed:', {
-      votes: votesResult?.status === 'failure' ? 'FAILED' : 'OK',
-      delegates: delegatesResult?.status === 'failure' ? 'FAILED' : 'OK',
-      threshold: thresholdResult?.status === 'failure' ? 'FAILED' : 'OK',
-      snapshotBlock: snapshotBlock?.toString(),
-    });
-  }
-
-  const votes = votesResult?.result as bigint | undefined;
-  const delegates = delegatesResult?.result as Address | undefined;
-  const proposalThreshold = thresholdResult?.result as bigint | undefined;
-
-  // If getPastVotes fails but we have delegates and threshold, use getVotes as fallback
-  if (votes === undefined) {
-    console.warn('[useVotes] Votes undefined, returning empty result');
-    // Return partial data if available rather than all zeros
-    if (delegates !== undefined || proposalThreshold !== undefined) {
-      return {
-        isLoading: false,
-        votingPower: 0n,
-        hasVotingPower: false,
-        isDelegating: delegates ? delegates !== signerAddress : false,
-        delegatedTo: delegates,
-        proposalThreshold: proposalThreshold ?? 0n,
-        hasThreshold: false,
-        proposalVotesRequired: proposalThreshold ? proposalThreshold + 1n : 0n,
-        votes: 0n,
-      };
+    if (delegates === undefined || proposalThreshold === undefined) {
+      return { ...emptyResult, isLoading: false };
     }
+
+    console.log('[useVotes] Using subgraph vote weight:', {
+      voteWeightFromSubgraph,
+      votingPower: votingPower.toString(),
+      proposalThreshold: proposalThreshold.toString(),
+    });
+
+    return {
+      isLoading,
+      votingPower,
+      hasVotingPower: votingPower > 0n,
+      isDelegating: delegates !== signerAddress,
+      delegatedTo: delegates,
+      proposalThreshold,
+      hasThreshold: votingPower > proposalThreshold,
+      proposalVotesRequired: proposalThreshold + 1n,
+      votes: votingPower,
+    };
+  }
+
+  // Fall back to contract data
+  const votes = data[0]?.result as bigint | undefined;
+  const delegates = data[1]?.result as Address | undefined;
+  const proposalThreshold = data[2]?.result as bigint | undefined;
+
+  if (votes === undefined || delegates === undefined || proposalThreshold === undefined) {
     return { ...emptyResult, isLoading: false };
   }
 
-  if (delegates === undefined || proposalThreshold === undefined) {
-    console.warn('[useVotes] Delegates or threshold undefined');
-    return { ...emptyResult, isLoading: false };
-  }
 
   return {
     isLoading,
