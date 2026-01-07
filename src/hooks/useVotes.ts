@@ -89,36 +89,51 @@ export const useVotes = ({
     },
     allowFailure: false,
     contracts: enabled
-      ? ([
-          snapshotBlock
-            ? {
+      ? (snapshotBlock
+          ? [
+              {
                 address: collectionAddress!,
                 abi: tokenAbi,
-                functionName: "getPastVotes" as const,
+                functionName: "getPastVotes",
                 args: [signerAddress!, snapshotBlock],
                 chainId,
-              }
-            : {
+              },
+              {
                 address: collectionAddress!,
                 abi: tokenAbi,
-                functionName: "getVotes" as const,
+                functionName: "delegates",
                 args: [signerAddress!],
                 chainId,
               },
-          {
-            address: collectionAddress!,
-            abi: tokenAbi,
-            functionName: "delegates" as const,
-            args: [signerAddress!],
-            chainId,
-          },
-          {
-            address: governorAddress!,
-            abi: governorAbi,
-            functionName: "proposalThreshold" as const,
-            chainId,
-          },
-        ] as const)
+              {
+                address: governorAddress!,
+                abi: governorAbi,
+                functionName: "proposalThreshold",
+                chainId,
+              },
+            ]
+          : [
+              {
+                address: collectionAddress!,
+                abi: tokenAbi,
+                functionName: "getVotes",
+                args: [signerAddress!],
+                chainId,
+              },
+              {
+                address: collectionAddress!,
+                abi: tokenAbi,
+                functionName: "delegates",
+                args: [signerAddress!],
+                chainId,
+              },
+              {
+                address: governorAddress!,
+                abi: governorAbi,
+                functionName: "proposalThreshold",
+                chainId,
+              },
+            ])
       : [],
   });
 

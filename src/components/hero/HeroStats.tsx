@@ -35,7 +35,7 @@ export function HeroStats({ stats }: HeroStatsProps) {
             <div className="font-semibold">
               <CountUp value={Number(stats.totalSupply || 0)} durationMs={800} />
             </div>
-            <div className="text-xs text-muted-foreground">Total NFTs</div>
+            <div className="text-xs text-muted-foreground">Total Gnars</div>
           </div>
         </div>
         <div className="flex items-center gap-2 text-sm">
