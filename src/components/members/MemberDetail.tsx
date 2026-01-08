@@ -11,11 +11,11 @@ import { MemberTokensGrid } from "@/components/members/detail/MemberTokensGrid";
 import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
 import { type Proposal as UiProposal } from "@/components/proposals/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useZoraProfile } from "@/hooks/use-zora-profile";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { resolveENS } from "@/lib/ens";
 import { getProposalStatus } from "@/lib/schemas/proposals";
 import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
-import { useZoraProfile } from "@/hooks/use-zora-profile";
 
 interface MemberDetailProps {
   address: string;
@@ -38,10 +38,10 @@ export function MemberDetail({ address }: MemberDetailProps) {
   };
   const [votes, setVotes] = useState<VoteItem[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Fetch Zora profile data
   const { data: zoraProfile } = useZoraProfile(address);
-  
+
   const allowedTabs = useMemo(() => new Set(["proposals", "votes", "tokens", "delegates"]), []);
   const initialTab = useMemo(() => {
     const raw = searchParams.get("tab");
