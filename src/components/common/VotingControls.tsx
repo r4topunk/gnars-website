@@ -113,8 +113,8 @@ export function VotingControls({
   });
 
   const hasVoted = Boolean(existingUserVote) || Boolean(isConfirmed);
-  // In dev mode, allow voting even without power; otherwise require connection and voting power at snapshot
-  const eligibleToVote = IS_DEV ? isConnected : Boolean(isConnected && hasVotingPower);
+  // Allow voting for all connected users (voting power gating temporarily disabled)
+  const eligibleToVote = isConnected;
 
   useEffect(() => {
     if (existingUserVote) {
@@ -130,17 +130,12 @@ export function VotingControls({
 
   const helperText = useMemo(() => {
     if (!isConnected) return "Connect your wallet to vote";
-    if (votesLoading) return "Checking voting power at snapshot...";
-    if (!hasVotingPower && !IS_DEV) {
-      if (isDelegating) {
-        return `Your voting power was delegated to ${delegatedTo ?? "another address"} at the time of the snapshot`;
-      }
-      return "You had no voting power at the proposal snapshot. Only tokens held and delegated before the snapshot can vote.";
+    if (votesLoading) return "Loading...";
+    if (votingPower > 0n) {
+      return `You have ${votingPower.toString()} votes (based on snapshot)`;
     }
-    if (IS_DEV && !hasVotingPower) return "DEV MODE: Voting enabled without voting power";
-    if (isDelegating) return `Voting power delegated to ${delegatedTo ?? "another address"}`;
-    return `You have ${votingPower.toString()} votes (based on snapshot)`;
-  }, [delegatedTo, hasVotingPower, isConnected, isDelegating, votesLoading, votingPower]);
+    return "Your vote will be recorded on-chain";
+  }, [isConnected, votesLoading, votingPower]);
 
   useEffect(() => {
     if (!onVoteSuccess || !pendingVote || !pendingHash || !isConfirmed) {

@@ -61,8 +61,8 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
     onActionSuccess();
   };
 
-  // Determine if user can perform actions
-  const canPerformAction = isConnected && hasVotingPower && !votesLoading;
+  // Allow all connected users to perform actions (voting power gating disabled)
+  const canPerformAction = isConnected;
 
   return (
     <Card className="p-6 w-full max-w-2xl mx-auto text-center">
@@ -74,12 +74,6 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
                 <p className="text-sm text-muted-foreground">
                   Queue this proposal before it expires
                 </p>
-                {isConnected && !hasVotingPower && !votesLoading && (
-                  <Alert className="mt-2">
-                    <InfoIcon className="h-4 w-4" />
-                    <AlertDescription>You need at least 1 Gnar to queue proposals</AlertDescription>
-                  </Alert>
-                )}
               </div>
               {canPerformAction && (
                 <div className="mt-2">
@@ -137,14 +131,6 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
                   )}
                   {!expiresAt && "Execute this proposal"}
                 </p>
-                {isConnected && !hasVotingPower && !votesLoading && (
-                  <Alert className="mt-2">
-                    <InfoIcon className="h-4 w-4" />
-                    <AlertDescription>
-                      You need at least 1 Gnar to execute proposals
-                    </AlertDescription>
-                  </Alert>
-                )}
               </div>
               {canPerformAction && (
                 <div className="mt-2">
