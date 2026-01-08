@@ -79,14 +79,20 @@ export function MemberQuickStats({
   const handleBuy = async () => {
     if (!zoraProfile?.creatorCoin?.address) return;
 
-    const success = await buyCreatorCoin({
-      creatorCoinAddress: zoraProfile.creatorCoin.address,
-      amountInEth: ethAmount,
-    });
+    try {
+      const success = await buyCreatorCoin({
+        creatorCoinAddress: zoraProfile.creatorCoin.address,
+        amountInEth: ethAmount,
+      });
 
-    if (success) {
-      setShowBuyModal(false);
-      setEthAmount("0.001");
+      if (success) {
+        setShowBuyModal(false);
+        setEthAmount("0.001");
+      }
+    } catch (error) {
+      console.error("Error in handleBuy:", error);
+      // Modal stays open so user can retry
+      // The buyCreatorCoin hook already handles toast notifications
     }
   };
 

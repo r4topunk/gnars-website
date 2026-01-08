@@ -6,7 +6,19 @@ import { toast } from "sonner";
 
 // Initialize API key
 if (typeof window !== "undefined") {
-  setApiKey(process.env.NEXT_PUBLIC_ZORA_API_KEY ?? "");
+  const apiKey = process.env.NEXT_PUBLIC_ZORA_API_KEY;
+  
+  if (!apiKey) {
+    const message = "Missing NEXT_PUBLIC_ZORA_API_KEY environment variable";
+    
+    if (process.env.NODE_ENV !== "production") {
+      throw new Error(message);
+    } else {
+      console.warn(`[use-trade-creator-coin] ${message}`);
+    }
+  } else {
+    setApiKey(apiKey);
+  }
 }
 
 interface TradeCreatorCoinParams {
