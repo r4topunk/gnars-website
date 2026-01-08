@@ -21,9 +21,6 @@ import { Copy, ExternalLink, Loader2, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Address } from "viem";
 import { useAccount, useReadContracts } from "wagmi";
-import { GNARS_ADDRESSES } from "@/lib/config";
-import { useVotes } from "@/hooks/useVotes";
-import { useDelegate } from "@/hooks/useDelegate";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,6 +32,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useDelegate } from "@/hooks/useDelegate";
+import { useVotes } from "@/hooks/useVotes";
+import { GNARS_ADDRESSES } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
 interface DelegationModalProps {
@@ -43,7 +43,11 @@ interface DelegationModalProps {
   initialDelegateAddress?: string;
 }
 
-export function DelegationModal({ open, onOpenChange, initialDelegateAddress }: DelegationModalProps) {
+export function DelegationModal({
+  open,
+  onOpenChange,
+  initialDelegateAddress,
+}: DelegationModalProps) {
   const { address, isConnected } = useAccount();
   const [delegateAddress, setDelegateAddress] = React.useState("");
   const [isChanging, setIsChanging] = React.useState(false);
@@ -104,7 +108,10 @@ export function DelegationModal({ open, onOpenChange, initialDelegateAddress }: 
 
   React.useEffect(() => {
     if (initialDelegateAddress) {
-      console.log("[DelegationModal] Setting delegate address to initial address:", initialDelegateAddress);
+      console.log(
+        "[DelegationModal] Setting delegate address to initial address:",
+        initialDelegateAddress,
+      );
       setDelegateAddress(initialDelegateAddress);
       setIsChanging(true); // Auto-open the change form when pre-filled
     } else if (address) {
@@ -203,9 +210,7 @@ export function DelegationModal({ open, onOpenChange, initialDelegateAddress }: 
             <div className="rounded-full bg-muted p-4">
               <UserCheck className="size-8 text-muted-foreground" />
             </div>
-            <p className="text-sm text-muted-foreground text-center">
-              Wallet connection required
-            </p>
+            <p className="text-sm text-muted-foreground text-center">Wallet connection required</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -217,9 +222,9 @@ export function DelegationModal({ open, onOpenChange, initialDelegateAddress }: 
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Voting Delegation</DialogTitle>
-          <DialogDescription> 
-              Delegating allows someone else to vote with your NFTs while you retain ownership.
-              This doesn&apos;t transfer your tokens.
+          <DialogDescription>
+            Delegating allows someone else to vote with your NFTs while you retain ownership. This
+            doesn&apos;t transfer your tokens.
           </DialogDescription>
         </DialogHeader>
 
@@ -270,9 +275,7 @@ export function DelegationModal({ open, onOpenChange, initialDelegateAddress }: 
                   )}
                 </div>
                 {isSelfDelegated ? (
-                  <p className="text-xs text-muted-foreground">
-                    You are voting with your own NFTs
-                  </p>
+                  <p className="text-xs text-muted-foreground">You are voting with your own NFTs</p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
                     Your votes are delegated to another address
@@ -290,8 +293,6 @@ export function DelegationModal({ open, onOpenChange, initialDelegateAddress }: 
               </Button>
             </div>
           </div>
-
-
 
           {/* Change Delegation */}
           {isChanging ? (
@@ -347,7 +348,9 @@ export function DelegationModal({ open, onOpenChange, initialDelegateAddress }: 
               {isConfirming ? (
                 <>
                   <Loader2 className="size-4 animate-spin text-amber-600 dark:text-amber-400" />
-                  <span className="text-amber-900 dark:text-amber-100">Confirming transaction...</span>
+                  <span className="text-amber-900 dark:text-amber-100">
+                    Confirming transaction...
+                  </span>
                 </>
               ) : isConfirmed ? (
                 <span className="text-green-900 dark:text-green-100">✓ Transaction confirmed!</span>
@@ -369,7 +372,9 @@ export function DelegationModal({ open, onOpenChange, initialDelegateAddress }: 
             </Button>
             <Button
               onClick={handleDelegate}
-              disabled={!delegateAddress || delegateAddress.length !== 42 || isPending || isConfirming}
+              disabled={
+                !delegateAddress || delegateAddress.length !== 42 || isPending || isConfirming
+              }
             >
               {isPending || isConfirming ? (
                 <>
