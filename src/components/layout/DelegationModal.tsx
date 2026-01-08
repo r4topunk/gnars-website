@@ -40,9 +40,10 @@ import { cn } from "@/lib/utils";
 interface DelegationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialDelegateAddress?: string;
 }
 
-export function DelegationModal({ open, onOpenChange }: DelegationModalProps) {
+export function DelegationModal({ open, onOpenChange, initialDelegateAddress }: DelegationModalProps) {
   const { address, isConnected } = useAccount();
   const [delegateAddress, setDelegateAddress] = React.useState("");
   const [isChanging, setIsChanging] = React.useState(false);
@@ -102,11 +103,15 @@ export function DelegationModal({ open, onOpenChange }: DelegationModalProps) {
   const votingPower = votesData.votes;
 
   React.useEffect(() => {
-    if (address) {
+    if (initialDelegateAddress) {
+      console.log("[DelegationModal] Setting delegate address to initial address:", initialDelegateAddress);
+      setDelegateAddress(initialDelegateAddress);
+      setIsChanging(true); // Auto-open the change form when pre-filled
+    } else if (address) {
       console.log("[DelegationModal] Setting delegate address to user address:", address);
       setDelegateAddress(address);
     }
-  }, [address]);
+  }, [address, initialDelegateAddress]);
 
   // Reset changing state when modal closes
   React.useEffect(() => {

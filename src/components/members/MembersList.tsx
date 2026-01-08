@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Search, UserPlus } from "lucide-react";
+import { DelegationModal } from "@/components/layout/DelegationModal";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -51,6 +53,8 @@ export function MembersList({
   const PAGE_SIZE = 100;
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [delegationModalOpen, setDelegationModalOpen] = useState(false);
+  const [selectedDelegateAddress, setSelectedDelegateAddress] = useState<string | undefined>();
 
   useEffect(() => {
     async function loadMembers() {
@@ -250,12 +254,13 @@ export function MembersList({
                   )}
                 </span>
               </TableHead>
+              <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredMembers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   {searchTerm ? "No members found matching your search." : "No members found."}
                 </TableCell>
               </TableRow>
@@ -314,7 +319,20 @@ export function MembersList({
                   <TableCell className="text-right">
                     <span className="font-medium">{member.attendancePct ?? 0}%</span>
                   </TableCell>
-                  {/* Like % column removed as requested */}
+                  <TableCell className="text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedDelegateAddress(member.owner);
+                        setDelegationModalOpen(true);
+                      }}
+                      className="gap-1"
+                    >
+                      <UserPlus className="h-3 w-3" />
+                      Delegate
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -328,6 +346,12 @@ export function MembersList({
       <div className="text-sm text-muted-foreground">
         Showing {Math.min(visibleCount, filteredMembers.length)} of {filteredMembers.length} members
       </div>
+
+      <DelegationModal
+        open={delegationModalOpen}
+        onOpenChange={setDelegationModalOpen}
+        initialDelegateAddress={selectedDelegateAddress}
+      />
     </div>
   );
 }
