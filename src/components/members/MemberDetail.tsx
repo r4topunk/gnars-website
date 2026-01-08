@@ -15,6 +15,7 @@ import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { resolveENS } from "@/lib/ens";
 import { getProposalStatus } from "@/lib/schemas/proposals";
 import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
+import { useZoraProfile } from "@/hooks/use-zora-profile";
 
 interface MemberDetailProps {
   address: string;
@@ -37,6 +38,10 @@ export function MemberDetail({ address }: MemberDetailProps) {
   };
   const [votes, setVotes] = useState<VoteItem[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Fetch Zora profile data
+  const { data: zoraProfile } = useZoraProfile(address);
+  
   const allowedTabs = useMemo(() => new Set(["proposals", "votes", "tokens", "delegates"]), []);
   const initialTab = useMemo(() => {
     const raw = searchParams.get("tab");
@@ -173,7 +178,12 @@ export function MemberDetail({ address }: MemberDetailProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <MemberHeader address={address} display={display} ensAvatar={ensAvatar} />
+      <MemberHeader
+        address={address}
+        display={display}
+        ensAvatar={ensAvatar}
+        zoraAvatar={zoraProfile?.avatar?.medium ?? null}
+      />
 
       {/* Quick stats */}
       <MemberQuickStats
@@ -182,6 +192,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
         delegatorsCount={delegators.length}
         proposalsCount={proposals.length}
         votesCount={votes.length}
+        zoraProfile={zoraProfile}
       />
 
       {/* Tabs for detail lists */}

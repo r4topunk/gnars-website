@@ -1,21 +1,25 @@
 "use client";
 
 import { AddressDisplay } from "@/components/ui/address-display";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FlipAvatar } from "./FlipAvatar";
 
 interface MemberHeaderProps {
   address: string;
   display: string | null | undefined;
   ensAvatar: string | null;
+  zoraAvatar?: string | null;
 }
 
-export function MemberHeader({ address, display, ensAvatar }: MemberHeaderProps) {
+export function MemberHeader({ address, display, ensAvatar, zoraAvatar }: MemberHeaderProps) {
   return (
     <div className="flex items-start gap-4">
-      <Avatar className="h-16 w-16">
-        {ensAvatar ? <AvatarImage src={ensAvatar} alt={String(display)} /> : null}
-        <AvatarFallback>{address.slice(2, 4).toUpperCase()}</AvatarFallback>
-      </Avatar>
+      <FlipAvatar
+        address={address}
+        ensAvatar={ensAvatar}
+        zoraAvatar={zoraAvatar}
+        displayName={String(display)}
+        size="lg"
+      />
       <div className="flex-1">
         <div className="flex items-centered gap-2">
           <h1 className="text-2xl font-bold tracking-tight">
