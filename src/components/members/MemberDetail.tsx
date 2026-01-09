@@ -3,17 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
+import { MemberCreatedCoinsGrid } from "@/components/members/detail/MemberCreatedCoinsGrid";
 import { MemberDelegatorsTable } from "@/components/members/detail/MemberDelegatorsTable";
 import { MemberHeader } from "@/components/members/detail/MemberHeader";
 import { MemberProposalsGrid } from "@/components/members/detail/MemberProposalsGrid";
 import { MemberQuickStats } from "@/components/members/detail/MemberQuickStats";
 import { MemberTokensGrid } from "@/components/members/detail/MemberTokensGrid";
 import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
-import { MemberCreatedCoinsGrid } from "@/components/members/detail/MemberCreatedCoinsGrid";
 import { type Proposal as UiProposal } from "@/components/proposals/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useZoraProfile } from "@/hooks/use-zora-profile";
 import { useProfileCoins } from "@/hooks/use-profile-coins";
+import { useZoraProfile } from "@/hooks/use-zora-profile";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { resolveENS } from "@/lib/ens";
 import { getProposalStatus } from "@/lib/schemas/proposals";
@@ -43,7 +43,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
 
   // Fetch Zora profile data
   const { data: zoraProfile } = useZoraProfile(address);
-  
+
   // Fetch created coins
   const { data: createdCoins } = useProfileCoins(address, 20);
 
