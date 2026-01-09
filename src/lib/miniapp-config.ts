@@ -184,3 +184,52 @@ export const PROPOSALS_MINIAPP_EMBED_CONFIG = {
     },
   },
 };
+
+/**
+ * Members Mini App Configuration
+ * Custom configuration for member profiles
+ */
+export const MEMBERS_MINIAPP_CONFIG = {
+  accountAssociation: MINIAPP_CONFIG.accountAssociation,
+  baseBuilder: MINIAPP_CONFIG.baseBuilder,
+  miniapp: {
+    version: "1",
+    name: "Gnars Members",
+    subtitle: "DAO Member Profiles",
+    description:
+      "Explore Gnars DAO member profiles, voting history, proposals, and creator coins. See who's building in the action sports DAO.",
+    homeUrl: `${BASE_URL}/members`,
+    iconUrl: `${BASE_URL}/gnars.webp`,
+    splashImageUrl: `${BASE_URL}/gnars.webp`,
+    splashBackgroundColor: "#000000",
+    webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
+    primaryCategory: "social" as const,
+    tags: ["dao", "members", "profiles", "gnars", "base", "creators"],
+    screenshotUrls: [] as string[],
+    heroImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    tagline: "DAO member profiles on Base",
+    ogTitle: "Gnars DAO Members",
+    ogDescription:
+      "Explore Gnars DAO member profiles and see who's building in the action sports DAO.",
+    ogImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    noindex: false,
+  },
+} as const;
+
+/**
+ * Members Embed metadata configuration for fc:miniapp meta tag
+ */
+export const MEMBERS_MINIAPP_EMBED_CONFIG = {
+  version: "next",
+  imageUrl: `${BASE_URL}/logo-banner.jpg`,
+  button: {
+    title: "View Member",
+    action: {
+      type: "launch_miniapp" as const,
+      name: "Gnars Members",
+      url: `${BASE_URL}/members`,
+      splashImageUrl: `${BASE_URL}/gnars.webp`,
+      splashBackgroundColor: "#000000",
+    },
+  },
+};

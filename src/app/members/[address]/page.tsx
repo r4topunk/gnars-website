@@ -1,11 +1,149 @@
+import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { getProfile, setApiKey } from "@zoralabs/coins-sdk";
 import { isAddress } from "viem";
 import { MemberDetail } from "@/components/members/MemberDetail";
+import { BASE_URL } from "@/lib/config";
 import { resolveAddressFromENS } from "@/lib/ens";
+import { MEMBERS_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
+import { fetchMemberOverview } from "@/services/members";
+
+export const dynamic = "force-dynamic";
 
 interface MemberPageProps {
   params: Promise<{ address: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+// Helper to fetch member metadata for OG tags
+async function getMemberMetadata(address: string) {
+  try {
+    // Fetch Zora profile data
+    if (process.env.NEXT_PUBLIC_ZORA_API_KEY) {
+      setApiKey(process.env.NEXT_PUBLIC_ZORA_API_KEY);
+    }
+
+    const [zoraProfile, memberOverview] = await Promise.all([
+      getProfile({ identifier: address }).catch(() => null),
+      fetchMemberOverview(address).catch(() => null),
+    ]);
+
+    const profile = zoraProfile?.data?.profile;
+    const displayName =
+      profile?.displayName || profile?.handle || `${address.slice(0, 6)}...${address.slice(-4)}`;
+    const avatar = profile?.avatar?.medium || profile?.avatar?.small;
+    const tokenCount = memberOverview?.tokenCount || 0;
+
+    // Safely access creatorCoin properties
+    const creatorCoin = profile?.creatorCoin as
+      | {
+          address?: string;
+          name?: string;
+          symbol?: string;
+          marketCap?: string;
+          marketCapDelta24h?: string;
+          mediaContent?: {
+            previewImage?: {
+              small?: string;
+              medium?: string;
+              blurhash?: string;
+            };
+          };
+        }
+      | undefined;
+
+    // Use avatar or creator coin image if available
+    const imageUrl =
+      avatar ||
+      creatorCoin?.mediaContent?.previewImage?.medium ||
+      creatorCoin?.mediaContent?.previewImage?.small ||
+      `${BASE_URL}/logo-banner.jpg`;
+
+    return {
+      displayName,
+      imageUrl,
+      tokenCount,
+      hasCreatorCoin: !!creatorCoin,
+      creatorCoinName: creatorCoin?.name,
+    };
+  } catch (error) {
+    console.error("Error fetching member metadata:", error);
+    return null;
+  }
+}
+
+export async function generateMetadata({ params }: MemberPageProps): Promise<Metadata> {
+  const { address } = await params;
+
+  // Check if it's a valid address
+  if (!isAddress(address)) {
+    return {
+      title: "Member Not Found | Gnars DAO",
+      description: "The member profile you're looking for doesn't exist.",
+    };
+  }
+
+  const metadata = await getMemberMetadata(address);
+
+  if (!metadata) {
+    return {
+      title: `${address.slice(0, 6)}...${address.slice(-4)} | Gnars DAO`,
+      description: "View this member's profile on Gnars DAO.",
+    };
+  }
+
+  const { displayName, imageUrl, tokenCount, hasCreatorCoin, creatorCoinName } = metadata;
+
+  // Build description based on available data
+  const descriptionParts = [];
+  if (tokenCount > 0) {
+    descriptionParts.push(`${tokenCount} Gnar${tokenCount !== 1 ? "s" : ""}`);
+  }
+  if (hasCreatorCoin && creatorCoinName) {
+    descriptionParts.push(`Creator of ${creatorCoinName}`);
+  }
+  const description =
+    descriptionParts.length > 0
+      ? `${displayName}: ${descriptionParts.join(" • ")}`
+      : `View ${displayName}'s profile on Gnars DAO`;
+
+  const memberUrl = `${BASE_URL}/members/${address}`;
+
+  const miniappEmbed = {
+    ...MEMBERS_MINIAPP_EMBED_CONFIG,
+    imageUrl,
+    button: {
+      ...MEMBERS_MINIAPP_EMBED_CONFIG.button,
+      title: `View ${displayName}`,
+      action: {
+        ...MEMBERS_MINIAPP_EMBED_CONFIG.button.action,
+        url: memberUrl,
+      },
+    },
+  };
+
+  return {
+    title: `${displayName} | Gnars DAO`,
+    description,
+    openGraph: {
+      title: displayName,
+      description,
+      images: [imageUrl],
+      type: "profile",
+      url: memberUrl,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: displayName,
+      description,
+      images: [imageUrl],
+    },
+    // Farcaster mini app embed with member-specific image
+    other: {
+      "fc:miniapp": JSON.stringify(miniappEmbed),
+      "fc:frame": JSON.stringify(miniappEmbed),
+    },
+  };
 }
 
 export default async function MemberPage({ params, searchParams }: MemberPageProps) {
