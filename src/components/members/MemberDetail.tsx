@@ -243,7 +243,9 @@ export function MemberDetail({ address }: MemberDetailProps) {
         <TabsContent value="coins" className="mt-6">
           <MemberCreatedCoinsGrid
             coins={
-              (createdCoins?.edges?.map((edge: { node: unknown }) => edge.node).filter(Boolean) as Array<{
+              (createdCoins?.edges
+                ?.map((edge: { node: unknown }) => edge.node)
+                .filter(Boolean) as Array<{
                 id?: string;
                 name?: string;
                 symbol?: string;
