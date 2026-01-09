@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getProfile, setApiKey, type GetProfileQuery } from "@zoralabs/coins-sdk";
+import { getProfileCoins, setApiKey } from "@zoralabs/coins-sdk";
 
 // Track API key configuration status
 let isApiKeyConfigured = false;
@@ -10,8 +10,8 @@ if (typeof window !== "undefined") {
 
   if (!apiKey) {
     const message =
-      "Missing NEXT_PUBLIC_ZORA_API_KEY environment variable - Zora profiles will not load";
-    console.error(`[use-zora-profile] ${message}`);
+      "Missing NEXT_PUBLIC_ZORA_API_KEY environment variable - Zora profile coins will not load";
+    console.error(`[use-profile-coins] ${message}`);
     isApiKeyConfigured = false;
   } else {
     setApiKey(apiKey);
@@ -19,25 +19,29 @@ if (typeof window !== "undefined") {
   }
 }
 
-export type ZoraProfile = NonNullable<GetProfileQuery["profile"]>;
-
 /**
- * Hook to fetch Zora profile data for a given address
+ * Hook to fetch coins created by a user
  */
-export function useZoraProfile(address: string | undefined) {
+export function useProfileCoins(address: string | undefined, count = 20) {
   return useQuery({
-    queryKey: ["zora-profile", address?.toLowerCase()],
+    queryKey: ["profile-coins", address?.toLowerCase(), count],
     queryFn: async () => {
       if (!address) return null;
 
       // Check API key configuration before making request
       if (!isApiKeyConfigured) {
-        console.error("[use-zora-profile] Cannot fetch profile - Zora API key not configured");
+        console.error(
+          "[use-profile-coins] Cannot fetch profile coins - Zora API key not configured",
+        );
         return null;
       }
 
-      const response = await getProfile({ identifier: address });
-      return response.data?.profile ?? null;
+      const response = await getProfileCoins({
+        identifier: address.toLowerCase(),
+        count,
+      });
+
+      return response.data?.profile?.createdCoins ?? null;
     },
     enabled: !!address && isApiKeyConfigured,
     staleTime: 5 * 60 * 1000, // 5 minutes

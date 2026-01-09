@@ -9,9 +9,11 @@ import { MemberProposalsGrid } from "@/components/members/detail/MemberProposals
 import { MemberQuickStats } from "@/components/members/detail/MemberQuickStats";
 import { MemberTokensGrid } from "@/components/members/detail/MemberTokensGrid";
 import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
+import { MemberCreatedCoinsGrid } from "@/components/members/detail/MemberCreatedCoinsGrid";
 import { type Proposal as UiProposal } from "@/components/proposals/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useZoraProfile } from "@/hooks/use-zora-profile";
+import { useProfileCoins } from "@/hooks/use-profile-coins";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { resolveENS } from "@/lib/ens";
 import { getProposalStatus } from "@/lib/schemas/proposals";
@@ -41,8 +43,14 @@ export function MemberDetail({ address }: MemberDetailProps) {
 
   // Fetch Zora profile data
   const { data: zoraProfile } = useZoraProfile(address);
+  
+  // Fetch created coins
+  const { data: createdCoins } = useProfileCoins(address, 20);
 
-  const allowedTabs = useMemo(() => new Set(["proposals", "votes", "tokens", "delegates"]), []);
+  const allowedTabs = useMemo(
+    () => new Set(["proposals", "votes", "tokens", "delegates", "coins"]),
+    [],
+  );
   const initialTab = useMemo(() => {
     const raw = searchParams.get("tab");
     const normalized = raw ? raw.toLowerCase() : null;
@@ -197,10 +205,11 @@ export function MemberDetail({ address }: MemberDetailProps) {
 
       {/* Tabs for detail lists */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="proposals">Proposals</TabsTrigger>
           <TabsTrigger value="votes">Votes</TabsTrigger>
           <TabsTrigger value="tokens">Tokens</TabsTrigger>
+          <TabsTrigger value="coins">Created Coins</TabsTrigger>
           <TabsTrigger value="delegates">Delegates</TabsTrigger>
         </TabsList>
 
@@ -227,6 +236,14 @@ export function MemberDetail({ address }: MemberDetailProps) {
                 finalBidWei?: string | number | null;
                 winner?: string | null;
               }[]
+            }
+          />
+        </TabsContent>
+
+        <TabsContent value="coins" className="mt-6">
+          <MemberCreatedCoinsGrid
+            coins={
+              (createdCoins?.edges?.map((edge: any) => edge.node).filter(Boolean) as any[]) || []
             }
           />
         </TabsContent>

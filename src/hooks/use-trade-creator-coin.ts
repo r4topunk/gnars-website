@@ -4,20 +4,21 @@ import { parseEther } from "viem";
 import { useAccount, useWalletClient, usePublicClient } from "wagmi";
 import { toast } from "sonner";
 
+// Track API key configuration status
+let isApiKeyConfigured = false;
+
 // Initialize API key
 if (typeof window !== "undefined") {
   const apiKey = process.env.NEXT_PUBLIC_ZORA_API_KEY;
-  
+
   if (!apiKey) {
-    const message = "Missing NEXT_PUBLIC_ZORA_API_KEY environment variable";
-    
-    if (process.env.NODE_ENV !== "production") {
-      throw new Error(message);
-    } else {
-      console.warn(`[use-trade-creator-coin] ${message}`);
-    }
+    const message =
+      "Missing NEXT_PUBLIC_ZORA_API_KEY environment variable - Zora creator coin trading will not work";
+    console.error(`[use-trade-creator-coin] ${message}`);
+    isApiKeyConfigured = false;
   } else {
     setApiKey(apiKey);
+    isApiKeyConfigured = true;
   }
 }
 
@@ -33,6 +34,14 @@ export function useTradeCreatorCoin() {
   const publicClient = usePublicClient();
 
   const buyCreatorCoin = async ({ creatorCoinAddress, amountInEth }: TradeCreatorCoinParams) => {
+    // Check API key configuration before proceeding
+    if (!isApiKeyConfigured) {
+      const errorMsg =
+        "Zora API key not configured. Cannot process creator token trades. Please set NEXT_PUBLIC_ZORA_API_KEY.";
+      toast.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     if (!address || !walletClient || !publicClient) {
       toast.error("Please connect your wallet");
       return;
