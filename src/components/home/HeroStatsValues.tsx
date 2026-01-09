@@ -2,27 +2,12 @@ import { TrendingUp, Trophy, Users } from "lucide-react";
 import { formatEther } from "viem";
 import { CountUp } from "@/components/ui/count-up";
 import { GNARS_ADDRESSES, TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
-import { fetchDaoStats, fetchTotalAuctionSalesWei } from "@/services/dao";
+import { fetchDaoStats } from "@/services/dao";
 
 interface TokenBalance {
   contractAddress?: string;
   tokenBalance: string;
   decimals?: number;
-}
-
-interface AlchemyTokenResponse {
-  result?: {
-    tokenBalances?: TokenBalance[];
-  };
-}
-
-interface PriceResponse {
-  prices?: Record<string, { usd?: number }>;
-}
-
-interface EthPriceResponse {
-  usd: number;
-  error?: string;
 }
 
 async function getTreasuryValue(): Promise<number> {

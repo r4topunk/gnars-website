@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getProfile, setApiKey, type GetProfileQuery } from "@zoralabs/coins-sdk";
+import { getProfile, setApiKey } from "@zoralabs/coins-sdk";
 
 // Track API key configuration status
 let isApiKeyConfigured = false;
@@ -19,7 +19,31 @@ if (typeof window !== "undefined") {
   }
 }
 
-export type ZoraProfile = NonNullable<GetProfileQuery["profile"]>;
+// Type definition for getProfile response
+export type ZoraProfile = {
+  id?: string;
+  handle?: string;
+  displayName?: string;
+  avatar?: {
+    small?: string;
+    medium?: string;
+    blurhash?: string;
+  };
+  creatorCoin?: {
+    address?: string;
+    name?: string;
+    symbol?: string;
+    marketCap?: string;
+    marketCapDelta24h?: string;
+    mediaContent?: {
+      previewImage?: {
+        small?: string;
+        medium?: string;
+        blurhash?: string;
+      };
+    };
+  };
+};
 
 /**
  * Hook to fetch Zora profile data for a given address

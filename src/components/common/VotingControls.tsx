@@ -15,7 +15,6 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useCastVote } from "@/hooks/useCastVote";
-import { IS_DEV } from "@/lib/config";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { cn } from "@/lib/utils";
 

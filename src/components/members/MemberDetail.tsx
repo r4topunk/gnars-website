@@ -243,7 +243,25 @@ export function MemberDetail({ address }: MemberDetailProps) {
         <TabsContent value="coins" className="mt-6">
           <MemberCreatedCoinsGrid
             coins={
-              (createdCoins?.edges?.map((edge: any) => edge.node).filter(Boolean) as any[]) || []
+              (createdCoins?.edges?.map((edge: { node: unknown }) => edge.node).filter(Boolean) as Array<{
+                id?: string;
+                name?: string;
+                symbol?: string;
+                description?: string;
+                address?: string;
+                poolCurrencyTokenAddress?: string;
+                marketCap?: string;
+                marketCapDelta24h?: string;
+                totalSupply?: string;
+                uniqueHolders?: number;
+                mediaContent?: {
+                  previewImage?: {
+                    medium?: string;
+                    small?: string;
+                    blurhash?: string;
+                  };
+                };
+              }>) || []
             }
           />
         </TabsContent>

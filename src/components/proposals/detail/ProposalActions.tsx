@@ -1,16 +1,16 @@
 "use client";
 
-import { InfoIcon, Timer } from "lucide-react";
+import { Timer } from "lucide-react";
 import { useAccount } from "wagmi";
 import { Countdown } from "@/components/common/Countdown";
 import { ExecuteProposalButton } from "@/components/proposals/ExecuteProposalButton";
 import { QueueProposalButton } from "@/components/proposals/QueueProposalButton";
 import { Proposal } from "@/components/proposals/types";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+// import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { useVotes } from "@/hooks/useVotes";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+// import { useVotes } from "@/hooks/useVotes";
+// import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { isProposalExecutable, isProposalSuccessful } from "@/lib/utils/proposal-state";
 
@@ -33,12 +33,12 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
   const { address, isConnected } = useAccount();
 
   // Check if user has voting power (at least 1 Gnar)
-  const { hasVotingPower, isLoading: votesLoading } = useVotes({
-    chainId: CHAIN.id,
-    collectionAddress: GNARS_ADDRESSES.token,
-    governorAddress: GNARS_ADDRESSES.governor,
-    signerAddress: address ?? undefined,
-  });
+  // const { hasVotingPower, isLoading: votesLoading } = useVotes({
+  //   chainId: CHAIN.id,
+  //   collectionAddress: GNARS_ADDRESSES.token,
+  //   governorAddress: GNARS_ADDRESSES.governor,
+  //   signerAddress: address ?? undefined,
+  // });
 
   const {
     proposalId,

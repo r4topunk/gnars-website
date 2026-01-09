@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef, useEffect, useState, Suspense, useMemo } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useTexture, useVideoTexture } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useVideoTexture, useTexture } from "@react-three/drei";
 import type { Group } from "three";
 import * as THREE from "three";
-import type { TVTextureConfig, PlasticConfig } from "./TVTextureControls";
+import type { PlasticConfig, TVTextureConfig } from "./TVTextureControls";
 
 // Creator coin image type
 interface CreatorCoinImage {
@@ -28,7 +28,6 @@ interface TV3DModelProps {
 const ROTATION_ANGLE = Math.PI / 8;
 const MAX_OSCILLATION = Math.PI / 6; // ~30 degrees
 const TARGET_FPS = 24;
-const FRAME_INTERVAL = 1 / TARGET_FPS; // ~42ms between frames
 
 // Shared geometries (created once, reused)
 const sharedGeometries = {
@@ -174,10 +173,10 @@ const defaultWoodConfig = {
   grainScale: 2.5,
   quantizeLevels: 4,
   lightingIntensity: 0.35,
-  colorDark: [0.18, 0.10, 0.05] as [number, number, number],
-  colorMid: [0.28, 0.18, 0.10] as [number, number, number],
+  colorDark: [0.18, 0.1, 0.05] as [number, number, number],
+  colorMid: [0.28, 0.18, 0.1] as [number, number, number],
   colorLight: [0.38, 0.25, 0.15] as [number, number, number],
-  colorHighlight: [0.48, 0.32, 0.20] as [number, number, number],
+  colorHighlight: [0.48, 0.32, 0.2] as [number, number, number],
 };
 
 // Wood Cabinet component with dynamic uniforms
@@ -185,17 +184,20 @@ function WoodCabinet({ config }: { config?: TVTextureConfig["wood"] }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const settings = config ?? defaultWoodConfig;
 
-  const uniforms = useMemo(() => ({
-    uPixelSize: { value: settings.pixelSize },
-    uGrainIntensity: { value: settings.grainIntensity },
-    uGrainScale: { value: settings.grainScale },
-    uQuantizeLevels: { value: settings.quantizeLevels },
-    uLightingIntensity: { value: settings.lightingIntensity },
-    uColorDark: { value: new THREE.Vector3(...settings.colorDark) },
-    uColorMid: { value: new THREE.Vector3(...settings.colorMid) },
-    uColorLight: { value: new THREE.Vector3(...settings.colorLight) },
-    uColorHighlight: { value: new THREE.Vector3(...settings.colorHighlight) },
-  }), []);
+  const uniforms = useMemo(
+    () => ({
+      uPixelSize: { value: settings.pixelSize },
+      uGrainIntensity: { value: settings.grainIntensity },
+      uGrainScale: { value: settings.grainScale },
+      uQuantizeLevels: { value: settings.quantizeLevels },
+      uLightingIntensity: { value: settings.lightingIntensity },
+      uColorDark: { value: new THREE.Vector3(...settings.colorDark) },
+      uColorMid: { value: new THREE.Vector3(...settings.colorMid) },
+      uColorLight: { value: new THREE.Vector3(...settings.colorLight) },
+      uColorHighlight: { value: new THREE.Vector3(...settings.colorHighlight) },
+    }),
+    [],
+  );
 
   // Update uniforms when config changes
   useEffect(() => {
@@ -625,12 +627,15 @@ function VintagePlasticPanel({
     settings.baseColor[2] + colorOffset[2],
   ];
 
-  const uniforms = useMemo(() => ({
-    uBaseColor: { value: new THREE.Vector3(...adjustedColor) },
-    uPixelSize: { value: settings.pixelSize },
-    uNoiseIntensity: { value: settings.noiseIntensity },
-    uYellowing: { value: settings.yellowing },
-  }), []);
+  const uniforms = useMemo(
+    () => ({
+      uBaseColor: { value: new THREE.Vector3(...adjustedColor) },
+      uPixelSize: { value: settings.pixelSize },
+      uNoiseIntensity: { value: settings.noiseIntensity },
+      uYellowing: { value: settings.yellowing },
+    }),
+    [],
+  );
 
   // Update uniforms when config changes
   useEffect(() => {
@@ -638,7 +643,7 @@ function VintagePlasticPanel({
       materialRef.current.uniforms.uBaseColor.value.set(
         config.baseColor[0] + colorOffset[0],
         config.baseColor[1] + colorOffset[1],
-        config.baseColor[2] + colorOffset[2]
+        config.baseColor[2] + colorOffset[2],
       );
       materialRef.current.uniforms.uPixelSize.value = config.pixelSize;
       materialRef.current.uniforms.uNoiseIntensity.value = config.noiseIntensity;
@@ -674,12 +679,15 @@ function DarkRubberPanel({
   noiseIntensity?: number;
   wearAmount?: number;
 }) {
-  const uniforms = useMemo(() => ({
-    uBaseColor: { value: new THREE.Vector3(...baseColor) },
-    uPixelSize: { value: pixelSize },
-    uNoiseIntensity: { value: noiseIntensity },
-    uWearAmount: { value: wearAmount },
-  }), [baseColor, pixelSize, noiseIntensity, wearAmount]);
+  const uniforms = useMemo(
+    () => ({
+      uBaseColor: { value: new THREE.Vector3(...baseColor) },
+      uPixelSize: { value: pixelSize },
+      uNoiseIntensity: { value: noiseIntensity },
+      uWearAmount: { value: wearAmount },
+    }),
+    [baseColor, pixelSize, noiseIntensity, wearAmount],
+  );
 
   return (
     <mesh position={position} geometry={geometry}>
@@ -704,10 +712,13 @@ function PlasticButton({
   rotation?: [number, number, number];
   baseColor: [number, number, number];
 }) {
-  const uniforms = useMemo(() => ({
-    uBaseColor: { value: new THREE.Vector3(...baseColor) },
-    uPixelSize: { value: 0.015 },
-  }), [baseColor]);
+  const uniforms = useMemo(
+    () => ({
+      uBaseColor: { value: new THREE.Vector3(...baseColor) },
+      uPixelSize: { value: 0.015 },
+    }),
+    [baseColor],
+  );
 
   return (
     <mesh position={position} rotation={rotation} geometry={geometry}>
@@ -730,10 +741,13 @@ function MetalGrill({
   position: [number, number, number];
   baseColor?: [number, number, number];
 }) {
-  const uniforms = useMemo(() => ({
-    uBaseColor: { value: new THREE.Vector3(...baseColor) },
-    uPixelSize: { value: 0.012 },
-  }), [baseColor]);
+  const uniforms = useMemo(
+    () => ({
+      uBaseColor: { value: new THREE.Vector3(...baseColor) },
+      uPixelSize: { value: 0.012 },
+    }),
+    [baseColor],
+  );
 
   return (
     <mesh position={position} geometry={geometry}>
@@ -758,11 +772,14 @@ function BrushedMetal({
   rotation?: [number, number, number];
   baseColor?: [number, number, number];
 }) {
-  const uniforms = useMemo(() => ({
-    uBaseColor: { value: new THREE.Vector3(...baseColor) },
-    uPixelSize: { value: 0.02 },
-    uBrushDirection: { value: 1.0 },
-  }), [baseColor]);
+  const uniforms = useMemo(
+    () => ({
+      uBaseColor: { value: new THREE.Vector3(...baseColor) },
+      uPixelSize: { value: 0.02 },
+      uBrushDirection: { value: 1.0 },
+    }),
+    [baseColor],
+  );
 
   return (
     <mesh position={position} rotation={rotation} geometry={geometry}>
@@ -783,11 +800,14 @@ function DarkWoodBase({
   geometry: THREE.BufferGeometry;
   position: [number, number, number];
 }) {
-  const uniforms = useMemo(() => ({
-    uPixelSize: { value: 0.05 },       // Larger pixels = more pixelated look
-    uGrainIntensity: { value: 1.8 },   // Very pronounced grain
-    uGrainScale: { value: 8.0 },       // Dense grain patterns
-  }), []);
+  const uniforms = useMemo(
+    () => ({
+      uPixelSize: { value: 0.05 }, // Larger pixels = more pixelated look
+      uGrainIntensity: { value: 1.8 }, // Very pronounced grain
+      uGrainScale: { value: 8.0 }, // Dense grain patterns
+    }),
+    [],
+  );
 
   return (
     <mesh position={position} geometry={geometry}>
@@ -813,8 +833,16 @@ const sharedMaterials = {
   indicator: new THREE.MeshLambertMaterial({ color: "#333333" }),
   baseDark: new THREE.MeshLambertMaterial({ color: "#2A1F14" }),
   antennaBaseMat: new THREE.MeshLambertMaterial({ color: "#1a1a1a" }),
-  antennaMetal: new THREE.MeshStandardMaterial({ color: "#C0C0C0", metalness: 0.9, roughness: 0.2 }),
-  antennaTipMat: new THREE.MeshStandardMaterial({ color: "#D0D0D0", metalness: 0.9, roughness: 0.2 }),
+  antennaMetal: new THREE.MeshStandardMaterial({
+    color: "#C0C0C0",
+    metalness: 0.9,
+    roughness: 0.2,
+  }),
+  antennaTipMat: new THREE.MeshStandardMaterial({
+    color: "#D0D0D0",
+    metalness: 0.9,
+    roughness: 0.2,
+  }),
 };
 
 // Convert IPFS URIs and gateways to faster gateway
@@ -886,7 +914,11 @@ const colorBarsShaderMaterial = new THREE.ShaderMaterial({
 // Color bars component - static, no useFrame for better performance
 function ColorBarsScreen() {
   return (
-    <mesh position={[0, 0, 0.521]} geometry={sharedGeometries.screen} material={colorBarsShaderMaterial} />
+    <mesh
+      position={[0, 0, 0.521]}
+      geometry={sharedGeometries.screen}
+      material={colorBarsShaderMaterial}
+    />
   );
 }
 
@@ -934,9 +966,12 @@ function VideoScreen({ videoUrl, isVisible = true }: { videoUrl: string; isVisib
   texture.magFilter = THREE.NearestFilter;
   texture.generateMipmaps = false;
 
-  const uniforms = useMemo(() => ({
-    uTexture: { value: texture },
-  }), [texture]);
+  const uniforms = useMemo(
+    () => ({
+      uTexture: { value: texture },
+    }),
+    [texture],
+  );
 
   // Pause/play video based on visibility
   useEffect(() => {
@@ -1115,38 +1150,52 @@ function Sticker({
   texture.magFilter = THREE.NearestFilter;
   texture.needsUpdate = true;
 
-  const uniforms = useMemo(() => ({
-    uTexture: { value: texture },
-    uPixelSize: { value: pixelSize },
-    uWearAmount: { value: wearAmount },
-    uColorLevels: { value: 12.0 },
-    uIsCircle: { value: isCircle ? 1.0 : 0.0 },
-  }), [texture, pixelSize, wearAmount, isCircle]);
+  const uniforms = useMemo(
+    () => ({
+      uTexture: { value: texture },
+      uPixelSize: { value: pixelSize },
+      uWearAmount: { value: wearAmount },
+      uColorLevels: { value: 12.0 },
+      uIsCircle: { value: isCircle ? 1.0 : 0.0 },
+    }),
+    [texture, pixelSize, wearAmount, isCircle],
+  );
 
-  const borderUniforms = useMemo(() => ({
-    uTexture: { value: texture },
-    uPixelSize: { value: pixelSize },
-    uIsCircle: { value: isCircle ? 1.0 : 0.0 },
-  }), [texture, pixelSize, isCircle]);
+  const borderUniforms = useMemo(
+    () => ({
+      uTexture: { value: texture },
+      uPixelSize: { value: pixelSize },
+      uIsCircle: { value: isCircle ? 1.0 : 0.0 },
+    }),
+    [texture, pixelSize, isCircle],
+  );
 
   // Memoize materials to prevent recreation every render
-  const borderMaterial = useMemo(() => new THREE.ShaderMaterial({
-    vertexShader: stickerVertexShader,
-    fragmentShader: stickerBorderFragmentShader,
-    uniforms: borderUniforms,
-    transparent: true,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-  }), [borderUniforms]);
+  const borderMaterial = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        vertexShader: stickerVertexShader,
+        fragmentShader: stickerBorderFragmentShader,
+        uniforms: borderUniforms,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    [borderUniforms],
+  );
 
-  const mainMaterial = useMemo(() => new THREE.ShaderMaterial({
-    vertexShader: stickerVertexShader,
-    fragmentShader: stickerFragmentShaderWithShape,
-    uniforms: uniforms,
-    transparent: true,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-  }), [uniforms]);
+  const mainMaterial = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        vertexShader: stickerVertexShader,
+        fragmentShader: stickerFragmentShaderWithShape,
+        uniforms: uniforms,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    [uniforms],
+  );
 
   // Cleanup materials on unmount
   useEffect(() => {
@@ -1159,7 +1208,13 @@ function Sticker({
   return (
     <group position={position} rotation={rotation} scale={scale}>
       {/* White border behind */}
-      <mesh position={[0, 0, -0.001]} scale={borderScale} renderOrder={0} geometry={sharedGeometries.stickerBase} material={borderMaterial} />
+      <mesh
+        position={[0, 0, -0.001]}
+        scale={borderScale}
+        renderOrder={0}
+        geometry={sharedGeometries.stickerBase}
+        material={borderMaterial}
+      />
       {/* Main sticker */}
       <mesh renderOrder={1} geometry={sharedGeometries.stickerBase} material={mainMaterial} />
     </group>
@@ -1222,7 +1277,7 @@ function DynamicSticker({
       undefined,
       (error) => {
         console.warn("[DynamicSticker] Failed to load texture:", imageUrl, error);
-      }
+      },
     );
     return () => {
       cancelled = true;
@@ -1291,7 +1346,13 @@ function DynamicSticker({
   return (
     <group position={position} rotation={rotation} scale={scale}>
       {/* White border behind */}
-      <mesh position={[0, 0, -0.001]} scale={1.1} renderOrder={0} geometry={sharedGeometries.stickerBase} material={borderMaterial} />
+      <mesh
+        position={[0, 0, -0.001]}
+        scale={1.1}
+        renderOrder={0}
+        geometry={sharedGeometries.stickerBase}
+        material={borderMaterial}
+      />
       {/* Main sticker */}
       <mesh renderOrder={1} geometry={sharedGeometries.stickerBase} material={mainMaterial} />
     </group>
@@ -1299,7 +1360,10 @@ function DynamicSticker({
 }
 
 // Generate stable random sticker positions based on coin address
-function generateStickerPosition(seed: string, index: number): {
+function generateStickerPosition(
+  seed: string,
+  index: number,
+): {
   position: [number, number, number];
   rotation: [number, number, number];
   scale: number;
@@ -1360,8 +1424,14 @@ function DynamicStickers({ items, maxStickers = 8 }: DynamicStickersProps) {
     const filtered = items.slice(0, maxStickers);
 
     if (filtered.length > 0) {
-      console.log("[DynamicStickers] Rendering", filtered.length, "creator coin stickers:",
-        filtered.map(i => `${i.symbol || i.coinAddress.slice(0, 8)} (${i.imageUrl.slice(0, 50)}...)`).join(", "));
+      console.log(
+        "[DynamicStickers] Rendering",
+        filtered.length,
+        "creator coin stickers:",
+        filtered
+          .map((i) => `${i.symbol || i.coinAddress.slice(0, 8)} (${i.imageUrl.slice(0, 50)}...)`)
+          .join(", "),
+      );
     } else {
       console.log("[DynamicStickers] No stickers to render");
     }
@@ -1373,13 +1443,7 @@ function DynamicStickers({ items, maxStickers = 8 }: DynamicStickersProps) {
     <>
       {stickerItems.map((item, index) => {
         const props = generateStickerPosition(item.coinAddress, index);
-        return (
-          <DynamicSticker
-            key={item.coinAddress}
-            imageUrl={item.imageUrl}
-            {...props}
-          />
-        );
+        return <DynamicSticker key={item.coinAddress} imageUrl={item.imageUrl} {...props} />;
       })}
     </>
   );
@@ -1555,7 +1619,11 @@ export function TV3DModel({
       />
 
       {/* Screen background */}
-      <mesh position={[-0.35, 0.05, 0.52]} geometry={sharedGeometries.screen} material={sharedMaterials.screenBg} />
+      <mesh
+        position={[-0.35, 0.05, 0.52]}
+        geometry={sharedGeometries.screen}
+        material={sharedMaterials.screenBg}
+      />
 
       {/* Video or Static Screen */}
       <group position={[-0.35, 0.05, 0]}>
@@ -1588,7 +1656,7 @@ export function TV3DModel({
         geometry={sharedGeometries.button}
         position={[0.775, 0.18, 0.52]}
         rotation={[Math.PI / 2, 0, 0]}
-        baseColor={[0.25, 0.70, 0.25]}
+        baseColor={[0.25, 0.7, 0.25]}
       />
       <PlasticButton
         geometry={sharedGeometries.button}

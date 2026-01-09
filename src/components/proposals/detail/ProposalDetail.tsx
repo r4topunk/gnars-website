@@ -50,7 +50,7 @@ export function ProposalDetailSkeleton() {
 
 export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
   const [userVoteReason, setUserVoteReason] = useState<string | null>(null);
   const [hasRecentVoteConfirmation, setHasRecentVoteConfirmation] = useState(false);

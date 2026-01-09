@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useAccount } from "wagmi";
 import { TransactionBuilder } from "@/components/proposals/builder/TransactionBuilder";
 import { ProposalDetailsForm } from "@/components/proposals/ProposalDetailsForm";
 import { ProposalPreview } from "@/components/proposals/ProposalPreview";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useVotes } from "@/hooks/useVotes";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
