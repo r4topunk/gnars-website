@@ -86,19 +86,23 @@ export const useVotes = ({
   const enabled = Boolean(collectionAddress && governorAddress && signerAddress) && enabledProp;
   const hasSubgraphVoteWeight = voteWeightFromSubgraph !== undefined && voteWeightFromSubgraph > 0;
 
-  const { data, isLoading } = useReadContracts({
+  // Determine which query to run based on snapshotBlock and subgraph availability
+  const useHistoricalQuery = Boolean(snapshotBlock && !hasSubgraphVoteWeight);
+
+  const { data, isLoading, error } = useReadContracts({
     query: {
       enabled,
       refetchInterval: false,
     },
+    // allowFailure is true by default - each call can succeed/fail independently
     contracts: enabled
-      ? (snapshotBlock && !hasSubgraphVoteWeight // Skip getPastVotes if we have subgraph data
-          ? [
+      ? (useHistoricalQuery
+          ? ([
               {
                 address: collectionAddress!,
                 abi: tokenAbi,
                 functionName: "getPastVotes",
-                args: [signerAddress!, snapshotBlock],
+                args: [signerAddress!, snapshotBlock!],
                 chainId,
               },
               {
@@ -114,8 +118,8 @@ export const useVotes = ({
                 functionName: "proposalThreshold",
                 chainId,
               },
-            ]
-          : [
+            ] as const)
+          : ([
               {
                 address: collectionAddress!,
                 abi: tokenAbi,
@@ -136,56 +140,64 @@ export const useVotes = ({
                 functionName: "proposalThreshold",
                 chainId,
               },
-            ])
+            ] as const))
       : [],
   });
 
-  if (!enabled || !data || isLoading) {
+  // Return loading state
+  if (!enabled || isLoading) {
     return { ...emptyResult, isLoading };
   }
 
-  // If we have subgraph vote weight, use that instead of contract data
-  if (hasSubgraphVoteWeight) {
-    const votingPower = BigInt(voteWeightFromSubgraph!);
-    const delegates = data[0]?.result as Address | undefined;
-    const proposalThreshold = data[1]?.result as bigint | undefined;
-
-    if (delegates === undefined || proposalThreshold === undefined) {
-      return { ...emptyResult, isLoading: false };
+  // Handle query error or no data
+  if (!data) {
+    if (error) {
+      console.error("[useVotes] Contract read error:", error);
     }
-
-    return {
-      isLoading,
-      votingPower,
-      hasVotingPower: votingPower > 0n,
-      isDelegating: delegates !== signerAddress,
-      delegatedTo: delegates,
-      proposalThreshold,
-      hasThreshold: votingPower > proposalThreshold,
-      proposalVotesRequired: proposalThreshold + 1n,
-      votes: votingPower,
-    };
-  }
-
-  // Fall back to contract data
-  const votes = data[0]?.result as bigint | undefined;
-  const delegates = data[1]?.result as Address | undefined;
-  const proposalThreshold = data[2]?.result as bigint | undefined;
-
-  if (votes === undefined || delegates === undefined || proposalThreshold === undefined) {
     return { ...emptyResult, isLoading: false };
   }
 
+  // Extract results - order is [votes/pastVotes, delegates, threshold]
+  const votesResult = data[0];
+  const delegatesResult = data[1];
+  const thresholdResult = data[2];
+
+  // Check if all calls succeeded
+  if (
+    votesResult?.status !== "success" ||
+    delegatesResult?.status !== "success" ||
+    thresholdResult?.status !== "success"
+  ) {
+    console.warn("[useVotes] One or more contract calls failed:", {
+      votesStatus: votesResult?.status,
+      votesError: votesResult?.status === "failure" ? votesResult.error : undefined,
+      delegatesStatus: delegatesResult?.status,
+      thresholdStatus: thresholdResult?.status,
+      useHistoricalQuery,
+      snapshotBlock: snapshotBlock?.toString(),
+      hasSubgraphVoteWeight,
+    });
+    return { ...emptyResult, isLoading: false };
+  }
+
+  // Extract typed results
+  const delegates = delegatesResult.result as Address;
+  const proposalThreshold = thresholdResult.result as bigint;
+
+  // If we have subgraph vote weight, prefer it over contract votes data
+  const votingPower = hasSubgraphVoteWeight
+    ? BigInt(voteWeightFromSubgraph!)
+    : (votesResult.result as bigint);
 
   return {
-    isLoading,
-    votingPower: votes,
-    hasVotingPower: votes > 0n,
-    isDelegating: delegates !== signerAddress,
+    isLoading: false,
+    votingPower,
+    hasVotingPower: votingPower > 0n,
+    isDelegating: delegates.toLowerCase() !== signerAddress?.toLowerCase(),
     delegatedTo: delegates,
     proposalThreshold,
-    hasThreshold: votes > proposalThreshold,
+    hasThreshold: votingPower > proposalThreshold,
     proposalVotesRequired: proposalThreshold + 1n,
-    votes,
+    votes: votingPower,
   };
 };
