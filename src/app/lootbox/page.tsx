@@ -459,7 +459,6 @@ export default function LootboxPage() {
     flexGnarsBase,
     flexGnarsPerEth,
     gnarsUnit,
-    gnarsToken,
     isPaused,
     flexBalances,
   ] = useMemo(() => {
@@ -579,7 +578,7 @@ export default function LootboxPage() {
       toast.error("Transaction failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, flexEth, isConnected, writeContractAsync]);
+  }, [address, ensureBase, flexEth, isConnected, lootboxAddress, writeContractAsync]);
 
   const handleDepositNFT = useCallback(async () => {
     if (!isConnected || !address) {
@@ -627,7 +626,7 @@ export default function LootboxPage() {
       toast.error("Deposit failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, isConnected, nftContract, nftTokenId, publicClient, writeContractAsync]);
+  }, [address, ensureBase, isConnected, lootboxAddress, nftContract, nftTokenId, publicClient, writeContractAsync]);
 
   const handleDepositGnars = useCallback(async () => {
     if (!isConnected || !address) {
@@ -690,6 +689,7 @@ export default function LootboxPage() {
     gnarsUnit,
     isConnected,
     gnarsTokenAddress,
+    lootboxAddress,
     publicClient,
     walletGnarsBalance,
     writeContractAsync,
@@ -725,7 +725,7 @@ export default function LootboxPage() {
       toast.error("Approve GNARS failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, approveGnarsAmount, ensureBase, gnarsAmount, gnarsTokenAddress, gnarsUnit, isConnected, writeContractAsync]);
+  }, [address, approveGnarsAmount, ensureBase, gnarsAmount, gnarsTokenAddress, gnarsUnit, isConnected, lootboxAddress, writeContractAsync]);
 
   const handleSetAllowlist = useCallback(async () => {
     if (!isConnected || !address) {
@@ -761,7 +761,7 @@ export default function LootboxPage() {
       toast.error("Allowlist update failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, allowlistEnabled, allowlistNft, ensureBase, isConnected, writeContractAsync]);
+  }, [address, allowlistEnabled, allowlistNft, ensureBase, isConnected, lootboxAddress, writeContractAsync]);
 
   const handleSetTreasury = useCallback(async () => {
     if (!isConnected || !address) {
@@ -792,7 +792,7 @@ export default function LootboxPage() {
       toast.error("Treasury update failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, isConnected, treasuryInput, writeContractAsync]);
+  }, [address, ensureBase, isConnected, lootboxAddress, treasuryInput, writeContractAsync]);
 
   const handleSetSubscriptionId = useCallback(async () => {
     if (!isConnected || !address) {
@@ -824,7 +824,7 @@ export default function LootboxPage() {
       toast.error("Subscription update failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, isConnected, subscriptionIdInput, writeContractAsync]);
+  }, [address, ensureBase, isConnected, lootboxAddress, subscriptionIdInput, writeContractAsync]);
 
   const handleSetVrfConfig = useCallback(async () => {
     if (!isConnected || !address) {
@@ -865,7 +865,7 @@ export default function LootboxPage() {
       toast.error("VRF config update failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, isConnected, vrfConfigForm, writeContractAsync]);
+  }, [address, ensureBase, isConnected, lootboxAddress, vrfConfigForm, writeContractAsync]);
 
   const handleRetryOpen = useCallback(async () => {
     if (!isConnected || !address) {
@@ -897,7 +897,7 @@ export default function LootboxPage() {
       toast.error("Retry failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, isConnected, retryRequestId, writeContractAsync]);
+  }, [address, ensureBase, isConnected, lootboxAddress, retryRequestId, writeContractAsync]);
 
   const handleCancelOpen = useCallback(async () => {
     if (!isConnected || !address) {
@@ -929,7 +929,7 @@ export default function LootboxPage() {
       toast.error("Cancel failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, cancelRequestId, ensureBase, isConnected, writeContractAsync]);
+  }, [address, cancelRequestId, ensureBase, isConnected, lootboxAddress, writeContractAsync]);
 
   const handleSetFlexConfig = useCallback(async () => {
     if (!isConnected || !address) {
@@ -1000,7 +1000,7 @@ export default function LootboxPage() {
       toast.error("Flex config update failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, flexConfigForm, gnarsUnit, isConnected, writeContractAsync]);
+  }, [address, ensureBase, flexConfigForm, gnarsUnit, isConnected, lootboxAddress, writeContractAsync]);
 
   const handlePause = useCallback(async () => {
     if (!isConnected || !address) {
@@ -1024,7 +1024,7 @@ export default function LootboxPage() {
       toast.error("Pause failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, isConnected, writeContractAsync]);
+  }, [address, ensureBase, isConnected, lootboxAddress, writeContractAsync]);
 
   const handleUnpause = useCallback(async () => {
     if (!isConnected || !address) {
@@ -1048,7 +1048,7 @@ export default function LootboxPage() {
       toast.error("Unpause failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, isConnected, writeContractAsync]);
+  }, [address, ensureBase, isConnected, lootboxAddress, writeContractAsync]);
 
   const handleWithdrawGnars = useCallback(async () => {
     if (!isConnected || !address) {
@@ -1081,7 +1081,7 @@ export default function LootboxPage() {
       toast.error("Withdraw GNARS failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, gnarsUnit, isConnected, withdrawGnarsAmount, withdrawGnarsTo, writeContractAsync]);
+  }, [address, ensureBase, gnarsUnit, isConnected, lootboxAddress, withdrawGnarsAmount, withdrawGnarsTo, writeContractAsync]);
 
   const handleWithdrawToken = useCallback(async () => {
     if (!isConnected || !address) {
@@ -1125,6 +1125,7 @@ export default function LootboxPage() {
     ensureBase,
     gnarsTokenAddress,
     isConnected,
+    lootboxAddress,
     withdrawTokenAddress,
     withdrawTokenAmount,
     withdrawTokenTo,
@@ -1163,7 +1164,7 @@ export default function LootboxPage() {
       toast.error("Withdraw flex NFT failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, isConnected, withdrawNftAddress, withdrawNftTokenId, withdrawNftTo, writeContractAsync]);
+  }, [address, ensureBase, isConnected, lootboxAddress, withdrawNftAddress, withdrawNftTokenId, withdrawNftTo, writeContractAsync]);
 
   const handleWithdrawERC721 = useCallback(async () => {
     if (!isConnected || !address) {
@@ -1197,7 +1198,7 @@ export default function LootboxPage() {
       toast.error("Withdraw NFT failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, isConnected, withdrawNftAddress, withdrawNftTokenId, withdrawNftTo, writeContractAsync]);
+  }, [address, ensureBase, isConnected, lootboxAddress, withdrawNftAddress, withdrawNftTokenId, withdrawNftTo, writeContractAsync]);
 
   const handleWithdrawEth = useCallback(async () => {
     if (!isConnected || !address) {
@@ -1230,7 +1231,7 @@ export default function LootboxPage() {
       toast.error("Withdraw ETH failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, isConnected, withdrawEthAmount, withdrawEthTo, writeContractAsync]);
+  }, [address, ensureBase, isConnected, lootboxAddress, withdrawEthAmount, withdrawEthTo, writeContractAsync]);
 
   const flexStats = flexBalances as
     | readonly [bigint, bigint, bigint]
