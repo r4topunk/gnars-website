@@ -250,6 +250,8 @@ function DesktopNav() {
                         );
                       }
 
+                      if (!subItem.icon) return null;
+
                       const SubIcon = subItem.icon;
                       const isDelegation = subItem.href === "#delegation";
 
@@ -403,6 +405,8 @@ function MobileNav() {
                         </div>
                       );
                     }
+
+                    if (!subItem.icon) return null;
 
                     const SubIcon = subItem.icon;
                     const isDelegation = subItem.href === "#delegation";
