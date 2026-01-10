@@ -1,0 +1,131 @@
+const gnarsLootboxV3Abi = [
+  {
+    inputs: [],
+    name: "standardPrice",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "gnarlyPrice",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "epicPrice",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "minFlexEth",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "flexNothingBps",
+    outputs: [{ internalType: "uint16", name: "", type: "uint16" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  // V3: Dynamic NFT chance fields (replaces single flexNftBps)
+  {
+    inputs: [],
+    name: "flexNftBpsMin",
+    outputs: [{ internalType: "uint16", name: "", type: "uint16" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "flexNftBpsMax",
+    outputs: [{ internalType: "uint16", name: "", type: "uint16" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "flexNftBpsPerEth",
+    outputs: [{ internalType: "uint32", name: "", type: "uint32" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "flexGnarsBase",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "flexGnarsPerEth",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "gnarsUnit",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "enum GnarsLootboxV3.BoxType", name: "boxType", type: "uint8" }],
+    name: "getPoolBalances",
+    outputs: [
+      { internalType: "uint256", name: "totalGnars", type: "uint256" },
+      { internalType: "uint256", name: "totalNfts", type: "uint256" },
+      { internalType: "uint256", name: "remainingBundles", type: "uint256" },
+      { internalType: "uint256", name: "totalWeight", type: "uint256" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getFlexBalances",
+    outputs: [
+      { internalType: "uint256", name: "flexNftsAvailable", type: "uint256" },
+      { internalType: "uint256", name: "availableGnars", type: "uint256" },
+      { internalType: "uint256", name: "reservedGnars", type: "uint256" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  // V3: New preview function that calculates exact chances based on payment amount
+  {
+    inputs: [{ internalType: "uint256", name: "paid", type: "uint256" }],
+    name: "getFlexPreview",
+    outputs: [
+      { internalType: "uint16", name: "nothingBps", type: "uint16" },
+      { internalType: "uint16", name: "nftBps", type: "uint16" },
+      { internalType: "uint256", name: "gnarsPayout", type: "uint256" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "enum GnarsLootboxV3.BoxType", name: "boxType", type: "uint8" }],
+    name: "openBox",
+    outputs: [{ internalType: "uint256", name: "requestId", type: "uint256" }],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "openFlexBox",
+    outputs: [{ internalType: "uint256", name: "requestId", type: "uint256" }],
+    stateMutability: "payable",
+    type: "function",
+  },
+] as const;
+
+export default gnarsLootboxV3Abi;

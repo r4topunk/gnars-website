@@ -27,6 +27,7 @@ import {
   BookOpen,
   Coins,
   Gavel,
+  Gift,
   Home,
   Menu,
   Newspaper,
@@ -110,6 +111,11 @@ const navigationItems = [
     title: "Treasury",
     href: "/treasury",
     icon: Wallet,
+  },
+  {
+    title: "Lootbox",
+    href: "/lootbox",
+    icon: Gift,
   },
   {
     title: "Community",
