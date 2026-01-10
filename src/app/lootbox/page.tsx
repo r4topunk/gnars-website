@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Coins, Gift, Sparkles, Upload } from "lucide-react";
-import { Address, formatEther, formatUnits, isAddress, parseEther, parseUnits } from "viem";
+import { Address, formatEther, formatUnits, getAddress, isAddress, parseEther, parseUnits } from "viem";
 import { base } from "wagmi/chains";
 import {
   useAccount,
@@ -39,13 +39,13 @@ import erc721Abi from "@/utils/abis/erc721Abi";
 const DEFAULT_LOOTBOX_ADDRESS = GNARS_ADDRESSES.lootbox as Address;
 const GNARS_TOKEN_ADDRESS = GNARS_ADDRESSES.gnarsErc20 as Address;
 const GNARS_NFT_ADDRESS = GNARS_ADDRESSES.token as Address;
-const TEST_NFT_ADDRESS = GNARS_NFT_ADDRESS;
+const TEST_NFT_ADDRESS = GNARS_ADDRESSES.lootboxTestNft as Address;
 const GNARS_UNIT_18 = 10n ** 18n;
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as Address;
 const CUSTOM_PRESET = "custom";
 
 const NFT_PRESETS = [
-  { label: "Test NFT", value: TEST_NFT_ADDRESS },
+  { label: "HackerDAO Test NFT", value: TEST_NFT_ADDRESS },
   { label: "Gnars NFT", value: GNARS_NFT_ADDRESS },
 ] as const;
 
@@ -93,6 +93,15 @@ function matchPreset(value: string, presets: readonly { value: Address }[]) {
 
 function formatPresetLabel(label: string, value: Address) {
   return `${label} (${value.slice(0, 6)}...${value.slice(-4)})`;
+}
+
+function normalizeAddress(value: string) {
+  if (!value) return null;
+  try {
+    return getAddress(value.trim());
+  } catch {
+    return null;
+  }
 }
 
 function formatOptional(value: string | number | bigint | null | undefined) {
@@ -236,6 +245,14 @@ export default function LootboxPage() {
     query: { refetchInterval: false },
   });
 
+  const gnarsTokenAddress = useMemo(() => {
+    const token = data?.[15]?.result;
+    if (typeof token === "string" && isAddress(token)) {
+      return token as Address;
+    }
+    return GNARS_TOKEN_ADDRESS;
+  }, [data]);
+
   // Refetch balances when transaction confirms
   useEffect(() => {
     if (isConfirmed) {
@@ -258,14 +275,14 @@ export default function LootboxPage() {
 
   // Read GNARS token balance of the lootbox contract
   const { data: contractGnarsBalance } = useReadContract({
-    address: GNARS_TOKEN_ADDRESS,
+    address: gnarsTokenAddress,
     abi: erc20BalanceAbi,
     functionName: "balanceOf",
     args: [lootboxAddress],
   });
 
   const { data: walletGnarsBalance } = useReadContract({
-    address: GNARS_TOKEN_ADDRESS,
+    address: gnarsTokenAddress,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [address ?? ZERO_ADDRESS],
@@ -273,12 +290,61 @@ export default function LootboxPage() {
   });
 
   const { data: gnarsAllowance } = useReadContract({
-    address: GNARS_TOKEN_ADDRESS,
+    address: gnarsTokenAddress,
     abi: erc20Abi,
     functionName: "allowance",
     args: [address ?? ZERO_ADDRESS, lootboxAddress],
     query: { enabled: Boolean(address) },
   });
+
+  const { data: flexNftsLength } = useReadContract({
+    address: lootboxAddress,
+    abi: gnarsLootboxV4Abi,
+    functionName: "flexNftsLength",
+  });
+
+  const flexNftContracts = useMemo(() => {
+    if (!flexNftsLength || flexNftsLength === 0n) return [];
+    const length = Number(flexNftsLength);
+    if (!Number.isFinite(length) || length <= 0) return [];
+    return Array.from({ length }, (_, index) => ({
+      address: lootboxAddress,
+      abi: gnarsLootboxV4Abi,
+      functionName: "getFlexNft",
+      args: [BigInt(index)],
+    }));
+  }, [flexNftsLength, lootboxAddress]);
+
+  const { data: flexNftItems } = useReadContracts({
+    contracts: flexNftContracts,
+    query: { enabled: flexNftContracts.length > 0 },
+  });
+
+  const flexNftCounts = useMemo(() => {
+    let gnars = 0;
+    let hacker = 0;
+    let total = 0;
+    const gnarsAddress = GNARS_NFT_ADDRESS.toLowerCase();
+    const hackerAddress = TEST_NFT_ADDRESS.toLowerCase();
+
+    (flexNftItems ?? []).forEach((item) => {
+      const result = item?.result as readonly [Address, bigint, boolean] | undefined;
+      if (!result) return;
+      const [nft, , consumed] = result;
+      if (consumed) return;
+      total += 1;
+      const nftAddress = nft.toLowerCase();
+      if (nftAddress === gnarsAddress) {
+        gnars += 1;
+      } else if (nftAddress === hackerAddress) {
+        hacker += 1;
+      }
+    });
+
+    return { gnars, hacker, total };
+  }, [flexNftItems]);
+
+  const flexNftCountsReady = flexNftContracts.length === 0 || flexNftItems !== undefined;
 
   const { data: lootboxEthBalance } = useBalance({
     address: lootboxAddress,
@@ -587,7 +653,7 @@ export default function LootboxPage() {
       if (allowance < amount) {
         setPendingLabel("Approving GNARS");
         const approveHash = await writeContractAsync({
-          address: GNARS_TOKEN_ADDRESS,
+          address: gnarsTokenAddress,
           abi: erc20Abi,
           functionName: "approve",
           args: [lootboxAddress, amount],
@@ -623,6 +689,7 @@ export default function LootboxPage() {
     gnarsAmount,
     gnarsUnit,
     isConnected,
+    gnarsTokenAddress,
     publicClient,
     walletGnarsBalance,
     writeContractAsync,
@@ -645,7 +712,7 @@ export default function LootboxPage() {
       const amount = parseGnarsInput(amountInput, gnarsUnit ?? undefined);
       setPendingLabel("Approving GNARS");
       const hash = await writeContractAsync({
-        address: GNARS_TOKEN_ADDRESS,
+        address: gnarsTokenAddress,
         abi: erc20Abi,
         functionName: "approve",
         args: [lootboxAddress, amount],
@@ -658,7 +725,7 @@ export default function LootboxPage() {
       toast.error("Approve GNARS failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, approveGnarsAmount, ensureBase, gnarsAmount, gnarsUnit, isConnected, writeContractAsync]);
+  }, [address, approveGnarsAmount, ensureBase, gnarsAmount, gnarsTokenAddress, gnarsUnit, isConnected, writeContractAsync]);
 
   const handleSetAllowlist = useCallback(async () => {
     if (!isConnected || !address) {
@@ -667,6 +734,11 @@ export default function LootboxPage() {
     }
     if (!allowlistNft) {
       toast.error("Enter an NFT contract address.");
+      return;
+    }
+    const normalized = normalizeAddress(allowlistNft);
+    if (!normalized) {
+      toast.error("NFT address is invalid.");
       return;
     }
     const onBase = await ensureBase();
@@ -678,7 +750,7 @@ export default function LootboxPage() {
         address: lootboxAddress,
         abi: gnarsLootboxV4Abi,
         functionName: "setAllowedERC721",
-        args: [allowlistNft as Address, allowlistEnabled],
+        args: [normalized, allowlistEnabled],
         chainId: base.id,
       });
       setPendingHash(hash);
@@ -1021,7 +1093,7 @@ export default function LootboxPage() {
       toast.error("Enter token address and amount.");
       return;
     }
-    if (tokenAddress.toLowerCase() === GNARS_TOKEN_ADDRESS.toLowerCase()) {
+    if (tokenAddress.toLowerCase() === gnarsTokenAddress.toLowerCase()) {
       toast.error("Use Withdraw GNARS for the GNARS token.");
       return;
     }
@@ -1048,7 +1120,16 @@ export default function LootboxPage() {
       toast.error("Withdraw token failed", { description: message });
       setPendingLabel(null);
     }
-  }, [address, ensureBase, isConnected, withdrawTokenAddress, withdrawTokenAmount, withdrawTokenTo, writeContractAsync]);
+  }, [
+    address,
+    ensureBase,
+    gnarsTokenAddress,
+    isConnected,
+    withdrawTokenAddress,
+    withdrawTokenAmount,
+    withdrawTokenTo,
+    writeContractAsync,
+  ]);
 
   const handleWithdrawFlexNft = useCallback(async () => {
     if (!isConnected || !address) {
@@ -1434,7 +1515,7 @@ export default function LootboxPage() {
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🎁</span>
                 <div>
-                  <p className="text-xs text-muted-foreground">NFTs Available</p>
+                  <p className="text-xs text-muted-foreground">Flex NFTs Available</p>
                   <p className="text-2xl font-bold">
                     {isFetching ? "..." : flexStats ? flexStats[0].toString() : "0"}
                   </p>
@@ -1445,7 +1526,7 @@ export default function LootboxPage() {
               <div className="flex items-center gap-2">
                 <span className="text-2xl">💰</span>
                 <div>
-                  <p className="text-xs text-muted-foreground">GNARS Available</p>
+                  <p className="text-xs text-muted-foreground">GNARS ERC20 Available</p>
                   <p className="text-2xl font-bold">
                     {isFetching ? "..." : flexStats ? formatGnarsAmount(flexStats[1], gnarsUnit) : "0"}
                   </p>
@@ -1459,6 +1540,28 @@ export default function LootboxPage() {
                   <p className="text-xs text-muted-foreground">GNARS Reserved</p>
                   <p className="text-2xl font-bold">
                     {isFetching ? "..." : flexStats ? formatGnarsAmount(flexStats[2], gnarsUnit) : "0"}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🧢</span>
+                <div>
+                  <p className="text-xs text-muted-foreground">GNARS NFTs in Pool</p>
+                  <p className="text-2xl font-bold">
+                    {flexNftCountsReady ? flexNftCounts.gnars.toString() : "..."}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🧪</span>
+                <div>
+                  <p className="text-xs text-muted-foreground">HackerDAO NFTs in Pool</p>
+                  <p className="text-2xl font-bold">
+                    {flexNftCountsReady ? flexNftCounts.hacker.toString() : "..."}
                   </p>
                 </div>
               </div>
@@ -1497,10 +1600,7 @@ export default function LootboxPage() {
                   <ReadItem label="Active contract" value={renderAddress(lootboxAddress)} />
                   <ReadItem label="Owner" value={renderAddress(owner?.toString())} />
                   <ReadItem label="Treasury" value={renderAddress(treasury?.toString())} />
-                  <ReadItem
-                    label="GNARS token"
-                    value={renderAddress(gnarsToken ? gnarsToken.toString() : GNARS_TOKEN_ADDRESS)}
-                  />
+                  <ReadItem label="GNARS token" value={renderAddress(gnarsTokenAddress)} />
                   <ReadItem label="GNARS unit" value={formatOptional(gnarsUnit)} />
                 </div>
               </div>
@@ -1979,7 +2079,7 @@ export default function LootboxPage() {
               <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
                 <p className="text-xs font-medium text-muted-foreground">Current</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                  <ReadItem label="GNARS token" value={renderAddress(GNARS_TOKEN_ADDRESS)} />
+                  <ReadItem label="GNARS token" value={renderAddress(gnarsTokenAddress)} />
                   <ReadItem
                     label="Contract GNARS"
                     value={contractGnarsBalance !== undefined ? formatGnarsAmount(contractGnarsBalance, gnarsUnit) : "-"}
@@ -2243,7 +2343,7 @@ export default function LootboxPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">🎁</span>
                     <div>
-                      <p className="text-xs text-muted-foreground">NFTs Available</p>
+                      <p className="text-xs text-muted-foreground">Flex NFTs Available</p>
                       <p className="text-2xl font-bold">
                         {isFetching ? "..." : flexStats ? flexStats[0].toString() : "0"}
                       </p>
@@ -2254,7 +2354,7 @@ export default function LootboxPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">💰</span>
                     <div>
-                      <p className="text-xs text-muted-foreground">GNARS Available</p>
+                  <p className="text-xs text-muted-foreground">GNARS ERC20 Available</p>
                       <p className="text-2xl font-bold">
                         {isFetching ? "..." : flexStats ? formatGnarsAmount(flexStats[1], gnarsUnit) : "0"}
                       </p>
@@ -2268,6 +2368,28 @@ export default function LootboxPage() {
                       <p className="text-xs text-muted-foreground">GNARS Reserved</p>
                       <p className="text-2xl font-bold">
                         {isFetching ? "..." : flexStats ? formatGnarsAmount(flexStats[2], gnarsUnit) : "0"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🧢</span>
+                    <div>
+                      <p className="text-xs text-muted-foreground">GNARS NFTs in Pool</p>
+                      <p className="text-2xl font-bold">
+                        {flexNftCountsReady ? flexNftCounts.gnars.toString() : "..."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🧪</span>
+                    <div>
+                      <p className="text-xs text-muted-foreground">HackerDAO NFTs in Pool</p>
+                      <p className="text-2xl font-bold">
+                        {flexNftCountsReady ? flexNftCounts.hacker.toString() : "..."}
                       </p>
                     </div>
                   </div>
