@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Coins, Gift, Sparkles, Upload } from "lucide-react";
+import { Coins, Gift, Sparkles, Upload, TrendingUp } from "lucide-react";
 import { Address, formatEther, formatUnits, getAddress, isAddress, parseEther, parseUnits } from "viem";
 import { base } from "wagmi/chains";
 import {
@@ -64,18 +64,16 @@ const erc20BalanceAbi = [
   },
 ] as const;
 
-// Proposed config for simulation preview
-const PROPOSED_CONFIG = {
-  flexNftBpsMin: 50,      // 0.5% minimum
-  flexNftBpsMax: 500,     // 5% maximum
-  flexNftBpsPerEth: 5000, // +0.5% per 0.1 ETH
-  minFlexEth: 200000000000000n, // 0.0002 ETH
-};
-
 function formatGnarsAmount(amount: bigint, gnarsUnit?: bigint) {
-  if (!gnarsUnit || gnarsUnit === 0n) return amount.toString();
-  if (gnarsUnit === GNARS_UNIT_18) return formatUnits(amount, 18);
-  return (amount / gnarsUnit).toString();
+  // Default to 1e18 if gnarsUnit is not provided or is 0
+  const unit = gnarsUnit && gnarsUnit !== 0n ? gnarsUnit : GNARS_UNIT_18;
+
+  // If unit is 1e18, use formatUnits for proper decimal formatting
+  if (unit === GNARS_UNIT_18) {
+    return formatUnits(amount, 18);
+  }
+
+  return (amount / unit).toString();
 }
 
 function parseGnarsInput(value: string, gnarsUnit?: bigint) {
@@ -130,13 +128,21 @@ function ReadItem({ label, value }: { label: string; value: ReactNode }) {
 }
 
 function useAllowedNft(lootboxAddress: Address, nftAddress: string) {
-  const isValid = isAddress(nftAddress);
+  const normalizedAddress = useMemo(() => {
+    if (!nftAddress) return null;
+    try {
+      return getAddress(nftAddress.trim());
+    } catch {
+      return null;
+    }
+  }, [nftAddress]);
+  
   return useReadContract({
     address: lootboxAddress,
     abi: gnarsLootboxV4Abi,
     functionName: "allowedERC721",
-    args: isValid ? [nftAddress as Address] : undefined,
-    query: { enabled: isValid },
+    args: normalizedAddress ? [normalizedAddress] : undefined,
+    query: { enabled: Boolean(normalizedAddress) },
   });
 }
 
@@ -150,8 +156,7 @@ export default function LootboxPage() {
   const [flexEth, setFlexEth] = useState("0.0002");
   const [pendingHash, setPendingHash] = useState<`0x${string}` | undefined>();
   const [pendingLabel, setPendingLabel] = useState<string | null>(null);
-  const [simulateScaling, setSimulateScaling] = useState(false);
-  
+
   // Admin deposit states
   const [nftContract, setNftContract] = useState("");
   const [nftTokenId, setNftTokenId] = useState("");
@@ -241,8 +246,13 @@ export default function LootboxPage() {
       { address: lootboxAddress, abi: gnarsLootboxV4Abi, functionName: "gnarsToken" },
       { address: lootboxAddress, abi: gnarsLootboxV4Abi, functionName: "paused" },
       { address: lootboxAddress, abi: gnarsLootboxV4Abi, functionName: "getFlexBalances" },
+      { address: lootboxAddress, abi: gnarsLootboxV4Abi, functionName: "flexNftsLength" },
     ],
-    query: { refetchInterval: false },
+    query: {
+      refetchInterval: false,
+      staleTime: 30_000, // Cache for 30 seconds
+      gcTime: 60_000, // Keep in cache for 1 minute
+    },
   });
 
   const gnarsTokenAddress = useMemo(() => {
@@ -459,6 +469,7 @@ export default function LootboxPage() {
     flexGnarsBase,
     flexGnarsPerEth,
     gnarsUnit,
+    , // Skip gnarsToken - handled separately via gnarsTokenAddress
     isPaused,
     flexBalances,
   ] = useMemo(() => {
@@ -590,6 +601,12 @@ export default function LootboxPage() {
       return;
     }
     
+    const normalizedNftContract = normalizeAddress(nftContract);
+    if (!normalizedNftContract) {
+      toast.error("NFT contract address is invalid.");
+      return;
+    }
+    
     const onBase = await ensureBase();
     if (!onBase) return;
 
@@ -597,7 +614,7 @@ export default function LootboxPage() {
       // First approve the lootbox to transfer the NFT
       setPendingLabel("Approving NFT");
       const approveHash = await writeContractAsync({
-        address: nftContract as Address,
+        address: normalizedNftContract,
         abi: erc721Abi,
         functionName: "approve",
         args: [lootboxAddress, BigInt(nftTokenId)],
@@ -614,7 +631,7 @@ export default function LootboxPage() {
         address: lootboxAddress,
         abi: gnarsLootboxV4Abi,
         functionName: "depositFlexNft",
-        args: [nftContract as Address, BigInt(nftTokenId)],
+        args: [normalizedNftContract, BigInt(nftTokenId)],
         chainId: base.id,
       });
       setPendingHash(hash);
@@ -1257,31 +1274,16 @@ export default function LootboxPage() {
     return Number(flexNftBpsMin);
   }, [flexPreviewData, flexNftBpsMin]);
 
-  // Simulate NFT scaling with proposed config (for preview)
-  const simulatedNftBps = useMemo(() => {
-    if (!simulateScaling) return previewNftBps;
-
-    // Replicate the contract's _flexNftBpsForPaid logic with proposed config
-    const { flexNftBpsMin: simMin, flexNftBpsMax: simMax, flexNftBpsPerEth: simPerEth, minFlexEth: simMinEth } = PROPOSED_CONFIG;
-
-    if (simMax === 0) return 0;
-    if (flexValue <= simMinEth || simPerEth === 0) return simMin;
-
-    const extra = Number((flexValue - simMinEth) * BigInt(simPerEth) / 1_000_000_000_000_000_000n);
-    const result = simMin + extra;
-    return Math.min(result, simMax);
-  }, [simulateScaling, previewNftBps, flexValue]);
-
   const nothingChance = Number(flexNothingBps) / 100;
-  const nftChance = (simulateScaling ? simulatedNftBps : previewNftBps) / 100;
+  const nftChance = previewNftBps / 100;
   const gnarsChance = Math.max(0, 100 - nothingChance);
 
   return (
-    <div className="py-8 space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Join Gnars DAO</h1>
-        <p className="text-muted-foreground">
-          Get started with GNARS governance tokens and a chance at bonus NFTs. Pay what you want—the more you contribute, the more GNARS you receive.
+    <div className="container max-w-7xl py-8 space-y-8">
+      <div className="space-y-3">
+        <h1 className="text-4xl font-bold tracking-tight">Gnars Lootbox</h1>
+        <p className="text-lg text-muted-foreground max-w-3xl">
+          Join Gnars DAO by getting GNARS governance tokens. Contribute ETH to receive GNARS tokens, with a chance to win bonus NFTs. The more you contribute, the more GNARS you receive and the better your odds of winning an NFT.
         </p>
       </div>
 
@@ -1309,7 +1311,7 @@ export default function LootboxPage() {
               <Badge variant="secondary">Contract Balance</Badge>
             </div>
             <div className="text-lg font-semibold">
-              {contractGnarsBalance ? formatGnarsAmount(contractGnarsBalance, gnarsUnit) : "-"} GNARS
+              {isFetching ? "..." : contractGnarsBalance !== undefined ? formatGnarsAmount(contractGnarsBalance, gnarsUnit) : "-"} GNARS
             </div>
             <div className="text-xs text-muted-foreground">
               Total tokens in contract
@@ -1336,7 +1338,7 @@ export default function LootboxPage() {
               <span className="text-muted-foreground">Minimum</span>
             </div>
             <div className="text-lg font-semibold">
-              {minFlexEth ? `${formatEther(minFlexEth)} ETH` : "-"}
+              {minFlexEth !== null && minFlexEth !== undefined ? `${formatEther(minFlexEth)} ETH` : "-"}
             </div>
           </div>
           <div className="space-y-1 text-sm">
@@ -1425,65 +1427,24 @@ export default function LootboxPage() {
               <div className="text-xs text-muted-foreground border-t pt-4 space-y-1">
                 <div className="flex items-center justify-between">
                   <span>Base amount:</span>
-                  <span>{flexGnarsBase ? formatGnarsAmount(flexGnarsBase, gnarsUnit) : "-"} GNARS</span>
+                  <span>{flexGnarsBase !== null && flexGnarsBase !== undefined ? formatGnarsAmount(flexGnarsBase, gnarsUnit) : "-"} GNARS</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Per ETH bonus:</span>
-                  <span>+{flexGnarsPerEth ? formatGnarsAmount(flexGnarsPerEth, gnarsUnit) : "-"} GNARS</span>
+                  <span>+{flexGnarsPerEth !== null && flexGnarsPerEth !== undefined ? formatGnarsAmount(flexGnarsPerEth, gnarsUnit) : "-"} GNARS</span>
                 </div>
                 <div className="flex items-center justify-between text-purple-400">
                   <span>NFT odds range:</span>
-                  <span>{(Number(flexNftBpsMin) / 100).toFixed(2)}% - {(Number(flexNftBpsMax) / 100).toFixed(2)}%</span>
+                  <span>{flexNftBpsMin !== null && flexNftBpsMin !== undefined ? (Number(flexNftBpsMin) / 100).toFixed(2) : "-"}% - {flexNftBpsMax !== null && flexNftBpsMax !== undefined ? (Number(flexNftBpsMax) / 100).toFixed(2) : "-"}%</span>
                 </div>
                 <div className="flex items-center justify-between text-purple-400">
                   <span>NFT boost per ETH:</span>
-                  <span>+{(Number(flexNftBpsPerEth) / 100).toFixed(2)}%</span>
+                  <span>+{flexNftBpsPerEth !== null && flexNftBpsPerEth !== undefined ? (Number(flexNftBpsPerEth) / 100).toFixed(2) : "-"}%</span>
                 </div>
               </div>
 
-              {/* Simulation toggle for previewing proposed NFT scaling */}
-              <div className="border-t pt-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <label htmlFor="simulate" className="text-sm font-medium cursor-pointer">
-                      Preview NFT Scaling
-                    </label>
-                    <p className="text-xs text-muted-foreground">
-                      See how NFT odds would change with proposed config
-                    </p>
-                  </div>
-                  <Switch
-                    id="simulate"
-                    checked={simulateScaling}
-                    onCheckedChange={setSimulateScaling}
-                  />
-                </div>
-                {simulateScaling && (
-                  <div className="bg-purple-500/10 border border-purple-500/30 rounded-md p-3 space-y-2">
-                    <p className="text-xs font-medium text-purple-300">Proposed Config (Preview Only)</p>
-                    <div className="text-xs space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">NFT range:</span>
-                        <span className="text-purple-300">{(PROPOSED_CONFIG.flexNftBpsMin / 100).toFixed(2)}% - {(PROPOSED_CONFIG.flexNftBpsMax / 100).toFixed(2)}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">NFT boost/ETH:</span>
-                        <span className="text-purple-300">+{(PROPOSED_CONFIG.flexNftBpsPerEth / 100).toFixed(2)}%</span>
-                      </div>
-                      <div className="flex justify-between font-medium">
-                        <span className="text-muted-foreground">Your simulated NFT chance:</span>
-                        <span className="text-purple-300">{(simulatedNftBps / 100).toFixed(2)}%</span>
-                      </div>
-                    </div>
-                    <p className="text-xs text-yellow-400 mt-2">
-                      This is a preview only. Contract config has not been changed yet.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <Button className="w-full" size="lg" onClick={handleOpenFlex} disabled={!isConnected}>
-                {isConnected ? "Join Gnars DAO" : "Connect Wallet to Join"}
+              <Button className="w-full" size="lg" onClick={handleOpenFlex} disabled={!isConnected || !!isPaused}>
+                {!isConnected ? "Connect Wallet to Join" : isPaused ? "Contract Paused" : "Join Gnars DAO"}
               </Button>
             </div>
           </div>
@@ -1565,6 +1526,100 @@ export default function LootboxPage() {
                     {flexNftCountsReady ? flexNftCounts.hacker.toString() : "..."}
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-2 border-primary/10">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" /> NFT Odds: More ETH = Better Chance
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-2">
+            Your NFT odds increase with your ETH contribution. Here are some examples:
+          </p>
+        </CardHeader>
+        <CardContent>
+          {minFlexEth !== null && minFlexEth !== undefined &&
+           flexNftBpsMin !== null && flexNftBpsMin !== undefined &&
+           flexNftBpsMax !== null && flexNftBpsMax !== undefined ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                parseEther("0.0002"),
+                parseEther("0.001"),
+                parseEther("0.005"),
+                parseEther("0.01"),
+              ].map((ethAmount, idx) => {
+                // Calculate NFT chance for this amount
+                let nftBps = Number(flexNftBpsMin);
+                if (ethAmount > minFlexEth && flexNftBpsPerEth && flexNftBpsPerEth > 0n) {
+                  const extra = ((ethAmount - minFlexEth) * BigInt(flexNftBpsPerEth)) / parseEther("1");
+                  nftBps = Math.min(Number(flexNftBpsMin) + Number(extra), Number(flexNftBpsMax));
+                }
+                const nftChancePercent = (nftBps / 100).toFixed(2);
+                const isMax = nftBps >= Number(flexNftBpsMax);
+
+                return (
+                  <div
+                    key={idx}
+                    className="relative overflow-hidden rounded-lg border border-border bg-gradient-to-br from-muted/50 to-muted/20 p-4 hover:border-primary/50 transition-colors"
+                  >
+                    <div className="flex flex-col gap-2">
+                      <div className="text-xs font-medium text-muted-foreground">
+                        Contribute
+                      </div>
+                      <div className="text-2xl font-bold">
+                        {formatEther(ethAmount)} ETH
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-border/50">
+                        <div className="text-xs text-muted-foreground mb-1">
+                          NFT Odds
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-bold text-primary">
+                            {nftChancePercent}%
+                          </span>
+                          {isMax && (
+                            <Badge variant="secondary" className="text-xs">
+                              MAX
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {/* Visual progress bar */}
+                    <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-primary/50 to-primary transition-all"
+                        style={{ width: `${Math.min(Number(nftChancePercent), 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-40 text-muted-foreground">
+              {isFetching ? "Loading..." : "Contract data not available"}
+            </div>
+          )}
+
+          <div className="mt-6 p-4 rounded-lg bg-muted/30 border border-border/50">
+            <div className="flex items-start gap-3">
+              <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">How it works</p>
+                <p className="text-xs text-muted-foreground">
+                  The more ETH you contribute, the higher your chance of winning a bonus NFT.
+                  {flexNftBpsPerEth !== null && flexNftBpsPerEth !== undefined && flexNftBpsPerEth > 0n ? (
+                    <> You get <span className="font-semibold text-foreground">+{(Number(flexNftBpsPerEth) / 100).toFixed(2)}%</span> odds per ETH contributed.</>
+                  ) : (
+                    <> NFT odds are fixed at <span className="font-semibold text-foreground">{flexNftBpsMin !== null && flexNftBpsMin !== undefined ? (Number(flexNftBpsMin) / 100).toFixed(2) : "-"}%</span> for all contributions.</>
+                  )}
+                  {" "}Maximum odds: <span className="font-semibold text-foreground">{flexNftBpsMax !== null && flexNftBpsMax !== undefined ? (Number(flexNftBpsMax) / 100).toFixed(2) : "-"}%</span>
+                </p>
               </div>
             </div>
           </div>
@@ -1718,7 +1773,7 @@ export default function LootboxPage() {
                 <Label>Preset NFT</Label>
                 <Select
                   value={allowlistPresetValue}
-                  onValueChange={(value) => setAllowlistNft(value === CUSTOM_PRESET ? "" : value as string)}
+                  onValueChange={(value) => setAllowlistNft(value === CUSTOM_PRESET ? "" : String(value))}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a preset" />
@@ -1963,7 +2018,7 @@ export default function LootboxPage() {
                 <Label>Preset NFT</Label>
                 <Select
                   value={depositNftPresetValue}
-                  onValueChange={(value) => setNftContract(value === CUSTOM_PRESET ? "" : value as string)}
+                  onValueChange={(value) => setNftContract(value === CUSTOM_PRESET ? "" : String(value))}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a preset" />
@@ -2021,65 +2076,13 @@ export default function LootboxPage() {
           <Card className="bg-card">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Coins className="h-5 w-5" /> Deposit GNARS Tokens
+                <Coins className="h-5 w-5" /> GNARS ERC20 Wallet (Owner Only)
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Token Preset</Label>
-                <Select value={GNARS_TOKEN_ADDRESS} disabled>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TOKEN_PRESETS.map((preset) => (
-                      <SelectItem key={preset.value} value={preset.value}>
-                        {formatPresetLabel(preset.label, preset.value)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">{GNARS_TOKEN_ADDRESS}</p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gnars-amount">GNARS Amount</Label>
-                <Input
-                  id="gnars-amount"
-                  value={gnarsAmount}
-                  onChange={(e) => setGnarsAmount(e.target.value)}
-                  placeholder="1000"
-                  type="number"
-                />
-                <div className="text-xs text-muted-foreground">
-                  Wallet balance: {walletGnarsBalance !== undefined ? formatGnarsAmount(walletGnarsBalance, gnarsUnit) : "-"} GNARS
-                  {" · "}
-                  Allowance: {gnarsAllowance !== undefined ? formatGnarsAmount(gnarsAllowance, gnarsUnit) : "-"} GNARS
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gnars-approve-amount">Approve GNARS Amount (optional)</Label>
-                <Input
-                  id="gnars-approve-amount"
-                  value={approveGnarsAmount}
-                  onChange={(e) => setApproveGnarsAmount(e.target.value)}
-                  placeholder={gnarsAmount || "1000"}
-                />
-              </div>
-              <div className="grid gap-2 md:grid-cols-2">
-                <Button variant="outline" onClick={handleApproveGnars} disabled={!canAdmin}>
-                  {canAdmin ? "Approve GNARS" : "Owner Only"}
-                </Button>
-                <Button 
-                  className="w-full" 
-                  onClick={handleDepositGnars} 
-                  disabled={!canAdmin}
-                >
-                  {canAdmin ? "Deposit GNARS" : "Owner Only"}
-                </Button>
-              </div>
+            <CardContent className="space-y-6">
               <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
-                <p className="text-xs font-medium text-muted-foreground">Current</p>
-                <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                <p className="text-xs font-medium text-muted-foreground">Balances</p>
+                <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <ReadItem label="GNARS token" value={renderAddress(gnarsTokenAddress)} />
                   <ReadItem
                     label="Contract GNARS"
@@ -2093,56 +2096,75 @@ export default function LootboxPage() {
                     label="Reserved GNARS"
                     value={flexStats ? formatGnarsAmount(flexStats[2], gnarsUnit) : "-"}
                   />
-                  <ReadItem label="GNARS unit" value={formatOptional(gnarsUnit)} />
+                  <ReadItem
+                    label="Wallet GNARS"
+                    value={walletGnarsBalance !== undefined ? formatGnarsAmount(walletGnarsBalance, gnarsUnit) : "-"}
+                  />
+                  <ReadItem
+                    label="Allowance"
+                    value={gnarsAllowance !== undefined ? formatGnarsAmount(gnarsAllowance, gnarsUnit) : "-"}
+                  />
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-card">
-            <CardHeader>
-              <CardTitle className="text-lg">Withdraw GNARS (Owner Only)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="withdraw-gnars-amount">GNARS Amount</Label>
-                <Input
-                  id="withdraw-gnars-amount"
-                  value={withdrawGnarsAmount}
-                  onChange={(e) => setWithdrawGnarsAmount(e.target.value)}
-                  placeholder="1000"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Available: {flexStats ? formatGnarsAmount(flexStats[1], gnarsUnit) : "-"} GNARS
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="withdraw-gnars-to">Recipient (optional)</Label>
-                <Input
-                  id="withdraw-gnars-to"
-                  value={withdrawGnarsTo}
-                  onChange={(e) => setWithdrawGnarsTo(e.target.value)}
-                  placeholder={address || "0x..."}
-                />
-              </div>
-              <Button className="w-full" onClick={handleWithdrawGnars} disabled={!canAdmin}>
-                {canAdmin ? "Withdraw GNARS" : "Owner Only"}
-              </Button>
-              <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
-                <p className="text-xs font-medium text-muted-foreground">Current</p>
-                <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                  <ReadItem
-                    label="Contract GNARS"
-                    value={contractGnarsBalance !== undefined ? formatGnarsAmount(contractGnarsBalance, gnarsUnit) : "-"}
-                  />
-                  <ReadItem
-                    label="Available GNARS"
-                    value={flexStats ? formatGnarsAmount(flexStats[1], gnarsUnit) : "-"}
-                  />
-                  <ReadItem
-                    label="Reserved GNARS"
-                    value={flexStats ? formatGnarsAmount(flexStats[2], gnarsUnit) : "-"}
-                  />
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="space-y-4 rounded-md border border-border/60 bg-muted/30 px-4 py-3">
+                  <p className="text-sm font-medium">Deposit</p>
+                  <div className="space-y-2">
+                    <Label htmlFor="gnars-amount">GNARS Amount</Label>
+                    <Input
+                      id="gnars-amount"
+                      value={gnarsAmount}
+                      onChange={(e) => setGnarsAmount(e.target.value)}
+                      placeholder="1000"
+                      type="number"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gnars-approve-amount">Approve GNARS Amount (optional)</Label>
+                    <Input
+                      id="gnars-approve-amount"
+                      value={approveGnarsAmount}
+                      onChange={(e) => setApproveGnarsAmount(e.target.value)}
+                      placeholder={gnarsAmount || "1000"}
+                    />
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Button variant="outline" onClick={handleApproveGnars} disabled={!canAdmin}>
+                      {canAdmin ? "Approve" : "Owner Only"}
+                    </Button>
+                    <Button className="w-full" onClick={handleDepositGnars} disabled={!canAdmin}>
+                      {canAdmin ? "Deposit" : "Owner Only"}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-4 rounded-md border border-border/60 bg-muted/30 px-4 py-3">
+                  <p className="text-sm font-medium">Withdraw</p>
+                  <div className="space-y-2">
+                    <Label htmlFor="withdraw-gnars-amount">GNARS Amount</Label>
+                    <Input
+                      id="withdraw-gnars-amount"
+                      value={withdrawGnarsAmount}
+                      onChange={(e) => setWithdrawGnarsAmount(e.target.value)}
+                      placeholder="1000"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Available: {flexStats ? formatGnarsAmount(flexStats[1], gnarsUnit) : "-"} GNARS
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="withdraw-gnars-to">Recipient (optional)</Label>
+                    <Input
+                      id="withdraw-gnars-to"
+                      value={withdrawGnarsTo}
+                      onChange={(e) => setWithdrawGnarsTo(e.target.value)}
+                      placeholder={address || "0x..."}
+                    />
+                  </div>
+                  <Button className="w-full" onClick={handleWithdrawGnars} disabled={!canAdmin}>
+                    {canAdmin ? "Withdraw" : "Owner Only"}
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -2157,7 +2179,7 @@ export default function LootboxPage() {
                 <Label>Token Preset</Label>
                 <Select
                   value={withdrawTokenPresetValue}
-                  onValueChange={(value) => setWithdrawTokenAddress(value === CUSTOM_PRESET ? "" : value as string)}
+                  onValueChange={(value) => setWithdrawTokenAddress(value === CUSTOM_PRESET ? "" : String(value))}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a preset" />
@@ -2227,7 +2249,7 @@ export default function LootboxPage() {
                 <Label>Preset NFT</Label>
                 <Select
                   value={withdrawNftPresetValue}
-                  onValueChange={(value) => setWithdrawNftAddress(value === CUSTOM_PRESET ? "" : value as string)}
+                  onValueChange={(value) => setWithdrawNftAddress(value === CUSTOM_PRESET ? "" : String(value))}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a preset" />
