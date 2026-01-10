@@ -126,6 +126,69 @@ const gnarsLootboxV3Abi = [
     stateMutability: "payable",
     type: "function",
   },
+  {
+    inputs: [
+      { internalType: "address", name: "nftContract", type: "address" },
+      { internalType: "uint256", name: "tokenId", type: "uint256" },
+    ],
+    name: "depositFlexNft",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "amount", type: "uint256" }],
+    name: "depositGnars",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "nft", type: "address" },
+      { internalType: "bool", name: "allowed", type: "bool" },
+    ],
+    name: "setAllowedERC721",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "_treasury", type: "address" }],
+    name: "setTreasury",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "uint256", name: "_minFlexEth", type: "uint256" },
+      { internalType: "uint16", name: "_flexNothingBps", type: "uint16" },
+      { internalType: "uint16", name: "_flexNftBpsMin", type: "uint16" },
+      { internalType: "uint16", name: "_flexNftBpsMax", type: "uint16" },
+      { internalType: "uint32", name: "_flexNftBpsPerEth", type: "uint32" },
+      { internalType: "uint256", name: "_flexGnarsBase", type: "uint256" },
+      { internalType: "uint256", name: "_flexGnarsPerEth", type: "uint256" },
+    ],
+    name: "setFlexConfig",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "pause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "unpause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ] as const;
 
 export default gnarsLootboxV3Abi;

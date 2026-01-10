@@ -10,7 +10,7 @@ export const CHAIN = {
 } as const;
 
 export const GNARS_ADDRESSES = {
-  token: "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17",
+  token: "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17", // Gnars NFT (ERC721)
   auction: "0x494eaa55ecf6310658b8fc004b0888dcb698097f",
   // Hacker Dao Governor
   // governor: "0x7c4c33efe412f06f83278acafc16b435be904b03",
@@ -19,8 +19,8 @@ export const GNARS_ADDRESSES = {
   treasury: "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88",
   metadata: "0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58",
   gnarsErc20: "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b", // $GNARS ERC20 token
-  lootboxV2: "0xEB793fc0D366FE7C6d0407f181CF5F6b49CE59b1", // Gnars Lootbox V2 (deprecated)
-  lootboxV3: "0x1c9da82fddedc4b1a55f2836ffe5509f8698ecca", // Gnars Lootbox V3
+  lootboxTestNft: "0x6940100c44d21cd1570b394a1c42949c3eb820d", // Lootbox test NFT (update as needed)
+  lootbox: "0xc934804520ccc172909a093bae5bb07188e77cb2", // Gnars Lootbox V4 (update after deploy)
 } as const;
 
 export const ZORA_CREATOR = {

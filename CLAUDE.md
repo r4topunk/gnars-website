@@ -63,6 +63,14 @@ The `src/lib/config.ts` file contains all Gnars DAO contract addresses on Base:
 - Governor: `0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c`
 - Treasury: `0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88`
 - Metadata: `0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58`
+- Lootbox (V4): `GNARS_ADDRESSES.lootbox` (update after each deploy)
+
+### Lootbox (V4 Only)
+
+The lootbox UI at `src/app/lootbox/page.tsx` is **V4‑only**:
+- Uses `gnarsLootboxV4Abi`.
+- Includes admin controls for VRF config, allowlist, deposits, withdrawals, and recovery.
+- Shows wallet balances/allowances and listens for the `FlexOpened` event to show NFT win toasts.
 
 ## Planned Features (from task files)
 
