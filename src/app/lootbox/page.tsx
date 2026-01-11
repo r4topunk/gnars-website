@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Coins, Gift, Sparkles, Upload, TrendingUp } from "lucide-react";
-import { Address, formatEther, formatUnits, getAddress, isAddress, parseEther, parseUnits } from "viem";
+import { Address, formatEther, isAddress, parseEther } from "viem";
 import { base } from "wagmi/chains";
 import {
   useAccount,
@@ -31,121 +31,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN } from "@/lib/config";
 import gnarsLootboxV4Abi from "@/utils/abis/gnarsLootboxV4Abi";
 import erc20Abi from "@/utils/abis/erc20Abi";
 import erc721Abi from "@/utils/abis/erc721Abi";
-import AnimatedChest3D from "@/components/lootbox/AnimatedChest3D";
-
-const DEFAULT_LOOTBOX_ADDRESS = GNARS_ADDRESSES.lootbox as Address;
-const GNARS_TOKEN_ADDRESS = GNARS_ADDRESSES.gnarsErc20 as Address;
-const GNARS_NFT_ADDRESS = GNARS_ADDRESSES.token as Address;
-const TEST_NFT_ADDRESS = GNARS_ADDRESSES.lootboxTestNft as Address;
-const GNARS_UNIT_18 = 10n ** 18n;
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as Address;
-const CUSTOM_PRESET = "custom";
-
-const NFT_PRESETS = [
-  { label: "HackerDAO Test NFT", value: TEST_NFT_ADDRESS },
-  { label: "Gnars NFT", value: GNARS_NFT_ADDRESS },
-] as const;
-
-const TOKEN_PRESETS = [
-  { label: "GNARS ERC20", value: GNARS_TOKEN_ADDRESS },
-] as const;
-
-// Simple ERC20 ABI for balance check
-const erc20BalanceAbi = [
-  {
-    inputs: [{ name: "account", type: "address" }],
-    name: "balanceOf",
-    outputs: [{ name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
-
-function formatGnarsAmount(amount: bigint, gnarsUnit?: bigint) {
-  // Default to 1e18 if gnarsUnit is not provided or is 0
-  const unit = gnarsUnit && gnarsUnit !== 0n ? gnarsUnit : GNARS_UNIT_18;
-
-  // If unit is 1e18, use formatUnits for proper decimal formatting
-  if (unit === GNARS_UNIT_18) {
-    return formatUnits(amount, 18);
-  }
-
-  return (amount / unit).toString();
-}
-
-function parseGnarsInput(value: string, gnarsUnit?: bigint) {
-  if (!value) return 0n;
-  if (!gnarsUnit || gnarsUnit === 0n || gnarsUnit === GNARS_UNIT_18) return parseUnits(value, 18);
-  return BigInt(value) * gnarsUnit;
-}
-
-function matchPreset(value: string, presets: readonly { value: Address }[]) {
-  if (!value) return undefined;
-  const normalized = value.trim().toLowerCase();
-  const preset = presets.find((item) => item.value.toLowerCase() === normalized);
-  return preset?.value;
-}
-
-function formatPresetLabel(label: string, value: Address) {
-  return `${label} (${value.slice(0, 6)}...${value.slice(-4)})`;
-}
-
-function normalizeAddress(value: string) {
-  if (!value) return null;
-  try {
-    return getAddress(value.trim());
-  } catch {
-    return null;
-  }
-}
-
-function formatOptional(value: string | number | bigint | null | undefined) {
-  if (value === null || value === undefined) return "-";
-  return value.toString();
-}
-
-function renderAddress(value: string | Address | null | undefined) {
-  if (!value) return "-";
-  return <span className="font-mono text-xs break-all">{value}</span>;
-}
-
-function formatAllowlistStatus(address: string, status: boolean | undefined) {
-  if (!isAddress(address)) return "-";
-  if (status === undefined) return "Loading...";
-  return status ? "Allowed" : "Blocked";
-}
-
-function ReadItem({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="space-y-1">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <div className="text-sm font-medium">{value}</div>
-    </div>
-  );
-}
-
-function useAllowedNft(lootboxAddress: Address, nftAddress: string) {
-  const normalizedAddress = useMemo(() => {
-    if (!nftAddress) return null;
-    try {
-      return getAddress(nftAddress.trim());
-    } catch {
-      return null;
-    }
-  }, [nftAddress]);
-  
-  return useReadContract({
-    address: lootboxAddress,
-    abi: gnarsLootboxV4Abi,
-    functionName: "allowedERC721",
-    args: normalizedAddress ? [normalizedAddress] : undefined,
-    query: { enabled: Boolean(normalizedAddress) },
-  });
-}
+import { AnimatedChest3D, ReadItem, AddressRenderer } from "@/components/lootbox";
+import { useAllowedNft } from "@/hooks/use-allowed-nft";
+import {
+  DEFAULT_LOOTBOX_ADDRESS,
+  GNARS_TOKEN_ADDRESS,
+  GNARS_NFT_ADDRESS,
+  TEST_NFT_ADDRESS,
+  ZERO_ADDRESS,
+  CUSTOM_PRESET,
+  NFT_PRESETS,
+  TOKEN_PRESETS,
+  erc20BalanceAbi,
+  formatGnarsAmount,
+  parseGnarsInput,
+  matchPreset,
+  formatPresetLabel,
+  normalizeAddress,
+  formatOptional,
+  formatAllowlistStatus,
+} from "@/lib/lootbox";
 
 export default function LootboxPage() {
   const { address, isConnected, chain } = useAccount();
@@ -1661,8 +1570,8 @@ export default function LootboxPage() {
             <CardContent>
               <AnimatedChest3D
                 onOpen={handleOpenFlex}
-                isPending={Boolean(pendingHash && pendingLabel === "Joining Gnars")}
-                isOpening={Boolean(pendingHash && pendingLabel === "Joining Gnars" && isConfirmed)}
+                isPending={Boolean(pendingLabel === "Joining Gnars" && !isConfirmed)}
+                isOpening={Boolean(pendingLabel === "Joining Gnars" && isConfirmed)}
                 disabled={!isConnected || isPaused || !address}
               />
 
@@ -1763,10 +1672,10 @@ export default function LootboxPage() {
               <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
                 <p className="text-xs font-medium text-muted-foreground">Current</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                  <ReadItem label="Active contract" value={renderAddress(lootboxAddress)} />
-                  <ReadItem label="Owner" value={renderAddress(owner?.toString())} />
-                  <ReadItem label="Treasury" value={renderAddress(treasury?.toString())} />
-                  <ReadItem label="GNARS token" value={renderAddress(gnarsTokenAddress)} />
+                  <ReadItem label="Active contract" value={<AddressRenderer value={lootboxAddress} />} />
+                  <ReadItem label="Owner" value={<AddressRenderer value={owner?.toString()} />} />
+                  <ReadItem label="Treasury" value={<AddressRenderer value={treasury?.toString()} />} />
+                  <ReadItem label="GNARS token" value={<AddressRenderer value={gnarsTokenAddress} />} />
                   <ReadItem label="GNARS unit" value={formatOptional(gnarsUnit)} />
                 </div>
               </div>
@@ -1920,7 +1829,7 @@ export default function LootboxPage() {
               <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
                 <p className="text-xs font-medium text-muted-foreground">Current</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                  <ReadItem label="Selected NFT" value={renderAddress(allowlistNft || null)} />
+                  <ReadItem label="Selected NFT" value={<AddressRenderer value={allowlistNft || null} />} />
                   <ReadItem
                     label="Allowlisted"
                     value={formatAllowlistStatus(allowlistNft, allowlistStatus as boolean | undefined)}
@@ -1950,7 +1859,7 @@ export default function LootboxPage() {
                     label="Paused"
                     value={isPaused === null ? "-" : isPaused ? "Paused" : "Active"}
                   />
-                  <ReadItem label="Owner" value={renderAddress(owner?.toString())} />
+                  <ReadItem label="Owner" value={<AddressRenderer value={owner?.toString()} />} />
                   <ReadItem label="You are owner" value={isOwner ? "Yes" : "No"} />
                 </div>
               </div>
@@ -2033,7 +1942,7 @@ export default function LootboxPage() {
               <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
                 <p className="text-xs font-medium text-muted-foreground">Current</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                  <ReadItem label="Treasury" value={renderAddress(treasury?.toString())} />
+                  <ReadItem label="Treasury" value={<AddressRenderer value={treasury?.toString()} />} />
                   <ReadItem label="Subscription ID" value={formatOptional(subscriptionId)} />
                   <ReadItem label="Callback Gas Limit" value={formatOptional(callbackGasLimit)} />
                   <ReadItem label="Request Confirmations" value={formatOptional(requestConfirmations)} />
@@ -2100,7 +2009,7 @@ export default function LootboxPage() {
                   {activeRequestId !== null && pendingOpen && pendingOpen.user !== ZERO_ADDRESS && (
                     <div className="grid gap-3 sm:grid-cols-2">
                       <ReadItem label="Request ID" value={activeRequestId.toString()} />
-                      <ReadItem label="User" value={renderAddress(pendingOpen.user)} />
+                      <ReadItem label="User" value={<AddressRenderer value={pendingOpen.user} />} />
                       <ReadItem label="Paid" value={`${formatEther(pendingOpen.paid)} ETH`} />
                       <ReadItem
                         label="GNARS Payout"
@@ -2172,7 +2081,7 @@ export default function LootboxPage() {
               <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
                 <p className="text-xs font-medium text-muted-foreground">Current</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                  <ReadItem label="Selected NFT" value={renderAddress(nftContract || null)} />
+                  <ReadItem label="Selected NFT" value={<AddressRenderer value={nftContract || null} />} />
                   <ReadItem
                     label="Allowlisted"
                     value={formatAllowlistStatus(nftContract, depositNftStatus as boolean | undefined)}
@@ -2193,7 +2102,7 @@ export default function LootboxPage() {
               <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
                 <p className="text-xs font-medium text-muted-foreground">Balances</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <ReadItem label="GNARS token" value={renderAddress(gnarsTokenAddress)} />
+                  <ReadItem label="GNARS token" value={<AddressRenderer value={gnarsTokenAddress} />} />
                   <ReadItem
                     label="Contract GNARS"
                     value={contractGnarsBalance !== undefined ? formatGnarsAmount(contractGnarsBalance, gnarsUnit) : "-"}
@@ -2340,7 +2249,7 @@ export default function LootboxPage() {
               <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
                 <p className="text-xs font-medium text-muted-foreground">Current</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                  <ReadItem label="Token address" value={renderAddress(withdrawTokenAddress || null)} />
+                  <ReadItem label="Token address" value={<AddressRenderer value={withdrawTokenAddress || null} />} />
                   <ReadItem
                     label="Contract balance (raw)"
                     value={withdrawTokenBalance !== undefined ? withdrawTokenBalance.toString() : "-"}
@@ -2413,7 +2322,7 @@ export default function LootboxPage() {
               <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
                 <p className="text-xs font-medium text-muted-foreground">Current</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                  <ReadItem label="NFT address" value={renderAddress(withdrawNftAddress || null)} />
+                  <ReadItem label="NFT address" value={<AddressRenderer value={withdrawNftAddress || null} />} />
                   <ReadItem
                     label="Allowlisted"
                     value={formatAllowlistStatus(withdrawNftAddress, withdrawNftStatus as boolean | undefined)}
@@ -2457,7 +2366,7 @@ export default function LootboxPage() {
                     label="Contract ETH balance"
                     value={lootboxEthBalance ? `${formatEther(lootboxEthBalance.value)} ETH` : "-"}
                   />
-                  <ReadItem label="Treasury" value={renderAddress(treasury?.toString())} />
+                  <ReadItem label="Treasury" value={<AddressRenderer value={treasury?.toString()} />} />
                 </div>
               </div>
             </CardContent>
