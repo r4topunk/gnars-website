@@ -30,7 +30,7 @@ interface ProposalActionsProps {
  * - Buttons only enabled for qualified users
  */
 export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsProps) {
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
 
   // Check if user has voting power (at least 1 Gnar)
   // const { hasVotingPower, isLoading: votesLoading } = useVotes({

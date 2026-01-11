@@ -1,6 +1,5 @@
 import { Address, formatUnits, getAddress, isAddress, parseUnits } from "viem";
 import { GNARS_UNIT_18 } from "./constants";
-import type { NftPreset, TokenPreset } from "./types";
 
 export function formatGnarsAmount(amount: bigint, gnarsUnit?: bigint) {
   const unit = gnarsUnit && gnarsUnit !== 0n ? gnarsUnit : GNARS_UNIT_18;

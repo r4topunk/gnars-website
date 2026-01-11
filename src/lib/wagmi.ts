@@ -1,5 +1,5 @@
 import { cookieStorage, createConfig, createStorage, fallback, http } from "wagmi";
-import { coinbaseWallet, injected, metaMask, walletConnect } from "wagmi/connectors";
+import { coinbaseWallet, metaMask, walletConnect } from "wagmi/connectors";
 import { base } from "wagmi/chains";
 import { farcasterWallet } from "@/lib/farcaster-connector";
 

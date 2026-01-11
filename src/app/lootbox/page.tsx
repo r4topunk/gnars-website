@@ -2396,7 +2396,7 @@ export default function LootboxPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">💰</span>
                     <div>
-                  <p className="text-xs text-muted-foreground">GNARS ERC20 Available</p>
+                      <p className="text-xs text-muted-foreground">GNARS ERC20 Available</p>
                       <p className="text-2xl font-bold">
                         {isFetching ? "..." : flexStats ? formatGnarsAmount(flexStats[1], gnarsUnit) : "0"}
                       </p>

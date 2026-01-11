@@ -20,13 +20,6 @@ const SCREW_POSITIONS: [number, number, number][] = [
   [1.1, -0.5, 0.8],
 ];
 
-// Easing function for smooth, premium animation
-const easeOutBack = (t: number): number => {
-  const c1 = 1.70158;
-  const c3 = c1 + 1;
-  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-};
-
 // Button state type
 type ButtonState = 'idle' | 'hover' | 'pressed' | 'loading' | 'success' | 'disabled';
 
@@ -61,12 +54,12 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
   const buttonPointerDownPos = useRef<{ x: number; y: number } | null>(null);
   const buttonIsDragging = useRef(false);
 
-  const handlePointerDown = useCallback((e: any) => {
+  const handlePointerDown = useCallback((e: PointerEvent) => {
     pointerDownPos.current = { x: e.clientX, y: e.clientY };
     isDragging.current = false;
   }, []);
 
-  const handlePointerMove = useCallback((e: any) => {
+  const handlePointerMove = useCallback((e: PointerEvent) => {
     if (pointerDownPos.current) {
       const dx = e.clientX - pointerDownPos.current.x;
       const dy = e.clientY - pointerDownPos.current.y;
@@ -97,13 +90,13 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
     isDragging.current = false;
   }, [onClick]);
 
-  const handleButtonPointerDown = useCallback((e: any) => {
+  const handleButtonPointerDown = useCallback((e: PointerEvent) => {
     e.stopPropagation();
     buttonPointerDownPos.current = { x: e.clientX, y: e.clientY };
     buttonIsDragging.current = false;
   }, []);
 
-  const handleButtonClick = useCallback((e: any) => {
+  const handleButtonClick = useCallback((e: PointerEvent) => {
     e.stopPropagation();
     if (!buttonIsDragging.current) {
       onClick();
@@ -245,8 +238,8 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
     }
   });
 
+  // Fixed syntax error in ternary operator and ensured 'hovered' is defined
   const hovered = hoveredRef.current;
-  const buttonHovered = buttonHoveredRef.current;
   const scale = hovered ? 1.05 : 1;
 
   // Button helper functions based on state
