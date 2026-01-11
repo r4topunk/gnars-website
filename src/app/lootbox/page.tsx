@@ -35,6 +35,7 @@ import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import gnarsLootboxV4Abi from "@/utils/abis/gnarsLootboxV4Abi";
 import erc20Abi from "@/utils/abis/erc20Abi";
 import erc721Abi from "@/utils/abis/erc721Abi";
+import AnimatedChest3D from "@/components/lootbox/AnimatedChest3D";
 
 const DEFAULT_LOOTBOX_ADDRESS = GNARS_ADDRESSES.lootbox as Address;
 const GNARS_TOKEN_ADDRESS = GNARS_ADDRESSES.gnarsErc20 as Address;
@@ -213,7 +214,7 @@ export default function LootboxPage() {
     seenFlexEvents.current.clear();
   }, [lootboxAddress]);
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+  const { isLoading: isConfirming, isSuccess: isConfirmed, isError: isTransactionError } = useWaitForTransactionReceipt({
     hash: pendingHash,
     chainId: CHAIN.id,
   });
@@ -263,12 +264,32 @@ export default function LootboxPage() {
     return GNARS_TOKEN_ADDRESS;
   }, [data]);
 
-  // Refetch balances when transaction confirms
+  // Handle transaction errors
+  useEffect(() => {
+    if (isTransactionError && pendingHash) {
+      toast.error("Transaction failed", {
+        description: "The transaction failed on chain. Please try again.",
+      });
+      // Clear states immediately on error
+      setPendingHash(undefined);
+      setPendingLabel(null);
+    }
+  }, [isTransactionError, pendingHash]);
+
+  // Refetch balances when transaction confirms and cleanup states
   useEffect(() => {
     if (isConfirmed) {
       setTimeout(() => {
         refetch();
       }, 2000);
+
+      // Clear pending states after animation completes (4 seconds total for full animation)
+      const cleanupTimer = setTimeout(() => {
+        setPendingHash(undefined);
+        setPendingLabel(null);
+      }, 4000);
+
+      return () => clearTimeout(cleanupTimer);
     }
   }, [isConfirmed, refetch]);
 
@@ -588,6 +609,7 @@ export default function LootboxPage() {
       const message = err instanceof Error ? err.message : "Transaction failed";
       toast.error("Transaction failed", { description: message });
       setPendingLabel(null);
+      setPendingHash(undefined);
     }
   }, [address, ensureBase, flexEth, isConnected, lootboxAddress, writeContractAsync]);
 
@@ -1288,8 +1310,9 @@ export default function LootboxPage() {
       </div>
 
       <Tabs defaultValue="join" className="space-y-8">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-3xl grid-cols-3">
           <TabsTrigger value="join">Join DAO</TabsTrigger>
+          <TabsTrigger value="3d">3D Experience</TabsTrigger>
           <TabsTrigger value="admin">Admin</TabsTrigger>
         </TabsList>
 
@@ -1625,6 +1648,93 @@ export default function LootboxPage() {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="3d" className="space-y-8">
+          <Card className="bg-card">
+            <CardHeader>
+              <CardTitle className="text-2xl">3D Lootbox Experience</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Interact with the 3D chest below. Hover to see effects, click to open your lootbox!
+              </p>
+            </CardHeader>
+            <CardContent>
+              <AnimatedChest3D
+                onOpen={handleOpenFlex}
+                isPending={Boolean(pendingHash && pendingLabel === "Joining Gnars")}
+                isOpening={Boolean(pendingHash && pendingLabel === "Joining Gnars" && isConfirmed)}
+                disabled={!isConnected || isPaused || !address}
+              />
+
+              {/* Show current contribution amount */}
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Current Contribution</p>
+                    <p className="text-2xl font-bold">{flexEth} ETH</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">You'll receive</p>
+                    <p className="text-xl font-semibold">
+                      {gnarsUnit
+                        ? formatGnarsAmount(
+                            flexGnarsPreview ?? 0n,
+                            gnarsUnit
+                          )
+                        : "..."}{" "}
+                      GNARS
+                    </p>
+                  </div>
+                </div>
+
+                {/* Amount input */}
+                <div className="space-y-2">
+                  <Label htmlFor="flex-eth-3d">How much ETH to contribute?</Label>
+                  <Input
+                    id="flex-eth-3d"
+                    type="number"
+                    step="0.0001"
+                    min="0"
+                    placeholder="0.0002"
+                    value={flexEth}
+                    onChange={(e) => setFlexEth(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Minimum: {minFlexEth !== undefined ? formatEther(minFlexEth) : "..."} ETH
+                  </p>
+                </div>
+
+                {/* Reward breakdown */}
+                {flexStats && (
+                  <div className="grid grid-cols-3 gap-4 p-4 bg-secondary/20 rounded-lg">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Coins className="w-4 h-4 text-amber-500" />
+                        <p className="text-xs text-muted-foreground">GNARS Tokens</p>
+                      </div>
+                      <p className="text-sm font-semibold">100.0%</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Gift className="w-4 h-4 text-purple-500" />
+                        <p className="text-xs text-muted-foreground">Bonus NFT</p>
+                      </div>
+                      <p className="text-sm font-semibold">
+                        {flexNftBpsPerEth !== null && flexNftBpsPerEth !== undefined ? `${(Number(flexNftBpsPerEth) / 100).toFixed(2)}%` : "..."}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Sparkles className="w-4 h-4 text-blue-500" />
+                        <p className="text-xs text-muted-foreground">Try Again</p>
+                      </div>
+                      <p className="text-sm font-semibold">0.0%</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="admin" className="space-y-8">
