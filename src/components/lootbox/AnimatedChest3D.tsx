@@ -35,65 +35,38 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
   // Load Gnars logo texture
   const gnarsLogo = useLoader(TextureLoader, '/gnars.webp');
 
-  // Use ref instead of state to avoid re-renders
-  const hoveredRef = useRef(false);
-  const buttonHoveredRef = useRef(false);
-  const [, forceUpdate] = useState({});
+  // Hover state - real state instead of ref+forceUpdate for proper reactivity
+  const [hovered, setHovered] = useState(false);
+  const [buttonHovered, setButtonHovered] = useState(false);
 
-  // Animation state
-  const [openProgress, setOpenProgress] = useState(0); // 0-1 for lid opening progress
+  // Animation refs - use refs instead of state to avoid per-frame re-renders
+  const openProgressRef = useRef(0);
+  const pulseRef = useRef(0.5);
+  const loadingRotationRef = useRef(0);
+
+  // State only for conditional rendering threshold (not updated per-frame)
+  const [showLogo, setShowLogo] = useState(false);
   const [buttonState, setButtonState] = useState<ButtonState>('idle');
-  const [pulseValue, setPulseValue] = useState(0.5); // For loading pulse animation
-  const [loadingRotation, setLoadingRotation] = useState(0); // For loading spinner
 
-  // Track pointer position to detect drag vs click
-  const pointerDownPos = useRef<{ x: number; y: number } | null>(null);
-  const isDragging = useRef(false);
-
-  // Separate tracking for button clicks
+  // Track pointer position for button click vs drag detection
   const buttonPointerDownPos = useRef<{ x: number; y: number } | null>(null);
   const buttonIsDragging = useRef(false);
-
-  const handlePointerDown = useCallback((e: PointerEvent) => {
-    pointerDownPos.current = { x: e.clientX, y: e.clientY };
-    isDragging.current = false;
-  }, []);
-
-  const handlePointerMove = useCallback((e: PointerEvent) => {
-    if (pointerDownPos.current) {
-      const dx = e.clientX - pointerDownPos.current.x;
-      const dy = e.clientY - pointerDownPos.current.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      // If moved more than 5 pixels, consider it a drag
-      if (distance > 5) {
-        isDragging.current = true;
-      }
-    }
-
-    // Track button drag separately
-    if (buttonPointerDownPos.current) {
-      const dx = e.clientX - buttonPointerDownPos.current.x;
-      const dy = e.clientY - buttonPointerDownPos.current.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      if (distance > 3) { // Smaller threshold for button
-        buttonIsDragging.current = true;
-      }
-    }
-  }, []);
-
-  const handleClick = useCallback(() => {
-    // Only trigger onClick if user didn't drag
-    if (!isDragging.current) {
-      onClick();
-    }
-    pointerDownPos.current = null;
-    isDragging.current = false;
-  }, [onClick]);
 
   const handleButtonPointerDown = useCallback((e: PointerEvent) => {
     e.stopPropagation();
     buttonPointerDownPos.current = { x: e.clientX, y: e.clientY };
     buttonIsDragging.current = false;
+  }, []);
+
+  const handleButtonPointerMove = useCallback((e: PointerEvent) => {
+    if (buttonPointerDownPos.current) {
+      const dx = e.clientX - buttonPointerDownPos.current.x;
+      const dy = e.clientY - buttonPointerDownPos.current.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance > 3) { // Small threshold for button
+        buttonIsDragging.current = true;
+      }
+    }
   }, []);
 
   const handleButtonClick = useCallback((e: PointerEvent) => {
@@ -105,44 +78,45 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
     buttonIsDragging.current = false;
   }, [onClick]);
 
+  // Pointer handlers - use real state updates for proper React reactivity
   const handlePointerOver = useCallback(() => {
-    if (!hoveredRef.current) {
-      hoveredRef.current = true;
-      forceUpdate({});
-    }
+    setHovered(true);
   }, []);
 
   const handlePointerOut = useCallback(() => {
-    if (hoveredRef.current) {
-      hoveredRef.current = false;
-      forceUpdate({});
-    }
+    setHovered(false);
   }, []);
 
   const handleButtonPointerOver = useCallback(() => {
-    if (!buttonHoveredRef.current) {
-      buttonHoveredRef.current = true;
-      forceUpdate({});
-    }
+    setButtonHovered(true);
   }, []);
 
   const handleButtonPointerOut = useCallback(() => {
-    if (buttonHoveredRef.current) {
-      buttonHoveredRef.current = false;
-      forceUpdate({});
-    }
+    setButtonHovered(false);
   }, []);
 
-  // Sync button state with transaction state
+  // Sync button state with transaction state - deterministic based on all inputs
   useEffect(() => {
+    // Priority order: pending > opening > hover > idle (disabled handled by parent)
     if (isPending) {
       setButtonState('loading');
     } else if (isOpening) {
       setButtonState('success');
+    } else if (buttonHovered) {
+      setButtonState('hover');
     } else {
-      setButtonState(buttonHoveredRef.current ? 'hover' : 'idle');
+      setButtonState('idle');
     }
-  }, [isPending, isOpening]);
+  }, [isPending, isOpening, buttonHovered]); // Now includes buttonHovered for proper reactivity
+
+  // Cursor management - centralized in useEffect instead of scattered in handlers
+  useEffect(() => {
+    const cursor = buttonHovered ? 'pointer' : 'auto';
+    document.body.style.cursor = cursor;
+    return () => {
+      document.body.style.cursor = 'auto'; // Cleanup on unmount
+    };
+  }, [buttonHovered]);
 
   // Idle animation - gentle floating
   useFrame((state) => {
@@ -153,8 +127,8 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
     // Floating effect
     crateRef.current.position.y = Math.sin(time * 0.5) * 0.08;
 
-    // Gentle rotation when hovered
-    if (hoveredRef.current) {
+    // Auto-rotate UNTIL hovered (stops when user hovers) - inverted logic
+    if (!hovered) {
       crateRef.current.rotation.y += 0.005;
     }
 
@@ -164,8 +138,8 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       const maxRotation = Math.PI / 1.8; // -100 degrees when fully open
 
       if (isPending) {
-        // Stage 1: Semi-open (45 degrees) while waiting for approval
-        targetRotation = -Math.PI / 4; // -45 degrees
+        // Stage 1: Opens MORE (69 degrees) so interior is visible during pending - breaks "second lid" illusion
+        targetRotation = -Math.PI / 2.6; // -69 degrees (was -45)
       } else if (isOpening) {
         // Stage 2: Fully open (100 degrees) when transaction confirmed
         targetRotation = -maxRotation; // -100 degrees
@@ -182,27 +156,33 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
         const easedDiff = rotationDiff * easingFactor;
         lidRef.current.rotation.x += easedDiff;
 
-        // Calculate progress (0-1) for light ramping
+        // Calculate progress (0-1) - use ref instead of setState to avoid per-frame re-renders
         const currentProgress = Math.abs(lidRef.current.rotation.x) / maxRotation;
-        setOpenProgress(Math.min(Math.max(currentProgress, 0), 1));
+        openProgressRef.current = Math.min(Math.max(currentProgress, 0), 1);
+
+        // Only update state when threshold crossed (for conditional logo rendering)
+        const shouldShowLogo = openProgressRef.current > 0.2;
+        if (shouldShowLogo !== showLogo) {
+          setShowLogo(shouldShowLogo);
+        }
       }
     }
 
-    // Animate hover lights
+    // Animate hover lights - use state instead of ref
     if (hoverLightRef.current) {
-      hoverLightRef.current.intensity = hoveredRef.current ? 3 : 0;
+      hoverLightRef.current.intensity = hovered ? 3 : 0;
     }
     if (rimLight1Ref.current) {
-      rimLight1Ref.current.intensity = hoveredRef.current ? 1 : 0;
+      rimLight1Ref.current.intensity = hovered ? 1 : 0;
     }
     if (rimLight2Ref.current) {
-      rimLight2Ref.current.intensity = hoveredRef.current ? 0.8 : 0;
+      rimLight2Ref.current.intensity = hovered ? 0.8 : 0;
     }
 
-    // Animate interior light with GAMMA CURVE for dramatic reveal
+    // Animate interior light with GAMMA CURVE for dramatic reveal - use ref instead of state
     if (interiorLightRef.current) {
       // Use gamma-like curve for dramatic ramp: slow start, fast middle, slow end
-      const lightCurve = Math.pow(openProgress, 2.2);
+      const lightCurve = Math.pow(openProgressRef.current, 2.2);
       const targetIntensity = lightCurve * 8.0; // 0 → 8 smoothly
 
       // Smooth transition
@@ -212,8 +192,8 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       }
     }
 
-    // Animate floating Gnars logo (magical item effect)
-    if (floatingLogoRef.current && openProgress > 0.3) {
+    // Animate floating Gnars logo (magical item effect) - use ref instead of state
+    if (floatingLogoRef.current && openProgressRef.current > 0.3) {
       const time = state.clock.getElapsedTime();
 
       // Spinning rotation (Y-axis) - like a legendary item
@@ -229,17 +209,16 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       floatingLogoRef.current.rotation.z = Math.cos(time * 0.6) * 0.06;
     }
 
-    // Button pulse animation for loading state
+    // Button pulse animation for loading state - use refs instead of setState to avoid per-frame re-renders
     if (buttonState === 'loading') {
       const time = state.clock.getElapsedTime();
       const pulseSpeed = 2.0; // Hz for loading pulse
-      setPulseValue(0.5 + Math.sin(time * pulseSpeed * Math.PI) * 0.5);
-      setLoadingRotation(time * 2); // Rotate loading indicator
+      pulseRef.current = 0.5 + Math.sin(time * pulseSpeed * Math.PI) * 0.5;
+      loadingRotationRef.current = time * 2; // Rotate loading indicator
     }
   });
 
-  // Fixed syntax error in ternary operator and ensured 'hovered' is defined
-  const hovered = hoveredRef.current;
+  // Scale based on hover state
   const scale = hovered ? 1.05 : 1;
 
   // Button helper functions based on state
@@ -280,7 +259,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
     switch (buttonState) {
       case 'hover': return 3.5;
       case 'pressed': return 1.5;
-      case 'loading': return 2.0 + pulseValue * 0.8; // Pulsing
+      case 'loading': return 2.0 + pulseRef.current * 0.8; // Pulsing - use ref instead of state
       case 'success': return 3.0;
       case 'disabled': return 0.5;
       default: return 2.0; // idle
@@ -299,9 +278,6 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
   return (
     <group
       ref={crateRef}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onClick={handleClick}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
       scale={scale}
@@ -550,8 +526,8 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       {/* INTERIOR OF THE BOX */}
       {/* Interior cavity - visible when lid opens */}
       <group position={[0, 0, 0]}>
-        {/* Bottom interior surface - dark with foam texture */}
-        <mesh position={[0, -0.55, 0]} receiveShadow>
+        {/* Bottom interior surface - LOWERED to create visible depth, not flat lid illusion */}
+        <mesh position={[0, -0.70, 0]} receiveShadow>
           <boxGeometry args={[2.3, 0.1, 1.6]} />
           <meshStandardMaterial
             color="#1a1a1a"
@@ -593,9 +569,9 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           />
         </mesh>
 
-        {/* Interior front wall - lower part only (top is open) - DOUBLE SIDED */}
-        <mesh position={[0, -0.3, 0.75]} receiveShadow>
-          <boxGeometry args={[2.3, 0.4, 0.1]} />
+        {/* Interior front wall - REDUCED height + LOWERED to read as lip, not lid */}
+        <mesh position={[0, -0.45, 0.75]} receiveShadow>
+          <boxGeometry args={[2.3, 0.25, 0.1]} />
           <meshStandardMaterial
             color="#0a0a0a"
             metalness={0.3}
@@ -604,8 +580,18 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           />
         </mesh>
 
-        {/* Foam padding inserts - yellow/orange accents */}
-        <mesh position={[0, -0.5, 0]}>
+        {/* Subtle vertical rib on back wall - creates depth shadow cue */}
+        <mesh position={[0, -0.2, -0.76]} receiveShadow castShadow>
+          <boxGeometry args={[0.08, 0.6, 0.02]} />
+          <meshStandardMaterial
+            color="#050505"
+            metalness={0.2}
+            roughness={0.95}
+          />
+        </mesh>
+
+        {/* Foam padding inserts - LOWERED to match new bottom depth */}
+        <mesh position={[0, -0.65, 0]}>
           <boxGeometry args={[2.2, 0.05, 1.5]} />
           <meshStandardMaterial
             color="#2a2200"
@@ -614,10 +600,10 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           />
         </mesh>
 
-        {/* Interior golden light source */}
+        {/* Interior golden light source - ANGLED to create depth shadows, not flat illumination */}
         <pointLight
           ref={interiorLightRef}
-          position={[0, 0, 0]}
+          position={[0, -0.15, 0.4]}
           color="#ffaa00"
           intensity={0}
           distance={3}
@@ -634,65 +620,70 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
         />
 
         {/* FLOATING 3D GNARS LOGO - Legendary Item Effect */}
-        {openProgress > 0.3 && (
-          <group ref={floatingLogoRef} position={[0, 0, 0]}>
-            {/* Main logo mesh - double-sided for visibility from all angles */}
+        {/* Conditional rendering based on showLogo state (updated only when threshold crossed) */}
+        {showLogo && (
+          <group ref={floatingLogoRef} position={[0, 0.1, 0.3]}>
+            {/* Subtle golden cube as background glow - reduced intensity */}
             <mesh>
-              <planeGeometry args={[0.7, 0.7]} />
+              <boxGeometry args={[0.6, 0.6, 0.6]} />
               <meshStandardMaterial
-                map={gnarsLogo}
-                side={THREE.DoubleSide}
-                transparent
-                alphaTest={0.5}
+                color="#ffcc00"
                 emissive="#ffaa00"
-                emissiveIntensity={1.5 * openProgress}
-                metalness={0.2}
-                roughness={0.4}
+                emissiveIntensity={0.8 * openProgressRef.current}
+                metalness={0.7}
+                roughness={0.2}
               />
             </mesh>
 
-            {/* Back side logo (mirror) for double-sided appearance */}
-            <mesh rotation={[0, Math.PI, 0]}>
-              <planeGeometry args={[0.7, 0.7]} />
+            {/* Main logo texture - front (TRUE COLORS - minimal emissive) */}
+            <mesh position={[0, 0, 0.31]}>
+              <planeGeometry args={[0.8, 0.8]} />
               <meshStandardMaterial
                 map={gnarsLogo}
                 side={THREE.FrontSide}
-                transparent
-                alphaTest={0.5}
-                emissive="#ffaa00"
-                emissiveIntensity={1.5 * openProgress}
-                metalness={0.2}
-                roughness={0.4}
+                metalness={0}
+                roughness={1}
               />
             </mesh>
 
-            {/* Golden glow ring behind logo */}
-            <mesh position={[0, 0, -0.05]} scale={1.4}>
-              <ringGeometry args={[0.35, 0.5, 32]} />
-              <meshBasicMaterial
-                color="#ff8800"
-                transparent
-                opacity={0.35 * openProgress}
+            {/* Logo texture - back (TRUE COLORS - minimal emissive) */}
+            <mesh position={[0, 0, -0.31]} rotation={[0, Math.PI, 0]}>
+              <planeGeometry args={[0.8, 0.8]} />
+              <meshStandardMaterial
+                map={gnarsLogo}
+                side={THREE.FrontSide}
+                metalness={0}
+                roughness={1}
               />
             </mesh>
 
-            {/* Subtle pulsing glow sphere */}
-            <mesh position={[0, 0, 0]}>
-              <sphereGeometry args={[0.4, 16, 16]} />
+            {/* Large golden glow ring */}
+            <mesh position={[0, 0, 0]} scale={1.6}>
+              <ringGeometry args={[0.4, 0.55, 32]} />
               <meshBasicMaterial
                 color="#ffcc00"
                 transparent
-                opacity={0.08 * openProgress}
+                opacity={0.45 * openProgressRef.current}
               />
             </mesh>
 
-            {/* Point light emanating from logo */}
+            {/* Atmospheric glow sphere */}
+            <mesh position={[0, 0, 0]}>
+              <sphereGeometry args={[0.5, 16, 16]} />
+              <meshBasicMaterial
+                color="#ffdd00"
+                transparent
+                opacity={0.18 * openProgressRef.current}
+              />
+            </mesh>
+
+            {/* Strong point light from logo */}
             <pointLight
-              position={[0, 0, 0.2]}
+              position={[0, 0, 0.4]}
               color="#ffcc00"
-              intensity={2.5 * openProgress}
-              distance={1.8}
-              decay={2}
+              intensity={4.0 * openProgressRef.current}
+              distance={2.0}
+              decay={1.5}
             />
           </group>
         )}
@@ -718,12 +709,11 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
         </group>
       ))}
 
-      {/* Horizontal reinforcement bands around base */}
+      {/* Horizontal reinforcement band around base - ONLY BOTTOM BAND
+          REMOVED: Top band at y=0.3 was causing "second lid" effect when looking into opened box.
+          The top band (2.52×0.06×1.83) spanned the full box width/depth and appeared as a flat
+          surface blocking the interior view. Bottom band at y=-0.3 provides sufficient detail. */}
       <mesh position={[0, -0.3, 0]}>
-        <boxGeometry args={[2.52, 0.06, 1.83]} />
-        <meshStandardMaterial color="#3a3a3a" metalness={0.88} roughness={0.25} />
-      </mesh>
-      <mesh position={[0, 0.3, 0]}>
         <boxGeometry args={[2.52, 0.06, 1.83]} />
         <meshStandardMaterial color="#3a3a3a" metalness={0.88} roughness={0.25} />
       </mesh>
@@ -752,9 +742,9 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       <group ref={lidRef} position={[0, 0.6, -0.95]}>
         {/* Offset group to position lid correctly when rotated */}
         <group position={[0, 0, 0.95]}>
-        {/* Main lid body - dark metallic matching box */}
+        {/* Main lid body - THINNER (0.12 not 0.3) so underside doesn't read as "second lid" */}
         <mesh castShadow receiveShadow>
-          <boxGeometry args={[2.6, 0.3, 1.9]} />
+          <boxGeometry args={[2.6, 0.12, 1.9]} />
           <meshStandardMaterial
             color="#2a2a2a"
             metalness={0.95}
@@ -819,20 +809,6 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           <meshStandardMaterial color="#3a3a3a" metalness={0.9} roughness={0.2} />
         </mesh>
 
-        {/* Lid top stripe detail with hazard marking */}
-        <mesh position={[0, 0.16, 0.7]}>
-          <boxGeometry args={[0.9, 0.06, 0.25]} />
-          <meshStandardMaterial color="#ffcc00" metalness={0.15} roughness={0.7} />
-        </mesh>
-        <mesh position={[0.4, 0.16, 0.7]}>
-          <boxGeometry args={[0.06, 0.06, 0.25]} />
-          <meshStandardMaterial color="#2a2a2a" metalness={0.7} roughness={0.3} />
-        </mesh>
-        <mesh position={[-0.4, 0.16, 0.7]}>
-          <boxGeometry args={[0.06, 0.06, 0.25]} />
-          <meshStandardMaterial color="#2a2a2a" metalness={0.7} roughness={0.3} />
-        </mesh>
-
         {/* Metallic reinforcement edges on lid - thicker and more prominent */}
         <mesh position={[1.28, 0, 0]}>
           <boxGeometry args={[0.08, 0.32, 1.95]} />
@@ -890,21 +866,6 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
             emissiveIntensity={0.3}
           />
         </mesh>
-
-        {/* Gnars text on lid - at the front edge */}
-        <Text
-          position={[0, 0.22, 0.7]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          fontSize={0.15}
-          color="#ffaa00"
-          anchorX="center"
-          anchorY="middle"
-          fontWeight="bold"
-          outlineWidth={0.01}
-          outlineColor="#000000"
-        >
-          GNARS DAO
-        </Text>
 
         {/* Hinge details at the back of lid */}
         {[-0.7, 0, 0.7].map((xPos, i) => (
@@ -1029,159 +990,120 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
         </mesh>
       </group>
 
-      {/* AAA GAME HUD BUTTON - Premium diegetic interface */}
-      <group position={[0, 0, 0.91]}>
-        {/* Main housing - dark tech panel */}
-        <mesh position={[0, 0, 0]}>
-          <boxGeometry args={[1.1, 0.75, 0.12]} />
-          <meshStandardMaterial
-            color="#1a1a1a"
-            metalness={0.9}
-            roughness={0.2}
-            envMapIntensity={1.5}
-          />
-        </mesh>
-
-        {/* Recessed panel */}
-        <mesh position={[0, 0, 0.04]}>
-          <boxGeometry args={[1.0, 0.65, 0.06]} />
+      {/* LARGE PROMINENT BUTTON - Highly visible and clickable */}
+      <group position={[0, 0, 0.92]}>
+        {/* Dark background panel */}
+        <mesh position={[0, 0, -0.02]}>
+          <boxGeometry args={[1.2, 0.8, 0.08]} />
           <meshStandardMaterial
             color="#0a0a0a"
-            metalness={0.85}
+            metalness={0.8}
             roughness={0.3}
           />
         </mesh>
 
-        {/* Cyan tech accent lines - cyber aesthetic */}
-        {[
-          [-0.52, 0.35, 0.075], [0.52, 0.35, 0.075],
-          [-0.52, -0.35, 0.075], [0.52, -0.35, 0.075],
-        ].map((pos, i) => (
-          <mesh key={`cyan-accent-${i}`} position={pos as [number, number, number]}>
-            <boxGeometry args={[0.08, 0.03, 0.01]} />
-            <meshStandardMaterial
-              color="#00ffff"
-              emissive="#00ffff"
-              emissiveIntensity={buttonState === 'loading' ? pulseValue * 1.5 : 0.5}
-              metalness={0.8}
-              roughness={0.2}
-            />
-          </mesh>
-        ))}
+        {/* Metallic frame */}
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[1.25, 0.85, 0.04]} />
+          <meshStandardMaterial
+            color="#3a3a3a"
+            metalness={0.95}
+            roughness={0.15}
+          />
+        </mesh>
 
-        {/* MAIN INTERACTIVE BUTTON - State driven */}
+        {/* MAIN INTERACTIVE BUTTON - Large circular surface */}
         <mesh
           position={[0, 0, getButtonZ()]}
+          rotation={[Math.PI / 2, 0, 0]}
           castShadow
           onPointerDown={handleButtonPointerDown}
+          onPointerMove={handleButtonPointerMove}
           onClick={handleButtonClick}
           onPointerOver={(e) => {
             e.stopPropagation();
-            if (buttonState === 'idle') setButtonState('hover');
             handleButtonPointerOver();
-            document.body.style.cursor = buttonState === 'disabled' ? 'not-allowed' : 'pointer';
           }}
           onPointerOut={(e) => {
             e.stopPropagation();
-            if (buttonState === 'hover') setButtonState('idle');
             handleButtonPointerOut();
-            document.body.style.cursor = 'auto';
           }}
         >
-          <boxGeometry args={[0.9, 0.6, 0.08]} />
+          <cylinderGeometry args={[0.32, 0.32, 0.1, 32]} />
           <meshStandardMaterial
             color={getButtonColor()}
             emissive={getButtonEmissive()}
             emissiveIntensity={getButtonEmissiveIntensity()}
-            metalness={0.25}
-            roughness={0.25}
+            metalness={0.4}
+            roughness={0.3}
           />
         </mesh>
 
-        {/* Button border - metallic frame */}
-        <mesh position={[0, 0, getButtonZ() + 0.045]}>
-          <boxGeometry args={[0.95, 0.65, 0.02]} />
+        {/* Bright center glow */}
+        <mesh position={[0, 0, getButtonZ() + 0.06]}>
+          <sphereGeometry args={[0.12, 16, 16]} />
+          <meshBasicMaterial
+            color={buttonState === 'success' ? '#00ff88' : buttonState === 'loading' ? '#ff8800' : '#ffdd00'}
+            transparent
+            opacity={buttonState === 'loading' ? 0.8 + pulseRef.current * 0.2 : 1.0}
+          />
+        </mesh>
+
+        {/* Bright outer ring */}
+        <mesh position={[0, 0, getButtonZ() + 0.02]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.36, 0.03, 16, 32]} />
           <meshStandardMaterial
             color="#ffcc00"
-            metalness={0.95}
+            emissive="#ffaa00"
+            emissiveIntensity={buttonState === 'loading' ? 3.0 + pulseRef.current * 2.0 : buttonState === 'hover' ? 4.0 : 2.5}
+            metalness={0.9}
             roughness={0.1}
-            emissive={buttonState === 'loading' ? "#ff8800" : "#ffaa00"}
-            emissiveIntensity={buttonState === 'loading' ? pulseValue : 0.4}
           />
         </mesh>
 
-        {/* Corner brackets - tech detail */}
+        {/* Four corner accent lights - much larger */}
         {[
-          [-0.42, 0.28, getButtonZ() + 0.05],
-          [0.42, 0.28, getButtonZ() + 0.05],
-          [-0.42, -0.28, getButtonZ() + 0.05],
-          [0.42, -0.28, getButtonZ() + 0.05],
+          [-0.45, 0.3, 0.03],
+          [0.45, 0.3, 0.03],
+          [-0.45, -0.3, 0.03],
+          [0.45, -0.3, 0.03],
         ].map((pos, i) => (
-          <mesh key={`button-bracket-${i}`} position={pos as [number, number, number]}>
-            <boxGeometry args={[0.07, 0.07, 0.015]} />
+          <mesh key={`corner-light-${i}`} position={pos as [number, number, number]}>
+            <sphereGeometry args={[0.04, 16, 16]} />
             <meshStandardMaterial
-              color="#ffee00"
-              metalness={0.9}
-              roughness={0.1}
-              emissive="#ffcc00"
-              emissiveIntensity={buttonState === 'hover' || buttonState === 'loading' ? 2.0 : 1.0}
+              color={buttonState === 'loading' || buttonState === 'success' ? '#00ffff' : '#ff8800'}
+              emissive={buttonState === 'loading' || buttonState === 'success' ? '#00ffff' : '#ff6600'}
+              emissiveIntensity={buttonState === 'loading' ? 4.0 + pulseRef.current * 2.0 : buttonState === 'hover' ? 5.0 : 3.0}
+            />
+            <pointLight
+              color={buttonState === 'loading' || buttonState === 'success' ? '#00ffff' : '#ff8800'}
+              intensity={buttonState === 'loading' ? pulseRef.current * 2.0 : buttonState === 'hover' ? 2.0 : 1.0}
+              distance={0.5}
             />
           </mesh>
         ))}
 
-        {/* Loading indicator - rotating arc */}
-        {buttonState === 'loading' && (
-          <mesh
-            position={[0.38, 0.25, getButtonZ() + 0.06]}
-            rotation={[0, 0, loadingRotation]}
-          >
-            <torusGeometry args={[0.09, 0.018, 16, 32, Math.PI * 1.5]} />
-            <meshBasicMaterial color="#00ffff" />
-          </mesh>
-        )}
+        {/* Main button spotlight */}
+        <pointLight
+          position={[0, 0, 0.3]}
+          color="#ffcc00"
+          intensity={buttonState === 'hover' ? 3.0 : 2.0}
+          distance={1.5}
+          decay={2}
+        />
 
-        {/* Button text - state driven */}
-        <Text
-          position={[0, 0, getButtonZ() + 0.055]}
-          fontSize={0.12}
-          color={buttonState === 'disabled' ? '#888888' : '#ffffff'}
-          anchorX="center"
-          anchorY="middle"
-          fontWeight="bold"
-          outlineWidth={0.008}
-          outlineColor="#000000"
-        >
-          {getButtonText()}
-        </Text>
-
-        {/* Dynamic glow effect */}
+        {/* Large glow halo effect */}
         {(buttonState === 'hover' || buttonState === 'loading' || buttonState === 'success') && (
-          <mesh position={[0, 0, getButtonZ() - 0.02]}>
-            <boxGeometry args={[0.98, 0.68, 0.02]} />
+          <mesh position={[0, 0, getButtonZ() - 0.02]} rotation={[Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.4, 0.55, 32]} />
             <meshBasicMaterial
-              color={buttonState === 'success' ? '#00ffff' : buttonState === 'loading' ? '#00ffff' : '#ffcc00'}
+              color={buttonState === 'success' ? '#00ff88' : '#ffcc00'}
               transparent
-              opacity={buttonState === 'loading' ? pulseValue * 0.4 : 0.5}
+              opacity={buttonState === 'loading' ? pulseRef.current * 0.5 : 0.6}
+              side={THREE.DoubleSide}
             />
           </mesh>
         )}
-
-        {/* Mounting bolts */}
-        {[
-          [-0.5, 0.33, 0.02],
-          [0.5, 0.33, 0.02],
-          [-0.5, -0.33, 0.02],
-          [0.5, -0.33, 0.02],
-        ].map((pos, i) => (
-          <mesh key={`bolt-${i}`} position={pos as [number, number, number]}>
-            <cylinderGeometry args={[0.04, 0.04, 0.05, 8]} />
-            <meshStandardMaterial
-              color="#4a4a4a"
-              metalness={0.9}
-              roughness={0.2}
-            />
-          </mesh>
-        ))}
       </group>
 
       {/* Corner details - screws/bolts - using memoized positions */}
@@ -1214,6 +1136,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
         intensity={0}
         distance={5}
       />
+
     </group>
   );
 });
