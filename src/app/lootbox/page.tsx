@@ -1583,7 +1583,7 @@ export default function LootboxPage() {
                     <p className="text-2xl font-bold">{flexEth} ETH</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-muted-foreground">You'll receive</p>
+                    <p className="text-sm text-muted-foreground">You&apos;ll receive</p>
                     <p className="text-xl font-semibold">
                       {gnarsUnit
                         ? formatGnarsAmount(
