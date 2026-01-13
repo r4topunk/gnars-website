@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback, memo, useEffect } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import { OrbitControls, PerspectiveCamera, Environment, Text } from "@react-three/drei";
+import { OrbitControls, PerspectiveCamera, Environment } from "@react-three/drei";
 import { Group, PointLight, TextureLoader } from "three";
 import * as THREE from "three";
 
@@ -266,14 +266,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
     }
   };
 
-  const getButtonText = () => {
-    switch (buttonState) {
-      case 'loading': return 'OPENING...';
-      case 'success': return 'OPENED ✓';
-      case 'disabled': return 'LOCKED';
-      default: return 'OPEN';
-    }
-  };
+
 
   return (
     <group
