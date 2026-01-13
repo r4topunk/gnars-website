@@ -35,6 +35,14 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
   // Load Gnars logo texture
   const gnarsLogo = useLoader(TextureLoader, '/gnars.webp');
 
+  // Configure texture for proper decal rendering
+  useEffect(() => {
+    if (gnarsLogo) {
+      gnarsLogo.colorSpace = THREE.SRGBColorSpace;
+      gnarsLogo.needsUpdate = true;
+    }
+  }, [gnarsLogo]);
+
   // Hover state - real state instead of ref+forceUpdate for proper reactivity
   const [hovered, setHovered] = useState(false);
   const [buttonHovered, setButtonHovered] = useState(false);
@@ -356,12 +364,12 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
         />
       </mesh>
 
-      {/* Worn edge strips - top - brighter accent */}
-      <mesh position={[0, 0.61, 0.9]}>
+      {/* Worn edge strips - moved down to avoid lid illusion */}
+      <mesh position={[0, 0.54, 0.9]}>
         <boxGeometry args={[2.52, 0.03, 0.03]} />
         <meshStandardMaterial color="#666666" metalness={0.85} roughness={0.15} />
       </mesh>
-      <mesh position={[0, 0.61, -0.9]}>
+      <mesh position={[0, 0.54, -0.9]}>
         <boxGeometry args={[2.52, 0.03, 0.03]} />
         <meshStandardMaterial color="#666666" metalness={0.85} roughness={0.15} />
       </mesh>
@@ -628,25 +636,25 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
               />
             </mesh>
 
-            {/* Main logo texture - front (TRUE COLORS - minimal emissive) */}
+            {/* Main logo texture - front (clean decal with alpha) */}
             <mesh position={[0, 0, 0.31]}>
               <planeGeometry args={[0.8, 0.8]} />
-              <meshStandardMaterial
+              <meshBasicMaterial
                 map={gnarsLogo}
-                side={THREE.FrontSide}
-                metalness={0}
-                roughness={1}
+                transparent
+                alphaTest={0.2}
+                toneMapped={false}
               />
             </mesh>
 
-            {/* Logo texture - back (TRUE COLORS - minimal emissive) */}
+            {/* Logo texture - back (clean decal with alpha) */}
             <mesh position={[0, 0, -0.31]} rotation={[0, Math.PI, 0]}>
               <planeGeometry args={[0.8, 0.8]} />
-              <meshStandardMaterial
+              <meshBasicMaterial
                 map={gnarsLogo}
-                side={THREE.FrontSide}
-                metalness={0}
-                roughness={1}
+                transparent
+                alphaTest={0.2}
+                toneMapped={false}
               />
             </mesh>
 
@@ -746,58 +754,30 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           />
         </mesh>
 
-        {/* Raised center section on lid for more geometry */}
-        <mesh position={[0, 0.18, 0]} castShadow>
-          <boxGeometry args={[2.2, 0.08, 1.5]} />
-          <meshStandardMaterial
-            color="#1a1a1a"
-            metalness={0.9}
-            roughness={0.3}
-          />
-        </mesh>
-
-        {/* Recessed panels on top of lid - dark metallic */}
-        <mesh position={[-0.6, 0.16, 0.4]}>
-          <boxGeometry args={[0.5, 0.02, 0.4]} />
-          <meshStandardMaterial color="#0a0a0a" metalness={0.8} roughness={0.5} />
-        </mesh>
-        <mesh position={[0.6, 0.16, 0.4]}>
-          <boxGeometry args={[0.5, 0.02, 0.4]} />
-          <meshStandardMaterial color="#0a0a0a" metalness={0.8} roughness={0.5} />
-        </mesh>
-        <mesh position={[-0.6, 0.16, -0.4]}>
-          <boxGeometry args={[0.5, 0.02, 0.4]} />
-          <meshStandardMaterial color="#0a0a0a" metalness={0.8} roughness={0.5} />
-        </mesh>
-        <mesh position={[0.6, 0.16, -0.4]}>
-          <boxGeometry args={[0.5, 0.02, 0.4]} />
-          <meshStandardMaterial color="#0a0a0a" metalness={0.8} roughness={0.5} />
-        </mesh>
-
-        {/* Weathered marks on lid - subtle darker areas */}
-        <mesh position={[-0.5, 0.151, 0.3]} rotation={[-Math.PI / 2, 0, 0.3]}>
+        {/* Weathered marks on lid - flush on surface */}
+        <mesh position={[-0.5, 0.062, 0.3]} rotation={[-Math.PI / 2, 0, 0.3]}>
           <planeGeometry args={[0.4, 0.3]} />
           <meshStandardMaterial color="#1a1a1a" metalness={0.7} roughness={0.6} transparent opacity={0.4} />
         </mesh>
-        <mesh position={[0.7, 0.151, -0.4]} rotation={[-Math.PI / 2, 0, -0.2]}>
+        <mesh position={[0.7, 0.062, -0.4]} rotation={[-Math.PI / 2, 0, -0.2]}>
           <planeGeometry args={[0.35, 0.25]} />
           <meshStandardMaterial color="#1a1a1a" metalness={0.7} roughness={0.6} transparent opacity={0.3} />
         </mesh>
 
-        {/* Panel lines on lid - subtle accents */}
-        <mesh position={[0, 0.152, 0.8]}>
+        {/* Panel lines on lid - flush on surface */}
+        <mesh position={[0, 0.063, 0.8]}>
           <boxGeometry args={[2.4, 0.01, 0.01]} />
           <meshStandardMaterial color="#3a3a3a" metalness={0.9} roughness={0.2} />
         </mesh>
-        <mesh position={[0, 0.152, -0.8]}>
+        <mesh position={[0, 0.063, -0.8]}>
           <boxGeometry args={[2.4, 0.01, 0.01]} />
           <meshStandardMaterial color="#3a3a3a" metalness={0.9} roughness={0.2} />
         </mesh>
-        <mesh position={[1.1, 0.152, 0]}>
+        <mesh position={[1.1, 0.063, 0]}>
           <boxGeometry args={[0.01, 0.01, 1.6]} />
           <meshStandardMaterial color="#3a3a3a" metalness={0.9} roughness={0.2} />
         </mesh>
-        <mesh position={[-1.1, 0.152, 0]}>
+        <mesh position={[-1.1, 0.063, 0]}>
           <boxGeometry args={[0.01, 0.01, 1.6]} />
           <meshStandardMaterial color="#3a3a3a" metalness={0.9} roughness={0.2} />
         </mesh>
@@ -834,29 +814,28 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           </mesh>
         ))}
 
-        {/* Gnars logo on lid - centered and prominent on TOP */}
-        <mesh position={[0, 0.23, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[1.0, 1.0]} />
-          <meshStandardMaterial
-            map={gnarsLogo}
+        {/* Subtle glow behind logo - unlit glow effect */}
+        <mesh position={[0, 0.061, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={9}>
+          <planeGeometry args={[1.1, 1.1]} />
+          <meshBasicMaterial
+            color="#ff6600"
             transparent
-            opacity={0.95}
-            metalness={0.1}
-            roughness={0.4}
-            emissive="#ffffff"
-            emissiveIntensity={0.1}
+            opacity={0.15}
+            depthWrite={false}
+            toneMapped={false}
           />
         </mesh>
 
-        {/* Subtle glow behind logo */}
-        <mesh position={[0, 0.22, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[1.1, 1.1]} />
-          <meshStandardMaterial
-            color="#ff6600"
+        {/* Gnars logo on lid - clean decal with alpha */}
+        <mesh position={[0, 0.063, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={10}>
+          <planeGeometry args={[1.0, 1.0]} />
+          <meshBasicMaterial
+            map={gnarsLogo}
             transparent
-            opacity={0.1}
-            emissive="#ff6600"
-            emissiveIntensity={0.3}
+            alphaTest={0.2}
+            depthWrite={false}
+            toneMapped={false}
+            side={THREE.DoubleSide}
           />
         </mesh>
 
@@ -986,7 +965,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       {/* LARGE PROMINENT BUTTON - Highly visible and clickable */}
       <group position={[0, 0, 0.92]}>
         {/* Dark background panel */}
-        <mesh position={[0, 0, -0.02]}>
+        <mesh position={[0, 0, -0.025]}>
           <boxGeometry args={[1.2, 0.8, 0.08]} />
           <meshStandardMaterial
             color="#0a0a0a"
@@ -996,7 +975,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
         </mesh>
 
         {/* Metallic frame */}
-        <mesh position={[0, 0, 0]}>
+        <mesh position={[0, 0, 0.003]}>
           <boxGeometry args={[1.25, 0.85, 0.04]} />
           <meshStandardMaterial
             color="#3a3a3a"
@@ -1033,17 +1012,18 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
         </mesh>
 
         {/* Bright center glow */}
-        <mesh position={[0, 0, getButtonZ() + 0.06]}>
+        <mesh position={[0, 0, getButtonZ() + 0.06]} renderOrder={8}>
           <sphereGeometry args={[0.12, 16, 16]} />
           <meshBasicMaterial
             color={buttonState === 'success' ? '#00ff88' : buttonState === 'loading' ? '#ff8800' : '#ffdd00'}
             transparent
             opacity={buttonState === 'loading' ? 0.8 + pulseRef.current * 0.2 : 1.0}
+            depthWrite={false}
           />
         </mesh>
 
         {/* Bright outer ring */}
-        <mesh position={[0, 0, getButtonZ() + 0.02]} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh position={[0, 0, getButtonZ() + 0.022]} rotation={[Math.PI / 2, 0, 0]} renderOrder={7}>
           <torusGeometry args={[0.36, 0.03, 16, 32]} />
           <meshStandardMaterial
             color="#ffcc00"
@@ -1056,12 +1036,12 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
 
         {/* Four corner accent lights - much larger */}
         {[
-          [-0.45, 0.3, 0.03],
-          [0.45, 0.3, 0.03],
-          [-0.45, -0.3, 0.03],
-          [0.45, -0.3, 0.03],
+          [-0.45, 0.3, 0.035],
+          [0.45, 0.3, 0.035],
+          [-0.45, -0.3, 0.035],
+          [0.45, -0.3, 0.035],
         ].map((pos, i) => (
-          <mesh key={`corner-light-${i}`} position={pos as [number, number, number]}>
+          <mesh key={`corner-light-${i}`} position={pos as [number, number, number]} renderOrder={6}>
             <sphereGeometry args={[0.04, 16, 16]} />
             <meshStandardMaterial
               color={buttonState === 'loading' || buttonState === 'success' ? '#00ffff' : '#ff8800'}
@@ -1087,13 +1067,14 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
 
         {/* Large glow halo effect */}
         {(buttonState === 'hover' || buttonState === 'loading' || buttonState === 'success') && (
-          <mesh position={[0, 0, getButtonZ() - 0.02]} rotation={[Math.PI / 2, 0, 0]}>
+          <mesh position={[0, 0, getButtonZ() - 0.015]} rotation={[Math.PI / 2, 0, 0]} renderOrder={5}>
             <ringGeometry args={[0.4, 0.55, 32]} />
             <meshBasicMaterial
               color={buttonState === 'success' ? '#00ff88' : '#ffcc00'}
               transparent
               opacity={buttonState === 'loading' ? pulseRef.current * 0.5 : 0.6}
               side={THREE.DoubleSide}
+              depthWrite={false}
             />
           </mesh>
         )}
