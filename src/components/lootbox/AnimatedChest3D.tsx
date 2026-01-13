@@ -142,7 +142,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
 
     const time = state.clock.getElapsedTime();
 
-    if (!hovered) {
+    if (!hovered && !buttonHovered) {
       // Shake animation - like something inside wants to come out
       const shakeFastFreq = 8.0; // Fast vibration
       const shakeSlowFreq = 2.0; // Slower "rattle"
@@ -160,7 +160,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       crateRef.current.rotation.x = Math.sin(time * shakeFastFreq * 1.1) * 0.02;
       crateRef.current.rotation.z = Math.cos(time * shakeFastFreq * 0.8) * 0.015;
     } else {
-      // Static when hovered - smoothly return to center
+      // Static when hovered (crate or button) - smoothly return to center
       crateRef.current.position.x += (0 - crateRef.current.position.x) * 0.1;
       crateRef.current.position.y += (0 - crateRef.current.position.y) * 0.1;
       crateRef.current.position.z += (0 - crateRef.current.position.z) * 0.1;
@@ -314,10 +314,10 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       {/* Main metallic base body - 5 faces (NO TOP - lid is the top) */}
 
       {/* Bottom face */}
-      <mesh position={[0, -0.6, 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
-        <planeGeometry args={[2.5, 1.8]} />
+      <mesh position={[0, -0.6, 0]} castShadow receiveShadow>
+        <boxGeometry args={[2.5, 0.1, 1.8]} />
         <meshStandardMaterial
-          color="#2a2a2a"
+          color="#4a4a4a"
           metalness={0.95}
           roughness={0.25}
           envMapIntensity={2.0}
@@ -326,9 +326,9 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
 
       {/* Front face (facing camera) */}
       <mesh position={[0, 0, 0.9]} castShadow receiveShadow>
-        <planeGeometry args={[2.5, 1.2]} />
+        <boxGeometry args={[2.5, 1.2, 0.1]} />
         <meshStandardMaterial
-          color="#2a2a2a"
+          color="#4a4a4a"
           metalness={0.95}
           roughness={0.25}
           envMapIntensity={2.0}
@@ -336,10 +336,10 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       </mesh>
 
       {/* Back face */}
-      <mesh position={[0, 0, -0.9]} rotation={[0, Math.PI, 0]} castShadow receiveShadow>
-        <planeGeometry args={[2.5, 1.2]} />
+      <mesh position={[0, 0, -0.9]} castShadow receiveShadow>
+        <boxGeometry args={[2.5, 1.2, 0.1]} />
         <meshStandardMaterial
-          color="#2a2a2a"
+          color="#4a4a4a"
           metalness={0.95}
           roughness={0.25}
           envMapIntensity={2.0}
@@ -347,10 +347,10 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       </mesh>
 
       {/* Left face */}
-      <mesh position={[-1.25, 0, 0]} rotation={[0, Math.PI / 2, 0]} castShadow receiveShadow>
-        <planeGeometry args={[1.8, 1.2]} />
+      <mesh position={[-1.25, 0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.1, 1.2, 1.8]} />
         <meshStandardMaterial
-          color="#2a2a2a"
+          color="#4a4a4a"
           metalness={0.95}
           roughness={0.25}
           envMapIntensity={2.0}
@@ -358,10 +358,10 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       </mesh>
 
       {/* Right face */}
-      <mesh position={[1.25, 0, 0]} rotation={[0, -Math.PI / 2, 0]} castShadow receiveShadow>
-        <planeGeometry args={[1.8, 1.2]} />
+      <mesh position={[1.25, 0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.1, 1.2, 1.8]} />
         <meshStandardMaterial
-          color="#2a2a2a"
+          color="#4a4a4a"
           metalness={0.95}
           roughness={0.25}
           envMapIntensity={2.0}
@@ -374,7 +374,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       <mesh position={[0.5, 0.2, 0.91]}>
         <boxGeometry args={[0.8, 0.5, 0.01]} />
         <meshStandardMaterial
-          color="#3a3a3a"
+          color="#5a5a5a"
           metalness={0.7}
           roughness={0.5}
           transparent
@@ -384,7 +384,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       <mesh position={[-0.6, -0.3, 0.91]}>
         <boxGeometry args={[0.6, 0.4, 0.01]} />
         <meshStandardMaterial
-          color="#353535"
+          color="#555555"
           metalness={0.7}
           roughness={0.5}
           transparent
@@ -405,7 +405,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       {/* Panel details on front face - darker with more depth */}
       <mesh position={[0, 0, 0.91]}>
         <boxGeometry args={[2.3, 1.0, 0.05]} />
-        <meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.35} envMapIntensity={1.5} />
+        <meshStandardMaterial color="#3a3a3a" metalness={0.9} roughness={0.35} envMapIntensity={1.5} />
       </mesh>
 
       {/* Inset panel lines - front with varied textures */}
@@ -545,7 +545,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       {/* Back panel details */}
       <mesh position={[0, 0, -0.91]}>
         <boxGeometry args={[2.3, 1.0, 0.05]} />
-        <meshStandardMaterial color="#2a2a2a" metalness={0.85} roughness={0.4} />
+        <meshStandardMaterial color="#4a4a4a" metalness={0.85} roughness={0.4} />
       </mesh>
       <mesh position={[0, 0, -0.92]}>
         <boxGeometry args={[1.8, 0.7, 0.02]} />
@@ -554,47 +554,45 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
 
       {/* INTERIOR OF THE BOX */}
       {/* Interior cavity - visible when lid opens */}
+      {openProgressRef.current > 0.1 && (
       <group position={[0, 0, 0]}>
         {/* Bottom interior surface - LOWERED to create visible depth, not flat lid illusion */}
         <mesh position={[0, -0.70, 0]} receiveShadow>
           <boxGeometry args={[2.3, 0.1, 1.6]} />
           <meshStandardMaterial
-            color="#1a1a1a"
+            color="#3a3a3a"
             metalness={0.1}
             roughness={0.9}
           />
         </mesh>
 
-        {/* Interior side walls - left - DOUBLE SIDED for visibility */}
+        {/* Interior side walls - left */}
         <mesh position={[-1.15, 0, 0]} receiveShadow>
           <boxGeometry args={[0.1, 1.0, 1.6]} />
           <meshStandardMaterial
             color="#0a0a0a"
             metalness={0.3}
             roughness={0.8}
-            side={THREE.DoubleSide}
           />
         </mesh>
 
-        {/* Interior side walls - right - DOUBLE SIDED for visibility */}
+        {/* Interior side walls - right */}
         <mesh position={[1.15, 0, 0]} receiveShadow>
           <boxGeometry args={[0.1, 1.0, 1.6]} />
           <meshStandardMaterial
             color="#0a0a0a"
             metalness={0.3}
             roughness={0.8}
-            side={THREE.DoubleSide}
           />
         </mesh>
 
-        {/* Interior back wall - DOUBLE SIDED for visibility */}
+        {/* Interior back wall */}
         <mesh position={[0, 0, -0.75]} receiveShadow>
           <boxGeometry args={[2.3, 1.0, 0.1]} />
           <meshStandardMaterial
             color="#0a0a0a"
             metalness={0.3}
             roughness={0.8}
-            side={THREE.DoubleSide}
           />
         </mesh>
 
@@ -605,7 +603,6 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
             color="#0a0a0a"
             metalness={0.3}
             roughness={0.8}
-            side={THREE.DoubleSide}
           />
         </mesh>
 
@@ -717,6 +714,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           </group>
         )}
       </group>
+      )}
 
       {/* Bottom feet - 4 corner supports */}
       {[
@@ -775,7 +773,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
         <mesh castShadow receiveShadow>
           <boxGeometry args={[2.6, 0.12, 1.9]} />
           <meshStandardMaterial
-            color="#2a2a2a"
+            color="#4a4a4a"
             metalness={0.95}
             roughness={0.25}
             envMapIntensity={2.0}
