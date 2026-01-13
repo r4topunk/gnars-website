@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Environment, OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { Group, PointLight, TextureLoader } from "three";
@@ -23,12 +23,192 @@ const SCREW_POSITIONS: [number, number, number][] = [
 // Button state type
 type ButtonState = "idle" | "hover" | "pressed" | "loading" | "success" | "disabled";
 
+// Smoke Particles Component
+const SmokeParticles = memo(({ isActive }: { isActive: boolean }) => {
+  const particlesRef = useRef<THREE.Points>(null);
+  const materialRef = useRef<THREE.PointsMaterial>(null);
+
+  const particleCount = 150;
+
+  // Create a circular texture for round particles
+  const smokeTexture = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext("2d")!;
+
+    // Create radial gradient for soft round particle
+    const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+    gradient.addColorStop(0.5, "rgba(255, 255, 255, 0.3)");
+    gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 64, 64);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+  }, []);
+
+  const { positions, velocities, lifetimes, sizes, opacities } = useMemo(() => {
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount * 3);
+    const lifetimes = new Float32Array(particleCount);
+    const sizes = new Float32Array(particleCount);
+    const opacities = new Float32Array(particleCount);
+
+    for (let i = 0; i < particleCount; i++) {
+      // Start position - inside the box, more concentrated
+      positions[i * 3] = (Math.random() - 0.5) * 1.2; // x - wider for heavier smoke
+      positions[i * 3 + 1] = -0.6 + Math.random() * 0.3; // y - from bottom
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 1.0; // z - wider
+
+      // Velocity - slower upward with more drift
+      velocities[i * 3] = (Math.random() - 0.5) * 0.25; // x drift
+      velocities[i * 3 + 1] = 0.25 + Math.random() * 0.35; // y upward (slower for denser smoke)
+      velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.25; // z drift
+
+      // Lifetime - staggered start
+      lifetimes[i] = Math.random() * 4;
+
+      // Size - varied and larger
+      sizes[i] = 0.15 + Math.random() * 0.25;
+
+      // Opacity
+      opacities[i] = 0;
+    }
+
+    return { positions, velocities, lifetimes, sizes, opacities };
+  }, []);
+
+  useFrame((state, delta) => {
+    if (!particlesRef.current || !isActive) return;
+
+    const posArray = particlesRef.current.geometry.attributes.position.array as Float32Array;
+    const sizeArray = particlesRef.current.geometry.attributes.size.array as Float32Array;
+    const opacityArray = particlesRef.current.geometry.attributes.opacity.array as Float32Array;
+
+    for (let i = 0; i < particleCount; i++) {
+      const idx = i * 3;
+      const age = lifetimes[i];
+
+      // Update position with turbulence
+      const turbulence = Math.sin(state.clock.elapsedTime * 2 + i) * 0.1;
+      posArray[idx] += (velocities[idx] + turbulence) * delta;
+      posArray[idx + 1] += velocities[idx + 1] * delta;
+      posArray[idx + 2] += (velocities[idx + 2] + turbulence * 0.5) * delta;
+
+      // Update lifetime
+      lifetimes[i] += delta;
+
+      // Fade in/out based on age
+      const maxLife = 4;
+      if (age < 0.5) {
+        // Fade in
+        opacityArray[i] = age * 1.2;
+      } else if (age > maxLife - 1) {
+        // Fade out
+        opacityArray[i] = (maxLife - age) * 0.6;
+      } else {
+        // Full opacity
+        opacityArray[i] = 0.6;
+      }
+
+      // Grow size as particle ages
+      sizeArray[i] = sizes[i] * (1 + age * 0.5);
+
+      // Spread out horizontally as it rises
+      const spreadFactor = age * 0.1;
+      posArray[idx] += (posArray[idx] > 0 ? 1 : -1) * spreadFactor * delta;
+      posArray[idx + 2] += (posArray[idx + 2] > 0 ? 1 : -1) * spreadFactor * delta;
+
+      // Reset particle if it's too old or too high
+      if (lifetimes[i] > maxLife || posArray[idx + 1] > 2.5) {
+        posArray[idx] = (Math.random() - 0.5) * 1.2;
+        posArray[idx + 1] = -0.6 + Math.random() * 0.3;
+        posArray[idx + 2] = (Math.random() - 0.5) * 1.0;
+        lifetimes[i] = 0;
+        opacityArray[i] = 0;
+        sizeArray[i] = sizes[i];
+      }
+    }
+
+    particlesRef.current.geometry.attributes.position.needsUpdate = true;
+    particlesRef.current.geometry.attributes.size.needsUpdate = true;
+    particlesRef.current.geometry.attributes.opacity.needsUpdate = true;
+  });
+
+  if (!isActive) return null;
+
+  return (
+    <points ref={particlesRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={particleCount}
+          array={positions}
+          itemSize={3}
+          args={[positions, 3]}
+        />
+        <bufferAttribute
+          attach="attributes-size"
+          count={particleCount}
+          array={sizes}
+          itemSize={1}
+          args={[sizes, 1]}
+        />
+        <bufferAttribute
+          attach="attributes-opacity"
+          count={particleCount}
+          array={opacities}
+          itemSize={1}
+          args={[opacities, 1]}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        ref={materialRef}
+        size={0.3}
+        map={smokeTexture}
+        color="#aaaaaa"
+        transparent
+        opacity={1}
+        sizeAttenuation
+        depthWrite={false}
+        blending={THREE.NormalBlending}
+        vertexColors={false}
+        onBeforeCompile={(shader) => {
+          shader.vertexShader = shader.vertexShader.replace(
+            "attribute float size;",
+            "attribute float size;\nattribute float opacity;",
+          );
+          shader.vertexShader = shader.vertexShader.replace(
+            "gl_PointSize = size;",
+            "gl_PointSize = size * opacity;",
+          );
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "uniform float opacity;",
+            "uniform float opacity;\nvarying float vOpacity;",
+          );
+          shader.vertexShader = shader.vertexShader.replace(
+            "void main() {",
+            "attribute float opacity;\nvarying float vOpacity;\nvoid main() {\nvOpacity = opacity;",
+          );
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "gl_FragColor = vec4( outgoingLight, diffuseColor.a * opacity );",
+            "gl_FragColor = vec4( outgoingLight, diffuseColor.a * opacity * vOpacity );",
+          );
+        }}
+      />
+    </points>
+  );
+});
+
+SmokeParticles.displayName = "SmokeParticles";
+
 const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => {
   const crateRef = useRef<Group>(null);
   const lidRef = useRef<Group>(null);
-  const hoverLightRef = useRef<PointLight>(null);
-  const rimLight1Ref = useRef<PointLight>(null);
-  const rimLight2Ref = useRef<PointLight>(null);
   const interiorLightRef = useRef<PointLight>(null);
   const floatingLogoRef = useRef<Group>(null);
 
@@ -294,9 +474,6 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
     }
   });
 
-  // Scale based on hover state
-  const scale = hovered ? 1.05 : 1;
-
   // Button helper functions based on state
   const getButtonZ = () => {
     switch (buttonState) {
@@ -367,12 +544,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
   };
 
   return (
-    <group
-      ref={crateRef}
-      onPointerOver={handlePointerOver}
-      onPointerOut={handlePointerOut}
-      scale={scale}
-    >
+    <group ref={crateRef} onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}>
       {/* Main metallic base body - 5 faces (NO TOP - lid is the top) */}
 
       {/* Bottom face */}
@@ -655,6 +827,9 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           </mesh>
 
           {/* Interior lights removed */}
+
+          {/* Smoke particles coming from interior */}
+          <SmokeParticles isActive={isPending || isOpening} />
 
           {/* FLOATING 3D GNARS LOGO - Legendary Item Effect */}
           {/* Conditional rendering based on showLogo state (updated only when threshold crossed) */}
