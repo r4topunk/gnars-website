@@ -186,20 +186,15 @@ function DaoLogo() {
 
 function DesktopNav() {
   const pathname = usePathname();
-  const [mounted, setMounted] = React.useState(false);
   const [delegationModalOpen, setDelegationModalOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const isRouteActive = React.useCallback(
     (url: string) => {
-      if (!mounted || !pathname) return false;
+      if (!pathname) return false;
       if (url === "/") return pathname === "/";
       return pathname === url || pathname.startsWith(`${url}/`);
     },
-    [pathname, mounted],
+    [pathname],
   );
 
   return (
