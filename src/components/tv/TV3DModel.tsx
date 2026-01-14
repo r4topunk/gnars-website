@@ -973,6 +973,17 @@ function VideoScreen({ videoUrl, isVisible = true }: { videoUrl: string; isVisib
     [texture],
   );
 
+  // Ensure video plays at 2x
+  useEffect(() => {
+    const video = texture.image as HTMLVideoElement;
+    if (!video) return;
+
+    video.playbackRate = 2;
+    return () => {
+      video.playbackRate = 1;
+    };
+  }, [texture]);
+
   // Pause/play video based on visibility
   useEffect(() => {
     const video = texture.image as HTMLVideoElement;

@@ -1,10 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  getCoin,
-  getCoinHolders,
-  getProfile,
-  getProfileCoins,
-} from "@zoralabs/coins-sdk";
+import { getCoin, getCoinHolders, getProfile, getProfileCoins } from "@zoralabs/coins-sdk";
 import { createPublicClient, http, parseAbi } from "viem";
 import { base } from "viem/chains";
 import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
@@ -40,9 +35,7 @@ const viemClient = createPublicClient({
   transport: http(rpcUrl),
 });
 
-const erc721Abi = parseAbi([
-  "function balanceOf(address owner) view returns (uint256)",
-]);
+const erc721Abi = parseAbi(["function balanceOf(address owner) view returns (uint256)"]);
 
 interface QualifiedCreator {
   handle: string;
@@ -136,7 +129,7 @@ interface CoinEdge {
 async function runWithConcurrency<T, R>(
   items: T[],
   fn: (item: T) => Promise<R>,
-  concurrency: number
+  concurrency: number,
 ): Promise<R[]> {
   const results: R[] = [];
   const executing: Promise<void>[] = [];
@@ -153,10 +146,7 @@ async function runWithConcurrency<T, R>(
       // Remove completed promises
       for (let i = executing.length - 1; i >= 0; i--) {
         // Check if promise is settled by racing with an instant resolve
-        const settled = await Promise.race([
-          executing[i].then(() => true),
-          Promise.resolve(false),
-        ]);
+        const settled = await Promise.race([executing[i].then(() => true), Promise.resolve(false)]);
         if (settled) {
           executing.splice(i, 1);
         }
@@ -171,9 +161,7 @@ async function runWithConcurrency<T, R>(
 /**
  * Batch check NFT balances using multicall
  */
-async function batchCheckNftBalances(
-  wallets: string[]
-): Promise<Map<string, number>> {
+async function batchCheckNftBalances(wallets: string[]): Promise<Map<string, number>> {
   if (wallets.length === 0) return new Map();
 
   console.log(`[api/tv] Checking NFT balances for ${wallets.length} wallets via multicall`);
@@ -225,7 +213,7 @@ async function batchCheckNftBalances(
         } catch {
           balances.set(wallet.toLowerCase(), 0);
         }
-      })
+      }),
     );
     return balances;
   }
@@ -278,10 +266,7 @@ function extractImageUrl(coin: CoinNode): string | undefined {
 /**
  * Map coin to TV item
  */
-function mapCoinToTVItem(
-  coin: CoinNode,
-  creatorHandle: string
-): TVItemData | null {
+function mapCoinToTVItem(coin: CoinNode, creatorHandle: string): TVItemData | null {
   const videoUrl = extractVideoUrl(coin);
   const imageUrl = extractImageUrl(coin);
 
@@ -361,9 +346,7 @@ async function fetchCandidateCreators(): Promise<CandidateCreator[]> {
         if (balanceNum < MIN_COIN_BALANCE) continue;
 
         const avatarUrl =
-          profile?.avatar?.previewImage?.medium ||
-          profile?.avatar?.previewImage?.small ||
-          null;
+          profile?.avatar?.previewImage?.medium || profile?.avatar?.previewImage?.small || null;
 
         candidates.push({
           handle,
@@ -382,16 +365,16 @@ async function fetchCandidateCreators(): Promise<CandidateCreator[]> {
     }
   }
 
-  console.log(`[api/tv] Found ${candidates.length} candidate creators with sufficient coin balance`);
+  console.log(
+    `[api/tv] Found ${candidates.length} candidate creators with sufficient coin balance`,
+  );
   return candidates;
 }
 
 /**
  * Fetch profile wallets for candidates with concurrency limit
  */
-async function fetchProfileWallets(
-  candidates: CandidateCreator[]
-): Promise<CandidateCreator[]> {
+async function fetchProfileWallets(candidates: CandidateCreator[]): Promise<CandidateCreator[]> {
   console.log(`[api/tv] Fetching profile wallets for ${candidates.length} candidates...`);
 
   const results = await runWithConcurrency(
@@ -422,7 +405,7 @@ async function fetchProfileWallets(
         return candidate;
       }
     },
-    MAX_CONCURRENT_PROFILE_FETCHES
+    MAX_CONCURRENT_PROFILE_FETCHES,
   );
 
   return results.filter((c) => c.wallets.length > 0);
@@ -468,7 +451,7 @@ async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
         wallets: candidate.wallets,
       });
       console.log(
-        `[api/tv] Qualified: ${candidate.handle} (${Math.round(candidate.coinBalance)} coins, ${totalNfts} NFTs)`
+        `[api/tv] Qualified: ${candidate.handle} (${Math.round(candidate.coinBalance)} coins, ${totalNfts} NFTs)`,
       );
     }
   }
@@ -482,7 +465,7 @@ async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
  */
 async function fetchCreatorContent(
   creators: QualifiedCreator[],
-  loadedAddresses: Set<string>
+  loadedAddresses: Set<string>,
 ): Promise<TVItemData[]> {
   console.log(`[api/tv] Fetching content from ${creators.length} creators...`);
 
@@ -497,8 +480,7 @@ async function fetchCreatorContent(
           count: 20,
         });
 
-        const edges = (response?.data?.profile?.createdCoins?.edges ||
-          []) as CoinEdge[];
+        const edges = (response?.data?.profile?.createdCoins?.edges || []) as CoinEdge[];
 
         for (const edge of edges) {
           const node = edge?.node;
@@ -520,7 +502,7 @@ async function fetchCreatorContent(
         console.warn(`[api/tv] Failed to fetch content for ${creator.handle}:`, err);
       }
     },
-    MAX_CONCURRENT_COIN_FETCHES
+    MAX_CONCURRENT_COIN_FETCHES,
   );
 
   console.log(`[api/tv] Fetched ${allItems.length} items from creators`);
@@ -530,9 +512,7 @@ async function fetchCreatorContent(
 /**
  * Fetch GNARS-paired coins from subgraph with concurrency limit
  */
-async function fetchPairedCoins(
-  loadedAddresses: Set<string>
-): Promise<TVItemData[]> {
+async function fetchPairedCoins(loadedAddresses: Set<string>): Promise<TVItemData[]> {
   console.log("[api/tv] Fetching GNARS-paired coins...");
 
   try {
@@ -562,8 +542,7 @@ async function fetchPairedCoins(
           const coin = response?.data?.zora20Token as CoinNode | undefined;
           if (!coin) return;
 
-          const creatorHandle =
-            coin?.creatorProfile?.handle || pairedCoin.coin.slice(0, 10);
+          const creatorHandle = coin?.creatorProfile?.handle || pairedCoin.coin.slice(0, 10);
 
           const item = mapCoinToTVItem(coin, creatorHandle);
 
@@ -576,7 +555,7 @@ async function fetchPairedCoins(
           // Skip on error
         }
       },
-      MAX_CONCURRENT_COIN_FETCHES
+      MAX_CONCURRENT_COIN_FETCHES,
     );
 
     console.log(`[api/tv] Loaded ${items.length} GNARS-paired coins with media`);
@@ -590,9 +569,7 @@ async function fetchPairedCoins(
 /**
  * Fetch Gnars profile content
  */
-async function fetchGnarsProfileContent(
-  loadedAddresses: Set<string>
-): Promise<TVItemData[]> {
+async function fetchGnarsProfileContent(loadedAddresses: Set<string>): Promise<TVItemData[]> {
   console.log("[api/tv] Fetching Gnars profile content...");
 
   try {
@@ -601,8 +578,7 @@ async function fetchGnarsProfileContent(
       count: 50,
     });
 
-    const edges = (response?.data?.profile?.createdCoins?.edges ||
-      []) as CoinEdge[];
+    const edges = (response?.data?.profile?.createdCoins?.edges || []) as CoinEdge[];
 
     const items = edges
       .map((edge) => {
@@ -631,10 +607,35 @@ async function fetchGnarsProfileContent(
   }
 }
 
+const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov"];
+const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif"];
+
+function normalizeMediaUrl(url: string) {
+  return url.toLowerCase().split("?")[0];
+}
+
+async function isVideoUrl(mediaUrl: string): Promise<boolean> {
+  const normalized = normalizeMediaUrl(mediaUrl);
+
+  if (VIDEO_EXTENSIONS.some((ext) => normalized.endsWith(ext))) return true;
+  if (IMAGE_EXTENSIONS.some((ext) => normalized.endsWith(ext))) return false;
+
+  try {
+    const response = await fetch(mediaUrl, { method: "HEAD" });
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.startsWith("video/")) return true;
+    if (contentType.startsWith("image/")) return false;
+  } catch (error) {
+    console.warn("[api/tv] Failed to detect media type:", error);
+  }
+
+  return false;
+}
+
 /**
  * Map droposal to TV item
  */
-function mapDroposalToTVItem(droposal: {
+async function mapDroposalToTVItem(droposal: {
   proposalId: string;
   proposalNumber: number;
   title: string;
@@ -644,14 +645,11 @@ function mapDroposalToTVItem(droposal: {
   priceEth?: string;
   createdAt: number;
   executedAt?: number;
-}): TVItemData | null {
+}): Promise<TVItemData | null> {
   const mediaUrl = droposal.animationUrl || droposal.bannerImage;
   if (!mediaUrl) return null;
 
-  const isVideo =
-    mediaUrl.includes(".mp4") ||
-    mediaUrl.includes(".webm") ||
-    mediaUrl.includes(".mov");
+  const isVideo = droposal.animationUrl ? true : await isVideoUrl(mediaUrl);
 
   // Use executedAt if available (when the droposal was deployed), otherwise createdAt
   // Note: timestamps from droposals service are already in milliseconds
@@ -682,32 +680,23 @@ export async function GET() {
     // - Gnars profile content
     // - Droposals
     // - Qualified creators (coin holders + profile wallets + NFT check)
-    const [pairedCoins, gnarsContent, droposals, qualifiedCreators] =
-      await Promise.all([
-        fetchPairedCoins(loadedAddresses),
-        fetchGnarsProfileContent(loadedAddresses),
-        fetchDroposals(50).catch(() => []),
-        fetchQualifiedCreators(),
-      ]);
+    const [pairedCoins, gnarsContent, droposals, qualifiedCreators] = await Promise.all([
+      fetchPairedCoins(loadedAddresses),
+      fetchGnarsProfileContent(loadedAddresses),
+      fetchDroposals(50).catch(() => []),
+      fetchQualifiedCreators(),
+    ]);
 
     // Phase 2: Fetch creator content (depends on qualified creators list)
-    const creatorContent = await fetchCreatorContent(
-      qualifiedCreators,
-      loadedAddresses
-    );
+    const creatorContent = await fetchCreatorContent(qualifiedCreators, loadedAddresses);
 
     // Map droposals
-    const droposalItems = droposals
-      .map(mapDroposalToTVItem)
-      .filter((item): item is TVItemData => item !== null);
+    const droposalItems = (await Promise.all(droposals.map(mapDroposalToTVItem))).filter(
+      (item): item is TVItemData => item !== null,
+    );
 
     // Combine all sources (paired coins have highest priority)
-    const allItems = [
-      ...pairedCoins,
-      ...creatorContent,
-      ...gnarsContent,
-      ...droposalItems,
-    ];
+    const allItems = [...pairedCoins, ...creatorContent, ...gnarsContent, ...droposalItems];
 
     // Sort by createdAt (newest first)
     allItems.sort((a, b) => {
@@ -719,7 +708,7 @@ export async function GET() {
     const elapsed = Date.now() - startTime;
     console.log(`[api/tv] Feed ready: ${allItems.length} items in ${elapsed}ms`);
     console.log(
-      `[api/tv] Sources: ${pairedCoins.length} paired, ${creatorContent.length} creators, ${gnarsContent.length} gnars, ${droposalItems.length} droposals`
+      `[api/tv] Sources: ${pairedCoins.length} paired, ${creatorContent.length} creators, ${gnarsContent.length} gnars, ${droposalItems.length} droposals`,
     );
 
     return NextResponse.json({
@@ -743,9 +732,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[api/tv] Feed fetch error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch TV feed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch TV feed" }, { status: 500 });
   }
 }
