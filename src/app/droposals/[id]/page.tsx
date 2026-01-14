@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { createPublicClient, formatEther, http } from "viem";
 import { base } from "viem/chains";
 import { DroposalActionBox } from "@/components/droposals/detail/DroposalActionBox";
@@ -10,24 +11,27 @@ import { DroposalMintProvider } from "@/components/droposals/detail/DroposalMint
 import { DroposalSupporters } from "@/components/droposals/detail/DroposalSupporters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { BASE_URL, GNARS_ADDRESSES } from "@/lib/config";
 import { decodeDroposalParams, formatDroposalForTable, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
+import { DROPOSALS_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import { subgraphQuery } from "@/lib/subgraph";
 
+type ProposalData = {
+  proposalId: string;
+  proposalNumber: number;
+  title?: string | null;
+  description?: string | null;
+  calldatas?: string | null;
+  targets: string[];
+  timeCreated: string;
+  executedAt?: string | null;
+  executionTransactionHash?: string | null;
+  transactionHash?: string | null;
+};
+
 type ProposalQuery = {
-  proposal: {
-    proposalId: string;
-    proposalNumber: number;
-    title?: string | null;
-    description?: string | null;
-    calldatas?: string | null;
-    targets: string[];
-    timeCreated: string;
-    executedAt?: string | null;
-    executionTransactionHash?: string | null;
-    transactionHash?: string | null;
-  } | null;
+  proposal: ProposalData | null;
 };
 
 const PROPOSAL_GQL = /* GraphQL */ `
@@ -48,18 +52,7 @@ const PROPOSAL_GQL = /* GraphQL */ `
 `;
 
 type ProposalsByNumberQuery = {
-  proposals: Array<{
-    proposalId: string;
-    proposalNumber: number;
-    title?: string | null;
-    description?: string | null;
-    calldatas?: string | null;
-    targets: string[];
-    timeCreated: string;
-    executedAt?: string | null;
-    executionTransactionHash?: string | null;
-    transactionHash?: string | null;
-  }>;
+  proposals: ProposalData[];
 };
 
 const PROPOSALS_BY_NUMBER_GQL = /* GraphQL */ `
@@ -79,13 +72,18 @@ const PROPOSALS_BY_NUMBER_GQL = /* GraphQL */ `
   }
 `;
 
-export default async function DroposalDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+/**
+ * Fetch droposal data by ID or proposal number
+ */
+async function fetchDroposal(id: string): Promise<{
+  proposal: ProposalData | null;
+  decoded: ReturnType<typeof decodeDroposalParams> | null;
+}> {
+  let proposal: ProposalData | null = null;
 
-  let p: ProposalQuery["proposal"] | ProposalsByNumberQuery["proposals"][number] | null = null;
   if (id.startsWith("0x")) {
     const byId = await subgraphQuery<ProposalQuery>(PROPOSAL_GQL, { id });
-    p = byId.proposal;
+    proposal = byId.proposal;
   } else {
     const num = Number.parseInt(id, 10);
     if (!Number.isNaN(num)) {
@@ -93,9 +91,103 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
         dao: GNARS_ADDRESSES.token.toLowerCase(),
         proposalNumber: num,
       });
-      p = byNumber.proposals?.[0] ?? null;
+      proposal = byNumber.proposals?.[0] ?? null;
     }
   }
+
+  if (!proposal) {
+    return { proposal: null, decoded: null };
+  }
+
+  const calldatasRaw = proposal.calldatas;
+  const calldatas = Array.isArray(calldatasRaw)
+    ? (calldatasRaw as unknown as string[])
+    : typeof calldatasRaw === "string"
+      ? calldatasRaw.split(":")
+      : [];
+
+  let decoded: ReturnType<typeof decodeDroposalParams> | null = null;
+  for (let i = 0; i < proposal.targets.length; i += 1) {
+    if (isDroposal(proposal.targets[i], calldatas[i])) {
+      decoded = calldatas[i] ? decodeDroposalParams(calldatas[i]!) : null;
+      break;
+    }
+  }
+
+  return { proposal, decoded };
+}
+
+/**
+ * Generate metadata for droposal pages
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const { proposal, decoded } = await fetchDroposal(id);
+
+  // Default metadata if droposal not found
+  if (!proposal) {
+    return {
+      title: "Droposal Not Found | Gnars DAO",
+      description: "This droposal could not be found.",
+    };
+  }
+
+  const title = decoded?.name || proposal.title || `Droposal #${proposal.proposalNumber}`;
+  const description =
+    decoded?.collectionDescription ||
+    proposal.description?.slice(0, 160) ||
+    "A Gnars DAO NFT drop proposal";
+
+  // Prefer static image over animation for OG
+  const imageUrl = decoded?.imageURI
+    ? ipfsToHttp(decoded.imageURI)
+    : `${BASE_URL}/logo-banner.jpg`;
+
+  const droposalUrl = `${BASE_URL}/droposals/${id}`;
+
+  // Build dynamic miniapp embed
+  const miniappEmbed = {
+    ...DROPOSALS_MINIAPP_EMBED_CONFIG,
+    imageUrl,
+    button: {
+      ...DROPOSALS_MINIAPP_EMBED_CONFIG.button,
+      title: `View ${title}`,
+      action: {
+        ...DROPOSALS_MINIAPP_EMBED_CONFIG.button.action,
+        url: droposalUrl,
+      },
+    },
+  };
+
+  return {
+    title: `${title} | Gnars Droposals`,
+    description,
+    openGraph: {
+      title: `${title} | Gnars Droposals`,
+      description,
+      images: [imageUrl],
+      type: "website",
+      url: droposalUrl,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | Gnars Droposals`,
+      description,
+      images: [imageUrl],
+    },
+    other: {
+      "fc:miniapp": JSON.stringify(miniappEmbed),
+    },
+  };
+}
+
+export default async function DroposalDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const { proposal: p, decoded } = await fetchDroposal(id);
 
   if (!p) {
     return (
@@ -110,26 +202,9 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
     );
   }
 
-  const calldatasRaw = p.calldatas;
-  const calldatas = Array.isArray(calldatasRaw)
-    ? (calldatasRaw as unknown as string[])
-    : typeof calldatasRaw === "string"
-      ? calldatasRaw.split(":")
-      : [];
-
-  let decoded = null as ReturnType<typeof decodeDroposalParams> | null;
-  let tokenAddress: string | null = null;
-  for (let i = 0; i < p.targets.length; i += 1) {
-    if (isDroposal(p.targets[i], calldatas[i])) {
-      decoded = calldatas[i] ? decodeDroposalParams(calldatas[i]!) : null;
-      break;
-    }
-  }
-
   // Try to resolve deployed token address from execution receipt (if executed)
-  const execHash = ("executionTransactionHash" in p ? p.executionTransactionHash : undefined) as
-    | string
-    | undefined;
+  let tokenAddress: string | null = null;
+  const execHash = p.executionTransactionHash;
   if (execHash && execHash.startsWith("0x")) {
     try {
       const client = createPublicClient({ chain: base, transport: http() });

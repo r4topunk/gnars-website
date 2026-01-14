@@ -233,3 +233,52 @@ export const MEMBERS_MINIAPP_EMBED_CONFIG = {
     },
   },
 };
+
+/**
+ * Droposals Mini App Configuration
+ * Custom configuration for NFT drop proposals (Droposals)
+ */
+export const DROPOSALS_MINIAPP_CONFIG = {
+  accountAssociation: MINIAPP_CONFIG.accountAssociation,
+  baseBuilder: MINIAPP_CONFIG.baseBuilder,
+  miniapp: {
+    version: "1",
+    name: "Gnars Droposals",
+    subtitle: "NFT Drop Proposals",
+    description:
+      "Explore and mint Gnars DAO Droposals - community-curated NFT editions created through governance proposals.",
+    homeUrl: `${BASE_URL}/droposals`,
+    iconUrl: `${BASE_URL}/gnars.webp`,
+    splashImageUrl: `${BASE_URL}/gnars.webp`,
+    splashBackgroundColor: "#000000",
+    webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
+    primaryCategory: "social" as const,
+    tags: ["dao", "nft", "drops", "editions", "gnars", "base", "zora"],
+    screenshotUrls: [] as string[],
+    heroImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    tagline: "NFT drops from the action sports DAO",
+    ogTitle: "Gnars Droposals",
+    ogDescription:
+      "Explore and mint Gnars DAO Droposals - community-curated NFT editions created through governance proposals.",
+    ogImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    noindex: false,
+  },
+} as const;
+
+/**
+ * Droposals Embed metadata configuration for fc:miniapp meta tag
+ */
+export const DROPOSALS_MINIAPP_EMBED_CONFIG = {
+  version: "next",
+  imageUrl: `${BASE_URL}/logo-banner.jpg`,
+  button: {
+    title: "View Droposal",
+    action: {
+      type: "launch_miniapp" as const,
+      name: "Gnars Droposals",
+      url: `${BASE_URL}/droposals`,
+      splashImageUrl: `${BASE_URL}/gnars.webp`,
+      splashBackgroundColor: "#000000",
+    },
+  },
+};
