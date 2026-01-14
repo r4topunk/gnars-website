@@ -10,7 +10,30 @@ interface ChestProps {
   onClick: () => void;
   isOpening: boolean;
   isPending: boolean;
+  tier?: "bronze" | "silver" | "gold";
 }
+
+// Tier color schemes
+const TIER_COLORS = {
+  bronze: {
+    primary: "#cd7f32",
+    secondary: "#8b5a2b",
+    accent: "#ffa500",
+    emissive: "#cd7f32",
+  },
+  silver: {
+    primary: "#c0c0c0",
+    secondary: "#808080",
+    accent: "#e8e8e8",
+    emissive: "#a0a0a0",
+  },
+  gold: {
+    primary: "#ffd700",
+    secondary: "#b8860b",
+    accent: "#ffec8b",
+    emissive: "#ffd700",
+  },
+};
 
 // Memoize static position arrays to prevent recreation
 const SCREW_POSITIONS: [number, number, number][] = [
@@ -206,11 +229,14 @@ const SmokeParticles = memo(({ isActive }: { isActive: boolean }) => {
 
 SmokeParticles.displayName = "SmokeParticles";
 
-const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => {
+const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }: ChestProps) => {
   const crateRef = useRef<Group>(null);
   const lidRef = useRef<Group>(null);
   const interiorLightRef = useRef<PointLight>(null);
   const floatingLogoRef = useRef<Group>(null);
+  
+  // Get tier colors
+  const tierColors = TIER_COLORS[tier];
 
   // Load Gnars logo texture for floating interior logo
 
@@ -218,6 +244,11 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
 
   // Load Gnars logo 3D model for button
   const gnarsLogoModel = useGLTF("/models/gnars-logo.glb");
+  
+  // Clone the model scene to allow multiple instances
+  const clonedLogoScene = useMemo(() => {
+    return gnarsLogoModel.scene.clone();
+  }, [gnarsLogoModel.scene]);
 
   // Load metal plate textures from Polyhaven
   const metalColorMap = useLoader(
@@ -258,10 +289,12 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       metalRoughnessMap.needsUpdate = true;
     }
 
-    // Apply metal texture to Gnars logo GLB model materials
-    if (gnarsLogoModel && metalColorMap && metalNormalMap && metalRoughnessMap) {
-      gnarsLogoModel.scene.traverse((child: any) => {
+    // Apply metal texture to cloned Gnars logo GLB model materials
+    if (clonedLogoScene && metalColorMap && metalNormalMap && metalRoughnessMap) {
+      clonedLogoScene.traverse((child: any) => {
         if (child.isMesh && child.material) {
+          // Clone material to avoid sharing between instances
+          child.material = child.material.clone();
           // Update material to use metal textures
           if (child.material.isMeshStandardMaterial || child.material.isMeshPhysicalMaterial) {
             child.material.map = metalColorMap;
@@ -274,7 +307,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
         }
       });
     }
-  }, [metalColorMap, metalNormalMap, metalRoughnessMap, gnarsLogoModel]);
+  }, [metalColorMap, metalNormalMap, metalRoughnessMap, clonedLogoScene]);
 
   // Hover state - real state instead of ref+forceUpdate for proper reactivity
   const [hovered, setHovered] = useState(false);
@@ -551,6 +584,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       <mesh position={[0, -0.6, 0]} castShadow receiveShadow>
         <boxGeometry args={[2.5, 0.1, 1.8]} />
         <meshStandardMaterial
+          color={tierColors.primary}
           map={metalColorMap}
           normalMap={metalNormalMap}
           roughnessMap={metalRoughnessMap}
@@ -564,6 +598,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       <mesh position={[0, 0, 0.9]} castShadow receiveShadow>
         <boxGeometry args={[2.5, 1.2, 0.1]} />
         <meshStandardMaterial
+          color={tierColors.primary}
           map={metalColorMap}
           normalMap={metalNormalMap}
           roughnessMap={metalRoughnessMap}
@@ -577,6 +612,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       <mesh position={[0, 0, -0.9]} castShadow receiveShadow>
         <boxGeometry args={[2.5, 1.2, 0.1]} />
         <meshStandardMaterial
+          color={tierColors.primary}
           map={metalColorMap}
           normalMap={metalNormalMap}
           roughnessMap={metalRoughnessMap}
@@ -590,6 +626,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       <mesh position={[-1.25, 0, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.1, 1.2, 1.8]} />
         <meshStandardMaterial
+          color={tierColors.primary}
           map={metalColorMap}
           normalMap={metalNormalMap}
           roughnessMap={metalRoughnessMap}
@@ -603,6 +640,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
       <mesh position={[1.25, 0, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.1, 1.2, 1.8]} />
         <meshStandardMaterial
+          color={tierColors.primary}
           map={metalColorMap}
           normalMap={metalNormalMap}
           roughnessMap={metalRoughnessMap}
@@ -902,6 +940,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           <mesh castShadow receiveShadow>
             <boxGeometry args={[2.6, 0.12, 1.9]} />
             <meshStandardMaterial
+              color={tierColors.primary}
               map={metalColorMap}
               normalMap={metalNormalMap}
               roughnessMap={metalRoughnessMap}
@@ -915,6 +954,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           <mesh position={[1.28, 0, 0]}>
             <boxGeometry args={[0.08, 0.32, 1.95]} />
             <meshStandardMaterial
+              color={tierColors.secondary}
               map={metalColorMap}
               normalMap={metalNormalMap}
               roughnessMap={metalRoughnessMap}
@@ -925,6 +965,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           <mesh position={[-1.28, 0, 0]}>
             <boxGeometry args={[0.08, 0.32, 1.95]} />
             <meshStandardMaterial
+              color={tierColors.secondary}
               map={metalColorMap}
               normalMap={metalNormalMap}
               roughnessMap={metalRoughnessMap}
@@ -936,6 +977,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           <mesh position={[0, 0, 0.94]}>
             <boxGeometry args={[2.5, 0.32, 0.08]} />
             <meshStandardMaterial
+              color={tierColors.secondary}
               map={metalColorMap}
               normalMap={metalNormalMap}
               roughnessMap={metalRoughnessMap}
@@ -946,6 +988,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
           <mesh position={[0, 0, -0.94]}>
             <boxGeometry args={[2.5, 0.32, 0.08]} />
             <meshStandardMaterial
+              color={tierColors.secondary}
               map={metalColorMap}
               normalMap={metalNormalMap}
               roughnessMap={metalRoughnessMap}
@@ -1249,7 +1292,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending }: ChestProps) => 
             handleButtonPointerOut();
           }}
         >
-          <primitive object={gnarsLogoModel.scene} />
+          <primitive object={clonedLogoScene} />
         </group>
 
         {/* Button spotlight removed */}
@@ -1283,6 +1326,7 @@ interface AnimatedChest3DProps {
   isOpening?: boolean;
   isPending?: boolean;
   disabled?: boolean;
+  tier?: "bronze" | "silver" | "gold";
 }
 
 export default function AnimatedChest3D({
@@ -1290,6 +1334,7 @@ export default function AnimatedChest3D({
   isOpening = false,
   isPending = false,
   disabled = false,
+  tier = "bronze",
 }: AnimatedChest3DProps) {
   const hasTriggeredRef = useRef(false);
 
@@ -1316,7 +1361,7 @@ export default function AnimatedChest3D({
   }, [isOpening, isPending]);
 
   return (
-    <div className="relative w-full h-[600px] rounded-lg overflow-hidden">
+    <div className="relative w-full h-full rounded-lg overflow-hidden">
       <Canvas
         shadows
         dpr={[1, 2]}
@@ -1324,7 +1369,7 @@ export default function AnimatedChest3D({
         gl={{ alpha: true, antialias: true }}
         style={{ background: "transparent" }}
       >
-        <PerspectiveCamera makeDefault position={[0, 2, 5]} />
+        <PerspectiveCamera makeDefault position={[0, 1.5, 6]} fov={45} />
         <OrbitControls
           enableZoom={true}
           enablePan={false}
@@ -1360,7 +1405,7 @@ export default function AnimatedChest3D({
         <Environment preset="warehouse" background={false} />
 
         {/* The Futuristic Crate */}
-        <FuturisticCrate onClick={handleChestClick} isOpening={isOpening} isPending={isPending} />
+        <FuturisticCrate onClick={handleChestClick} isOpening={isOpening} isPending={isPending} tier={tier} />
       </Canvas>
 
       {/* Transaction status indicator */}
@@ -1382,16 +1427,6 @@ export default function AnimatedChest3D({
           </div>
         </div>
       )}
-
-      {/* HUD-style instructions */}
-      <div className="absolute bottom-4 left-0 right-0 text-center">
-        <div className="inline-block bg-black/60 backdrop-blur-sm border border-cyan-500/30 rounded-lg px-6 py-3">
-          <p className="text-sm text-cyan-400 font-mono">
-            [ CLICK ORANGE BUTTON ] Open lootbox • [ HOVER ] See effects
-          </p>
-          <p className="text-xs text-cyan-600/80 font-mono mt-1">DRAG: Rotate • SCROLL: Zoom</p>
-        </div>
-      </div>
 
       {/* Sci-fi corner decorations */}
       <div className="absolute top-4 left-4 text-orange-500/40 font-mono text-xs">

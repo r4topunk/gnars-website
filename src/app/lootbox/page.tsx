@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Coins, Gift, Sparkles, Upload, TrendingUp } from "lucide-react";
+import { Coins, Upload } from "lucide-react";
 import { Address, formatEther, isAddress, parseEther } from "viem";
 import { base } from "wagmi/chains";
 import {
@@ -19,11 +19,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { AddressDisplay } from "@/components/ui/address-display";
 import {
   Select,
   SelectContent,
@@ -35,7 +33,7 @@ import { CHAIN } from "@/lib/config";
 import gnarsLootboxV4Abi from "@/utils/abis/gnarsLootboxV4Abi";
 import erc20Abi from "@/utils/abis/erc20Abi";
 import erc721Abi from "@/utils/abis/erc721Abi";
-import { AnimatedChest3D, ReadItem, AddressRenderer } from "@/components/lootbox";
+import { ReadItem, AddressRenderer, Experience3DTab, JoinDAOTab } from "@/components/lootbox";
 import { useAllowedNft } from "@/hooks/use-allowed-nft";
 import {
   DEFAULT_LOOTBOX_ADDRESS,
@@ -521,6 +519,52 @@ export default function LootboxPage() {
       setPendingHash(undefined);
     }
   }, [address, ensureBase, flexEth, isConnected, lootboxAddress, writeContractAsync]);
+
+  const handleOpenFlexWithAmount = useCallback(async (ethAmount: string) => {
+    if (!isConnected || !address) {
+      toast.error("Connect your wallet to join Gnars DAO.");
+      return;
+    }
+    let value: bigint;
+    try {
+      value = parseEther(ethAmount);
+    } catch {
+      toast.error("Invalid ETH amount.");
+      return;
+    }
+    if (value === 0n) {
+      toast.error("Enter an amount above zero.");
+      return;
+    }
+    const onBase = await ensureBase();
+    if (!onBase) return;
+
+    try {
+      setPendingLabel("Joining Gnars");
+      const hash = await writeContractAsync({
+        address: lootboxAddress,
+        abi: gnarsLootboxV4Abi,
+        functionName: "openFlexBox",
+        value,
+        chainId: base.id,
+      });
+      setPendingHash(hash);
+      toast.success("Transaction submitted", {
+        description: "Welcome to Gnars DAO! Getting your tokens...",
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Transaction failed";
+      toast.error("Transaction failed", { description: message });
+      setPendingLabel(null);
+      setPendingHash(undefined);
+    }
+  }, [
+    isConnected,
+    address,
+    ensureBase,
+    writeContractAsync,
+    lootboxAddress,
+  ]);
 
   const handleDepositNFT = useCallback(async () => {
     if (!isConnected || !address) {
@@ -1225,426 +1269,46 @@ export default function LootboxPage() {
           <TabsTrigger value="admin">Admin</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="join" className="space-y-8">
+        <JoinDAOTab
+          flexEth={flexEth}
+          setFlexEth={setFlexEth}
+          gnarsChance={gnarsChance}
+          nftChance={nftChance}
+          nothingChance={nothingChance}
+          flexGnarsBase={flexGnarsBase}
+          flexGnarsPerEth={flexGnarsPerEth}
+          flexNftBpsMin={flexNftBpsMin}
+          flexNftBpsMax={flexNftBpsMax}
+          flexNftBpsPerEth={flexNftBpsPerEth}
+          gnarsUnit={gnarsUnit}
+          handleOpenFlex={handleOpenFlex}
+          isConnected={isConnected}
+          isPaused={isPaused}
+          lootboxAddress={lootboxAddress}
+          refetch={refetch}
+          isFetching={isFetching}
+          contractGnarsBalance={contractGnarsBalance}
+          flexStats={flexStats}
+          minFlexEth={minFlexEth}
+          chain={chain}
+          pendingLabel={pendingLabel}
+          isConfirming={isConfirming}
+          isConfirmed={isConfirmed}
+          flexNftCountsReady={flexNftCountsReady}
+          flexNftCounts={flexNftCounts}
+        />
 
-      <Card className="bg-card">
-        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-lg">Onboarding Contract</CardTitle>
-            <AddressDisplay address={lootboxAddress} />
-          </div>
-          <Button variant="secondary" onClick={() => refetch()} disabled={isFetching}>
-            {isFetching ? "Refreshing..." : "Refresh data"}
-          </Button>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4">
-          <div className="space-y-1 text-sm">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">Contract Balance</Badge>
-            </div>
-            <div className="text-lg font-semibold">
-              {isFetching ? "..." : contractGnarsBalance !== undefined ? formatGnarsAmount(contractGnarsBalance, gnarsUnit) : "-"} GNARS
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Total tokens in contract
-            </div>
-          </div>
-          <div className="space-y-1 text-sm">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">Rewards Pool</Badge>
-              <span className="text-muted-foreground">Bonus NFTs</span>
-            </div>
-            <div className="text-lg font-semibold">
-              {flexStats ? `${flexStats[0].toString()} NFTs` : "-"}
-            </div>
-            {flexStats && (
-              <div className="text-xs text-muted-foreground">
-                {formatGnarsAmount(flexStats[1], gnarsUnit)} available ·{" "}
-                {formatGnarsAmount(flexStats[2], gnarsUnit)} reserved
-              </div>
-            )}
-          </div>
-          <div className="space-y-1 text-sm">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">Entry Fee</Badge>
-              <span className="text-muted-foreground">Minimum</span>
-            </div>
-            <div className="text-lg font-semibold">
-              {minFlexEth !== null && minFlexEth !== undefined ? `${formatEther(minFlexEth)} ETH` : "-"}
-            </div>
-          </div>
-          <div className="space-y-1 text-sm">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">Your Chances</Badge>
-              <span className="text-muted-foreground">Rewards</span>
-            </div>
-            <div className="text-lg font-semibold">
-              {gnarsChance.toFixed(0)}% GNARS
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {nftChance.toFixed(1)}% bonus NFT · {nothingChance.toFixed(1)}% try again
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-card border-2 border-primary/20 overflow-hidden">
-        <div className="grid md:grid-cols-2 gap-0">
-          {/* TCG Card Image - Left Side */}
-          <div className="relative aspect-[3/4] md:aspect-auto bg-black">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-            >
-              <source src="/gnars-lootbox.mp4" type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 space-y-2">
-              <Badge className="bg-purple-500/10 text-purple-200 border border-purple-500/30 backdrop-blur-sm">
-                Gnars Onboarding Card
-              </Badge>
-              <h3 className="text-2xl font-bold">GNARS STARTER</h3>
-              <p className="text-sm text-muted-foreground">
-                Your entry to the DAO
-              </p>
-            </div>
-          </div>
-
-          {/* Purchase UI - Right Side */}
-          <div className="p-6 space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Badge className="bg-purple-500/10 text-purple-200">Start Here</Badge>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  Get Your GNARS <Sparkles className="h-4 w-4" />
-                </CardTitle>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">How much ETH to contribute?</label>
-                <Input
-                  value={flexEth}
-                  onChange={(event) => setFlexEth(event.target.value)}
-                  placeholder="0.0002"
-                  className="text-lg"
-                />
-                <p className="text-sm text-muted-foreground">
-                  You&apos;ll receive: <span className="font-semibold text-foreground">{flexGnarsPreview > 0n ? formatGnarsAmount(flexGnarsPreview, gnarsUnit) : "-"} GNARS</span> tokens
-                </p>
-              </div>
-
-              <div className="space-y-2 text-sm border-t pt-4">
-                <p className="font-semibold text-foreground">Reward Chances:</p>
-                <div className="space-y-1 text-muted-foreground">
-                  <div className="flex items-center justify-between">
-                    <span>🎯 GNARS tokens</span>
-                    <span className="font-medium text-foreground">{gnarsChance.toFixed(1)}%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>🎁 Bonus NFT</span>
-                    <span className="font-medium text-foreground">{nftChance.toFixed(2)}%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>🔄 Try again</span>
-                    <span className="font-medium text-foreground">{nothingChance.toFixed(1)}%</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-xs text-muted-foreground border-t pt-4 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span>Base amount:</span>
-                  <span>{flexGnarsBase !== null && flexGnarsBase !== undefined ? formatGnarsAmount(flexGnarsBase, gnarsUnit) : "-"} GNARS</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Per ETH bonus:</span>
-                  <span>+{flexGnarsPerEth !== null && flexGnarsPerEth !== undefined ? formatGnarsAmount(flexGnarsPerEth, gnarsUnit) : "-"} GNARS</span>
-                </div>
-                <div className="flex items-center justify-between text-purple-400">
-                  <span>NFT odds range:</span>
-                  <span>{flexNftBpsMin !== null && flexNftBpsMin !== undefined ? (Number(flexNftBpsMin) / 100).toFixed(2) : "-"}% - {flexNftBpsMax !== null && flexNftBpsMax !== undefined ? (Number(flexNftBpsMax) / 100).toFixed(2) : "-"}%</span>
-                </div>
-                <div className="flex items-center justify-between text-purple-400">
-                  <span>NFT boost per ETH:</span>
-                  <span>+{flexNftBpsPerEth !== null && flexNftBpsPerEth !== undefined ? (Number(flexNftBpsPerEth) / 100).toFixed(2) : "-"}%</span>
-                </div>
-              </div>
-
-              <Button className="w-full" size="lg" onClick={handleOpenFlex} disabled={!isConnected || !!isPaused}>
-                {!isConnected ? "Connect Wallet to Join" : isPaused ? "Contract Paused" : "Join Gnars DAO"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="bg-card">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Gift className="h-5 w-5" /> Transaction status
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-1">
-          <p>Network: {chain?.id === base.id ? "Base" : chain?.name ?? "Not connected"}</p>
-          <p>Pending: {pendingLabel ?? "None"}</p>
-          <p>Status: {isConfirming ? "Confirming..." : isConfirmed ? "Confirmed" : "Idle"}</p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-card border-2 border-primary/10">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Contract Balances</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            {isFetching ? "Refreshing..." : "Refresh"}
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🎁</span>
-                <div>
-                  <p className="text-xs text-muted-foreground">Flex NFTs Available</p>
-                  <p className="text-2xl font-bold">
-                    {isFetching ? "..." : flexStats ? flexStats[0].toString() : "0"}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">💰</span>
-                <div>
-                  <p className="text-xs text-muted-foreground">GNARS ERC20 Available</p>
-                  <p className="text-2xl font-bold">
-                    {isFetching ? "..." : flexStats ? formatGnarsAmount(flexStats[1], gnarsUnit) : "0"}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🔒</span>
-                <div>
-                  <p className="text-xs text-muted-foreground">GNARS Reserved</p>
-                  <p className="text-2xl font-bold">
-                    {isFetching ? "..." : flexStats ? formatGnarsAmount(flexStats[2], gnarsUnit) : "0"}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🧢</span>
-                <div>
-                  <p className="text-xs text-muted-foreground">GNARS NFTs in Pool</p>
-                  <p className="text-2xl font-bold">
-                    {flexNftCountsReady ? flexNftCounts.gnars.toString() : "..."}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🧪</span>
-                <div>
-                  <p className="text-xs text-muted-foreground">HackerDAO NFTs in Pool</p>
-                  <p className="text-2xl font-bold">
-                    {flexNftCountsReady ? flexNftCounts.hacker.toString() : "..."}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-card border-2 border-primary/10">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" /> NFT Odds: More ETH = Better Chance
-          </CardTitle>
-          <p className="text-sm text-muted-foreground mt-2">
-            Your NFT odds increase with your ETH contribution. Here are some examples:
-          </p>
-        </CardHeader>
-        <CardContent>
-          {minFlexEth !== null && minFlexEth !== undefined &&
-           flexNftBpsMin !== null && flexNftBpsMin !== undefined &&
-           flexNftBpsMax !== null && flexNftBpsMax !== undefined ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                parseEther("0.0002"),
-                parseEther("0.001"),
-                parseEther("0.005"),
-                parseEther("0.01"),
-              ].map((ethAmount, idx) => {
-                // Calculate NFT chance for this amount
-                let nftBps = Number(flexNftBpsMin);
-                if (ethAmount > minFlexEth && flexNftBpsPerEth && flexNftBpsPerEth > 0n) {
-                  const extra = ((ethAmount - minFlexEth) * BigInt(flexNftBpsPerEth)) / parseEther("1");
-                  nftBps = Math.min(Number(flexNftBpsMin) + Number(extra), Number(flexNftBpsMax));
-                }
-                const nftChancePercent = (nftBps / 100).toFixed(2);
-                const isMax = nftBps >= Number(flexNftBpsMax);
-
-                return (
-                  <div
-                    key={idx}
-                    className="relative overflow-hidden rounded-lg border border-border bg-gradient-to-br from-muted/50 to-muted/20 p-4 hover:border-primary/50 transition-colors"
-                  >
-                    <div className="flex flex-col gap-2">
-                      <div className="text-xs font-medium text-muted-foreground">
-                        Contribute
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {formatEther(ethAmount)} ETH
-                      </div>
-                      <div className="mt-2 pt-2 border-t border-border/50">
-                        <div className="text-xs text-muted-foreground mb-1">
-                          NFT Odds
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-xl font-bold text-primary">
-                            {nftChancePercent}%
-                          </span>
-                          {isMax && (
-                            <Badge variant="secondary" className="text-xs">
-                              MAX
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    {/* Visual progress bar */}
-                    <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-primary/50 to-primary transition-all"
-                        style={{ width: `${Math.min(Number(nftChancePercent), 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-40 text-muted-foreground">
-              {isFetching ? "Loading..." : "Contract data not available"}
-            </div>
-          )}
-
-          <div className="mt-6 p-4 rounded-lg bg-muted/30 border border-border/50">
-            <div className="flex items-start gap-3">
-              <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium">How it works</p>
-                <p className="text-xs text-muted-foreground">
-                  The more ETH you contribute, the higher your chance of winning a bonus NFT.
-                  {flexNftBpsPerEth !== null && flexNftBpsPerEth !== undefined && flexNftBpsPerEth > 0n ? (
-                    <> You get <span className="font-semibold text-foreground">+{(Number(flexNftBpsPerEth) / 100).toFixed(2)}%</span> odds per ETH contributed.</>
-                  ) : (
-                    <> NFT odds are fixed at <span className="font-semibold text-foreground">{flexNftBpsMin !== null && flexNftBpsMin !== undefined ? (Number(flexNftBpsMin) / 100).toFixed(2) : "-"}%</span> for all contributions.</>
-                  )}
-                  {" "}Maximum odds: <span className="font-semibold text-foreground">{flexNftBpsMax !== null && flexNftBpsMax !== undefined ? (Number(flexNftBpsMax) / 100).toFixed(2) : "-"}%</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-        </TabsContent>
-
-        <TabsContent value="3d" className="space-y-8">
-          <Card className="bg-card">
-            <CardHeader>
-              <CardTitle className="text-2xl">3D Lootbox Experience</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Interact with the 3D chest below. Hover to see effects, click to open your lootbox!
-              </p>
-            </CardHeader>
-            <CardContent>
-              <AnimatedChest3D
-                onOpen={handleOpenFlex}
-                isPending={Boolean(pendingLabel === "Joining Gnars" && !isConfirmed)}
-                isOpening={Boolean(pendingLabel === "Joining Gnars" && isConfirmed)}
-                disabled={!isConnected || isPaused || !address}
-              />
-
-              {/* Show current contribution amount */}
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Current Contribution</p>
-                    <p className="text-2xl font-bold">{flexEth} ETH</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">You&apos;ll receive</p>
-                    <p className="text-xl font-semibold">
-                      {gnarsUnit
-                        ? formatGnarsAmount(
-                            flexGnarsPreview ?? 0n,
-                            gnarsUnit
-                          )
-                        : "..."}{" "}
-                      GNARS
-                    </p>
-                  </div>
-                </div>
-
-                {/* Amount input */}
-                <div className="space-y-2">
-                  <Label htmlFor="flex-eth-3d">How much ETH to contribute?</Label>
-                  <Input
-                    id="flex-eth-3d"
-                    type="number"
-                    step="0.0001"
-                    min="0"
-                    placeholder="0.0002"
-                    value={flexEth}
-                    onChange={(e) => setFlexEth(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Minimum: {minFlexEth !== undefined ? formatEther(minFlexEth) : "..."} ETH
-                  </p>
-                </div>
-
-                {/* Reward breakdown */}
-                {flexStats && (
-                  <div className="grid grid-cols-3 gap-4 p-4 bg-secondary/20 rounded-lg">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Coins className="w-4 h-4 text-amber-500" />
-                        <p className="text-xs text-muted-foreground">GNARS Tokens</p>
-                      </div>
-                      <p className="text-sm font-semibold">100.0%</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Gift className="w-4 h-4 text-purple-500" />
-                        <p className="text-xs text-muted-foreground">Bonus NFT</p>
-                      </div>
-                      <p className="text-sm font-semibold">
-                        {flexNftBpsPerEth !== null && flexNftBpsPerEth !== undefined ? `${(Number(flexNftBpsPerEth) / 100).toFixed(2)}%` : "..."}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Sparkles className="w-4 h-4 text-blue-500" />
-                        <p className="text-xs text-muted-foreground">Try Again</p>
-                      </div>
-                      <p className="text-sm font-semibold">0.0%</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <Experience3DTab
+          flexGnarsBase={flexGnarsBase}
+          flexGnarsPerEth={flexGnarsPerEth}
+          gnarsUnit={gnarsUnit}
+          onOpen={handleOpenFlexWithAmount}
+          isConnected={isConnected}
+          address={address}
+          isPaused={isPaused}
+          pendingLabel={pendingLabel}
+          isConfirmed={isConfirmed}
+        />
 
         <TabsContent value="admin" className="space-y-8">
           <Card className="bg-card">
