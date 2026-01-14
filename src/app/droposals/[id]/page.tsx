@@ -143,9 +143,7 @@ export async function generateMetadata({
     "A Gnars DAO NFT drop proposal";
 
   // Prefer static image over animation for OG
-  const imageUrl = decoded?.imageURI
-    ? ipfsToHttp(decoded.imageURI)
-    : `${BASE_URL}/logo-banner.jpg`;
+  const imageUrl = decoded?.imageURI ? ipfsToHttp(decoded.imageURI) : `${BASE_URL}/logo-banner.jpg`;
 
   const droposalUrl = `${BASE_URL}/droposals/${id}`;
 
@@ -238,59 +236,58 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
   const saleEnded = saleEnd && now > saleEnd;
   const saleActive = !saleNotStarted && !saleEnded && !!decoded;
 
-
   return (
     <div className="py-8 space-y-6">
-        <DroposalHeader
-          proposalNumber={p.proposalNumber}
-          title={p.title}
-          fallbackName={decoded?.name || null}
-          createdAtMs={createdAt}
-          isExecuted={isExecuted}
-          priceEth={priceEth}
-          editionSize={editionSize}
-        />
-        <Separator />
+      <DroposalHeader
+        proposalNumber={p.proposalNumber}
+        title={p.title}
+        fallbackName={decoded?.name || null}
+        createdAtMs={createdAt}
+        isExecuted={isExecuted}
+        priceEth={priceEth}
+        editionSize={editionSize}
+      />
+      <Separator />
 
-        <DroposalMintProvider>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <DroposalMedia
-                mediaAnimation={mediaAnimation}
-                mediaImage={mediaImage}
-                alt={decoded?.name || p.title || "Droposal media"}
-              />
-              <DroposalSupporters
-                tokenAddress={tokenAddress as `0x${string}` | null}
-                totalSupply={decoded?.editionSize?.toString() ?? null}
-              />
-              <DroposalMetadata rows={decoded ? formatDroposalForTable(decoded) : []} />
-            </div>
-
-            <div className="space-y-6 h-fit">
-              <DroposalActionBox
-                priceEth={priceEth}
-                saleActive={saleActive}
-                saleNotStarted={Boolean(saleNotStarted)}
-                saleEnded={Boolean(saleEnded)}
-                saleStart={saleStart || undefined}
-                saleEnd={saleEnd || undefined}
-                hasDecoded={Boolean(decoded)}
-                tokenAddress={tokenAddress as `0x${string}` | undefined}
-              />
-              <DroposalDetailsCard
-                name={decoded?.name}
-                title={p.title}
-                description={decoded?.collectionDescription}
-              />
-              <DroposalAddresses
-                fundsRecipient={decoded?.fundsRecipient}
-                defaultAdmin={decoded?.defaultAdmin}
-                tokenAddress={tokenAddress}
-              />
-            </div>
+      <DroposalMintProvider>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <DroposalMedia
+              mediaAnimation={mediaAnimation}
+              mediaImage={mediaImage}
+              alt={decoded?.name || p.title || "Droposal media"}
+            />
+            <DroposalSupporters
+              tokenAddress={tokenAddress as `0x${string}` | null}
+              totalSupply={decoded?.editionSize?.toString() ?? null}
+            />
+            <DroposalMetadata rows={decoded ? formatDroposalForTable(decoded) : []} />
           </div>
-        </DroposalMintProvider>
-      </div>
+
+          <div className="space-y-6 h-fit">
+            <DroposalActionBox
+              priceEth={priceEth}
+              saleActive={saleActive}
+              saleNotStarted={Boolean(saleNotStarted)}
+              saleEnded={Boolean(saleEnded)}
+              saleStart={saleStart || undefined}
+              saleEnd={saleEnd || undefined}
+              hasDecoded={Boolean(decoded)}
+              tokenAddress={tokenAddress as `0x${string}` | undefined}
+            />
+            <DroposalDetailsCard
+              name={decoded?.name}
+              title={p.title}
+              description={decoded?.collectionDescription}
+            />
+            <DroposalAddresses
+              fundsRecipient={decoded?.fundsRecipient}
+              defaultAdmin={decoded?.defaultAdmin}
+              tokenAddress={tokenAddress}
+            />
+          </div>
+        </div>
+      </DroposalMintProvider>
+    </div>
   );
 }
