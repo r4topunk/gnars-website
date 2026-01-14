@@ -10,7 +10,7 @@ interface ChestProps {
   onClick: () => void;
   isOpening: boolean;
   isPending: boolean;
-  tier?: "bronze" | "silver" | "gold";
+  tier?: "bronze" | "silver" | "gold" | "black";
 }
 
 // Tier color schemes
@@ -32,6 +32,12 @@ const TIER_COLORS = {
     secondary: "#b8860b",
     accent: "#ffec8b",
     emissive: "#ffd700",
+  },
+  black: {
+    primary: "#1a1a1a",
+    secondary: "#0d0d0d",
+    accent: "#333333",
+    emissive: "#1a1a1a",
   },
 };
 
@@ -1396,7 +1402,7 @@ interface AnimatedChest3DProps {
   isOpening?: boolean;
   isPending?: boolean;
   disabled?: boolean;
-  tier?: "bronze" | "silver" | "gold";
+  tier?: "bronze" | "silver" | "gold" | "black";
 }
 
 export default function AnimatedChest3D({

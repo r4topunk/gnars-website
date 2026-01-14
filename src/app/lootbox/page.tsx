@@ -5,7 +5,6 @@ import { Address, isAddress } from "viem";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Experience3DTab, 
   JoinDAOTab, 
   AdminTab 
 } from "@/components/lootbox";
@@ -112,9 +111,8 @@ export default function LootboxPage() {
       </div>
 
       <Tabs defaultValue="join" className="space-y-8">
-        <TabsList className="grid w-full max-w-3xl grid-cols-3">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="join">Join DAO</TabsTrigger>
-          <TabsTrigger value="3d">3D Experience</TabsTrigger>
           <TabsTrigger value="admin">Admin</TabsTrigger>
         </TabsList>
 
@@ -145,21 +143,8 @@ export default function LootboxPage() {
           isConfirmed={contract.isConfirmed}
           flexNftCountsReady={contract.flexNftCountsReady}
           flexNftCounts={contract.flexNftCounts}
-        />
-
-        <Experience3DTab
-          flexGnarsBase={contract.flexGnarsBase}
-          flexGnarsPerEth={contract.flexGnarsPerEth}
-          flexNftBpsMin={contract.flexNftBpsMin}
-          flexNftBpsMax={contract.flexNftBpsMax}
-          flexNftBpsPerEth={contract.flexNftBpsPerEth}
-          gnarsUnit={contract.gnarsUnit}
-          onOpen={handleOpenFlexWithAmount}
-          isConnected={contract.isConnected}
           address={contract.address}
-          isPaused={contract.isPaused}
-          pendingLabel={pendingLabel}
-          isConfirmed={contract.isConfirmed}
+          onOpenWithAmount={handleOpenFlexWithAmount}
         />
 
         <AdminTab

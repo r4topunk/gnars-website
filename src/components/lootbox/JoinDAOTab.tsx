@@ -6,8 +6,15 @@ import { AddressDisplay } from "@/components/ui/address-display";
 import { formatEther, parseEther } from "viem";
 import { Sparkles, Gift, TrendingUp, ChevronUp, ChevronDown, Zap, Trophy, Coins } from "lucide-react";
 import { formatGnarsAmount } from "@/lib/lootbox";
+import { AnimatedChest3D } from "@/components/lootbox";
 import type { Chain } from "wagmi/chains";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
+
+const LOOTBOX_TIERS: { eth: string; label: string; description: string; tier: "bronze" | "silver" | "gold" }[] = [
+  { eth: "0.002", label: "Mongo Box", description: "Starter tier", tier: "bronze" },
+  { eth: "0.01", label: "Kickfliper Box", description: "Better rewards", tier: "silver" },
+  { eth: "0.05", label: "Pro Box", description: "Premium tier", tier: "gold" },
+];
 
 interface JoinDAOTabProps {
   flexEth: string;
@@ -36,6 +43,9 @@ interface JoinDAOTabProps {
   isConfirmed: boolean;
   flexNftCountsReady: boolean;
   flexNftCounts: { gnars: number; hacker: number; total: number };
+  // New props for 3D experience
+  address: string | undefined;
+  onOpenWithAmount: (ethAmount: string) => void;
 }
 
 export function JoinDAOTab({
@@ -65,7 +75,12 @@ export function JoinDAOTab({
   isConfirmed,
   flexNftCountsReady,
   flexNftCounts,
+  address,
+  onOpenWithAmount,
 }: JoinDAOTabProps) {
+  // Track which box is currently being opened (for 3D experience)
+  const [activeBoxEth, setActiveBoxEth] = useState<string | null>(null);
+
   // Step increment for the arrows (0.002 ETH)
   const STEP = 0.002;
   const MIN_ETH = 0.0002;
@@ -87,6 +102,48 @@ export function JoinDAOTab({
       return null;
     }
   }, [flexEth, flexGnarsBase, flexGnarsPerEth, gnarsUnit]);
+
+  // Calculate GNARS reward for a specific ETH amount (for 3D boxes)
+  const calculateGnarsReward = useCallback((ethAmount: string) => {
+    if (!flexGnarsBase || !flexGnarsPerEth || !gnarsUnit) return null;
+    const ethValue = parseEther(ethAmount);
+    const gnarsReward = flexGnarsBase + (ethValue * flexGnarsPerEth) / parseEther("1");
+    return formatGnarsAmount(gnarsReward, gnarsUnit);
+  }, [flexGnarsBase, flexGnarsPerEth, gnarsUnit]);
+
+  // Calculate NFT odds for a specific ETH amount (for 3D boxes)
+  const calculateNftOdds = useCallback((ethAmount: string) => {
+    if (flexNftBpsMin === null || flexNftBpsMax === null || flexNftBpsPerEth === null) {
+      return "...";
+    }
+    
+    const ethValue = parseEther(ethAmount);
+    const bpsMin = BigInt(flexNftBpsMin);
+    const bpsMax = BigInt(flexNftBpsMax);
+    const bpsPerEth = BigInt(flexNftBpsPerEth);
+    
+    const additionalBps = (ethValue * bpsPerEth) / parseEther("1");
+    const totalBps = bpsMin + additionalBps;
+    const finalBps = totalBps > bpsMax ? bpsMax : totalBps;
+    const percentage = Number(finalBps) / 100;
+    
+    return `${percentage.toFixed(2)}%`;
+  }, [flexNftBpsMin, flexNftBpsMax, flexNftBpsPerEth]);
+
+  // Handle 3D box open
+  const handleBoxOpen = useCallback((ethAmount: string) => {
+    setActiveBoxEth(ethAmount);
+    onOpenWithAmount(ethAmount);
+  }, [onOpenWithAmount]);
+
+  // Check if a specific box is pending/opening
+  const isBoxPending = useCallback((ethAmount: string) => {
+    return activeBoxEth === ethAmount && pendingLabel === "Joining Gnars" && !isConfirmed;
+  }, [activeBoxEth, pendingLabel, isConfirmed]);
+
+  const isBoxOpening = useCallback((ethAmount: string) => {
+    return activeBoxEth === ethAmount && pendingLabel === "Joining Gnars" && isConfirmed;
+  }, [activeBoxEth, pendingLabel, isConfirmed]);
 
   // Increment/decrement handlers
   const handleIncrement = useCallback(() => {
@@ -110,21 +167,75 @@ export function JoinDAOTab({
 
   return (
     <TabsContent value="join" className="space-y-8">
+      {/* 3D Experience Section */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {LOOTBOX_TIERS.map((tier) => (
+          <Card 
+            key={tier.eth} 
+            className="group bg-card/50 border-border/50 hover:border-primary/40 transition-all duration-200 hover:bg-card overflow-hidden rounded-xl"
+          >
+            {/* 3D Artwork Area */}
+            <div className="aspect-[4/3] w-full bg-gradient-to-b from-secondary/20 to-secondary/5 relative">
+              <AnimatedChest3D
+                onOpen={() => handleBoxOpen(tier.eth)}
+                isPending={isBoxPending(tier.eth)}
+                isOpening={isBoxOpening(tier.eth)}
+                disabled={!isConnected || isPaused || !address}
+                tier={tier.tier}
+              />
+            </div>
+            
+            {/* Card Info Footer */}
+            <CardContent className="p-4 space-y-3">
+              {/* Title & Price Row */}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="font-semibold text-base">{tier.label}</h3>
+                  <p className="text-xs text-muted-foreground">{tier.description}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-bold text-base">{tier.eth}</p>
+                  <p className="text-xs text-muted-foreground">ETH</p>
+                </div>
+              </div>
+              
+              {/* Rewards */}
+              <div className="flex items-center justify-between py-2 px-3 bg-secondary/30 rounded-lg text-sm">
+                <span className="text-muted-foreground">Minimum reward</span>
+                <span className="font-semibold">{calculateGnarsReward(tier.eth) || "..."} GNARS</span>
+              </div>
+              
+              {/* NFT Odds */}
+              <div className="flex items-center justify-between py-2 px-3 bg-secondary/30 rounded-lg text-sm">
+                <span className="text-muted-foreground">NFT Odds</span>
+                <span className="font-semibold text-primary">{calculateNftOdds(tier.eth)}</span>
+              </div>
+              
+              {/* Action Button */}
+              <Button 
+                className="w-full" 
+                onClick={() => handleBoxOpen(tier.eth)}
+                disabled={!isConnected || isPaused || !address}
+              >
+                {!isConnected ? "Connect Wallet" : isPaused ? "Paused" : "Open Box"}
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
       <Card className="bg-card border-2 border-primary/20 overflow-hidden">
         <div className="grid md:grid-cols-2 gap-0">
-          {/* TCG Card Image - Left Side */}
-          <div className="relative aspect-[3/4] md:aspect-auto bg-black">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-            >
-              <source src="/gnars-lootbox.mp4" type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 space-y-2">
+          {/* 3D Lootbox - Left Side */}
+          <div className="relative aspect-[3/4] md:aspect-auto bg-gradient-to-b from-secondary/30 to-background min-h-[400px]">
+            <AnimatedChest3D
+              onOpen={handleOpenFlex}
+              isPending={pendingLabel === "Joining Gnars" && !isConfirmed}
+              isOpening={pendingLabel === "Joining Gnars" && isConfirmed}
+              disabled={!isConnected || isPaused || !address}
+              tier="black"
+            />
+            <div className="absolute bottom-0 left-0 right-0 p-6 space-y-2 pointer-events-none">
               <Badge className="bg-purple-500/10 text-purple-200 border border-purple-500/30 backdrop-blur-sm">
                 Gnars Onboarding Card
               </Badge>
@@ -138,7 +249,7 @@ export function JoinDAOTab({
           {/* Purchase UI - Right Side */}
           <div className="p-6 space-y-6">
             <CardTitle className="text-xl flex items-center gap-2">
-              Get Your GNARS <Sparkles className="h-4 w-4 text-yellow-500" />
+              Gnars is for everyone <Sparkles className="h-4 w-4 text-yellow-500" />
             </CardTitle>
 
             {/* Big Interactive ETH Input */}
