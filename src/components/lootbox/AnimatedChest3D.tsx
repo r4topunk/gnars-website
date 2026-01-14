@@ -291,18 +291,20 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }
 
     // Apply metal texture to cloned Gnars logo GLB model materials
     if (clonedLogoScene && metalColorMap && metalNormalMap && metalRoughnessMap) {
-      clonedLogoScene.traverse((child: any) => {
-        if (child.isMesh && child.material) {
+      clonedLogoScene.traverse((child: THREE.Object3D) => {
+        const mesh = child as THREE.Mesh;
+        if (mesh.isMesh && mesh.material) {
           // Clone material to avoid sharing between instances
-          child.material = child.material.clone();
-          // Update material to use metal textures
-          if (child.material.isMeshStandardMaterial || child.material.isMeshPhysicalMaterial) {
-            child.material.map = metalColorMap;
-            child.material.normalMap = metalNormalMap;
-            child.material.roughnessMap = metalRoughnessMap;
-            child.material.metalness = 0.95;
-            child.material.roughness = 0.25;
-            child.material.needsUpdate = true;
+          const material = (mesh.material as THREE.MeshStandardMaterial).clone();
+          mesh.material = material;
+          // Update material to use metal textures (works for both MeshStandardMaterial and MeshPhysicalMaterial)
+          if (material.isMeshStandardMaterial) {
+            material.map = metalColorMap;
+            material.normalMap = metalNormalMap;
+            material.roughnessMap = metalRoughnessMap;
+            material.metalness = 0.95;
+            material.roughness = 0.25;
+            material.needsUpdate = true;
           }
         }
       });
@@ -506,75 +508,6 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }
       loadingRotationRef.current = time * 2; // Rotate loading indicator
     }
   });
-
-  // Button helper functions based on state
-  const getButtonZ = () => {
-    switch (buttonState) {
-      case "hover":
-        return 0.09;
-      case "pressed":
-        return 0.06;
-      case "loading":
-        return 0.085;
-      case "success":
-        return 0.09;
-      case "disabled":
-        return 0.08;
-      default:
-        return 0.08; // idle
-    }
-  };
-
-  const getButtonColor = () => {
-    switch (buttonState) {
-      case "hover":
-        return "#ffcc00";
-      case "pressed":
-        return "#ff6600";
-      case "loading":
-        return "#ff8800";
-      case "success":
-        return "#00ff88";
-      case "disabled":
-        return "#555555";
-      default:
-        return "#ff8800"; // idle
-    }
-  };
-
-  const getButtonEmissive = () => {
-    switch (buttonState) {
-      case "hover":
-        return "#ffaa00";
-      case "pressed":
-        return "#ff4400";
-      case "loading":
-        return "#ff6600";
-      case "success":
-        return "#00cc66";
-      case "disabled":
-        return "#333333";
-      default:
-        return "#ff6600"; // idle
-    }
-  };
-
-  const getButtonEmissiveIntensity = () => {
-    switch (buttonState) {
-      case "hover":
-        return 3.5;
-      case "pressed":
-        return 1.5;
-      case "loading":
-        return 2.0 + pulseRef.current * 0.8; // Pulsing - use ref instead of state
-      case "success":
-        return 3.0;
-      case "disabled":
-        return 0.5;
-      default:
-        return 2.0; // idle
-    }
-  };
 
   return (
     <group ref={crateRef} onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}>

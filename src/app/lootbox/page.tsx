@@ -1229,17 +1229,6 @@ export default function LootboxPage() {
     | readonly [bigint, bigint, bigint]
     | null;
 
-  // V4: Use getFlexPreview for accurate gnars payout calculation
-  const flexGnarsPreview = useMemo(() => {
-    // Use preview from contract if available, otherwise calculate locally
-    if (flexPreviewData) {
-      const previewResult = flexPreviewData as readonly [number, number, bigint];
-      return previewResult[2];
-    }
-    if (flexValue === 0n) return 0n;
-    return flexGnarsBase + (flexValue * flexGnarsPerEth) / 1_000_000_000_000_000_000n;
-  }, [flexPreviewData, flexValue, flexGnarsBase, flexGnarsPerEth]);
-
   // V4: Use dynamic NFT chance from preview
   const previewNftBps = useMemo(() => {
     if (flexPreviewData) {
