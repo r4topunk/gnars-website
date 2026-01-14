@@ -12,9 +12,7 @@ interface TokenBalance {
 
 async function getTreasuryValue(): Promise<number> {
   try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl = "https://gnars.com";
 
     const [ethRes, tokenRes, priceRes, ethPriceRes] = await Promise.all([
       fetch(`${baseUrl}/api/alchemy`, {
