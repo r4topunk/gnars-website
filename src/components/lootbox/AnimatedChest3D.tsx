@@ -234,6 +234,8 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }
   const lidRef = useRef<Group>(null);
   const interiorLightRef = useRef<PointLight>(null);
   const floatingLogoRef = useRef<Group>(null);
+  const interiorGlowRef = useRef<THREE.MeshBasicMaterial>(null);
+  const logoGlowRef = useRef<THREE.MeshBasicMaterial>(null);
   
   // Get tier colors
   const tierColors = TIER_COLORS[tier];
@@ -474,13 +476,19 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }
     if (interiorLightRef.current) {
       // Use gamma-like curve for dramatic ramp: slow start, fast middle, slow end
       const lightCurve = Math.pow(openProgressRef.current, 2.2);
-      const targetIntensity = lightCurve * 8.0; // 0 → 8 smoothly
+      const targetIntensity = lightCurve * 12.0; // 0 → 12 smoothly (increased from 8)
 
       // Smooth transition
       const currentIntensity = interiorLightRef.current.intensity;
       if (Math.abs(currentIntensity - targetIntensity) > 0.05) {
         interiorLightRef.current.intensity += (targetIntensity - currentIntensity) * 0.15;
       }
+    }
+
+    // Animate interior glow plane opacity
+    if (interiorGlowRef.current) {
+      const glowOpacity = openProgressRef.current * 0.4; // Max 40% opacity
+      interiorGlowRef.current.opacity = glowOpacity;
     }
 
     // Animate floating Gnars logo (magical item effect) - use ref instead of state
@@ -498,6 +506,12 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }
       // Slight tilt/wobble for more dynamic feel
       floatingLogoRef.current.rotation.x = Math.sin(time * 0.8) * 0.08;
       floatingLogoRef.current.rotation.z = Math.cos(time * 0.6) * 0.06;
+
+      // Pulsing glow effect on logo sphere
+      if (logoGlowRef.current) {
+        const pulseGlow = 0.3 + Math.sin(time * 2) * 0.15; // Pulse between 0.15 and 0.45
+        logoGlowRef.current.opacity = pulseGlow;
+      }
     }
 
     // Button pulse animation for loading state - use refs instead of setState to avoid per-frame re-renders
@@ -584,6 +598,65 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }
       </mesh>
 
       {/* NO TOP FACE - lid serves as the top */}
+
+      {/* Tier accent lights - from top left corner */}
+      <pointLight
+        position={[-2.5, 2.5, 1.5]}
+        color={tierColors.accent}
+        intensity={3.0}
+        distance={8}
+        decay={2}
+      />
+      <pointLight
+        position={[-1.5, 1.8, 0.5]}
+        color={tierColors.emissive}
+        intensity={1.5}
+        distance={5}
+        decay={2}
+      />
+
+      {/* Bottom edge glow strips - enhanced with thicker strips */}
+      <mesh position={[0, -0.55, 0.92]}>
+        <boxGeometry args={[2.4, 0.03, 0.03]} />
+        <meshStandardMaterial
+          color={tierColors.accent}
+          emissive={tierColors.emissive}
+          emissiveIntensity={2.5}
+          metalness={0.2}
+          roughness={0.3}
+        />
+      </mesh>
+      <mesh position={[-1.24, -0.55, 0]}>
+        <boxGeometry args={[0.03, 0.03, 1.8]} />
+        <meshStandardMaterial
+          color={tierColors.accent}
+          emissive={tierColors.emissive}
+          emissiveIntensity={2.5}
+          metalness={0.2}
+          roughness={0.3}
+        />
+      </mesh>
+      <mesh position={[1.24, -0.55, 0]}>
+        <boxGeometry args={[0.03, 0.03, 1.8]} />
+        <meshStandardMaterial
+          color={tierColors.accent}
+          emissive={tierColors.emissive}
+          emissiveIntensity={2.5}
+          metalness={0.2}
+          roughness={0.3}
+        />
+      </mesh>
+      {/* Back edge glow strip */}
+      <mesh position={[0, -0.55, -0.92]}>
+        <boxGeometry args={[2.4, 0.03, 0.03]} />
+        <meshStandardMaterial
+          color={tierColors.accent}
+          emissive={tierColors.emissive}
+          emissiveIntensity={2.0}
+          metalness={0.2}
+          roughness={0.3}
+        />
+      </mesh>
 
       {/* Subtle weathering overlay on body */}
       <mesh position={[0.5, 0.2, 0.91]}>
@@ -797,7 +870,26 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }
             <meshStandardMaterial color="#2a2200" metalness={0.0} roughness={1.0} />
           </mesh>
 
-          {/* Interior lights removed */}
+          {/* Interior point light - dramatic reveal */}
+          <pointLight
+            ref={interiorLightRef}
+            position={[0, 0, 0]}
+            color={tierColors.accent}
+            intensity={0}
+            distance={4}
+            decay={2}
+          />
+
+          {/* Interior glow planes */}
+          <mesh position={[0, -0.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[2, 1.4]} />
+            <meshBasicMaterial
+              ref={interiorGlowRef}
+              color={tierColors.emissive}
+              transparent
+              opacity={0}
+            />
+          </mesh>
 
           {/* Smoke particles coming from interior */}
           <SmokeParticles isActive={isPending || isOpening} />
@@ -806,16 +898,29 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }
           {/* Conditional rendering based on showLogo state (updated only when threshold crossed) */}
           {showLogo && (
             <group ref={floatingLogoRef} position={[0, 0.1, 0.3]}>
-              {/* Background glow removed */}
+              {/* Glow sphere behind logo */}
+              <mesh position={[0, 0, -0.1]}>
+                <sphereGeometry args={[0.5, 16, 16]} />
+                <meshBasicMaterial
+                  ref={logoGlowRef}
+                  color={tierColors.emissive}
+                  transparent
+                  opacity={0.3}
+                />
+              </mesh>
 
-              {/* Logo texture - back (clean decal with alpha) */}
-
-              {/* Glow effects removed */}
+              {/* Inner glow */}
+              <pointLight
+                position={[0, 0, 0]}
+                color={tierColors.accent}
+                intensity={3}
+                distance={2.5}
+                decay={2}
+              />
             </group>
           )}
         </group>
       )}
-
       {/* Bottom feet - 4 corner supports */}
       {[
         [-1.0, -0.65, 0.7],
@@ -995,6 +1100,38 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }
               roughnessMap={metalRoughnessMap}
               metalness={0.85}
               roughness={0.4}
+            />
+          </mesh>
+
+          {/* Lid underside glow strips - visible when lid opens */}
+          <mesh position={[0, -0.07, 0.93]}>
+            <boxGeometry args={[2.3, 0.02, 0.02]} />
+            <meshStandardMaterial
+              color={tierColors.accent}
+              emissive={tierColors.emissive}
+              emissiveIntensity={2.0}
+              metalness={0.2}
+              roughness={0.3}
+            />
+          </mesh>
+          <mesh position={[-1.23, -0.07, 0]}>
+            <boxGeometry args={[0.02, 0.02, 1.8]} />
+            <meshStandardMaterial
+              color={tierColors.accent}
+              emissive={tierColors.emissive}
+              emissiveIntensity={1.5}
+              metalness={0.2}
+              roughness={0.3}
+            />
+          </mesh>
+          <mesh position={[1.23, -0.07, 0]}>
+            <boxGeometry args={[0.02, 0.02, 1.8]} />
+            <meshStandardMaterial
+              color={tierColors.accent}
+              emissive={tierColors.emissive}
+              emissiveIntensity={1.5}
+              metalness={0.2}
+              roughness={0.3}
             />
           </mesh>
         </group>
@@ -1344,7 +1481,7 @@ export default function AnimatedChest3D({
       {/* Transaction status indicator */}
       {isPending && (
         <div className="absolute bottom-24 left-0 right-0 text-center">
-          <div className="inline-block bg-orange-500/90 backdrop-blur-sm border border-orange-400 rounded-lg px-6 py-3">
+          <div className="inline-block border border-orange-400 rounded-lg px-6 py-3">
             <p className="text-sm text-white font-mono font-bold animate-pulse">
               Waiting for approval...
             </p>

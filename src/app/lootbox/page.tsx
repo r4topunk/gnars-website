@@ -54,6 +54,33 @@ import {
   formatAllowlistStatus,
 } from "@/lib/lootbox";
 
+// Gnarly rejection messages for when users chicken out 🐔
+const GNARLY_REJECTION_MESSAGES = [
+  { title: "Paper hands detected! 📄🙌", description: "The lootbox sensed your fear and retreated..." },
+  { title: "Bailed on the gnarliest drop?", description: "Even the skatepark pigeons are judging you rn" },
+  { title: "Transaction rejected!", description: "Your wallet said 'nah' but your heart said 'send it' 🛹" },
+  { title: "Chickened out? 🐔", description: "The box will remember this betrayal..." },
+  { title: "Skill issue detected", description: "Real gnars don't hesitate on the drop-in" },
+  { title: "Cold feet? ❄️🦶", description: "Maybe try rollerblading instead?" },
+  { title: "Rejected?! In THIS economy?", description: "The lootbox is crying rn (it's not, but still)" },
+  { title: "You folded harder than a lawn chair", description: "The gnars community felt that one 💀" },
+];
+
+const getGnarlyRejectionMessage = () => {
+  return GNARLY_REJECTION_MESSAGES[Math.floor(Math.random() * GNARLY_REJECTION_MESSAGES.length)];
+};
+
+const isUserRejection = (error: unknown): boolean => {
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    return msg.includes("user denied") || 
+           msg.includes("user rejected") || 
+           msg.includes("rejected the request") ||
+           msg.includes("user cancelled");
+  }
+  return false;
+};
+
 export default function LootboxPage() {
   const { address, isConnected, chain } = useAccount();
   const { switchChainAsync } = useSwitchChain();
@@ -513,8 +540,13 @@ export default function LootboxPage() {
         description: "Welcome to Gnars DAO! Getting your tokens...",
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Transaction failed";
-      toast.error("Transaction failed", { description: message });
+      if (isUserRejection(err)) {
+        const gnarlyMsg = getGnarlyRejectionMessage();
+        toast.error(gnarlyMsg.title, { description: gnarlyMsg.description });
+      } else {
+        const message = err instanceof Error ? err.message : "Transaction failed";
+        toast.error("Transaction failed", { description: message });
+      }
       setPendingLabel(null);
       setPendingHash(undefined);
     }
@@ -553,8 +585,13 @@ export default function LootboxPage() {
         description: "Welcome to Gnars DAO! Getting your tokens...",
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Transaction failed";
-      toast.error("Transaction failed", { description: message });
+      if (isUserRejection(err)) {
+        const gnarlyMsg = getGnarlyRejectionMessage();
+        toast.error(gnarlyMsg.title, { description: gnarlyMsg.description });
+      } else {
+        const message = err instanceof Error ? err.message : "Transaction failed";
+        toast.error("Transaction failed", { description: message });
+      }
       setPendingLabel(null);
       setPendingHash(undefined);
     }
@@ -1290,6 +1327,9 @@ export default function LootboxPage() {
         <Experience3DTab
           flexGnarsBase={flexGnarsBase}
           flexGnarsPerEth={flexGnarsPerEth}
+          flexNftBpsMin={flexNftBpsMin}
+          flexNftBpsMax={flexNftBpsMax}
+          flexNftBpsPerEth={flexNftBpsPerEth}
           gnarsUnit={gnarsUnit}
           onOpen={handleOpenFlexWithAmount}
           isConnected={isConnected}

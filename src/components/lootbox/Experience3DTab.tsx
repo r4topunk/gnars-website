@@ -9,6 +9,9 @@ import { useState } from "react";
 interface Experience3DTabProps {
   flexGnarsBase: bigint | null;
   flexGnarsPerEth: bigint | null;
+  flexNftBpsMin: bigint | number | null;
+  flexNftBpsMax: bigint | number | null;
+  flexNftBpsPerEth: bigint | number | null;
   gnarsUnit: bigint | undefined;
   onOpen: (amount: string) => void;
   isConnected: boolean;
@@ -19,14 +22,17 @@ interface Experience3DTabProps {
 }
 
 const LOOTBOX_TIERS: { eth: string; label: string; description: string; tier: "bronze" | "silver" | "gold" }[] = [
-  { eth: "0.002", label: "Bronze Box", description: "Starter tier", tier: "bronze" },
-  { eth: "0.01", label: "Silver Box", description: "Better rewards", tier: "silver" },
-  { eth: "0.05", label: "Gold Box", description: "Premium tier", tier: "gold" },
+  { eth: "0.002", label: "Mongo Box", description: "Starter tier", tier: "bronze" },
+  { eth: "0.01", label: "Kickfliper Box", description: "Better rewards", tier: "silver" },
+  { eth: "0.05", label: "Pro Box", description: "Premium tier", tier: "gold" },
 ];
 
 export function Experience3DTab({
   flexGnarsBase,
   flexGnarsPerEth,
+  flexNftBpsMin,
+  flexNftBpsMax,
+  flexNftBpsPerEth,
   gnarsUnit,
   onOpen,
   isConnected,
@@ -43,6 +49,32 @@ export function Experience3DTab({
     const ethValue = parseEther(ethAmount);
     const gnarsReward = flexGnarsBase + (ethValue * flexGnarsPerEth) / parseEther("1");
     return formatGnarsAmount(gnarsReward, gnarsUnit);
+  };
+
+  // Calculate NFT chance based on ETH amount and contract parameters
+  // Formula: nftBps = min(flexNftBpsMin + (ethAmount * flexNftBpsPerEth / 1e18), flexNftBpsMax)
+  // nftChance = nftBps / 100 (basis points to percentage)
+  const calculateNftOdds = (ethAmount: string) => {
+    if (flexNftBpsMin === null || flexNftBpsMax === null || flexNftBpsPerEth === null) {
+      return "...";
+    }
+    
+    const ethValue = parseEther(ethAmount);
+    const bpsMin = BigInt(flexNftBpsMin);
+    const bpsMax = BigInt(flexNftBpsMax);
+    const bpsPerEth = BigInt(flexNftBpsPerEth);
+    
+    // Calculate: bpsMin + (ethValue * bpsPerEth / 1e18)
+    const additionalBps = (ethValue * bpsPerEth) / parseEther("1");
+    const totalBps = bpsMin + additionalBps;
+    
+    // Cap at max
+    const finalBps = totalBps > bpsMax ? bpsMax : totalBps;
+    
+    // Convert basis points to percentage (divide by 100)
+    const percentage = Number(finalBps) / 100;
+    
+    return `${percentage.toFixed(2)}%`;
   };
 
   const handleBoxOpen = (ethAmount: string) => {
@@ -94,8 +126,14 @@ export function Experience3DTab({
               
               {/* Rewards */}
               <div className="flex items-center justify-between py-2 px-3 bg-secondary/30 rounded-lg text-sm">
-                <span className="text-muted-foreground">Rewards</span>
+                <span className="text-muted-foreground">Minimum reward</span>
                 <span className="font-semibold">{calculateGnarsReward(tier.eth) || "..."} GNARS</span>
+              </div>
+              
+              {/* NFT Odds */}
+              <div className="flex items-center justify-between py-2 px-3 bg-secondary/30 rounded-lg text-sm">
+                <span className="text-muted-foreground">NFT Odds</span>
+                <span className="font-semibold text-primary">{calculateNftOdds(tier.eth)}</span>
               </div>
               
               {/* Action Button */}
