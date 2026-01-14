@@ -329,15 +329,6 @@ export function JoinDAOTab({
           </div>
           <div className="space-y-1 text-sm">
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">Entry Fee</Badge>
-              <span className="text-muted-foreground">Minimum</span>
-            </div>
-            <div className="text-lg font-semibold">
-              {minFlexEth !== null && minFlexEth !== undefined ? `${formatEther(minFlexEth)} ETH` : "-"}
-            </div>
-          </div>
-          <div className="space-y-1 text-sm">
-            <div className="flex items-center gap-2">
               <Badge variant="secondary">Your Chances</Badge>
               <span className="text-muted-foreground">Rewards</span>
             </div>
