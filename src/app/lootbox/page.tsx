@@ -235,6 +235,8 @@ export default function LootboxPage() {
     args: [flexValue > 0n ? flexValue : parseEther("0.0002")],
     query: {
       enabled: true,
+      // Keep previous data while fetching new preview to avoid progress bar jumping to 0
+      placeholderData: (previousData) => previousData,
     },
   });
 

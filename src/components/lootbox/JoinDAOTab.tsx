@@ -1,13 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { formatEther, parseEther } from "viem";
-import { Sparkles, Gift, TrendingUp } from "lucide-react";
+import { Sparkles, Gift, TrendingUp, ChevronUp, ChevronDown, Zap, Trophy, Coins } from "lucide-react";
 import { formatGnarsAmount } from "@/lib/lootbox";
 import type { Chain } from "wagmi/chains";
+import { useCallback, useMemo } from "react";
 
 interface JoinDAOTabProps {
   flexEth: string;
@@ -66,6 +66,48 @@ export function JoinDAOTab({
   flexNftCountsReady,
   flexNftCounts,
 }: JoinDAOTabProps) {
+  // Step increment for the arrows (0.002 ETH)
+  const STEP = 0.002;
+  const MIN_ETH = 0.0002;
+
+  // Parse current value
+  const currentValue = useMemo(() => {
+    const parsed = parseFloat(flexEth);
+    return isNaN(parsed) ? MIN_ETH : parsed;
+  }, [flexEth]);
+
+  // Calculate expected GNARS reward
+  const expectedGnars = useMemo(() => {
+    if (!flexGnarsBase || !flexGnarsPerEth || !gnarsUnit) return null;
+    try {
+      const ethValue = parseEther(flexEth || "0");
+      const gnarsReward = flexGnarsBase + (ethValue * flexGnarsPerEth) / parseEther("1");
+      return formatGnarsAmount(gnarsReward, gnarsUnit);
+    } catch {
+      return null;
+    }
+  }, [flexEth, flexGnarsBase, flexGnarsPerEth, gnarsUnit]);
+
+  // Increment/decrement handlers
+  const handleIncrement = useCallback(() => {
+    const newValue = Math.max(MIN_ETH, currentValue + STEP);
+    setFlexEth(newValue.toFixed(4).replace(/\.?0+$/, "").replace(/\.$/, ""));
+  }, [currentValue, setFlexEth]);
+
+  const handleDecrement = useCallback(() => {
+    const newValue = Math.max(MIN_ETH, currentValue - STEP);
+    setFlexEth(newValue.toFixed(4).replace(/\.?0+$/, "").replace(/\.$/, ""));
+  }, [currentValue, setFlexEth]);
+
+  // Handle direct input
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow empty, numbers, and decimals
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setFlexEth(value);
+    }
+  }, [setFlexEth]);
+
   return (
     <TabsContent value="join" className="space-y-8">
       <Card className="bg-card border-2 border-primary/20 overflow-hidden">
@@ -94,62 +136,155 @@ export function JoinDAOTab({
           </div>
 
           {/* Purchase UI - Right Side */}
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-6">
             <CardTitle className="text-xl flex items-center gap-2">
-              Get Your GNARS <Sparkles className="h-4 w-4" />
+              Get Your GNARS <Sparkles className="h-4 w-4 text-yellow-500" />
             </CardTitle>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">How much ETH to contribute?</label>
-                <Input
-                  value={flexEth}
-                  onChange={(event) => setFlexEth(event.target.value)}
-                  placeholder="0.0002"
-                  className="text-lg"
-                />
+            {/* Big Interactive ETH Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">Contribute ETH</label>
+              <div className="flex items-center gap-2">
+                {/* Decrement Button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-14 w-14 shrink-0 rounded-xl border-2 hover:bg-primary/10 hover:border-primary transition-all"
+                  onClick={handleDecrement}
+                  disabled={currentValue <= MIN_ETH}
+                >
+                  <ChevronDown className="h-6 w-6" />
+                </Button>
+
+                {/* Big Number Input */}
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={flexEth}
+                    onChange={handleInputChange}
+                    className="w-full h-14 text-center text-3xl font-bold bg-secondary/30 border-2 border-border rounded-xl focus:border-primary focus:outline-none transition-colors"
+                    placeholder="0.002"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-lg text-muted-foreground font-medium">
+                    ETH
+                  </span>
+                </div>
+
+                {/* Increment Button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-14 w-14 shrink-0 rounded-xl border-2 hover:bg-primary/10 hover:border-primary transition-all"
+                  onClick={handleIncrement}
+                >
+                  <ChevronUp className="h-6 w-6" />
+                </Button>
+              </div>
+              <p className="text-xs text-center text-muted-foreground">
+                Use arrows to adjust by 0.002 ETH
+              </p>
+            </div>
+
+            {/* Fun Rewards Display */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* GNARS Reward Card */}
+              <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-xl p-4 space-y-1">
+                <div className="flex items-center gap-2 text-yellow-500">
+                  <Coins className="h-4 w-4" />
+                  <span className="text-xs font-medium uppercase tracking-wide">You Get</span>
+                </div>
+                <p className="text-2xl font-bold text-yellow-400">
+                  {expectedGnars || "..."} 
+                </p>
+                <p className="text-xs text-yellow-500/70">GNARS tokens</p>
               </div>
 
-              <div className="space-y-2 text-sm border-t pt-4">
-                <p className="font-semibold text-foreground">Reward Chances:</p>
-                <div className="space-y-1 text-muted-foreground">
-                  <div className="flex items-center justify-between">
-                    <span>🎯 GNARS tokens</span>
-                    <span className="font-medium text-foreground">{gnarsChance.toFixed(1)}%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>🎁 Bonus NFT</span>
-                    <span className="font-medium text-foreground">{nftChance.toFixed(2)}%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>🔄 Try again</span>
-                    <span className="font-medium text-foreground">{nothingChance.toFixed(1)}%</span>
-                  </div>
+              {/* NFT Odds Card */}
+              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-4 space-y-1">
+                <div className="flex items-center gap-2 text-purple-400">
+                  <Trophy className="h-4 w-4" />
+                  <span className="text-xs font-medium uppercase tracking-wide">NFT Chance</span>
+                </div>
+                <p className="text-2xl font-bold text-purple-400">
+                  {nftChance.toFixed(2)}%
+                </p>
+                <p className="text-xs text-purple-500/70">Bonus drop odds</p>
+              </div>
+            </div>
+
+            {/* Chance Bars */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Reward Breakdown</p>
+              
+              {/* GNARS Chance Bar */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="flex items-center gap-1">
+                    <Zap className="h-3 w-3 text-green-500" /> GNARS tokens
+                  </span>
+                  <span className="font-bold text-green-500">{gnarsChance.toFixed(1)}%</span>
+                </div>
+                <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(gnarsChance, 100)}%` }}
+                  />
                 </div>
               </div>
 
-              <div className="text-xs text-muted-foreground border-t pt-4 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span>Base amount:</span>
-                  <span>{flexGnarsBase !== null && flexGnarsBase !== undefined ? formatGnarsAmount(flexGnarsBase, gnarsUnit) : "-"} GNARS</span>
+              {/* NFT Chance Bar */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="flex items-center gap-1">
+                    <Gift className="h-3 w-3 text-purple-500" /> Bonus NFT
+                  </span>
+                  <span className="font-bold text-purple-500">{nftChance.toFixed(2)}%</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>Per ETH bonus:</span>
-                  <span>+{flexGnarsPerEth !== null && flexGnarsPerEth !== undefined ? formatGnarsAmount(flexGnarsPerEth, gnarsUnit) : "-"} GNARS</span>
-                </div>
-                <div className="flex items-center justify-between text-purple-400">
-                  <span>NFT odds range:</span>
-                  <span>{flexNftBpsMin !== null && flexNftBpsMin !== undefined ? (Number(flexNftBpsMin) / 100).toFixed(2) : "-"}% - {flexNftBpsMax !== null && flexNftBpsMax !== undefined ? (Number(flexNftBpsMax) / 100).toFixed(2) : "-"}%</span>
-                </div>
-                <div className="flex items-center justify-between text-purple-400">
-                  <span>NFT boost per ETH:</span>
-                  <span>+{flexNftBpsPerEth !== null && flexNftBpsPerEth !== undefined ? (Number(flexNftBpsPerEth) / 100).toFixed(2) : "-"}%</span>
+                <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(nftChance, 100)}%` }}
+                  />
                 </div>
               </div>
 
-              <Button className="w-full" size="lg" onClick={handleOpenFlex} disabled={!isConnected || !!isPaused}>
-                {!isConnected ? "Connect Wallet to Join" : isPaused ? "Contract Paused" : "Join Gnars DAO"}
-              </Button>
+              {/* Nothing Chance Bar */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">🔄 Try again</span>
+                  <span className="font-medium text-muted-foreground">{nothingChance.toFixed(1)}%</span>
+                </div>
+                <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-muted-foreground/30 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(nothingChance, 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Join Button */}
+            <Button 
+              className="w-full h-14 text-lg font-bold bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90" 
+              size="lg" 
+              onClick={handleOpenFlex} 
+              disabled={!isConnected || !!isPaused}
+            >
+              {!isConnected ? "Connect Wallet to Join" : isPaused ? "Contract Paused" : (
+                <span className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  Join Gnars DAO
+                  <Sparkles className="h-5 w-5" />
+                </span>
+              )}
+            </Button>
+
+            {/* Contract Stats Mini */}
+            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+              <span>Min: {minFlexEth ? formatEther(minFlexEth) : "0.0002"} ETH</span>
+              <span>•</span>
+              <span>{flexStats ? `${flexStats[0].toString()} NFTs` : "..."} in pool</span>
             </div>
           </div>
         </div>
