@@ -5,8 +5,6 @@ import {
   getSubgraphStatus,
 } from "@/lib/zora-coins-subgraph";
 
-export const runtime = "edge";
-
 /**
  * GET /api/coins/gnars-paired
  *
@@ -37,10 +35,7 @@ export async function GET(request: NextRequest) {
     if (address) {
       const coin = await getGnarsPairedCoinByAddress(address);
       if (!coin) {
-        return NextResponse.json(
-          { error: "Coin not found or not GNARS-paired" },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: "Coin not found or not GNARS-paired" }, { status: 404 });
       }
       return NextResponse.json({ coin });
     }
@@ -64,23 +59,16 @@ export async function GET(request: NextRequest) {
     console.error("[API] Error fetching gnars paired coins:", error);
 
     // Check if subgraph is not configured
-    if (
-      error instanceof Error &&
-      error.message.includes("NEXT_PUBLIC_ZORA_COINS_SUBGRAPH_URL")
-    ) {
+    if (error instanceof Error && error.message.includes("NEXT_PUBLIC_ZORA_COINS_SUBGRAPH_URL")) {
       return NextResponse.json(
         {
           error: "Subgraph not configured",
-          message:
-            "Deploy the Zora Coins subgraph and set NEXT_PUBLIC_ZORA_COINS_SUBGRAPH_URL",
+          message: "Deploy the Zora Coins subgraph and set NEXT_PUBLIC_ZORA_COINS_SUBGRAPH_URL",
         },
-        { status: 503 }
+        { status: 503 },
       );
     }
 
-    return NextResponse.json(
-      { error: "Failed to fetch coins" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch coins" }, { status: 500 });
   }
 }

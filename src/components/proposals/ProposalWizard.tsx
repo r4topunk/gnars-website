@@ -31,13 +31,12 @@ export function ProposalWizard() {
   });
 
   const { address, isConnected } = useAccount();
-  const { isLoading, hasThreshold, votes, proposalVotesRequired, isDelegating, delegatedTo } =
-    useVotes({
-      chainId: CHAIN.id,
-      collectionAddress: GNARS_ADDRESSES.token,
-      governorAddress: GNARS_ADDRESSES.governor,
-      signerAddress: address,
-    });
+  const { isLoading } = useVotes({
+    chainId: CHAIN.id,
+    collectionAddress: GNARS_ADDRESSES.token,
+    governorAddress: GNARS_ADDRESSES.governor,
+    signerAddress: address,
+  });
 
   const { trigger, watch } = methods;
 

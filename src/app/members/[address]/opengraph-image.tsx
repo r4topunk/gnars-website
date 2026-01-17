@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
 export const alt = "Gnars DAO Member";
 export const size = {
   width: 1200,
@@ -17,9 +16,9 @@ export default async function Image({ params }: Props) {
 
   try {
     // Fetch member data from API route to avoid edge runtime issues
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const response = await fetch(`${baseUrl}/api/member-og-data/${address}`, {
-      cache: 'no-store',
+      cache: "no-store",
     });
 
     let data = {
@@ -96,7 +95,15 @@ export default async function Image({ params }: Props) {
               />
             )}
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", fontSize: 56, fontWeight: 700, color: "#fff", marginBottom: "8px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 56,
+                  fontWeight: 700,
+                  color: "#fff",
+                  marginBottom: "8px",
+                }}
+              >
                 {displayName}
               </div>
               <div style={{ display: "flex", fontSize: 28, color: "#888" }}>
@@ -126,8 +133,12 @@ export default async function Image({ params }: Props) {
                 justifyContent: "space-between",
               }}
             >
-              <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "16px" }}>Gnars Held</div>
-              <div style={{ display: "flex", fontSize: 72, fontWeight: 700, color: "#fff" }}>{tokenCount}</div>
+              <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "16px" }}>
+                Gnars Held
+              </div>
+              <div style={{ display: "flex", fontSize: 72, fontWeight: 700, color: "#fff" }}>
+                {tokenCount}
+              </div>
             </div>
 
             {/* Delegation */}
@@ -143,11 +154,15 @@ export default async function Image({ params }: Props) {
                 justifyContent: "space-between",
               }}
             >
-              <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "24px" }}>Delegation</div>
+              <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "24px" }}>
+                Delegation
+              </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", fontSize: 22, color: "#aaa" }}>Delegates to</div>
-                  <div style={{ display: "flex", fontSize: 22, color: "#fff", fontWeight: 600 }}>Self</div>
+                  <div style={{ display: "flex", fontSize: 22, color: "#fff", fontWeight: 600 }}>
+                    Self
+                  </div>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", fontSize: 22, color: "#aaa" }}>Delegated by</div>
@@ -171,11 +186,15 @@ export default async function Image({ params }: Props) {
                 justifyContent: "space-between",
               }}
             >
-              <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "24px" }}>Activity</div>
+              <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "24px" }}>
+                Activity
+              </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", fontSize: 22, color: "#aaa" }}>Votes</div>
-                  <div style={{ display: "flex", fontSize: 22, color: "#fff", fontWeight: 600 }}>{voteCount}</div>
+                  <div style={{ display: "flex", fontSize: 22, color: "#fff", fontWeight: 600 }}>
+                    {voteCount}
+                  </div>
                 </div>
               </div>
             </div>

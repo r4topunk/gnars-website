@@ -1,6 +1,6 @@
 /**
  * LiveFeedView - Main feed display component
- * 
+ *
  * Displays filtered feed events with infinite scroll and empty states.
  * Presentational component - receives data via props.
  */
@@ -8,12 +8,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import { FeedEvent, FeedFilters } from "@/lib/types/feed-events";
 import { FeedEventCard } from "./FeedEventCard";
 import { FeedFilters as FeedFiltersComponent } from "./FeedFilters";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle } from "lucide-react";
 
 export interface LiveFeedViewProps {
   events: FeedEvent[];
@@ -30,21 +30,39 @@ export const DEFAULT_FILTERS: FeedFilters = {
   showOnlyWithComments: false,
 };
 
-export function LiveFeedView({ events, isLoading, error, showFilters = true, singleColumn = false }: LiveFeedViewProps) {
+const TIME_RANGE_SECONDS: Record<FeedFilters["timeRange"], number> = {
+  "1h": 3600,
+  "24h": 86400,
+  "7d": 604800,
+  "30d": 2592000,
+  all: Number.POSITIVE_INFINITY,
+};
+
+export function LiveFeedView({
+  events,
+  isLoading,
+  error,
+  showFilters = true,
+  singleColumn = false,
+}: LiveFeedViewProps) {
   const [filters, setFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 639px)");
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
 
   // Filter events based on current filters
   const filteredEvents = useMemo(() => {
     const now = Math.floor(Date.now() / 1000);
-    const timeRangeSeconds = {
-      "1h": 3600,
-      "24h": 86400,
-      "7d": 604800,
-      "30d": 2592000,
-      "all": Infinity,
-    }[filters.timeRange];
+    const timeRangeSeconds = TIME_RANGE_SECONDS[filters.timeRange];
 
-    return events.filter(event => {
+    return events.filter((event) => {
       // Time range filter
       if (now - event.timestamp > timeRangeSeconds) return false;
 
@@ -69,14 +87,14 @@ export function LiveFeedView({ events, isLoading, error, showFilters = true, sin
     const groups = new Map<string, FeedEvent[]>();
     const now = new Date();
     const nowDayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-    const sevenDaysAgo = nowDayStart - (7 * 24 * 60 * 60 * 1000);
-    
-    filteredEvents.forEach(event => {
+    const sevenDaysAgo = nowDayStart - 7 * 24 * 60 * 60 * 1000;
+
+    filteredEvents.forEach((event) => {
       const date = new Date(event.timestamp * 1000);
       const dateKey = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      
+
       let groupKey: string;
-      
+
       // Events within last 7 days: group by day
       if (dateKey >= sevenDaysAgo) {
         groupKey = `day-${dateKey}`;
@@ -87,31 +105,48 @@ export function LiveFeedView({ events, isLoading, error, showFilters = true, sin
         const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Days to subtract to get to Monday
         const mondayDate = new Date(date);
         mondayDate.setUTCDate(date.getUTCDate() - daysToMonday);
-        const weekKey = Date.UTC(mondayDate.getUTCFullYear(), mondayDate.getUTCMonth(), mondayDate.getUTCDate());
+        const weekKey = Date.UTC(
+          mondayDate.getUTCFullYear(),
+          mondayDate.getUTCMonth(),
+          mondayDate.getUTCDate(),
+        );
         groupKey = `week-${weekKey}`;
       }
-      
+
       if (!groups.has(groupKey)) {
         groups.set(groupKey, []);
       }
       groups.get(groupKey)!.push(event);
     });
 
-    // Convert to array and sort by date (newest first)
-    return Array.from(groups.entries())
+    const sortedGroups = Array.from(groups.entries())
       .sort((a, b) => {
-        const aKey = parseInt(a[0].split('-')[1]);
-        const bKey = parseInt(b[0].split('-')[1]);
+        const aKey = parseInt(a[0].split("-")[1]);
+        const bKey = parseInt(b[0].split("-")[1]);
         return bKey - aKey;
       })
       .map(([groupKey, groupEvents]) => {
-        const [type, timestamp] = groupKey.split('-');
+        const [type, timestamp] = groupKey.split("-");
         return {
           dateKey: parseInt(timestamp),
           events: groupEvents,
-          isWeek: type === 'week',
+          isWeek: type === "week",
         };
       });
+
+    let totalEvents = 0;
+    return sortedGroups.map((group) => {
+      const eventsWithSequence = group.events.map((event, idx) => ({
+        ...event,
+        sequenceNumber: totalEvents + idx + 1,
+      }));
+      totalEvents += group.events.length;
+
+      return {
+        ...group,
+        events: eventsWithSequence,
+      };
+    });
   }, [filteredEvents]);
 
   // Incremental rendering for performance
@@ -176,20 +211,9 @@ export function LiveFeedView({ events, isLoading, error, showFilters = true, sin
         <>
           <div className="space-y-8">
             {groupedEvents.map(({ dateKey, events: dayEvents, isWeek }) => {
-              // Calculate sequence numbers for events
-              const eventsWithSequence = dayEvents.map((event, idx) => {
-                const totalPreviousEvents = groupedEvents
-                  .filter(g => g.dateKey > dateKey)
-                  .reduce((sum, g) => sum + g.events.length, 0);
-                return {
-                  ...event,
-                  sequenceNumber: totalPreviousEvents + idx + 1,
-                };
-              });
-
               // Check if any events from this day/week are visible
-              const visibleDayEvents = eventsWithSequence.filter((event) => 
-                event.sequenceNumber <= visibleCount
+              const visibleDayEvents = dayEvents.filter(
+                (event) => (event.sequenceNumber ?? 0) <= visibleCount,
               );
 
               if (visibleDayEvents.length === 0) return null;
@@ -200,7 +224,11 @@ export function LiveFeedView({ events, isLoading, error, showFilters = true, sin
                   <GroupHeader dateKey={dateKey} isWeek={isWeek} />
 
                   {/* Events for this day - Sequential column layout */}
-                  <SequentialColumns events={visibleDayEvents} singleColumn={singleColumn} />
+                  <SequentialColumns
+                    events={visibleDayEvents}
+                    singleColumn={singleColumn}
+                    isMobile={isMobile}
+                  />
                 </div>
               );
             })}
@@ -230,26 +258,21 @@ export function LiveFeedView({ events, isLoading, error, showFilters = true, sin
  * Mobile (1 column): All events in single column
  * singleColumn prop forces single column layout regardless of screen size
  */
-function SequentialColumns({ events, singleColumn = false }: { events: FeedEvent[]; singleColumn?: boolean }) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
+function SequentialColumns({
+  events,
+  singleColumn = false,
+  isMobile,
+}: {
+  events: FeedEvent[];
+  singleColumn?: boolean;
+  isMobile: boolean;
+}) {
   // Single column mode or mobile: single column
   if (singleColumn || isMobile) {
     return (
       <div className="space-y-3">
         {events.map((event) => (
-          <FeedEventCard
-            key={event.id}
-            event={event}
-            sequenceNumber={event.sequenceNumber}
-          />
+          <FeedEventCard key={event.id} event={event} sequenceNumber={event.sequenceNumber} />
         ))}
       </div>
     );
@@ -264,22 +287,14 @@ function SequentialColumns({ events, singleColumn = false }: { events: FeedEvent
       {/* Left column */}
       <div className="space-y-3">
         {leftColumn.map((event) => (
-          <FeedEventCard
-            key={event.id}
-            event={event}
-            sequenceNumber={event.sequenceNumber}
-          />
+          <FeedEventCard key={event.id} event={event} sequenceNumber={event.sequenceNumber} />
         ))}
       </div>
 
       {/* Right column */}
       <div className="space-y-3">
         {rightColumn.map((event) => (
-          <FeedEventCard
-            key={event.id}
-            event={event}
-            sequenceNumber={event.sequenceNumber}
-          />
+          <FeedEventCard key={event.id} event={event} sequenceNumber={event.sequenceNumber} />
         ))}
       </div>
     </div>
@@ -291,32 +306,32 @@ function GroupHeader({ dateKey, isWeek }: { dateKey: number; isWeek?: boolean })
   const now = new Date();
   const nowDayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   const daysDiff = Math.round((nowDayStart - dateKey) / (1000 * 60 * 60 * 24));
-  
+
   let label: string;
-  
+
   if (isWeek) {
     // For weekly groups, show week range
     const weekStart = new Date(dateKey);
-    const weekEnd = new Date(dateKey + (6 * 24 * 60 * 60 * 1000));
-    
+    const weekEnd = new Date(dateKey + 6 * 24 * 60 * 60 * 1000);
+
     const weeksDiff = Math.floor(daysDiff / 7);
-    
+
     if (weeksDiff === 1) {
       label = "Last week";
     } else if (weeksDiff < 4) {
       label = `${weeksDiff} weeks ago`;
     } else {
       // Show date range for older weeks
-      const startStr = weekStart.toLocaleDateString("en-US", { 
-        month: "short", 
+      const startStr = weekStart.toLocaleDateString("en-US", {
+        month: "short",
         day: "numeric",
-        timeZone: "UTC"
+        timeZone: "UTC",
       });
-      const endStr = weekEnd.toLocaleDateString("en-US", { 
-        month: "short", 
-        day: "numeric", 
+      const endStr = weekEnd.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
         year: weekEnd.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
-        timeZone: "UTC"
+        timeZone: "UTC",
       });
       label = `${startStr} - ${endStr}`;
     }
@@ -331,14 +346,14 @@ function GroupHeader({ dateKey, isWeek }: { dateKey: number; isWeek?: boolean })
     } else {
       // Fallback for edge cases
       const date = new Date(dateKey);
-      label = date.toLocaleDateString("en-US", { 
-        month: "short", 
+      label = date.toLocaleDateString("en-US", {
+        month: "short",
         day: "numeric",
-        timeZone: "UTC"
+        timeZone: "UTC",
       });
     }
   }
-  
+
   return (
     <div className="flex items-center gap-3">
       <h3 className="text-lg font-semibold text-foreground" suppressHydrationWarning>
@@ -376,7 +391,7 @@ function LiveFeedSkeleton() {
 }
 
 function EmptyState({ filters }: { filters: FeedFilters }) {
-  const hasActiveFilters = 
+  const hasActiveFilters =
     filters.priorities.length < 3 ||
     filters.categories.length < 7 ||
     filters.timeRange !== "30d" ||
@@ -394,4 +409,3 @@ function EmptyState({ filters }: { filters: FeedFilters }) {
     </div>
   );
 }
-

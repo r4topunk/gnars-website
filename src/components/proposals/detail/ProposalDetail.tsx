@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePropdates } from "@/hooks/use-propdates";
 import { useVotes } from "@/hooks/useVotes";
-import { CHAIN, GNARS_ADDRESSES, IS_DEV } from "@/lib/config";
+import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
 
 interface ProposalDetailProps {
@@ -152,13 +152,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     (v) => v.voter?.toLowerCase() === address?.toLowerCase(),
   );
 
-  const {
-    hasVotingPower,
-    votingPower,
-    isLoading: votesLoading,
-    isDelegating,
-    delegatedTo,
-  } = useVotes({
+  const { votingPower, isLoading: votesLoading } = useVotes({
     chainId: CHAIN.id,
     collectionAddress: GNARS_ADDRESSES.token,
     governorAddress: GNARS_ADDRESSES.governor,
@@ -226,11 +220,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
               existingUserReason={currentVoteReason}
               showConfirmedButton={hasRecentVoteConfirmation}
               onVoteSuccess={handleVoteConfirmed}
-              hasVotingPower={hasVotingPower}
               votingPower={votingPower}
               votesLoading={votesLoading}
-              isDelegating={isDelegating}
-              delegatedTo={delegatedTo}
             />
           </CardContent>
         </Card>

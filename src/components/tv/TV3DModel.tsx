@@ -196,7 +196,17 @@ function WoodCabinet({ config }: { config?: TVTextureConfig["wood"] }) {
       uColorLight: { value: new THREE.Vector3(...settings.colorLight) },
       uColorHighlight: { value: new THREE.Vector3(...settings.colorHighlight) },
     }),
-    [],
+    [
+      settings.pixelSize,
+      settings.grainIntensity,
+      settings.grainScale,
+      settings.quantizeLevels,
+      settings.lightingIntensity,
+      settings.colorDark,
+      settings.colorMid,
+      settings.colorLight,
+      settings.colorHighlight,
+    ],
   );
 
   // Update uniforms when config changes
@@ -621,21 +631,26 @@ function VintagePlasticPanel({
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const settings = config ?? defaultPlasticConfig;
 
-  const adjustedColor: [number, number, number] = [
-    settings.baseColor[0] + colorOffset[0],
-    settings.baseColor[1] + colorOffset[1],
-    settings.baseColor[2] + colorOffset[2],
-  ];
+  const uniforms = useMemo(() => {
+    const adjustedColor: [number, number, number] = [
+      settings.baseColor[0] + colorOffset[0],
+      settings.baseColor[1] + colorOffset[1],
+      settings.baseColor[2] + colorOffset[2],
+    ];
 
-  const uniforms = useMemo(
-    () => ({
+    return {
       uBaseColor: { value: new THREE.Vector3(...adjustedColor) },
       uPixelSize: { value: settings.pixelSize },
       uNoiseIntensity: { value: settings.noiseIntensity },
       uYellowing: { value: settings.yellowing },
-    }),
-    [],
-  );
+    };
+  }, [
+    colorOffset,
+    settings.baseColor,
+    settings.pixelSize,
+    settings.noiseIntensity,
+    settings.yellowing,
+  ]);
 
   // Update uniforms when config changes
   useEffect(() => {

@@ -4,7 +4,7 @@ import { PropdateDetail } from "@/components/propdates/PropdateDetail";
 import { PropdateDetailSkeleton } from "@/components/propdates/PropdateDetailSkeleton";
 import { getPropdateByTxid } from "@/services/propdates";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface PageProps {
   params: Promise<{ txid: string }>;

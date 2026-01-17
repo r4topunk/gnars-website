@@ -5,8 +5,7 @@ import { base } from "viem/chains";
 import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 import { fetchDroposals } from "@/services/droposals";
 
-export const runtime = "edge";
-export const revalidate = 3600; // Cache for 1 hour
+export const dynamic = "force-dynamic";
 
 // Gnars addresses
 const GNARS_COIN_ADDRESS = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
@@ -711,25 +710,31 @@ export async function GET() {
       `[api/tv] Sources: ${pairedCoins.length} paired, ${creatorContent.length} creators, ${gnarsContent.length} gnars, ${droposalItems.length} droposals`,
     );
 
-    return NextResponse.json({
-      items: allItems,
-      creators: qualifiedCreators.map((c) => ({
-        handle: c.handle,
-        avatarUrl: c.avatarUrl,
-        coinBalance: c.coinBalance,
-        nftBalance: c.nftBalance,
-      })),
-      stats: {
-        total: allItems.length,
-        withVideo: allItems.filter((i) => i.videoUrl).length,
-        withImage: allItems.filter((i) => !i.videoUrl && i.imageUrl).length,
-        gnarsPaired: pairedCoins.length,
-        droposals: droposalItems.length,
-        creatorsCount: qualifiedCreators.length,
+    const headers = new Headers();
+    headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=3600");
+
+    return NextResponse.json(
+      {
+        items: allItems,
+        creators: qualifiedCreators.map((c) => ({
+          handle: c.handle,
+          avatarUrl: c.avatarUrl,
+          coinBalance: c.coinBalance,
+          nftBalance: c.nftBalance,
+        })),
+        stats: {
+          total: allItems.length,
+          withVideo: allItems.filter((i) => i.videoUrl).length,
+          withImage: allItems.filter((i) => !i.videoUrl && i.imageUrl).length,
+          gnarsPaired: pairedCoins.length,
+          droposals: droposalItems.length,
+          creatorsCount: qualifiedCreators.length,
+        },
+        fetchedAt: new Date().toISOString(),
+        durationMs: elapsed,
       },
-      fetchedAt: new Date().toISOString(),
-      durationMs: elapsed,
-    });
+      { headers },
+    );
   } catch (error) {
     console.error("[api/tv] Feed fetch error:", error);
     return NextResponse.json({ error: "Failed to fetch TV feed" }, { status: 500 });

@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import { FAQ } from "@/components/common/FAQ";
+import { ContractsList } from "@/components/contracts-list";
 import { AuctionSpotlight } from "@/components/hero/AuctionSpotlight";
 import { ActivityFeedSection } from "@/components/home/ActivityFeedSection";
 import { AnimatedDescription } from "@/components/home/AnimatedDescription";
@@ -10,9 +12,9 @@ import {
   HeroStatsSkeleton,
   RecentProposalsSkeleton,
 } from "@/components/skeletons/home-skeletons";
-import { Gnar3DTV } from "@/components/tv";
+import { Gnar3DTVClient } from "@/components/tv/Gnar3DTVClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default function Home() {
   return (
@@ -41,7 +43,7 @@ export default function Home() {
 
               {/* Right Column - 3D TV (Client Component) */}
               <div className="flex items-center justify-center">
-                <Gnar3DTV autoRotate={true} />
+                <Gnar3DTVClient autoRotate={true} />
               </div>
             </div>
           </div>
@@ -72,8 +74,18 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Static/Client-side content: Charts, Auctions, FAQ, Contracts */}
+        {/* Static/Client-side content: Charts, Auctions */}
         <HomeStaticContent />
+
+        {/* FAQ Section */}
+        <section>
+          <FAQ />
+        </section>
+
+        {/* Smart Contracts */}
+        <section>
+          <ContractsList />
+        </section>
       </div>
     </div>
   );

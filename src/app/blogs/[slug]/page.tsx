@@ -3,7 +3,7 @@ import { BlogDetail, BlogDetailSkeleton } from "@/components/blogs/detail/BlogDe
 import { Blog } from "@/lib/schemas/blogs";
 import { getBlogBySlug } from "@/services/blogs";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 async function fetchBlogData(slug: string): Promise<Blog | null> {
   try {

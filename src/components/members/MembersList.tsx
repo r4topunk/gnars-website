@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, ArrowUpDown, Search, UserPlus } from "lucide-react";
 import { DelegationModal } from "@/components/layout/DelegationModal";
@@ -46,6 +46,7 @@ export function MembersList({
   const [members, setMembers] = useState<MemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const deferredSearchTerm = useDeferredValue(searchTerm);
   const [sortBy, setSortBy] = useState<"delegate" | "tokens" | "activeVotes" | "attendancePct">(
     "tokens",
   );
@@ -73,7 +74,7 @@ export function MembersList({
   }, []);
 
   const filteredMembers = useMemo(() => {
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = deferredSearchTerm.toLowerCase();
     const result = members
       .filter(
         (member) =>
@@ -102,14 +103,14 @@ export function MembersList({
       }
     };
     return [...result].sort(compare);
-  }, [members, searchTerm, sortBy, sortDir]);
+  }, [members, deferredSearchTerm, sortBy, sortDir]);
 
   // Reset visible count when the filters change
   useEffect(() => {
     setVisibleCount((prev) =>
       Math.min(Math.max(PAGE_SIZE, prev), filteredMembers.length || PAGE_SIZE),
     );
-  }, [members.length, searchTerm, sortBy, sortDir, filteredMembers.length]);
+  }, [members.length, deferredSearchTerm, sortBy, sortDir, filteredMembers.length]);
 
   // IntersectionObserver to load more on scroll
   useEffect(() => {

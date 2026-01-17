@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { isAddress } from "viem";
 
@@ -20,22 +21,22 @@ export default async function TestOGPage({ params }: TestOGPageProps) {
         <h1 className="mb-4 text-2xl font-bold text-white">
           OG Image Test: {address.slice(0, 8)}...{address.slice(-6)}
         </h1>
-        
+
         <div className="mb-8 rounded-lg border border-gray-800 bg-gray-900 p-4">
           <p className="mb-2 text-sm text-gray-400">Image URL:</p>
           <code className="text-xs text-gray-300">{ogImageUrl}</code>
         </div>
 
-        <div className="mb-4 text-sm text-gray-400">
-          Generated Image (1200x630):
-        </div>
-        
+        <div className="mb-4 text-sm text-gray-400">Generated Image (1200x630):</div>
+
         <div className="overflow-hidden rounded-lg border-2 border-gray-700">
-          <img
+          <Image
             src={ogImageUrl}
             alt="Member OG Image"
-            className="w-full"
-            style={{ aspectRatio: '1200/630' }}
+            width={1200}
+            height={630}
+            className="w-full h-auto"
+            priority
           />
         </div>
 

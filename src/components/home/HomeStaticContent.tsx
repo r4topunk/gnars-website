@@ -1,12 +1,10 @@
 "use client";
 
 import { PastAuctions } from "@/components/auctions/PastAuctions";
-import { FAQ } from "@/components/common/FAQ";
-import { ContractsList } from "@/components/contracts-list";
 import {
-  ProposalsPerMonthChart,
-  MemberActivityChart,
   AuctionBidsPerMonthChart,
+  MemberActivityChart,
+  ProposalsPerMonthChart,
 } from "@/components/treasury/DashboardCharts";
 import { useRecentAuctions } from "@/hooks/use-auctions";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -28,16 +26,6 @@ export function HomeStaticContent() {
       {/* Recent Auctions */}
       <section>
         <PastAuctions auctions={recentAuctions} loading={isLoading} />
-      </section>
-
-      {/* FAQ Section */}
-      <section>
-        <FAQ />
-      </section>
-
-      {/* Smart Contracts */}
-      <section>
-        <ContractsList />
       </section>
     </>
   );

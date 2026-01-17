@@ -1,9 +1,10 @@
+import { cache } from "react";
 import {
+  formatAndFetchState,
   getProposals,
   SubgraphSDK,
-  formatAndFetchState,
-  type Proposal as SdkProposal,
   type Proposal_Filter,
+  type Proposal as SdkProposal,
 } from "@buildeross/sdk";
 import type { Proposal } from "@/components/proposals/types";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
@@ -61,12 +62,14 @@ function transformProposal(p: SdkProposal): Proposal {
     queuedAt:
       "queuedAt" in p && p.queuedAt ? new Date(Number(p.queuedAt) * 1000).toISOString() : undefined,
     executedAt:
-      "executedAt" in p && p.executedAt ? new Date(Number(p.executedAt) * 1000).toISOString() : undefined,
+      "executedAt" in p && p.executedAt
+        ? new Date(Number(p.executedAt) * 1000).toISOString()
+        : undefined,
     descriptionHash: "descriptionHash" in p ? String(p.descriptionHash ?? "") : "",
   };
 }
 
-export async function listProposals(limit = 200, page = 0): Promise<Proposal[]> {
+export const listProposals = cache(async (limit = 200, page = 0): Promise<Proposal[]> => {
   const { proposals: sdkProposals } = await getProposals(
     CHAIN.id,
     GNARS_ADDRESSES.token,
@@ -75,46 +78,48 @@ export async function listProposals(limit = 200, page = 0): Promise<Proposal[]> 
   );
 
   return ((sdkProposals as SdkProposal[] | undefined) ?? []).map(transformProposal);
-}
+});
 
-export async function getProposalByIdOrNumber(idOrNumber: string): Promise<Proposal | null> {
-  try {
-    const isHexId = idOrNumber.startsWith("0x");
+export const getProposalByIdOrNumber = cache(
+  async (idOrNumber: string): Promise<Proposal | null> => {
+    try {
+      const isHexId = idOrNumber.startsWith("0x");
 
-    // Build the where filter for direct subgraph query
-    const where: Proposal_Filter = isHexId
-      ? {
-          proposalId: idOrNumber.toLowerCase(),
-        }
-      : {
-          proposalNumber: Number.parseInt(idOrNumber, 10),
-          dao: GNARS_ADDRESSES.token.toLowerCase(),
-        };
+      // Build the where filter for direct subgraph query
+      const where: Proposal_Filter = isHexId
+        ? {
+            proposalId: idOrNumber.toLowerCase(),
+          }
+        : {
+            proposalNumber: Number.parseInt(idOrNumber, 10),
+            dao: GNARS_ADDRESSES.token.toLowerCase(),
+          };
 
-    // Direct query using SubgraphSDK (same pattern as Nouns Builder)
-    const data = await SubgraphSDK.connect(CHAIN.id).proposals({
-      where,
-      first: 1,
-    });
+      // Direct query using SubgraphSDK (same pattern as Nouns Builder)
+      const data = await SubgraphSDK.connect(CHAIN.id).proposals({
+        where,
+        first: 1,
+      });
 
-    if (!data.proposals || data.proposals.length === 0) {
+      if (!data.proposals || data.proposals.length === 0) {
+        return null;
+      }
+
+      // Use formatAndFetchState to get proposal state from contract
+      const sdkProposal = await formatAndFetchState(CHAIN.id, data.proposals[0]);
+
+      if (!sdkProposal) {
+        return null;
+      }
+
+      const proposal = transformProposal(sdkProposal);
+      return proposal;
+    } catch (err) {
+      console.error("[proposals:getProposalByIdOrNumber] error", {
+        idOrNumber,
+        error: err instanceof Error ? { message: err.message, stack: err.stack } : String(err),
+      });
       return null;
     }
-
-    // Use formatAndFetchState to get proposal state from contract
-    const sdkProposal = await formatAndFetchState(CHAIN.id, data.proposals[0]);
-
-    if (!sdkProposal) {
-      return null;
-    }
-
-    const proposal = transformProposal(sdkProposal);
-    return proposal;
-  } catch (err) {
-    console.error("[proposals:getProposalByIdOrNumber] error", {
-      idOrNumber,
-      error: err instanceof Error ? { message: err.message, stack: err.stack } : String(err),
-    });
-    return null;
-  }
-}
+  },
+);

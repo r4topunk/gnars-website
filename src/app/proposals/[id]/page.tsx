@@ -10,7 +10,7 @@ import { BASE_URL } from "@/lib/config";
 import { PROPOSALS_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import { getProposalByIdOrNumber } from "@/services/proposals";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 async function fetchProposalData(id: string): Promise<Proposal | null> {
   try {

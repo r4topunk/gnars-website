@@ -33,11 +33,8 @@ export interface VotingControlsProps {
     voter?: Address;
     reason?: string;
   }) => void;
-  hasVotingPower: boolean;
   votingPower: bigint;
   votesLoading: boolean;
-  isDelegating: boolean;
-  delegatedTo?: Address;
 }
 
 const VOTE_LABELS: Record<VoteChoice, string> = {
@@ -86,11 +83,8 @@ export function VotingControls({
   existingUserReason,
   showConfirmedButton,
   onVoteSuccess,
-  hasVotingPower,
   votingPower,
   votesLoading,
-  isDelegating,
-  delegatedTo,
 }: VotingControlsProps) {
   const { address: accountAddress, isConnected } = useAccount();
   const [voteChoice, setVoteChoice] = useState<VoteChoice | null>(existingUserVote ?? null);

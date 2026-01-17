@@ -3,7 +3,7 @@ import { ProposalsGridSkeleton } from "@/components/proposals/ProposalsGrid";
 import { ProposalsView } from "@/components/proposals/ProposalsView";
 import { listProposals } from "@/services/proposals";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 async function getProposals() {
   try {

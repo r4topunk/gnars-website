@@ -3,7 +3,7 @@ import { BlogsPageSkeleton } from "@/components/blogs/BlogsPageSkeleton";
 import { BlogsView } from "@/components/blogs/BlogsView";
 import { getAllBlogs } from "@/services/blogs";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 async function getBlogs() {
   try {

@@ -1,28 +1,28 @@
 "use client";
 
-import { useMemo, useRef, useEffect } from "react";
-import { Address, formatEther, isAddress, parseEther } from "viem";
-import { base } from "wagmi/chains";
+import { useEffect, useMemo, useRef } from "react";
+import { toast } from "sonner";
+import { Address, isAddress, parseEther } from "viem";
 import {
   useAccount,
   useBalance,
   useReadContract,
   useReadContracts,
-  useWatchContractEvent,
   useWaitForTransactionReceipt,
+  useWatchContractEvent,
 } from "wagmi";
-import { toast } from "sonner";
+import { base } from "wagmi/chains";
+import { useAllowedNft } from "@/hooks/use-allowed-nft";
 import { CHAIN } from "@/lib/config";
-import gnarsLootboxV4Abi from "@/utils/abis/gnarsLootboxV4Abi";
-import erc20Abi from "@/utils/abis/erc20Abi";
 import {
-  GNARS_TOKEN_ADDRESS,
+  erc20BalanceAbi,
   GNARS_NFT_ADDRESS,
+  GNARS_TOKEN_ADDRESS,
   TEST_NFT_ADDRESS,
   ZERO_ADDRESS,
-  erc20BalanceAbi,
 } from "@/lib/lootbox";
-import { useAllowedNft } from "@/hooks/use-allowed-nft";
+import erc20Abi from "@/utils/abis/erc20Abi";
+import gnarsLootboxV4Abi from "@/utils/abis/gnarsLootboxV4Abi";
 
 interface UseLootboxContractOptions {
   lootboxAddress: Address;
@@ -67,7 +67,11 @@ export function useLootboxContract({
     }
   }, [flexEth]);
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed, isError: isTransactionError } = useWaitForTransactionReceipt({
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+    isError: isTransactionError,
+  } = useWaitForTransactionReceipt({
     hash: pendingHash,
     chainId: CHAIN.id,
   });
@@ -334,8 +338,8 @@ export function useLootboxContract({
     flexNftBpsPerEth,
     flexGnarsBase,
     flexGnarsPerEth,
-    gnarsUnit,
-    , // Skip gnarsToken - handled separately
+    gnarsUnit, // Skip gnarsToken - handled separately
+    ,
     isPaused,
     flexBalances,
   ] = useMemo(() => {
@@ -388,11 +392,11 @@ export function useLootboxContract({
     address,
     isConnected,
     chain,
-    
+
     // Transaction status
     isConfirming,
     isConfirmed,
-    
+
     // Contract data
     owner,
     treasury,
@@ -412,27 +416,27 @@ export function useLootboxContract({
     gnarsTokenAddress,
     isPaused,
     flexStats,
-    
+
     // Balances
     contractGnarsBalance,
     walletGnarsBalance,
     gnarsAllowance,
     lootboxEthBalance,
     withdrawTokenBalance,
-    
+
     // NFT counts
     flexNftCounts,
     flexNftCountsReady,
-    
+
     // Allowlist status
     allowlistStatus,
     depositNftStatus,
     withdrawNftStatus,
-    
+
     // Pending open
     activeRequestId,
     pendingOpen,
-    
+
     // Computed values
     flexValue,
     isOwner,
@@ -440,7 +444,7 @@ export function useLootboxContract({
     gnarsChance,
     nftChance,
     nothingChance,
-    
+
     // Actions
     refetch,
     isFetching,

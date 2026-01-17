@@ -1,6 +1,9 @@
+"use client";
+
+import "@/lib/storage-shim";
 import { cookieStorage, createConfig, createStorage, fallback, http } from "wagmi";
-import { coinbaseWallet, metaMask, walletConnect } from "wagmi/connectors";
 import { base } from "wagmi/chains";
+import { coinbaseWallet, metaMask, walletConnect } from "wagmi/connectors";
 import { farcasterWallet } from "@/lib/farcaster-connector";
 
 // Multiple Base RPC endpoints for failover
@@ -38,13 +41,13 @@ export function createTransports() {
           timeout: 8_000,
           retryCount: 1,
           retryDelay: 500,
-        })
+        }),
       ),
       {
         rank: false, // Disable ranking to use simple round-robin on failure
         retryCount: BASE_RPC_URLS.length, // Try all endpoints
         retryDelay: 100,
-      }
+      },
     ),
   };
 }
@@ -63,25 +66,31 @@ export function createSsrStorage() {
  * Only call this on the client side (in a 'use client' component)
  */
 export function getWagmiConfig() {
+  const isBrowser = typeof window !== "undefined";
+  const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+  const enableWalletConnect = isBrowser && Boolean(walletConnectProjectId);
+
   return createConfig({
     chains,
-    connectors: [
-      // Farcaster wallet - first priority when in mini app context
-      farcasterWallet(),
-      // MetaMask
-      metaMask(),
-      // Injected wallets (other browser wallets)
-      // injected(),
-      // WalletConnect - safe here because we're in a Client Component
-      ...(process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
-        ? [
-            walletConnect({
-              projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
-            }),
-          ]
-        : []),
-      coinbaseWallet({ appName: "Gnars DAO" }),
-    ],
+    connectors: isBrowser
+      ? [
+          // Farcaster wallet - first priority when in mini app context
+          farcasterWallet(),
+          // MetaMask
+          metaMask(),
+          // Injected wallets (other browser wallets)
+          // injected(),
+          // WalletConnect - only enable in the browser
+          ...(enableWalletConnect
+            ? [
+                walletConnect({
+                  projectId: walletConnectProjectId!,
+                }),
+              ]
+            : []),
+          coinbaseWallet({ appName: "Gnars DAO" }),
+        ]
+      : [],
     transports: createTransports(),
     ssr: true,
     storage: createSsrStorage(),

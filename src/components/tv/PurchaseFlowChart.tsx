@@ -17,19 +17,7 @@ function shortenText(text: string, maxLength = 18): string {
   return `${text.slice(0, maxLength - 3)}...`;
 }
 
-function CoinNode({
-  item,
-  ethAmount,
-  x,
-  y,
-  index,
-}: {
-  item: TVItem;
-  ethAmount: number;
-  x: number;
-  y: number;
-  index: number;
-}) {
+function CoinNode({ item, x, y, index }: { item: TVItem; x: number; y: number; index: number }) {
   const isGnarsPaired =
     item.poolCurrencyTokenAddress != null &&
     item.poolCurrencyTokenAddress.toLowerCase() === GNARS_CREATOR_COIN.toLowerCase();
@@ -255,14 +243,7 @@ export function PurchaseFlowChart({ items, ethPerCoin, totalEth }: PurchaseFlowC
           const targetY = padding + spacing * index + spacing / 2;
 
           return (
-            <CoinNode
-              key={`node-${item.id}`}
-              item={item}
-              ethAmount={ethPerCoin}
-              x={targetX}
-              y={targetY}
-              index={index}
-            />
+            <CoinNode key={`node-${item.id}`} item={item} x={targetX} y={targetY} index={index} />
           );
         })}
       </svg>
