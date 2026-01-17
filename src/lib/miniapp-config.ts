@@ -282,3 +282,52 @@ export const DROPOSALS_MINIAPP_EMBED_CONFIG = {
     },
   },
 };
+
+/**
+ * Map Mini App Configuration
+ * Custom configuration for the global Gnars locations map
+ */
+export const MAP_MINIAPP_CONFIG = {
+  accountAssociation: MINIAPP_CONFIG.accountAssociation,
+  baseBuilder: MINIAPP_CONFIG.baseBuilder,
+  miniapp: {
+    version: "1",
+    name: "Gnars World Map",
+    subtitle: "Global Gnars Locations",
+    description:
+      "Explore Gnars DAO funded skate spots, rails, and projects around the world. See where the action sports DAO has made an impact.",
+    homeUrl: `${BASE_URL}/map`,
+    iconUrl: `${BASE_URL}/gnars.webp`,
+    splashImageUrl: `${BASE_URL}/gnars.webp`,
+    splashBackgroundColor: "#000000",
+    webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
+    primaryCategory: "social" as const,
+    tags: ["dao", "map", "skate", "locations", "gnars", "base", "global"],
+    screenshotUrls: [] as string[],
+    heroImageUrl: `${BASE_URL}/map/opengraph-image`,
+    tagline: "Global skate spots funded by Gnars DAO",
+    ogTitle: "Gnars World Map",
+    ogDescription:
+      "Explore Gnars DAO funded skate spots, rails, and projects around the world.",
+    ogImageUrl: `${BASE_URL}/map/opengraph-image`,
+    noindex: false,
+  },
+} as const;
+
+/**
+ * Map Embed metadata configuration for fc:miniapp meta tag
+ */
+export const MAP_MINIAPP_EMBED_CONFIG = {
+  version: "next",
+  imageUrl: `${BASE_URL}/map/opengraph-image`,
+  button: {
+    title: "Explore Map",
+    action: {
+      type: "launch_miniapp" as const,
+      name: "Gnars World Map",
+      url: `${BASE_URL}/map`,
+      splashImageUrl: `${BASE_URL}/gnars.webp`,
+      splashBackgroundColor: "#000000",
+    },
+  },
+};
