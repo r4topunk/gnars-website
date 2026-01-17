@@ -145,7 +145,7 @@ export default async function Image() {
           >
             {/* Ocean background */}
             <rect width="100%" height="100%" fill="#1a1a1a" />
-            
+
             {/* Simplified continent shapes - approximated for dark theme */}
             {/* North America */}
             <path
@@ -189,7 +189,7 @@ export default async function Image() {
               stroke="#3a3a3a"
               strokeWidth="1"
             />
-            
+
             {/* Grid lines for map feel */}
             {[0, 1, 2, 3, 4, 5].map((i) => (
               <line
@@ -220,12 +220,7 @@ export default async function Image() {
 
         {/* Render markers */}
         {markers.map((marker) => (
-          <NogglesMarker
-            key={marker.index}
-            x={marker.x}
-            y={marker.y}
-            isGreen={marker.isGreen}
-          />
+          <NogglesMarker key={marker.index} x={marker.x} y={marker.y} isGreen={marker.isGreen} />
         ))}
 
         {/* Title overlay */}
@@ -296,6 +291,6 @@ export default async function Image() {
     ),
     {
       ...size,
-    }
+    },
   );
 }
