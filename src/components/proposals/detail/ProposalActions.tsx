@@ -6,7 +6,6 @@ import { Countdown } from "@/components/common/Countdown";
 import { ExecuteProposalButton } from "@/components/proposals/ExecuteProposalButton";
 import { QueueProposalButton } from "@/components/proposals/QueueProposalButton";
 import { Proposal } from "@/components/proposals/types";
-// import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 // import { useVotes } from "@/hooks/useVotes";
