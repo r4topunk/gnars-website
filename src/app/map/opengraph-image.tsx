@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { NogglesIcon } from "@/lib/og-brand";
 
 export const runtime = "edge";
 export const alt = "Gnars World Map - Global Skate Spots";
@@ -266,15 +267,8 @@ export default async function Image() {
             gap: 8,
           }}
         >
-          <div
-            style={{
-              fontSize: 24,
-              fontWeight: 700,
-              color: "#22c55e",
-              display: "flex",
-            }}
-          >
-            ⌐◨-◨
+          <div style={{ display: "flex" }}>
+            <NogglesIcon color="#22c55e" width={120} />
           </div>
           <div
             style={{

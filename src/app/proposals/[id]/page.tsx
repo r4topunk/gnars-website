@@ -7,6 +7,7 @@ import {
 import { Proposal } from "@/components/proposals/types";
 import { extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils";
 import { BASE_URL } from "@/lib/config";
+import { toOgImageUrl } from "@/lib/og-images";
 import { PROPOSALS_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import { getProposalByIdOrNumber } from "@/services/proposals";
 
@@ -38,7 +39,13 @@ export async function generateMetadata({ params }: ProposalPageProps): Promise<M
 
   // Extract image from proposal description (markdown images or URLs)
   const proposalImageUrl = normalizeImageUrl(extractFirstUrl(proposal.description));
-  const imageUrl = proposalImageUrl || PROPOSALS_MINIAPP_EMBED_CONFIG.imageUrl;
+  const rawImageUrl = proposalImageUrl || PROPOSALS_MINIAPP_EMBED_CONFIG.imageUrl;
+  const imageUrl =
+    toOgImageUrl(rawImageUrl, {
+      width: 1200,
+      height: 630,
+      fit: "cover",
+    }) ?? rawImageUrl;
 
   // Truncate description for metadata
   const description = proposal.description
