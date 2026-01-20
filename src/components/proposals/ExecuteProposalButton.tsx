@@ -4,6 +4,17 @@ import { useCallback, useState } from "react";
 import { useSimulateContract, useWriteContract } from "wagmi";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { toast } from "sonner";
@@ -32,6 +43,7 @@ export function ExecuteProposalButton({
   className,
 }: ExecuteProposalButtonProps) {
   const [isPending, setIsPending] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const { data: simulateData, isError: simulateError } = useSimulateContract({
     address: GNARS_ADDRESSES.governor as `0x${string}`,
@@ -44,7 +56,7 @@ export function ExecuteProposalButton({
 
   const { writeContractAsync } = useWriteContract();
 
-  const handleClick = useCallback(async () => {
+  const handleConfirm = useCallback(async () => {
     if (!writeContractAsync || !simulateData) {
       toast.error("Unable to prepare transaction");
       return;
@@ -61,6 +73,7 @@ export function ExecuteProposalButton({
 
       toast.success("Proposal executed successfully!", { id: proposalId });
       setIsPending(false);
+      setOpen(false);
 
       // Allow subgraph to index
       await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -79,16 +92,41 @@ export function ExecuteProposalButton({
   const isDisabled = disabled || isPending || simulateError || !simulateData;
 
   return (
-    <Button onClick={handleClick} disabled={isDisabled} className={className} size="lg">
-      {isPending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Executing...
-        </>
-      ) : (
-        buttonText
-      )}
-    </Button>
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <Button disabled={isDisabled} className={className} size="lg">
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Executing...
+            </>
+          ) : (
+            buttonText
+          )}
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Execute Proposal</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will execute the proposal and perform all proposed transactions. This action is irreversible.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleConfirm} disabled={isPending}>
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Executing...
+              </>
+            ) : (
+              "Continue"
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
