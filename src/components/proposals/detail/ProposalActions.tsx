@@ -2,6 +2,7 @@
 
 import { Timer } from "lucide-react";
 import { useAccount } from "wagmi";
+import { useEffect, useState } from "react";
 import { Countdown } from "@/components/common/Countdown";
 import { ExecuteProposalButton } from "@/components/proposals/ExecuteProposalButton";
 import { QueueProposalButton } from "@/components/proposals/QueueProposalButton";
@@ -11,7 +12,8 @@ import { Card } from "@/components/ui/card";
 // import { useVotes } from "@/hooks/useVotes";
 // import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { ProposalStatus } from "@/lib/schemas/proposals";
-import { isProposalExecutable, isProposalSuccessful } from "@/lib/utils/proposal-state";
+import { isProposalSuccessful } from "@/lib/utils/proposal-state";
+import { useProposalEta } from "@/hooks/useProposalEta";
 
 interface ProposalActionsProps {
   proposal: Proposal;
@@ -42,7 +44,6 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
   const {
     proposalId,
     status,
-    executableFrom,
     expiresAt,
     targets,
     values,
@@ -50,6 +51,23 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
     descriptionHash,
     proposer,
   } = proposal;
+
+  // Fetch the on-chain ETA from the Governor contract
+  const { etaDate: contractEta, isLoading: etaLoading } = useProposalEta(proposalId);
+
+  // State to track if proposal is executable based on contract ETA
+  const [isExecutable, setIsExecutable] = useState(false);
+
+  // Determine executability based on contract ETA
+  useEffect(() => {
+    if (!contractEta) {
+      setIsExecutable(false);
+      return;
+    }
+
+    const now = new Date();
+    setIsExecutable(now >= contractEta);
+  }, [contractEta]);
 
   // Only show for successful proposals
   if (!isProposalSuccessful(status)) {
@@ -87,7 +105,7 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
         )}
 
         {/* Queued state - show countdown or execute button */}
-        {status === ProposalStatus.QUEUED && !isProposalExecutable(proposal) && executableFrom && (
+        {status === ProposalStatus.QUEUED && !isExecutable && contractEta && !etaLoading && (
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 shrink-0">
@@ -100,13 +118,13 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
             </div>
 
             <Badge variant="secondary" className="text-lg font-bold tabular-nums px-6 py-2">
-              <Countdown end={executableFrom} onEnd={handleSuccess} />
+              <Countdown end={contractEta.toISOString()} onEnd={handleSuccess} />
             </Badge>
           </div>
         )}
 
         {/* Queued and ready to execute */}
-        {isProposalExecutable(proposal) && (
+        {status === ProposalStatus.QUEUED && isExecutable && contractEta && !etaLoading && (
           <>
             <div>
               <p className="text-sm text-muted-foreground">

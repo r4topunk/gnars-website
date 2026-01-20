@@ -82,6 +82,15 @@ export const gnarsGovernorAbi = [
   },
   {
     type: "function",
+    name: "proposalEta",
+    inputs: [
+      { name: "_proposalId", type: "bytes32", internalType: "bytes32" },
+    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getProposal",
     inputs: [
       { name: "_proposalId", type: "bytes32", internalType: "bytes32" },
