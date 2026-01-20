@@ -1,5 +1,4 @@
 import { unstable_cache } from "next/cache";
-import { blogPosts } from "@/lib/blog-posts";
 import type { Blog, Post, PostsResponse, Publication } from "@/lib/schemas/blogs";
 import {
   blogSchema,
@@ -75,9 +74,6 @@ async function getPostBySlug(publicationSlug: string, postSlug: string): Promise
 }
 
 function mapPostToBlog(post: Post, publication: Publication): Blog {
-  // Use imageUrl from API if available, otherwise fallback to hardcoded list
-  const blogPost = blogPosts.find((bp) => bp.slug === post.slug);
-
   const blog: Blog = {
     id: post.id,
     slug: post.slug,
@@ -89,8 +85,7 @@ function mapPostToBlog(post: Post, publication: Publication): Blog {
     updatedAt: post.updatedAt,
     coinId: post.coinId,
     publication,
-    // Prioritize API imageUrl, fallback to hardcoded list
-    imageUrl: post.imageUrl || blogPost?.imageUrl,
+    imageUrl: post.imageUrl,
   };
 
   return blogSchema.parse(blog);
