@@ -12,6 +12,8 @@ export const postSchema = z
     id: z.string(),
     title: z.string(),
     slug: z.string(),
+    subtitle: z.string().optional(),
+    imageUrl: z.string().optional(),
     markdown: z.string().optional().default(""),
     content: z.string().optional(), // Some API responses use 'content' instead of 'markdown'
     staticHtml: z.string().optional(),
@@ -43,6 +45,7 @@ export const blogSchema = z.object({
   id: z.string(),
   slug: z.string(),
   title: z.string(),
+  subtitle: z.string().optional(),
   markdown: z.string().optional().default(""),
   staticHtml: z.string().optional(),
   publishedAt: z.string(),

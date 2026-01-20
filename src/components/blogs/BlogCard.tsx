@@ -92,7 +92,7 @@ export function BlogCard({ blog }: { blog: Blog }) {
               <h3 className="font-semibold text-lg leading-tight line-clamp-2">{blog.title}</h3>
 
               <p className="text-sm text-muted-foreground line-clamp-2">
-                {getPreview(blog.markdown)}
+                {blog.subtitle || getPreview(blog.markdown)}
               </p>
             </div>
 

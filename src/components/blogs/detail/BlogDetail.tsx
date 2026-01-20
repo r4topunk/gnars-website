@@ -61,6 +61,9 @@ export function BlogDetail({ blog }: BlogDetailProps) {
       {/* Header */}
       <div className="space-y-4">
         <h1 className="text-4xl font-bold tracking-tight">{blog.title}</h1>
+        {blog.subtitle && (
+          <p className="text-xl text-muted-foreground">{blog.subtitle}</p>
+        )}
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span>By {blog.publication.name}</span>
