@@ -6,7 +6,6 @@ import { Countdown } from "@/components/common/Countdown";
 import { ExecuteProposalButton } from "@/components/proposals/ExecuteProposalButton";
 import { QueueProposalButton } from "@/components/proposals/QueueProposalButton";
 import { Proposal } from "@/components/proposals/types";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 // import { useVotes } from "@/hooks/useVotes";
@@ -89,16 +88,21 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
 
         {/* Queued state - show countdown or execute button */}
         {status === ProposalStatus.QUEUED && !isProposalExecutable(proposal) && executableFrom && (
-          <Alert>
-            <Timer className="h-4 w-4" />
-            <AlertTitle>Execution Timelock</AlertTitle>
-            <AlertDescription className="flex items-center justify-between gap-4 mt-2">
-              <span>Waiting for security delay</span>
-              <Badge variant="secondary" className="text-sm font-bold tabular-nums">
-                <Countdown end={executableFrom} onEnd={handleSuccess} />
-              </Badge>
-            </AlertDescription>
-          </Alert>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 shrink-0">
+                <Timer className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-medium">Execution Timelock</p>
+                <p className="text-xs text-muted-foreground">Waiting for security delay</p>
+              </div>
+            </div>
+
+            <Badge variant="secondary" className="text-lg font-bold tabular-nums px-6 py-2">
+              <Countdown end={executableFrom} onEnd={handleSuccess} />
+            </Badge>
+          </div>
         )}
 
         {/* Queued and ready to execute */}
