@@ -53,10 +53,11 @@ export async function generateMetadata({ params }: ProposalPageProps): Promise<M
     : `Vote on Proposal #${proposal.proposalNumber}: ${proposal.title}`;
 
   const proposalUrl = `${BASE_URL}/proposals/${id}`;
+  const miniappImageUrl = `${BASE_URL}/proposals/${id}/miniapp-image`;
 
   const miniappEmbed = {
     ...PROPOSALS_MINIAPP_EMBED_CONFIG,
-    imageUrl,
+    imageUrl: miniappImageUrl,
     button: {
       ...PROPOSALS_MINIAPP_EMBED_CONFIG.button,
       title: `Proposal #${proposal.proposalNumber}`,

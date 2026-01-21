@@ -3,6 +3,7 @@
  */
 
 export const OG_SIZE = { width: 1200, height: 630 };
+export const MINIAPP_SIZE = { width: 1200, height: 800 };
 export const OG_CONTENT_TYPE = "image/png";
 
 // Dark theme colors (consistent with existing member OG)

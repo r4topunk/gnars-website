@@ -146,11 +146,12 @@ export async function generateMetadata({
   const imageUrl = decoded?.imageURI ? ipfsToHttp(decoded.imageURI) : `${BASE_URL}/logo-banner.jpg`;
 
   const droposalUrl = `${BASE_URL}/droposals/${id}`;
+  const miniappImageUrl = `${BASE_URL}/droposals/${id}/miniapp-image`;
 
   // Build dynamic miniapp embed
   const miniappEmbed = {
     ...DROPOSALS_MINIAPP_EMBED_CONFIG,
-    imageUrl,
+    imageUrl: miniappImageUrl,
     button: {
       ...DROPOSALS_MINIAPP_EMBED_CONFIG.button,
       title: `View ${title}`,

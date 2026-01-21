@@ -35,7 +35,7 @@ export const MINIAPP_CONFIG = {
     description: DAO_DESCRIPTION,
     homeUrl: BASE_URL,
     iconUrl: `${BASE_URL}/gnars.webp`,
-    splashImageUrl: `${BASE_URL}/gnars.webp`,
+    splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
     splashBackgroundColor: "#000000",
     // Webhook URL for notifications (optional - can be added later)
     webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
@@ -61,15 +61,15 @@ export const MINIAPP_CONFIG = {
  * This is used when the app is shared in Farcaster feeds
  */
 export const MINIAPP_EMBED_CONFIG = {
-  version: "next",
-  imageUrl: `${BASE_URL}/logo-banner.jpg`,
+  version: "1",
+  imageUrl: `${BASE_URL}/miniapp-image`,
   button: {
     title: "Launch Gnars DAO",
     action: {
       type: "launch_miniapp" as const,
       name: "Gnars DAO",
       url: BASE_URL,
-      splashImageUrl: `${BASE_URL}/gnars.webp`,
+      splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
       splashBackgroundColor: "#000000",
     },
   },
@@ -122,7 +122,7 @@ export const TV_MINIAPP_CONFIG = {
  * TV Embed metadata configuration for fc:miniapp meta tag
  */
 export const TV_MINIAPP_EMBED_CONFIG = {
-  version: "next",
+  version: "1",
   imageUrl: `${BASE_URL}/tv-og.gif`,
   button: {
     title: "Watch Gnar TV",
@@ -151,7 +151,7 @@ export const PROPOSALS_MINIAPP_CONFIG = {
       "Browse and vote on Gnars DAO governance proposals. Participate in on-chain decision making for the action sports DAO.",
     homeUrl: `${BASE_URL}/proposals`,
     iconUrl: `${BASE_URL}/gnars.webp`,
-    splashImageUrl: `${BASE_URL}/gnars.webp`,
+    splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
     splashBackgroundColor: "#000000",
     webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
     primaryCategory: "social" as const,
@@ -171,15 +171,15 @@ export const PROPOSALS_MINIAPP_CONFIG = {
  * Proposals Embed metadata configuration for fc:miniapp meta tag
  */
 export const PROPOSALS_MINIAPP_EMBED_CONFIG = {
-  version: "next",
-  imageUrl: `${BASE_URL}/logo-banner.jpg`,
+  version: "1",
+  imageUrl: `${BASE_URL}/miniapp-image`,
   button: {
     title: "View Proposals",
     action: {
       type: "launch_miniapp" as const,
       name: "Gnars Proposals",
       url: `${BASE_URL}/proposals`,
-      splashImageUrl: `${BASE_URL}/gnars.webp`,
+      splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
       splashBackgroundColor: "#000000",
     },
   },
@@ -200,7 +200,7 @@ export const MEMBERS_MINIAPP_CONFIG = {
       "Explore Gnars DAO member profiles, voting history, proposals, and creator coins. See who's building in the action sports DAO.",
     homeUrl: `${BASE_URL}/members`,
     iconUrl: `${BASE_URL}/gnars.webp`,
-    splashImageUrl: `${BASE_URL}/gnars.webp`,
+    splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
     splashBackgroundColor: "#000000",
     webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
     primaryCategory: "social" as const,
@@ -220,15 +220,15 @@ export const MEMBERS_MINIAPP_CONFIG = {
  * Members Embed metadata configuration for fc:miniapp meta tag
  */
 export const MEMBERS_MINIAPP_EMBED_CONFIG = {
-  version: "next",
-  imageUrl: `${BASE_URL}/logo-banner.jpg`,
+  version: "1",
+  imageUrl: `${BASE_URL}/miniapp-image`,
   button: {
     title: "View Member",
     action: {
       type: "launch_miniapp" as const,
       name: "Gnars Members",
       url: `${BASE_URL}/members`,
-      splashImageUrl: `${BASE_URL}/gnars.webp`,
+      splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
       splashBackgroundColor: "#000000",
     },
   },
@@ -249,7 +249,7 @@ export const DROPOSALS_MINIAPP_CONFIG = {
       "Explore and mint Gnars DAO Droposals - community-curated NFT editions created through governance proposals.",
     homeUrl: `${BASE_URL}/droposals`,
     iconUrl: `${BASE_URL}/gnars.webp`,
-    splashImageUrl: `${BASE_URL}/gnars.webp`,
+    splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
     splashBackgroundColor: "#000000",
     webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
     primaryCategory: "social" as const,
@@ -269,15 +269,15 @@ export const DROPOSALS_MINIAPP_CONFIG = {
  * Droposals Embed metadata configuration for fc:miniapp meta tag
  */
 export const DROPOSALS_MINIAPP_EMBED_CONFIG = {
-  version: "next",
-  imageUrl: `${BASE_URL}/logo-banner.jpg`,
+  version: "1",
+  imageUrl: `${BASE_URL}/miniapp-image`,
   button: {
     title: "View Droposal",
     action: {
       type: "launch_miniapp" as const,
       name: "Gnars Droposals",
       url: `${BASE_URL}/droposals`,
-      splashImageUrl: `${BASE_URL}/gnars.webp`,
+      splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
       splashBackgroundColor: "#000000",
     },
   },
@@ -298,7 +298,7 @@ export const MAP_MINIAPP_CONFIG = {
       "Explore Gnars DAO funded skate spots, rails, and projects around the world. See where the action sports DAO has made an impact.",
     homeUrl: `${BASE_URL}/map`,
     iconUrl: `${BASE_URL}/gnars.webp`,
-    splashImageUrl: `${BASE_URL}/gnars.webp`,
+    splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
     splashBackgroundColor: "#000000",
     webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
     primaryCategory: "social" as const,
@@ -318,15 +318,15 @@ export const MAP_MINIAPP_CONFIG = {
  * Map Embed metadata configuration for fc:miniapp meta tag
  */
 export const MAP_MINIAPP_EMBED_CONFIG = {
-  version: "next",
-  imageUrl: `${BASE_URL}/map/opengraph-image`,
+  version: "1",
+  imageUrl: `${BASE_URL}/map/miniapp-image`,
   button: {
     title: "Explore Map",
     action: {
       type: "launch_miniapp" as const,
       name: "Gnars World Map",
       url: `${BASE_URL}/map`,
-      splashImageUrl: `${BASE_URL}/gnars.webp`,
+      splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
       splashBackgroundColor: "#000000",
     },
   },
