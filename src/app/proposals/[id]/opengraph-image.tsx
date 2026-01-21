@@ -33,10 +33,15 @@ export default async function Image({ params }: Props) {
     const status = proposal.status || "Unknown";
     const statusColor = getStatusColor(status);
     const totalVotes =
-      proposal.forVotes + proposal.againstVotes + proposal.abstainVotes;
-    const quorumPercent = proposal.quorumVotes
-      ? Math.round((totalVotes / proposal.quorumVotes) * 100)
-      : 0;
+      Number(proposal.forVotes ?? 0) +
+      Number(proposal.againstVotes ?? 0) +
+      Number(proposal.abstainVotes ?? 0);
+    const quorumVotes = Number(proposal.quorumVotes ?? 0);
+    const quorumPercent =
+      Number.isFinite(quorumVotes) && quorumVotes > 0
+        ? Math.round((totalVotes / quorumVotes) * 100)
+        : 0;
+    const proposerLabel = shortenAddress(proposal.proposer ?? "");
 
     return new ImageResponse(
       (
@@ -175,7 +180,9 @@ export default async function Image({ params }: Props) {
               color: OG_COLORS.muted,
             }}
           >
-            <div style={{ display: "flex" }}>{`Proposer: ${shortenAddress(proposal.proposer)}`}</div>
+            <div style={{ display: "flex" }}>
+              {`Proposer: ${proposerLabel}`}
+            </div>
             <div style={{ display: "flex" }}>{`Quorum: ${quorumPercent}%`}</div>
           </div>
 

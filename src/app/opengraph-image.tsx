@@ -33,7 +33,6 @@ export default function Image() {
           style={{
             width: 200,
             height: 200,
-            borderRadius: 24,
             marginBottom: "32px",
             objectFit: "cover",
             backgroundColor: OG_COLORS.card,

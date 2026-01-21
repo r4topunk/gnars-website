@@ -61,14 +61,15 @@ export function truncateText(text: string, maxLength: number): string {
 
 // Helper: Format vote counts
 export function formatVotes(votes: number | string): string {
-  const num = typeof votes === "string" ? parseInt(votes, 10) : votes;
-  if (isNaN(num)) return "0";
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-  return num.toString();
+  const num = Number(votes);
+  if (!Number.isFinite(num)) return "0";
+  if (num >= 1000) return `${Math.round(num / 100) / 10}K`;
+  return Math.round(num).toString();
 }
 
 // Helper: Shorten address
-export function shortenAddress(address: string): string {
+export function shortenAddress(address?: string | null): string {
+  if (!address) return "Unknown";
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
