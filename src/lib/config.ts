@@ -1,8 +1,6 @@
 // Development mode flag - use NEXT_PUBLIC prefix so it's available in browser
 // This allows runtime checking instead of build-time replacement
-export const IS_DEV = 
-  process.env.NODE_ENV === "development" || 
-  process.env.NEXT_PUBLIC_DEV_MODE === "true";
+export const IS_DEV = process.env.NODE_ENV === "development";
 
 export const CHAIN = {
   id: 8453,
