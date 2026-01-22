@@ -49,7 +49,7 @@ pnpm lint
 
 ### Execution Pattern
 
-**CRITICAL:** Always use large timeouts (300000-600000ms) to ensure Codex completes the task.
+**CRITICAL:** Always use 10-minute timeout and save full Codex output to a file.
 
 ```bash
 # Build the prompt file with expert instructions + task
@@ -61,12 +61,19 @@ cat > /tmp/codex_prompt.md <<'EOF'
 [7-section delegation prompt]
 EOF
 
-# Execute with appropriate sandbox and timeout
+# Execute with 10-minute timeout and output saved to file
 timeout 600 codex exec \
   --sandbox [read-only|workspace-write] \
   -C "/Users/r4to/Script/gnars-website" \
+  -o /tmp/codex_last_output.txt \
   - < /tmp/codex_prompt.md
 ```
+
+**Output Handling:**
+- Codex prints progress/reasoning to stdout (shown in your context)
+- Codex's last message saved to `/tmp/codex_last_output.txt`
+- Show user: Summary + Files modified + Critical issues
+- Read full output file only if: errors occur, debugging needed, or user asks
 
 ### Available Experts
 
@@ -106,9 +113,23 @@ MUST NOT DO:
 - [Forbidden action 2]
 
 OUTPUT FORMAT:
-- Summary of changes made
-- List of files modified
-- Verification steps taken
+IMPORTANT: Structure your response for easy parsing:
+
+## Summary
+[1-2 sentence overview of what was done]
+
+## Files Modified
+- path/to/file1.ts (added feature X)
+- path/to/file2.tsx (updated component Y)
+
+## Verification
+- [What was tested/checked]
+- [Any commands run to verify]
+
+## Issues/Notes
+- [Any problems encountered]
+- [Important decisions made]
+- [Follow-up needed]
 ```
 
 ### Sandbox Modes
@@ -120,35 +141,44 @@ OUTPUT FORMAT:
 
 ### Context Management for Codex
 
-**Keep Claude's context clean.** Claude should only receive:
-- Final summary of what Codex did
-- List of files modified
-- Any errors or issues that need escalation
+**Balance brevity with transparency:**
 
-**Do NOT show Claude:**
-- Full Codex output logs
-- Intermediate steps
-- Verbose debugging output
+**Show to user directly:**
+- Task summary ("Delegating to Architect: Implementing auction countdown")
+- Final summary from Codex (2-3 sentences)
+- Files modified (list with brief descriptions)
+- Critical issues or errors
+
+**Available in `/tmp/codex_last_output.txt` (read if needed):**
+- Full Codex reasoning/thinking
+- Detailed verification steps
+- Code snippets and examples
+
+**When to read the full output file:**
+- Errors or failures occur
+- User asks "what did Codex say?"
+- Debugging why something went wrong
+- Need to understand Codex's approach
 
 ### Example Delegation Flow
 
 1. **User requests a feature**
 2. **Claude (coordinator):**
    - Reads relevant files to understand context (quick reads only)
-   - Builds the 7-section delegation prompt
-   - Delegates to Codex with `workspace-write` sandbox
-   - Waits for completion (use 600s timeout)
-   - Reports summary to user
+   - Builds the 7-section delegation prompt with clear OUTPUT FORMAT requirements
+   - Delegates to Codex with `timeout 600` (10 min) and `-o /tmp/codex_last_output.txt`
+   - Shows user: "Delegating to Architect: [task summary]"
 
 3. **Codex (executor):**
    - Receives full context in the prompt
-   - Implements the feature
-   - Returns summary of changes
+   - Works and outputs progress (visible in stdout)
+   - Structures final message per OUTPUT FORMAT
+   - Last message saved to `/tmp/codex_last_output.txt`
 
 4. **Claude (coordinator):**
-   - Receives only the summary
-   - Reports to user
-   - If errors, delegates retry to Codex with error context
+   - Extracts key info from Codex output (summary, files, issues)
+   - Reports concisely to user
+   - If errors: reads `/tmp/codex_last_output.txt` for details, then retries with full context
 
 ## Task Routing by Expert
 
@@ -157,13 +187,19 @@ OUTPUT FORMAT:
 
 ```bash
 # Example: System design
-timeout 600 codex exec --sandbox read-only -C "$PWD" - <<'EOF'
+cat > /tmp/codex_prompt.md <<'EOF'
 [architect.md contents]
 ---
 TASK: Design caching strategy for auction data
 EXPECTED OUTCOME: Clear recommendation with tradeoffs
 ...
 EOF
+
+timeout 600 codex exec \
+  --sandbox read-only \
+  -C "$PWD" \
+  -o /tmp/codex_last_output.txt \
+  - < /tmp/codex_prompt.md
 ```
 
 ### Implementation Tasks
@@ -171,13 +207,19 @@ EOF
 
 ```bash
 # Example: Implement feature
-timeout 600 codex exec --sandbox workspace-write -C "$PWD" - <<'EOF'
+cat > /tmp/codex_prompt.md <<'EOF'
 [architect.md contents]
 ---
 TASK: Implement auction countdown component
 EXPECTED OUTCOME: Working React component
 ...
 EOF
+
+timeout 600 codex exec \
+  --sandbox workspace-write \
+  -C "$PWD" \
+  -o /tmp/codex_last_output.txt \
+  - < /tmp/codex_prompt.md
 ```
 
 ### Code Quality Tasks
