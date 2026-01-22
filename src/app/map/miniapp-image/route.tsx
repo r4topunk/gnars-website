@@ -103,7 +103,7 @@ function NogglesMarker({ x, y, isGreen = false }: { x: number; y: number; isGree
   );
 }
 
-export default async function Image() {
+export async function GET() {
   const mapWidth = size.width;
   const mapHeight = size.height;
 

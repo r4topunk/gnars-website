@@ -11,9 +11,10 @@ export const alt = "Gnars DAO Droposal";
 export const size = MINIAPP_SIZE;
 export const contentType = "image/png";
 export const revalidate = 300;
+export const runtime = "edge";
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 type ProposalData = {
@@ -105,8 +106,8 @@ async function fetchDroposal(id: string): Promise<{
   return { proposal, decoded };
 }
 
-export default async function Image({ params }: Props) {
-  const { id } = await params;
+export async function GET(_request: Request, { params }: Props) {
+  const { id } = params;
 
   try {
     const { proposal, decoded } = await fetchDroposal(id);

@@ -5,8 +5,9 @@ import { MINIAPP_SIZE, OG_COLORS, OG_FONTS } from "@/lib/og-utils";
 export const alt = "Gnars DAO";
 export const size = MINIAPP_SIZE;
 export const contentType = "image/png";
+export const runtime = "edge";
 
-export default function Image() {
+export async function GET() {
   const logoUrl =
     "https://wsrv.nl/?url=https%3A%2F%2Fgnars.com%2Fgnars.webp&w=200&h=200&fit=cover&output=png";
 

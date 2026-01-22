@@ -15,13 +15,14 @@ export const alt = "Gnars DAO Proposal";
 export const size = MINIAPP_SIZE;
 export const contentType = "image/png";
 export const revalidate = 60;
+export const runtime = "edge";
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
-export default async function Image({ params }: Props) {
-  const { id } = await params;
+export async function GET(_request: Request, { params }: Props) {
+  const { id } = params;
 
   try {
     const proposal = await getProposalByIdOrNumber(id);

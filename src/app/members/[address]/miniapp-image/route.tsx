@@ -4,13 +4,14 @@ import { MINIAPP_SIZE } from "@/lib/og-utils";
 export const alt = "Gnars DAO Member";
 export const size = MINIAPP_SIZE;
 export const contentType = "image/png";
+export const runtime = "edge";
 
 interface Props {
-  params: Promise<{ address: string }>;
+  params: { address: string };
 }
 
-export default async function Image({ params }: Props) {
-  const { address } = await params;
+export async function GET(_request: Request, { params }: Props) {
+  const { address } = params;
 
   try {
     // Fetch member data from API route to avoid edge runtime issues
