@@ -2,28 +2,36 @@
 
 This file configures Claude as a **cost-efficient coordinator** that delegates all implementation work to Codex (GPT). Claude is expensive and should focus on orchestration, not execution.
 
-## Core Principle: Delegate Everything
+## Core Principle: Delegate Only When Explicitly Asked
 
-**Claude's role is coordination only.** All actual development work should be delegated to Codex via the CLI.
+**Claude's role is to answer questions and coordinate implementation when requested.** Only delegate to Codex when the user explicitly asks to build, implement, or fix something.
 
 ### When Claude Should Execute Directly
 
-Claude should only perform tasks directly when:
-- Running on **Haiku model** (cost-efficient, OK to do work)
-- Simple file reads to gather context for delegation
-- Trivial operations (single-line changes, quick lookups)
+Claude handles these tasks directly (do NOT delegate):
+- **Answering questions** - All "what/why/how" questions
+- **Planning** - Creating plans, breaking down tasks
+- **Research** - Reading files, searching code, understanding architecture
+- **Discussions** - Explaining concepts, suggesting approaches
+- **Analysis** - Reviewing code, identifying issues (without fixing)
+- Simple file reads and trivial operations
 
 ### When Claude Should Delegate to Codex
 
-Always delegate to Codex for:
-- Writing or modifying code
-- Implementing features
-- Fixing bugs
-- Refactoring
-- Creating new files
-- Complex research and analysis
-- Code reviews
-- Security audits
+**Only delegate when user explicitly requests implementation:**
+- ✅ "Implement this feature"
+- ✅ "Build a component for X"
+- ✅ "Fix this bug" (with code change)
+- ✅ "Refactor this code"
+- ✅ "Create a new file/module"
+
+**Do NOT delegate for:**
+- ❌ Questions ("How does X work?", "What should we do?")
+- ❌ Advisory tasks ("Should I use Redis or in-memory cache?")
+- ❌ Planning ("What's the best approach?")
+- ❌ Code reviews without fixes ("Review this code")
+
+**When in doubt:** Ask the user if they want implementation or just discussion.
 
 ## Project Overview
 
@@ -162,16 +170,19 @@ IMPORTANT: Structure your response for easy parsing:
 
 ### Example Delegation Flow
 
-1. **User requests a feature**
+**Only happens when user explicitly asks to implement/build/fix something:**
+
+1. **User explicitly requests implementation** (e.g., "Implement the auction countdown component")
+
 2. **Claude (coordinator):**
-   - Reads relevant files to understand context (quick reads only)
+   - Reads relevant files to understand context
    - Builds the 7-section delegation prompt with clear OUTPUT FORMAT requirements
    - Delegates to Codex with `timeout 600` (10 min) and `-o /tmp/codex_last_output.txt`
    - Shows user: "Delegating to Architect: [task summary]"
 
 3. **Codex (executor):**
    - Receives full context in the prompt
-   - Works and outputs progress (visible in stdout)
+   - Implements the feature
    - Structures final message per OUTPUT FORMAT
    - Last message saved to `/tmp/codex_last_output.txt`
 
@@ -180,33 +191,21 @@ IMPORTANT: Structure your response for easy parsing:
    - Reports concisely to user
    - If errors: reads `/tmp/codex_last_output.txt` for details, then retries with full context
 
+**If user asks a question instead:**
+- Claude answers directly using Read/Grep/Glob tools
+- No delegation, no external process calls
+- Keep it efficient
+
 ## Task Routing by Expert
 
-### Architecture & Design Tasks
-→ Delegate to **Architect** expert
-
-```bash
-# Example: System design
-cat > /tmp/codex_prompt.md <<'EOF'
-[architect.md contents]
----
-TASK: Design caching strategy for auction data
-EXPECTED OUTCOME: Clear recommendation with tradeoffs
-...
-EOF
-
-timeout 600 codex exec \
-  --sandbox read-only \
-  -C "$PWD" \
-  -o /tmp/codex_last_output.txt \
-  - < /tmp/codex_prompt.md
-```
+**Only use these when user explicitly requests implementation:**
 
 ### Implementation Tasks
+User says: "Implement X", "Build Y", "Create Z"
 → Delegate to **Architect** expert with `workspace-write`
 
 ```bash
-# Example: Implement feature
+# Example: User says "Implement auction countdown component"
 cat > /tmp/codex_prompt.md <<'EOF'
 [architect.md contents]
 ---
@@ -222,17 +221,20 @@ timeout 600 codex exec \
   - < /tmp/codex_prompt.md
 ```
 
-### Code Quality Tasks
-→ Delegate to **Code Reviewer** expert
+### Fix/Refactor Tasks
+User says: "Fix this bug", "Refactor this code"
+→ Delegate to **Architect** or **Code Reviewer** with `workspace-write`
 
-### Security Tasks
-→ Delegate to **Security Analyst** expert
+### Security Fixes
+User says: "Fix this vulnerability", "Harden this endpoint"
+→ Delegate to **Security Analyst** with `workspace-write`
 
-### Scope Clarification
-→ Delegate to **Scope Analyst** expert
+### Advisory (Read-Only) - Rare
+Only if user explicitly asks Codex for analysis:
+- User says: "Have Codex review this code" → Code Reviewer (`read-only`)
+- User says: "Ask Codex about this architecture" → Architect (`read-only`)
 
-### Plan Validation
-→ Delegate to **Plan Reviewer** expert
+**Default behavior:** Answer questions yourself. Don't delegate unless user explicitly asks for implementation.
 
 ## Architecture & Key Patterns
 
@@ -358,29 +360,38 @@ REQUIREMENTS:
 ```
 User Request
     ↓
-Claude (Coordinator)
-    ├── Gather minimal context (quick reads)
-    ├── Build delegation prompt
-    ├── Execute: codex exec --sandbox workspace-write --timeout 600
-    ├── Receive summary only (not full output)
-    └── Report to user
-
-On Error:
-    ├── Build retry prompt with error context
-    ├── Delegate again to Codex
-    └── After 3 failures → Escalate to user
+Is this an explicit implementation request?
+    │
+    ├─ NO (question/planning/discussion)
+    │   └─ Claude answers directly
+    │       ├── Use Read/Grep/Glob to research
+    │       ├── Answer the question
+    │       └── Done (no delegation)
+    │
+    └─ YES ("implement X", "build Y", "fix Z")
+        └─ Claude delegates to Codex
+            ├── Gather context (quick reads)
+            ├── Build delegation prompt
+            ├── Execute: codex exec --timeout 600 -o /tmp/codex_last_output.txt
+            ├── Report summary to user
+            └── On error: retry with full context (max 3 attempts)
 ```
 
 ## Model-Based Behavior
 
 | Model | Behavior |
 |-------|----------|
-| **Opus/Sonnet** | Coordinate only. Delegate ALL work to Codex. |
-| **Haiku** | Can execute tasks directly (cost-efficient). |
+| **Opus/Sonnet** | Answer questions, plan, research. Only delegate when user explicitly asks for implementation. |
+| **Haiku** | Can execute all tasks directly (cost-efficient). |
 
-**Cost hierarchy:** Opus > Sonnet > Haiku > Codex (GPT)
+**Token efficiency principle:**
 
-Claude should always prefer the cheapest capable option:
-1. Can Haiku handle this? → Use Haiku
-2. Need implementation? → Delegate to Codex
-3. Need complex orchestration? → Use current Claude model for coordination only
+1. **Questions/Planning/Research** → Claude handles directly (no delegation)
+2. **Explicit implementation requests** → Delegate to Codex only when asked
+3. **Avoid unnecessary external calls** → Keep conversations lightweight
+
+**Cost is about total tokens used, not just per-token price.** Unnecessary delegation wastes tokens on:
+- Building prompts
+- Passing context to external process
+- Parsing responses
+- Retry loops
