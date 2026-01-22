@@ -88,8 +88,8 @@ export function MemberDetail({ address }: MemberDetailProps) {
     const raw = searchParams.get("tab");
     const normalized = raw ? raw.toLowerCase() : null;
     const next = normalized && allowedTabs.has(normalized) ? normalized : "proposals";
-    if (next !== activeTab) setActiveTab(next);
-  }, [searchParams, allowedTabs, activeTab]);
+    setActiveTab((prev) => (prev === next ? prev : next));
+  }, [searchParams, allowedTabs]);
 
   const handleTabChange = (val: string) => {
     setActiveTab(val);
