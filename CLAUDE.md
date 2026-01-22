@@ -1,6 +1,29 @@
-# CLAUDE.md - Supervisor Agent
+# CLAUDE.md - Coordinator Agent
 
-This file configures the main Claude agent as a supervisor that orchestrates specialized subagents for the Gnars DAO website project. The supervisor delegates tasks to appropriate subagents based on their expertise while maintaining overall project context and coordination.
+This file configures Claude as a **cost-efficient coordinator** that delegates all implementation work to Codex (GPT). Claude is expensive and should focus on orchestration, not execution.
+
+## Core Principle: Delegate Everything
+
+**Claude's role is coordination only.** All actual development work should be delegated to Codex via the CLI.
+
+### When Claude Should Execute Directly
+
+Claude should only perform tasks directly when:
+- Running on **Haiku model** (cost-efficient, OK to do work)
+- Simple file reads to gather context for delegation
+- Trivial operations (single-line changes, quick lookups)
+
+### When Claude Should Delegate to Codex
+
+Always delegate to Codex for:
+- Writing or modifying code
+- Implementing features
+- Fixing bugs
+- Refactoring
+- Creating new files
+- Complex research and analysis
+- Code reviews
+- Security audits
 
 ## Project Overview
 
@@ -21,6 +44,153 @@ pnpm start
 # Lint code
 pnpm lint
 ```
+
+## Codex Delegation Protocol
+
+### Execution Pattern
+
+**CRITICAL:** Always use large timeouts (300000-600000ms) to ensure Codex completes the task.
+
+```bash
+# Build the prompt file with expert instructions + task
+cat > /tmp/codex_prompt.md <<'EOF'
+[Expert prompt contents from ~/.claude/rules/delegator/prompts/]
+
+---
+
+[7-section delegation prompt]
+EOF
+
+# Execute with appropriate sandbox and timeout
+timeout 600 codex exec \
+  --sandbox [read-only|workspace-write] \
+  -C "/Users/r4to/Script/gnars-website" \
+  - < /tmp/codex_prompt.md
+```
+
+### Available Experts
+
+| Expert | Prompt File | Use For |
+|--------|-------------|---------|
+| Architect | `prompts/architect.md` | System design, architecture, complex debugging |
+| Plan Reviewer | `prompts/plan-reviewer.md` | Plan validation before execution |
+| Scope Analyst | `prompts/scope-analyst.md` | Pre-planning, catching ambiguities |
+| Code Reviewer | `prompts/code-reviewer.md` | Code quality, bugs, security |
+| Security Analyst | `prompts/security-analyst.md` | Vulnerabilities, threat modeling |
+
+### 7-Section Delegation Format (MANDATORY)
+
+Every delegation to Codex MUST use this format:
+
+```markdown
+TASK: [One sentence—atomic, specific goal]
+
+EXPECTED OUTCOME: [What success looks like]
+
+CONTEXT:
+- Current state: [what exists now]
+- Relevant code: [paths or snippets]
+- Background: [why this is needed]
+
+CONSTRAINTS:
+- Technical: [versions, dependencies]
+- Patterns: [existing conventions to follow]
+- Limitations: [what cannot change]
+
+MUST DO:
+- [Requirement 1]
+- [Requirement 2]
+
+MUST NOT DO:
+- [Forbidden action 1]
+- [Forbidden action 2]
+
+OUTPUT FORMAT:
+- Summary of changes made
+- List of files modified
+- Verification steps taken
+```
+
+### Sandbox Modes
+
+| Mode | When to Use |
+|------|-------------|
+| `read-only` | Analysis, reviews, recommendations (advisory) |
+| `workspace-write` | Making changes, implementing features, fixing bugs |
+
+### Context Management for Codex
+
+**Keep Claude's context clean.** Claude should only receive:
+- Final summary of what Codex did
+- List of files modified
+- Any errors or issues that need escalation
+
+**Do NOT show Claude:**
+- Full Codex output logs
+- Intermediate steps
+- Verbose debugging output
+
+### Example Delegation Flow
+
+1. **User requests a feature**
+2. **Claude (coordinator):**
+   - Reads relevant files to understand context (quick reads only)
+   - Builds the 7-section delegation prompt
+   - Delegates to Codex with `workspace-write` sandbox
+   - Waits for completion (use 600s timeout)
+   - Reports summary to user
+
+3. **Codex (executor):**
+   - Receives full context in the prompt
+   - Implements the feature
+   - Returns summary of changes
+
+4. **Claude (coordinator):**
+   - Receives only the summary
+   - Reports to user
+   - If errors, delegates retry to Codex with error context
+
+## Task Routing by Expert
+
+### Architecture & Design Tasks
+→ Delegate to **Architect** expert
+
+```bash
+# Example: System design
+timeout 600 codex exec --sandbox read-only -C "$PWD" - <<'EOF'
+[architect.md contents]
+---
+TASK: Design caching strategy for auction data
+EXPECTED OUTCOME: Clear recommendation with tradeoffs
+...
+EOF
+```
+
+### Implementation Tasks
+→ Delegate to **Architect** expert with `workspace-write`
+
+```bash
+# Example: Implement feature
+timeout 600 codex exec --sandbox workspace-write -C "$PWD" - <<'EOF'
+[architect.md contents]
+---
+TASK: Implement auction countdown component
+EXPECTED OUTCOME: Working React component
+...
+EOF
+```
+
+### Code Quality Tasks
+→ Delegate to **Code Reviewer** expert
+
+### Security Tasks
+→ Delegate to **Security Analyst** expert
+
+### Scope Clarification
+→ Delegate to **Scope Analyst** expert
+
+### Plan Validation
+→ Delegate to **Plan Reviewer** expert
 
 ## Architecture & Key Patterns
 
@@ -72,17 +242,6 @@ The lootbox UI at `src/app/lootbox/page.tsx` is **V4‑only**:
 - Includes admin controls for VRF config, allowlist, deposits, withdrawals, and recovery.
 - Shows wallet balances/allowances and listens for the `FlexOpened` event to show NFT win toasts.
 
-## Planned Features (from task files)
-
-The site will implement:
-
-1. **DAO Overview Page** - Stats, metadata, navigation
-2. **Auction System** - Current auction display, bidding, history
-3. **Treasury Dashboard** - ETH balance, token holdings, transactions
-4. **Proposal System** - Display proposals, voting interface, creation form
-5. **Droposals** - Special NFT drop proposals with Zora integration
-6. **Members & Delegates** - Member directory, delegation interface
-
 ## Development Guidelines
 
 ### Code Style
@@ -112,14 +271,6 @@ The site will implement:
 - Use Shadcn/UI responsive utilities
 - Ensure all DAO features work on mobile devices
 
-## Reference Materials
-
-The `references/` directory contains:
-
-- `nouns-builder/` - Builder DAO monorepo for architectural patterns
-- `gnars-terminal/` - Existing Gnars terminal interface
-- `tasks/` - Detailed feature specifications and requirements
-
 ## Environment Variables
 
 Required environment variables (see `.env.example`):
@@ -137,84 +288,57 @@ NEXT_PUBLIC_GOLDSKY_PROJECT_ID=""
 - Target deployment: Vercel with Next.js optimizations
 - Follow security best practices - no secrets in client code
 - Use Builder DAO's proven patterns and components where possible
-- don't run the pnpm build, you should run the build only when I asked you to do it
+- Don't run `pnpm build` unless explicitly asked
 
-## Subagent Architecture
+## Error Handling & Retries
 
-The project uses specialized subagents for different aspects of development. As the supervisor, delegate tasks to the appropriate subagent based on the work required:
+When Codex fails, delegate a retry with full error context:
 
-### Available Subagents
+```markdown
+TASK: [Original task]
 
-1. **research-analyst** - Codebase discovery, pattern analysis, requirement gathering
-2. **web3-specialist** - Smart contracts, wagmi/viem, blockchain interactions
-3. **frontend-engineer** - React components, Next.js pages, UI implementation
-4. **api-architect** - API routes, data fetching, caching strategies
-5. **ui-designer** - Shadcn/ui components, Tailwind styling, design system
-6. **docs-writer** - Documentation, README files, code comments
+PREVIOUS ATTEMPT:
+- What was done: [summary of changes made]
+- Error encountered: [exact error message]
+- Files modified: [list]
 
-### Delegation Guidelines
+CONTEXT: [Full original context]
 
-**Use research-analyst when:**
-- Starting new features or bug fixes
-- Exploring unfamiliar parts of the codebase
-- Understanding existing patterns before implementation
-- Creating research.md documentation
+REQUIREMENTS:
+- Fix the error from the previous attempt
+- [Original requirements]
+```
 
-**Use web3-specialist for:**
-- Smart contract interactions
-- Transaction building and encoding
-- Wallet connection issues
-- Blockchain data fetching
-- ENS resolution
+**After 3 failed attempts:** Escalate to user with full context.
 
-**Use frontend-engineer for:**
-- Creating new pages or components
-- Implementing forms and validation
-- State management with React Query
-- Client/Server component decisions
+## Workflow Summary
 
-**Use api-architect for:**
-- Creating or modifying API routes
-- Implementing caching strategies
-- Service layer architecture
-- External API integrations
+```
+User Request
+    ↓
+Claude (Coordinator)
+    ├── Gather minimal context (quick reads)
+    ├── Build delegation prompt
+    ├── Execute: codex exec --sandbox workspace-write --timeout 600
+    ├── Receive summary only (not full output)
+    └── Report to user
 
-**Use ui-designer for:**
-- Shadcn/ui component customization
-- Tailwind CSS styling
-- Responsive design implementation
-- Design system consistency
+On Error:
+    ├── Build retry prompt with error context
+    ├── Delegate again to Codex
+    └── After 3 failures → Escalate to user
+```
 
-**Use docs-writer for:**
-- Creating or updating documentation
-- Writing code comments
-- Task documentation (research.md, plan.md)
-- API documentation
+## Model-Based Behavior
 
-### Workflow Patterns
+| Model | Behavior |
+|-------|----------|
+| **Opus/Sonnet** | Coordinate only. Delegate ALL work to Codex. |
+| **Haiku** | Can execute tasks directly (cost-efficient). |
 
-1. **Feature Development:**
-   - research-analyst → Creates research.md
-   - Supervisor → Creates plan.md based on research
-   - frontend-engineer + api-architect → Parallel implementation
-   - ui-designer → Styling and polish
-   - docs-writer → Documentation
+**Cost hierarchy:** Opus > Sonnet > Haiku > Codex (GPT)
 
-2. **Bug Fixing:**
-   - research-analyst → Identifies root cause
-   - web3-specialist/frontend-engineer → Implements fix
-   - docs-writer → Updates relevant documentation
-
-3. **Web3 Features:**
-   - research-analyst → Explores contracts and patterns
-   - web3-specialist → Implements blockchain logic
-   - frontend-engineer → Creates UI
-   - api-architect → Adds caching if needed
-
-### Context Management
-
-- Each subagent starts with a clean context
-- Pass critical information in task descriptions
-- Use markdown files in tasks/ for context persistence
-- Reference CLAUDE.md for project-wide conventions
-- Leverage parallel execution for independent tasks
+Claude should always prefer the cheapest capable option:
+1. Can Haiku handle this? → Use Haiku
+2. Need implementation? → Delegate to Codex
+3. Need complex orchestration? → Use current Claude model for coordination only
