@@ -54,14 +54,14 @@ export async function GET(_request: Request, { params }: Props) {
             flexDirection: "column",
             backgroundColor: OG_COLORS.background,
             fontFamily: OG_FONTS.family,
-            padding: "60px",
+            padding: "80px",
           }}
         >
           {/* Header */}
-          <div style={{ display: "flex", alignItems: "baseline", gap: "24px", marginBottom: "32px" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "28px", marginBottom: "40px" }}>
             <div
               style={{
-                fontSize: 48,
+                fontSize: 52,
                 fontWeight: 700,
                 color: OG_COLORS.foreground,
                 display: "flex",
@@ -86,10 +86,10 @@ export async function GET(_request: Request, { params }: Props) {
           {/* Title */}
           <div
             style={{
-              fontSize: 36,
+              fontSize: 38,
               fontWeight: 600,
               color: OG_COLORS.foreground,
-              marginBottom: "40px",
+              marginBottom: "48px",
               maxWidth: "100%",
               lineHeight: 1.3,
             }}
@@ -101,9 +101,9 @@ export async function GET(_request: Request, { params }: Props) {
           <div
             style={{
               display: "flex",
-              gap: "24px",
+              gap: "32px",
               flex: 1,
-              marginBottom: "40px",
+              marginBottom: "48px",
             }}
           >
             {/* FOR Votes */}
@@ -113,16 +113,16 @@ export async function GET(_request: Request, { params }: Props) {
                 backgroundColor: OG_COLORS.card,
                 borderRadius: "16px",
                 border: `2px solid ${OG_COLORS.accent}`,
-                padding: "32px",
+                padding: "36px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
               }}
             >
-              <div style={{ fontSize: 22, color: OG_COLORS.muted, marginBottom: "16px" }}>
+              <div style={{ fontSize: 24, color: OG_COLORS.muted, marginBottom: "20px" }}>
                 FOR
               </div>
-              <div style={{ fontSize: 48, fontWeight: 700, color: OG_COLORS.accent }}>
+              <div style={{ fontSize: 52, fontWeight: 700, color: OG_COLORS.accent }}>
                 {formatVotes(proposal.forVotes)}
               </div>
             </div>
@@ -134,16 +134,16 @@ export async function GET(_request: Request, { params }: Props) {
                 backgroundColor: OG_COLORS.card,
                 borderRadius: "16px",
                 border: `2px solid ${OG_COLORS.destructive}`,
-                padding: "32px",
+                padding: "36px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
               }}
             >
-              <div style={{ fontSize: 22, color: OG_COLORS.muted, marginBottom: "16px" }}>
+              <div style={{ fontSize: 24, color: OG_COLORS.muted, marginBottom: "20px" }}>
                 AGAINST
               </div>
-              <div style={{ fontSize: 48, fontWeight: 700, color: OG_COLORS.destructive }}>
+              <div style={{ fontSize: 52, fontWeight: 700, color: OG_COLORS.destructive }}>
                 {formatVotes(proposal.againstVotes)}
               </div>
             </div>
@@ -155,16 +155,16 @@ export async function GET(_request: Request, { params }: Props) {
                 backgroundColor: OG_COLORS.card,
                 borderRadius: "16px",
                 border: `2px solid ${OG_COLORS.blue}`,
-                padding: "32px",
+                padding: "36px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
               }}
             >
-              <div style={{ fontSize: 22, color: OG_COLORS.muted, marginBottom: "16px" }}>
+              <div style={{ fontSize: 24, color: OG_COLORS.muted, marginBottom: "20px" }}>
                 ABSTAIN
               </div>
-              <div style={{ fontSize: 48, fontWeight: 700, color: OG_COLORS.blue }}>
+              <div style={{ fontSize: 52, fontWeight: 700, color: OG_COLORS.blue }}>
                 {formatVotes(proposal.abstainVotes)}
               </div>
             </div>
@@ -174,13 +174,13 @@ export async function GET(_request: Request, { params }: Props) {
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "32px",
-              fontSize: 18,
-              color: OG_COLORS.muted,
-            }}
-          >
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "36px",
+            fontSize: 20,
+            color: OG_COLORS.muted,
+          }}
+        >
             <div style={{ display: "flex" }}>
               {`Proposer: ${proposerLabel}`}
             </div>
@@ -192,13 +192,13 @@ export async function GET(_request: Request, { params }: Props) {
             style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
-              marginTop: "auto",
-              paddingTop: "32px",
-              fontSize: 20,
-              color: OG_COLORS.muted,
-            }}
-          >
+            justifyContent: "space-between",
+            marginTop: "auto",
+            paddingTop: "36px",
+            fontSize: 22,
+            color: OG_COLORS.muted,
+          }}
+        >
             <div>Gnars DAO</div>
             <div>gnars.com/proposals</div>
           </div>

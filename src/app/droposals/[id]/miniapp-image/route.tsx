@@ -117,8 +117,8 @@ export async function GET(_request: Request, { params }: Props) {
     }
 
     const title = decoded?.name || proposal.title || `Droposal #${proposal.proposalNumber}`;
-    const imageWidth = 520;
-    const imageHeight = 510;
+    const imageWidth = 560;
+    const imageHeight = 600;
     const imageUrl = toOgImageUrl(decoded?.imageURI ?? null, {
       width: imageWidth,
       height: imageHeight,
@@ -139,17 +139,17 @@ export async function GET(_request: Request, { params }: Props) {
             display: "flex",
             backgroundColor: OG_COLORS.background,
             fontFamily: OG_FONTS.family,
-            padding: "60px",
+            padding: "80px",
           }}
         >
           {/* Left side: Image */}
           <div
             style={{
-              flex: 1,
+              flex: 1.1,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginRight: "48px",
+              marginRight: "56px",
             }}
           >
             {imageUrl ? (
@@ -161,6 +161,7 @@ export async function GET(_request: Request, { params }: Props) {
                 style={{
                   width: "100%",
                   height: "100%",
+                  maxHeight: "640px",
                   objectFit: "cover",
                   borderRadius: "16px",
                 }}
@@ -188,7 +189,7 @@ export async function GET(_request: Request, { params }: Props) {
           {/* Right side: Info */}
           <div
             style={{
-              flex: 1,
+              flex: 0.9,
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
@@ -199,15 +200,15 @@ export async function GET(_request: Request, { params }: Props) {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "16px",
+                gap: "20px",
               }}
             >
-              <div style={{ fontSize: 28, color: OG_COLORS.muted }}>
+              <div style={{ fontSize: 30, color: OG_COLORS.muted }}>
                 {`DROPOSAL #${proposal.proposalNumber}`}
               </div>
               <div
                 style={{
-                  fontSize: 48,
+                  fontSize: 52,
                   fontWeight: 700,
                   color: OG_COLORS.foreground,
                   lineHeight: 1.2,
@@ -220,9 +221,9 @@ export async function GET(_request: Request, { params }: Props) {
             {/* Description */}
             <div
               style={{
-                fontSize: 18,
+                fontSize: 20,
                 color: OG_COLORS.mutedLight,
-                marginBottom: "32px",
+                marginBottom: "40px",
                 lineHeight: 1.5,
               }}
             >
@@ -234,19 +235,19 @@ export async function GET(_request: Request, { params }: Props) {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "16px",
+                gap: "20px",
               }}
             >
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  fontSize: 18,
+                  fontSize: 20,
                   color: OG_COLORS.muted,
                 }}
               >
                 <div>Price</div>
-                <div style={{ fontSize: 24, fontWeight: 600, color: OG_COLORS.accent }}>
+                <div style={{ fontSize: 26, fontWeight: 600, color: OG_COLORS.accent }}>
                   {`${priceEth} ETH`}
                 </div>
               </div>
@@ -254,12 +255,12 @@ export async function GET(_request: Request, { params }: Props) {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  fontSize: 18,
+                  fontSize: 20,
                   color: OG_COLORS.muted,
                 }}
               >
                 <div>Edition Size</div>
-                <div style={{ fontSize: 24, fontWeight: 600, color: OG_COLORS.foreground }}>
+                <div style={{ fontSize: 26, fontWeight: 600, color: OG_COLORS.foreground }}>
                   {editionSize}
                 </div>
               </div>
@@ -268,10 +269,10 @@ export async function GET(_request: Request, { params }: Props) {
             {/* Footer */}
             <div
               style={{
-                fontSize: 16,
+                fontSize: 18,
                 color: OG_COLORS.muted,
                 marginTop: "auto",
-                paddingTop: "32px",
+                paddingTop: "40px",
               }}
             >
               gnars.com/droposals

@@ -104,15 +104,17 @@ function NogglesMarker({ x, y, isGreen = false }: { x: number; y: number; isGree
 }
 
 export async function GET() {
-  const mapWidth = size.width;
-  const mapHeight = size.height;
+  const mapInsetX = 40;
+  const mapInsetY = 60;
+  const mapWidth = size.width - mapInsetX * 2;
+  const mapHeight = size.height - mapInsetY * 2;
 
   // Calculate marker positions
   const markers = locations.map((loc, index) => {
     const { x, y } = latLngToXY(loc.position[0], loc.position[1], mapWidth, mapHeight);
     // Make some markers green (like the Brazil cluster in the screenshot)
     const isGreen = loc.label === "Aquario" || loc.label === "Sopa de Letras";
-    return { x, y, label: loc.label, isGreen, index };
+    return { x: x + mapInsetX, y: y + mapInsetY, label: loc.label, isGreen, index };
   });
 
   return new ImageResponse(
@@ -140,7 +142,11 @@ export async function GET() {
             width={mapWidth}
             height={mapHeight}
             viewBox={`0 0 ${mapWidth} ${mapHeight}`}
-            style={{ position: "absolute", inset: 0 }}
+            style={{
+              position: "absolute",
+              left: mapInsetX,
+              top: mapInsetY,
+            }}
           >
             {/* Ocean background */}
             <rect width="100%" height="100%" fill="#1a1a1a" />
@@ -226,16 +232,16 @@ export async function GET() {
         <div
           style={{
             position: "absolute",
-            bottom: 20,
-            left: 20,
+            bottom: 48,
+            left: 60,
             display: "flex",
             flexDirection: "column",
-            gap: 4,
+            gap: 6,
           }}
         >
           <div
             style={{
-              fontSize: 32,
+              fontSize: 36,
               fontWeight: 700,
               color: "#fff",
               display: "flex",
@@ -245,7 +251,7 @@ export async function GET() {
           </div>
           <div
             style={{
-              fontSize: 18,
+              fontSize: 20,
               color: "#888",
               display: "flex",
             }}
@@ -258,11 +264,11 @@ export async function GET() {
         <div
           style={{
             position: "absolute",
-            top: 20,
-            right: 20,
+            top: 48,
+            right: 60,
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: 10,
           }}
         >
           <div style={{ display: "flex" }}>

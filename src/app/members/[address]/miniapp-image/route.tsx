@@ -68,7 +68,7 @@ export async function GET(_request: Request, { params }: Props) {
             display: "flex",
             flexDirection: "column",
             backgroundColor: "#000",
-            padding: "60px",
+            padding: "80px",
             fontFamily: "system-ui, -apple-system, sans-serif",
           }}
         >
@@ -77,18 +77,18 @@ export async function GET(_request: Request, { params }: Props) {
             style={{
               display: "flex",
               alignItems: "center",
-              marginBottom: "48px",
+              marginBottom: "56px",
             }}
           >
             {avatar && (
               <img
                 src={avatar}
                 alt={displayName}
-                width={120}
-                height={120}
+                width={140}
+                height={140}
                 style={{
-                  borderRadius: "60px",
-                  marginRight: "32px",
+                  borderRadius: "70px",
+                  marginRight: "36px",
                   border: "4px solid #333",
                 }}
               />
@@ -97,15 +97,15 @@ export async function GET(_request: Request, { params }: Props) {
               <div
                 style={{
                   display: "flex",
-                  fontSize: 56,
+                  fontSize: 60,
                   fontWeight: 700,
                   color: "#fff",
-                  marginBottom: "8px",
+                  marginBottom: "10px",
                 }}
               >
                 {displayName}
               </div>
-              <div style={{ display: "flex", fontSize: 28, color: "#888" }}>
+              <div style={{ display: "flex", fontSize: 30, color: "#888" }}>
                 {address.slice(0, 8)}...{address.slice(-6)}
               </div>
             </div>
@@ -115,7 +115,7 @@ export async function GET(_request: Request, { params }: Props) {
           <div
             style={{
               display: "flex",
-              gap: "24px",
+              gap: "28px",
               flex: 1,
             }}
           >
@@ -126,16 +126,16 @@ export async function GET(_request: Request, { params }: Props) {
                 backgroundColor: "#111",
                 borderRadius: "16px",
                 border: "2px solid #222",
-                padding: "32px",
+                padding: "36px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
               }}
             >
-              <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "16px" }}>
+              <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "20px" }}>
                 Gnars Held
               </div>
-              <div style={{ display: "flex", fontSize: 72, fontWeight: 700, color: "#fff" }}>
+              <div style={{ display: "flex", fontSize: 76, fontWeight: 700, color: "#fff" }}>
                 {tokenCount}
               </div>
             </div>
@@ -147,7 +147,7 @@ export async function GET(_request: Request, { params }: Props) {
                 backgroundColor: "#111",
                 borderRadius: "16px",
                 border: "2px solid #222",
-                padding: "32px",
+                padding: "36px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
@@ -156,7 +156,7 @@ export async function GET(_request: Request, { params }: Props) {
               <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "24px" }}>
                 Delegation
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", fontSize: 22, color: "#aaa" }}>Delegates to</div>
                   <div style={{ display: "flex", fontSize: 22, color: "#fff", fontWeight: 600 }}>
@@ -179,7 +179,7 @@ export async function GET(_request: Request, { params }: Props) {
                 backgroundColor: "#111",
                 borderRadius: "16px",
                 border: "2px solid #222",
-                padding: "32px",
+                padding: "36px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
@@ -188,7 +188,7 @@ export async function GET(_request: Request, { params }: Props) {
               <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "24px" }}>
                 Activity
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", fontSize: 22, color: "#aaa" }}>Votes</div>
                   <div style={{ display: "flex", fontSize: 22, color: "#fff", fontWeight: 600 }}>
@@ -206,7 +206,7 @@ export async function GET(_request: Request, { params }: Props) {
                   backgroundColor: "#111",
                   borderRadius: "16px",
                   border: "2px solid #fbbf24",
-                  padding: "32px",
+                  padding: "36px",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
@@ -228,11 +228,11 @@ export async function GET(_request: Request, { params }: Props) {
                     ZORA
                   </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <div style={{ display: "flex", fontSize: 48, fontWeight: 700, color: "#fff" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div style={{ display: "flex", fontSize: 52, fontWeight: 700, color: "#fff" }}>
                     {marketCapFormatted}
                   </div>
-                  <div style={{ display: "flex", fontSize: 18, color: deltaFormatted.color }}>
+                  <div style={{ display: "flex", fontSize: 20, color: deltaFormatted.color }}>
                     {deltaFormatted.text}
                   </div>
                 </div>
@@ -243,12 +243,12 @@ export async function GET(_request: Request, { params }: Props) {
           {/* Footer */}
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginTop: "48px",
-            }}
-          >
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginTop: "56px",
+          }}
+        >
             <div style={{ fontSize: 24, color: "#666" }}>Gnars DAO</div>
             <div style={{ fontSize: 20, color: "#666" }}>gnars.com</div>
           </div>

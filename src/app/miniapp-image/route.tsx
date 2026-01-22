@@ -23,18 +23,18 @@ export async function GET() {
           justifyContent: "center",
           backgroundColor: OG_COLORS.background,
           fontFamily: OG_FONTS.family,
-          padding: "60px",
+          padding: "80px",
         }}
       >
         <img
           src={logoUrl}
           alt="Gnars logo"
-          width={200}
-          height={200}
+          width={220}
+          height={220}
           style={{
-            width: 200,
-            height: 200,
-            marginBottom: "32px",
+            width: 220,
+            height: 220,
+            marginBottom: "40px",
             objectFit: "cover",
             backgroundColor: OG_COLORS.card,
           }}
@@ -43,10 +43,10 @@ export async function GET() {
         {/* Title */}
         <div
           style={{
-            fontSize: 72,
+            fontSize: 76,
             fontWeight: 700,
             color: OG_COLORS.foreground,
-            marginBottom: "16px",
+            marginBottom: "20px",
           }}
         >
           Gnars DAO
@@ -55,9 +55,11 @@ export async function GET() {
         {/* Tagline */}
         <div
           style={{
-            fontSize: 32,
+            fontSize: 34,
             color: OG_COLORS.muted,
             textAlign: "center",
+            maxWidth: "900px",
+            lineHeight: 1.3,
           }}
         >
           {DAO_DESCRIPTION}
@@ -67,8 +69,8 @@ export async function GET() {
         <div
           style={{
             position: "absolute",
-            bottom: "40px",
-            right: "60px",
+            bottom: "48px",
+            right: "80px",
             fontSize: 24,
             color: OG_COLORS.muted,
           }}
