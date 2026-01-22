@@ -10,14 +10,22 @@ import { MemberProposalsGrid } from "@/components/members/detail/MemberProposals
 import { MemberQuickStats } from "@/components/members/detail/MemberQuickStats";
 import { MemberTokensGrid } from "@/components/members/detail/MemberTokensGrid";
 import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
+import { FarcasterProfileSummary } from "@/components/members/FarcasterProfileSummary";
 import { type Proposal as UiProposal } from "@/components/proposals/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProfileCoins } from "@/hooks/use-profile-coins";
 import { useZoraProfile } from "@/hooks/use-zora-profile";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { resolveENS } from "@/lib/ens";
 import { getProposalStatus } from "@/lib/schemas/proposals";
-import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
+import type { FarcasterProfile } from "@/services/farcaster";
+import {
+  fetchDelegators,
+  fetchMemberOverview,
+  fetchMemberVotes,
+  type MemberListItem,
+} from "@/services/members";
 
 interface MemberDetailProps {
   address: string;
@@ -40,6 +48,24 @@ export function MemberDetail({ address }: MemberDetailProps) {
   };
   const [votes, setVotes] = useState<VoteItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [farcasterProfile, setFarcasterProfile] = useState<FarcasterProfile | null>(null);
+  const [farcasterLoading, setFarcasterLoading] = useState(true);
+
+  async function fetchMemberFarcasterProfile(
+    targetAddress: string,
+  ): Promise<FarcasterProfile | null> {
+    const url = new URL("/api/members", window.location.origin);
+    url.searchParams.set("search", targetAddress);
+    const res = await fetch(url.toString(), { cache: "no-store" });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch members: ${res.status}`);
+    }
+    const json = (await res.json()) as { members: MemberListItem[] };
+    const match = json.members.find(
+      (member) => member.owner.toLowerCase() === targetAddress.toLowerCase(),
+    );
+    return match?.farcaster ?? null;
+  }
 
   // Fetch Zora profile data
   const { data: zoraProfile } = useZoraProfile(address);
@@ -150,6 +176,28 @@ export function MemberDetail({ address }: MemberDetailProps) {
     };
   }, [address]);
 
+  useEffect(() => {
+    let mounted = true;
+    async function loadFarcaster() {
+      try {
+        setFarcasterLoading(true);
+        const profile = await fetchMemberFarcasterProfile(address);
+        if (!mounted) return;
+        setFarcasterProfile(profile);
+      } catch (err) {
+        console.error("Failed to load Farcaster profile", err);
+        if (!mounted) return;
+        setFarcasterProfile(null);
+      } finally {
+        if (mounted) setFarcasterLoading(false);
+      }
+    }
+    loadFarcaster();
+    return () => {
+      mounted = false;
+    };
+  }, [address]);
+
   // ENS name + avatar (non-blocking, best-effort) - uses cached ENS API
   useEffect(() => {
     let ignore = false;
@@ -192,6 +240,20 @@ export function MemberDetail({ address }: MemberDetailProps) {
         ensAvatar={ensAvatar}
         zoraAvatar={zoraProfile?.avatar?.medium ?? null}
       />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Farcaster</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FarcasterProfileSummary
+            profile={farcasterProfile}
+            loading={farcasterLoading}
+            size="md"
+            bioLines={2}
+          />
+        </CardContent>
+      </Card>
 
       {/* Quick stats */}
       <MemberQuickStats

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
+import { fetchFarcasterProfilesByAddress } from "@/services/farcaster";
 import {
   fetchActiveVotesForVoters,
   fetchAllMembers,
@@ -18,11 +19,18 @@ const getCachedMembers = unstable_cache(
   async (): Promise<MemberListItem[]> => {
     const members = await fetchAllMembers();
     const owners = members.map((m) => m.owner);
-    const [votesCountMap, activeVotesMap, nonCanceledCount, voteSupportMap] = await Promise.all([
+    const [
+      votesCountMap,
+      activeVotesMap,
+      nonCanceledCount,
+      voteSupportMap,
+      farcasterProfiles,
+    ] = await Promise.all([
       fetchVotesCountForVoters(owners),
       fetchActiveVotesForVoters(owners),
       fetchNonCanceledProposalsCount(),
       fetchVoteSupportForVoters(owners),
+      fetchFarcasterProfilesByAddress(owners),
     ]);
 
     return members.map((m) => {
@@ -39,6 +47,7 @@ const getCachedMembers = unstable_cache(
         activeVotes,
         attendancePct,
         likePct,
+        farcaster: farcasterProfiles[key] ?? null,
       };
     });
   },

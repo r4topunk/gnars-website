@@ -1,5 +1,6 @@
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
+import type { FarcasterProfile } from "@/services/farcaster";
 
 // Helper to delay between batched queries to avoid rate limits
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -279,6 +280,7 @@ export type MemberListItem = {
   attendancePct?: number;
   // Percentage of FOR votes among the member's cast votes (0-100)
   likePct?: number;
+  farcaster?: FarcasterProfile | null;
 };
 
 type DaoMembersPageQuery = {
