@@ -1,0 +1,238 @@
+import { ImageResponse } from "next/og";
+import { getProposalByIdOrNumber } from "@/services/proposals";
+import {
+  MINIAPP_SIZE,
+  OG_COLORS,
+  OG_FONTS,
+  formatVotes,
+  getStatusColor,
+  shortenAddress,
+  truncateText,
+} from "@/lib/og-utils";
+import { NogglesIcon } from "@/lib/og-brand";
+
+export const alt = "Gnars DAO Proposal";
+export const size = MINIAPP_SIZE;
+export const contentType = "image/png";
+export const revalidate = 60;
+export const runtime = "nodejs";
+
+interface Props {
+  params: Promise<{ id: string }>;
+}
+
+export async function GET(_request: Request, { params }: Props) {
+  const { id } = await params;
+
+  try {
+    const proposal = await getProposalByIdOrNumber(id);
+
+    if (!proposal) {
+      return renderFallback("Proposal Not Found");
+    }
+
+    const status = proposal.status || "Unknown";
+    const statusColor = getStatusColor(status);
+    const totalVotes =
+      Number(proposal.forVotes ?? 0) +
+      Number(proposal.againstVotes ?? 0) +
+      Number(proposal.abstainVotes ?? 0);
+    const quorumVotes = Number(proposal.quorumVotes ?? 0);
+    const quorumPercent =
+      Number.isFinite(quorumVotes) && quorumVotes > 0
+        ? Math.round((totalVotes / quorumVotes) * 100)
+        : 0;
+    const proposerLabel = shortenAddress(proposal.proposer ?? "");
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: OG_COLORS.background,
+            fontFamily: OG_FONTS.family,
+            padding: "80px",
+          }}
+        >
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "baseline", gap: "28px", marginBottom: "40px" }}>
+            <div
+              style={{
+                fontSize: 52,
+                fontWeight: 700,
+                color: OG_COLORS.foreground,
+                display: "flex",
+              }}
+            >
+              {`Proposal #${proposal.proposalNumber}`}
+            </div>
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 600,
+                color: statusColor,
+                backgroundColor: `${statusColor}20`,
+                padding: "8px 16px",
+                borderRadius: "8px",
+              }}
+            >
+              {status}
+            </div>
+          </div>
+
+          {/* Title */}
+          <div
+            style={{
+              fontSize: 38,
+              fontWeight: 600,
+              color: OG_COLORS.foreground,
+              marginBottom: "48px",
+              maxWidth: "100%",
+              lineHeight: 1.3,
+            }}
+          >
+            {truncateText(proposal.title, 80)}
+          </div>
+
+          {/* Vote Grid */}
+          <div
+            style={{
+              display: "flex",
+              gap: "32px",
+              flex: 1,
+              marginBottom: "48px",
+            }}
+          >
+            {/* FOR Votes */}
+            <div
+              style={{
+                flex: 1,
+                backgroundColor: OG_COLORS.card,
+                borderRadius: "16px",
+                border: `2px solid ${OG_COLORS.accent}`,
+                padding: "36px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ fontSize: 24, color: OG_COLORS.muted, marginBottom: "20px" }}>
+                FOR
+              </div>
+              <div style={{ fontSize: 52, fontWeight: 700, color: OG_COLORS.accent }}>
+                {formatVotes(proposal.forVotes)}
+              </div>
+            </div>
+
+            {/* AGAINST Votes */}
+            <div
+              style={{
+                flex: 1,
+                backgroundColor: OG_COLORS.card,
+                borderRadius: "16px",
+                border: `2px solid ${OG_COLORS.destructive}`,
+                padding: "36px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ fontSize: 24, color: OG_COLORS.muted, marginBottom: "20px" }}>
+                AGAINST
+              </div>
+              <div style={{ fontSize: 52, fontWeight: 700, color: OG_COLORS.destructive }}>
+                {formatVotes(proposal.againstVotes)}
+              </div>
+            </div>
+
+            {/* ABSTAIN Votes */}
+            <div
+              style={{
+                flex: 1,
+                backgroundColor: OG_COLORS.card,
+                borderRadius: "16px",
+                border: `2px solid ${OG_COLORS.blue}`,
+                padding: "36px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ fontSize: 24, color: OG_COLORS.muted, marginBottom: "20px" }}>
+                ABSTAIN
+              </div>
+              <div style={{ fontSize: 52, fontWeight: 700, color: OG_COLORS.blue }}>
+                {formatVotes(proposal.abstainVotes)}
+              </div>
+            </div>
+          </div>
+
+          {/* Proposer and Quorum */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "36px",
+              fontSize: 20,
+              color: OG_COLORS.muted,
+            }}
+          >
+            <div style={{ display: "flex" }}>{`Proposer: ${proposerLabel}`}</div>
+            <div style={{ display: "flex" }}>{`Quorum: ${quorumPercent}%`}</div>
+          </div>
+
+          {/* Footer */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: "auto",
+              paddingTop: "36px",
+              fontSize: 22,
+              color: OG_COLORS.muted,
+            }}
+          >
+            <div>Gnars DAO</div>
+            <div>gnars.com/proposals</div>
+          </div>
+        </div>
+      ),
+      { ...size },
+    );
+  } catch (error) {
+    console.error("[proposals OG] error:", error);
+    return renderFallback("Error generating image");
+  }
+}
+
+function renderFallback(message: string) {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: OG_COLORS.background,
+          fontFamily: OG_FONTS.family,
+          flexDirection: "column",
+        }}
+      >
+        <div style={{ display: "flex", marginBottom: "16px" }}>
+          <NogglesIcon color={OG_COLORS.accent} width={180} />
+        </div>
+        <div style={{ fontSize: 40, color: OG_COLORS.foreground, textAlign: "center" }}>
+          {message}
+        </div>
+      </div>
+    ),
+    { ...size },
+  );
+}
