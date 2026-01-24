@@ -142,14 +142,39 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             throw new Error("Canvas not supported");
           }
 
-          // Set canvas size to video size
-          canvas.width = video.videoWidth || 640;
-          canvas.height = video.videoHeight || 480;
+          // Set canvas size - scale down to reasonable thumbnail size to prevent payload too large errors
+          const videoWidth = video.videoWidth || 640;
+          const videoHeight = video.videoHeight || 480;
+          
+          // Max dimensions for thumbnail (1280x720 should be plenty for a thumbnail)
+          const maxWidth = 1280;
+          const maxHeight = 720;
+          
+          let canvasWidth = videoWidth;
+          let canvasHeight = videoHeight;
+          
+          // Scale down if needed while maintaining aspect ratio
+          if (canvasWidth > maxWidth || canvasHeight > maxHeight) {
+            const aspectRatio = videoWidth / videoHeight;
+            
+            if (aspectRatio > maxWidth / maxHeight) {
+              // Width is the limiting factor
+              canvasWidth = maxWidth;
+              canvasHeight = Math.round(maxWidth / aspectRatio);
+            } else {
+              // Height is the limiting factor
+              canvasHeight = maxHeight;
+              canvasWidth = Math.round(maxHeight * aspectRatio);
+            }
+          }
+          
+          canvas.width = canvasWidth;
+          canvas.height = canvasHeight;
 
-          // Draw current frame
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          // Draw current frame (scaled to canvas size)
+          ctx.drawImage(video, 0, 0, canvasWidth, canvasHeight);
 
-          // Convert to blob
+          // Convert to blob with lower quality for thumbnails to reduce file size
           return new Promise((resolve, reject) => {
             canvas.toBlob(
               (blob) => {
@@ -163,7 +188,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
                 }
               },
               "image/jpeg",
-              0.8,
+              0.65,
             );
           });
         },
