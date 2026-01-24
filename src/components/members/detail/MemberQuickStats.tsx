@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, TrendingDown, TrendingUp } from "lucide-react";
+import { ExternalLink, TrendingDown, TrendingUp, Minus, Plus } from "lucide-react";
+import { FaEthereum } from "react-icons/fa";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,9 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useTradeCreatorCoin } from "@/hooks/use-trade-creator-coin";
+import { useEthPrice, formatEthToUsd } from "@/hooks/use-eth-price";
 import type { ZoraProfile } from "@/hooks/use-zora-profile";
 
 interface OverviewLike {
@@ -66,8 +66,9 @@ export function MemberQuickStats({
   zoraProfile,
 }: MemberQuickStatsProps) {
   const [showBuyModal, setShowBuyModal] = useState(false);
-  const [ethAmount, setEthAmount] = useState("0.001");
+  const [ethAmount, setEthAmount] = useState(0.001);
   const { buyCreatorCoin, isTrading } = useTradeCreatorCoin();
+  const { ethPrice } = useEthPrice();
 
   const isSelfDelegating = overview.delegate.toLowerCase() === address.toLowerCase();
   const delegatedToAnother = !isSelfDelegating;
@@ -76,18 +77,21 @@ export function MemberQuickStats({
   const marketCapFormatted = formatMarketCap(zoraProfile?.creatorCoin?.marketCap);
   const deltaInfo = formatDelta(zoraProfile?.creatorCoin?.marketCapDelta24h);
 
+  const incrementAmount = () => setEthAmount((prev) => Math.min(prev + 0.001, 10));
+  const decrementAmount = () => setEthAmount((prev) => Math.max(prev - 0.001, 0.001));
+
   const handleBuy = async () => {
     if (!zoraProfile?.creatorCoin?.address) return;
 
     try {
       const success = await buyCreatorCoin({
         creatorCoinAddress: zoraProfile.creatorCoin.address,
-        amountInEth: ethAmount,
+        amountInEth: ethAmount.toString(),
       });
 
       if (success) {
         setShowBuyModal(false);
-        setEthAmount("0.001");
+        setEthAmount(0.001);
       }
     } catch (error) {
       console.error("Error in handleBuy:", error);
@@ -202,7 +206,7 @@ export function MemberQuickStats({
 
       {/* Buy Creator Token Modal */}
       <Dialog open={showBuyModal} onOpenChange={setShowBuyModal}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Buy Creator Token</DialogTitle>
             <DialogDescription>
@@ -210,28 +214,80 @@ export function MemberQuickStats({
               token with ETH
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="eth-amount">Amount (ETH)</Label>
-              <Input
-                id="eth-amount"
-                type="number"
-                step="0.001"
-                min="0.001"
-                value={ethAmount}
-                onChange={(e) => setEthAmount(e.target.value)}
-                placeholder="0.001"
-              />
-              <p className="text-xs text-muted-foreground">Market Cap: {marketCapFormatted}</p>
+          <div className="space-y-6 py-4">
+            {/* Amount Display Card */}
+            <div className="bg-zinc-900 rounded-2xl p-6 space-y-4">
+              {/* ETH Amount with controls */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={decrementAmount}
+                  disabled={ethAmount <= 0.001}
+                  className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                >
+                  <Minus className="w-5 h-5 text-white" />
+                </button>
+                
+                <div className="flex items-center gap-3">
+                  <span className="text-4xl font-bold text-white tabular-nums">
+                    {ethAmount.toFixed(3)}
+                  </span>
+                  <div className="flex items-center gap-1.5 bg-zinc-800 px-3 py-1.5 rounded-full">
+                    <FaEthereum className="w-4 h-4 text-blue-400" />
+                    <span className="text-white font-medium text-sm">ETH</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={incrementAmount}
+                  disabled={ethAmount >= 10}
+                  className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                >
+                  <Plus className="w-5 h-5 text-white" />
+                </button>
+              </div>
+
+              {/* USD Conversion */}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-zinc-400">
+                  {formatEthToUsd(ethAmount, ethPrice)}
+                </span>
+                <span className="text-zinc-500 tabular-nums">
+                  {ethAmount.toFixed(6)} ETH
+                </span>
+              </div>
             </div>
+
+            {/* Quick Amount Buttons */}
             <div className="flex gap-2">
+              {[0.001, 0.005, 0.01, 0.05, 0.1].map((amount) => (
+                <button
+                  key={amount}
+                  onClick={() => setEthAmount(amount)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                    ethAmount === amount
+                      ? "bg-yellow-500 text-black"
+                      : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                  }`}
+                >
+                  {amount}
+                </button>
+              ))}
+            </div>
+
+            {/* Market Cap Info */}
+            <p className="text-xs text-muted-foreground text-center">
+              Market Cap: {marketCapFormatted}
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
               <Button variant="outline" onClick={() => setShowBuyModal(false)} className="flex-1">
                 Cancel
               </Button>
               <Button
                 onClick={handleBuy}
-                disabled={isTrading || !ethAmount || parseFloat(ethAmount) <= 0}
-                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black"
+                disabled={isTrading || ethAmount <= 0}
+                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
               >
                 {isTrading ? "Buying..." : "Buy"}
               </Button>
