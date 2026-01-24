@@ -16,7 +16,7 @@ export default async function Image({ params }: Props) {
 
   try {
     // Fetch member data from API route to avoid edge runtime issues
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com";
     const response = await fetch(`${baseUrl}/api/member-og-data/${address}`, {
       cache: "no-store",
     });

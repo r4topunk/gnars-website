@@ -76,5 +76,4 @@ export const TREASURY_TOKEN_ALLOWLIST = {
 
 export const TREASURY_TOKEN_ADDRESSES = Object.values(TREASURY_TOKEN_ALLOWLIST);
 
-export const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://gnars-shadcn.vercel.app";
+export const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com";
