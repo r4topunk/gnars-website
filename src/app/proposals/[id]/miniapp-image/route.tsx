@@ -14,7 +14,7 @@ export const alt = "Gnars DAO Proposal";
 export const size = MINIAPP_SIZE;
 export const contentType = "image/png";
 export const revalidate = 60;
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 interface Props {
   params: Promise<{ id: string }>;
