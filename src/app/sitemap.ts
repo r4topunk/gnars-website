@@ -7,6 +7,7 @@ import { listProposals } from "@/services/proposals";
 import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 
 export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
 type ProposalList = Awaited<ReturnType<typeof listProposals>>;
