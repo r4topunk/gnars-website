@@ -127,7 +127,6 @@ export async function GET(_request: Request, { params }: Props) {
     const priceEth = decoded?.saleConfig?.publicSalePrice
       ? formatEthDisplay(formatEther(decoded.saleConfig.publicSalePrice))
       : "Free";
-    const editionSize = decoded?.editionSize || "Unlimited";
     const description = decoded?.collectionDescription || proposal.description || "NFT Drop";
 
     return new ImageResponse(
@@ -249,19 +248,6 @@ export async function GET(_request: Request, { params }: Props) {
                 <div>Price</div>
                 <div style={{ fontSize: 26, fontWeight: 600, color: OG_COLORS.accent }}>
                   {`${priceEth} ETH`}
-                </div>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 20,
-                  color: OG_COLORS.muted,
-                }}
-              >
-                <div>Edition Size</div>
-                <div style={{ fontSize: 26, fontWeight: 600, color: OG_COLORS.foreground }}>
-                  {editionSize}
                 </div>
               </div>
             </div>

@@ -4,13 +4,14 @@ import { createPublicClient, http, parseAbi } from "viem";
 import { base } from "viem/chains";
 import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 import { fetchDroposals } from "@/services/droposals";
+import { GNARS_CREATOR_COIN, GNARS_ADDRESSES, GNARS_ZORA_HANDLE } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
-// Gnars addresses
-const GNARS_COIN_ADDRESS = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
-const GNARS_NFT_ADDRESS = "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17";
-const GNARS_PROFILE_HANDLE = "gnars";
+// Gnars addresses (use centralized config)
+const GNARS_COIN_ADDRESS = GNARS_CREATOR_COIN;
+const GNARS_NFT_ADDRESS = GNARS_ADDRESSES.token;
+const GNARS_PROFILE_HANDLE = GNARS_ZORA_HANDLE;
 
 // Minimum requirements
 const MIN_COIN_BALANCE = 300_000;

@@ -29,6 +29,10 @@ export const ZORA_CREATOR = {
 // This is the official GNARS creator coin on Base used for pairing content coins
 export const GNARS_CREATOR_COIN = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b" as const;
 
+// Gnars Zora profile handle - used by SDK to resolve the GNARS creator coin
+// The SDK expects a profile identifier (handle or wallet), not the token address directly
+export const GNARS_ZORA_HANDLE = "gnars" as const;
+
 // Zora Factory contract on Base
 export const ZORA_FACTORY_ADDRESS = "0x777777751622c0d3258f214F9DF38E35BF45baF3" as const;
 

@@ -11,7 +11,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Address, Hex, decodeEventLog } from "viem";
+import { Address, Hex, decodeEventLog, encodeFunctionData, keccak256, toBytes } from "viem";
 import {
   useAccount,
   useSendTransaction,
@@ -19,9 +19,10 @@ import {
 } from "wagmi";
 import {
   zoraFactoryAbi,
-  GNARS_CREATOR_COIN,
+  ZORA_FACTORY_ADDRESS,
 } from "@/lib/zora/factoryAbi";
-import { PLATFORM_REFERRER } from "@/lib/config";
+import { PLATFORM_REFERRER, GNARS_CREATOR_COIN } from "@/lib/config";
+import { encodeContentPoolConfigForCreator } from "@/lib/zora/poolConfig";
 import {
   createMetadataBuilder,
   createZoraUploaderForCreator,
@@ -305,63 +306,100 @@ export function useCreateCoin() {
       const finalPlatformReferrer = platformReferrer || PLATFORM_REFERRER;
       const additionalOwners = owners && owners.length > 0 ? owners : undefined;
 
-      // Determine which creator coin to use based on user selection
-      // When useUserCreatorCoin is true, validate user has a creator coin before proceeding
-      let selectedCreator: Address;
-      
+      let to: Address;
+      let data: Hex;
+      let value: bigint;
+
       if (useUserCreatorCoin && userAddress) {
+        // User wants to pair with their OWN creator coin
+        // Use SDK which handles looking up their creator coin
         console.log("[createCoin] User selected their creator coin, validating...");
         
         // Validate that user actually has a deployed creator coin
         const creatorCoinCheck = await checkHasCreatorCoin(userAddress);
         
-        if (creatorCoinCheck?.hasCreatorCoin) {
-          console.log("[createCoin] ✅ Creator coin validated, using user's creator coin");
-          selectedCreator = userAddress; // SDK will resolve to their creator coin
-        } else {
+        if (!creatorCoinCheck?.hasCreatorCoin) {
           console.error("[createCoin] ❌ User selected creator coin but none exists");
           throw new Error(
             "You don't have a creator coin deployed. Please deploy a creator coin first or use $GNARS backing."
           );
         }
+        
+        console.log("[createCoin] ✅ Creator coin validated, using SDK with user's address");
+
+        // Use SDK for user's own creator coin - SDK will resolve their creator coin
+        const sdkArgs: CreateCoinArgs = {
+          creator: userAddress,
+          name,
+          symbol,
+          metadata: {
+            type: "RAW_URI",
+            uri: metadataUri,
+          },
+          currency: "CREATOR_COIN",
+          chainId: 8453, // Base
+          startingMarketCap,
+          platformReferrer: finalPlatformReferrer,
+          additionalOwners,
+          payoutRecipientOverride: finalPayoutRecipient !== userAddress ? finalPayoutRecipient : undefined,
+        };
+
+        const txParams = await createCoinCall(sdkArgs);
+
+        if (!txParams || txParams.length === 0) {
+          throw new Error("Failed to generate transaction parameters from SDK");
+        }
+
+        ({ to, data, value } = txParams[0]!);
       } else {
-        console.log("[createCoin] Using GNARS creator coin as backing currency");
-        selectedCreator = GNARS_CREATOR_COIN;
+        // User wants to pair with GNARS creator coin
+        // Use DIRECT CONTRACT CALL to specify exact backing currency
+        // This allows: user's profile as owner + GNARS as backing currency
+        console.log("[createCoin] Using direct contract call with GNARS creator coin backing");
+        console.log("[createCoin] Payout recipient:", finalPayoutRecipient);
+        console.log("[createCoin] Backing currency:", GNARS_CREATOR_COIN);
+
+        // Encode pool config with GNARS creator coin as backing currency
+        const poolConfig = encodeContentPoolConfigForCreator(GNARS_CREATOR_COIN);
+
+        // Generate deterministic salt based on user, name, and symbol
+        const coinSalt = keccak256(
+          toBytes(`${userAddress}-${name}-${symbol}-${Date.now()}`)
+        );
+
+        // Build owners array: user address + any additional owners
+        const ownersArray: Address[] = additionalOwners 
+          ? [userAddress, ...additionalOwners]
+          : [userAddress];
+
+        // Encode the deploy function call
+        data = encodeFunctionData({
+          abi: zoraFactoryAbi,
+          functionName: "deploy",
+          args: [
+            finalPayoutRecipient,                                  // payoutRecipient
+            ownersArray,                                           // owners[]
+            metadataUri,                                           // uri
+            name,                                                  // name
+            symbol,                                                // symbol
+            poolConfig,                                            // poolConfig (GNARS backing)
+            finalPlatformReferrer,                                 // platformReferrer
+            "0x0000000000000000000000000000000000000000" as Address, // postDeployHook (none)
+            "0x" as Hex,                                           // postDeployHookData (empty)
+            coinSalt,                                              // coinSalt
+          ],
+        });
+
+        to = ZORA_FACTORY_ADDRESS;
+        value = 0n;
       }
 
-      // Use SDK's createCoinCall to get validated transaction parameters
-      // This handles pool configuration, parameter encoding, and API communication
-      const sdkArgs: CreateCoinArgs = {
-        creator: selectedCreator,
-        name,
-        symbol,
-        metadata: {
-          type: "RAW_URI",
-          uri: metadataUri,
-        },
-        currency: "CREATOR_COIN",
-        chainId: 8453, // Base
-        startingMarketCap,
-        platformReferrer: finalPlatformReferrer,
-        additionalOwners,
-        payoutRecipientOverride: finalPayoutRecipient !== userAddress ? finalPayoutRecipient : undefined,
-      };
-
-      console.log("Creator Coin:", selectedCreator);
-
-      const txParams = await createCoinCall(sdkArgs);
-
-      if (!txParams || txParams.length === 0) {
-        throw new Error("Failed to generate transaction parameters from SDK");
-      }
-
-      // Use the first transaction (SDK returns an array but we only need one for content coins)
-      const { to, data, value } = txParams[0]!;
+      console.log("[createCoin] Transaction params:", { to, value: value.toString() });
 
       // Clear preparing state as wallet interaction begins
       setIsPreparingTransaction(false);
 
-      // Deploy the coin using SDK-generated parameters
+      // Deploy the coin
       sendTransaction({
         to,
         data,

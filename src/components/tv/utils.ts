@@ -9,12 +9,11 @@
 
 import type { CoinMedia, CoinNode, TVItem } from "./types";
 import type { DroposalListItem } from "@/services/droposals";
+import { GNARS_ADDRESSES, GNARS_CREATOR_COIN, GNARS_ZORA_HANDLE } from "@/lib/config";
 
-// Gnars-related contract addresses
-export const GNARS_TREASURY = "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88";
-// Gnars Zora handle (has creator coin holdings)
-export const GNARS_ZORA_HANDLE = "gnars";
-export const GNARS_CREATOR_COIN = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
+// Re-export for convenience
+export const GNARS_TREASURY = GNARS_ADDRESSES.treasury;
+export { GNARS_CREATOR_COIN, GNARS_ZORA_HANDLE };
 export const SKATEHIVE_REFERRER = "0xb4964e1eca55db36a94e8aeffbfbab48529a2f6c";
 
 // Broken droposal contracts to exclude from TV feed
