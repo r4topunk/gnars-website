@@ -1,4 +1,4 @@
-import { createPublicClient, http, formatEther } from "viem";
+import { createPublicClient, http } from "viem";
 import { base } from "viem/chains";
 
 const GNARS_TOKEN = "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17";
