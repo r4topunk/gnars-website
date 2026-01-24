@@ -24,6 +24,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Gnars DAO",
   description: "Nounish Open Source Action Sports Brand experiment",
+  verification: {
+    google: "1CaAKNV0z6Oeq0cV7COlSbEk9ejpucay2WH_X2AtkLI",
+  },
   // Open Graph metadata for social sharing
   openGraph: {
     title: "Gnars DAO",
