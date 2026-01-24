@@ -24,7 +24,7 @@ const COIN_PAGE_SIZE = 200;
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://gnars.com");
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://gnars.com");
 
 const toUrl = (path: string) => new URL(path, `${SITE_URL.replace(/\/+$/, "")}/`).toString();
 
