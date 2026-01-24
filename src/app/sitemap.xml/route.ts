@@ -167,6 +167,12 @@ export async function GET(): Promise<Response> {
       priority: 1,
     },
     {
+      url: toUrl("/about"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
       url: toUrl("/auctions"),
       lastModified: now,
       changeFrequency: "daily",

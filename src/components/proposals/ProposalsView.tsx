@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { ProposalsGrid } from "@/components/proposals/ProposalsGrid";
 import { Proposal } from "@/components/proposals/types";
@@ -55,13 +56,26 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 className="text-3xl font-bold tracking-tight mb-2">Proposals</h1>
           <p className="text-muted-foreground">
-            View and participate in Gnars DAO governance proposals
+            Proposals are how the community funds skateboarding projects, media, and public work.
+            This is where skateboarding grants and skateboarding funding decisions are proposed,
+            discussed, and voted on.
+          </p>
+          <p className="text-muted-foreground mt-2">
+            New here? Read{" "}
+            <Link href="/about" className="text-foreground underline underline-offset-4">
+              what Gnars is
+            </Link>{" "}
+            or see how{" "}
+            <Link href="/auctions" className="text-foreground underline underline-offset-4">
+              auctions support skate culture
+            </Link>
+            .
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <Input
             type="text"
             placeholder="Search proposals..."

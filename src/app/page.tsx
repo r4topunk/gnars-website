@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { FAQ } from "@/components/common/FAQ";
 import { ContractsList } from "@/components/contracts-list";
@@ -16,6 +18,15 @@ import { Gnar3DTVClient } from "@/components/tv/Gnar3DTVClient";
 
 export const revalidate = 60;
 
+export const metadata: Metadata = {
+  title: "Gnars — Community-Owned Skateboarding DAO",
+  description:
+    "Gnars is a community-owned skateboarding DAO funding skate culture worldwide through auctions, proposals, and grants.",
+  alternates: {
+    canonical: "/",
+  },
+};
+
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
@@ -30,6 +41,9 @@ export default function Home() {
                   <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
                     <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
                       Gnars DAO
+                    </span>
+                    <span className="sr-only">
+                      Gnars is a community-owned skateboarding DAO funding skate culture worldwide.
                     </span>
                   </h1>
                   <AnimatedDescription />
@@ -52,6 +66,26 @@ export default function Home() {
 
       {/* Dashboard Grid */}
       <div className="flex flex-1 flex-col gap-6 py-8">
+        {/* SEO-only context */}
+        <section className="sr-only">
+          <h2>What is Gnars?</h2>
+          <p>
+            Gnars is a skateboarding collective and community-owned skate brand. We support skaters,
+            filmmakers, designers, and DIY projects by voting on proposals and funding them with
+            community resources.
+          </p>
+          <p>
+            If you care about skateboarding culture and want it funded by the people who live it,
+            you&apos;re in the right place.
+          </p>
+          <p>
+            Learn more about{" "}
+            <Link href="/about">the Gnars skateboarding collective</Link>, explore{" "}
+            <Link href="/proposals">skateboarding grants</Link>, or view{" "}
+            <Link href="/auctions">skateboarding auctions</Link>.
+          </p>
+        </section>
+
         {/* Recent Proposals Section */}
         <section>
           <Suspense fallback={<RecentProposalsSkeleton />}>
