@@ -81,6 +81,7 @@ export async function GET(_request: Request, { params }: Props) {
             }}
           >
             {avatar && (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={avatar}
                 alt={displayName}

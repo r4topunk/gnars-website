@@ -153,7 +153,7 @@ export async function GET(_request: Request, { params }: Props) {
             }}
           >
             {imageUrl ? (
-              // eslint-disable-next-line jsx-a11y/alt-text
+              /* eslint-disable-next-line jsx-a11y/alt-text, @next/next/no-img-element */
               <img
                 src={imageUrl}
                 width={imageWidth}
