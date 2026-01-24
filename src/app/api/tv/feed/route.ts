@@ -1,95 +1,23 @@
 import { NextResponse } from "next/server";
-import { getCoin, getCoinHolders, getProfile, getProfileCoins } from "@zoralabs/coins-sdk";
-import { createPublicClient, http, parseAbi } from "viem";
-import { base } from "viem/chains";
+import { getCoin, getProfileCoins } from "@zoralabs/coins-sdk";
 import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 import { fetchDroposals } from "@/services/droposals";
+import {
+  getFarcasterTVData,
+  type QualifiedCreator,
+  type TVItemData,
+} from "@/services/farcaster-tv-aggregator";
 
 export const dynamic = "force-dynamic";
 
 // Gnars addresses
 const GNARS_COIN_ADDRESS = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
-const GNARS_NFT_ADDRESS = "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17";
 const GNARS_PROFILE_HANDLE = "gnars";
 
-// Minimum requirements
-const MIN_COIN_BALANCE = 300_000;
-const MIN_NFT_BALANCE = 1;
-
 // Concurrency limits to avoid rate limiting
-const MAX_CONCURRENT_PROFILE_FETCHES = 10;
 const MAX_CONCURRENT_COIN_FETCHES = 15;
-
-// RPC client - prefer server-side ALCHEMY_API_KEY, fallback to NEXT_PUBLIC_ for compatibility
-const alchemyKey = process.env.ALCHEMY_API_KEY || process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-const rpcUrl = alchemyKey
-  ? `https://base-mainnet.g.alchemy.com/v2/${alchemyKey}`
-  : "https://mainnet.base.org";
-
-// Debug logging for RPC configuration
-console.log(`[api/tv] RPC config: using ${alchemyKey ? "Alchemy" : "public Base"} endpoint`);
-
-const viemClient = createPublicClient({
-  chain: base,
-  transport: http(rpcUrl),
-});
-
-const erc721Abi = parseAbi(["function balanceOf(address owner) view returns (uint256)"]);
-
-interface QualifiedCreator {
-  handle: string;
-  avatarUrl: string | null;
-  coinBalance: number;
-  nftBalance: number;
-  wallets: string[];
-}
-
-interface TVItemData {
-  id: string;
-  title: string;
-  creator: string;
-  creatorName?: string;
-  creatorAvatar?: string;
-  symbol?: string;
-  imageUrl?: string;
-  videoUrl?: string;
-  coinAddress?: string;
-  marketCap?: number;
-  uniqueHolders?: number;
-  poolCurrencyTokenAddress?: string;
-  createdAt?: string;
-  isDroposal?: boolean;
-  priceEth?: string;
-  proposalNumber?: number;
-}
-
-// SDK response types
-interface TokenBalanceNode {
-  balance: string;
-  ownerProfile?: {
-    __typename?: string;
-    handle?: string;
-    avatar?: {
-      previewImage?: {
-        medium?: string;
-        small?: string;
-      };
-    };
-  };
-}
-
-interface TokenBalanceEdge {
-  node?: TokenBalanceNode;
-}
-
-interface LinkedWalletEdge {
-  node?: { walletAddress?: string };
-}
-
-interface ZoraProfileWithWallets {
-  publicWallet?: { walletAddress?: string };
-  linkedWallets?: { edges?: LinkedWalletEdge[] };
-}
+const FARCASTER_FOLLOWER_BOOST_MAX_MS = 1000 * 60 * 60 * 6;
+const FARCASTER_FOLLOWER_BOOST_CAP = 50_000;
 
 interface CoinMedia {
   mimeType?: string;
@@ -155,67 +83,6 @@ async function runWithConcurrency<T, R>(
 
   await Promise.all(executing);
   return results;
-}
-
-/**
- * Batch check NFT balances using multicall
- */
-async function batchCheckNftBalances(wallets: string[]): Promise<Map<string, number>> {
-  if (wallets.length === 0) return new Map();
-
-  console.log(`[api/tv] Checking NFT balances for ${wallets.length} wallets via multicall`);
-
-  try {
-    const contracts = wallets.map((wallet) => ({
-      address: GNARS_NFT_ADDRESS as `0x${string}`,
-      abi: erc721Abi,
-      functionName: "balanceOf" as const,
-      args: [wallet as `0x${string}`],
-    }));
-
-    const results = await viemClient.multicall({
-      contracts,
-      allowFailure: true,
-    });
-
-    const balances = new Map<string, number>();
-    let successCount = 0;
-    let failCount = 0;
-
-    for (let i = 0; i < wallets.length; i++) {
-      const result = results[i];
-      if (result.status === "success") {
-        successCount++;
-        balances.set(wallets[i].toLowerCase(), Number(result.result));
-      } else {
-        failCount++;
-        balances.set(wallets[i].toLowerCase(), 0);
-      }
-    }
-
-    console.log(`[api/tv] Multicall results: ${successCount} success, ${failCount} failed`);
-    return balances;
-  } catch (err) {
-    console.warn("[api/tv] Multicall failed, falling back to individual calls:", err);
-    // Fallback to individual calls
-    const balances = new Map<string, number>();
-    await Promise.all(
-      wallets.map(async (wallet) => {
-        try {
-          const balance = await viemClient.readContract({
-            address: GNARS_NFT_ADDRESS as `0x${string}`,
-            abi: erc721Abi,
-            functionName: "balanceOf",
-            args: [wallet as `0x${string}`],
-          });
-          balances.set(wallet.toLowerCase(), Number(balance));
-        } catch {
-          balances.set(wallet.toLowerCase(), 0);
-        }
-      }),
-    );
-    return balances;
-  }
 }
 
 /**
@@ -294,169 +161,10 @@ function mapCoinToTVItem(coin: CoinNode, creatorHandle: string): TVItemData | nu
   };
 }
 
-interface CandidateCreator {
-  handle: string;
-  avatarUrl: string | null;
-  coinBalance: number;
-  wallets: string[];
-}
-
-/**
- * Fetch candidate creators from coin holders
- * Returns creators with sufficient coin balance but not yet verified for NFT ownership
- */
-async function fetchCandidateCreators(): Promise<CandidateCreator[]> {
-  console.log("[api/tv] Fetching coin holders...");
-
-  const candidates: CandidateCreator[] = [];
-  const seenHandles = new Set<string>();
-
-  // Fetch all pages of coin holders first (these are quick)
-  let cursor: string | undefined;
-  let page = 1;
-
-  while (page <= 5) {
-    try {
-      const result = await getCoinHolders({
-        address: GNARS_COIN_ADDRESS as `0x${string}`,
-        chainId: 8453,
-        count: 50,
-        after: cursor,
-      });
-
-      const tokenBalances = result?.data?.zora20Token?.tokenBalances;
-      const edges = tokenBalances?.edges || [];
-      const pageInfo = tokenBalances?.pageInfo;
-
-      for (const edge of edges as TokenBalanceEdge[]) {
-        const node = edge.node;
-        if (!node) continue;
-
-        const profile = node.ownerProfile;
-        const hasZoraAccount = profile?.__typename === "GraphQLAccountProfile";
-        const handle = profile?.handle;
-
-        if (!hasZoraAccount || !handle || seenHandles.has(handle)) continue;
-        seenHandles.add(handle);
-
-        const rawBalance = node.balance || "0";
-        const balanceNum = Number(BigInt(rawBalance)) / 1e18;
-
-        if (balanceNum < MIN_COIN_BALANCE) continue;
-
-        const avatarUrl =
-          profile?.avatar?.previewImage?.medium || profile?.avatar?.previewImage?.small || null;
-
-        candidates.push({
-          handle,
-          avatarUrl,
-          coinBalance: balanceNum,
-          wallets: [], // Will be filled by profile fetch
-        });
-      }
-
-      if (!pageInfo?.hasNextPage) break;
-      cursor = pageInfo.endCursor;
-      page++;
-    } catch (err) {
-      console.warn("[api/tv] Failed to fetch coin holders page:", err);
-      break;
-    }
-  }
-
-  console.log(
-    `[api/tv] Found ${candidates.length} candidate creators with sufficient coin balance`,
-  );
-  return candidates;
-}
-
-/**
- * Fetch profile wallets for candidates with concurrency limit
- */
-async function fetchProfileWallets(candidates: CandidateCreator[]): Promise<CandidateCreator[]> {
-  console.log(`[api/tv] Fetching profile wallets for ${candidates.length} candidates...`);
-
-  const results = await runWithConcurrency(
-    candidates,
-    async (candidate) => {
-      try {
-        const profileResult = await getProfile({ identifier: candidate.handle });
-        const fullProfile = profileResult?.data?.profile;
-        if (!fullProfile) return candidate;
-
-        const wallets: string[] = [];
-
-        if (fullProfile.publicWallet?.walletAddress) {
-          wallets.push(fullProfile.publicWallet.walletAddress.toLowerCase());
-        }
-
-        const profileWithWallets = fullProfile as ZoraProfileWithWallets;
-        const linkedEdges = profileWithWallets.linkedWallets?.edges || [];
-        for (const linkedEdge of linkedEdges) {
-          const addr = linkedEdge.node?.walletAddress?.toLowerCase();
-          if (addr && !wallets.includes(addr)) {
-            wallets.push(addr);
-          }
-        }
-
-        return { ...candidate, wallets };
-      } catch {
-        return candidate;
-      }
-    },
-    MAX_CONCURRENT_PROFILE_FETCHES,
-  );
-
-  return results.filter((c) => c.wallets.length > 0);
-}
-
-/**
- * Fetch qualified creators - coin + NFT holders
- * Optimized with batch NFT balance checks via multicall
- */
-async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
-  // Step 1: Get candidates with sufficient coin balance
-  const candidates = await fetchCandidateCreators();
-
-  // Step 2: Fetch profile wallets with concurrency limit
-  const candidatesWithWallets = await fetchProfileWallets(candidates);
-
-  // Step 3: Collect all unique wallets for batch NFT check
-  const allWallets = new Set<string>();
-  for (const candidate of candidatesWithWallets) {
-    for (const wallet of candidate.wallets) {
-      allWallets.add(wallet.toLowerCase());
-    }
-  }
-
-  // Step 4: Batch check all NFT balances in one multicall
-  const nftBalances = await batchCheckNftBalances(Array.from(allWallets));
-
-  // Step 5: Filter to qualified creators
-  const qualifiedCreators: QualifiedCreator[] = [];
-
-  for (const candidate of candidatesWithWallets) {
-    let totalNfts = 0;
-    for (const wallet of candidate.wallets) {
-      totalNfts += nftBalances.get(wallet.toLowerCase()) || 0;
-    }
-
-    if (totalNfts >= MIN_NFT_BALANCE) {
-      qualifiedCreators.push({
-        handle: candidate.handle,
-        avatarUrl: candidate.avatarUrl,
-        coinBalance: candidate.coinBalance,
-        nftBalance: totalNfts,
-        wallets: candidate.wallets,
-      });
-      console.log(
-        `[api/tv] Qualified: ${candidate.handle} (${Math.round(candidate.coinBalance)} coins, ${totalNfts} NFTs)`,
-      );
-    }
-  }
-
-  console.log(`[api/tv] Found ${qualifiedCreators.length} qualified creators`);
-  return qualifiedCreators;
+function computeFarcasterBoost(followerCount?: number): number {
+  if (!followerCount || followerCount <= 0) return 0;
+  const capped = Math.min(followerCount, FARCASTER_FOLLOWER_BOOST_CAP);
+  return (capped / FARCASTER_FOLLOWER_BOOST_CAP) * FARCASTER_FOLLOWER_BOOST_MAX_MS;
 }
 
 /**
@@ -678,13 +386,15 @@ export async function GET() {
     // - Paired coins (subgraph + Zora API)
     // - Gnars profile content
     // - Droposals
-    // - Qualified creators (coin holders + profile wallets + NFT check)
-    const [pairedCoins, gnarsContent, droposals, qualifiedCreators] = await Promise.all([
+    // - Farcaster TV aggregator (qualified creators + holdings)
+    const [pairedCoins, gnarsContent, droposals, farcasterData] = await Promise.all([
       fetchPairedCoins(loadedAddresses),
       fetchGnarsProfileContent(loadedAddresses),
       fetchDroposals(50).catch(() => []),
-      fetchQualifiedCreators(),
+      getFarcasterTVData(),
     ]);
+
+    const qualifiedCreators = farcasterData.qualifiedCreators;
 
     // Phase 2: Fetch creator content (depends on qualified creators list)
     const creatorContent = await fetchCreatorContent(qualifiedCreators, loadedAddresses);
@@ -694,21 +404,45 @@ export async function GET() {
       (item): item is TVItemData => item !== null,
     );
 
-    // Combine all sources (paired coins have highest priority)
-    const allItems = [...pairedCoins, ...creatorContent, ...gnarsContent, ...droposalItems];
+    const farcasterItemKeys = new Set<string>();
+    const farcasterItems = farcasterData.items.filter((item) => {
+      const address = item.coinAddress?.toLowerCase();
+      if (item.farcasterFid && address) {
+        const key = `${address}:${item.farcasterFid}`;
+        if (farcasterItemKeys.has(key)) return false;
+        farcasterItemKeys.add(key);
+        return true;
+      }
+      if (!address) return true;
+      if (loadedAddresses.has(address)) return false;
+      loadedAddresses.add(address);
+      return true;
+    });
 
-    // Sort by createdAt (newest first)
+    // Combine all sources (paired coins have highest priority)
+    const allItems = [
+      ...pairedCoins,
+      ...creatorContent,
+      ...gnarsContent,
+      ...farcasterItems,
+      ...droposalItems,
+    ];
+
+    // Sort by createdAt (newest first) with a Farcaster follower-count boost
     allItems.sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA;
+      const boostedA = dateA + computeFarcasterBoost(a.farcasterFollowerCount);
+      const boostedB = dateB + computeFarcasterBoost(b.farcasterFollowerCount);
+      return boostedB - boostedA;
     });
 
     const elapsed = Date.now() - startTime;
     console.log(`[api/tv] Feed ready: ${allItems.length} items in ${elapsed}ms`);
     console.log(
-      `[api/tv] Sources: ${pairedCoins.length} paired, ${creatorContent.length} creators, ${gnarsContent.length} gnars, ${droposalItems.length} droposals`,
+      `[api/tv] Sources: ${pairedCoins.length} paired, ${creatorContent.length} creators, ${gnarsContent.length} gnars, ${farcasterItems.length} farcaster, ${droposalItems.length} droposals`,
     );
+    console.log(`[api/tv] Farcaster cache: ${farcasterData.cache.source}`);
 
     const headers = new Headers();
     headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=3600");
@@ -729,6 +463,10 @@ export async function GET() {
           gnarsPaired: pairedCoins.length,
           droposals: droposalItems.length,
           creatorsCount: qualifiedCreators.length,
+          farcasterItems: farcasterItems.length,
+          farcasterCreators: farcasterData.stats.creators,
+          farcasterCoins: farcasterData.stats.coins,
+          farcasterNfts: farcasterData.stats.nfts,
         },
         fetchedAt: new Date().toISOString(),
         durationMs: elapsed,

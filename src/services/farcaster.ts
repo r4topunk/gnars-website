@@ -2,9 +2,11 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { Configuration, NeynarAPIClient } from "@neynar/nodejs-sdk";
+import type { Network } from "@neynar/nodejs-sdk/build/api";
 import type { User } from "@neynar/nodejs-sdk/build/api/models/user";
 
 const apiKey = process.env.NEYNAR_API_KEY;
+const NEYNAR_REST_BASE_URL = "https://api.neynar.com/v2";
 
 export const neynarClient = apiKey
   ? new NeynarAPIClient(
@@ -22,6 +24,8 @@ export const neynarClient = apiKey
 const MAX_ADDRESSES_PER_REQUEST = 350;
 const CACHE_REVALIDATE_SECONDS = 60 * 15;
 
+export const hasNeynarApiKey = Boolean(apiKey);
+
 export type FarcasterProfile = {
   fid: number;
   username: string;
@@ -30,6 +34,28 @@ export type FarcasterProfile = {
   followerCount: number;
   followingCount: number;
   bio: string | null;
+};
+
+export type FarcasterTokenBalance = {
+  address: string;
+  name: string;
+  symbol: string;
+  decimals: number | null;
+  balance: string;
+  balanceUsd: string | null;
+  walletAddress: string | null;
+  network: string;
+};
+
+export type FarcasterNftHolding = {
+  contractAddress: string | null;
+  tokenId: string | null;
+  name: string | null;
+  imageUrl: string | null;
+  collectionName: string | null;
+  collectionImageUrl: string | null;
+  chain: string | null;
+  acquiredAt: string | null;
 };
 
 type FarcasterProfilesByAddress = Record<string, FarcasterProfile | null>;
@@ -79,6 +105,15 @@ function selectBestUser(users: User[], address: string): User | null {
   return [...users].sort((a, b) => (b.follower_count ?? 0) - (a.follower_count ?? 0))[0] ?? null;
 }
 
+export function assertNeynarApiKey(context: string): boolean {
+  if (!apiKey) {
+    console.warn(`[${context}] NEYNAR_API_KEY is not set; skipping Neynar calls.`);
+    return false;
+  }
+
+  return true;
+}
+
 async function fetchFarcasterProfilesChunk(
   addresses: string[],
 ): Promise<FarcasterProfilesByAddress> {
@@ -104,6 +139,22 @@ async function fetchFarcasterProfilesChunk(
     console.warn("Failed to fetch Farcaster profiles from Neynar", error);
     return empty;
   }
+}
+
+export async function fetchFarcasterProfilesByAddressUncached(
+  addresses: string[],
+): Promise<FarcasterProfilesByAddress> {
+  if (addresses.length === 0) return {};
+  const normalized = Array.from(new Set(addresses.map(normalizeAddress))).sort();
+  const chunks = chunkArray(normalized, MAX_ADDRESSES_PER_REQUEST);
+  const results: FarcasterProfilesByAddress = {};
+
+  for (const chunk of chunks) {
+    const chunkProfiles = await fetchFarcasterProfilesChunk(chunk);
+    Object.assign(results, chunkProfiles);
+  }
+
+  return results;
 }
 
 async function fetchCachedFarcasterProfilesChunk(
@@ -132,4 +183,138 @@ export async function fetchFarcasterProfilesByAddress(
   }
 
   return results;
+}
+
+type NeynarNftRaw = {
+  contract_address?: string | null;
+  token_id?: string | null;
+  name?: string | null;
+  image_url?: string | null;
+  image?: string | null;
+  chain?: string | null;
+  network?: string | null;
+  acquired_at?: string | null;
+  updated_at?: string | null;
+  collection?: {
+    name?: string | null;
+    image_url?: string | null;
+    image?: string | null;
+  } | null;
+  metadata?: {
+    image?: string | null;
+    name?: string | null;
+  } | null;
+};
+
+function parseNeynarNft(raw: NeynarNftRaw): FarcasterNftHolding {
+  const imageUrl =
+    raw.image_url ||
+    raw.image ||
+    raw.metadata?.image ||
+    raw.collection?.image_url ||
+    raw.collection?.image ||
+    null;
+
+  return {
+    contractAddress: raw.contract_address ?? null,
+    tokenId: raw.token_id ?? null,
+    name: raw.name ?? raw.metadata?.name ?? null,
+    imageUrl,
+    collectionName: raw.collection?.name ?? null,
+    collectionImageUrl: raw.collection?.image_url ?? raw.collection?.image ?? null,
+    chain: raw.chain ?? raw.network ?? null,
+    acquiredAt: raw.acquired_at ?? raw.updated_at ?? null,
+  };
+}
+
+function extractNeynarNftList(payload: Record<string, unknown>): NeynarNftRaw[] {
+  const direct = payload.nfts;
+  if (Array.isArray(direct)) return direct as NeynarNftRaw[];
+  const nested = (payload.result as Record<string, unknown> | undefined)?.nfts;
+  if (Array.isArray(nested)) return nested as NeynarNftRaw[];
+  const alt = payload.user_nfts;
+  if (Array.isArray(alt)) return alt as NeynarNftRaw[];
+  return [];
+}
+
+async function fetchFarcasterUserNFTsUncached(fid: number): Promise<FarcasterNftHolding[]> {
+  // NOTE: Neynar's v2 API does not currently provide an NFT holdings endpoint.
+  // This functionality may be available in future API versions or higher plan tiers.
+  // Returning empty array for now - can be implemented when Neynar adds this endpoint.
+  console.log(`[farcaster.nfts] NFT endpoint not available in Neynar v2 API (fid ${fid})`);
+  return [];
+}
+
+async function fetchCachedFarcasterUserNFTs(fid: number): Promise<FarcasterNftHolding[]> {
+  const cached = unstable_cache(
+    () => fetchFarcasterUserNFTsUncached(fid),
+    ["farcaster-nfts", `fid:${fid}`],
+    { revalidate: CACHE_REVALIDATE_SECONDS, tags: ["farcaster-nfts"] },
+  );
+  return cached();
+}
+
+export async function fetchFarcasterUserNFTs(fid: number): Promise<FarcasterNftHolding[]> {
+  if (!neynarClient) return [];
+  return fetchCachedFarcasterUserNFTs(fid);
+}
+
+export async function fetchFarcasterUserCoinsUncached(
+  fid: number,
+): Promise<FarcasterTokenBalance[]> {
+  if (!neynarClient) return [];
+
+  try {
+    // Neynar's balance endpoint aggregates all verified addresses for the FID.
+    const response = await neynarClient.fetchUserBalance({
+      fid,
+      networks: ["base" as Network],
+    });
+
+    const addressBalances = response.user_balance?.address_balances ?? [];
+    const balances: FarcasterTokenBalance[] = [];
+
+    for (const addressBalance of addressBalances) {
+      const walletAddress = addressBalance.verified_address?.address
+        ? normalizeAddress(addressBalance.verified_address.address)
+        : null;
+
+      for (const tokenBalance of addressBalance.token_balances || []) {
+        const token = tokenBalance.token;
+        const balance = tokenBalance.balance;
+        const tokenAddress = token?.contract_address ?? token?.address;
+        if (!tokenAddress || !balance) continue;
+
+        balances.push({
+          address: normalizeAddress(tokenAddress),
+          name: token.name,
+          symbol: token.symbol,
+          decimals: token.decimals ?? null,
+          balance: balance.in_token,
+          balanceUsd: balance.in_usdc ?? null,
+          walletAddress,
+          network: "base",
+        });
+      }
+    }
+
+    return balances;
+  } catch (error) {
+    console.warn(`[farcaster.coins] Failed to fetch token balances for fid ${fid}`, error);
+    return [];
+  }
+}
+
+async function fetchCachedFarcasterUserCoins(fid: number): Promise<FarcasterTokenBalance[]> {
+  const cached = unstable_cache(
+    () => fetchFarcasterUserCoinsUncached(fid),
+    ["farcaster-coins", `fid:${fid}`],
+    { revalidate: CACHE_REVALIDATE_SECONDS, tags: ["farcaster-coins"] },
+  );
+  return cached();
+}
+
+export async function fetchFarcasterUserCoins(fid: number): Promise<FarcasterTokenBalance[]> {
+  if (!neynarClient) return [];
+  return fetchCachedFarcasterUserCoins(fid);
 }
