@@ -21,6 +21,25 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  async redirects() {
+    return [
+      {
+        source: "/dao/proposal/:id",
+        destination: "/proposals/:id",
+        permanent: true,
+      },
+      {
+        source: "/dao/proposals",
+        destination: "/proposals",
+        permanent: true,
+      },
+      {
+        source: "/dao/auction/:id",
+        destination: "/auctions",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

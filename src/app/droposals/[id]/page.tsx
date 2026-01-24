@@ -165,6 +165,9 @@ export async function generateMetadata({
   return {
     title: `${title} | Gnars Droposals`,
     description,
+    alternates: {
+      canonical: `/droposals/${id}`,
+    },
     openGraph: {
       title: `${title} | Gnars Droposals`,
       description,
