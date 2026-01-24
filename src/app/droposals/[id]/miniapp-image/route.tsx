@@ -14,7 +14,7 @@ export const revalidate = 300;
 export const runtime = "edge";
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 type ProposalData = {
@@ -107,7 +107,7 @@ async function fetchDroposal(id: string): Promise<{
 }
 
 export async function GET(_request: Request, { params }: Props) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const { proposal, decoded } = await fetchDroposal(id);

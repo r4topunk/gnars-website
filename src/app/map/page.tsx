@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import type { LatLngExpression } from "leaflet";
 import { Map, MapMarker, MapPopup, MapTileLayer } from "@/components/ui/map";
