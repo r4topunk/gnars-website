@@ -1,4 +1,3 @@
-import type { MetadataRoute } from "next";
 import { fetchAllDroposals } from "@/services/droposals";
 import { getAllBlogs } from "@/services/blogs";
 import { fetchAllMembers } from "@/services/members";
@@ -9,7 +8,13 @@ import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 export const revalidate = 3600;
 export const dynamic = "force-dynamic";
 
-type SitemapEntry = MetadataRoute.Sitemap[number];
+type SitemapEntry = {
+  url: string;
+  lastModified: Date;
+  changeFrequency: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
+  priority: number;
+};
+
 type ProposalList = Awaited<ReturnType<typeof listProposals>>;
 type DroposalList = Awaited<ReturnType<typeof fetchAllDroposals>>;
 type BlogList = Awaited<ReturnType<typeof getAllBlogs>>;
@@ -22,9 +27,7 @@ const PROPOSAL_PAGE_SIZE = 200;
 const MAX_COIN_PAGES = 50;
 const COIN_PAGE_SIZE = 200;
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://gnars.com");
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com";
 
 const toUrl = (path: string) => new URL(path, `${SITE_URL.replace(/\/+$/, "")}/`).toString();
 
@@ -50,6 +53,14 @@ const maxDate = (dates: Array<Date | null>, fallback: Date): Date => {
   if (valid.length === 0) return fallback;
   return new Date(Math.max(...valid.map((d) => d.getTime())));
 };
+
+const escapeXml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
 
 async function fetchAllProposals(): Promise<ProposalList> {
   const all: ProposalList = [];
@@ -78,7 +89,26 @@ async function fetchAllGnarsPairedCoins(): Promise<CoinList> {
   return all;
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+function buildSitemap(entries: SitemapEntry[]): string {
+  const lines = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  ];
+
+  for (const entry of entries) {
+    lines.push("  <url>");
+    lines.push(`    <loc>${escapeXml(entry.url)}</loc>`);
+    lines.push(`    <lastmod>${entry.lastModified.toISOString()}</lastmod>`);
+    lines.push(`    <changefreq>${entry.changeFrequency}</changefreq>`);
+    lines.push(`    <priority>${entry.priority.toFixed(1)}</priority>`);
+    lines.push("  </url>");
+  }
+
+  lines.push("</urlset>");
+  return lines.join("\n");
+}
+
+export async function GET(): Promise<Response> {
   const now = new Date();
 
   const [proposals, droposals, blogs, members, propdates, coins] = await Promise.all([
@@ -279,7 +309,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  return [
+  const xml = buildSitemap([
     ...staticEntries,
     ...proposalEntries,
     ...droposalEntries,
@@ -287,5 +317,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...memberEntries,
     ...propdateEntries,
     ...tvEntries,
-  ];
+  ]);
+
+  return new Response(xml, {
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+    },
+  });
 }
