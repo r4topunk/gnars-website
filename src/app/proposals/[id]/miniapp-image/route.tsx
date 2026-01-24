@@ -1,5 +1,4 @@
 import { ImageResponse } from "next/og";
-import { getProposalByIdOrNumber } from "@/services/proposals";
 import {
   MINIAPP_SIZE,
   OG_COLORS,
@@ -21,11 +20,29 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(_request: Request, { params }: Props) {
+type ApiProposal = {
+  proposalNumber: number;
+  title: string;
+  proposer?: string | null;
+  status?: string | null;
+  forVotes?: number | string | null;
+  againstVotes?: number | string | null;
+  abstainVotes?: number | string | null;
+  quorumVotes?: number | string | null;
+};
+
+async function fetchProposal(id: string, request: Request): Promise<ApiProposal | null> {
+  const url = new URL(`/api/proposals/${id}`, request.url);
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) return null;
+  return (await res.json()) as ApiProposal;
+}
+
+export async function GET(request: Request, { params }: Props) {
   const { id } = await params;
 
   try {
-    const proposal = await getProposalByIdOrNumber(id);
+    const proposal = await fetchProposal(id, request);
 
     if (!proposal) {
       return renderFallback("Proposal Not Found");
