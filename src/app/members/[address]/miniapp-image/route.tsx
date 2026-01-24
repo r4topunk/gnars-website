@@ -7,11 +7,11 @@ export const contentType = "image/png";
 export const runtime = "edge";
 
 interface Props {
-  params: { address: string };
+  params: Promise<{ address: string }>;
 }
 
 export async function GET(_request: Request, { params }: Props) {
-  const { address } = params;
+  const { address } = await params;
 
   try {
     // Fetch member data from API route to avoid edge runtime issues

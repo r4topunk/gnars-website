@@ -18,11 +18,11 @@ export const revalidate = 60;
 export const runtime = "edge";
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function GET(_request: Request, { params }: Props) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const proposal = await getProposalByIdOrNumber(id);
