@@ -9,6 +9,7 @@ export const alt = "Gnars DAO Treasury";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 type TokenBalance = {
   contractAddress?: string;
