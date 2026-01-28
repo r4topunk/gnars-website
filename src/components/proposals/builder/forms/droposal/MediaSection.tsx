@@ -50,6 +50,7 @@ export function MediaSection({ index }: MediaSectionProps) {
   const [isManualInputOpen, setIsManualInputOpen] = useState(false);
   const [manualMediaUrl, setManualMediaUrl] = useState("");
   const [manualCoverUrl, setManualCoverUrl] = useState("");
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -151,12 +152,20 @@ export function MediaSection({ index }: MediaSectionProps) {
 
     setIsUploadingMedia(true);
     setIsUploadingCover(true);
+    setUploadProgress(0);
 
     try {
-      // Upload video file
+      // Upload video file with progress tracking
       toast.loading("Uploading video to IPFS...", { id: "video-upload" });
 
-      const videoResult = await uploadToPinata(pendingVideoFile, `droposal-video-${Date.now()}`);
+      const videoResult = await uploadToPinata(
+        pendingVideoFile,
+        `droposal-video-${Date.now()}`,
+        (progress) => {
+          setUploadProgress(progress);
+          toast.loading(`Uploading video... ${progress}%`, { id: "video-upload" });
+        }
+      );
 
       if (!videoResult.success || !videoResult.data) {
         throw new Error(videoResult.error || "Video upload failed");
@@ -190,6 +199,7 @@ export function MediaSection({ index }: MediaSectionProps) {
       setPendingVideoFile(null);
       setIsUploadingMedia(false);
       setIsUploadingCover(false);
+      setUploadProgress(0);
 
       toast.success("Video and thumbnail uploaded successfully!");
     } catch (error) {
@@ -211,6 +221,7 @@ export function MediaSection({ index }: MediaSectionProps) {
       setPendingVideoFile(null);
       setIsUploadingMedia(false);
       setIsUploadingCover(false);
+      setUploadProgress(0);
     }
   };
 
