@@ -10,6 +10,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { THEME_OPTIONS, THEME_VALUES, type ThemeValue } from "@/lib/theme";
+
+const THEME_ICONS: Record<ThemeValue, typeof Sun> = {
+  [THEME_VALUES[0]]: Sun,
+  [THEME_VALUES[1]]: Moon,
+  [THEME_VALUES[2]]: Monitor,
+};
 
 /**
  * ThemeToggle - Dropdown menu for switching between light, dark, and system themes
@@ -30,20 +37,16 @@ export function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          <Sun className="mr-2 h-4 w-4" />
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <Moon className="mr-2 h-4 w-4" />
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          <Monitor className="mr-2 h-4 w-4" />
-          System
-        </DropdownMenuItem>
+        {THEME_OPTIONS.map((option) => {
+          const Icon = THEME_ICONS[option.value];
+          return (
+            <DropdownMenuItem key={option.value} onClick={() => setTheme(option.value)}>
+              <Icon className="mr-2 h-4 w-4" />
+              {option.label}
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
-

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
 import { DaoHeader } from "@/components/layout/DaoHeader";
+import { UrlThemeSync } from "@/components/layout/UrlThemeSync";
 // import { MuralBackground } from "@/components/layout/MuralBackground";
 import Providers from "@/components/layout/Providers";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
@@ -62,6 +63,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <UrlThemeSync />
           <Providers>
             <TooltipProvider>
               <MiniAppReady />
