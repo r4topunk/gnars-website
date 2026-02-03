@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface ProposalMetricsProps {
   forVotes: string;
@@ -7,6 +8,8 @@ interface ProposalMetricsProps {
   abstainVotes: string;
   quorumVotes: string;
   snapshotBlock?: number;
+  status?: ProposalStatus;
+  startDate?: Date;
   endDate?: Date;
 }
 
@@ -16,6 +19,8 @@ export function ProposalMetrics({
   abstainVotes,
   quorumVotes,
   snapshotBlock,
+  status,
+  startDate,
   endDate,
 }: ProposalMetricsProps) {
   const formatVotes = (votes: string) => {
@@ -39,6 +44,9 @@ export function ProposalMetrics({
   const forPct = Math.min(100, Math.max(0, (forNum / totalVotes) * 100));
   const againstPct = Math.min(100, Math.max(0, (againstNum / totalVotes) * 100));
   const abstainPct = Math.min(100, Math.max(0, (abstainNum / totalVotes) * 100));
+
+  const isPending = status === ProposalStatus.PENDING;
+  const dateToShow = isPending ? startDate ?? endDate : endDate;
 
   return (
     <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
@@ -91,25 +99,27 @@ export function ProposalMetrics({
       </Card>
 
       {/* Mobile: Ends | Snapshot */}
-      {endDate && (
+      {dateToShow && (
         <Card className="py-2 gap-0 md:gap-2">
           <CardHeader className="pb-1 px-4">
             <CardTitle className="text-md font-semibold text-foreground/90">
-              {forNum + againstNum + abstainNum > 0 && endDate.getTime() < Date.now()
-                ? "Ended"
-                : "Ends"}
+              {isPending
+                ? "Starts"
+                : forNum + againstNum + abstainNum > 0 && dateToShow.getTime() < Date.now()
+                  ? "Ended"
+                  : "Ends"}
             </CardTitle>
           </CardHeader>
           <CardContent className="py-1 px-4">
             <div className="text-xl md:text-2xl font-semibold">
-              {endDate.toLocaleDateString(undefined, {
+              {dateToShow.toLocaleDateString(undefined, {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
               })}
             </div>
             <div className="text-xs text-muted-foreground">
-              {endDate.toLocaleTimeString(undefined, {
+              {dateToShow.toLocaleTimeString(undefined, {
                 hour: "2-digit",
                 minute: "2-digit",
                 second: "2-digit",
