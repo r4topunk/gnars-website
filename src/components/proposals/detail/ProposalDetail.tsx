@@ -187,6 +187,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const shouldShowVotingCard = isProposalActive;
 
   const endDate = proposal.endDate ? new Date(proposal.endDate) : undefined;
+  const startDate = proposal.voteStart ? new Date(proposal.voteStart) : undefined;
 
   return (
     <div className="space-y-6">
@@ -203,6 +204,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         abstainVotes={String(voteTotals.abstainVotes)}
         quorumVotes={String(proposal.quorumVotes)}
         snapshotBlock={proposal.snapshotBlock}
+        status={proposal.status}
+        startDate={startDate}
         endDate={endDate}
       />
       {shouldShowVotingCard ? (
