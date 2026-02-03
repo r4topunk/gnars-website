@@ -185,7 +185,7 @@ Potential enhancements:
 ## Related Documentation
 
 - [Zora Coins SDK](https://docs.zora.co/coins/sdk)
-- [COIN_PROPOSAL_README.md](src/components/coin-proposal/README.md) - Standalone flow
+- [Coin Proposal](docs/features/coin-proposal.md) - Standalone flow
 - [CLAUDE.md](CLAUDE.md) - Project architecture
 
 ---
