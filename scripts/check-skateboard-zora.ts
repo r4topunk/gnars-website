@@ -16,7 +16,12 @@ async function checkSkateboardZora() {
       console.log("   Handle:", profile.handle);
       console.log("   Public wallet:", profile.publicWallet?.walletAddress || "none");
       
-      const linked = (profile as any).linkedWallets?.edges || [];
+      const linked =
+        (
+          profile as {
+            linkedWallets?: { edges?: Array<{ node?: { walletAddress?: string } }> };
+          }
+        ).linkedWallets?.edges || [];
       console.log("   Linked wallets:", linked.length);
       for (const edge of linked) {
         console.log("   -", edge.node?.walletAddress);
@@ -24,8 +29,9 @@ async function checkSkateboardZora() {
     } else {
       console.log("❌ No Zora profile found for 'skateboard'");
     }
-  } catch (error: any) {
-    console.error("❌ Error:", error.message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("❌ Error:", message);
   }
 }
 

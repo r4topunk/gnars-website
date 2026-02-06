@@ -44,8 +44,9 @@ async function checkSkateboard() {
     for (const user of users.slice(0, 5)) {
       console.log(`- @${user.username} (FID ${user.fid})`);
     }
-  } catch (error: any) {
-    console.error("Error:", error.message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Error:", message);
   }
 }
 

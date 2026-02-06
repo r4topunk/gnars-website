@@ -42,13 +42,11 @@ export function ProposalsGrid({ proposals }: { proposals: Proposal[] }) {
         observer.unobserve(currentSentinel);
       }
     };
-  }, [proposals.length]);
-
-  // Reset/clamp visible count when data or filters change
+  }, [PAGE_SIZE, proposals.length]);
 
   useEffect(() => {
     setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), proposals.length || PAGE_SIZE));
-  }, [proposals.length]);
+  }, [PAGE_SIZE, proposals.length]);
 
   if (proposals.length === 0) {
     return (

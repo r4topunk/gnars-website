@@ -22,8 +22,9 @@ async function testGetGnarsCoin() {
     } else {
       console.log("FAIL - getCoin returned no data");
     }
-  } catch (error: any) {
-    console.error("FAIL - getCoin error:", error.message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("FAIL - getCoin error:", message);
   }
 }
 

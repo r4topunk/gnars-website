@@ -24,11 +24,13 @@ async function debug() {
 
     console.log("\n=== Raw Response ===");
     console.log(JSON.stringify(response, null, 2));
-  } catch (error: any) {
-    console.error("Error:", error.message);
-    if (error.response) {
-      console.error("Status:", error.response.status);
-      console.error("Data:", JSON.stringify(error.response.data, null, 2));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Error:", message);
+    const err = error as { response?: { status?: number; data?: unknown } };
+    if (err?.response) {
+      console.error("Status:", err.response.status);
+      console.error("Data:", JSON.stringify(err.response.data, null, 2));
     }
   }
 }

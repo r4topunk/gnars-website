@@ -1,0 +1,427 @@
+{
+  "generatedAt": "2026-02-06T13:06:01.339Z",
+  "options": {
+    "builderBaseUrl": "https://nouns.build",
+    "chainId": 8453,
+    "metadataAddress": "0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58",
+    "limit": 10,
+    "outDir": "/Users/r4to/Script/gnars-website/outputs/builder-traits",
+    "gateways": [
+      "https://ipfs.io",
+      "https://dweb.link",
+      "https://gateway.pinata.cloud",
+      "https://w3s.link",
+      "https://magic.decentralized-content.com",
+      "https://ipfs.decentralized-content.com"
+    ],
+    "timeoutMs": 20000,
+    "imageUrl": "https://nouns.build/api/renderer/stack-images?contractAddress=0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58&tokenId=6986&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f0-backgrounds%2fghostcrash.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f1-bodies%2fpeachya.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f2-accessories%2fsafetyvest.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f3-heads%2fshower.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f4-glasses%2ffocustangerine.png"
+  },
+  "imageUrlAnalysis": {
+    "input": "https://nouns.build/api/renderer/stack-images?contractAddress=0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58&tokenId=6986&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f0-backgrounds%2fghostcrash.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f1-bodies%2fpeachya.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f2-accessories%2fsafetyvest.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f3-heads%2fshower.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f4-glasses%2ffocustangerine.png",
+    "format": "builder_renderer_stack_images",
+    "normalized": "https://nouns.build/api/renderer/stack-images?contractAddress=0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58&tokenId=6986&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f0-backgrounds%2fghostcrash.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f1-bodies%2fpeachya.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f2-accessories%2fsafetyvest.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f3-heads%2fshower.png&images=ipfs%3a%2f%2fbafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq%2f4-glasses%2ffocustangerine.png",
+    "details": {
+      "host": "nouns.build",
+      "imageCount": 5,
+      "images": [
+        "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/ghostcrash.png",
+        "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/peachya.png",
+        "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/safetyvest.png",
+        "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/shower.png",
+        "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/focustangerine.png"
+      ],
+      "traitHints": [
+        "0-backgrounds",
+        "1-bodies",
+        "2-accessories",
+        "3-heads",
+        "4-glasses"
+      ]
+    }
+  },
+  "propertySummary": {
+    "propertiesCount": 5,
+    "propertyItemsCount": [
+      12,
+      30,
+      153,
+      235,
+      68
+    ],
+    "traitNames": [
+      "0-backgrounds",
+      "1-bodies",
+      "2-accessories",
+      "3-heads",
+      "4-glasses"
+    ]
+  },
+  "uriFormatSummary": {
+    "ipfs_uri": {
+      "count": 498,
+      "examples": [
+        "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/greyteal.png",
+        "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/greige.png",
+        "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/ghostcrash.png"
+      ]
+    }
+  },
+  "totals": {
+    "attempted": 50,
+    "succeeded": 50,
+    "failed": 0
+  },
+  "items": [
+    {
+      "traitName": "0-backgrounds",
+      "itemName": "greyteal",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/greyteal.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/greyteal.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/0-backgrounds/01-greyteal.png"
+    },
+    {
+      "traitName": "0-backgrounds",
+      "itemName": "greige",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/greige.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/greige.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/0-backgrounds/02-greige.png"
+    },
+    {
+      "traitName": "0-backgrounds",
+      "itemName": "ghostcrash",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/ghostcrash.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/ghostcrash.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/0-backgrounds/03-ghostcrash.png"
+    },
+    {
+      "traitName": "0-backgrounds",
+      "itemName": "middlegrey",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/middlegrey.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/middlegrey.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/0-backgrounds/04-middlegrey.png"
+    },
+    {
+      "traitName": "0-backgrounds",
+      "itemName": "sfx",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/sfx.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/sfx.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/0-backgrounds/05-sfx.png"
+    },
+    {
+      "traitName": "0-backgrounds",
+      "itemName": "violet",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/violet.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/violet.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/0-backgrounds/06-violet.png"
+    },
+    {
+      "traitName": "0-backgrounds",
+      "itemName": "damp",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/damp.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/damp.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/0-backgrounds/07-damp.png"
+    },
+    {
+      "traitName": "0-backgrounds",
+      "itemName": "mold",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/mold.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/mold.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/0-backgrounds/08-mold.png"
+    },
+    {
+      "traitName": "0-backgrounds",
+      "itemName": "sweet",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/sweet.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/sweet.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/0-backgrounds/09-sweet.png"
+    },
+    {
+      "traitName": "0-backgrounds",
+      "itemName": "cool",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/cool.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/0-backgrounds/cool.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/0-backgrounds/10-cool.png"
+    },
+    {
+      "traitName": "1-bodies",
+      "itemName": "teal",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/teal.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/teal.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/1-bodies/01-teal.png"
+    },
+    {
+      "traitName": "1-bodies",
+      "itemName": "foggrey",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/foggrey.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/foggrey.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/1-bodies/02-foggrey.png"
+    },
+    {
+      "traitName": "1-bodies",
+      "itemName": "orangeyellow",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/orangeyellow.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/orangeyellow.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/1-bodies/03-orangeyellow.png"
+    },
+    {
+      "traitName": "1-bodies",
+      "itemName": "grayscale8",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/grayscale8.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/grayscale8.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/1-bodies/04-grayscale8.png"
+    },
+    {
+      "traitName": "1-bodies",
+      "itemName": "yellow",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/yellow.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/yellow.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/1-bodies/05-yellow.png"
+    },
+    {
+      "traitName": "1-bodies",
+      "itemName": "grayscale9",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/grayscale9.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/grayscale9.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/1-bodies/06-grayscale9.png"
+    },
+    {
+      "traitName": "1-bodies",
+      "itemName": "bluegrey",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/bluegrey.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/bluegrey.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/1-bodies/07-bluegrey.png"
+    },
+    {
+      "traitName": "1-bodies",
+      "itemName": "rust",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/rust.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/rust.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/1-bodies/08-rust.png"
+    },
+    {
+      "traitName": "1-bodies",
+      "itemName": "bluesky",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/bluesky.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/bluesky.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/1-bodies/09-bluesky.png"
+    },
+    {
+      "traitName": "1-bodies",
+      "itemName": "peachya",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/peachya.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/1-bodies/peachya.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/1-bodies/10-peachya.png"
+    },
+    {
+      "traitName": "2-accessories",
+      "itemName": "bodygradientsunset",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/bodygradientsunset.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/bodygradientsunset.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/2-accessories/01-bodygradientsunset.png"
+    },
+    {
+      "traitName": "2-accessories",
+      "itemName": "blinganchor",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/blinganchor.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/blinganchor.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/2-accessories/02-blinganchor.png"
+    },
+    {
+      "traitName": "2-accessories",
+      "itemName": "tiedye",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/tiedye.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/tiedye.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/2-accessories/03-tiedye.png"
+    },
+    {
+      "traitName": "2-accessories",
+      "itemName": "checkervibrant",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/checkervibrant.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/checkervibrant.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/2-accessories/04-checkervibrant.png"
+    },
+    {
+      "traitName": "2-accessories",
+      "itemName": "snowflake",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/snowflake.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/snowflake.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/2-accessories/05-snowflake.png"
+    },
+    {
+      "traitName": "2-accessories",
+      "itemName": "blingarrow",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/blingarrow.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/blingarrow.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/2-accessories/06-blingarrow.png"
+    },
+    {
+      "traitName": "2-accessories",
+      "itemName": "tiered",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/tiered.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/tiered.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/2-accessories/07-tiered.png"
+    },
+    {
+      "traitName": "2-accessories",
+      "itemName": "insignia",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/insignia.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/insignia.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/2-accessories/08-insignia.png"
+    },
+    {
+      "traitName": "2-accessories",
+      "itemName": "rgb",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/rgb.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/rgb.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/2-accessories/09-rgb.png"
+    },
+    {
+      "traitName": "2-accessories",
+      "itemName": "skull",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/skull.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/2-accessories/skull.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/2-accessories/10-skull.png"
+    },
+    {
+      "traitName": "3-heads",
+      "itemName": "duck",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/duck.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/duck.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/3-heads/01-duck.png"
+    },
+    {
+      "traitName": "3-heads",
+      "itemName": "dog",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/dog.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/dog.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/3-heads/02-dog.png"
+    },
+    {
+      "traitName": "3-heads",
+      "itemName": "volleyball",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/volleyball.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/volleyball.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/3-heads/03-volleyball.png"
+    },
+    {
+      "traitName": "3-heads",
+      "itemName": "fan",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/fan.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/fan.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/3-heads/04-fan.png"
+    },
+    {
+      "traitName": "3-heads",
+      "itemName": "mushroom",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/mushroom.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/mushroom.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/3-heads/05-mushroom.png"
+    },
+    {
+      "traitName": "3-heads",
+      "itemName": "penciltip",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/penciltip.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/penciltip.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/3-heads/06-penciltip.png"
+    },
+    {
+      "traitName": "3-heads",
+      "itemName": "icepopb",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/icepopb.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/icepopb.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/3-heads/07-icepopb.png"
+    },
+    {
+      "traitName": "3-heads",
+      "itemName": "watch",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/watch.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/watch.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/3-heads/08-watch.png"
+    },
+    {
+      "traitName": "3-heads",
+      "itemName": "rabbit",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/rabbit.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/rabbit.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/3-heads/09-rabbit.png"
+    },
+    {
+      "traitName": "3-heads",
+      "itemName": "queencrawn",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/queencrawn.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/3-heads/queencrawn.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/3-heads/10-queencrawn.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "dilatedred",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/dilatedred.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/dilatedred.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/4-glasses/01-dilatedred.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "focusrose",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/focusrose.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/focusrose.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/4-glasses/02-focusrose.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "standardrose",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/standardrose.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/standardrose.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/4-glasses/03-standardrose.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "dilatedorange",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/dilatedorange.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/dilatedorange.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/4-glasses/04-dilatedorange.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "focussmoke",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/focussmoke.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/focussmoke.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/4-glasses/05-focussmoke.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "focuspearl",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/focuspearl.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/focuspearl.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/4-glasses/06-focuspearl.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "discoslate",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/discoslate.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/discoslate.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/4-glasses/07-discoslate.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "redeyeblack",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/redeyeblack.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/redeyeblack.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/4-glasses/08-redeyeblack.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "discopearl",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/discopearl.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/discopearl.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/4-glasses/09-discopearl.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "focusslate",
+      "sourceUri": "ipfs://bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/focusslate.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeib7irehgjoi27ikzc3p3isxo35vh6hcjjbuhz37wpikpj56p6dxvq/4-glasses/focusslate.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits/traits/4-glasses/10-focusslate.png"
+    }
+  ]
+}

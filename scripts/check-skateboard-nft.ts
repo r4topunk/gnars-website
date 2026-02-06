@@ -48,8 +48,9 @@ async function checkSkateboardNFTs() {
         console.log(`✅ ${wallet}: ${nftCount} Gnars NFT(s)`);
         totalNFTs += nftCount;
       }
-    } catch (error: any) {
-      console.log(`❌ ${wallet}: Error - ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.log(`❌ ${wallet}: Error - ${message}`);
     }
   }
 

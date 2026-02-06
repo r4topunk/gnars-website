@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-// import { MinusCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
 import { Proposal } from "@/components/proposals/types";
 import { extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils";
@@ -12,8 +11,25 @@ import { AddressDisplay } from "@/components/ui/address-display";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useEthPrice } from "@/hooks/use-eth-price";
+import { getProposalFundingTotals, getProposalRequestedUsdTotal } from "@/lib/proposal-funding";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { cn } from "@/lib/utils";
+
+function formatUsdAmount(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: value >= 1000 ? 0 : 2,
+  }).format(value);
+}
+
+function formatAssetAmount(value: number, maxFractionDigits = 4): string {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: maxFractionDigits,
+  }).format(value);
+}
 
 export function ProposalCard({
   proposal,
@@ -22,17 +38,15 @@ export function ProposalCard({
   proposal: Proposal;
   showBanner?: boolean;
 }) {
+  const { ethPrice } = useEthPrice();
   const totalVotes =
     (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
 
-  // Use threshold as the 100% reference point for the bar
-  // This shows progress toward meeting the quorum requirement
   const baseValue = Math.max(proposal.quorumVotes, totalVotes, 1);
   const forPercentage = (proposal.forVotes / baseValue) * 100;
   const againstPercentage = (proposal.againstVotes / baseValue) * 100;
   const abstainPercentage = (proposal.abstainVotes / baseValue) * 100;
 
-  // Threshold marker position as percentage of the base value
   const quorumMarkerPercent =
     proposal.quorumVotes > 0 ? (proposal.quorumVotes / baseValue) * 100 : 100;
 
@@ -46,9 +60,37 @@ export function ProposalCard({
   const [bannerSrc, setBannerSrc] = useState<string>(currentBannerSrc);
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
 
-  // Keep local banner src in sync when proposal changes
+  const fundingTotals = useMemo(
+    () =>
+      getProposalFundingTotals({
+        targets: proposal.targets,
+        values: proposal.values,
+        calldatas: proposal.calldatas,
+      }),
+    [proposal.targets, proposal.values, proposal.calldatas],
+  );
+
+  const hasFundingRequest = fundingTotals.totalEthWei > 0n || fundingTotals.totalUsdcRaw > 0n;
+  const hasEthRequest = fundingTotals.totalEthWei > 0n;
+  const canEstimateEthInUsd = !hasEthRequest || ethPrice > 0;
+  const usdRequestedTotal = getProposalRequestedUsdTotal(fundingTotals, ethPrice);
+
+  const requestedTotalText = canEstimateEthInUsd
+    ? formatUsdAmount(usdRequestedTotal)
+    : fundingTotals.totalUsdcRaw > 0n
+      ? `${formatUsdAmount(fundingTotals.totalUsdc)} + ETH`
+      : "ETH quote unavailable";
+
+  const requestedLines = hasFundingRequest
+    ? [
+        fundingTotals.totalEthWei > 0n ? `${formatAssetAmount(fundingTotals.totalEth)} ETH` : null,
+        fundingTotals.totalUsdcRaw > 0n ? `${formatAssetAmount(fundingTotals.totalUsdc, 2)} USDC` : null,
+      ].filter(Boolean)
+    : ["No direct ETH/USDC transfer"];
+
   useEffect(() => {
     setBannerSrc(currentBannerSrc);
+    setIsImageLoaded(false);
   }, [currentBannerSrc]);
 
   return (
@@ -57,7 +99,6 @@ export function ProposalCard({
         {showBanner && (
           <div className="mx-4 border rounded-md overflow-hidden">
             <AspectRatio ratio={16 / 9}>
-              {/* Image skeleton placeholder to avoid empty gap while loading */}
               {!isImageLoaded && <Skeleton className="absolute inset-0" />}
               <Image
                 src={bannerSrc}
@@ -66,9 +107,10 @@ export function ProposalCard({
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className={`object-cover transition-opacity duration-300 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                 priority={false}
-                onLoadingComplete={() => setIsImageLoaded(true)}
+                onLoad={() => setIsImageLoaded(true)}
                 onError={() => {
                   if (bannerSrc !== "/logo-banner.jpg") setBannerSrc("/logo-banner.jpg");
+                  setIsImageLoaded(false);
                 }}
               />
             </AspectRatio>
@@ -152,47 +194,22 @@ export function ProposalCard({
                     </div>
                   )}
                 </div>
-                {/* <div className="flex justify-between text-xs">
-                  <div
-                    className={cn("flex items-center gap-1", isPending && "text-muted-foreground")}
-                  >
-                    <ThumbsUp
-                      className={cn(
-                        "w-3 h-3",
-                        isPending ? "text-muted-foreground" : "text-green-500",
-                      )}
-                    />
-                    <span>
-                      {proposal.forVotes} ({forPercentage.toFixed(0)}%)
-                    </span>
+              </div>
+            </div>
+
+            <div className="space-y-1 border-t border-border/60 pt-2">
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-xs text-muted-foreground pt-0.5">Requested</span>
+                <div className="min-w-0 text-right">
+                  <div className="font-medium text-foreground tabular-nums">{requestedTotalText}</div>
+                  <div className="mt-0.5 space-y-0.5 text-[11px] text-muted-foreground tabular-nums">
+                    {requestedLines.map((line) => (
+                      <div key={line} className="truncate">
+                        {line}
+                      </div>
+                    ))}
                   </div>
-                  <div
-                    className={cn("flex items-center gap-1", isPending && "text-muted-foreground")}
-                  >
-                    <ThumbsDown
-                      className={cn(
-                        "w-3 h-3",
-                        isPending ? "text-muted-foreground" : "text-red-500",
-                      )}
-                    />
-                    <span>
-                      {proposal.againstVotes} ({againstPercentage.toFixed(0)}%)
-                    </span>
-                  </div>
-                  <div
-                    className={cn("flex items-center gap-1", isPending && "text-muted-foreground")}
-                  >
-                    <MinusCircle
-                      className={cn(
-                        "w-3 h-3",
-                        isPending ? "text-muted-foreground" : "text-gray-400",
-                      )}
-                    />
-                    <span>
-                      {proposal.abstainVotes} ({abstainPercentage.toFixed(0)}%)
-                    </span>
-                  </div>
-                </div> */}
+                </div>
               </div>
             </div>
           </div>
