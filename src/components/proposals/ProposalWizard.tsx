@@ -11,7 +11,8 @@ import { ProposalPreview } from "@/components/proposals/ProposalPreview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useVotes } from "@/hooks/useVotes";
+import { ProposalEligibilityProvider } from "@/components/proposals/ProposalEligibilityContext";
+import { useProposalEligibility } from "@/hooks/useProposalEligibility";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { proposalSchema, type ProposalFormValues } from "./schema";
 
@@ -31,7 +32,7 @@ export function ProposalWizard() {
   });
 
   const { address, isConnected } = useAccount();
-  const { isLoading } = useVotes({
+  const eligibility = useProposalEligibility({
     chainId: CHAIN.id,
     collectionAddress: GNARS_ADDRESSES.token,
     governorAddress: GNARS_ADDRESSES.governor,
@@ -63,7 +64,7 @@ export function ProposalWizard() {
 
   // Child builder handles add/update/remove via useFieldArray
 
-  if (isConnected && isLoading) {
+  if (isConnected && eligibility.isLoading) {
     return (
       <Card className="max-w-2xl mx-auto">
         <CardContent className="flex items-center justify-center py-8">
@@ -77,112 +78,114 @@ export function ProposalWizard() {
   // Voting power restriction removed: all users can access the proposal wizard
 
   return (
-    <FormProvider {...methods}>
-      <div className="max-w-4xl mx-auto">
-        <Tabs value={currentTab} onValueChange={setCurrentTab} className="gap-6">
-          <TabsList className="w-full">
-            <TabsTrigger value="details" className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                1
-              </span>
-              Details
-            </TabsTrigger>
-            <TabsTrigger
-              value="transactions"
-              disabled={!canProceedToTransactions}
-              className="flex items-center gap-2"
-            >
-              <span
-                className={`w-5 h-5 rounded-full text-xs flex items-center justify-center ${
-                  canProceedToTransactions
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
+    <ProposalEligibilityProvider value={eligibility}>
+      <FormProvider {...methods}>
+        <div className="max-w-4xl mx-auto">
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="gap-6">
+            <TabsList className="w-full">
+              <TabsTrigger value="details" className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                  1
+                </span>
+                Details
+              </TabsTrigger>
+              <TabsTrigger
+                value="transactions"
+                disabled={!canProceedToTransactions}
+                className="flex items-center gap-2"
               >
-                2
-              </span>
-              Transactions
-            </TabsTrigger>
-            <TabsTrigger
-              value="preview"
-              disabled={!canProceedToPreview}
-              className="flex items-center gap-2"
-            >
-              <span
-                className={`w-5 h-5 rounded-full text-xs flex items-center justify-center ${
-                  canProceedToPreview
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
+                <span
+                  className={`w-5 h-5 rounded-full text-xs flex items-center justify-center ${
+                    canProceedToTransactions
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  2
+                </span>
+                Transactions
+              </TabsTrigger>
+              <TabsTrigger
+                value="preview"
+                disabled={!canProceedToPreview}
+                className="flex items-center gap-2"
               >
-                3
-              </span>
-              Preview
-            </TabsTrigger>
-          </TabsList>
+                <span
+                  className={`w-5 h-5 rounded-full text-xs flex items-center justify-center ${
+                    canProceedToPreview
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  3
+                </span>
+                Preview
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="details" className="space-y-4">
-            <Card>
-              <CardContent className="p-6">
-                <ProposalDetailsForm />
-                <div className="flex justify-end mt-6">
-                  <Button
-                    onClick={handleNextToTransactions}
-                    disabled={!canProceedToTransactions}
-                    className="w-full sm:w-auto"
-                  >
-                    Next: Add Transactions
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="transactions" className="space-y-4">
-            <Card>
-              <CardContent className="p-6">
-                <TransactionBuilder onFormsVisibilityChange={setIsEditingTransaction} />
-                {!isEditingTransaction && (
-                  <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6">
+            <TabsContent value="details" className="space-y-4">
+              <Card>
+                <CardContent className="p-6">
+                  <ProposalDetailsForm />
+                  <div className="flex justify-end mt-6">
                     <Button
-                      variant="outline"
-                      onClick={() => setCurrentTab("details")}
+                      onClick={handleNextToTransactions}
+                      disabled={!canProceedToTransactions}
                       className="w-full sm:w-auto"
                     >
-                      Back: Edit Details
-                    </Button>
-                    <Button
-                      onClick={handleNextToPreview}
-                      disabled={!canProceedToPreview}
-                      className="w-full sm:w-auto"
-                    >
-                      Next: Preview & Submit
+                      Next: Add Transactions
                     </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <TabsContent value="preview" className="space-y-4">
-            <Card>
-              <CardContent className="p-6">
-                <ProposalPreview />
-                <div className="flex justify-between mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={() => setCurrentTab("transactions")}
-                    className="w-full sm:w-auto"
-                  >
-                    Back: Edit Transactions
-                  </Button>
-                  {/* Submit button will be in ProposalPreview component */}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </FormProvider>
+            <TabsContent value="transactions" className="space-y-4">
+              <Card>
+                <CardContent className="p-6">
+                  <TransactionBuilder onFormsVisibilityChange={setIsEditingTransaction} />
+                  {!isEditingTransaction && (
+                    <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => setCurrentTab("details")}
+                        className="w-full sm:w-auto"
+                      >
+                        Back: Edit Details
+                      </Button>
+                      <Button
+                        onClick={handleNextToPreview}
+                        disabled={!canProceedToPreview}
+                        className="w-full sm:w-auto"
+                      >
+                        Next: Preview & Submit
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="preview" className="space-y-4">
+              <Card>
+                <CardContent className="p-6">
+                  <ProposalPreview />
+                  <div className="flex justify-between mt-6">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentTab("transactions")}
+                      className="w-full sm:w-auto"
+                    >
+                      Back: Edit Transactions
+                    </Button>
+                    {/* Submit button will be in ProposalPreview component */}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </FormProvider>
+    </ProposalEligibilityProvider>
   );
 }

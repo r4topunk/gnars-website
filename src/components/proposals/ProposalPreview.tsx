@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { AlertTriangle, CheckCircle, ExternalLink, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle, ExternalLink, Info, Loader2 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { base } from "wagmi/chains";
-import { useAccount, useWaitForTransactionReceipt, useWriteContract, useSwitchChain } from "wagmi";
+import { useAccount, useSwitchChain, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { toast } from "sonner";
 import Image from "next/image";
 import { TransactionsSummaryList } from "@/components/proposals/preview/TransactionsSummaryList";
 import { ProposalDebugPanel } from "@/components/proposals/ProposalDebugPanel";
+import { useProposalEligibilityContext } from "@/components/proposals/ProposalEligibilityContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,6 +34,7 @@ const governorAbi = [
 ] as const;
 
 export function ProposalPreview() {
+  const eligibility = useProposalEligibilityContext();
   const { getValues, handleSubmit, formState: { errors } } = useFormContext<ProposalFormValues>();
   const [isActionPending, startTransition] = useTransition();
   const [preparedDescription, setPreparedDescription] = useState<string>("");
@@ -42,7 +44,7 @@ export function ProposalPreview() {
     values: bigint[];
     calldatas: `0x${string}`[];
   } | undefined>();
-  const { chain } = useAccount();
+  const { chain, isConnected, address } = useAccount();
   const { switchChainAsync } = useSwitchChain();
 
   // Watch form values for reactive preview
@@ -157,11 +159,14 @@ export function ProposalPreview() {
   };
 
   const canSubmit =
+    isConnected &&
+    eligibility.hasThreshold === true &&
     Boolean(data.title) &&
     (data.transactions?.length ?? 0) > 0 &&
     !isActionPending &&
     !isWalletPending &&
-    !isConfirming;
+    !isConfirming &&
+    !eligibility.isLoading;
 
   // Debug logging
   useEffect(() => {
@@ -257,6 +262,56 @@ export function ProposalPreview() {
             </div>
           </div>
 
+          {eligibility.proposalVotesRequired !== undefined && (
+            <Alert className="mb-4 border-blue-200/60 bg-blue-50/60 dark:border-blue-800/40 dark:bg-blue-950/20">
+              <Info className="h-4 w-4 text-blue-700 dark:text-blue-300" />
+              <AlertDescription className="text-blue-900/90 dark:text-blue-100/90">
+                Minimum to create a proposal:{" "}
+                <span className="font-semibold">
+                  {eligibility.proposalVotesRequired.toString()} votes
+                </span>
+                . This comes from the Governor contract proposal threshold.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {!isConnected && (
+            <Alert className="mb-4">
+              <Info className="h-4 w-4" />
+              <AlertDescription>Connect your wallet to check eligibility and submit.</AlertDescription>
+            </Alert>
+          )}
+
+          {isConnected && eligibility.isLoading && (
+            <Alert className="mb-4">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <AlertDescription>Checking voting power...</AlertDescription>
+            </Alert>
+          )}
+
+          {isConnected && eligibility.hasThreshold === false && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                You need at least{" "}
+                <span className="font-semibold">
+                  {eligibility.proposalVotesRequired?.toString() ?? "N/A"}
+                </span>{" "}
+                votes to create a proposal.
+                {typeof eligibility.votes === "bigint" && (
+                  <>
+                    {" "}
+                    You currently have <span className="font-semibold">{eligibility.votes.toString()}</span>{" "}
+                    votes.
+                  </>
+                )}
+                {eligibility.isDelegating && eligibility.delegatedTo && address && (
+                  <> Your votes are delegated to {eligibility.delegatedTo}.</>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {isActionPending && (
             <Alert className="mb-4">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -287,30 +342,32 @@ export function ProposalPreview() {
             </Alert>
           )}
 
-          <Button
-            onClick={(e) => {
-              console.log("Submit button clicked!");
-              console.log("canSubmit:", canSubmit);
-              console.log("Form errors:", errors);
-              handleSubmit(handleFormSubmit, onValidationError)(e);
-            }}
-            disabled={!canSubmit}
-            size="lg"
-            className="w-full"
-          >
-            {isActionPending || isWalletPending || isConfirming ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                {isActionPending
-                  ? "Preparing..."
-                  : isWalletPending
-                    ? "Confirming..."
-                    : "Submitting..."}
-              </>
-            ) : (
-              "Submit Proposal"
-            )}
-          </Button>
+          {isConnected && eligibility.hasThreshold === true && (
+            <Button
+              onClick={(e) => {
+                console.log("Submit button clicked!");
+                console.log("canSubmit:", canSubmit);
+                console.log("Form errors:", errors);
+                handleSubmit(handleFormSubmit, onValidationError)(e);
+              }}
+              disabled={!canSubmit}
+              size="lg"
+              className="w-full"
+            >
+              {isActionPending || isWalletPending || isConfirming ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  {isActionPending
+                    ? "Preparing..."
+                    : isWalletPending
+                      ? "Confirming..."
+                      : "Submitting..."}
+                </>
+              ) : (
+                "Submit Proposal"
+              )}
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>
