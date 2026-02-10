@@ -5,7 +5,6 @@ import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { subgraphQuery } from "@/lib/subgraph";
 import { toOgImageUrl } from "@/lib/og-images";
 import { MINIAPP_SIZE, OG_COLORS, OG_FONTS, formatEthDisplay, truncateText } from "@/lib/og-utils";
-import { NogglesIcon } from "@/lib/og-brand";
 
 export const alt = "Gnars DAO Droposal";
 export const size = MINIAPP_SIZE;
@@ -287,12 +286,21 @@ function renderFallback(message: string) {
           backgroundColor: OG_COLORS.background,
           fontFamily: OG_FONTS.family,
           flexDirection: "column",
+          padding: "80px",
         }}
       >
-        <div style={{ display: "flex", marginBottom: "16px" }}>
-          <NogglesIcon color={OG_COLORS.accent} width={180} />
+        <div
+          style={{
+            fontSize: 64,
+            fontWeight: 800,
+            color: OG_COLORS.foreground,
+            marginBottom: "12px",
+            display: "flex",
+          }}
+        >
+          Gnars DAO
         </div>
-        <div style={{ fontSize: 40, color: OG_COLORS.foreground, textAlign: "center" }}>
+        <div style={{ fontSize: 44, color: OG_COLORS.mutedLight, textAlign: "center" }}>
           {message}
         </div>
       </div>

@@ -12,7 +12,9 @@ export async function GET(
   const { address } = await params;
   const safeAddress = typeof address === "string" ? address : "";
   const fallbackDisplayName = safeAddress
-    ? `${safeAddress.slice(0, 6)}...${safeAddress.slice(-4)}`
+    ? isAddress(safeAddress)
+      ? `${safeAddress.slice(0, 6)}...${safeAddress.slice(-4)}`
+      : "Invalid Address"
     : "Unknown";
   const fallbackData = {
     displayName: fallbackDisplayName,
