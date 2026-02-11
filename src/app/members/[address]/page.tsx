@@ -146,7 +146,9 @@ export async function generateMetadata({ params }: MemberPageProps): Promise<Met
     other: {
       "fc:frame": JSON.stringify({
         version: "next",
-        imageUrl: ogImageUrl,
+        // Farcaster frame/miniapp embeds render the image in a 3:2 viewport.
+        // Use the dedicated 1200x800 asset to avoid client-side cropping.
+        imageUrl: miniappImageUrl,
         button: {
           title: `View ${displayName}`,
           action: {

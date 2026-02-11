@@ -152,7 +152,12 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     (v) => v.voter?.toLowerCase() === address?.toLowerCase(),
   );
 
-  const { votingPower, isLoading: votesLoading } = useVotes({
+  const {
+    votingPower,
+    isLoading: votesLoading,
+    isDelegating,
+    delegatedTo,
+  } = useVotes({
     chainId: CHAIN.id,
     collectionAddress: GNARS_ADDRESSES.token,
     governorAddress: GNARS_ADDRESSES.governor,
@@ -225,6 +230,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
               onVoteSuccess={handleVoteConfirmed}
               votingPower={votingPower}
               votesLoading={votesLoading}
+              isDelegating={isDelegating}
+              delegatedTo={delegatedTo}
             />
           </CardContent>
         </Card>

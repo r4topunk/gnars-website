@@ -7,6 +7,7 @@ import { AuctionSpotlight } from "@/components/hero/AuctionSpotlight";
 import { ActivityFeedSection } from "@/components/home/ActivityFeedSection";
 import { AnimatedDescription } from "@/components/home/AnimatedDescription";
 import { HeroStatsValues } from "@/components/home/HeroStatsValues";
+import { NogglesCopyFooter } from "@/components/home/NogglesCopyFooter";
 import { HomeStaticContent } from "@/components/home/HomeStaticContent";
 import { RecentProposalsSection } from "@/components/home/RecentProposalsSection";
 import {
@@ -120,6 +121,8 @@ export default function Home() {
         <section>
           <ContractsList />
         </section>
+
+        <NogglesCopyFooter />
       </div>
     </div>
   );
