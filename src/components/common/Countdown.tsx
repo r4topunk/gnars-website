@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { formatTimeRemaining, parseBlockchainTimestamp } from "@/lib/utils/proposal-state";
 
 interface CountdownProps {
@@ -18,10 +18,11 @@ interface CountdownProps {
  */
 export function Countdown({ end, onEnd, style, className }: CountdownProps) {
   const [timeRemaining, setTimeRemaining] = useState<string>("");
-  const [hasEnded, setHasEnded] = useState(false);
+  const hasEndedRef = useRef(false);
 
   useEffect(() => {
     const endDate = parseBlockchainTimestamp(end);
+    hasEndedRef.current = false; // Reset when countdown restarts
 
     const updateCountdown = () => {
       const now = new Date();
@@ -29,8 +30,8 @@ export function Countdown({ end, onEnd, style, className }: CountdownProps) {
 
       if (diffMs <= 0) {
         setTimeRemaining("0s");
-        if (!hasEnded) {
-          setHasEnded(true);
+        if (!hasEndedRef.current) {
+          hasEndedRef.current = true;
           onEnd?.();
         }
       } else {
@@ -45,7 +46,7 @@ export function Countdown({ end, onEnd, style, className }: CountdownProps) {
     const interval = setInterval(updateCountdown, 1000);
 
     return () => clearInterval(interval);
-  }, [end, onEnd, hasEnded]);
+  }, [end]); // Only depend on 'end' - restart countdown when target changes
 
   return (
     <span className={className} style={style}>
