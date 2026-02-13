@@ -5,12 +5,9 @@ import {
   type DecodedData,
   type PropDate,
 } from "@buildeross/sdk/eas";
-import { getAddress, isAddress, isHex } from "viem";
+import { encodeAbiParameters, getAddress, isAddress, isHex, parseAbiParameters, zeroHash } from "viem";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
-
-// Inline schema UID to avoid extra constants package dependency here
-const PROPDATE_SCHEMA_UID =
-  "0x8bd0d42901ce3cd9898dbea6ae2fbf1e796ef0923e7cbb0a1cecac2e42d47cb3" as const;
+import { AttestationRequest, PropdateMessageType, PROPDATE_SCHEMA, PROPDATE_SCHEMA_UID } from "@/lib/eas";
 
 export type Propdate = PropDate;
 
@@ -230,8 +227,42 @@ export async function getPropdateByTxid(txid: string): Promise<Propdate | null> 
   }
 }
 
-export async function createPropdate(proposalId: string, messageText: string): Promise<void> {
-  // TODO: Replace this with the actual SDK call
-  console.log("Creating propdate:", { proposalId, messageText });
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+const propdateSchemaParams = parseAbiParameters(PROPDATE_SCHEMA);
+
+function encodePropdateMessage(proposalId: string, messageText: string): `0x${string}` {
+  const trimmedProposalId = proposalId.trim();
+  if (!trimmedProposalId || !isHex(trimmedProposalId)) {
+    throw new Error("Invalid proposal ID for propdate");
+  }
+
+  const trimmedMessage = messageText.trim();
+  if (!trimmedMessage) {
+    throw new Error("Propdate message must not be empty");
+  }
+
+  return encodeAbiParameters(propdateSchemaParams, [
+    trimmedProposalId as `0x${string}`,
+    zeroHash,
+    PropdateMessageType.INLINE_TEXT,
+    trimmedMessage,
+  ]);
+}
+
+export async function createPropdate(
+  proposalId: string,
+  messageText: string,
+): Promise<AttestationRequest> {
+  const encoded = encodePropdateMessage(proposalId, messageText);
+
+  return {
+    schema: PROPDATE_SCHEMA_UID,
+    data: {
+      recipient: getAddress(GNARS_ADDRESSES.token),
+      expirationTime: 0n,
+      revocable: true,
+      refUID: zeroHash,
+      data: encoded,
+      value: 0n,
+    },
+  };
 }

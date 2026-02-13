@@ -26,6 +26,11 @@
 
 # generated outputs (screenshots, dumps, etc.)
 /outputs
+/output
+
+# playwright
+/test-results
+/playwright-report
 
 # debug
 npm-debug.log*
