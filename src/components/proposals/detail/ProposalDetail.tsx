@@ -134,7 +134,9 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       if (voter) {
         const lowerVoter = String(voter ?? "").toLowerCase();
         setVotesList((prev) => {
-          const filtered = prev.filter((vote) => String(vote.voter ?? "").toLowerCase() !== lowerVoter);
+          const filtered = prev.filter(
+            (vote) => String(vote.voter ?? "").toLowerCase() !== lowerVoter,
+          );
           const updated: ProposalVote = {
             voter: String(voter),
             voterEnsName: undefined,
