@@ -44,8 +44,8 @@ export function ProposalVotesList({ title = "Individual Votes", votes, isActive 
   const nonVoters = isActive && activeMembers
     ? activeMembers
         .filter(member => {
-          const memberAddress = member.address.toLowerCase();
-          return !votes?.some(vote => vote.voter.toLowerCase() === memberAddress);
+          const memberAddress = String(member.address ?? "").toLowerCase();
+          return !votes?.some(vote => String(vote.voter ?? "").toLowerCase() === memberAddress);
         })
     : [];
 

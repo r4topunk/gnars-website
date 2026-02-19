@@ -1,5 +1,5 @@
-import { ImageResponse } from "next/og";
 import { headers } from "next/headers";
+import { ImageResponse } from "next/og";
 import { isAddress } from "viem";
 
 export const alt = "Gnars DAO Member";
@@ -26,7 +26,9 @@ export default async function Image({ params }: Props) {
     });
 
     let data = {
-      displayName: isValidAddress ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Invalid Address",
+      displayName: isValidAddress
+        ? `${address.slice(0, 6)}...${address.slice(-4)}`
+        : "Invalid Address",
       avatar: null,
       tokenCount: 0,
       delegatorCount: 0,
@@ -113,9 +115,7 @@ export default async function Image({ params }: Props) {
               >
                 {displayName}
               </div>
-              <div style={{ display: "flex", fontSize: 28, color: "#888" }}>
-                {addressLabel}
-              </div>
+              <div style={{ display: "flex", fontSize: 28, color: "#888" }}>{addressLabel}</div>
             </div>
           </div>
 

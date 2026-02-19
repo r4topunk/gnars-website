@@ -342,7 +342,7 @@ export function VotingControls({
           ) : hasVoted && existingUserVote ? (
             <>
               <Check className="mr-2 h-4 w-4" />
-              Vote {existingUserVote.toLowerCase()} confirmed
+              Vote {String(existingUserVote).toLowerCase()} confirmed
             </>
           ) : (
             <>

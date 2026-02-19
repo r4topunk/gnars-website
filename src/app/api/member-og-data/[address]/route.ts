@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProfile, setApiKey } from "@zoralabs/coins-sdk";
 import { fetchDelegators, fetchMemberOverview, fetchMemberVotes } from "@/services/members";
-import { isAddress } from "viem";
 
 export const dynamic = "force-dynamic";
 
@@ -10,24 +9,6 @@ export async function GET(
   { params }: { params: Promise<{ address: string }> }
 ) {
   const { address } = await params;
-  const safeAddress = typeof address === "string" ? address : "";
-  const fallbackDisplayName = safeAddress
-    ? isAddress(safeAddress)
-      ? `${safeAddress.slice(0, 6)}...${safeAddress.slice(-4)}`
-      : "Invalid Address"
-    : "Unknown";
-  const fallbackData = {
-    displayName: fallbackDisplayName,
-    avatar: null,
-    tokenCount: 0,
-    delegatorCount: 0,
-    voteCount: 0,
-    creatorCoin: null,
-  };
-
-  if (!isAddress(safeAddress)) {
-    return NextResponse.json(fallbackData, { status: 200 });
-  }
 
   try {
     // Initialize Zora API
@@ -45,9 +26,7 @@ export async function GET(
 
     const profile = zoraProfile?.data?.profile;
     const displayName =
-      profile?.displayName ||
-      profile?.handle ||
-      `${safeAddress.slice(0, 6)}...${safeAddress.slice(-4)}`;
+      profile?.displayName || profile?.handle || `${address.slice(0, 6)}...${address.slice(-4)}`;
     const avatar = profile?.avatar?.medium || profile?.avatar?.small;
     const tokenCount = memberOverview?.tokenCount || 0;
     const delegatorCount = delegators?.length || 0;
@@ -82,6 +61,16 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error fetching member OG data:", error);
-    return NextResponse.json(fallbackData, { status: 200 });
+    return NextResponse.json(
+      {
+        displayName: `${address.slice(0, 6)}...${address.slice(-4)}`,
+        avatar: null,
+        tokenCount: 0,
+        delegatorCount: 0,
+        voteCount: 0,
+        creatorCoin: null,
+      },
+      { status: 200 }
+    );
   }
 }
