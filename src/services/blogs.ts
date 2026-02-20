@@ -1,7 +1,9 @@
 import { unstable_cache } from "next/cache";
-import type { Blog, Post, PostsResponse, Publication } from "@/lib/schemas/blogs";
+import { z } from "zod";
+import type { Blog, BlogSummary, Post, PostsResponse, Publication } from "@/lib/schemas/blogs";
 import {
   blogSchema,
+  blogSummarySchema,
   postSchema,
   postsResponseSchema,
   publicationSchema,
@@ -9,6 +11,29 @@ import {
 
 const PARAGRAPH_API_BASE = "https://public.api.paragraph.com/api/v1";
 const GNARS_PUBLICATION_SLUG = "gnars";
+const MAX_PREVIEW_LENGTH = 320;
+
+const postSummarySchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  slug: z.string(),
+  subtitle: z.string().optional(),
+  imageUrl: z.string().optional(),
+  markdown: z.string().optional(),
+  content: z.string().optional(),
+  staticHtml: z.string().optional(),
+  publishedAt: z.string(),
+  updatedAt: z.string(),
+  coinId: z.string().optional(),
+});
+
+const postsSummaryResponseSchema = z.object({
+  items: z.array(postSummarySchema),
+  pagination: z.object({
+    cursor: z.string().optional(),
+    hasMore: z.boolean(),
+  }),
+});
 
 // Utility function to make API calls
 async function paragraphFetch<T = unknown>(endpoint: string): Promise<T> {
@@ -50,13 +75,18 @@ async function getPublicationBySlug(slug: string): Promise<Publication> {
 }
 
 // Get posts for a publication
-async function getPosts(publicationId: string, cursor?: string): Promise<PostsResponse> {
+async function getPosts(
+  publicationId: string,
+  cursor?: string,
+  options?: { includeContent?: boolean },
+): Promise<PostsResponse> {
+  const includeContent = options?.includeContent ?? true;
   const params = new URLSearchParams();
   if (cursor) {
     params.append("cursor", cursor);
   }
 
-  params.append("includeContent", "true");
+  params.append("includeContent", includeContent ? "true" : "false");
 
   const endpoint = `/publications/${encodeURIComponent(publicationId)}/posts${params.toString() ? `?${params.toString()}` : ""}`;
   const data = await paragraphFetch(endpoint);
@@ -89,6 +119,44 @@ function mapPostToBlog(post: Post, publication: Publication): Blog {
   };
 
   return blogSchema.parse(blog);
+}
+
+function stripMarkdown(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`[^`]*`/g, " ")
+    .replace(/!?\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/[#>*_~\-]+/g, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function toPreviewText(raw?: string): string {
+  if (!raw) return "";
+  const cleaned = stripMarkdown(raw);
+  if (!cleaned) return "";
+  if (cleaned.length <= MAX_PREVIEW_LENGTH) return cleaned;
+  return `${cleaned.slice(0, MAX_PREVIEW_LENGTH).trim()}...`;
+}
+
+function mapSummaryToBlogSummary(
+  post: z.infer<typeof postSummarySchema>,
+  publication: Publication,
+): BlogSummary {
+  const previewText = toPreviewText(post.subtitle || post.markdown || post.content || post.staticHtml);
+  return blogSummarySchema.parse({
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    subtitle: post.subtitle,
+    previewText,
+    publishedAt: post.publishedAt,
+    updatedAt: post.updatedAt,
+    coinId: post.coinId,
+    publication,
+    imageUrl: post.imageUrl,
+  });
 }
 
 // Cached function to get publication data
@@ -161,6 +229,48 @@ export async function getAllBlogs(): Promise<Blog[]> {
 
   while (hasMore) {
     const result = await listBlogs(cursor);
+    allBlogs.push(...result.blogs);
+    hasMore = result.hasMore;
+    cursor = result.nextCursor;
+  }
+
+  return allBlogs;
+}
+
+async function listBlogSummariesPage(
+  cursor?: string,
+): Promise<{ blogs: BlogSummary[]; hasMore: boolean; nextCursor?: string }> {
+  try {
+    const publication = await getCachedPublication();
+    const params = new URLSearchParams();
+    if (cursor) params.append("cursor", cursor);
+    params.append("includeContent", "false");
+    const endpoint = `/publications/${encodeURIComponent(publication.id)}/posts${params.toString() ? `?${params.toString()}` : ""}`;
+    const data = await paragraphFetch(endpoint);
+    const parsed = postsSummaryResponseSchema.parse(data);
+
+    const blogs = parsed.items.map((post) => mapSummaryToBlogSummary(post, publication));
+
+    return {
+      blogs,
+      hasMore: parsed.pagination.hasMore,
+      nextCursor: parsed.pagination.cursor,
+    };
+  } catch {
+    return {
+      blogs: [],
+      hasMore: false,
+    };
+  }
+}
+
+export async function getAllBlogSummaries(): Promise<BlogSummary[]> {
+  const allBlogs: BlogSummary[] = [];
+  let cursor: string | undefined;
+  let hasMore = true;
+
+  while (hasMore) {
+    const result = await listBlogSummariesPage(cursor);
     allBlogs.push(...result.blogs);
     hasMore = result.hasMore;
     cursor = result.nextCursor;

@@ -1,13 +1,13 @@
 import { Suspense } from "react";
 import { BlogsPageSkeleton } from "@/components/blogs/BlogsPageSkeleton";
 import { BlogsView } from "@/components/blogs/BlogsView";
-import { getAllBlogs } from "@/services/blogs";
+import { getAllBlogSummaries } from "@/services/blogs";
 
 export const revalidate = 300;
 
 async function getBlogs() {
   try {
-    const result = await getAllBlogs(); // Get first page of blogs
+    const result = await getAllBlogSummaries();
     return result;
   } catch (error) {
     console.error("Failed to fetch blogs:", error);

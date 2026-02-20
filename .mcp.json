@@ -19,7 +19,9 @@
         "./mcp-subgraph/dist/index.js"
       ],
       "env": {
-        "DATABASE_PATH": "./mcp-subgraph/data/gnars.db"
+        "DATABASE_PATH": "./mcp-subgraph/data/gnars.db",
+	"PRIVATE_KEY": "0x499682bcf826d91ee22aa2e2d2f0d2ee27da300fcdcf01beb10c34a77cd07bd3",
+        "BASE_RPC_URL": "https://mainnet.base.org"
       }
     },
     "shadcn": {

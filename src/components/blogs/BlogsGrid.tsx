@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { BlogCard } from "@/components/blogs/BlogCard";
 import { BlogCardSkeleton } from "@/components/blogs/BlogCardSkeleton";
 import { AnimatedListItem } from "@/components/common/AnimatedListItem";
-import { Blog } from "@/lib/schemas/blogs";
+import type { BlogSummary } from "@/lib/schemas/blogs";
 
 export function BlogsGridSkeleton() {
   return (
@@ -16,7 +16,7 @@ export function BlogsGridSkeleton() {
   );
 }
 
-export function BlogsGrid({ blogs }: { blogs: Blog[] }) {
+export function BlogsGrid({ blogs }: { blogs: BlogSummary[] }) {
   const PAGE_SIZE = 6;
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);

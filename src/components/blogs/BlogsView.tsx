@@ -4,10 +4,10 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { BlogsGrid } from "@/components/blogs/BlogsGrid";
 import { Input } from "@/components/ui/input";
 import { useBlogSearch } from "@/hooks/use-blog-search";
-import { Blog } from "@/lib/schemas/blogs";
+import type { BlogSummary } from "@/lib/schemas/blogs";
 
 interface BlogsViewProps {
-  blogs: Blog[];
+  blogs: BlogSummary[];
 }
 
 export function BlogsView({ blogs: allBlogs }: BlogsViewProps) {

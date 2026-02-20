@@ -1,18 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Blog } from "@/lib/schemas/blogs";
+import type { BlogSummary } from "@/lib/schemas/blogs";
 
-function stripMarkdown(md: string) {
-  return md
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/`[^`]*`/g, " ")
-    .replace(/!?\[[^\]]*\]\([^)]*\)/g, " ")
-    .replace(/[#>*_~\-]+/g, " ")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+const MIN_QUERY_LENGTH = 2;
 
-export function useBlogSearch(blogs: Blog[]) {
+export function useBlogSearch(blogs: BlogSummary[]) {
   const [ready, setReady] = useState(false);
   const [ids, setIds] = useState<string[] | null | undefined>(undefined);
   const workerRef = useRef<Worker | null>(null);
@@ -33,7 +24,7 @@ export function useBlogSearch(blogs: Blog[]) {
     const docs = blogs.map((b) => ({
       id: b.id,
       title: b.title,
-      text: stripMarkdown(b.markdown ?? ""),
+      text: `${b.subtitle ?? ""} ${b.previewText ?? ""}`.trim(),
     }));
     w.postMessage({ type: "init", docs });
   }, [blogs]);
@@ -41,8 +32,13 @@ export function useBlogSearch(blogs: Blog[]) {
   const search = useCallback(
     (q: string) => {
       const trimmedQuery = q.trim();
-      if (!trimmedQuery) {
+      if (trimmedQuery.length < MIN_QUERY_LENGTH) {
         setIds(blogs.map((b) => b.id));
+        return;
+      }
+
+      if (!workerRef.current) {
+        init();
         return;
       }
 
@@ -50,7 +46,7 @@ export function useBlogSearch(blogs: Blog[]) {
       if (!w || !ready) return;
       w.postMessage({ type: "search", query: trimmedQuery });
     },
-    [ready, blogs],
+    [blogs, init, ready],
   );
 
   useEffect(
