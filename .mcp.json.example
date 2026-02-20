@@ -7,7 +7,7 @@
         "@reuvenorg/shadcn-registry-manager"
       ],
       "env": {
-        "WORKSPACE_DIR": "/Users/r4to/Script/gnars-website",
+        "WORKSPACE_DIR": "/Users/your-user/path/to/gnars-website",
         "STYLE": "new-york",
         "REGISTRY_URL": "https://ui.shadcn.com/r"
       }
@@ -20,7 +20,7 @@
       ],
       "env": {
         "DATABASE_PATH": "./mcp-subgraph/data/gnars.db",
-	"PRIVATE_KEY": "0x499682bcf826d91ee22aa2e2d2f0d2ee27da300fcdcf01beb10c34a77cd07bd3",
+        "PRIVATE_KEY": "",
         "BASE_RPC_URL": "https://mainnet.base.org"
       }
     },

@@ -22,6 +22,7 @@ import {
   resolveEnsBatch,
   resolveEnsBatchSchema,
 } from "./tools/resolve-ens.js";
+import { castVote, castVoteSchema } from "./tools/cast-vote.js";
 
 export function createServer() {
   const server = new McpServer({
@@ -166,6 +167,31 @@ export function createServer() {
       const input = resolveEnsBatchSchema.parse(params);
       const result = await resolveEnsBatch(input);
       return createMcpResponse(result, input.format as OutputFormat);
+    }
+  );
+
+  // Tool: cast_vote (sends on-chain transaction using PRIVATE_KEY env var)
+  server.tool(
+    "cast_vote",
+    "Cast a vote on an active Gnars DAO governance proposal on-chain. Requires PRIVATE_KEY environment variable. Supports FOR, AGAINST, or ABSTAIN with an optional reason.",
+    castVoteSchema.shape,
+    async (params) => {
+      const input = castVoteSchema.parse(params);
+      try {
+        const result = await castVote(input);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (err: unknown) {
+        const message =
+          err && typeof err === "object" && "message" in err
+            ? String((err as { message?: string }).message)
+            : "Failed to cast vote";
+        return {
+          content: [{ type: "text", text: `Error: ${message}` }],
+          isError: true,
+        };
+      }
     }
   );
 

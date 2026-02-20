@@ -51,3 +51,6 @@ next-env.d.ts
 # SQLite runtime files
 *.db-shm
 *.db-wal
+
+# MCP server config (may contain private keys)
+.mcp.json
