@@ -1,9 +1,26 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { BlogDetail, BlogDetailSkeleton } from "@/components/blogs/detail/BlogDetail";
 import { Blog } from "@/lib/schemas/blogs";
 import { getBlogBySlug } from "@/services/blogs";
 
 export const revalidate = 300;
+const CROSS_CHAR_REGEX = /[×✕✖✗✘]/g;
+const VARIATION_SELECTOR_REGEX = /[\uFE00-\uFE0F]/g;
+
+function normalizeRouteSlug(slug: string): string {
+  let decoded = slug;
+  try {
+    decoded = decodeURIComponent(slug);
+  } catch {
+    decoded = slug;
+  }
+
+  return decoded
+    .normalize("NFKD")
+    .replace(VARIATION_SELECTOR_REGEX, "")
+    .replace(CROSS_CHAR_REGEX, "x");
+}
 
 async function fetchBlogData(slug: string): Promise<Blog | null> {
   try {
@@ -20,7 +37,13 @@ interface BlogPageProps {
 
 export default async function BlogPage({ params }: BlogPageProps) {
   const { slug } = await params;
-  const blog = await fetchBlogData(slug);
+  const normalizedSlug = normalizeRouteSlug(slug);
+
+  if (slug !== normalizedSlug) {
+    redirect(`/blogs/${normalizedSlug}`);
+  }
+
+  const blog = await fetchBlogData(normalizedSlug);
 
   if (!blog) {
     return (

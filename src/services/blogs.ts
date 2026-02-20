@@ -12,6 +12,12 @@ import {
 const PARAGRAPH_API_BASE = "https://public.api.paragraph.com/api/v1";
 const GNARS_PUBLICATION_SLUG = "gnars";
 const MAX_PREVIEW_LENGTH = 320;
+const CROSS_CHAR_REGEX = /[×✕✖✗✘]/g;
+const VARIATION_SELECTOR_REGEX = /[\uFE00-\uFE0F]/g;
+
+function normalizeSlugInput(slug: string): string {
+  return slug.normalize("NFKD").replace(VARIATION_SELECTOR_REGEX, "");
+}
 
 const postSummarySchema = z.object({
   id: z.string(),
@@ -140,6 +146,42 @@ function toPreviewText(raw?: string): string {
   return `${cleaned.slice(0, MAX_PREVIEW_LENGTH).trim()}...`;
 }
 
+function canonicalizeSlug(slug: string): string {
+  return normalizeSlugInput(slug)
+    .replace(CROSS_CHAR_REGEX, "x")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getDirectSlugCandidates(slug: string): string[] {
+  const normalized = normalizeSlugInput(slug);
+  const candidates = [
+    slug,
+    normalized,
+    normalized.replace(/[✕✖✗✘]/g, "×"),
+    normalized.replace(CROSS_CHAR_REGEX, "x"),
+  ];
+
+  return [...new Set(candidates)];
+}
+
+function stripStandaloneX(slug: string): string {
+  return canonicalizeSlug(slug)
+    .split("-")
+    .filter((segment) => segment && segment !== "x")
+    .join("-");
+}
+
+function slugsEquivalent(a: string, b: string): boolean {
+  const canonicalA = canonicalizeSlug(a);
+  const canonicalB = canonicalizeSlug(b);
+  if (canonicalA === canonicalB) {
+    return true;
+  }
+  return stripStandaloneX(a) === stripStandaloneX(b);
+}
+
 function mapSummaryToBlogSummary(
   post: z.infer<typeof postSummarySchema>,
   publication: Publication,
@@ -202,23 +244,29 @@ export async function getBlogBySlug(slug: string): Promise<Blog | null> {
   try {
     const publication = await getCachedPublication();
 
-    // Try to get the post directly using publication slug and post slug
-    const post = await getPostBySlug(GNARS_PUBLICATION_SLUG, slug);
-
-    if (!post) {
-      return null;
+    // Try direct lookups with equivalent slug variants first.
+    for (const candidateSlug of getDirectSlugCandidates(slug)) {
+      try {
+        const post = await getPostBySlug(GNARS_PUBLICATION_SLUG, candidateSlug);
+        return mapPostToBlog(post, publication);
+      } catch {
+        // Try next candidate.
+      }
     }
-
-    return mapPostToBlog(post, publication);
   } catch {
-    // If the direct method fails, fallback to searching through all posts
-    try {
-      const allBlogs = await getAllBlogs();
-      const found = allBlogs.find((blog) => blog.slug === slug) || null;
-      return found;
-    } catch {
-      return null;
-    }
+    // Fallback to full scan below.
+  }
+
+  // If direct lookup fails, fallback to searching through all posts.
+  try {
+    const allBlogs = await getAllBlogs();
+    const found =
+      allBlogs.find((blog) => blog.slug === slug) ||
+      allBlogs.find((blog) => slugsEquivalent(blog.slug, slug)) ||
+      null;
+    return found;
+  } catch {
+    return null;
   }
 }
 

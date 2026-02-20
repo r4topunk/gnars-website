@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { BlogSummary } from "@/lib/schemas/blogs";
 import { formatSafeDistanceToNow } from "@/lib/utils/date";
 
+const CROSS_CHAR_REGEX = /[×✕✖✗✘]/g;
+
 export function BlogCard({ blog }: { blog: BlogSummary }) {
   const currentBannerSrc = blog.imageUrl || "/logo-banner.jpg";
   const [bannerSrc, setBannerSrc] = useState<string>(currentBannerSrc);
@@ -19,10 +21,11 @@ export function BlogCard({ blog }: { blog: BlogSummary }) {
   }, [currentBannerSrc]);
 
   const publishedDate = formatSafeDistanceToNow(blog.publishedAt);
+  const routeSlug = blog.slug.replace(CROSS_CHAR_REGEX, "x");
 
   return (
     <Card className="overflow-hidden cursor-pointer transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-md">
-      <Link href={`/blogs/${blog.slug}`} className="block">
+      <Link href={`/blogs/${routeSlug}`} className="block">
         <div className="mx-4 border rounded-md overflow-hidden">
           <AspectRatio ratio={16 / 9}>
             {!isImageLoaded && <Skeleton className="absolute inset-0" />}

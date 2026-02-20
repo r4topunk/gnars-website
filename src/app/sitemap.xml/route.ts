@@ -285,7 +285,7 @@ export async function GET(): Promise<Response> {
   }));
 
   const blogEntries: SitemapEntry[] = blogs.map((blog) => ({
-    url: toUrl(`/blogs/${blog.slug}`),
+    url: toUrl(`/blogs/${blog.slug.replace(/[×✕✖✗✘]/g, "x")}`),
     lastModified: toDate(blog.updatedAt) || toDate(blog.publishedAt) || now,
     changeFrequency: "monthly",
     priority: 0.6,
