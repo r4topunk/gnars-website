@@ -144,11 +144,12 @@ export const useVotes = ({
     return { ...emptyResult, isLoading };
   }
 
-  // If we have subgraph vote weight, use that instead of contract data
+  // If we have subgraph vote weight, use that instead of contract data.
+  // Branch B contracts: [getVotes(data[0]), delegates(data[1]), proposalThreshold(data[2])]
   if (hasSubgraphVoteWeight) {
     const votingPower = BigInt(voteWeightFromSubgraph!);
-    const delegates = data[0]?.result as Address | undefined;
-    const proposalThreshold = data[1]?.result as bigint | undefined;
+    const delegates = data[1]?.result as Address | undefined;
+    const proposalThreshold = data[2]?.result as bigint | undefined;
 
     if (delegates === undefined || proposalThreshold === undefined) {
       return { ...emptyResult, isLoading: false };

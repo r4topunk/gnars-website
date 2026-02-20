@@ -77,7 +77,10 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
 
   const initialVote = useMemo(() => {
     if (!address) return null;
-    const vote = votesList.find((entry) => entry.voter?.toLowerCase() === address.toLowerCase());
+    const normalizedAddr = String(address ?? "").toLowerCase();
+    const vote = votesList.find(
+      (entry) => String(entry.voter ?? "").toLowerCase() === normalizedAddr,
+    );
     if (!vote) return null;
     return {
       choice: vote.choice,
@@ -129,11 +132,13 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       }
 
       if (voter) {
-        const lowerVoter = voter.toLowerCase();
+        const lowerVoter = String(voter ?? "").toLowerCase();
         setVotesList((prev) => {
-          const filtered = prev.filter((vote) => vote.voter.toLowerCase() !== lowerVoter);
+          const filtered = prev.filter(
+            (vote) => String(vote.voter ?? "").toLowerCase() !== lowerVoter,
+          );
           const updated: ProposalVote = {
-            voter,
+            voter: String(voter),
             voterEnsName: undefined,
             choice,
             votes: votes.toString(),

@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { Markdown } from "@/components/common/Markdown";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Markdown } from "@/components/common/Markdown";
 import { useActiveMembers } from "@/hooks/use-active-members";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
@@ -33,21 +33,29 @@ const voteBadgeClasses: Record<VoteChoice, string> = {
   ABSTAIN: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
 };
 
-export function ProposalVotesList({ title = "Individual Votes", votes, isActive = false }: ProposalVotesListProps) {
+export function ProposalVotesList({
+  title = "Individual Votes",
+  votes,
+  isActive = false,
+}: ProposalVotesListProps) {
   const hasVotes = Array.isArray(votes) && votes.length > 0;
   const [isOpen, setIsOpen] = useState(false);
 
   // Fetch active members only if proposal is active
-  const { data: activeMembers, isLoading: activeMembersLoading } = useActiveMembers(15, 5, isActive);
+  const { data: activeMembers, isLoading: activeMembersLoading } = useActiveMembers(
+    15,
+    5,
+    isActive,
+  );
 
   // Filter out members who already voted (already sorted by votingPower from API)
-  const nonVoters = isActive && activeMembers
-    ? activeMembers
-        .filter(member => {
-          const memberAddress = member.address.toLowerCase();
-          return !votes?.some(vote => vote.voter.toLowerCase() === memberAddress);
+  const nonVoters =
+    isActive && activeMembers
+      ? activeMembers.filter((member) => {
+          const memberAddress = String(member.address ?? "").toLowerCase();
+          return !votes?.some((vote) => String(vote.voter ?? "").toLowerCase() === memberAddress);
         })
-    : [];
+      : [];
 
   const showNonVotersSection = isActive && nonVoters.length > 0;
 
@@ -79,8 +87,8 @@ export function ProposalVotesList({ title = "Individual Votes", votes, isActive 
                       {vote.choice}
                     </Badge>
                     <span>
-                      with <b>{Number(vote.votes).toLocaleString()}</b>{" "}
-                      vote{Number(vote.votes) === 1 ? "" : "s"}
+                      with <b>{Number(vote.votes).toLocaleString()}</b> vote
+                      {Number(vote.votes) === 1 ? "" : "s"}
                     </span>
                   </div>
                 </div>
@@ -106,7 +114,8 @@ export function ProposalVotesList({ title = "Individual Votes", votes, isActive 
                     ) : (
                       <>
                         {isOpen ? <ChevronUp className="mr-2" /> : <ChevronDown className="mr-2" />}
-                        {nonVoters.length} active member{nonVoters.length === 1 ? "" : "s"} haven&apos;t voted yet
+                        {nonVoters.length} active member{nonVoters.length === 1 ? "" : "s"}{" "}
+                        haven&apos;t voted yet
                       </>
                     )}
                   </Button>
@@ -132,11 +141,17 @@ export function ProposalVotesList({ title = "Individual Votes", votes, isActive 
                             />
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <span>•</span>
-                              <span className="whitespace-nowrap">{member.votingPower} vote{member.votingPower === 1 ? "" : "s"}</span>
+                              <span className="whitespace-nowrap">
+                                {member.votingPower} vote{member.votingPower === 1 ? "" : "s"}
+                              </span>
                             </div>
                           </div>
-                          <Badge variant="outline" className="text-xs self-start sm:self-center shrink-0">
-                            {member.votesInWindow} recent vote{member.votesInWindow === 1 ? "" : "s"}
+                          <Badge
+                            variant="outline"
+                            className="text-xs self-start sm:self-center shrink-0"
+                          >
+                            {member.votesInWindow} recent vote
+                            {member.votesInWindow === 1 ? "" : "s"}
                           </Badge>
                         </div>
                       </div>
@@ -153,5 +168,3 @@ export function ProposalVotesList({ title = "Individual Votes", votes, isActive 
     </Card>
   );
 }
-
-
