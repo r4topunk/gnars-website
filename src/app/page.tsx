@@ -90,7 +90,7 @@ export default function Home() {
         {/* Recent Proposals Section */}
         <section>
           <Suspense fallback={<RecentProposalsSkeleton />}>
-            <RecentProposalsSection limit={3} />
+            <RecentProposalsSection limit={6} />
           </Suspense>
         </section>
 

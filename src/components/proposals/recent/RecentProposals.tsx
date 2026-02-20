@@ -13,12 +13,14 @@ interface RecentProposalsProps {
   proposals: Proposal[];
   limit?: number;
   excludeStatuses?: ProposalStatus[];
+  showRequested?: boolean;
 }
 
 export function RecentProposals({
   proposals,
   limit = 6,
   excludeStatuses = [],
+  showRequested = true,
 }: RecentProposalsProps) {
   const filtered = proposals.filter((p) => !excludeStatuses.includes(p.status));
   const displayedProposals = filtered.slice(0, limit);
@@ -30,7 +32,7 @@ export function RecentProposals({
         {displayedProposals.length === 0 ? (
           <RecentProposalsEmptyState />
         ) : (
-          <ProposalsGrid proposals={displayedProposals} />
+          <ProposalsGrid proposals={displayedProposals} showRequested={showRequested} />
         )}
       </CardContent>
     </Card>

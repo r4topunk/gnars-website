@@ -99,6 +99,7 @@ export function HomeClientComponents({ proposals, feedEvents }: HomeClientCompon
             proposals={proposals}
             limit={6}
             excludeStatuses={[ProposalStatus.CANCELLED]}
+            showRequested={false}
           />
         </section>
 

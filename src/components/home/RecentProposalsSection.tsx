@@ -19,6 +19,7 @@ export async function RecentProposalsSection({
       proposals={proposals}
       limit={limit}
       excludeStatuses={excludeStatuses}
+      showRequested={false}
     />
   );
 }

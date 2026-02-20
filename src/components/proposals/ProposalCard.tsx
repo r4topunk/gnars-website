@@ -11,18 +11,9 @@ import { AddressDisplay } from "@/components/ui/address-display";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEthPrice } from "@/hooks/use-eth-price";
-import { getProposalFundingTotals, getProposalRequestedUsdTotal } from "@/lib/proposal-funding";
+import { getProposalFundingTotals } from "@/lib/proposal-funding";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { cn } from "@/lib/utils";
-
-function formatUsdAmount(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: value >= 1000 ? 0 : 2,
-  }).format(value);
-}
 
 function formatAssetAmount(value: number, maxFractionDigits = 4): string {
   return new Intl.NumberFormat("en-US", {
@@ -34,11 +25,12 @@ function formatAssetAmount(value: number, maxFractionDigits = 4): string {
 export function ProposalCard({
   proposal,
   showBanner = false,
+  showRequested = true,
 }: {
   proposal: Proposal;
   showBanner?: boolean;
+  showRequested?: boolean;
 }) {
-  const { ethPrice } = useEthPrice();
   const totalVotes =
     (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
 
@@ -71,21 +63,12 @@ export function ProposalCard({
   );
 
   const hasFundingRequest = fundingTotals.totalEthWei > 0n || fundingTotals.totalUsdcRaw > 0n;
-  const hasEthRequest = fundingTotals.totalEthWei > 0n;
-  const canEstimateEthInUsd = !hasEthRequest || ethPrice > 0;
-  const usdRequestedTotal = getProposalRequestedUsdTotal(fundingTotals, ethPrice);
-
-  const requestedTotalText = canEstimateEthInUsd
-    ? formatUsdAmount(usdRequestedTotal)
-    : fundingTotals.totalUsdcRaw > 0n
-      ? `${formatUsdAmount(fundingTotals.totalUsdc)} + ETH`
-      : "ETH quote unavailable";
 
   const requestedLines = hasFundingRequest
     ? [
         fundingTotals.totalEthWei > 0n ? `${formatAssetAmount(fundingTotals.totalEth)} ETH` : null,
         fundingTotals.totalUsdcRaw > 0n ? `${formatAssetAmount(fundingTotals.totalUsdc, 2)} USDC` : null,
-      ].filter(Boolean)
+      ].filter((line): line is string => Boolean(line))
     : ["No direct ETH/USDC transfer"];
 
   useEffect(() => {
@@ -197,21 +180,22 @@ export function ProposalCard({
               </div>
             </div>
 
-            <div className="space-y-1 border-t border-border/60 pt-2">
-              <div className="flex items-start justify-between gap-3">
-                <span className="text-xs text-muted-foreground pt-0.5">Requested</span>
-                <div className="min-w-0 text-right">
-                  <div className="font-medium text-foreground tabular-nums">{requestedTotalText}</div>
-                  <div className="mt-0.5 space-y-0.5 text-[11px] text-muted-foreground tabular-nums">
-                    {requestedLines.map((line) => (
-                      <div key={line} className="truncate">
-                        {line}
-                      </div>
-                    ))}
+            {showRequested && (
+              <div className="space-y-1 border-t border-border/60 pt-2">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-xs text-muted-foreground pt-0.5">Requested</span>
+                  <div className="min-w-0 text-right">
+                    <div className="space-y-0.5 tabular-nums">
+                      {requestedLines.map((line) => (
+                        <div key={line} className="truncate font-medium text-foreground">
+                          {line}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>
