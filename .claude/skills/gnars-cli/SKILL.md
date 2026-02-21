@@ -64,7 +64,37 @@ gnars ens <address> [<address2> ...] [--pretty]
 
 ## Output Format
 
-All commands output JSON. Use `--pretty` for human-readable output when presenting to the user.
+All commands output JSON by default. Two flags control the format:
+
+| Flag | Description | Best for |
+|------|-------------|----------|
+| _(none)_ | Compact JSON (minified) | Programmatic use |
+| `--pretty` | Pretty-printed JSON (2-space indent) | Human reading |
+| `--toon` | TOON format (~40% fewer tokens) | LLM input / agent context |
+
+### TOON output (`--toon`)
+
+TOON (Token-Oriented Object Notation) is a compact, lossless encoding of the JSON data model optimized for LLM consumption. It combines YAML-style indentation for nested objects with CSV-style tabular layout for uniform arrays.
+
+The gnars CLI uses `@toon-format/toon` to encode responses. If TOON encoding fails for any reason, it falls back silently to pretty JSON.
+
+**Example — proposals in TOON:**
+```
+proposals[3]{number,title,status,forVotes,againstVotes}:
+  42,Fund skate event in LA,EXECUTED,15,2
+  41,Treasury diversification,DEFEATED,3,12
+  40,Add new multisig signer,SUCCEEDED,18,0
+```
+
+**When to use `--toon`:**
+- Passing output to another LLM call (saves tokens)
+- Storing results in agent context windows
+- Piping to tools that feed Claude/GPT
+
+**When NOT to use `--toon`:**
+- Displaying output directly to users (use `--pretty` instead)
+- Deeply nested or non-uniform data (JSON is more efficient)
+- Programmatic parsing in code (use plain JSON)
 
 ## Common Workflows
 
@@ -91,6 +121,16 @@ gnars search "skateboarding event" --limit 5 --pretty
 **Resolve an address:**
 ```bash
 gnars ens 0x1234abcd... --pretty
+```
+
+**Get proposals in TOON format for LLM context:**
+```bash
+gnars proposals --status ACTIVE --toon
+```
+
+**Get votes in TOON for token-efficient agent use:**
+```bash
+gnars votes 42 --toon
 ```
 
 ## Notes
