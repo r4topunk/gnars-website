@@ -37,18 +37,6 @@ export interface GetProposalVotesOutput {
   hasMore: boolean;
 }
 
-function supportToString(support: number): "FOR" | "AGAINST" | "ABSTAIN" {
-  switch (support) {
-    case 0:
-      return "AGAINST";
-    case 1:
-      return "FOR";
-    case 2:
-      return "ABSTAIN";
-    default:
-      return "ABSTAIN";
-  }
-}
 
 export async function getProposalVotes(
   input: GetProposalVotesInput
@@ -80,7 +68,7 @@ export async function getProposalVotes(
   // Process votes
   let processedVotes = votes.map((v) => ({
     voter: v.voter,
-    support: supportToString(v.support),
+    support: v.support,
     weight: v.weight,
     reason: v.reason,
     timestamp: parseInt(v.timestamp, 10),

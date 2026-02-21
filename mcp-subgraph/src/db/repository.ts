@@ -147,7 +147,7 @@ export class ProposalRepository {
       proposal_id: proposalId,
       proposal_number: vote.proposal.proposalNumber,
       voter: vote.voter,
-      support: vote.support,
+      support: vote.support === "FOR" ? 1 : vote.support === "AGAINST" ? 0 : 2,
       weight: vote.weight,
       reason: vote.reason,
       timestamp: parseInt(vote.timestamp, 10),

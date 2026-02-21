@@ -4,6 +4,9 @@
   "description": "MCP server for researching Gnars DAO proposals via subgraph",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "gnars": "./dist/cli.js"
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "better-sqlite3",
@@ -16,6 +19,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "dev:sse": "tsx watch src/index.ts --sse",
+    "cli": "tsx src/cli.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "start:sse": "node dist/index.js --sse",

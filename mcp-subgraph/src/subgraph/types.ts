@@ -27,7 +27,7 @@ export interface SubgraphProposal {
 export interface SubgraphVote {
   id: string;
   voter: string;
-  support: number; // 0 = Against, 1 = For, 2 = Abstain
+  support: "FOR" | "AGAINST" | "ABSTAIN"; // Subgraph returns string enum directly
   weight: string;
   reason: string | null;
   timestamp: string;
