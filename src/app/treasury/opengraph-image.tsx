@@ -3,12 +3,12 @@ import { headers } from "next/headers";
 import { formatEther } from "viem";
 import { GNARS_ADDRESSES, TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 import { OG_SIZE, OG_COLORS, OG_FONTS, formatEthDisplay, formatUsdDisplay } from "@/lib/og-utils";
-import { NogglesIcon } from "@/lib/og-brand";
 
 export const alt = "Gnars DAO Treasury";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 type TokenBalance = {
   contractAddress?: string;
@@ -274,10 +274,18 @@ function renderFallback(message: string) {
           flexDirection: "column",
         }}
       >
-        <div style={{ display: "flex", marginBottom: "16px" }}>
-          <NogglesIcon color={OG_COLORS.accent} width={180} />
+        <div
+          style={{
+            fontSize: 56,
+            fontWeight: 800,
+            color: OG_COLORS.foreground,
+            marginBottom: "12px",
+            display: "flex",
+          }}
+        >
+          Gnars DAO
         </div>
-        <div style={{ fontSize: 40, color: OG_COLORS.foreground, textAlign: "center" }}>
+        <div style={{ fontSize: 40, color: OG_COLORS.mutedLight, textAlign: "center" }}>
           {message}
         </div>
       </div>

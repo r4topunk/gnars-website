@@ -4,12 +4,12 @@ import { GNARS_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 import { toOgImageUrl } from "@/lib/og-images";
 import { OG_SIZE, OG_COLORS, OG_FONTS, formatEthDisplay } from "@/lib/og-utils";
-import { NogglesIcon } from "@/lib/og-brand";
 
 export const alt = "Gnars DAO Auctions";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 type AuctionData = {
   token: { tokenId: string; image: string };
@@ -251,10 +251,18 @@ function renderFallback(message: string) {
           flexDirection: "column",
         }}
       >
-        <div style={{ display: "flex", marginBottom: "16px" }}>
-          <NogglesIcon color={OG_COLORS.accent} width={180} />
+        <div
+          style={{
+            fontSize: 56,
+            fontWeight: 800,
+            color: OG_COLORS.foreground,
+            marginBottom: "12px",
+            display: "flex",
+          }}
+        >
+          Gnars DAO
         </div>
-        <div style={{ fontSize: 40, color: OG_COLORS.foreground, textAlign: "center" }}>
+        <div style={{ fontSize: 40, color: OG_COLORS.mutedLight, textAlign: "center" }}>
           {message}
         </div>
       </div>

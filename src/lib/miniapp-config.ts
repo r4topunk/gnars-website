@@ -44,13 +44,14 @@ export const MINIAPP_CONFIG = {
     tags: ["dao", "gnars", "governance", "nft", "base"],
     // Screenshots for app store (add actual screenshot URLs after taking them)
     screenshotUrls: [] as string[],
-    // Hero image for app store listing
-    heroImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    // Hero image for app store listing (spec: 1200x630, 1.91:1)
+    heroImageUrl: `${BASE_URL}/opengraph-image`,
     tagline: "Action sports DAO on Base",
     // Open Graph metadata
     ogTitle: "Gnars DAO",
     ogDescription: DAO_DESCRIPTION,
-    ogImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    // Spec: 1200x630 PNG
+    ogImageUrl: `${BASE_URL}/opengraph-image`,
     // Set to true during development/testing, false when ready for public indexing
     noindex: false,
   },
@@ -108,12 +109,14 @@ export const TV_MINIAPP_CONFIG = {
     primaryCategory: "social" as const,
     tags: ["video", "creators", "coins", "zora", "gnars", "base"],
     screenshotUrls: [] as string[],
-    heroImageUrl: `${BASE_URL}/tv-og.png`,
+    // Spec: 1200x630, 1.91:1
+    heroImageUrl: `${BASE_URL}/tv/opengraph-image`,
     tagline: "Video feed for creator coins",
     ogTitle: "Gnar TV - Creator Coins Feed",
     ogDescription:
       "Gnarliest Zora Video Feed of the worldwide web. Take the kids out of the living room, the stunts here are performed by complete retards.",
-    ogImageUrl: `${BASE_URL}/tv-og.png`,
+    // Spec: 1200x630 PNG
+    ogImageUrl: `${BASE_URL}/tv/opengraph-image`,
     noindex: false,
   },
 } as const;
@@ -157,12 +160,12 @@ export const PROPOSALS_MINIAPP_CONFIG = {
     primaryCategory: "social" as const,
     tags: ["dao", "governance", "proposals", "voting", "gnars", "base"],
     screenshotUrls: [] as string[],
-    heroImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    heroImageUrl: `${BASE_URL}/opengraph-image`,
     tagline: "DAO governance on Base",
     ogTitle: "Gnars DAO Proposals",
     ogDescription:
       "Browse and vote on Gnars DAO governance proposals. Participate in on-chain decision making.",
-    ogImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    ogImageUrl: `${BASE_URL}/opengraph-image`,
     noindex: false,
   },
 } as const;
@@ -206,12 +209,12 @@ export const MEMBERS_MINIAPP_CONFIG = {
     primaryCategory: "social" as const,
     tags: ["dao", "members", "profiles", "gnars", "base", "creators"],
     screenshotUrls: [] as string[],
-    heroImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    heroImageUrl: `${BASE_URL}/opengraph-image`,
     tagline: "DAO member profiles on Base",
     ogTitle: "Gnars DAO Members",
     ogDescription:
       "Explore Gnars DAO member profiles and see who's building in the action sports DAO.",
-    ogImageUrl: `${BASE_URL}/logo-banner.jpg`,
+    ogImageUrl: `${BASE_URL}/opengraph-image`,
     noindex: false,
   },
 } as const;

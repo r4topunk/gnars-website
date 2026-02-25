@@ -1,8 +1,7 @@
-import { createPublicClient, http, formatEther } from "viem";
+import { createPublicClient, http } from "viem";
 import { base } from "viem/chains";
 
 const GNARS_TOKEN = "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17";
-const GNARS_GOVERNOR = "0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c";
 
 const tokenAbi = [
   {
@@ -38,25 +37,6 @@ const tokenAbi = [
   },
 ] as const;
 
-const governorAbi = [
-  {
-    name: "getVotes",
-    type: "function",
-    stateMutability: "view",
-    inputs: [
-      { name: "account", type: "address" },
-      { name: "timestamp", type: "uint256" },
-    ],
-    outputs: [{ name: "", type: "uint256" }],
-  },
-  {
-    name: "proposalSnapshot",
-    type: "function",
-    stateMutability: "view",
-    inputs: [{ name: "proposalId", type: "bytes32" }],
-    outputs: [{ name: "", type: "uint256" }],
-  },
-] as const;
 
 async function debugVoter(voterAddress: string, proposalNumber: number, snapshotBlock: bigint) {
   const client = createPublicClient({

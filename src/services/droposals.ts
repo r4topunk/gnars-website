@@ -4,6 +4,8 @@ import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
 import { subgraphQuery } from "@/lib/subgraph";
 
+
+
 type ProposalsQuery = {
   proposals: Array<{
     proposalId: string;
@@ -22,6 +24,8 @@ type ProposalsQuery = {
     executionTransactionHash?: string | null;
   }>;
 };
+
+type ProposalData = ProposalsQuery["proposals"][number];
 
 const PROPOSALS_GQL = /* GraphQL */ `
   query DroposalProposals($dao: ID!, $creator: Bytes!, $first: Int!, $skip: Int!) {
@@ -69,19 +73,10 @@ export type DroposalListItem = {
   executionTransactionHash?: string;
 };
 
-export async function fetchDroposals(max: number = 24): Promise<DroposalListItem[]> {
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
-  const pageSize = Math.min(100, Math.max(1, max));
-  const data = await subgraphQuery<ProposalsQuery>(PROPOSALS_GQL, {
-    dao,
-    // Filter by the droposal target address used in Gnars proposals
-    creator: DROPOSAL_TARGET.base.toLowerCase(),
-    first: pageSize,
-    skip: 0,
-  });
-
+function mapDroposalItems(proposals: ProposalData[]): DroposalListItem[] {
   const items: DroposalListItem[] = [];
-  for (const p of data.proposals) {
+
+  for (const p of proposals) {
     // Only include proposals that have been executed (droposal deploy finalized)
     const isExecuted = (p.executed || !!p.executedAt) && !p.canceled && !p.vetoed;
     if (!isExecuted) continue;
@@ -128,4 +123,42 @@ export async function fetchDroposals(max: number = 24): Promise<DroposalListItem
   }
 
   return items;
+}
+
+async function fetchDroposalProposalsPage(first: number, skip: number): Promise<ProposalData[]> {
+  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const data = await subgraphQuery<ProposalsQuery>(PROPOSALS_GQL, {
+    dao,
+    // Filter by the droposal target address used in Gnars proposals
+    creator: DROPOSAL_TARGET.base.toLowerCase(),
+    first,
+    skip,
+  });
+
+  return data.proposals ?? [];
+}
+
+export async function fetchDroposals(max: number = 24): Promise<DroposalListItem[]> {
+  const pageSize = Math.min(100, Math.max(1, max));
+  const proposals = await fetchDroposalProposalsPage(pageSize, 0);
+  return mapDroposalItems(proposals);
+}
+
+export async function fetchAllDroposals(): Promise<DroposalListItem[]> {
+  const pageSize = 100;
+  const MAX_PAGES = 100;
+  const results: DroposalListItem[] = [];
+  let skip = 0;
+
+  for (let page = 0; page < MAX_PAGES; page += 1) {
+    const proposals = await fetchDroposalProposalsPage(pageSize, skip);
+    if (proposals.length === 0) break;
+
+    results.push(...mapDroposalItems(proposals));
+
+    if (proposals.length < pageSize) break;
+    skip += pageSize;
+  }
+
+  return results;
 }

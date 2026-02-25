@@ -77,7 +77,10 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
 
   const initialVote = useMemo(() => {
     if (!address) return null;
-    const vote = votesList.find((entry) => entry.voter?.toLowerCase() === address.toLowerCase());
+    const normalizedAddr = String(address ?? "").toLowerCase();
+    const vote = votesList.find(
+      (entry) => String(entry.voter ?? "").toLowerCase() === normalizedAddr,
+    );
     if (!vote) return null;
     return {
       choice: vote.choice,
@@ -129,11 +132,13 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       }
 
       if (voter) {
-        const lowerVoter = voter.toLowerCase();
+        const lowerVoter = String(voter ?? "").toLowerCase();
         setVotesList((prev) => {
-          const filtered = prev.filter((vote) => vote.voter.toLowerCase() !== lowerVoter);
+          const filtered = prev.filter(
+            (vote) => String(vote.voter ?? "").toLowerCase() !== lowerVoter,
+          );
           const updated: ProposalVote = {
-            voter,
+            voter: String(voter),
             voterEnsName: undefined,
             choice,
             votes: votes.toString(),
@@ -152,7 +157,12 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     (v) => v.voter?.toLowerCase() === address?.toLowerCase(),
   );
 
-  const { votingPower, isLoading: votesLoading } = useVotes({
+  const {
+    votingPower,
+    isLoading: votesLoading,
+    isDelegating,
+    delegatedTo,
+  } = useVotes({
     chainId: CHAIN.id,
     collectionAddress: GNARS_ADDRESSES.token,
     governorAddress: GNARS_ADDRESSES.governor,
@@ -187,6 +197,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const shouldShowVotingCard = isProposalActive;
 
   const endDate = proposal.endDate ? new Date(proposal.endDate) : undefined;
+  const startDate = proposal.voteStart ? new Date(proposal.voteStart) : undefined;
 
   return (
     <div className="space-y-6">
@@ -203,6 +214,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         abstainVotes={String(voteTotals.abstainVotes)}
         quorumVotes={String(proposal.quorumVotes)}
         snapshotBlock={proposal.snapshotBlock}
+        status={proposal.status}
+        startDate={startDate}
         endDate={endDate}
       />
       {shouldShowVotingCard ? (
@@ -222,6 +235,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
               onVoteSuccess={handleVoteConfirmed}
               votingPower={votingPower}
               votesLoading={votesLoading}
+              isDelegating={isDelegating}
+              delegatedTo={delegatedTo}
             />
           </CardContent>
         </Card>

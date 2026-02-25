@@ -71,6 +71,9 @@ export async function generateMetadata({ params }: ProposalPageProps): Promise<M
   return {
     title: `Proposal #${proposal.proposalNumber}: ${proposal.title} | Gnars DAO`,
     description,
+    alternates: {
+      canonical: `/proposals/${id}`,
+    },
     openGraph: {
       title: `Proposal #${proposal.proposalNumber}: ${proposal.title}`,
       description,

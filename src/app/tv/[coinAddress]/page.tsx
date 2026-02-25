@@ -106,5 +106,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function TVCoinPage({ params }: Props) {
   const { coinAddress } = await params;
-  return <GnarsTVFeed priorityCoinAddress={coinAddress} />;
+  return (
+    <>
+      <h1 className="sr-only">Gnars TV skateboarding coin feed</h1>
+      <GnarsTVFeed priorityCoinAddress={coinAddress} />
+    </>
+  );
 }

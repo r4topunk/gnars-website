@@ -4,10 +4,10 @@
  * Run with: npx tsx scripts/test-tv-feed.ts
  */
 
-import { getProfile, getProfileBalances, getProfileCoins, setApiKey } from "@zoralabs/coins-sdk";
+import { getProfileBalances, getProfileCoins, setApiKey } from "@zoralabs/coins-sdk";
 import { fetchDroposals } from "../src/services/droposals";
+import { GNARS_ZORA_HANDLE } from "../src/lib/config";
 
-const GNARS_ZORA_HANDLE = "gnars";
 const INITIAL_COINS_PER_CREATOR = 50;
 
 interface CoinData {

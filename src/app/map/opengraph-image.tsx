@@ -1,5 +1,4 @@
 import { ImageResponse } from "next/og";
-import { NogglesIcon } from "@/lib/og-brand";
 
 export const runtime = "edge";
 export const alt = "Gnars World Map - Global Skate Spots";
@@ -36,72 +35,23 @@ function latLngToXY(lat: number, lng: number, width: number, height: number) {
   return { x, y };
 }
 
-// Noggles SVG marker component
-function NogglesMarker({ x, y, isGreen = false }: { x: number; y: number; isGreen?: boolean }) {
+// Simple dot marker (avoid brand-specific icons in OG images).
+function MarkerDot({ x, y, isGreen = false }: { x: number; y: number; isGreen?: boolean }) {
   const color = isGreen ? "#22c55e" : "#ef4444";
   return (
     <div
       style={{
         position: "absolute",
-        left: x - 15,
-        top: y - 15,
-        width: 30,
-        height: 20,
+        left: x - 7,
+        top: y - 7,
+        width: 14,
+        height: 14,
         display: "flex",
+        borderRadius: 999,
+        backgroundColor: color,
+        border: "2px solid rgba(255,255,255,0.9)",
       }}
-    >
-      {/* Left lens */}
-      <div
-        style={{
-          width: 12,
-          height: 12,
-          backgroundColor: color,
-          borderRadius: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            width: 6,
-            height: 6,
-            backgroundColor: "#fff",
-            borderRadius: 1,
-          }}
-        />
-      </div>
-      {/* Bridge */}
-      <div
-        style={{
-          width: 4,
-          height: 4,
-          backgroundColor: color,
-          marginTop: 4,
-        }}
-      />
-      {/* Right lens */}
-      <div
-        style={{
-          width: 12,
-          height: 12,
-          backgroundColor: color,
-          borderRadius: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            width: 6,
-            height: 6,
-            backgroundColor: "#fff",
-            borderRadius: 1,
-          }}
-        />
-      </div>
-    </div>
+    />
   );
 }
 
@@ -221,7 +171,7 @@ export default async function Image() {
 
         {/* Render markers */}
         {markers.map((marker) => (
-          <NogglesMarker key={marker.index} x={marker.x} y={marker.y} isGreen={marker.isGreen} />
+          <MarkerDot key={marker.index} x={marker.x} y={marker.y} isGreen={marker.isGreen} />
         ))}
 
         {/* Title overlay */}
@@ -267,9 +217,15 @@ export default async function Image() {
             gap: 8,
           }}
         >
-          <div style={{ display: "flex" }}>
-            <NogglesIcon color="#22c55e" width={120} />
-          </div>
+          <div
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: 999,
+              backgroundColor: "#22c55e",
+              display: "flex",
+            }}
+          />
           <div
             style={{
               fontSize: 20,

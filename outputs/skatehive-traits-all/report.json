@@ -1,0 +1,888 @@
+{
+  "generatedAt": "2026-02-06T14:01:21.618Z",
+  "options": {
+    "builderBaseUrl": "https://nouns.build",
+    "chainId": 8453,
+    "metadataAddress": "0xea34d6f46ecc15bdf5c59fb26a8176262d18560f",
+    "limit": 10000,
+    "outDir": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all",
+    "gateways": [
+      "https://ipfs.io",
+      "https://dweb.link",
+      "https://gateway.pinata.cloud",
+      "https://w3s.link",
+      "https://magic.decentralized-content.com",
+      "https://ipfs.decentralized-content.com"
+    ],
+    "timeoutMs": 20000,
+    "imageUrl": null
+  },
+  "imageUrlAnalysis": null,
+  "propertySummary": {
+    "propertiesCount": 5,
+    "propertyItemsCount": [
+      27,
+      24,
+      25,
+      21,
+      22
+    ],
+    "traitNames": [
+      "0-background",
+      "1-body",
+      "2-heads",
+      "3-accessories",
+      "4-glasses"
+    ]
+  },
+  "uriFormatSummary": {
+    "ipfs_uri": {
+      "count": 119,
+      "examples": [
+        "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/8.png",
+        "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/9.png",
+        "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/14.png"
+      ]
+    }
+  },
+  "totals": {
+    "attempted": 119,
+    "succeeded": 119,
+    "failed": 0
+  },
+  "items": [
+    {
+      "traitName": "0-background",
+      "itemName": "8",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/8.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/8.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/01-8.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "9",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/9.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/9.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/02-9.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "14",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/14.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/14.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/03-14.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "15",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/15.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/15.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/04-15.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "17",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/17.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/17.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/05-17.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "16",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/16.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/16.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/06-16.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "12",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/12.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/12.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/07-12.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "13",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/13.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/13.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/08-13.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "11",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/11.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/11.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/09-11.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "10",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/10.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/10.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/10-10.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "21",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/21.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/21.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/11-21.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "20",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/20.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/20.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/12-20.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "22",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/22.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/22.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/13-22.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "23",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/23.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/23.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/14-23.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "27",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/27.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/27.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/15-27.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "26",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/26.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/26.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/16-26.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "18",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/18.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/18.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/17-18.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "24",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/24.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/24.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/18-24.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "25",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/25.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/25.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/19-25.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "19",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/19.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/19.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/20-19.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "4",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/4.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/4.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/21-4.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "5",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/5.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/5.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/22-5.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "7",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/7.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/7.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/23-7.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "6",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/6.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/6.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/24-6.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "2",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/2.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/2.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/25-2.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "3",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/3.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/3.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/26-3.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "1",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/1.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/1.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/0-background/27-1.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "8",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/8.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/8.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/01-8.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "9",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/9.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/9.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/02-9.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "14",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/14.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/14.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/03-14.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "15",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/15.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/15.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/04-15.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "17",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/17.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/17.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/05-17.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "16",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/16.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/16.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/06-16.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "12",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/12.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/12.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/07-12.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "13",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/13.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/13.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/08-13.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "11",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/11.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/11.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/09-11.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "10",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/10.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/10.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/10-10.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "21",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/21.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/21.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/11-21.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "20",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/20.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/20.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/12-20.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "22",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/22.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/22.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/13-22.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "23",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/23.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/23.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/14-23.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "18",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/18.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/18.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/15-18.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "24",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/24.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/24.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/16-24.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "19",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/19.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/19.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/17-19.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "4",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/4.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/4.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/18-4.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "5",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/5.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/5.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/19-5.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "7",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/7.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/7.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/20-7.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "6",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/6.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/6.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/21-6.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "2",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/2.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/2.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/22-2.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "3",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/3.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/3.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/23-3.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "1",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/1.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/1.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/1-body/24-1.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "8",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/8.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/8.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/01-8.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "9",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/9.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/9.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/02-9.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "14",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/14.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/14.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/03-14.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "15",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/15.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/15.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/04-15.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "17",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/17.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/17.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/05-17.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "16",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/16.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/16.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/06-16.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "12",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/12.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/12.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/07-12.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "13",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/13.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/13.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/08-13.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "11",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/11.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/11.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/09-11.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "10",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/10.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/10.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/10-10.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "21",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/21.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/21.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/11-21.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "20",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/20.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/20.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/12-20.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "22",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/22.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/22.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/13-22.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "23",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/23.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/23.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/14-23.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "18",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/18.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/18.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/15-18.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "24",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/24.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/24.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/16-24.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "25",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/25.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/25.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/17-25.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "19",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/19.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/19.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/18-19.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "4",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/4.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/4.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/19-4.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "5",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/5.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/5.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/20-5.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "7",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/7.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/7.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/21-7.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "6",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/6.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/6.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/22-6.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "2",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/2.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/2.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/23-2.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "3",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/3.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/3.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/24-3.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "1",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/1.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/1.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/2-heads/25-1.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "8",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/8.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/8.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/01-8.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "9",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/9.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/9.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/02-9.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "14",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/14.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/14.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/03-14.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "15",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/15.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/15.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/04-15.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "17",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/17.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/17.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/05-17.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "16",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/16.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/16.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/06-16.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "12",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/12.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/12.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/07-12.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "13",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/13.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/13.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/08-13.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "11",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/11.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/11.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/09-11.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "10",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/10.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/10.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/10-10.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "21",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/21.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/21.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/11-21.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "20",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/20.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/20.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/12-20.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "18",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/18.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/18.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/13-18.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "19",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/19.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/19.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/14-19.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "4",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/4.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/4.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/15-4.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "5",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/5.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/5.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/16-5.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "7",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/7.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/7.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/17-7.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "6",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/6.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/6.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/18-6.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "2",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/2.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/2.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/19-2.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "3",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/3.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/3.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/20-3.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "1",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/1.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/1.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/3-accessories/21-1.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "8",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/8.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/8.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/01-8.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "9",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/9.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/9.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/02-9.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "14",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/14.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/14.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/03-14.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "15",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/15.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/15.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/04-15.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "17",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/17.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/17.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/05-17.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "16",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/16.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/16.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/06-16.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "12",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/12.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/12.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/07-12.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "13",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/13.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/13.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/08-13.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "11",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/11.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/11.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/09-11.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "10",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/10.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/10.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/10-10.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "21",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/21.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/21.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/11-21.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "20",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/20.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/20.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/12-20.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "22",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/22.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/22.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/13-22.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "18",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/18.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/18.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/14-18.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "19",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/19.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/19.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/15-19.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "4",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/4.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/4.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/16-4.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "5",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/5.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/5.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/17-5.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "7",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/7.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/7.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/18-7.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "6",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/6.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/6.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/19-6.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "2",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/2.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/2.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/20-2.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "3",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/3.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/3.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/21-3.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "1",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/1.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/1.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/skatehive-traits-all/traits/4-glasses/22-1.png"
+    }
+  ]
+}

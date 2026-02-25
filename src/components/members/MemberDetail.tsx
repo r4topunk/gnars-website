@@ -11,6 +11,7 @@ import { MemberQuickStats } from "@/components/members/detail/MemberQuickStats";
 import { MemberTokensGrid } from "@/components/members/detail/MemberTokensGrid";
 import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
 import { FarcasterProfileSummary } from "@/components/members/FarcasterProfileSummary";
+import { ZoraProfileSummary } from "@/components/members/ZoraProfileSummary";
 import { type Proposal as UiProposal } from "@/components/proposals/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -241,19 +242,31 @@ export function MemberDetail({ address }: MemberDetailProps) {
         zoraAvatar={zoraProfile?.avatar?.medium ?? null}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Farcaster</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FarcasterProfileSummary
-            profile={farcasterProfile}
-            loading={farcasterLoading}
-            size="md"
-            bioLines={2}
-          />
-        </CardContent>
-      </Card>
+      {/* Social profiles */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Farcaster</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FarcasterProfileSummary
+              profile={farcasterProfile}
+              loading={farcasterLoading}
+              size="md"
+              bioLines={2}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Zora</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ZoraProfileSummary profile={zoraProfile} size="md" />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Quick stats */}
       <MemberQuickStats
@@ -262,7 +275,6 @@ export function MemberDetail({ address }: MemberDetailProps) {
         delegatorsCount={delegators.length}
         proposalsCount={proposals.length}
         votesCount={votes.length}
-        zoraProfile={zoraProfile}
       />
 
       {/* Tabs for detail lists */}

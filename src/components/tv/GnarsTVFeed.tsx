@@ -33,6 +33,8 @@ interface GnarsTVFeedProps {
   priorityCoinAddress?: string;
 }
 
+const TV_LAST_SEEN_AT_STORAGE_KEY = "gnars-tv:last-seen-at";
+
 /**
  * Full-screen TikTok-style video feed for Gnars TV
  * Displays content coins from curated creators with buying functionality
@@ -56,6 +58,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   const [mintQuantity, setMintQuantity] = useState(1);
   const [showControls, setShowControls] = useState(true);
   const [showBuyAllModal, setShowBuyAllModal] = useState(false);
+  const [newPostsCount, setNewPostsCount] = useState(0);
   const [sharedStrategy, setSharedStrategy] = useState<{
     name: string;
     coins: string[];
@@ -99,6 +102,54 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
 
   // Filter to only video items
   const videoItems = useMemo(() => items.filter((i) => i.videoUrl), [items]);
+
+  // Count how many posts were created since the last TV session.
+  useEffect(() => {
+    if (loading) return;
+
+    const storedLastSeen = window.localStorage.getItem(TV_LAST_SEEN_AT_STORAGE_KEY);
+    if (!storedLastSeen) {
+      setNewPostsCount(0);
+      return;
+    }
+
+    const lastSeenMs = Date.parse(storedLastSeen);
+    if (Number.isNaN(lastSeenMs)) {
+      setNewPostsCount(0);
+      return;
+    }
+
+    const count = videoItems.reduce((total, item) => {
+      if (!item.createdAt) return total;
+      const createdAtMs = Date.parse(item.createdAt);
+      if (Number.isNaN(createdAtMs)) return total;
+      return createdAtMs > lastSeenMs ? total + 1 : total;
+    }, 0);
+
+    setNewPostsCount(count);
+  }, [loading, videoItems]);
+
+  // Save "last seen" timestamp when leaving the page/app.
+  useEffect(() => {
+    const persistLastSeen = () => {
+      window.localStorage.setItem(TV_LAST_SEEN_AT_STORAGE_KEY, new Date().toISOString());
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        persistLastSeen();
+      }
+    };
+
+    window.addEventListener("pagehide", persistLastSeen);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      persistLastSeen();
+      window.removeEventListener("pagehide", persistLastSeen);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   // Get render buffer based on connection quality
   const renderBuffer = useRenderBuffer();
@@ -590,7 +641,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
 
   return (
     <div className="fixed inset-0 z-40 bg-black text-white">
-      <TVHeader isMuted={isMuted} onToggleMute={toggleMute} />
+      <TVHeader isMuted={isMuted} onToggleMute={toggleMute} newPostsCount={newPostsCount} />
 
       <div
         ref={fullContainerRef}

@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { MINIAPP_SIZE } from "@/lib/og-utils";
+import { isAddress } from "viem";
 
 export const alt = "Gnars DAO Member";
 export const size = MINIAPP_SIZE;
@@ -7,21 +8,22 @@ export const contentType = "image/png";
 export const runtime = "edge";
 
 interface Props {
-  params: { address: string };
+  params: Promise<{ address: string }>;
 }
 
 export async function GET(_request: Request, { params }: Props) {
-  const { address } = params;
+  const { address } = await params;
+  const isValidAddress = isAddress(address);
 
   try {
     // Fetch member data from API route to avoid edge runtime issues
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl = new URL(_request.url).origin;
     const response = await fetch(`${baseUrl}/api/member-og-data/${address}`, {
       cache: "no-store",
     });
 
     let data = {
-      displayName: `${address.slice(0, 6)}...${address.slice(-4)}`,
+      displayName: isValidAddress ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Invalid Address",
       avatar: null,
       tokenCount: 0,
       delegatorCount: 0,
@@ -34,6 +36,9 @@ export async function GET(_request: Request, { params }: Props) {
     }
 
     const { displayName, avatar, tokenCount, delegatorCount, voteCount, creatorCoin } = data;
+    const addressLabel = isValidAddress
+      ? `${address.slice(0, 8)}...${address.slice(-6)}`
+      : truncateLabel(address, 28);
 
     // Format helpers
     const formatMarketCap = (marketCap: string | undefined): string => {
@@ -81,6 +86,7 @@ export async function GET(_request: Request, { params }: Props) {
             }}
           >
             {avatar && (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={avatar}
                 alt={displayName}
@@ -106,7 +112,7 @@ export async function GET(_request: Request, { params }: Props) {
                 {displayName}
               </div>
               <div style={{ display: "flex", fontSize: 30, color: "#888" }}>
-                {address.slice(0, 8)}...{address.slice(-6)}
+                {addressLabel}
               </div>
             </div>
           </div>
@@ -282,4 +288,11 @@ export async function GET(_request: Request, { params }: Props) {
       { ...size },
     );
   }
+}
+
+function truncateLabel(value: string, max: number): string {
+  if (value.length <= max) return value;
+  const head = Math.max(1, Math.floor((max - 3) * 0.6));
+  const tail = Math.max(1, max - 3 - head);
+  return `${value.slice(0, head)}...${value.slice(-tail)}`;
 }

@@ -1,0 +1,405 @@
+{
+  "generatedAt": "2026-02-06T13:56:04.062Z",
+  "options": {
+    "builderBaseUrl": "https://nouns.build",
+    "chainId": 8453,
+    "metadataAddress": "0xea34d6f46ecc15bdf5c59fb26a8176262d18560f",
+    "limit": 10,
+    "outDir": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4",
+    "gateways": [
+      "https://ipfs.io",
+      "https://dweb.link",
+      "https://gateway.pinata.cloud",
+      "https://w3s.link",
+      "https://magic.decentralized-content.com",
+      "https://ipfs.decentralized-content.com"
+    ],
+    "timeoutMs": 20000,
+    "imageUrl": null
+  },
+  "imageUrlAnalysis": null,
+  "propertySummary": {
+    "propertiesCount": 5,
+    "propertyItemsCount": [
+      27,
+      24,
+      25,
+      21,
+      22
+    ],
+    "traitNames": [
+      "0-background",
+      "1-body",
+      "2-heads",
+      "3-accessories",
+      "4-glasses"
+    ]
+  },
+  "uriFormatSummary": {
+    "ipfs_uri": {
+      "count": 119,
+      "examples": [
+        "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/8.png",
+        "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/9.png",
+        "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/14.png"
+      ]
+    }
+  },
+  "totals": {
+    "attempted": 50,
+    "succeeded": 50,
+    "failed": 0
+  },
+  "items": [
+    {
+      "traitName": "0-background",
+      "itemName": "8",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/8.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/8.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/0-background/01-8.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "9",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/9.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/9.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/0-background/02-9.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "14",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/14.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/14.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/0-background/03-14.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "15",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/15.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/15.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/0-background/04-15.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "17",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/17.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/17.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/0-background/05-17.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "16",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/16.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/16.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/0-background/06-16.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "12",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/12.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/12.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/0-background/07-12.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "13",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/13.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/13.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/0-background/08-13.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "11",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/11.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/11.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/0-background/09-11.png"
+    },
+    {
+      "traitName": "0-background",
+      "itemName": "10",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/10.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/0-background/10.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/0-background/10-10.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "8",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/8.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/8.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/1-body/01-8.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "9",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/9.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/9.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/1-body/02-9.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "14",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/14.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/14.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/1-body/03-14.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "15",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/15.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/15.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/1-body/04-15.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "17",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/17.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/17.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/1-body/05-17.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "16",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/16.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/16.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/1-body/06-16.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "12",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/12.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/12.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/1-body/07-12.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "13",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/13.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/13.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/1-body/08-13.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "11",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/11.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/11.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/1-body/09-11.png"
+    },
+    {
+      "traitName": "1-body",
+      "itemName": "10",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/10.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/1-body/10.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/1-body/10-10.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "8",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/8.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/8.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/2-heads/01-8.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "9",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/9.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/9.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/2-heads/02-9.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "14",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/14.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/14.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/2-heads/03-14.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "15",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/15.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/15.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/2-heads/04-15.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "17",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/17.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/17.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/2-heads/05-17.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "16",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/16.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/16.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/2-heads/06-16.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "12",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/12.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/12.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/2-heads/07-12.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "13",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/13.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/13.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/2-heads/08-13.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "11",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/11.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/11.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/2-heads/09-11.png"
+    },
+    {
+      "traitName": "2-heads",
+      "itemName": "10",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/10.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/2-heads/10.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/2-heads/10-10.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "8",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/8.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/8.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/3-accessories/01-8.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "9",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/9.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/9.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/3-accessories/02-9.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "14",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/14.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/14.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/3-accessories/03-14.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "15",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/15.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/15.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/3-accessories/04-15.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "17",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/17.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/17.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/3-accessories/05-17.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "16",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/16.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/16.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/3-accessories/06-16.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "12",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/12.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/12.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/3-accessories/07-12.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "13",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/13.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/13.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/3-accessories/08-13.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "11",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/11.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/11.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/3-accessories/09-11.png"
+    },
+    {
+      "traitName": "3-accessories",
+      "itemName": "10",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/10.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/3-accessories/10.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/3-accessories/10-10.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "8",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/8.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/8.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/4-glasses/01-8.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "9",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/9.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/9.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/4-glasses/02-9.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "14",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/14.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/14.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/4-glasses/03-14.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "15",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/15.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/15.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/4-glasses/04-15.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "17",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/17.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/17.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/4-glasses/05-17.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "16",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/16.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/16.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/4-glasses/06-16.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "12",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/12.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/12.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/4-glasses/07-12.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "13",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/13.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/13.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/4-glasses/08-13.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "11",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/11.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/11.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/4-glasses/09-11.png"
+    },
+    {
+      "traitName": "4-glasses",
+      "itemName": "10",
+      "sourceUri": "ipfs://bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/10.png",
+      "fetchedFrom": "https://ipfs.io/ipfs/bafybeibyzh354vhe5bg2xi2hylu7anpem3el3rzozo53t2xmnj4hvg7hna/4-glasses/10.png",
+      "savedPath": "/Users/r4to/Script/gnars-website/outputs/builder-traits-0xea34d6f4/traits/4-glasses/10-10.png"
+    }
+  ]
+}

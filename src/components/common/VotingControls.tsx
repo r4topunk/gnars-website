@@ -1,9 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, CircleDashed, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  CircleDashed,
+  Loader2,
+  ThumbsDown,
+  ThumbsUp,
+  Users,
+} from "lucide-react";
 import { Address } from "viem";
 import { useAccount } from "wagmi";
+import { AddressDisplay } from "@/components/ui/address-display";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -16,6 +27,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useCastVote } from "@/hooks/useCastVote";
 import { ProposalStatus } from "@/lib/schemas/proposals";
+import { fetchDelegatorsWithCounts, type DelegatorWithCount } from "@/services/members";
 import { cn } from "@/lib/utils";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
@@ -35,6 +47,18 @@ export interface VotingControlsProps {
   }) => void;
   votingPower: bigint;
   votesLoading: boolean;
+  isDelegating?: boolean;
+  delegatedTo?: Address;
+}
+
+interface VotingPowerNoticeProps {
+  isConnected: boolean;
+  votesLoading: boolean;
+  votingPower: bigint;
+  delegatedToAnother: boolean;
+  delegatedTo?: Address;
+  delegators: DelegatorWithCount[];
+  delegatorsLoading: boolean;
 }
 
 const VOTE_LABELS: Record<VoteChoice, string> = {
@@ -85,6 +109,8 @@ export function VotingControls({
   onVoteSuccess,
   votingPower,
   votesLoading,
+  isDelegating = false,
+  delegatedTo,
 }: VotingControlsProps) {
   const { address: accountAddress, isConnected } = useAccount();
   const [voteChoice, setVoteChoice] = useState<VoteChoice | null>(existingUserVote ?? null);
@@ -92,6 +118,8 @@ export function VotingControls({
   const [pendingVote, setPendingVote] = useState<{ choice: VoteChoice; reason?: string } | null>(
     null,
   );
+  const [delegators, setDelegators] = useState<DelegatorWithCount[]>([]);
+  const [delegatorsLoading, setDelegatorsLoading] = useState(false);
 
   const {
     castVote,
@@ -155,6 +183,34 @@ export function VotingControls({
     votingPower,
   ]);
 
+  useEffect(() => {
+    let mounted = true;
+    async function loadDelegators() {
+      if (!accountAddress) {
+        setDelegators([]);
+        return;
+      }
+      try {
+        setDelegatorsLoading(true);
+        const rows = await fetchDelegatorsWithCounts(accountAddress);
+        if (!mounted) return;
+        const normalized = accountAddress.toLowerCase();
+        // Exclude self row if present; we only want inbound delegations from others.
+        setDelegators(rows.filter((r) => r.owner.toLowerCase() !== normalized));
+      } catch (error) {
+        console.error("[VotingControls] failed to fetch delegators", error);
+        if (!mounted) return;
+        setDelegators([]);
+      } finally {
+        if (mounted) setDelegatorsLoading(false);
+      }
+    }
+    loadDelegators();
+    return () => {
+      mounted = false;
+    };
+  }, [accountAddress]);
+
   const isDisabled =
     status !== ProposalStatus.ACTIVE || !eligibleToVote || hasVoted || isPending || isConfirming;
   const shouldShowButton =
@@ -179,6 +235,12 @@ export function VotingControls({
     }
   };
 
+  const delegatedToAnother =
+    Boolean(isDelegating) &&
+    Boolean(accountAddress && delegatedTo) &&
+    delegatedTo!.toLowerCase() !== accountAddress!.toLowerCase();
+  const showSignalWarning = isConnected && !votesLoading && votingPower === 0n;
+
   if (status !== ProposalStatus.ACTIVE) {
     return (
       <div className="space-y-4">
@@ -197,6 +259,16 @@ export function VotingControls({
 
   return (
     <div className="space-y-6">
+      <VotingPowerNotice
+        isConnected={isConnected}
+        votesLoading={votesLoading}
+        votingPower={votingPower}
+        delegatedToAnother={delegatedToAnother}
+        delegatedTo={delegatedTo}
+        delegators={delegators}
+        delegatorsLoading={delegatorsLoading}
+      />
+
       <RadioGroup
         value={voteChoice ?? undefined}
         onValueChange={(value) => setVoteChoice(value as VoteChoice)}
@@ -246,7 +318,9 @@ export function VotingControls({
         />
       </div>
 
-      {helperText && !hasVoted && <p className="text-xs text-muted-foreground">{helperText}</p>}
+      {helperText && !hasVoted && !showSignalWarning ? (
+        <p className="text-xs text-muted-foreground">{helperText}</p>
+      ) : null}
 
       {shouldShowButton ? (
         <Button
@@ -268,7 +342,7 @@ export function VotingControls({
           ) : hasVoted && existingUserVote ? (
             <>
               <Check className="mr-2 h-4 w-4" />
-              Vote {existingUserVote.toLowerCase()} confirmed
+              Vote {String(existingUserVote).toLowerCase()} confirmed
             </>
           ) : (
             <>
@@ -279,5 +353,98 @@ export function VotingControls({
         </Button>
       ) : null}
     </div>
+  );
+}
+
+export function VotingPowerNotice({
+  isConnected,
+  votesLoading,
+  votingPower,
+  delegatedToAnother,
+  delegatedTo,
+  delegators,
+  delegatorsLoading,
+}: VotingPowerNoticeProps) {
+  const inboundDelegatorsCount = delegators.length;
+  const inboundDelegatedVotes = delegators.reduce((acc, curr) => acc + curr.tokenCount, 0);
+  const showSignalWarning = isConnected && !votesLoading && votingPower === 0n;
+  const topDelegators = delegators.slice(0, 5);
+
+  return (
+    <Alert className="border-border/80 bg-muted/30">
+      <Users className="h-4 w-4" />
+      <AlertTitle>Voting Power & Delegation</AlertTitle>
+      <AlertDescription className="mt-1 space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={votingPower > 0n ? "secondary" : "outline"}>
+            Voting power: {votesLoading ? "..." : votingPower.toString()}
+          </Badge>
+          <Badge variant={delegatedToAnother ? "outline" : "secondary"}>
+            {delegatedToAnother ? "Delegated to another wallet" : "Self delegated"}
+          </Badge>
+          {(delegatorsLoading || inboundDelegatorsCount > 0) && (
+            <Badge variant="outline">
+              Incoming delegators: {delegatorsLoading ? "..." : inboundDelegatorsCount}
+            </Badge>
+          )}
+          {(delegatorsLoading || inboundDelegatedVotes > 0) && (
+            <Badge variant="outline">
+              Incoming delegated votes: {delegatorsLoading ? "..." : inboundDelegatedVotes}
+            </Badge>
+          )}
+        </div>
+
+        {delegatedToAnother && delegatedTo ? (
+          <div className="text-xs">
+            Your votes are currently delegated to{" "}
+            <AddressDisplay
+              address={delegatedTo}
+              variant="compact"
+              showAvatar={false}
+              showCopy={false}
+              showExplorer={false}
+              truncateLength={8}
+              className="align-middle"
+            />
+            .
+          </div>
+        ) : null}
+
+        {topDelegators.length > 0 ? (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Delegations you currently receive:</p>
+            <div className="flex flex-wrap items-center gap-2">
+              {topDelegators.map((item) => (
+                <Badge key={item.owner} variant="outline" className="font-normal">
+                  <AddressDisplay
+                    address={item.owner}
+                    variant="compact"
+                    showAvatar={false}
+                    showCopy={false}
+                    showExplorer={false}
+                    truncateLength={6}
+                  />
+                  <span className="ml-1 text-muted-foreground">({item.tokenCount})</span>
+                </Badge>
+              ))}
+              {inboundDelegatorsCount > topDelegators.length ? (
+                <Badge variant="outline">+{inboundDelegatorsCount - topDelegators.length} more</Badge>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {showSignalWarning ? (
+          <Alert variant="destructive" className="mt-2">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Signal vote only</AlertTitle>
+            <AlertDescription>
+              You currently have 0 voting power. Your vote will be recorded on-chain as a signal,
+              with no weight in the tally.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+      </AlertDescription>
+    </Alert>
   );
 }

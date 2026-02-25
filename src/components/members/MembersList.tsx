@@ -15,8 +15,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { GNARS_ADDRESSES } from "@/lib/config";
 import { type MemberListItem } from "@/services/members";
+
+function FarcasterIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <rect width="1000" height="1000" rx="200" fill="#7c3aed" />
+      <path
+        d="M257.778 155.556H742.222V844.445H671.111V528.889H328.889V844.445H257.778V155.556Z"
+        fill="white"
+      />
+      <path d="M328.889 528.889H671.111V600H328.889V528.889Z" fill="white" />
+    </svg>
+  );
+}
+
+function formatFollowers(count: number): string {
+  if (count >= 1000) {
+    return `${(count / 1000).toFixed(1).replace(/\.0$/, "")}K`;
+  }
+  return count.toString();
+}
 
 async function fetchMembers(search?: string): Promise<MemberListItem[]> {
   const url = new URL("/api/members", window.location.origin);
@@ -255,13 +276,14 @@ export function MembersList({
                   )}
                 </span>
               </TableHead>
+              <TableHead className="text-right">Social</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredMembers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   {searchTerm ? "No members found matching your search." : "No members found."}
                 </TableCell>
               </TableRow>
@@ -319,6 +341,25 @@ export function MembersList({
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="font-medium">{member.attendancePct ?? 0}%</span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {member.farcaster ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex items-center gap-1 cursor-default">
+                            <FarcasterIcon className="h-3.5 w-3.5" />
+                            <span className="text-sm font-medium">
+                              {formatFollowers(member.farcaster.followerCount)}
+                            </span>
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          @{member.farcaster.username} · {member.farcaster.followerCount.toLocaleString()} followers on Farcaster
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button

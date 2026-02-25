@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import type { LatLngExpression } from "leaflet";
 import { Map, MapMarker, MapPopup, MapTileLayer } from "@/components/ui/map";
@@ -186,6 +185,7 @@ export default function GnarsMap() {
 
   return (
     <div className="fixed inset-0 h-screen w-screen">
+      <h1 className="sr-only">Gnars skateboarding community map</h1>
       <Map center={CENTER_COORDINATES} zoom={2} className="h-full w-full">
         <MapTileLayer />
         {locations.map((location, index) => (

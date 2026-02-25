@@ -55,8 +55,22 @@ export const blogSchema = z.object({
   imageUrl: z.string().optional(),
 });
 
+export const blogSummarySchema = z.object({
+  id: z.string(),
+  slug: z.string(),
+  title: z.string(),
+  subtitle: z.string().optional(),
+  previewText: z.string().optional().default(""),
+  publishedAt: z.string(),
+  updatedAt: z.string(),
+  coinId: z.string().optional(),
+  publication: publicationSchema,
+  imageUrl: z.string().optional(),
+});
+
 export type Publication = z.infer<typeof publicationSchema>;
 export type Post = z.infer<typeof postSchema>;
 export type Pagination = z.infer<typeof paginationSchema>;
 export type PostsResponse = z.infer<typeof postsResponseSchema>;
 export type Blog = z.infer<typeof blogSchema>;
+export type BlogSummary = z.infer<typeof blogSummarySchema>;

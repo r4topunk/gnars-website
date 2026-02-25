@@ -7,12 +7,13 @@ import {
   type QualifiedCreator,
   type TVItemData,
 } from "@/services/farcaster-tv-aggregator";
+import { GNARS_CREATOR_COIN, GNARS_ZORA_HANDLE } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
-// Gnars addresses
-const GNARS_COIN_ADDRESS = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
-const GNARS_PROFILE_HANDLE = "gnars";
+// Gnars addresses (use centralized config)
+const GNARS_COIN_ADDRESS = GNARS_CREATOR_COIN;
+const GNARS_PROFILE_HANDLE = GNARS_ZORA_HANDLE;
 
 // Concurrency limits to avoid rate limiting
 const MAX_CONCURRENT_COIN_FETCHES = 15;
