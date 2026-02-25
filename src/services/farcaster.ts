@@ -1,23 +1,20 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
-import { Configuration, NeynarAPIClient } from "@neynar/nodejs-sdk";
-import type { User } from "@neynar/nodejs-sdk/build/api/models/user";
 
 const apiKey = process.env.NEYNAR_API_KEY;
 
-export const neynarClient = apiKey
-  ? new NeynarAPIClient(
-      new Configuration({
-        apiKey,
-        baseOptions: {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      }),
-    )
-  : null;
+type NeynarUser = {
+  fid: number;
+  username: string;
+  display_name?: string;
+  pfp_url?: string;
+  custody_address: string;
+  follower_count?: number;
+  following_count?: number;
+  profile?: { bio?: { text?: string } };
+  verified_addresses?: { eth_addresses?: string[]; sol_addresses?: string[] };
+};
 
 const MAX_ADDRESSES_PER_REQUEST = 350;
 const CACHE_REVALIDATE_SECONDS = 60 * 15;
@@ -46,7 +43,7 @@ function chunkArray<T>(items: T[], size: number): T[][] {
   return chunks;
 }
 
-function mapUserToProfile(user: User): FarcasterProfile {
+function mapUserToProfile(user: NeynarUser): FarcasterProfile {
   return {
     fid: user.fid,
     username: user.username,
@@ -58,7 +55,7 @@ function mapUserToProfile(user: User): FarcasterProfile {
   };
 }
 
-function selectBestUser(users: User[], address: string): User | null {
+function selectBestUser(users: NeynarUser[], address: string): NeynarUser | null {
   if (users.length === 0) return null;
   const normalized = normalizeAddress(address);
   const custodyMatch = users.find(
@@ -85,14 +82,24 @@ async function fetchFarcasterProfilesChunk(
   const normalized = addresses.map(normalizeAddress);
   const empty = Object.fromEntries(normalized.map((address) => [address, null]));
 
-  if (!neynarClient || normalized.length === 0) return empty;
+  if (!apiKey || normalized.length === 0) return empty;
 
   try {
-    const response = await neynarClient.fetchBulkUsersByEthOrSolAddress({
-      addresses: normalized,
-      addressTypes: ["custody_address", "verified_address"],
+    const url = new URL("https://api.neynar.com/v2/farcaster/user/bulk-by-address");
+    url.searchParams.set("addresses", normalized.join(","));
+    url.searchParams.set("address_types", "custody_address,verified_address");
+
+    const res = await fetch(url.toString(), {
+      headers: { api_key: apiKey },
+      next: { revalidate: CACHE_REVALIDATE_SECONDS },
     });
 
+    if (!res.ok) {
+      console.warn(`Neynar bulk-by-address failed: ${res.status} ${await res.text()}`);
+      return empty;
+    }
+
+    const response = (await res.json()) as Record<string, NeynarUser[]>;
     const result: FarcasterProfilesByAddress = {};
     for (const address of normalized) {
       const users = response[address] ?? [];
