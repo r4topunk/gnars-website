@@ -6,7 +6,6 @@ import type { Network } from "@neynar/nodejs-sdk/build/api";
 import type { User } from "@neynar/nodejs-sdk/build/api/models/user";
 
 const apiKey = process.env.NEYNAR_API_KEY;
-const NEYNAR_REST_BASE_URL = "https://api.neynar.com/v2";
 
 export const neynarClient = apiKey
   ? new NeynarAPIClient(
@@ -183,58 +182,6 @@ export async function fetchFarcasterProfilesByAddress(
   }
 
   return results;
-}
-
-type NeynarNftRaw = {
-  contract_address?: string | null;
-  token_id?: string | null;
-  name?: string | null;
-  image_url?: string | null;
-  image?: string | null;
-  chain?: string | null;
-  network?: string | null;
-  acquired_at?: string | null;
-  updated_at?: string | null;
-  collection?: {
-    name?: string | null;
-    image_url?: string | null;
-    image?: string | null;
-  } | null;
-  metadata?: {
-    image?: string | null;
-    name?: string | null;
-  } | null;
-};
-
-function parseNeynarNft(raw: NeynarNftRaw): FarcasterNftHolding {
-  const imageUrl =
-    raw.image_url ||
-    raw.image ||
-    raw.metadata?.image ||
-    raw.collection?.image_url ||
-    raw.collection?.image ||
-    null;
-
-  return {
-    contractAddress: raw.contract_address ?? null,
-    tokenId: raw.token_id ?? null,
-    name: raw.name ?? raw.metadata?.name ?? null,
-    imageUrl,
-    collectionName: raw.collection?.name ?? null,
-    collectionImageUrl: raw.collection?.image_url ?? raw.collection?.image ?? null,
-    chain: raw.chain ?? raw.network ?? null,
-    acquiredAt: raw.acquired_at ?? raw.updated_at ?? null,
-  };
-}
-
-function extractNeynarNftList(payload: Record<string, unknown>): NeynarNftRaw[] {
-  const direct = payload.nfts;
-  if (Array.isArray(direct)) return direct as NeynarNftRaw[];
-  const nested = (payload.result as Record<string, unknown> | undefined)?.nfts;
-  if (Array.isArray(nested)) return nested as NeynarNftRaw[];
-  const alt = payload.user_nfts;
-  if (Array.isArray(alt)) return alt as NeynarNftRaw[];
-  return [];
 }
 
 async function fetchFarcasterUserNFTsUncached(fid: number): Promise<FarcasterNftHolding[]> {

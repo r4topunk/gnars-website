@@ -8,7 +8,9 @@ import { base } from "viem/chains";
 import {
   assertNeynarApiKey,
   fetchFarcasterProfilesByAddress,
+  fetchFarcasterProfilesByAddressUncached,
   fetchFarcasterUserCoins,
+  fetchFarcasterUserCoinsUncached,
   fetchFarcasterUserNFTs,
   type FarcasterNftHolding,
   type FarcasterProfile,
@@ -427,13 +429,16 @@ function rankByFollowerCount(matches: FarcasterCreatorMatch[]): FarcasterCreator
 
 async function fetchFarcasterMatches(
   creators: QualifiedCreator[],
+  useCache = true,
 ): Promise<FarcasterCreatorMatch[]> {
   if (creators.length === 0) return [];
 
   const wallets = creators.flatMap((creator) => creator.wallets);
   console.log("[farcaster-tv][farcaster-match-start] Qualified creators:", creators.length);
   console.log("[farcaster-tv][farcaster-match-start] Wallets to Neynar:", wallets);
-  const profilesByAddress = await fetchFarcasterProfilesByAddress(wallets);
+  const profilesByAddress = useCache
+    ? await fetchFarcasterProfilesByAddress(wallets)
+    : await fetchFarcasterProfilesByAddressUncached(wallets);
 
   console.log("[farcaster-tv][farcaster-match-start] Neynar wallet->profile:", profilesByAddress);
   console.log(
@@ -639,8 +644,9 @@ function mapFarcasterNftToTVItem(
 
 async function fetchFarcasterHoldings(
   creators: QualifiedCreator[],
+  useCache = true,
 ): Promise<{ items: TVItemData[]; stats: { creators: number; coins: number; nfts: number } }> {
-  const matches = await fetchFarcasterMatches(creators);
+  const matches = await fetchFarcasterMatches(creators, useCache);
   if (matches.length === 0) return { items: [], stats: { creators: 0, coins: 0, nfts: 0 } };
 
   const rankedAll = rankByFollowerCount(matches);
@@ -670,7 +676,9 @@ async function fetchFarcasterHoldings(
   await runWithConcurrency(
     ranked,
     async (match) => {
-      const coinsPromise = fetchFarcasterUserCoins(match.profile.fid);
+      const coinsPromise = useCache
+        ? fetchFarcasterUserCoins(match.profile.fid)
+        : fetchFarcasterUserCoinsUncached(match.profile.fid);
       const nftsPromise = fetchFarcasterUserNFTs(match.profile.fid);
       const [coins, nfts] = await Promise.all([coinsPromise, nftsPromise]);
 
@@ -837,7 +845,7 @@ export async function getFarcasterTVDataUncached(): Promise<FarcasterTVData> {
   const shouldFetchFarcaster = assertNeynarApiKey("farcaster-tv");
 
   const farcasterHoldings = shouldFetchFarcaster
-    ? await fetchFarcasterHoldings(qualifiedCreators)
+    ? await fetchFarcasterHoldings(qualifiedCreators, false)
     : { items: [], stats: { creators: 0, coins: 0, nfts: 0 } };
 
   const durationMs = Date.now() - start;
