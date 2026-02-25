@@ -12,6 +12,7 @@ This file configures Claude as a **cost-efficient coordinator** that delegates a
 
 ## Core Principle: Delegate Only When Explicitly Asked
 
+
 **Claude's role is to answer questions and coordinate implementation when requested.** Only delegate to Codex when the user explicitly asks to build, implement, or fix something.
 
 ### When Claude Should Execute Directly
