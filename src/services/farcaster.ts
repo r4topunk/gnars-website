@@ -266,7 +266,7 @@ export async function fetchFarcasterUserCoinsUncached(
         const token = tokenBalance.token;
         const balance = tokenBalance.balance;
         const tokenAddress = token?.contract_address ?? token?.address;
-        if (!tokenAddress || !balance) continue;
+        if (!token || !tokenAddress || !balance) continue;
 
         balances.push({
           address: normalizeAddress(tokenAddress),
