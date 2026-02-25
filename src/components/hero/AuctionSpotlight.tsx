@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Clock } from "lucide-react";
-import { parseEther, zeroAddress } from "viem";
+import { Clock, ChevronDown, MessageSquare } from "lucide-react";
+import { parseEther, zeroAddress, encodeFunctionData, concat, toHex } from "viem";
 import { base } from "wagmi/chains";
 import { useDaoAuction } from "@buildeross/hooks";
-import { useAccount, useReadContract, useSimulateContract, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from "wagmi";
+import { useAccount, useReadContract, useSimulateContract, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, useSendTransaction } from "wagmi";
 import { GnarImageTile } from "@/components/auctions/GnarImageTile";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { getStatusConfig } from "@/components/proposals/utils";
 import { ProposalStatus } from "@/lib/schemas/proposals";
@@ -33,7 +34,9 @@ export function AuctionSpotlight() {
   const [isSettling, setIsSettling] = useState(false);
   const [settleTxHash, setSettleTxHash] = useState<`0x${string}` | undefined>();
   const [isBidding, setIsBidding] = useState(false);
-  
+  const [bidComment, setBidComment] = useState("");
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
+
   // Calculate minimum bid (1% increment)
   const minNextBidEth = useMemo(() => {
     const current = Number(highestBid ?? "0");
@@ -119,32 +122,55 @@ export function AuctionSpotlight() {
   });
 
   const { writeContractAsync } = useWriteContract();
+  const { sendTransactionAsync } = useSendTransaction();
 
   // Handle bid submission
   const handleBid = async () => {
     if (!isConnected || !bidAmountWei || !tokenId || !isValidBid) return;
 
+    const trimmedComment = bidComment.trim();
+
     try {
       setIsBidding(true);
-      
-      // Check if on correct network, switch if needed
+
       if (chain?.id !== base.id) {
         toast.info("Switching to Base network...");
         await switchChainAsync({ chainId: base.id });
       }
-      
-      await writeContractAsync({
-        address: GNARS_ADDRESSES.auction as `0x${string}`,
-        abi: auctionAbi,
-        functionName: "createBid",
-        args: [BigInt(tokenId)],
-        value: bidAmountWei,
-        chainId: base.id,
-      });
+
+      if (trimmedComment.length > 0) {
+        // Comment path: encode createBid calldata + append UTF-8 comment bytes
+        const baseCalldata = encodeFunctionData({
+          abi: auctionAbi,
+          functionName: "createBid",
+          args: [BigInt(tokenId)],
+        });
+        const commentBytes = toHex(new TextEncoder().encode(trimmedComment));
+        const fullData = concat([baseCalldata, commentBytes]);
+
+        await sendTransactionAsync({
+          to: GNARS_ADDRESSES.auction as `0x${string}`,
+          data: fullData,
+          value: bidAmountWei,
+          chainId: base.id,
+        });
+      } else {
+        // Original path (no regression)
+        await writeContractAsync({
+          address: GNARS_ADDRESSES.auction as `0x${string}`,
+          abi: auctionAbi,
+          functionName: "createBid",
+          args: [BigInt(tokenId)],
+          value: bidAmountWei,
+          chainId: base.id,
+        });
+      }
+
       toast.success("Bid submitted", {
-        description: "Waiting for confirmation...",
+        description: trimmedComment.length > 0
+          ? "Your comment was recorded on-chain."
+          : "Waiting for confirmation...",
       });
-      // Optionally wait for confirmation and reload
       setTimeout(() => window.location.reload(), 3000);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to submit bid";
@@ -248,44 +274,77 @@ export function AuctionSpotlight() {
             <Progress value={progressPercentage} className="h-2" />
 
             {isLive ? (
-              <div className="flex gap-2">
-                <Tooltip open={isLive && !isValidBid && isConnected && !!bidAmount}>
-                  <TooltipTrigger asChild>
-                    <InputGroup className="flex-[3]">
-                      <InputGroupInput
-                        type="number"
-                        step="0.0001"
-                        min={minNextBidEth}
-                        value={bidAmount}
-                        onChange={(e) => setBidAmount(e.target.value)}
-                        placeholder={minNextBidEth.toFixed(4)}
-                        disabled={!isConnected || isBidding}
-                        className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              <>
+                <div className="flex gap-2">
+                  <Tooltip open={isLive && !isValidBid && isConnected && !!bidAmount}>
+                    <TooltipTrigger asChild>
+                      <InputGroup className="flex-[3]">
+                        <InputGroupInput
+                          type="number"
+                          step="0.0001"
+                          min={minNextBidEth}
+                          value={bidAmount}
+                          onChange={(e) => setBidAmount(e.target.value)}
+                          placeholder={minNextBidEth.toFixed(4)}
+                          disabled={!isConnected || isBidding}
+                          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <InputGroupAddon align="inline-end">
+                          <InputGroupText>ETH</InputGroupText>
+                        </InputGroupAddon>
+                      </InputGroup>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="font-mono">
+                      Minimum bid: {minNextBidEth} ETH
+                    </TooltipContent>
+                  </Tooltip>
+                  <Button
+                    className="flex-[7] touch-manipulation"
+                    disabled={!isConnected || isBidding || !isValidBid}
+                    onClick={handleBid}
+                  >
+                    {isBidding ? (
+                      <>
+                        <Spinner />
+                        Bidding...
+                      </>
+                    ) : (
+                      "Place Bid"
+                    )}
+                  </Button>
+                </div>
+                <Collapsible open={isCommentOpen} onOpenChange={setIsCommentOpen}>
+                  <CollapsibleTrigger asChild>
+                    <button
+                      type="button"
+                      disabled={!isConnected || isBidding}
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                    >
+                      <MessageSquare className="h-3 w-3" />
+                      Add a comment
+                      <ChevronDown
+                        className={`h-3 w-3 transition-transform duration-200 ${isCommentOpen ? "rotate-180" : ""}`}
                       />
-                      <InputGroupAddon align="inline-end">
-                        <InputGroupText>ETH</InputGroupText>
-                      </InputGroupAddon>
-                    </InputGroup>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="font-mono">
-                    Minimum bid: {minNextBidEth} ETH
-                  </TooltipContent>
-                </Tooltip>
-                <Button
-                  className="flex-[7] touch-manipulation"
-                  disabled={!isConnected || isBidding || !isValidBid}
-                  onClick={handleBid}
-                >
-                  {isBidding ? (
-                    <>
-                      <Spinner />
-                      Bidding...
-                    </>
-                  ) : (
-                    "Place Bid"
-                  )}
-                </Button>
-              </div>
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="mt-2 space-y-1">
+                      <textarea
+                        maxLength={140}
+                        rows={2}
+                        value={bidComment}
+                        onChange={(e) => setBidComment(e.target.value)}
+                        disabled={!isConnected || isBidding}
+                        placeholder="Optional on-chain comment (recorded permanently)…"
+                        className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                      />
+                      <div className="text-right text-xs text-muted-foreground">
+                        {bidComment.length}/140
+                      </div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </>
             ) : (
               <Button
                 className="w-full touch-manipulation"
