@@ -45,6 +45,7 @@ export const metadata: Metadata = {
   // Farcaster mini app embed metadata
   other: {
     "fc:miniapp": JSON.stringify(MINIAPP_EMBED_CONFIG),
+    "base:app_id": "6920c9d87fdd1c48120364b3",
   },
 };
 
