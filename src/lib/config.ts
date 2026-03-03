@@ -1,3 +1,5 @@
+import { DAO_CONFIG } from "./dao-config";
+
 // Development mode flag - use NEXT_PUBLIC prefix so it's available in browser
 // This allows runtime checking instead of build-time replacement
 export const IS_DEV = process.env.NODE_ENV === "development";
@@ -58,17 +60,9 @@ export const SUBGRAPH = {
   url: `https://api.goldsky.com/api/public/${process.env.NEXT_PUBLIC_GOLDSKY_PROJECT_ID || "project_cm33ek8kjx6pz010i2c3w8z25"}/subgraphs/nouns-builder-base-mainnet/latest/gn`,
 } as const;
 
-export const DAO_DESCRIPTION =
-  "Nounish Open Source Action Sports Brand experiment";
+export const DAO_DESCRIPTION = DAO_CONFIG.description;
 
-export const HOMEPAGE_DESCRIPTIONS = [
-  "Nounish Open Source Action Sports Brand experiment",
-  "Funding extreme sports athletes and creators worldwide",
-  "Building the future of shredding",
-  "Empowering athletes through collective governance",
-  "Has funded 15 skatable sculptures around the world",
-  "é foda pra caralho!"
-] as const;
+export const HOMEPAGE_DESCRIPTIONS = DAO_CONFIG.homepageDescriptions;
 
 // Token contracts we care about for treasury display
 // Provide Base mainnet addresses for known tokens

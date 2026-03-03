@@ -9,6 +9,7 @@ import { MiniAppReady } from "@/components/miniapp/MiniAppReady";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { MINIAPP_CONFIG, MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
+import { DAO_CONFIG } from "@/lib/dao-config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,23 +24,23 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com"),
-  title: "Gnars DAO",
-  description: "Nounish Open Source Action Sports Brand experiment",
+  title: DAO_CONFIG.seo.defaultTitle,
+  description: DAO_CONFIG.seo.defaultDescription,
   verification: {
     google: "1CaAKNV0z6Oeq0cV7COlSbEk9ejpucay2WH_X2AtkLI",
   },
   // Open Graph metadata for social sharing
   openGraph: {
-    title: "Gnars DAO",
-    description: "Nounish Open Source Action Sports Brand experiment",
+    title: DAO_CONFIG.seo.defaultTitle,
+    description: DAO_CONFIG.seo.defaultDescription,
     images: [MINIAPP_CONFIG.miniapp.ogImageUrl],
     type: "website",
   },
   // Twitter card metadata
   twitter: {
     card: "summary_large_image",
-    title: "Gnars DAO",
-    description: "Nounish Open Source Action Sports Brand experiment",
+    title: DAO_CONFIG.seo.defaultTitle,
+    description: DAO_CONFIG.seo.defaultDescription,
     images: [MINIAPP_CONFIG.miniapp.ogImageUrl],
   },
   // Farcaster mini app embed metadata
