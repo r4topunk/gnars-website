@@ -319,17 +319,25 @@ export function DroposalForm({ index }: Props) {
               )}
 
               {createdSplitAddress && (
-                <Alert className="bg-green-50 border-green-200">
-                  <AlertCircle className="h-4 w-4 text-green-600" />
+                <Alert className="bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
+                  <AlertCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                   <AlertDescription>
                     <div className="space-y-2">
-                      <strong className="text-green-900">Split Address Saved:</strong>
-                      <code className="block bg-white px-2 py-1 rounded text-xs border">
+                      <strong className="text-green-900 dark:text-green-100">✅ Split Contract Created</strong>
+                      <code className="block bg-white dark:bg-gray-900 px-2 py-1 rounded text-xs border font-mono">
                         {createdSplitAddress}
                       </code>
-                      <p className="text-xs text-green-900">
-                        This address will be used as the payout recipient for the droposal.
+                      <p className="text-xs text-green-900 dark:text-green-100">
+                        This address will receive NFT sales and be included in the proposal.
                       </p>
+                      <a
+                        href={`https://app.splits.org/accounts/${createdSplitAddress}/?chainId=8453`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-xs text-green-700 dark:text-green-300 hover:underline"
+                      >
+                        View on Splits.org →
+                      </a>
                     </div>
                   </AlertDescription>
                 </Alert>
