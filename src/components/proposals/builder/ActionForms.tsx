@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { type ProposalFormValues, type TransactionFormValues } from "../schema";
+import { useSplitCreation } from "@/hooks/use-split-creation";
+import { validateSplitRecipients, prepareSplitConfigForSDK, IMMUTABLE_CONTROLLER } from "@/lib/splits-utils";
 
 interface ActionFormsProps {
   index: number;
@@ -30,6 +32,9 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
   const { handleSubmit, setValue, getValues } = useFormContext<ProposalFormValues>();
   const [isGenerating, setIsGenerating] = useState(false);
   const [sdkError, setSDKError] = useState<string | null>(null);
+  
+  // Add split creation hook
+  const { createSplit } = useSplitCreation();
 
   // Ensure type is set for this transaction index
   useEffect(() => {
@@ -112,6 +117,69 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
     }
   };
 
+  // Handle split creation for droposals
+  const handleDroposalSubmit = async () => {
+    const tx = getValues(`transactions.${index}`);
+
+    if (tx.type !== "droposal") {
+      onSubmit();
+      return;
+    }
+
+    // Check if using split
+    const useSplit = tx.useSplit;
+    const splitRecipients = tx.splitRecipients;
+    const splitDistributorFee = tx.splitDistributorFee || 0;
+
+    if (!useSplit || !splitRecipients || splitRecipients.length === 0) {
+      // Not using split, proceed normally
+      onSubmit();
+      return;
+    }
+
+    // Validate split configuration
+    const validationErrors = validateSplitRecipients(splitRecipients);
+    if (validationErrors.length > 0) {
+      setSDKError(`Split configuration invalid: ${validationErrors.map(e => e.message).join(', ')}`);
+      return;
+    }
+
+    setIsGenerating(true);
+    setSDKError(null);
+
+    try {
+      console.log('🔄 Creating split contract...');
+      
+      // Create split contract
+      const splitConfig = {
+        recipients: splitRecipients,
+        distributorFeePercent: splitDistributorFee,
+        controller: IMMUTABLE_CONTROLLER,
+      };
+
+      const sdkConfig = prepareSplitConfigForSDK(splitConfig);
+      const splitAddress = await createSplit(sdkConfig);
+
+      if (!splitAddress) {
+        throw new Error("Failed to create split contract - no address returned");
+      }
+
+      // Save split address to form
+      setValue(`transactions.${index}.createdSplitAddress`, splitAddress);
+      setValue(`transactions.${index}.payoutAddress`, splitAddress);
+
+      console.log(`✅ Split created: ${splitAddress}`);
+
+      // Proceed with submit
+      onSubmit();
+    } catch (error) {
+      console.error("Error creating split:", error);
+      setSDKError(error instanceof Error ? error.message : "Failed to create split contract");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const renderForm = () => {
     switch (actionType) {
       case "send-eth":
@@ -175,13 +243,20 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
             Cancel
           </Button>
           <Button
-            onClick={handleSubmit(handleBuyCoinSubmit, onError)}
+            onClick={handleSubmit(
+              actionType === 'droposal' ? handleDroposalSubmit : 
+              actionType === 'buy-coin' ? handleBuyCoinSubmit : 
+              onSubmit,
+              onError
+            )}
             disabled={isGenerating}
           >
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
+                {actionType === 'droposal' ? 'Creating Split...' : 
+                 actionType === 'buy-coin' ? 'Generating...' : 
+                 'Saving...'}
               </>
             ) : (
               "Save Transaction"
