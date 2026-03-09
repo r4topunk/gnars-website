@@ -38,6 +38,63 @@ const nextConfig: NextConfig = {
         destination: "/auctions",
         permanent: true,
       },
+      // Archive SEO redirects (old blog posts)
+      {
+        source: "/sub-dao-culture",
+        destination: "/archive/sub-dao-culture",
+        permanent: true,
+      },
+      {
+        source: "/sub-dao-culture/",
+        destination: "/archive/sub-dao-culture",
+        permanent: true,
+      },
+      {
+        source: "/best-cc0-nft-projects",
+        destination: "/archive/best-cc0-nft-projects",
+        permanent: true,
+      },
+      {
+        source: "/best-cc0-nft-projects/",
+        destination: "/archive/best-cc0-nft-projects",
+        permanent: true,
+      },
+      {
+        source: "/history-of-nfts",
+        destination: "/archive/history-of-nfts",
+        permanent: true,
+      },
+      {
+        source: "/history-of-nfts/",
+        destination: "/archive/history-of-nfts",
+        permanent: true,
+      },
+      {
+        source: "/on-chain-nfts-and-why-theyre-better",
+        destination: "/archive/on-chain-nfts-and-why-theyre-better",
+        permanent: true,
+      },
+      {
+        source: "/on-chain-nfts-and-why-theyre-better/",
+        destination: "/archive/on-chain-nfts-and-why-theyre-better",
+        permanent: true,
+      },
+      {
+        source: "/nfts-music-industry-second-life",
+        destination: "/archive/nfts-music-industry-second-life",
+        permanent: true,
+      },
+      {
+        source: "/nfts-music-industry-second-life/",
+        destination: "/archive/nfts-music-industry-second-life",
+        permanent: true,
+      },
+      // Tag page redirect (low priority, was just a filter page)
+      {
+        source: "/tags",
+        destination: "/archive",
+        permanent: true,
+      },
     ];
   },
 };

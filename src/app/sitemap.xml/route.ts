@@ -262,6 +262,47 @@ export async function GET(): Promise<Response> {
       changeFrequency: "monthly",
       priority: 0.4,
     },
+    // Archive section
+    {
+      url: toUrl("/archive"),
+      lastModified: new Date("2022-04-08"), // Last post date
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+  ];
+
+  // Archive posts (historical blog posts for SEO)
+  const archiveEntries: SitemapEntry[] = [
+    {
+      url: toUrl("/archive/sub-dao-culture"),
+      lastModified: new Date("2022-04-08"),
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+    {
+      url: toUrl("/archive/best-cc0-nft-projects"),
+      lastModified: new Date("2022-03-26"),
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+    {
+      url: toUrl("/archive/history-of-nfts"),
+      lastModified: new Date("2021-06-30"),
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+    {
+      url: toUrl("/archive/on-chain-nfts-and-why-theyre-better"),
+      lastModified: new Date("2022-01-11"),
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+    {
+      url: toUrl("/archive/nfts-music-industry-second-life"),
+      lastModified: new Date("2021-08-18"),
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
   ];
 
   const proposalEntries: SitemapEntry[] = proposals.map((proposal) => ({
@@ -317,6 +358,7 @@ export async function GET(): Promise<Response> {
 
   const xml = buildSitemap([
     ...staticEntries,
+    ...archiveEntries,
     ...proposalEntries,
     ...droposalEntries,
     ...blogEntries,
