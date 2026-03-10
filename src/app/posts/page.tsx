@@ -3,24 +3,24 @@ import { Metadata } from "next";
 import { getPostMetadata } from "@/lib/posts";
 
 export const metadata: Metadata = {
-  title: "Archive | Gnars",
-  description: "Historical blog posts and articles about NFTs, DAOs, and the Gnars ecosystem.",
+  title: "Posts | Gnars",
+  description: "Gnars-specific content: athlete stories, DAO governance, CC0 culture, and extreme sports funding.",
   robots: {
     index: true,
     follow: true,
   },
 };
 
-export default function ArchivePage() {
-  const posts = getPostMetadata("archive");
+export default function PostsPage() {
+  const posts = getPostMetadata("posts");
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
       <header className="mb-12">
-        <h1 className="text-4xl font-bold mb-4">Archive</h1>
+        <h1 className="text-4xl font-bold mb-4">Gnars Posts</h1>
         <p className="text-lg text-gray-600 dark:text-gray-400">
-          Historical articles about NFTs, DAOs, and the evolution of Gnars. These posts preserve important
-          context about the ecosystem&apos;s foundation and early explorations.
+          Stories about Gnars DAO, extreme athletes, CC0 culture, and how we&apos;re building a new funding
+          model for action sports.
         </p>
       </header>
 
@@ -28,7 +28,7 @@ export default function ArchivePage() {
         {posts.map((post) => (
           <article key={post.slug} className="border-b border-gray-200 dark:border-gray-800 pb-8">
             <Link
-              href={`/archive/${post.slug}`}
+              href={`/posts/${post.slug}`}
               className="group block hover:opacity-80 transition-opacity"
             >
               <time className="text-sm text-gray-500 dark:text-gray-500">
@@ -40,18 +40,16 @@ export default function ArchivePage() {
               </time>
               <h2 className="text-2xl font-bold mt-2 mb-3 group-hover:underline">{post.title}</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-3">{post.description}</p>
-              {post.tags && post.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {post.tags?.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </Link>
           </article>
         ))}
@@ -59,9 +57,9 @@ export default function ArchivePage() {
 
       <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
         <p className="text-sm text-gray-500 dark:text-gray-500">
-          Looking for recent content?{" "}
-          <Link href="/posts" className="underline hover:text-gray-700 dark:hover:text-gray-300">
-            Visit Gnars posts →
+          Looking for historical NFT/DAO content?{" "}
+          <Link href="/archive" className="underline hover:text-gray-700 dark:hover:text-gray-300">
+            Visit the archive →
           </Link>
         </p>
       </footer>

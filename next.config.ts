@@ -1,4 +1,59 @@
 import type { NextConfig } from "next";
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
+
+// Generate redirects from markdown files
+function generateBlogRedirects() {
+  const redirects: Array<{
+    source: string;
+    destination: string;
+    permanent: boolean;
+  }> = [];
+
+  const directories = [
+    { dir: path.join(process.cwd(), "src/content/posts"), base: "/posts" },
+    { dir: path.join(process.cwd(), "src/content/archive"), base: "/archive" },
+  ];
+
+  for (const { dir, base } of directories) {
+    if (!fs.existsSync(dir)) continue;
+
+    const files = fs.readdirSync(dir);
+
+    for (const filename of files) {
+      if (!filename.endsWith(".md")) continue;
+
+      const filePath = path.join(dir, filename);
+      const fileContent = fs.readFileSync(filePath, "utf8");
+      const { data } = matter(fileContent);
+
+      if (!data.permalink) continue;
+
+      const slug = data.permalink.replace(/^\//, "").replace(/\/$/, "");
+      const target = `${base}/${slug}`;
+
+      // With trailing slash → redirect
+      if (data.permalink.endsWith("/")) {
+        redirects.push({
+          source: data.permalink,
+          destination: target,
+          permanent: true,
+        });
+      }
+
+      // Without trailing slash → redirect
+      const withoutTrailing = data.permalink.replace(/\/$/, "");
+      redirects.push({
+        source: withoutTrailing,
+        destination: target,
+        permanent: true,
+      });
+    }
+  }
+
+  return redirects;
+}
 
 const nextConfig: NextConfig = {
   env: {
@@ -22,7 +77,10 @@ const nextConfig: NextConfig = {
     },
   },
   async redirects() {
+    const blogRedirects = generateBlogRedirects();
+
     return [
+      // DAO URL pattern changes
       {
         source: "/dao/proposal/:id",
         destination: "/proposals/:id",
@@ -38,63 +96,14 @@ const nextConfig: NextConfig = {
         destination: "/auctions",
         permanent: true,
       },
-      // Archive SEO redirects (old blog posts)
-      {
-        source: "/sub-dao-culture",
-        destination: "/archive/sub-dao-culture",
-        permanent: true,
-      },
-      {
-        source: "/sub-dao-culture/",
-        destination: "/archive/sub-dao-culture",
-        permanent: true,
-      },
-      {
-        source: "/best-cc0-nft-projects",
-        destination: "/archive/best-cc0-nft-projects",
-        permanent: true,
-      },
-      {
-        source: "/best-cc0-nft-projects/",
-        destination: "/archive/best-cc0-nft-projects",
-        permanent: true,
-      },
-      {
-        source: "/history-of-nfts",
-        destination: "/archive/history-of-nfts",
-        permanent: true,
-      },
-      {
-        source: "/history-of-nfts/",
-        destination: "/archive/history-of-nfts",
-        permanent: true,
-      },
-      {
-        source: "/on-chain-nfts-and-why-theyre-better",
-        destination: "/archive/on-chain-nfts-and-why-theyre-better",
-        permanent: true,
-      },
-      {
-        source: "/on-chain-nfts-and-why-theyre-better/",
-        destination: "/archive/on-chain-nfts-and-why-theyre-better",
-        permanent: true,
-      },
-      {
-        source: "/nfts-music-industry-second-life",
-        destination: "/archive/nfts-music-industry-second-life",
-        permanent: true,
-      },
-      {
-        source: "/nfts-music-industry-second-life/",
-        destination: "/archive/nfts-music-industry-second-life",
-        permanent: true,
-      },
       // Tag page redirect (low priority, was just a filter page)
       {
         source: "/tags",
         destination: "/archive",
         permanent: true,
       },
+      // All blog post redirects (generated from markdown files)
+      ...blogRedirects,
     ];
   },
 };

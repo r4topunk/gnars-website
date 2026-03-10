@@ -4,6 +4,7 @@ import { fetchAllMembers } from "@/services/members";
 import { listDaoPropdates } from "@/services/propdates";
 import { listProposals } from "@/services/proposals";
 import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
+import { getPostMetadata } from "@/lib/posts";
 
 export const revalidate = 3600;
 export const dynamic = "force-dynamic";
@@ -262,6 +263,13 @@ export async function GET(): Promise<Response> {
       changeFrequency: "monthly",
       priority: 0.4,
     },
+    // Posts section (Gnars-specific content)
+    {
+      url: toUrl("/posts"),
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
     // Archive section
     {
       url: toUrl("/archive"),
@@ -271,39 +279,25 @@ export async function GET(): Promise<Response> {
     },
   ];
 
-  // Archive posts (historical blog posts for SEO)
-  const archiveEntries: SitemapEntry[] = [
-    {
-      url: toUrl("/archive/sub-dao-culture"),
-      lastModified: new Date("2022-04-08"),
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-    {
-      url: toUrl("/archive/best-cc0-nft-projects"),
-      lastModified: new Date("2022-03-26"),
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-    {
-      url: toUrl("/archive/history-of-nfts"),
-      lastModified: new Date("2021-06-30"),
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-    {
-      url: toUrl("/archive/on-chain-nfts-and-why-theyre-better"),
-      lastModified: new Date("2022-01-11"),
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-    {
-      url: toUrl("/archive/nfts-music-industry-second-life"),
-      lastModified: new Date("2021-08-18"),
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-  ];
+  // Dynamic post entries (Gnars-specific content)
+  const postsMetadata = getPostMetadata("posts");
+  const postEntries: SitemapEntry[] = postsMetadata.map((post) => ({
+    url: toUrl(`/posts/${post.slug}`),
+    lastModified: toDate(post.date) || now,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
+
+  // Dynamic archive entries (historical blog posts)
+  const archiveMetadata = getPostMetadata("archive");
+  const archivePostEntries: SitemapEntry[] = archiveMetadata.map((post) => ({
+    url: toUrl(`/archive/${post.slug}`),
+    lastModified: toDate(post.date) || now,
+    changeFrequency: "yearly",
+    priority: 0.5,
+  }));
+
+
 
   const proposalEntries: SitemapEntry[] = proposals.map((proposal) => ({
     url: toUrl(`/proposals/${proposal.proposalNumber}`),
@@ -358,7 +352,8 @@ export async function GET(): Promise<Response> {
 
   const xml = buildSitemap([
     ...staticEntries,
-    ...archiveEntries,
+    ...postEntries,
+    ...archivePostEntries,
     ...proposalEntries,
     ...droposalEntries,
     ...blogEntries,

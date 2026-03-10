@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getPostMetadata, getPostBySlug } from "@/lib/posts";
 
 export async function generateStaticParams() {
-  const posts = getPostMetadata("archive");
+  const posts = getPostMetadata("posts");
   return posts.map((post) => ({
     slug: post.slug,
   }));
@@ -17,27 +17,27 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPostBySlug("archive", slug);
+  const post = getPostBySlug("posts", slug);
 
   if (!post) {
     return {
-      title: "Post Not Found | Gnars Archive",
+      title: "Post Not Found | Gnars",
     };
   }
 
   return {
-    title: `${post.metadata.title} | Gnars Archive`,
+    title: `${post.metadata.title} | Gnars`,
     description: post.metadata.description,
     robots: {
       index: true,
-      follow: false, // Don't follow links in archived content
+      follow: true,
     },
   };
 }
 
-export default async function ArchivePostPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = getPostBySlug("archive", slug);
+  const post = getPostBySlug("posts", slug);
 
   if (!post) {
     notFound();
@@ -47,24 +47,13 @@ export default async function ArchivePostPage({ params }: { params: Promise<{ sl
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-3xl">
-      {/* Archive Notice */}
-      <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-        <p className="text-sm text-yellow-800 dark:text-yellow-200">
-          <strong>📚 Archive:</strong> This is a historical post from the early days of Gnars. Some information
-          may be outdated.{" "}
-          <Link href="/posts" className="underline hover:opacity-80">
-            Visit Gnars posts for current content →
-          </Link>
-        </p>
-      </div>
-
       {/* Post Header */}
       <header className="mb-8">
         <Link
-          href="/archive"
+          href="/posts"
           className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-4 inline-block"
         >
-          ← Back to Archive
+          ← Back to Posts
         </Link>
         <h1 className="text-4xl font-bold mb-4">{metadata.title}</h1>
         <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
@@ -131,14 +120,8 @@ export default async function ArchivePostPage({ params }: { params: Promise<{ sl
       {/* Footer */}
       <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
         <div className="flex justify-between items-center">
-          <Link
-            href="/archive"
-            className="text-sm text-gray-600 dark:text-gray-400 hover:underline"
-          >
-            ← Back to Archive
-          </Link>
           <Link href="/posts" className="text-sm text-gray-600 dark:text-gray-400 hover:underline">
-            Visit Gnars Posts →
+            ← Back to Posts
           </Link>
         </div>
       </footer>

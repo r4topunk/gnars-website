@@ -1,0 +1,35 @@
+---
+layout: post
+title: Crypto Art in Crypto Cities
+description:
+date: 2021-11-12 00:00:00 +0000
+permalink: /crypto-art-in-crypto-cities/
+author: gami
+image: /images/crypto-cities.jpeg
+image_caption:
+video_embed: 
+tags: [research]
+featured: 
+---
+
+***In a recent blog post***, the famed inventor of Ethereum [Vitalik Buterin](https://en.wikipedia.org/wiki/Vitalik_Buterin) addressed and mused about the topic of [Crypto Cities](https://vitalik.ca/general/2021/10/31/cities.html). So first off, a Crypto City is not a virtual city, like the famous [Decentraland](https://decentraland.org/) or others. Instead, these are real physical spaces. While most people struggle to understand crypto and virtual spaces, those that understand them often can’t imagine applications in the real world, which is what a Crypto City would be.
+
+So, how do you use crypto assets to designate ownership and facilitate the use and exchange of real physical spaces? In essence, the idea is to combine two Ethereum technologies or protocols, [NFTs](/what-are-nfts/) and [DAOs](https://www.forbes.com/sites/cathyhackl/2021/06/01/what-are-daos-and-why-you-should-pay-attention/) (Decentralized Autonomous Organizations). Simply an NFT could represent a physical property just as it represents a unique piece of crypto art. Just as the Ethereum Blockchain provides secure ownership and provenance to tokens, it can do so with land.
+
+With that said, before we get ahead of ourselves, there are some critical follow-up questions; just because you have a way to assign property rights and vote on the use of the said property doesn’t mean anyone will respect those rights. I can protect my digital NFT by safeguarding passwords. But, how do I protect a physical asset? Why would a given person or nation-state recognize something as belonging to me if I can’t exclude them? Passwords are great for excluding others from my crypto but not so effective at excluding them from my backyard.
+
+***This is where DAOs come in***. DAOs provide decentralized governance, which can, in theory, govern tangible physical assets. DAOs are the bridge between the decentralized blockchain and the real world. Simply a DAO could record ownership, like centralized governments and legal bodies currently do, and then generate incentives to enforce said ownership. The catch is to accomplish this will, in part, require a centralized government first to recognize the DAO as a legitimate legal entity. A DAO has all the tools to govern but must first obtain legitimate authority to do so.
+
+Consider the example of [CityDAO](https://www.citydao.io/). A proposed city in the state of Wyoming, USA. The goal is “building a city on the Ethereum blockchain”. The project was initiated after Wyoming became the first place in the world to recognize DAOs as legal bodies that can do things like buying property, and that is exactly what a group of [crypto investors did](https://www.vice.com/en/article/93b5ve/crypto-investors-buy-40-acres-of-land-in-wyoming-to-build-blockchain-city). They purchased a chunk of Wyoming, intending to start a city. Thus, while the dreams of true decentralization aren’t on the horizon quite yet, it is a good start. The goal is a city run by a constitution and ongoing voting enabled by merging the DAO with a token economy.
+
+This is just one of many projects of this type. Cities, like [Miami](https://www.citycoins.co/) are issuing city tokens which citizens exchange, with a portion going to the city. Effectively taking the initiative to get tax revenue from crypto before crypto takes over with a city having no control. Similar ideas are floating around in Denver and San Francisco. In [Busan, Korea](https://level19.notion.site/level19/NFT-Festival-by-Busan-Korea-95e9274927024a81aa7e716f1bcfbcf0) a conference will discuss how the city could switch to crypto and NFTs. My prediction is we will see an explosion of such projects in the years to come.
+
+***Ok, this is all cool, but how does this affect crypto art?*** The simple answer is cities have public art, in a crypto city, the public art will be crypto art. Consider perhaps the largest purposed project of this nature in the world in [New York](https://observer.com/2021/05/todd-morley-nft-museum/). A bold and ambitious project would see the tallest tower in New York erected as a blockchain network tower that would also “house the world’s largest NFT museum.” Ideas like this truly make your imagination ponder the world that we look to be transitioning towards. Projects like this illuminate the bold potential of blockchain technologies. From art stored away in private galleries to art seen from planes flying overhead, given the buildings proposed height, the art would be visible, given the right vantage point, all over New York.
+
+Public art is often a considerable expense to a city, and simply, it only helps so many artists and only appeals to a small cross-section of citizens. When a given city procures a large painting or sculpture, it usually involves one artist or a few. The chosen artist might get selected given their political pull, and even putting that aside, it at best still only helps a few. Thus public art projects struggle to help the entire art community. NFT art is very functional, given it is digital. Put a projector in the downtown square and let the art stay fresh. It can change and transform when needed. The bottom line is, more artists get to display their art, with profits dispersed more widely.
+
+One can imagine the various ways a given piece of art would end up in a shared space. Perhaps, people can pay to have artwork they like, profits going to the art community. With a designated city art token, citizens could vote on which art piece they wish to see. The ideas are endless, and the art community would get much broader support. Futuristic ideas abound, for example, 3D holograms. Create a city token for basic transactions and have part of each transaction go to public art. The idea is remarkable in its simplicity but could be transformative.
+
+Public art could be scaled up and democratized. It would belong to the people and would support the art community in a broader sense. While public art is democratic to a degree, it does belong to and is enjoyed by all, it falls short of supporting the entire art community and being accessible by all citizens. Further, the same pitfall rears its ugly head of political insiders getting to make the final decisions.
+
+***In a Crypto City***, citizens will find themselves immersed in Crypto Art. Many might find it deterring that as dynamic as a Crypto City could be, it will still be within a centralized state’s borders. But, what if the city does so well it becomes the state? It is so successful people want their entire country run similarly? There is not much point in hypothesizing as that future is likely a long way off. But in the meantime, you might be able to walk down your favorite crypto boulevard and admire your favorite crypto art in the not-to-distant future.
