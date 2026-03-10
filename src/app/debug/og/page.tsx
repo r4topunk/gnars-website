@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 type DebugOgPageProps = {
   searchParams?: Promise<{
@@ -219,12 +220,12 @@ export default async function DebugOgPage({ searchParams }: DebugOgPageProps) {
             >
               Update
             </button>
-            <a
+            <Link
               href="/debug/og"
               className="inline-flex h-9 items-center justify-center rounded-md border bg-background px-4 text-sm font-medium"
             >
               Reset
-            </a>
+            </Link>
             <span className="text-xs text-muted-foreground">
               Tip: use a large number (e.g. 999999) to confirm fallback rendering.
             </span>
