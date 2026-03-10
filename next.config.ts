@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 
-// Generate redirects from markdown files
+// Generate redirects from markdown files (trailing slash cleanup only)
 function generateBlogRedirects() {
   const redirects: Array<{
     source: string;
@@ -11,41 +11,30 @@ function generateBlogRedirects() {
     permanent: boolean;
   }> = [];
 
-  const directories = [
-    { dir: path.join(process.cwd(), "src/content/posts"), base: "/posts" },
-    { dir: path.join(process.cwd(), "src/content/archive"), base: "/archive" },
-  ];
+  const blogDir = path.join(process.cwd(), "src/content/blog");
+  
+  if (!fs.existsSync(blogDir)) {
+    return redirects;
+  }
 
-  for (const { dir, base } of directories) {
-    if (!fs.existsSync(dir)) continue;
+  const files = fs.readdirSync(blogDir);
 
-    const files = fs.readdirSync(dir);
+  for (const filename of files) {
+    if (!filename.endsWith(".md")) continue;
 
-    for (const filename of files) {
-      if (!filename.endsWith(".md")) continue;
+    const filePath = path.join(blogDir, filename);
+    const fileContent = fs.readFileSync(filePath, "utf8");
+    const { data } = matter(fileContent);
 
-      const filePath = path.join(dir, filename);
-      const fileContent = fs.readFileSync(filePath, "utf8");
-      const { data } = matter(fileContent);
+    if (!data.permalink) continue;
 
-      if (!data.permalink) continue;
+    const slug = data.permalink.replace(/^\//, "").replace(/\/$/, "");
+    const target = `/${slug}`;
 
-      const slug = data.permalink.replace(/^\//, "").replace(/\/$/, "");
-      const target = `${base}/${slug}`;
-
-      // With trailing slash → redirect
-      if (data.permalink.endsWith("/")) {
-        redirects.push({
-          source: data.permalink,
-          destination: target,
-          permanent: true,
-        });
-      }
-
-      // Without trailing slash → redirect
-      const withoutTrailing = data.permalink.replace(/\/$/, "");
+    // Only redirect if original URL has trailing slash
+    if (data.permalink.endsWith("/")) {
       redirects.push({
-        source: withoutTrailing,
+        source: data.permalink,
         destination: target,
         permanent: true,
       });
@@ -96,13 +85,7 @@ const nextConfig: NextConfig = {
         destination: "/auctions",
         permanent: true,
       },
-      // Tag page redirect (low priority, was just a filter page)
-      {
-        source: "/tags",
-        destination: "/archive",
-        permanent: true,
-      },
-      // All blog post redirects (generated from markdown files)
+      // Blog post trailing slash cleanup (generated from markdown files)
       ...blogRedirects,
     ];
   },

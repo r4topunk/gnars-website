@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getPostMetadata, getPostBySlug } from "@/lib/posts";
 
 export async function generateStaticParams() {
-  const posts = getPostMetadata("posts");
+  const posts = getPostMetadata("blog");
   return posts.map((post) => ({
     slug: post.slug,
   }));
@@ -17,7 +17,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPostBySlug("posts", slug);
+  const post = getPostBySlug("blog", slug);
 
   if (!post) {
     return {
@@ -35,9 +35,9 @@ export async function generateMetadata({
   };
 }
 
-export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = getPostBySlug("posts", slug);
+  const post = getPostBySlug("blog", slug);
 
   if (!post) {
     notFound();
@@ -45,16 +45,24 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
   const { metadata, content } = post;
 
+  // Determine if this is historical content (pre-2023)
+  const postYear = new Date(metadata.date).getFullYear();
+  const isHistorical = postYear < 2023;
+
   return (
     <div className="container mx-auto px-4 py-12 max-w-3xl">
+      {/* Historical Content Notice */}
+      {isHistorical && (
+        <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <p className="text-sm text-yellow-800 dark:text-yellow-200">
+            <strong>📚 Historical Content:</strong> This article is from {postYear}. Some information may be
+            outdated.
+          </p>
+        </div>
+      )}
+
       {/* Post Header */}
       <header className="mb-8">
-        <Link
-          href="/posts"
-          className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-4 inline-block"
-        >
-          ← Back to Posts
-        </Link>
         <h1 className="text-4xl font-bold mb-4">{metadata.title}</h1>
         <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
           <time>
@@ -120,8 +128,8 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       {/* Footer */}
       <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
         <div className="flex justify-between items-center">
-          <Link href="/posts" className="text-sm text-gray-600 dark:text-gray-400 hover:underline">
-            ← Back to Posts
+          <Link href="/" className="text-sm text-gray-600 dark:text-gray-400 hover:underline">
+            ← Back to Home
           </Link>
         </div>
       </footer>

@@ -263,39 +263,21 @@ export async function GET(): Promise<Response> {
       changeFrequency: "monthly",
       priority: 0.4,
     },
-    // Posts section (Gnars-specific content)
-    {
-      url: toUrl("/posts"),
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    // Archive section
-    {
-      url: toUrl("/archive"),
-      lastModified: new Date("2022-04-08"), // Last post date
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
   ];
 
-  // Dynamic post entries (Gnars-specific content)
-  const postsMetadata = getPostMetadata("posts");
-  const postEntries: SitemapEntry[] = postsMetadata.map((post) => ({
-    url: toUrl(`/posts/${post.slug}`),
-    lastModified: toDate(post.date) || now,
-    changeFrequency: "weekly",
-    priority: 0.8,
-  }));
-
-  // Dynamic archive entries (historical blog posts)
-  const archiveMetadata = getPostMetadata("archive");
-  const archivePostEntries: SitemapEntry[] = archiveMetadata.map((post) => ({
-    url: toUrl(`/archive/${post.slug}`),
-    lastModified: toDate(post.date) || now,
-    changeFrequency: "yearly",
-    priority: 0.5,
-  }));
+  // Dynamic markdown blog post entries (all posts in root)
+  const blogMetadata = getPostMetadata("blog");
+  const markdownPostEntries: SitemapEntry[] = blogMetadata.map((post) => {
+    const postYear = new Date(post.date).getFullYear();
+    const isHistorical = postYear < 2023;
+    
+    return {
+      url: toUrl(`/${post.slug}`),
+      lastModified: toDate(post.date) || now,
+      changeFrequency: isHistorical ? "yearly" : "weekly",
+      priority: isHistorical ? 0.6 : 0.8,
+    };
+  });
 
 
 
@@ -352,8 +334,7 @@ export async function GET(): Promise<Response> {
 
   const xml = buildSitemap([
     ...staticEntries,
-    ...postEntries,
-    ...archivePostEntries,
+    ...markdownPostEntries,
     ...proposalEntries,
     ...droposalEntries,
     ...blogEntries,
