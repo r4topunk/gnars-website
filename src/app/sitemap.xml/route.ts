@@ -4,6 +4,7 @@ import { fetchAllMembers } from "@/services/members";
 import { listDaoPropdates } from "@/services/propdates";
 import { listProposals } from "@/services/proposals";
 import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
+import { getPostMetadata } from "@/lib/posts";
 
 export const revalidate = 3600;
 export const dynamic = "force-dynamic";
@@ -264,6 +265,22 @@ export async function GET(): Promise<Response> {
     },
   ];
 
+  // Dynamic markdown blog post entries (all posts in root)
+  const blogMetadata = getPostMetadata("blog");
+  const markdownPostEntries: SitemapEntry[] = blogMetadata.map((post) => {
+    const postYear = new Date(post.date).getFullYear();
+    const isHistorical = postYear < 2023;
+    
+    return {
+      url: toUrl(`/${post.slug}`),
+      lastModified: toDate(post.date) || now,
+      changeFrequency: isHistorical ? "yearly" : "weekly",
+      priority: isHistorical ? 0.6 : 0.8,
+    };
+  });
+
+
+
   const proposalEntries: SitemapEntry[] = proposals.map((proposal) => ({
     url: toUrl(`/proposals/${proposal.proposalNumber}`),
     lastModified:
@@ -317,6 +334,7 @@ export async function GET(): Promise<Response> {
 
   const xml = buildSitemap([
     ...staticEntries,
+    ...markdownPostEntries,
     ...proposalEntries,
     ...droposalEntries,
     ...blogEntries,
