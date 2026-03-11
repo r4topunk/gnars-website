@@ -85,20 +85,21 @@ export const useVotes = ({
 }: UseVotesArgs): UseVotesResult => {
   const enabled = Boolean(collectionAddress && governorAddress && signerAddress) && enabledProp;
   const hasSubgraphVoteWeight = voteWeightFromSubgraph !== undefined && voteWeightFromSubgraph > 0;
+  const usingSnapshotQuery = Boolean(snapshotBlock && !hasSubgraphVoteWeight);
 
-  const { data, isLoading } = useReadContracts({
+  const { data, isLoading, error } = useReadContracts({
     query: {
       enabled,
       refetchInterval: false,
     },
     contracts: enabled
-      ? (snapshotBlock && !hasSubgraphVoteWeight // Skip getPastVotes if we have subgraph data
+      ? (usingSnapshotQuery // Skip getPastVotes if we have subgraph data
           ? [
               {
                 address: collectionAddress!,
                 abi: tokenAbi,
                 functionName: "getPastVotes",
-                args: [signerAddress!, snapshotBlock],
+                args: [signerAddress!, snapshotBlock!],
                 chainId,
               },
               {
@@ -144,6 +145,16 @@ export const useVotes = ({
     return { ...emptyResult, isLoading };
   }
 
+  // Debug log for troubleshooting voting power display issues
+  if (process.env.NODE_ENV === 'development' && usingSnapshotQuery) {
+    console.log('[useVotes] Using snapshot query', {
+      snapshotBlock: snapshotBlock?.toString(),
+      signerAddress,
+      data: data.map(d => ({ status: d.status, result: d.result?.toString(), error: d.error })),
+      error,
+    });
+  }
+
   // If we have subgraph vote weight, use that instead of contract data.
   // Branch B contracts: [getVotes(data[0]), delegates(data[1]), proposalThreshold(data[2])]
   if (hasSubgraphVoteWeight) {
@@ -169,14 +180,50 @@ export const useVotes = ({
   }
 
   // Fall back to contract data
-  const votes = data[0]?.result as bigint | undefined;
-  const delegates = data[1]?.result as Address | undefined;
-  const proposalThreshold = data[2]?.result as bigint | undefined;
+  const votesResult = data[0];
+  const delegatesResult = data[1];
+  const proposalThresholdResult = data[2];
 
+  // Check for errors in contract calls
+  if (votesResult?.status === 'failure' || delegatesResult?.status === 'failure' || proposalThresholdResult?.status === 'failure') {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[useVotes] Contract call failed', {
+        votesError: votesResult?.status === 'failure' ? votesResult.error : null,
+        delegatesError: delegatesResult?.status === 'failure' ? delegatesResult.error : null,
+        thresholdError: proposalThresholdResult?.status === 'failure' ? proposalThresholdResult.error : null,
+      });
+    }
+  }
+
+  const votes = votesResult?.result as bigint | undefined;
+  const delegates = delegatesResult?.result as Address | undefined;
+  const proposalThreshold = proposalThresholdResult?.result as bigint | undefined;
+
+  // If getPastVotes returns null/undefined, it might mean the snapshot block is invalid or user had 0 votes at snapshot
+  // In this case, we return 0 votes (not undefined) so the UI can show "0 voting power" correctly
   if (votes === undefined || delegates === undefined || proposalThreshold === undefined) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[useVotes] Missing contract data', {
+        votes: votes?.toString() ?? 'undefined',
+        delegates: delegates ?? 'undefined',
+        proposalThreshold: proposalThreshold?.toString() ?? 'undefined',
+        usingSnapshotQuery,
+        snapshotBlock: snapshotBlock?.toString() ?? 'N/A',
+      });
+    }
     return { ...emptyResult, isLoading: false };
   }
 
+  // Additional validation: if using snapshot query and votes is 0, log for debugging
+  // (helps identify RPC cache/stale data issues)
+  if (usingSnapshotQuery && votes === 0n && process.env.NODE_ENV === 'development') {
+    console.info('[useVotes] getPastVotes returned 0 at snapshot', {
+      snapshotBlock: snapshotBlock?.toString(),
+      signerAddress,
+      delegates,
+      note: 'If user has delegations, this may indicate RPC cache issues or delegations received after snapshot',
+    });
+  }
 
   return {
     isLoading,

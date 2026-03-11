@@ -151,11 +151,12 @@ export function VotingControls({
 
   const helperText = useMemo(() => {
     if (!isConnected) return "Connect your wallet to vote";
-    if (votesLoading) return "Loading...";
+    if (votesLoading) return "Loading voting power...";
     if (votingPower > 0n) {
       return `You have ${votingPower.toString()} votes (based on snapshot)`;
     }
-    return "Your vote will be recorded on-chain";
+    // If voting power is 0, explain why (helps debug UI vs contract issues)
+    return "You have 0 voting power at the proposal snapshot. Your vote will be recorded on-chain as a signal.";
   }, [isConnected, votesLoading, votingPower]);
 
   useEffect(() => {
@@ -437,10 +438,23 @@ export function VotingPowerNotice({
         {showSignalWarning ? (
           <Alert variant="destructive" className="mt-2">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Signal vote only</AlertTitle>
+            <AlertTitle>
+              {inboundDelegatedVotes > 0 ? "Voting power mismatch detected" : "Signal vote only"}
+            </AlertTitle>
             <AlertDescription>
-              You currently have 0 voting power. Your vote will be recorded on-chain as a signal,
-              with no weight in the tally.
+              {inboundDelegatedVotes > 0 ? (
+                <>
+                  You have {inboundDelegatedVotes} incoming delegated votes, but 0 voting power at
+                  the proposal snapshot. This may happen if delegations were received after the
+                  proposal was created. When you vote, the smart contract will use your actual
+                  voting power at the snapshot block, which may differ from what's displayed here.
+                </>
+              ) : (
+                <>
+                  You currently have 0 voting power. Your vote will be recorded on-chain as a
+                  signal, with no weight in the tally.
+                </>
+              )}
             </AlertDescription>
           </Alert>
         ) : null}
