@@ -56,8 +56,36 @@ export function BlogDetail({ blog }: BlogDetailProps) {
 
   const publishedDate = formatSafeDistanceToNow(blog.publishedAt);
 
+  // Structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: blog.title,
+    description: blog.subtitle || "",
+    image: bannerUrl || "https://gnars.com/logo-banner.jpg",
+    datePublished: blog.publishedAt,
+    dateModified: blog.updatedAt,
+    author: {
+      "@type": "Organization",
+      name: blog.publication.name,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Gnars",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://gnars.com/logo-banner.jpg",
+      },
+    },
+  };
+
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
+      {/* Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* Header */}
       <div className="space-y-4">
         <h1 className="text-4xl font-bold tracking-tight">{blog.title}</h1>
