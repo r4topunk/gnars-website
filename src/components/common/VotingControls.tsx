@@ -447,7 +447,7 @@ export function VotingPowerNotice({
                   You have {inboundDelegatedVotes} incoming delegated votes, but 0 voting power at
                   the proposal snapshot. This may happen if delegations were received after the
                   proposal was created. When you vote, the smart contract will use your actual
-                  voting power at the snapshot block, which may differ from what's displayed here.
+                  voting power at the snapshot block, which may differ from what&apos;s displayed here.
                 </>
               ) : (
                 <>
