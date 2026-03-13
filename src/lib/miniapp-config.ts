@@ -24,7 +24,7 @@ export const MINIAPP_CONFIG = {
 
   // Base builder configuration - add your Base account address
   baseBuilder: {
-    ownerAddress: "" as `0x${string}` | "", // Add your Base account address here
+    ownerAddress: "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" as `0x${string}` | "",
   },
 
   // Mini app configuration
