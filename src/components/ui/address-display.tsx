@@ -116,6 +116,9 @@ export function AddressDisplay({
             ? ensData.name
             : truncateAddress(normalizedAddress, truncateLength)}
         </span>
+        {isLoading && (
+          <div className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        )}
       </div>
     );
   }
@@ -141,6 +144,9 @@ export function AddressDisplay({
             >
               {showENS && ensData?.name ? ensData.name : "Unnamed Address"}
             </span>
+            {isLoading && (
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -194,6 +200,9 @@ export function AddressDisplay({
               >
                 {showENS && ensData?.name ? ensData.name : "Unnamed Address"}
               </span>
+              {isLoading && (
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              )}
             </div>
 
             <code className="text-sm text-muted-foreground font-mono">
