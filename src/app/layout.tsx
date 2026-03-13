@@ -9,7 +9,7 @@ import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { MiniAppReady } from "@/components/miniapp/MiniAppReady";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { MINIAPP_CONFIG, MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
+import { MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,18 +30,15 @@ export const metadata: Metadata = {
     google: "1CaAKNV0z6Oeq0cV7COlSbEk9ejpucay2WH_X2AtkLI",
   },
   // Open Graph metadata for social sharing
+  // title and description are auto-derived from page metadata
+  // images are auto-derived from opengraph-image.tsx files per route
   openGraph: {
-    title: "Gnars DAO",
-    description: "Nounish Open Source Action Sports Brand experiment",
-    images: [MINIAPP_CONFIG.miniapp.ogImageUrl],
     type: "website",
   },
   // Twitter card metadata
+  // title, description, and images auto-derived from page metadata and OG image files
   twitter: {
     card: "summary_large_image",
-    title: "Gnars DAO",
-    description: "Nounish Open Source Action Sports Brand experiment",
-    images: [MINIAPP_CONFIG.miniapp.ogImageUrl],
   },
   // Farcaster mini app embed metadata
   other: {
