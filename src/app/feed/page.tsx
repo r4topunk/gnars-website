@@ -5,9 +5,19 @@
  * Uses Next.js 15 caching with automatic revalidation on Vercel.
  */
 
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LiveFeedView } from "@/components/feed/LiveFeedView";
 import { getAllFeedEvents } from "@/services/feed-events";
+
+export const metadata: Metadata = {
+  title: "Live Feed — Gnars DAO",
+  description:
+    "Real-time activity feed showing governance votes, auction bids, and token events from Gnars DAO.",
+  alternates: {
+    canonical: "/feed",
+  },
+};
 
 // Revalidate every 15 seconds for fresh data
 export const revalidate = 15;

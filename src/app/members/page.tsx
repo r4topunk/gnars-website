@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Members — Gnars DAO",
+  description:
+    "Browse all Gnars DAO members and their voting delegates. See who holds Gnars NFTs and how governance power is distributed across the community.",
+  alternates: {
+    canonical: "/members",
+  },
+};
 import { MembersList } from "@/components/members/MembersList";
 import { MembersTableSkeleton } from "@/components/skeletons/members-table-skeleton";
 

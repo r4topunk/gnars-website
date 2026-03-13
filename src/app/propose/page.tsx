@@ -1,4 +1,13 @@
+import type { Metadata } from "next";
 import { ProposalWizard } from "@/components/proposals/ProposalWizard";
+
+export const metadata: Metadata = {
+  title: "Create Proposal — Gnars DAO",
+  description: "Submit a new proposal to Gnars DAO for community voting and funding.",
+  alternates: {
+    canonical: "/propose",
+  },
+};
 
 export default function ProposePage() {
   return (

@@ -1,5 +1,15 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PropdatesFeed } from "@/components/propdates/PropdatesFeed";
+
+export const metadata: Metadata = {
+  title: "Propdates — Gnars DAO",
+  description:
+    "Progress updates and reports on funded Gnars DAO proposals.",
+  alternates: {
+    canonical: "/propdates",
+  },
+};
 
 export const revalidate = 60;
 

@@ -1,4 +1,13 @@
- import { MuralBackground } from "@/components/layout/MuralBackground";
+import type { Metadata } from "next";
+import { MuralBackground } from "@/components/layout/MuralBackground";
+
+export const metadata: Metadata = {
+  title: "Mural — Gnars DAO",
+  description: "Interactive community mural featuring Gnars NFT artwork in a draggable grid.",
+  alternates: {
+    canonical: "/mural",
+  },
+};
 
 /**
  * Mural page

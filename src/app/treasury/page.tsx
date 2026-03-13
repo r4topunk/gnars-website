@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Treasury — Gnars DAO",
+  description:
+    "Explore the Gnars DAO treasury: ETH holdings, ERC-20 tokens, NFT assets, and on-chain analytics. Full transparency into community-owned funds on Base.",
+  alternates: {
+    canonical: "/treasury",
+  },
+};
 import {
   MetricSkeleton,
   NftGridSkeleton,

@@ -25,6 +25,11 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/integrations/pinata.md` — IPFS upload integration
 - `docs/integrations/splits.md` — 0xSplits droposal revenue sharing
 
+## Research
+
+- `docs/research/agent-team-candidates.md` — top 4 multi-agent task candidates with file lists and agent splits
+- `docs/research/seo-metadata-audit.md` — full audit of metadata and OG image coverage across all pages; includes priority list for missing items
+
 ## References (External/Vendor)
 
 - `references/zora_coin_context.md`

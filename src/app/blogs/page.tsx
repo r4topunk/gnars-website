@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Blog — Gnars DAO",
+  description:
+    "Read the latest stories, updates, and community posts from Gnars DAO. Skateboarding culture, DAO governance, and creative projects by the Gnars community.",
+  alternates: {
+    canonical: "/blogs",
+  },
+};
 import { BlogsPageSkeleton } from "@/components/blogs/BlogsPageSkeleton";
 import { BlogsView } from "@/components/blogs/BlogsView";
 import { getAllBlogSummaries } from "@/services/blogs";
