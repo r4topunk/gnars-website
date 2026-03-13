@@ -58,16 +58,12 @@ export function useSplitCreation(): UseSplitCreationResult {
       // Prepare config for SDK
       const sdkConfig = prepareSplitConfigForSDK(config);
 
-      console.log("Creating split with config:", sdkConfig);
-
       // Create the split
       const response = await splitsClient.splitV1.createSplit({
         recipients: sdkConfig.recipients,
         distributorFeePercent: sdkConfig.distributorFeePercent,
         controller: sdkConfig.controller,
       });
-
-      console.log("Split created:", response);
 
       // Extract split address and tx hash from response
       const createdSplitAddress = response.splitAddress;

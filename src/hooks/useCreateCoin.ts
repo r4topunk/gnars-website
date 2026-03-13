@@ -75,20 +75,14 @@ export async function checkHasCreatorCoin(address: Address): Promise<{
   creatorCoinName?: string;
 } | null> {
   if (!address) {
-    console.log("[checkHasCreatorCoin] No address provided");
     return null;
   }
-  
-  console.log("[checkHasCreatorCoin] Checking creator coin for address:", address);
-  
+
   try {
     // Use SDK's getProfile to check if user has a creator coin
-    console.log("[checkHasCreatorCoin] Fetching profile via SDK...");
     const response = (await getProfile({
       identifier: address,
     })) as ProfileResponse;
-    
-    console.log("[checkHasCreatorCoin] Profile response:", response);
     
     const profile = response?.data?.profile;
     
@@ -98,27 +92,15 @@ export async function checkHasCreatorCoin(address: Address): Promise<{
         || profile.avatar?.medium
         || profile.avatar?.small;
       
-      console.log("[checkHasCreatorCoin] ✅ Creator coin found:", {
-        address: profile.creatorCoin.address,
-        marketCap: profile.creatorCoin.marketCap,
-        name: profile.creatorCoin.name,
-        image: creatorCoinImage,
-      });
-      
       return {
         hasCreatorCoin: true,
         creatorCoinImage,
         creatorCoinName: profile.creatorCoin.name || profile.displayName,
       };
     } else {
-      console.log("[checkHasCreatorCoin] ❌ No creator coin found in profile");
       return { hasCreatorCoin: false };
     }
-  } catch (error) {
-    console.log("[checkHasCreatorCoin] ❌ Error fetching profile:", error);
-    if (error instanceof Error) {
-      console.log("[checkHasCreatorCoin] Error message:", error.message);
-    }
+  } catch {
     return null;
   }
 }
@@ -221,8 +203,7 @@ export function useCreateCoin() {
             continue;
           }
         }
-      } catch (error) {
-        console.log("Error parsing deployment event:", error); 
+      } catch {
         // Silent error - deployment succeeded but event parsing failed
       }
     }
@@ -313,8 +294,6 @@ export function useCreateCoin() {
       if (useUserCreatorCoin && userAddress) {
         // User wants to pair with their OWN creator coin
         // Use SDK which handles looking up their creator coin
-        console.log("[createCoin] User selected their creator coin, validating...");
-        
         // Validate that user actually has a deployed creator coin
         const creatorCoinCheck = await checkHasCreatorCoin(userAddress);
         
@@ -325,8 +304,6 @@ export function useCreateCoin() {
           );
         }
         
-        console.log("[createCoin] ✅ Creator coin validated, using SDK with user's address");
-
         // Use SDK for user's own creator coin - SDK will resolve their creator coin
         const sdkArgs: CreateCoinArgs = {
           creator: userAddress,
@@ -355,10 +332,6 @@ export function useCreateCoin() {
         // User wants to pair with GNARS creator coin
         // Use DIRECT CONTRACT CALL to specify exact backing currency
         // This allows: user's profile as owner + GNARS as backing currency
-        console.log("[createCoin] Using direct contract call with GNARS creator coin backing");
-        console.log("[createCoin] Payout recipient:", finalPayoutRecipient);
-        console.log("[createCoin] Backing currency:", GNARS_CREATOR_COIN);
-
         // Encode pool config with GNARS creator coin as backing currency
         const poolConfig = encodeContentPoolConfigForCreator(GNARS_CREATOR_COIN);
 
@@ -393,8 +366,6 @@ export function useCreateCoin() {
         to = ZORA_FACTORY_ADDRESS;
         value = 0n;
       }
-
-      console.log("[createCoin] Transaction params:", { to, value: value.toString() });
 
       // Clear preparing state as wallet interaction begins
       setIsPreparingTransaction(false);
