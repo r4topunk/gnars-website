@@ -12,49 +12,69 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SUBGRAPH, GNARS_ADDRESSES } from "@/lib/config";
 
-// Mock data structure - in real implementation, this would come from the Builder SDK
 interface DaoDelegate {
   delegate: string;
   voteCount: number;
-  delegatedBy: string[];
+  delegatorCount: number;
 }
 
-// Mock function to simulate fetching delegates from Builder SDK
-async function fetchDaoDelegates(): Promise<DaoDelegate[]> {
-  // In real implementation, this would query:
-  // - DAO.voters from the Builder subgraph
-  // - Filter accounts with delegated votes > 0
-  // - Sort by vote count descending
+interface SubgraphDaoDelegate {
+  id: string;
+  delegate: {
+    id: string;
+  };
+  votesCount: string;
+  delegators: {
+    id: string;
+  }[];
+}
 
-  // Mock data for demonstration
-  return [
-    {
-      delegate: "0x1111111111111111111111111111111111111111",
-      voteCount: 25,
-      delegatedBy: ["0xaaa...", "0xbbb...", "0xccc..."],
-    },
-    {
-      delegate: "0x2222222222222222222222222222222222222222",
-      voteCount: 18,
-      delegatedBy: ["0xddd...", "0xeee..."],
-    },
-    {
-      delegate: "0x3333333333333333333333333333333333333333",
-      voteCount: 12,
-      delegatedBy: ["0xfff..."],
-    },
-    {
-      delegate: "0x4444444444444444444444444444444444444444",
-      voteCount: 8,
-      delegatedBy: ["0x999...", "0x888..."],
-    },
-    {
-      delegate: "0x5555555555555555555555555555555555555555",
-      voteCount: 5,
-      delegatedBy: ["0x777..."],
-    },
-  ];
+async function fetchDaoDelegates(): Promise<DaoDelegate[]> {
+  const tokenAddress = GNARS_ADDRESSES.token.toLowerCase();
+
+  const query = `{
+    daoDelegates(
+      where: { dao: "${tokenAddress}", votesCount_gt: 0 }
+      orderBy: votesCount
+      orderDirection: desc
+      first: 50
+    ) {
+      id
+      delegate {
+        id
+      }
+      votesCount
+      delegators {
+        id
+      }
+    }
+  }`;
+
+  const response = await fetch(SUBGRAPH.url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Subgraph request failed: ${response.status}`);
+  }
+
+  const json = await response.json();
+
+  if (json.errors) {
+    throw new Error(json.errors[0]?.message || "Subgraph query error");
+  }
+
+  const delegates: SubgraphDaoDelegate[] = json.data?.daoDelegates ?? [];
+
+  return delegates.map((d) => ({
+    delegate: d.delegate.id,
+    voteCount: parseInt(d.votesCount, 10),
+    delegatorCount: d.delegators.length,
+  }));
 }
 
 export function DelegatesList() {
@@ -131,8 +151,8 @@ export function DelegatesList() {
                         showExplorer={false}
                       />
                       <span className="text-xs text-muted-foreground">
-                        {delegate.delegatedBy.length} delegator
-                        {delegate.delegatedBy.length !== 1 ? "s" : ""}
+                        {delegate.delegatorCount} delegator
+                        {delegate.delegatorCount !== 1 ? "s" : ""}
                       </span>
                     </div>
                   </TableCell>
