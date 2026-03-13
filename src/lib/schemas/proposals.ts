@@ -20,6 +20,8 @@ export const proposalVoteSchema = z.object({
   transactionHash: z.string(),
   // Optional voter comment/reason captured from the subgraph when available
   reason: z.string().nullable().optional(),
+  // Unix timestamp (seconds) when the vote was cast
+  timestamp: z.number().optional(),
 });
 
 export const proposalSchema = z.object({

@@ -280,6 +280,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
                   choice: v.choice,
                   votes: v.votes,
                   reason: (v as { reason?: string | null }).reason ?? null,
+                  timestamp: (v as { timestamp?: number }).timestamp,
                 }))}
                 proposalId={proposal.proposalId}
                 isActive={proposal.status === "Active"}

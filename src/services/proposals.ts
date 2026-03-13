@@ -7,8 +7,40 @@ import {
   type Proposal as SdkProposal,
 } from "@buildeross/sdk";
 import type { Proposal } from "@/components/proposals/types";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, GNARS_ADDRESSES, SUBGRAPH } from "@/lib/config";
 import { getProposalStatus } from "@/lib/schemas/proposals";
+
+/** Fetch vote timestamps from subgraph (the SDK fragment omits this field) */
+async function fetchVoteTimestamps(
+  proposalId: string,
+): Promise<Record<string, number>> {
+  const query = `{
+    proposalVotes(
+      where: { proposal: "${proposalId.toLowerCase()}" }
+      first: 1000
+      orderBy: timestamp
+      orderDirection: desc
+    ) {
+      voter
+      timestamp
+    }
+  }`;
+  try {
+    const res = await fetch(SUBGRAPH.url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    });
+    const data = await res.json();
+    const map: Record<string, number> = {};
+    for (const v of data?.data?.proposalVotes ?? []) {
+      map[String(v.voter).toLowerCase()] = Number(v.timestamp);
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
 
 // Minimal transformation: SDK Proposal → App Proposal
 // The SDK already provides most fields we need via formatAndFetchState()
@@ -48,6 +80,8 @@ function transformProposal(p: SdkProposal): Proposal {
           votes: String(v.weight ?? 0),
           transactionHash: "",
           reason: (v as { reason?: string | null }).reason ?? null,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          timestamp: (v as any).timestamp ? Number((v as any).timestamp) : undefined,
         }))
       : [],
     voteStart: new Date(Number(p.voteStart ?? 0) * 1000).toISOString(),
@@ -113,6 +147,19 @@ export const getProposalByIdOrNumber = cache(
       }
 
       const proposal = transformProposal(sdkProposal);
+
+      // Supplement votes with timestamps (SDK fragment omits this field)
+      // and sort newest first
+      if (proposal.votes && proposal.votes.length > 0) {
+        const timestampMap = await fetchVoteTimestamps(proposal.proposalId);
+        proposal.votes = proposal.votes
+          .map((v) => ({
+            ...v,
+            timestamp: timestampMap[v.voter.toLowerCase()] ?? v.timestamp,
+          }))
+          .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+      }
+
       return proposal;
     } catch (err) {
       console.error("[proposals:getProposalByIdOrNumber] error", {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Markdown } from "@/components/common/Markdown";
 import { AddressDisplay } from "@/components/ui/address-display";
@@ -17,6 +18,7 @@ export interface ProposalVoteItem {
   choice: VoteChoice;
   votes: string;
   reason?: string | null;
+  timestamp?: number;
 }
 
 export interface ProposalVotesListProps {
@@ -90,6 +92,11 @@ export function ProposalVotesList({
                       with <b>{Number(vote.votes).toLocaleString()}</b> vote
                       {Number(vote.votes) === 1 ? "" : "s"}
                     </span>
+                    {vote.timestamp ? (
+                      <span className="text-muted-foreground text-xs">
+                        · {formatDistanceToNow(new Date(vote.timestamp * 1000), { addSuffix: true })}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
                 {vote.reason && vote.reason.trim().length > 0 ? (
