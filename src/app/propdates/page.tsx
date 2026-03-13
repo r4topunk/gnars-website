@@ -9,6 +9,17 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/propdates",
   },
+  openGraph: {
+    title: "Propdates — Gnars DAO",
+    description:
+      "Progress updates and reports on funded Gnars DAO proposals.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Propdates — Gnars DAO",
+    description:
+      "Progress updates and reports on funded Gnars DAO proposals.",
+  },
 };
 
 export const revalidate = 60;

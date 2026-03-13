@@ -30,15 +30,16 @@ export const metadata: Metadata = {
     google: "1CaAKNV0z6Oeq0cV7COlSbEk9ejpucay2WH_X2AtkLI",
   },
   // Open Graph metadata for social sharing
-  // title and description are auto-derived from page metadata
-  // images are auto-derived from opengraph-image.tsx files per route
   openGraph: {
+    title: "Gnars DAO",
+    description: "Nounish Open Source Action Sports Brand experiment",
     type: "website",
   },
   // Twitter card metadata
-  // title, description, and images auto-derived from page metadata and OG image files
   twitter: {
     card: "summary_large_image",
+    title: "Gnars DAO",
+    description: "Nounish Open Source Action Sports Brand experiment",
   },
   // Farcaster mini app embed metadata
   other: {

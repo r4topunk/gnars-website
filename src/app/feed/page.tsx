@@ -17,6 +17,17 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/feed",
   },
+  openGraph: {
+    title: "Live Feed — Gnars DAO",
+    description:
+      "Real-time activity feed showing governance votes, auction bids, and token events from Gnars DAO.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Live Feed — Gnars DAO",
+    description:
+      "Real-time activity feed showing governance votes, auction bids, and token events from Gnars DAO.",
+  },
 };
 
 // Revalidate every 15 seconds for fresh data

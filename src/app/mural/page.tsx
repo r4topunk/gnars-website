@@ -7,6 +7,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/mural",
   },
+  openGraph: {
+    title: "Mural — Gnars DAO",
+    description: "Interactive community mural featuring Gnars NFT artwork in a draggable grid.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mural — Gnars DAO",
+    description: "Interactive community mural featuring Gnars NFT artwork in a draggable grid.",
+  },
 };
 
 /**

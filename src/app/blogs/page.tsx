@@ -8,6 +8,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/blogs",
   },
+  openGraph: {
+    title: "Blog — Gnars DAO",
+    description: "Read the latest stories, updates, and community posts from Gnars DAO. Skateboarding culture, DAO governance, and creative projects by the Gnars community.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Blog — Gnars DAO",
+    description: "Read the latest stories, updates, and community posts from Gnars DAO. Skateboarding culture, DAO governance, and creative projects by the Gnars community.",
+  },
 };
 import { BlogsPageSkeleton } from "@/components/blogs/BlogsPageSkeleton";
 import { BlogsView } from "@/components/blogs/BlogsView";

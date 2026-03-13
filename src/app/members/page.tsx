@@ -8,6 +8,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/members",
   },
+  openGraph: {
+    title: "Members — Gnars DAO",
+    description: "Browse all Gnars DAO members and their voting delegates. See who holds Gnars NFTs and how governance power is distributed across the community.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Members — Gnars DAO",
+    description: "Browse all Gnars DAO members and their voting delegates. See who holds Gnars NFTs and how governance power is distributed across the community.",
+  },
 };
 import { MembersList } from "@/components/members/MembersList";
 import { MembersTableSkeleton } from "@/components/skeletons/members-table-skeleton";

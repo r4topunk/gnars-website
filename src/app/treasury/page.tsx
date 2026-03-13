@@ -8,6 +8,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/treasury",
   },
+  openGraph: {
+    title: "Treasury — Gnars DAO",
+    description: "Explore the Gnars DAO treasury: ETH holdings, ERC-20 tokens, NFT assets, and on-chain analytics. Full transparency into community-owned funds on Base.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Treasury — Gnars DAO",
+    description: "Explore the Gnars DAO treasury: ETH holdings, ERC-20 tokens, NFT assets, and on-chain analytics. Full transparency into community-owned funds on Base.",
+  },
 };
 import {
   MetricSkeleton,

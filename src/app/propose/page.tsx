@@ -7,6 +7,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/propose",
   },
+  openGraph: {
+    title: "Create Proposal — Gnars DAO",
+    description: "Submit a new proposal to Gnars DAO for community voting and funding.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Create Proposal — Gnars DAO",
+    description: "Submit a new proposal to Gnars DAO for community voting and funding.",
+  },
 };
 
 export default function ProposePage() {
