@@ -1,5 +1,5 @@
 import { Address } from "viem";
-import { useReadContracts } from "wagmi";
+import { useReadContract, useReadContracts } from "wagmi";
 
 // Basic ABIs - would normally import from @buildeross/sdk
 const tokenAbi = [
@@ -16,6 +16,8 @@ const tokenAbi = [
     stateMutability: "view",
     inputs: [
       { name: "account", type: "address" },
+      // Named "blockNumber" in the ABI but the Gnars token uses timestamp-based
+      // clock mode (ERC-6372), so this actually expects a timestamp
       { name: "blockNumber", type: "uint256" },
     ],
     outputs: [{ name: "", type: "uint256" }],
@@ -37,6 +39,13 @@ const governorAbi = [
     inputs: [],
     outputs: [{ name: "", type: "uint256" }],
   },
+  {
+    name: "proposalSnapshot",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "_proposalId", type: "bytes32" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
 ] as const;
 
 interface UseVotesArgs {
@@ -44,7 +53,10 @@ interface UseVotesArgs {
   collectionAddress?: Address;
   governorAddress?: Address;
   signerAddress?: Address;
+  /** @deprecated Use proposalId instead - snapshotBlock from subgraph is a block number but the contract uses timestamps */
   snapshotBlock?: bigint;
+  /** Proposal ID (bytes32 hex) - used to fetch the actual snapshot timestamp from the governor */
+  proposalId?: `0x${string}`;
   enabled?: boolean;
   // Optional: voting power from subgraph (more reliable than getPastVotes)
   voteWeightFromSubgraph?: number;
@@ -80,16 +92,36 @@ export const useVotes = ({
   governorAddress,
   signerAddress,
   snapshotBlock,
+  proposalId,
   enabled: enabledProp = true,
   voteWeightFromSubgraph,
 }: UseVotesArgs): UseVotesResult => {
   const enabled = Boolean(collectionAddress && governorAddress && signerAddress) && enabledProp;
   const hasSubgraphVoteWeight = voteWeightFromSubgraph !== undefined && voteWeightFromSubgraph > 0;
-  const usingSnapshotQuery = Boolean(snapshotBlock && !hasSubgraphVoteWeight);
 
-  const { data, isLoading, error } = useReadContracts({
+  // Fetch the actual snapshot timestamp from the governor contract.
+  // The Gnars governor uses timestamp-based clock mode (ERC-6372), so
+  // proposalSnapshot() returns a timestamp, NOT a block number.
+  // The subgraph's snapshotBlockNumber is a block number which is wrong
+  // to pass to getPastVotes (the token also uses timestamp-based clock).
+  const { data: snapshotTimestamp, isLoading: snapshotLoading } = useReadContract({
+    address: governorAddress,
+    abi: governorAbi,
+    functionName: "proposalSnapshot",
+    args: proposalId ? [proposalId] : undefined,
+    chainId,
     query: {
-      enabled,
+      enabled: Boolean(governorAddress && proposalId && !hasSubgraphVoteWeight),
+      refetchInterval: false,
+    },
+  });
+
+  const effectiveSnapshot = snapshotTimestamp ?? snapshotBlock;
+  const usingSnapshotQuery = Boolean(effectiveSnapshot && !hasSubgraphVoteWeight);
+
+  const { data, isLoading: contractsLoading, error } = useReadContracts({
+    query: {
+      enabled: enabled && (!proposalId || !snapshotLoading || hasSubgraphVoteWeight),
       refetchInterval: false,
     },
     contracts: enabled
@@ -99,7 +131,7 @@ export const useVotes = ({
                 address: collectionAddress!,
                 abi: tokenAbi,
                 functionName: "getPastVotes",
-                args: [signerAddress!, snapshotBlock!],
+                args: [signerAddress!, effectiveSnapshot!],
                 chainId,
               },
               {
@@ -141,6 +173,8 @@ export const useVotes = ({
       : [],
   });
 
+  const isLoading = snapshotLoading || contractsLoading;
+
   if (!enabled || !data || isLoading) {
     return { ...emptyResult, isLoading };
   }
@@ -148,7 +182,9 @@ export const useVotes = ({
   // Debug log for troubleshooting voting power display issues
   if (process.env.NODE_ENV === 'development' && usingSnapshotQuery) {
     console.log('[useVotes] Using snapshot query', {
-      snapshotBlock: snapshotBlock?.toString(),
+      snapshotTimestamp: snapshotTimestamp?.toString(),
+      snapshotBlockFromSubgraph: snapshotBlock?.toString(),
+      effectiveSnapshot: effectiveSnapshot?.toString(),
       signerAddress,
       data: data.map(d => ({ status: d.status, result: d.result?.toString(), error: d.error })),
       error,
@@ -208,7 +244,8 @@ export const useVotes = ({
         delegates: delegates ?? 'undefined',
         proposalThreshold: proposalThreshold?.toString() ?? 'undefined',
         usingSnapshotQuery,
-        snapshotBlock: snapshotBlock?.toString() ?? 'N/A',
+        snapshotTimestamp: snapshotTimestamp?.toString() ?? 'N/A',
+        effectiveSnapshot: effectiveSnapshot?.toString() ?? 'N/A',
       });
     }
     return { ...emptyResult, isLoading: false };
@@ -218,10 +255,11 @@ export const useVotes = ({
   // (helps identify RPC cache/stale data issues)
   if (usingSnapshotQuery && votes === 0n && process.env.NODE_ENV === 'development') {
     console.info('[useVotes] getPastVotes returned 0 at snapshot', {
-      snapshotBlock: snapshotBlock?.toString(),
+      snapshotTimestamp: snapshotTimestamp?.toString(),
+      effectiveSnapshot: effectiveSnapshot?.toString(),
       signerAddress,
       delegates,
-      note: 'If user has delegations, this may indicate RPC cache issues or delegations received after snapshot',
+      note: 'If user has delegations, this may indicate the snapshot timestamp was not fetched correctly',
     });
   }
 

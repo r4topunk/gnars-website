@@ -167,6 +167,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     collectionAddress: GNARS_ADDRESSES.token,
     governorAddress: GNARS_ADDRESSES.governor,
     signerAddress: address ?? undefined,
+    proposalId: proposal.proposalId as `0x${string}`,
     snapshotBlock: proposal.snapshotBlock ? BigInt(proposal.snapshotBlock) : undefined,
     // Use vote weight from subgraph if available (more reliable than getPastVotes)
     voteWeightFromSubgraph: userVoteFromSubgraph?.votes
