@@ -102,8 +102,6 @@ export function useBatchCoinPurchase({
       // ---------------------------------------------------------------------------
       // 1) Generate swap calls for each coin
       // ---------------------------------------------------------------------------
-      console.log(`Preparing ${coins.length} swaps...`);
-
       const calls: MulticallCall[] = [];
       let totalEthValue = BigInt(0);
 
@@ -140,8 +138,6 @@ export function useBatchCoinPurchase({
       setPreparedCalls(calls);
       setTotalValue(totalEthValue);
 
-      console.log(`Prepared ${calls.length} swaps, total: ${Number(totalEthValue) / 1e18} ETH`);
-
       // ---------------------------------------------------------------------------
       // 2) Encode multicall data
       // ---------------------------------------------------------------------------
@@ -154,8 +150,6 @@ export function useBatchCoinPurchase({
       // ---------------------------------------------------------------------------
       // 3) Simulate transaction before sending
       // ---------------------------------------------------------------------------
-      console.log("Simulating transaction...");
-
       try {
         await publicClient.call({
           account: userAddress,
@@ -163,7 +157,6 @@ export function useBatchCoinPurchase({
           data: multicallData,
           value: totalEthValue,
         });
-        console.log("Simulation OK");
       } catch (simError: unknown) {
         const message = simError instanceof Error ? simError.message : String(simError);
         console.error("Simulation failed:", message);
@@ -176,22 +169,17 @@ export function useBatchCoinPurchase({
       // ---------------------------------------------------------------------------
       // 4) Send single multicall transaction
       // ---------------------------------------------------------------------------
-      console.log("Sending batch transaction...");
-
       const hash = await sendTransactionAsync({
         to: MULTICALL3,
         data: multicallData,
         value: totalEthValue,
       });
 
-      console.log(`Tx hash: ${hash}`);
       setTxHash(hash);
 
       // ---------------------------------------------------------------------------
       // 5) Wait for confirmation
       // ---------------------------------------------------------------------------
-      console.log("Waiting for confirmation...");
-
       const receipt = await publicClient.waitForTransactionReceipt({
         hash,
         confirmations: 1,
@@ -200,8 +188,6 @@ export function useBatchCoinPurchase({
       if (receipt.status === "reverted") {
         throw new Error("Transaction reverted");
       }
-
-      console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
 
       setIsConfirmed(true);
       setIsPending(false);
