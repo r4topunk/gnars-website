@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import type { LatLngExpression } from "leaflet";
-import { Map, MapMarker, MapPopup, MapTileLayer } from "@/components/ui/map";
+import { Map, MapMarker, MapTileLayer } from "@/components/ui/map";
+import { MapLocationDrawer, type LocationData } from "@/components/map-location-drawer";
 
-export const locations = [
+export const locations: LocationData[] = [
   {
     position: [-22.903044816157887, -43.17337963607664],
     label: "Praca XV",
@@ -182,6 +183,13 @@ export const locations = [
 
 export default function GnarsMap() {
   const CENTER_COORDINATES = [0, 0] satisfies LatLngExpression;
+  const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const handleMarkerClick = (location: LocationData) => {
+    setSelectedLocation(location);
+    setIsDrawerOpen(true);
+  };
 
   return (
     <div className="fixed inset-0 h-screen w-screen">
@@ -200,43 +208,23 @@ export default function GnarsMap() {
                 style={{
                   width: `${location.iconSize[0]}px`,
                   height: `${location.iconSize[1]}px`,
+                  cursor: "pointer",
                 }}
               />
             }
             iconAnchor={[location.iconSize[0] / 2, location.iconSize[1] / 2]}
-          >
-            <MapPopup>
-              <div className="flex flex-col gap-2">
-                <h3 className="text-lg font-bold">{location.label}</h3>
-                {location.images[0] && (
-                  <div className="relative h-32 w-full overflow-hidden rounded-md">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={location.images[0]}
-                      alt={location.label}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                )}
-                {location.proposal.link && (
-                  <Link
-                    href={
-                      location.proposal.link.startsWith("http")
-                        ? location.proposal.link
-                        : `https://${location.proposal.link}`
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-500 hover:underline"
-                  >
-                    {location.proposal.name} →
-                  </Link>
-                )}
-              </div>
-            </MapPopup>
-          </MapMarker>
+            eventHandlers={{
+              click: () => handleMarkerClick(location),
+            }}
+          />
         ))}
       </Map>
+
+      <MapLocationDrawer
+        location={selectedLocation}
+        open={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+      />
     </div>
   );
 }
