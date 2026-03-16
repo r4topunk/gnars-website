@@ -29,6 +29,7 @@ import {
   Gavel,
   Gift,
   Home,
+  Map,
   Menu,
   Newspaper,
   PlusCircle,
@@ -72,6 +73,7 @@ const navigationItems = [
     title: "TV",
     href: "/tv",
     icon: Tv,
+    badge: "NEW!",
   },
   {
     title: "Dashboard",
@@ -122,6 +124,13 @@ const navigationItems = [
         description: "Browse all DAO members and holders",
       },
       {
+        title: "Map",
+        href: "/map",
+        icon: Map,
+        description: "Explore global Gnars installations",
+        badge: "NEW!",
+      },
+      {
         title: "Blogs",
         href: "/blogs",
         icon: BookOpen,
@@ -138,12 +147,14 @@ const navigationItems = [
         href: "/droposals",
         icon: Video,
         description: "Video proposals from the community",
+        badge: "NEW!",
       },
       {
         title: "Create Coin",
         href: "/create-coin",
         icon: Coins,
         description: "Create a new coin on Zora",
+        badge: "NEW!",
       },
       {
         title: "divider",
@@ -154,6 +165,7 @@ const navigationItems = [
         href: "/lootbox",
         icon: Gift,
         description: "Join Gnars DAO onboarding",
+        badge: "NEW!",
       },
     ],
   },
@@ -210,9 +222,17 @@ function DesktopNav() {
                   <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                     <Link
                       href={item.href}
-                      className={cn(isRouteActive(item.href) && "bg-accent text-accent-foreground")}
+                      className={cn(isRouteActive(item.href) && "bg-accent text-accent-foreground", "flex items-center gap-2")}
                     >
                       {item.title}
+                      {"badge" in item && item.badge && (
+                        <Badge
+                          variant="secondary"
+                          className="h-4 px-1.5 text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                        >
+                          {item.badge}
+                        </Badge>
+                      )}
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
@@ -285,8 +305,16 @@ function DesktopNav() {
                             >
                               <SubIcon className="size-5 mt-0.5 text-muted-foreground" />
                               <div className="flex flex-col gap-1">
-                                <div className="text-sm font-medium leading-none">
+                                <div className="flex items-center gap-2 text-sm font-medium leading-none">
                                   {subItem.title}
+                                  {"badge" in subItem && subItem.badge && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="h-4 px-1.5 text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                                    >
+                                      {subItem.badge}
+                                    </Badge>
+                                  )}
                                 </div>
                                 <p className="text-sm text-muted-foreground line-clamp-2 leading-snug">
                                   {subItem.description}
@@ -375,7 +403,15 @@ function MobileNav() {
                     )}
                   >
                     <Icon className="size-5" />
-                    {item.title}
+                    <span className="flex-1">{item.title}</span>
+                    {"badge" in item && item.badge && (
+                      <Badge
+                        variant="secondary"
+                        className="h-4 px-1.5 text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                      >
+                        {item.badge}
+                      </Badge>
+                    )}
                   </Link>
                 );
               }
@@ -433,7 +469,15 @@ function MobileNav() {
                         )}
                       >
                         <SubIcon className="size-4" />
-                        {subItem.title}
+                        <span className="flex-1">{subItem.title}</span>
+                        {"badge" in subItem && subItem.badge && (
+                          <Badge
+                            variant="secondary"
+                            className="h-4 px-1.5 text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                          >
+                            {subItem.badge}
+                          </Badge>
+                        )}
                       </Link>
                     );
                   })}
