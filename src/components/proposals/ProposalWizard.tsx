@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, ShieldAlert, Wallet } from "lucide-react";
+import { AlertTriangle, Loader2, Wallet } from "lucide-react";
 import Link from "next/link";
 import { FormProvider, useForm } from "react-hook-form";
 import { useAccount, useReadContract } from "wagmi";
 import { TransactionBuilder } from "@/components/proposals/builder/TransactionBuilder";
 import { ProposalDetailsForm } from "@/components/proposals/ProposalDetailsForm";
 import { ProposalPreview } from "@/components/proposals/ProposalPreview";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -88,57 +89,40 @@ export function ProposalWizard() {
 
   // Child builder handles add/update/remove via useFieldArray
 
-  // Gate: wallet not connected
-  if (!isConnected) {
-    return (
-      <Card className="max-w-2xl mx-auto">
-        <CardContent className="flex flex-col items-center justify-center py-12 gap-4 text-center">
-          <Wallet className="h-10 w-10 text-muted-foreground" />
-          <h2 className="text-xl font-semibold">Connect Your Wallet</h2>
-          <p className="text-muted-foreground max-w-md">
-            You need to connect your wallet to create proposals for Gnars DAO.
-          </p>
-          <ConnectButton />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Gate: loading balance / eligibility
-  if (isBalanceLoading || eligibility.isLoading) {
-    return (
-      <Card className="max-w-2xl mx-auto">
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin mr-2" />
-          <span>Checking proposal eligibility...</span>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Gate: no Gnars NFT
-  if (!hasGnar) {
-    return (
-      <Card className="max-w-2xl mx-auto">
-        <CardContent className="flex flex-col items-center justify-center py-12 gap-4 text-center">
-          <ShieldAlert className="h-10 w-10 text-muted-foreground" />
-          <h2 className="text-xl font-semibold">Gnars NFT Required</h2>
-          <p className="text-muted-foreground max-w-md">
-            You need to hold at least one Gnars NFT to create proposals.
-            Head to the auction to get your first Gnar!
-          </p>
-          <Button asChild>
-            <Link href="/">Go to Auction</Link>
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Determine warning banner state
+  const showDisconnectedBanner = !isConnected;
+  const showNoNftBanner = isConnected && !isBalanceLoading && !hasGnar;
 
   return (
     <ProposalEligibilityProvider value={eligibility}>
       <FormProvider {...methods}>
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-4">
+          {showDisconnectedBanner && (
+            <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
+              <Wallet className="h-4 w-4 text-amber-500" />
+              <AlertDescription className="flex items-center justify-between gap-4 flex-wrap">
+                <span>
+                  Connect your wallet to submit proposals. You can still explore the form below.
+                </span>
+                <ConnectButton />
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {showNoNftBanner && (
+            <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertDescription className="flex items-center justify-between gap-4 flex-wrap">
+                <span>
+                  You need at least one Gnars NFT to submit proposals.{" "}
+                  <Link href="/" className="underline font-medium text-amber-500 hover:text-amber-400">
+                    Get a Gnar at the auction
+                  </Link>
+                </span>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="gap-6">
             <TabsList className="w-full">
               <TabsTrigger value="details" className="flex items-center gap-2">
