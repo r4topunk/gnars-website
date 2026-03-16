@@ -24,6 +24,7 @@ export interface LocationData {
     link: string;
   };
   description?: string;
+  slug?: string; // For linking to /installations/[slug]
 }
 
 interface MapLocationDrawerProps {
@@ -191,6 +192,19 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
               <p className="text-muted-foreground text-sm leading-relaxed">
                 {location.description}
               </p>
+            </div>
+          )}
+
+          {/* Installation Details Link */}
+          {location.slug && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold">Installation Details</h3>
+              <Button asChild variant="default" className="w-full">
+                <Link href={`/installations/${location.slug}`}>
+                  View Full Installation
+                  <ExternalLinkIcon className="ml-2 size-4" />
+                </Link>
+              </Button>
             </div>
           )}
 

@@ -20,6 +20,7 @@ export const locations: LocationData[] = [
       name: "Gnars Proposal",
       link: "https://snapshot.box/#/s:gnars.eth/proposal/0xb63306dbfe950dd9754d5edcf8f48c6ff9bdd32eeeff4c644cb90c974a3055fa",
     },
+    slug: "rio-de-janeiro",
   },
   {
     position: [33.81427083205093, -118.21369178292444],
@@ -42,6 +43,7 @@ export const locations: LocationData[] = [
       name: "Gnars Proposal 20",
       link: "https://www.gnars.com/proposals/20",
     },
+    slug: "rio-de-janeiro-delta",
   },
   {
     position: [41.965330396404994, -87.6638363963253],
@@ -53,6 +55,7 @@ export const locations: LocationData[] = [
       name: "Gnars Proposal",
       link: "https://snapshot.box/#/s:gnars.eth/proposal/0x487760526824abbe7997ee2fe4887de10af737eb60d35a4165025b8f58148e50",
     },
+    slug: "chicago",
   },
   {
     position: [-30.017866183250845, -51.17985537072372],
@@ -64,6 +67,7 @@ export const locations: LocationData[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.wtf/dao/proposals/eth/31",
     },
+    slug: "porto-alegre",
   },
   {
     position: [9.082, 8.6753],
@@ -75,6 +79,7 @@ export const locations: LocationData[] = [
       name: "Gnars Proposal",
       link: "https://gnars.com/proposals/73",
     },
+    slug: "nairobi",
   },
   {
     position: [-23.4990518351234, -46.624191393782525],
@@ -90,6 +95,7 @@ export const locations: LocationData[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/4",
     },
+    slug: "sao-paulo-sopa-de-letras",
   },
   {
     position: [-20.24901180535837, -42.029355475124554],
@@ -98,6 +104,7 @@ export const locations: LocationData[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     proposal: { name: "Organic Proliferation - ", link: "" },
+    slug: "minas-gerais",
   },
   {
     position: [42.737274371776024, 140.9109422458354],
@@ -123,6 +130,7 @@ export const locations: LocationData[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/25",
     },
+    slug: "medellin",
   },
   {
     position: [51.52064675412003, -0.20505440289551358],
@@ -134,6 +142,7 @@ export const locations: LocationData[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/33",
     },
+    slug: "london",
   },
   {
     position: [-34.584183310926065, -58.39040299272954],
@@ -145,6 +154,7 @@ export const locations: LocationData[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/proposals/41",
     },
+    slug: "buenos-aires",
   },
   {
     position: [45.4836, 9.1924],
@@ -156,6 +166,7 @@ export const locations: LocationData[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/68",
     },
+    slug: "rome",
   },
   {
     position: [33.71824554962641, -117.84727040288683],
@@ -178,6 +189,7 @@ export const locations: LocationData[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/proposals/89",
     },
+    slug: "sao-paulo-itapetininga",
   },
 ];
 
