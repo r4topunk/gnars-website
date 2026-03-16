@@ -5,6 +5,7 @@ import { listDaoPropdates } from "@/services/propdates";
 import { listProposals } from "@/services/proposals";
 import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 import { getPostMetadata } from "@/lib/posts";
+import { getAllInstallations } from "@/services/installations";
 
 export const revalidate = 3600;
 export const dynamic = "force-dynamic";
@@ -112,13 +113,14 @@ function buildSitemap(entries: SitemapEntry[]): string {
 export async function GET(): Promise<Response> {
   const now = new Date();
 
-  const [proposals, droposals, blogs, members, propdates, coins] = await Promise.all([
+  const [proposals, droposals, blogs, members, propdates, coins, installations] = await Promise.all([
     safe("proposals", fetchAllProposals, [] as ProposalList),
     safe("droposals", fetchAllDroposals, [] as DroposalList),
     safe("blogs", getAllBlogs, [] as BlogList),
     safe("members", fetchAllMembers, [] as MemberList),
     safe("propdates", listDaoPropdates, [] as PropdateList),
     safe("tv coins", fetchAllGnarsPairedCoins, [] as CoinList),
+    safe("installations", getAllInstallations, []),
   ]);
 
   const proposalLastMod = maxDate(
@@ -246,6 +248,12 @@ export async function GET(): Promise<Response> {
       priority: 0.5,
     },
     {
+      url: toUrl("/installations"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: toUrl("/mural"),
       lastModified: now,
       changeFrequency: "monthly",
@@ -332,6 +340,13 @@ export async function GET(): Promise<Response> {
     };
   });
 
+  const installationEntries: SitemapEntry[] = installations.map((installation) => ({
+    url: toUrl(`/installations/${installation.slug}`),
+    lastModified: installation.year ? new Date(installation.year, 0, 1) : now,
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
+
   const xml = buildSitemap([
     ...staticEntries,
     ...markdownPostEntries,
@@ -341,6 +356,7 @@ export async function GET(): Promise<Response> {
     ...memberEntries,
     ...propdateEntries,
     ...tvEntries,
+    ...installationEntries,
   ]);
 
   return new Response(xml, {

@@ -1,0 +1,330 @@
+{
+  "installations": [
+    {
+      "id": "nogglesrail-01",
+      "slug": "rio-de-janeiro",
+      "title": "Nogglesrail #01",
+      "location": {
+        "city": "Rio de Janeiro",
+        "country": "Brazil",
+        "coordinates": {
+          "lat": -22.9068,
+          "lng": -43.1729
+        }
+      },
+      "obstacleDesign": "Original Nogglesrail",
+      "collective": "Coletivo XV + Vlad (sktbrd) + Pharra",
+      "proposalUrl": "https://snapshot.box/#/s:gnars.eth/proposal/0xb63306dbfe950dd9754d5edcf8f48c6ff9bdd32eeeff4c644cb90c974a3055fa",
+      "activation": "Cash for tricks, premier clips",
+      "media": [
+        {
+          "type": "youtube",
+          "url": "https://www.youtube.com/watch?v=lUX8N8sJBuI&t=1s",
+          "label": "Gnars Youtube Event Day"
+        }
+      ],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/2cb4fe36ffa60ff682a1bc00e7bb31bc8c57ecd6dc64954c14067cc9b2fbd534.png",
+      "description": "The original Nogglesrail that started it all. Built by Coletivo XV in partnership with Pharra and Vlad, this DIY skate obstacle became the blueprint for global replication.",
+      "year": 2023,
+      "status": "active"
+    },
+    {
+      "id": "nogglesrail-02",
+      "slug": "chicago",
+      "title": "Nogglesrail #02",
+      "location": {
+        "city": "Chicago",
+        "country": "United States",
+        "coordinates": {
+          "lat": 41.8781,
+          "lng": -87.6298
+        }
+      },
+      "obstacleDesign": "Nogglesrail Asym",
+      "collective": "Wylin + Bummer (Active Members of Gnars DAO + FoodNouns)",
+      "proposalUrl": "https://snapshot.box/#/s:gnars.eth/proposal/0x487760526824abbe7997ee2fe4887de10af737eb60d35a4165025b8f58148e50",
+      "activation": "Proliferate & Onboard Chicago to Gnars Through Eth Chicago Hackathon & Skate Jam",
+      "media": [
+        {
+          "type": "youtube",
+          "url": "https://www.youtube.com/watch?v=t7zV7bAI5-E",
+          "label": "Gnoggle Fabrication ETH Chicago 2023 by Webgnar"
+        },
+        {
+          "type": "youtube",
+          "url": "https://www.youtube.com/watch?v=P3ZuQZRhylE",
+          "label": "Lil Sesh Video"
+        }
+      ],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/48f5d32b39c5a6c691112d6e7e245f59bbd75d551b90bfa74ecb6797a72c2d97.png",
+      "description": "Asymmetric Nogglesrail built for ETH Chicago, integrating Gnars into the city's skate community through hackathons and skate jams.",
+      "year": 2023,
+      "status": "active"
+    },
+    {
+      "id": "nogglesrail-03",
+      "slug": "nairobi",
+      "title": "Nogglesrail #03",
+      "location": {
+        "city": "Nairobi",
+        "country": "Kenya",
+        "coordinates": {
+          "lat": -1.2921,
+          "lng": 36.8219
+        }
+      },
+      "obstacleDesign": "Red Nogglesrail",
+      "collective": "Nouns DAO / Nouns DAO Africa",
+      "proposalUrl": "https://prop.house/gnars/noungnarversary/6376",
+      "activation": "GnarsDAO x NounsDAO Africa NounGnarversary Celebration in Nairobi, Kenya showcasing the Gnars Shreddable Noggles",
+      "media": [
+        {
+          "type": "youtube",
+          "url": "https://www.youtube.com/watch?v=FfK1xY_gGzA",
+          "label": "Gnars Youtube Video"
+        }
+      ],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/0b76dde2aa327f03294be7ba38070a71937d053bc7f915ea9925b408bae82dcf.png",
+      "description": "First Nogglesrail in Africa, celebrating the NounGnarversary in Nairobi with Nouns DAO Africa.",
+      "year": 2023,
+      "status": "active"
+    },
+    {
+      "id": "nogglesrail-04",
+      "slug": "porto-alegre",
+      "title": "Nogglesrail #04",
+      "location": {
+        "city": "Porto Alegre",
+        "country": "Brazil",
+        "coordinates": {
+          "lat": -30.0346,
+          "lng": -51.2177
+        }
+      },
+      "obstacleDesign": "Small Noggles",
+      "collective": "Ygor Picolino",
+      "proposalUrl": "https://www.gnars.wtf/dao/proposals/eth/31",
+      "activation": "Cash for Tricks + IAPI SPOT",
+      "media": [
+        {
+          "type": "website",
+          "url": "https://cemporcentoskate.com.br/fiksperto/vivencia-gnars-weekend-com-ygor-picolino-iapi-e-espartano-skatepark/",
+          "label": "Cem Por cento Skate"
+        }
+      ],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/5cc8ec2b3e85ced20e76f38b184eb1f25216dbd690c0b09d4ee0b0025d772283.png",
+      "description": "Vivência Ygor Picolino x Gnars DAO, bringing Noggles to Porto Alegre's skate scene.",
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "nogglesrail-05",
+      "slug": "minas-gerais",
+      "title": "Nogglesrail #05",
+      "location": {
+        "city": "Minas Gerais",
+        "country": "Brazil"
+      },
+      "obstacleDesign": "Noggles Red",
+      "collective": "Gnars DAO, Beach Park Skateboard (manhaçu crew)",
+      "activation": "Tricks, Onchain/Online Content",
+      "media": [
+        {
+          "type": "website",
+          "url": "https://x.com/gnars_dao/status/1804228743432466718/video/1",
+          "label": "Manhaçu Boyz"
+        }
+      ],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/15385fb7a0ef5a829d5c6cfdc65289d4eba3fb05780636bd5e08467232bf1dbc.png",
+      "description": "Crafted for Gnarly Contest, this red Nogglesrail brought Gnars culture to Minas Gerais.",
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "nogglesrail-06",
+      "slug": "medellin",
+      "title": "Nogglesrail #06",
+      "location": {
+        "city": "Medellín",
+        "country": "Colombia",
+        "coordinates": {
+          "lat": 6.2476,
+          "lng": -75.5658
+        }
+      },
+      "obstacleDesign": "Latino Nogglesrail",
+      "collective": "Fuzzyface",
+      "proposalUrl": "https://www.gnars.com/proposals/25",
+      "activation": "Skate jam prize pool, with full documentation to amplify cultural and onchain impact",
+      "media": [
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/C_aoNX3JPqC/",
+          "label": "DHDNOUNS"
+        }
+      ],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/1cb6ae2b48719814a5064ca13f0b9e13619a0c70be733bc860774f13c88c17a9.png",
+      "description": "Secured Noggles Rail activation at Medellín Skatemarket, integrating Gnars into Colombia's skate networking event.",
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "nogglesrail-07",
+      "slug": "sao-paulo-itapetininga",
+      "title": "Nogglesrail #07",
+      "location": {
+        "city": "São Paulo (Itapetininga)",
+        "country": "Brazil"
+      },
+      "obstacleDesign": "BASED nogglesrail",
+      "collective": "Shredder Garcia",
+      "proposalUrl": "https://www.gnars.com/proposals/89",
+      "activation": "Cash For tricks and Premier clips",
+      "media": [
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/DMi97KaJNAx/?img_index=1",
+          "label": "Gnarly Skate Footage"
+        }
+      ],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/cb70831d101fe8cf5ff828a9c0216c46308112a10eb261253c0764ccc445e471.png",
+      "description": "BASED Nogglesrail at Itapetininga Skate Park, bringing Gnars to São Paulo's interior.",
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "nogglesrail-08",
+      "slug": "london",
+      "title": "Nogglesrail #08",
+      "location": {
+        "city": "London",
+        "country": "United Kingdom",
+        "coordinates": {
+          "lat": 51.5074,
+          "lng": -0.1278
+        }
+      },
+      "obstacleDesign": "Red Nogglesrail",
+      "collective": "Gami and Joe Atkinson",
+      "proposalUrl": "https://www.gnars.com/proposals/33",
+      "activation": "Cash For Tricks and Premier Clip",
+      "media": [
+        {
+          "type": "youtube",
+          "url": "https://www.youtube.com/watch?v=3tAw0cCsxPk",
+          "label": "Joe Atkinson Youtube"
+        }
+      ],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/860ebf397d2414a84b58d1f26f4bddf26d3645ff5b9afb85f782d4ad54e68361.png",
+      "description": "Noggles Rail debut in London, UK, expanding Gnars presence to Europe.",
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "nogglesrail-09",
+      "slug": "buenos-aires",
+      "title": "Nogglesrail #09",
+      "location": {
+        "city": "Buenos Aires",
+        "country": "Argentina",
+        "coordinates": {
+          "lat": -34.6037,
+          "lng": -58.3816
+        }
+      },
+      "obstacleDesign": "Original Nogglesrail",
+      "collective": "7ctv Magazine / Achee and Gnars",
+      "proposalUrl": "https://www.gnars.com/proposals/41",
+      "activation": "Cash for tricks, jazz and premier clip",
+      "media": [
+        {
+          "type": "website",
+          "url": "https://7ctv.wtf/jazz-ska7e/",
+          "label": "Special Clip first event"
+        }
+      ],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/3e2fb190b5fc2bc8aff036e7ab36518d1cb2b40fb826b155da51640cb01732a5.png",
+      "description": "First Nogglesrail in Argentina with Skate & Jazz events, generating content production and art activations.",
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "nogglesrail-10",
+      "slug": "rome",
+      "title": "Nogglesrail #10",
+      "location": {
+        "city": "Rome",
+        "country": "Italy",
+        "coordinates": {
+          "lat": 41.9028,
+          "lng": 12.4964
+        }
+      },
+      "obstacleDesign": "Classic Nogglesrail",
+      "collective": "Jacopo for Appcon",
+      "proposalUrl": "https://www.gnars.com/proposals/68",
+      "activation": "Exhibition and Activation",
+      "media": [],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/3231d3c5eb82eafdbb7d2e241eadf41166d4e7a4c789b36a8819945eabb8f1ce.png",
+      "description": "First Nogglesrail in Italy, bringing Gnars culture to Rome.",
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "nogglesslap-01",
+      "slug": "sao-paulo-sopa-de-letras",
+      "title": "NogglesSLAP #01",
+      "location": {
+        "city": "São Paulo",
+        "country": "Brazil"
+      },
+      "obstacleDesign": "SLAP NOGGLES",
+      "collective": "Willdias",
+      "proposalUrl": "https://nouns.build/dao/base/0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17/vote/4",
+      "activation": "Refurbishment and maintenance at sopa de letras square",
+      "media": [
+        {
+          "type": "instagram",
+          "url": "https://www.instagram.com/p/C8pCW8jO8CN/",
+          "label": "Gnars Contest"
+        }
+      ],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/01c59a1d9a2b0de86878f072a5e1e523e44f3ddbf3cf699a3b824e86edcb651f.png",
+      "description": "Community-driven skate floor renovation with SLAP NOGGLES at Sopa de Letras square.",
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "nogglesdelta-01",
+      "slug": "rio-de-janeiro-delta",
+      "title": "NogglesDelta #01",
+      "location": {
+        "city": "Rio de Janeiro",
+        "country": "Brazil",
+        "coordinates": {
+          "lat": -22.9068,
+          "lng": -43.1729
+        }
+      },
+      "obstacleDesign": "Delta",
+      "collective": "Pharra, Coletivo XV and Sktbrd",
+      "proposalUrl": "https://www.gnars.com/proposals/88",
+      "activation": "Cash for tricks, Minidoc on Zora/Youtube/Gnars Docs, Press Release to Skateboard, art and city media",
+      "media": [
+        {
+          "type": "youtube",
+          "url": "https://www.youtube.com/watch?v=bL4WJx86TPo&t=10s",
+          "label": "NogglesDelta Youtube Clip"
+        }
+      ],
+      "coverImage": "https://storage.googleapis.com/papyrus_images/c560404490a3f18a87eb362cd9e5abce01ba362ec1ee7148602019cb4f25162d.png",
+      "description": "The NogglesDelta, a new obstacle design selected through onchain Gnars DAO vote, expanding beyond traditional handrails.",
+      "year": 2024,
+      "status": "active"
+    }
+  ],
+  "meta": {
+    "total": 12,
+    "lastUpdated": "2026-03-16"
+  }
+}
