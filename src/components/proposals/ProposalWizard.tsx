@@ -2,19 +2,31 @@
 
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldAlert, Wallet } from "lucide-react";
+import Link from "next/link";
 import { FormProvider, useForm } from "react-hook-form";
-import { useAccount } from "wagmi";
+import { useAccount, useReadContract } from "wagmi";
 import { TransactionBuilder } from "@/components/proposals/builder/TransactionBuilder";
 import { ProposalDetailsForm } from "@/components/proposals/ProposalDetailsForm";
 import { ProposalPreview } from "@/components/proposals/ProposalPreview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ConnectButton } from "@/components/ui/ConnectButton";
 import { ProposalEligibilityProvider } from "@/components/proposals/ProposalEligibilityContext";
 import { useProposalEligibility } from "@/hooks/useProposalEligibility";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { proposalSchema, type ProposalFormValues } from "./schema";
+
+const balanceOfAbi = [
+  {
+    name: "balanceOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "owner", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+] as const;
 
 export function ProposalWizard() {
   const [currentTab, setCurrentTab] = useState("details");
@@ -32,6 +44,18 @@ export function ProposalWizard() {
   });
 
   const { address, isConnected } = useAccount();
+
+  const { data: nftBalance, isLoading: isBalanceLoading } = useReadContract({
+    address: GNARS_ADDRESSES.token,
+    abi: balanceOfAbi,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    chainId: CHAIN.id,
+    query: { enabled: Boolean(address) },
+  });
+
+  const hasGnar = typeof nftBalance === "bigint" && nftBalance > 0n;
+
   const eligibility = useProposalEligibility({
     chainId: CHAIN.id,
     collectionAddress: GNARS_ADDRESSES.token,
@@ -64,7 +88,24 @@ export function ProposalWizard() {
 
   // Child builder handles add/update/remove via useFieldArray
 
-  if (isConnected && eligibility.isLoading) {
+  // Gate: wallet not connected
+  if (!isConnected) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="flex flex-col items-center justify-center py-12 gap-4 text-center">
+          <Wallet className="h-10 w-10 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Connect Your Wallet</h2>
+          <p className="text-muted-foreground max-w-md">
+            You need to connect your wallet to create proposals for Gnars DAO.
+          </p>
+          <ConnectButton />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Gate: loading balance / eligibility
+  if (isBalanceLoading || eligibility.isLoading) {
     return (
       <Card className="max-w-2xl mx-auto">
         <CardContent className="flex items-center justify-center py-8">
@@ -75,7 +116,24 @@ export function ProposalWizard() {
     );
   }
 
-  // Voting power restriction removed: all users can access the proposal wizard
+  // Gate: no Gnars NFT
+  if (!hasGnar) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="flex flex-col items-center justify-center py-12 gap-4 text-center">
+          <ShieldAlert className="h-10 w-10 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Gnars NFT Required</h2>
+          <p className="text-muted-foreground max-w-md">
+            You need to hold at least one Gnars NFT to create proposals.
+            Head to the auction to get your first Gnar!
+          </p>
+          <Button asChild>
+            <Link href="/">Go to Auction</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <ProposalEligibilityProvider value={eligibility}>
