@@ -18,7 +18,7 @@ export function DelegationTooltip({ voterAddress, totalVotes, cache }: Delegatio
 
   const handleOpen = useCallback(
     async (open: boolean) => {
-      if (!open || status !== "idle") return;
+      if (!open || status === "loading" || status === "done") return;
 
       const key = voterAddress.toLowerCase();
       const cached = cache.current.get(key);
@@ -30,7 +30,7 @@ export function DelegationTooltip({ voterAddress, totalVotes, cache }: Delegatio
 
       setStatus("loading");
       try {
-        const res = await fetch(`/api/delegators/${voterAddress}`);
+        const res = await fetch(`/api/delegators/${key}`);
         if (!res.ok) throw new Error("fetch failed");
         const data: DelegatorWithCount[] = await res.json();
         // Filter out self-delegation artifacts (voter delegating to themselves)
@@ -42,7 +42,7 @@ export function DelegationTooltip({ voterAddress, totalVotes, cache }: Delegatio
         setStatus("error");
       }
     },
-    [voterAddress, cache, status]
+    [voterAddress, cache]
   );
 
   // Hide only when fetch confirms no delegators (card unchanged per spec)
@@ -50,7 +50,7 @@ export function DelegationTooltip({ voterAddress, totalVotes, cache }: Delegatio
 
   const delegatedSum = delegators.reduce((acc, d) => acc + d.tokenCount, 0);
   // ownVotes only known after fetch; null while idle/loading
-  const ownVotes = status === "done" ? totalVotes - delegatedSum : null;
+  const ownVotes = status === "done" ? Math.max(0, totalVotes - delegatedSum) : null;
 
   return (
     <span className="flex items-center gap-1">
