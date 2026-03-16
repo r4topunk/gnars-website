@@ -32,6 +32,25 @@ export async function generateMetadata({
       index: true,
       follow: true,
     },
+    openGraph: {
+      title: `${post.metadata.title} | Gnars`,
+      description: post.metadata.description,
+      type: "article",
+      images: [
+        {
+          url: "/logo-banner.jpg",
+          width: 2880,
+          height: 1880,
+          alt: post.metadata.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${post.metadata.title} | Gnars`,
+      description: post.metadata.description,
+      images: ["/logo-banner.jpg"],
+    },
   };
 }
 

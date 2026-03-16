@@ -35,12 +35,21 @@ export const metadata: Metadata = {
     title: "Gnars DAO",
     description: "Nounish Open Source Action Sports Brand experiment",
     type: "website",
+    images: [
+      {
+        url: "/logo-banner.jpg",
+        width: 2880,
+        height: 1880,
+        alt: "Gnars DAO",
+      },
+    ],
   },
   // Twitter card metadata
   twitter: {
     card: "summary_large_image",
     title: "Gnars DAO",
     description: "Nounish Open Source Action Sports Brand experiment",
+    images: ["/logo-banner.jpg"],
   },
   // Farcaster mini app embed metadata
   other: {

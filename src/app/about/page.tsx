@@ -8,6 +8,17 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/about",
   },
+  openGraph: {
+    title: "About Gnars — Community-Owned Skateboarding Collective",
+    description:
+      "Gnars is a community-owned skateboarding collective and DAO that funds skate culture, skaters, and independent projects worldwide.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Gnars — Community-Owned Skateboarding Collective",
+    description:
+      "Gnars is a community-owned skateboarding collective and DAO that funds skate culture, skaters, and independent projects worldwide.",
+  },
 };
 
 export default function AboutPage() {
