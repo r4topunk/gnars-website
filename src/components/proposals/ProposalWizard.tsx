@@ -7,6 +7,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { useAccount } from "wagmi";
 import { TransactionBuilder } from "@/components/proposals/builder/TransactionBuilder";
 import { ProposalDetailsForm } from "@/components/proposals/ProposalDetailsForm";
+import { ProposalGatingBanner } from "@/components/proposals/ProposalGatingBanner";
 import { ProposalPreview } from "@/components/proposals/ProposalPreview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,12 +76,12 @@ export function ProposalWizard() {
     );
   }
 
-  // Voting power restriction removed: all users can access the proposal wizard
-
   return (
     <ProposalEligibilityProvider value={eligibility}>
       <FormProvider {...methods}>
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-4">
+          <ProposalGatingBanner />
+
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="gap-6">
             <TabsList className="w-full">
               <TabsTrigger value="details" className="flex items-center gap-2">
