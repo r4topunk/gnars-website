@@ -25,6 +25,10 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/integrations/pinata.md` — IPFS upload integration
 - `docs/integrations/splits.md` — 0xSplits droposal revenue sharing
 
+## Specs
+
+- `docs/superpowers/specs/2026-03-16-vote-card-delegation-breakdown-design.md` — vote card own vs delegated breakdown
+
 ## Research
 
 - `docs/research/agent-team-candidates.md` — top 4 multi-agent task candidates with file lists and agent splits
