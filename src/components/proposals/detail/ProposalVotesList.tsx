@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Markdown } from "@/components/common/Markdown";
@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useActiveMembers } from "@/hooks/use-active-members";
+import { DelegationTooltip } from "./DelegationTooltip";
+import type { DelegatorWithCount } from "@/services/members";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
 
@@ -42,6 +44,9 @@ export function ProposalVotesList({
 }: ProposalVotesListProps) {
   const hasVotes = Array.isArray(votes) && votes.length > 0;
   const [isOpen, setIsOpen] = useState(false);
+
+  // Shared cache for delegation data — avoids refetching on repeated hovers
+  const delegationCache = useRef<Map<string, DelegatorWithCount[]>>(new Map());
 
   // Fetch active members only if proposal is active
   const { data: activeMembers, isLoading: activeMembersLoading } = useActiveMembers(
@@ -92,6 +97,11 @@ export function ProposalVotesList({
                       with <b>{Number(vote.votes).toLocaleString()}</b> vote
                       {Number(vote.votes) === 1 ? "" : "s"}
                     </span>
+                    <DelegationTooltip
+                      voterAddress={vote.voter}
+                      totalVotes={Number(vote.votes)}
+                      cache={delegationCache}
+                    />
                     {vote.timestamp ? (
                       <span className="text-muted-foreground text-xs">
                         · {formatDistanceToNow(new Date(vote.timestamp * 1000), { addSuffix: true })}
