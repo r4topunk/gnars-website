@@ -11,7 +11,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { ExternalLinkIcon, MapPinIcon } from "lucide-react";
+import { ExternalLinkIcon, MapPinIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 export interface LocationData {
   position: [number, number];
@@ -34,6 +34,9 @@ interface MapLocationDrawerProps {
 
 export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationDrawerProps) {
   const [isMobile, setIsMobile] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -45,7 +48,47 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Reset image index when location changes
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [location]);
+
   if (!location) return null;
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % location.images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + location.images.length) % location.images.length);
+  };
+
+  // Swipe gesture handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && location.images.length > 1) {
+      nextImage();
+    }
+    if (isRightSwipe && location.images.length > 1) {
+      prevImage();
+    }
+
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   const proposalUrl = location.proposal.link.startsWith("http")
     ? location.proposal.link
@@ -72,25 +115,71 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
         </SheetHeader>
 
         <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
-          {/* Images Gallery */}
+          {/* Images Carousel */}
           {location.images.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold">Photos</h3>
-              <div className="grid grid-cols-1 gap-3">
-                {location.images.map((image, idx) => (
-                  <div
-                    key={idx}
-                    className="relative aspect-video w-full overflow-hidden rounded-lg border"
-                  >
-                    <Image
-                      src={image}
-                      alt={`${location.label} - Photo ${idx + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 500px"
-                    />
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Photos</h3>
+                {location.images.length > 1 && (
+                  <span className="text-muted-foreground text-xs">
+                    {currentImageIndex + 1} / {location.images.length}
+                  </span>
+                )}
+              </div>
+              <div className="relative">
+                <div 
+                  className="relative aspect-video w-full overflow-hidden rounded-lg border"
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  <Image
+                    src={location.images[currentImageIndex]}
+                    alt={`${location.label} - Photo ${currentImageIndex + 1}`}
+                    fill
+                    className="object-cover transition-opacity duration-300"
+                    sizes="(max-width: 768px) 100vw, 500px"
+                    priority
+                  />
+                </div>
+
+                {/* Navigation Arrows (only show if multiple images) */}
+                {location.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevImage}
+                      className="bg-background/80 hover:bg-background absolute left-2 top-1/2 -translate-y-1/2 rounded-full p-2 backdrop-blur-sm transition-colors"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeftIcon className="size-5" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="bg-background/80 hover:bg-background absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 backdrop-blur-sm transition-colors"
+                      aria-label="Next image"
+                    >
+                      <ChevronRightIcon className="size-5" />
+                    </button>
+                  </>
+                )}
+
+                {/* Dot Indicators */}
+                {location.images.length > 1 && (
+                  <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+                    {location.images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentImageIndex(idx)}
+                        className={`size-2 rounded-full transition-all ${
+                          idx === currentImageIndex
+                            ? "bg-primary w-6"
+                            : "bg-background/60 hover:bg-background/80"
+                        }`}
+                        aria-label={`Go to image ${idx + 1}`}
+                      />
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
