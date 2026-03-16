@@ -69,7 +69,7 @@ export function Markdown({ children, className }: MarkdownProps) {
             return (
               <a
                 className={cn(
-                  "underline decoration-muted-foreground hover:text-foreground",
+                  "text-amber-400 underline decoration-amber-400/50 hover:decoration-amber-400",
                   className,
                 )}
                 {...props}
