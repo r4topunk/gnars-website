@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Markdown } from "@/components/common/Markdown";
@@ -45,8 +45,46 @@ export function ProposalVotesList({
   const hasVotes = Array.isArray(votes) && votes.length > 0;
   const [isOpen, setIsOpen] = useState(false);
 
-  // Shared cache for delegation data — avoids refetching on repeated hovers
-  const delegationCache = useRef<Map<string, DelegatorWithCount[]>>(new Map());
+  // Eagerly fetch delegation data for all voters on mount
+  const [delegationMap, setDelegationMap] = useState<
+    Map<string, { delegators: DelegatorWithCount[]; status: "loading" | "done" | "error" }>
+  >(new Map());
+
+  const fetchAllDelegations = useCallback(async () => {
+    if (!votes || votes.length === 0) return;
+
+    // Mark all as loading
+    const initial = new Map<string, { delegators: DelegatorWithCount[]; status: "loading" | "done" | "error" }>();
+    for (const vote of votes) {
+      initial.set(vote.voter.toLowerCase(), { delegators: [], status: "loading" });
+    }
+    setDelegationMap(initial);
+
+    type Entry = { delegators: DelegatorWithCount[]; status: "loading" | "done" | "error" };
+
+    // Fetch all in parallel
+    const results = new Map<string, Entry>();
+    await Promise.all(
+      votes.map(async (vote) => {
+        const key = vote.voter.toLowerCase();
+        try {
+          const res = await fetch(`/api/delegators/${key}`);
+          if (!res.ok) throw new Error("fetch failed");
+          const data: DelegatorWithCount[] = await res.json();
+          const filtered = data.filter((d) => d.owner.toLowerCase() !== key);
+          results.set(key, { delegators: filtered, status: "done" });
+        } catch {
+          results.set(key, { delegators: [], status: "error" });
+        }
+      })
+    );
+
+    setDelegationMap(results);
+  }, [votes]);
+
+  useEffect(() => {
+    fetchAllDelegations();
+  }, [fetchAllDelegations]);
 
   // Fetch active members only if proposal is active
   const { data: activeMembers, isLoading: activeMembersLoading } = useActiveMembers(
@@ -98,9 +136,9 @@ export function ProposalVotesList({
                       {Number(vote.votes) === 1 ? "" : "s"}
                     </span>
                     <DelegationTooltip
-                      voterAddress={vote.voter}
                       totalVotes={Number(vote.votes)}
-                      cache={delegationCache}
+                      delegators={delegationMap.get(vote.voter.toLowerCase())?.delegators ?? []}
+                      status={delegationMap.get(vote.voter.toLowerCase())?.status ?? "loading"}
                     />
                     {vote.timestamp ? (
                       <span className="text-muted-foreground text-xs">
