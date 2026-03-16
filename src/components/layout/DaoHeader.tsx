@@ -73,7 +73,6 @@ const navigationItems = [
     title: "TV",
     href: "/tv",
     icon: Tv,
-    badge: "NEW!",
   },
   {
     title: "Dashboard",
@@ -222,21 +221,9 @@ function DesktopNav() {
                   <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                     <Link
                       href={item.href}
-                      className={cn(isRouteActive(item.href) && "bg-accent text-accent-foreground", "flex items-center gap-2")}
+                      className={cn(isRouteActive(item.href) && "bg-accent text-accent-foreground")}
                     >
                       {item.title}
-                      {"badge" in item && item.badge && (
-                        <Badge
-                          variant="secondary"
-                          className={`h-4 px-1.5 text-[10px] ${
-                            item.badge === "BETA"
-                              ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
-                              : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
-                          }`}
-                        >
-                          {item.badge}
-                        </Badge>
-                      )}
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
@@ -315,12 +302,12 @@ function DesktopNav() {
                                     <Badge
                                       variant="secondary"
                                       className={`h-4 px-1.5 text-[10px] ${
-                                        subItem.badge === "BETA"
+                                        (subItem.badge as string) === "BETA"
                                           ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
                                           : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
                                       }`}
                                     >
-                                      {subItem.badge}
+                                      {subItem.badge as string}
                                     </Badge>
                                   )}
                                 </div>
@@ -411,19 +398,7 @@ function MobileNav() {
                     )}
                   >
                     <Icon className="size-5" />
-                    <span className="flex-1">{item.title}</span>
-                    {"badge" in item && item.badge && (
-                      <Badge
-                        variant="secondary"
-                        className={`h-4 px-1.5 text-[10px] ${
-                          item.badge === "BETA"
-                            ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
-                            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
-                        }`}
-                      >
-                        {item.badge}
-                      </Badge>
-                    )}
+                    {item.title}
                   </Link>
                 );
               }
@@ -486,12 +461,12 @@ function MobileNav() {
                           <Badge
                             variant="secondary"
                             className={`h-4 px-1.5 text-[10px] ${
-                              subItem.badge === "BETA"
+                              (subItem.badge as string) === "BETA"
                                 ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
                                 : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
                             }`}
                           >
-                            {subItem.badge}
+                            {subItem.badge as string}
                           </Badge>
                         )}
                       </Link>
