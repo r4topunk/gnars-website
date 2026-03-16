@@ -79,11 +79,24 @@ ownVotes = totalVotes - sum(delegators.map(d => d.tokenCount))
 
 Self-delegation artifacts filtered out: `delegators.filter(d => d.owner !== voterAddress)`
 
+Note: `ProposalVoteItem.votes` is typed as `string` — cast at call site: `Number(vote.votes)`
+
+## Data Transport
+
+`fetchDelegatorsWithCounts` is a server-side function — it cannot be called directly from a `"use client"` component. Wrap it in a thin API route:
+
+```
+GET /api/delegators/[address]
+→ returns DelegatorWithCount[]
+```
+
+`DelegationTooltip` fetches via `fetch('/api/delegators/${voterAddress}')` on tooltip open. This follows the existing pattern in `/api/members/active/route.ts`.
+
 ## Data Flow
 
 1. `ProposalVotesList` mounts — no extra fetches
 2. User hovers "delegated" tag → `open=true`
-3. **Cache miss**: calls `fetchDelegatorsWithCounts(voterAddress)` → spinner shown
+3. **Cache miss**: `DelegationTooltip` calls `/api/delegators/[address]` → spinner shown
 4. Response arrives: writes to cache, derives `ownVotes`, renders list
 5. **Cache hit**: renders immediately
 
@@ -96,6 +109,7 @@ Self-delegation artifacts filtered out: `delegators.filter(d => d.owner !== vote
 | Self-delegation in delegators list | Filter `owner === voterAddress` before sum |
 | Delegation changed since snapshot | Shows current state (not snapshot). Acceptable — noted in code comment |
 | Fetch error | Tooltip shows "Could not load" — no crash |
+| Mobile (touch) | shadcn `<Tooltip>` does not open on tap by default. Acceptable to support desktop hover only in v1 — mobile users see the total vote count without breakdown. |
 
 ## Styling Reference
 
