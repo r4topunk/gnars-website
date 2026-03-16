@@ -45,7 +45,9 @@ export function DelegationTooltip({ voterAddress, totalVotes, cache }: Delegatio
     [voterAddress, cache]
   );
 
-  // Hide only when fetch confirms no delegators (card unchanged per spec)
+  // The "delegated" tag is visible on all cards before first hover (lazy-fetch tradeoff).
+  // After the first hover, if no delegators are found, the tag disappears and the card
+  // looks unchanged. This is the accepted v1 behavior of the lazy-fetch approach.
   if (status === "done" && delegators.length === 0) return null;
 
   const delegatedSum = delegators.reduce((acc, d) => acc + d.tokenCount, 0);
