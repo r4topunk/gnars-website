@@ -165,7 +165,7 @@ const navigationItems = [
         href: "/lootbox",
         icon: Gift,
         description: "Join Gnars DAO onboarding",
-        badge: "NEW!",
+        badge: "BETA",
       },
     ],
   },
@@ -228,7 +228,11 @@ function DesktopNav() {
                       {"badge" in item && item.badge && (
                         <Badge
                           variant="secondary"
-                          className="h-4 px-1.5 text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                          className={`h-4 px-1.5 text-[10px] ${
+                            item.badge === "BETA"
+                              ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
+                              : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                          }`}
                         >
                           {item.badge}
                         </Badge>
@@ -310,7 +314,11 @@ function DesktopNav() {
                                   {"badge" in subItem && subItem.badge && (
                                     <Badge
                                       variant="secondary"
-                                      className="h-4 px-1.5 text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                                      className={`h-4 px-1.5 text-[10px] ${
+                                        subItem.badge === "BETA"
+                                          ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
+                                          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                                      }`}
                                     >
                                       {subItem.badge}
                                     </Badge>
@@ -407,7 +415,11 @@ function MobileNav() {
                     {"badge" in item && item.badge && (
                       <Badge
                         variant="secondary"
-                        className="h-4 px-1.5 text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                        className={`h-4 px-1.5 text-[10px] ${
+                          item.badge === "BETA"
+                            ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
+                            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                        }`}
                       >
                         {item.badge}
                       </Badge>
@@ -473,7 +485,11 @@ function MobileNav() {
                         {"badge" in subItem && subItem.badge && (
                           <Badge
                             variant="secondary"
-                            className="h-4 px-1.5 text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                            className={`h-4 px-1.5 text-[10px] ${
+                              subItem.badge === "BETA"
+                                ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
+                                : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                            }`}
                           >
                             {subItem.badge}
                           </Badge>
