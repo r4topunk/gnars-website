@@ -32,7 +32,9 @@ export async function GET() {
     const usd = Number(usdPrice?.value ?? 0) || 0;
 
     console.log("[eth-price] ETH price:", usd);
-    return NextResponse.json({ usd });
+    return NextResponse.json({ usd }, {
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+    });
   } catch (error) {
     console.error("[eth-price] Error:", error);
     return NextResponse.json({ usd: 0, error: "fetch_error" });

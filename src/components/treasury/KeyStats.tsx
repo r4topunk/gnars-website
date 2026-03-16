@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Clock } from "lucide-react";
 import { StatCard } from "@/components/common/StatCard";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -18,21 +18,15 @@ interface KeyStatsProps {
   loading?: boolean;
 }
 
-export function KeyStats({ currentAuction, totalSupply, members, loading }: KeyStatsProps) {
-  const [timeLeft, setTimeLeft] = useState<{
-    hours: number;
-    minutes: number;
-    seconds: number;
-    total: number;
-  }>({ hours: 0, minutes: 0, seconds: 0, total: 0 });
+/** Isolated countdown so sibling StatCards don't re-render every second. */
+function AuctionCountdownSubtitle({ endTime, fallback }: { endTime?: string; fallback: React.ReactNode }) {
+  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0, total: 0 });
 
   useEffect(() => {
-    if (!currentAuction?.endTime) return;
+    if (!endTime) return;
 
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = new Date(currentAuction.endTime!).getTime() - now;
-
+    const update = () => {
+      const distance = new Date(endTime).getTime() - Date.now();
       if (distance > 0) {
         setTimeLeft({
           hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
@@ -43,11 +37,28 @@ export function KeyStats({ currentAuction, totalSupply, members, loading }: KeyS
       } else {
         setTimeLeft({ hours: 0, minutes: 0, seconds: 0, total: 0 });
       }
-    }, 1000);
+    };
 
+    update();
+    const timer = setInterval(update, 1000);
     return () => clearInterval(timer);
-  }, [currentAuction?.endTime]);
+  }, [endTime]);
 
+  if (!endTime || timeLeft.total <= 0) return <>{fallback}</>;
+
+  return (
+    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+      <Clock className="h-3 w-3" />
+      {timeLeft.hours.toString().padStart(2, "0")}:
+      {timeLeft.minutes.toString().padStart(2, "0")}:
+      {timeLeft.seconds.toString().padStart(2, "0")} left
+    </div>
+  );
+}
+
+const MemoizedStatCard = memo(StatCard);
+
+export function KeyStats({ currentAuction, totalSupply, members, loading }: KeyStatsProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -72,22 +83,16 @@ export function KeyStats({ currentAuction, totalSupply, members, loading }: KeyS
         title={`Current Auction #${currentAuction?.tokenId || "..."}`}
         value={currentAuction?.highestBid ? `${currentAuction.highestBid} ETH` : "Loading..."}
         subtitle={
-          currentAuction?.endTime && timeLeft.total > 0 ? (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-              <Clock className="h-3 w-3" />
-              {timeLeft.hours.toString().padStart(2, "0")}:
-              {timeLeft.minutes.toString().padStart(2, "0")}:
-              {timeLeft.seconds.toString().padStart(2, "0")} left
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">Auction #{currentAuction?.id || "..."}</p>
-          )
+          <AuctionCountdownSubtitle
+            endTime={currentAuction?.endTime}
+            fallback={<p className="text-xs text-muted-foreground">Auction #{currentAuction?.id || "..."}</p>}
+          />
         }
       />
 
-      <StatCard title="Total Supply" value={totalSupply || "..."} subtitle="Gnars minted" />
+      <MemoizedStatCard title="Total Supply" value={totalSupply || "..."} subtitle="Gnars minted" />
 
-      <StatCard title="DAO Members" value={members || "..."} subtitle="Active holders" />
+      <MemoizedStatCard title="DAO Members" value={members || "..."} subtitle="Active holders" />
     </div>
   );
 }

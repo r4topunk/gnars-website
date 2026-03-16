@@ -1,0 +1,143 @@
+import { cache } from "react";
+import { headers } from "next/headers";
+import { formatEther } from "viem";
+import { TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
+import { fetchTotalAuctionSalesWei } from "@/services/dao";
+
+interface TokenBalance {
+  contractAddress?: string;
+  tokenBalance: string;
+  decimals?: number;
+}
+
+interface AlchemyTokenResponse {
+  result?: {
+    tokenBalances?: TokenBalance[];
+  };
+}
+
+interface PriceResponse {
+  prices?: Record<string, { usd?: number }>;
+}
+
+interface EthPriceResponse {
+  usd: number;
+  error?: string;
+}
+
+export interface TreasurySnapshot {
+  usdTotal: number;
+  ethBalance: number;
+  totalAuctionSales: number;
+}
+
+async function getBaseUrl() {
+  const h = await headers();
+  const protocol = h.get("x-forwarded-proto") ?? "https";
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  if (!host) {
+    throw new Error("Unable to determine request host");
+  }
+  return `${protocol}://${host}`;
+}
+
+async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init.headers || {}),
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+}
+
+/**
+ * Loads a full treasury snapshot including ETH balance, token balances, and auction sales.
+ * Deduplicated within a single React render pass via `react.cache()`.
+ */
+export const loadTreasurySnapshot = cache(
+  async (treasuryAddress: string): Promise<TreasurySnapshot> => {
+    const baseUrl = await getBaseUrl();
+
+    const [ethRes, tokenRes, priceRes, ethPriceRes, auctionSalesWei] = await Promise.all([
+      fetchJson<{ result?: string }>(`${baseUrl}/api/alchemy`, {
+        method: "POST",
+        body: JSON.stringify({
+          method: "eth_getBalance",
+          params: [treasuryAddress, "latest"],
+        }),
+      }),
+      fetchJson<AlchemyTokenResponse>(`${baseUrl}/api/alchemy`, {
+        method: "POST",
+        body: JSON.stringify({
+          method: "alchemy_getTokenBalances",
+          params: [treasuryAddress, TREASURY_TOKEN_ADDRESSES.filter(Boolean)],
+        }),
+      }),
+      fetchJson<PriceResponse>(`${baseUrl}/api/prices`, {
+        method: "POST",
+        body: JSON.stringify({
+          addresses: TREASURY_TOKEN_ADDRESSES.map((a) => String(a).toLowerCase()),
+        }),
+      }).catch(() => ({ prices: {} })),
+      fetchJson<EthPriceResponse>(`${baseUrl}/api/eth-price`, {
+        method: "GET",
+      }).catch(() => ({ usd: 0 })),
+      fetchTotalAuctionSalesWei().catch(() => BigInt(0)),
+    ]);
+
+    const ethBalanceWei = BigInt(ethRes.result ?? "0x0");
+    const ethBalance = Number(formatEther(ethBalanceWei));
+    const ethPrice = ethPriceRes?.usd ?? 0;
+
+    const tokenBalances = (tokenRes.result?.tokenBalances ?? []).filter((token) => {
+      const balance = token.tokenBalance?.toLowerCase();
+      return balance && balance !== "0" && balance !== "0x0";
+    });
+
+    const prices: Record<string, { usd: number }> = priceRes.prices ?? {};
+    const wethAddress = String(TREASURY_TOKEN_ALLOWLIST.WETH).toLowerCase();
+
+    const priceLookup = Object.fromEntries(
+      Object.entries(prices).map(([address, value]) => [
+        address.toLowerCase(),
+        address.toLowerCase() === wethAddress ? ethPrice : Number(value?.usd ?? 0) || 0,
+      ]),
+    );
+    priceLookup[wethAddress] = ethPrice;
+
+    const DECIMALS: Record<string, number> = {
+      [String(TREASURY_TOKEN_ALLOWLIST.USDC).toLowerCase()]: 6,
+      [String(TREASURY_TOKEN_ALLOWLIST.WETH).toLowerCase()]: 18,
+      [String(TREASURY_TOKEN_ALLOWLIST.SENDIT).toLowerCase()]: 18,
+    };
+
+    const tokensUsd = tokenBalances.reduce((sum, token) => {
+      const address = token.contractAddress ? String(token.contractAddress).toLowerCase() : null;
+      if (!address) return sum;
+      const decimals = DECIMALS[address] ?? 18;
+      const raw = token.tokenBalance ?? "0x0";
+      const parsed = Number.parseInt(raw, 16);
+      const balance = Number.isFinite(parsed) ? parsed / Math.pow(10, decimals) : 0;
+      const price = priceLookup[address] ?? 0;
+      return sum + balance * price;
+    }, 0);
+
+    const nativeEthUsd = ethBalance * ethPrice;
+    const usdTotal = tokensUsd + nativeEthUsd;
+    const totalAuctionSales = Number(formatEther(auctionSalesWei));
+
+    return {
+      usdTotal,
+      ethBalance,
+      totalAuctionSales,
+    };
+  },
+);

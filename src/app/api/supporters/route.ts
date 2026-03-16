@@ -4,7 +4,6 @@ import type { Address } from "viem";
 import { base } from "viem/chains";
 import zoraNftAbi from "@/utils/abis/zoraNftAbi";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 300;
 
 const publicClient = createPublicClient({

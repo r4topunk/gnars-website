@@ -1,103 +1,8 @@
 import { TrendingUp, Trophy, Users } from "lucide-react";
-import { formatEther } from "viem";
 import { CountUp } from "@/components/ui/count-up";
-import { GNARS_ADDRESSES, TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
+import { GNARS_ADDRESSES } from "@/lib/config";
 import { fetchDaoStats } from "@/services/dao";
-
-interface TokenBalance {
-  contractAddress?: string;
-  tokenBalance: string;
-  decimals?: number;
-}
-
-async function getTreasuryValue(): Promise<number> {
-  try {
-    const baseUrl = "https://gnars.com";
-
-    const [ethRes, tokenRes, priceRes, ethPriceRes] = await Promise.all([
-      fetch(`${baseUrl}/api/alchemy`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          method: "eth_getBalance",
-          params: [GNARS_ADDRESSES.treasury, "latest"],
-        }),
-        next: { revalidate: 60 },
-      }).then((r) => r.json()),
-      fetch(`${baseUrl}/api/alchemy`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          method: "alchemy_getTokenBalances",
-          params: [GNARS_ADDRESSES.treasury, TREASURY_TOKEN_ADDRESSES.filter(Boolean)],
-        }),
-        next: { revalidate: 60 },
-      }).then((r) => r.json()),
-      fetch(`${baseUrl}/api/prices`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          addresses: TREASURY_TOKEN_ADDRESSES.map((a) => String(a).toLowerCase()),
-        }),
-        next: { revalidate: 60 },
-      })
-        .then((r) => r.json())
-        .catch(() => ({ prices: {} })),
-      fetch(`${baseUrl}/api/eth-price`, {
-        method: "GET",
-        next: { revalidate: 60 },
-      })
-        .then((r) => r.json())
-        .catch(() => ({ usd: 0 })),
-    ]);
-
-    const ethBalanceWei = BigInt(ethRes.result ?? "0x0");
-    const ethBalance = Number(formatEther(ethBalanceWei));
-    const ethPrice = ethPriceRes?.usd ?? 0;
-
-    const tokenBalances = ((tokenRes.result?.tokenBalances ?? []) as TokenBalance[]).filter(
-      (token) => {
-        const balance = token.tokenBalance?.toLowerCase();
-        return balance && balance !== "0" && balance !== "0x0";
-      },
-    );
-
-    const prices: Record<string, { usd: number }> = priceRes.prices ?? {};
-    const wethAddress = String(TREASURY_TOKEN_ALLOWLIST.WETH).toLowerCase();
-
-    const priceLookup = Object.fromEntries(
-      Object.entries(prices).map(([address, value]) => [
-        address.toLowerCase(),
-        address.toLowerCase() === wethAddress ? ethPrice : Number(value?.usd ?? 0) || 0,
-      ]),
-    );
-    priceLookup[wethAddress] = ethPrice;
-
-    const DECIMALS: Record<string, number> = {
-      [String(TREASURY_TOKEN_ALLOWLIST.USDC).toLowerCase()]: 6,
-      [String(TREASURY_TOKEN_ALLOWLIST.WETH).toLowerCase()]: 18,
-      [String(TREASURY_TOKEN_ALLOWLIST.SENDIT).toLowerCase()]: 18,
-    };
-
-    const tokensUsd = tokenBalances.reduce((sum, token) => {
-      const address = token.contractAddress ? String(token.contractAddress).toLowerCase() : null;
-      if (!address) return sum;
-      const decimals = DECIMALS[address] ?? 18;
-      const raw = token.tokenBalance ?? "0x0";
-      const parsed = Number.parseInt(raw, 16);
-      const balance = Number.isFinite(parsed) ? parsed / Math.pow(10, decimals) : 0;
-      const price = priceLookup[address] ?? 0;
-      return sum + balance * price;
-    }, 0);
-
-    const nativeEthUsd = ethBalance * ethPrice;
-    const usdTotal = tokensUsd + nativeEthUsd;
-
-    return usdTotal;
-  } catch {
-    return 0;
-  }
-}
+import { loadTreasurySnapshot } from "@/services/treasury";
 
 function formatLargeNumber(value: number): string {
   if (value >= 1_000_000) {
@@ -110,12 +15,16 @@ function formatLargeNumber(value: number): string {
 }
 
 export async function HeroStatsValues() {
-  const [daoStats, treasuryValue] = await Promise.all([
+  const [daoStats, snapshot] = await Promise.all([
     fetchDaoStats().catch(() => ({ totalSupply: 0, ownerCount: 0 })),
-    getTreasuryValue(),
+    loadTreasurySnapshot(GNARS_ADDRESSES.treasury).catch(() => ({
+      usdTotal: 0,
+      ethBalance: 0,
+      totalAuctionSales: 0,
+    })),
   ]);
 
-  const formattedTreasury = formatLargeNumber(treasuryValue);
+  const formattedTreasury = formatLargeNumber(snapshot.usdTotal);
 
   return (
     <div className="flex flex-wrap gap-4 pt-4">

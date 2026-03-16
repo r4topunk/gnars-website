@@ -21,7 +21,7 @@ async function fetchEthPrice(apiKey: string): Promise<number> {
   const url = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd";
   const res = await fetch(url, {
     headers: { "user-agent": "gnars-website/treasury", "x-cg-demo-api-key": apiKey },
-    cache: "no-store",
+    next: { revalidate: COINGECKO_REVALIDATE_SECONDS },
   });
 
   if (!res.ok) {
@@ -80,7 +80,9 @@ async function handlePrices(addresses: string[]) {
     normalized[WETH_ADDRESS_BASE.toLowerCase()] = { usd: ethPrice };
   }
 
-  return NextResponse.json({ prices: normalized });
+  return NextResponse.json({ prices: normalized }, {
+    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600" },
+  });
 }
 
 export async function GET(request: Request) {

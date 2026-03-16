@@ -59,8 +59,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  // Increase body size limit for video thumbnail uploads (default is ~4-5MB)
+  poweredByHeader: false,
   experimental: {
+    // Increase body size limit for video thumbnail uploads (default is ~4-5MB)
     serverActions: {
       bodySizeLimit: "10mb",
     },

@@ -31,7 +31,9 @@ export async function GET(request: Request) {
 
     const activeMembers: ActiveMember[] = await fetchActiveMembers(window, threshold);
 
-    return NextResponse.json({ activeMembers });
+    return NextResponse.json({ activeMembers }, {
+      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Failed to fetch active members:", error);

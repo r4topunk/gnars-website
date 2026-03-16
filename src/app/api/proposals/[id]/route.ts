@@ -3,7 +3,6 @@ import { Proposal } from "@/components/proposals/types";
 import { getProposalByIdOrNumber } from "@/services/proposals";
 
 export const revalidate = 60; // Revalidate every 60 seconds
-export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: proposalId } = await params;
