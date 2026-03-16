@@ -7,6 +7,7 @@ import { DaoHeader } from "@/components/layout/DaoHeader";
 import Providers from "@/components/layout/Providers";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { MiniAppReady } from "@/components/miniapp/MiniAppReady";
+import { NogglesCopyFooter } from "@/components/home/NogglesCopyFooter";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
@@ -70,6 +71,7 @@ export default function RootLayout({
               <ScrollToTop />
               <DaoHeader />
               <main className="max-w-6xl mx-auto px-4">{children}</main>
+              <NogglesCopyFooter />
               <Toaster />
             </TooltipProvider>
           </Providers>
