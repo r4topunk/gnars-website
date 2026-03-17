@@ -19,6 +19,7 @@ interface EthProposalRaw {
   endBlock: string;
   executionETA: string | null;
   title: string;
+  description?: string;
   status: string;
   proposer: { id: string };
   forVotes: string;
@@ -37,10 +38,10 @@ function loadEthProposals(limit = 100, skip = 0): MultiChainProposal[] {
     const proposals = (ethereumProposalsData as unknown as EthProposalRaw[])
       .slice(skip, skip + limit);
 
-    return proposals.map((p, index) => {
+    return proposals.map((p) => {
       const proposalNumber = Number.parseInt(p.id, 10);
       const createdAt = Number(p.createdTimestamp) * 1000;
-      const status = getProposalStatus(p.status as any) || ProposalStatus.EXECUTED;
+      const status = getProposalStatus(p.status as ProposalStatus) || ProposalStatus.EXECUTED;
 
       return {
         proposalId: p.id,
@@ -93,7 +94,7 @@ export const listMultiChainProposals = cache(
   async (
     limit = 200,
     includeEthereum = true,
-    includeSnapshot = false,
+    _includeSnapshot = false,
   ): Promise<MultiChainProposal[]> => {
     // Fetch Base proposals (live data from subgraph)
     const baseProposals = await listBaseProposals(limit).then((proposals) =>
