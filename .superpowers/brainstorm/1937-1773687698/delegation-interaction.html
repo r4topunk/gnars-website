@@ -1,0 +1,117 @@
+<h2>How should the delegated tag reveal its details?</h2>
+<p class="subtitle">When a voter has delegated votes, clicking/hovering the tag shows who delegated. Which interaction model fits best?</p>
+
+<div class="section">
+
+  <!-- Option A: Tooltip -->
+  <div style="margin-bottom: 36px;">
+    <div class="label" style="margin-bottom: 10px;">A — Tooltip on hover</div>
+    <div class="mockup">
+      <div class="mockup-body" style="padding: 16px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #4ade80; flex-shrink: 0;"></div>
+          <span style="font-weight: 600;">r4topunk.eth</span>
+          <span style="color: #888;">voted</span>
+          <span style="background: #dcfce7; color: #166534; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px;">FOR</span>
+          <span style="color: #888;">with</span>
+          <strong>41 votes</strong>
+          <span style="font-size: 11px; background: #f1f5f9; color: #475569; padding: 2px 7px; border-radius: 4px;">20 own</span>
+          <span style="position: relative; display: inline-block;">
+            <span style="font-size: 11px; background: #ede9fe; color: #6d28d9; padding: 2px 7px; border-radius: 4px; cursor: pointer; border: 1px dashed #a78bfa;">21 delegated ↑</span>
+            <!-- tooltip -->
+            <div style="position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #1e1b4b; color: #fff; border-radius: 8px; padding: 10px 14px; width: 200px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); z-index: 10;">
+              <div style="font-weight: 600; margin-bottom: 8px; color: #c4b5fd;">Delegated from</div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>gnarly.eth</span><span style="color: #a78bfa;">12 votes</span></div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>0x4f2a…</span><span style="color: #a78bfa;">6 votes</span></div>
+              <div style="display: flex; justify-content: space-between;"><span>skater.eth</span><span style="color: #a78bfa;">3 votes</span></div>
+              <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 12px; height: 12px; background: #1e1b4b; clip-path: polygon(0 0, 100% 0, 50% 100%);"></div>
+            </div>
+          </span>
+        </div>
+      </div>
+    </div>
+    <p style="font-size: 13px; color: #888; margin-top: 6px;">Hover the purple tag → tooltip appears above showing delegators. Fast, no click needed. Disappears when mouse leaves. Works well on desktop, less ideal on mobile.</p>
+  </div>
+
+  <!-- Option B: Popover (click) -->
+  <div style="margin-bottom: 36px;">
+    <div class="label" style="margin-bottom: 10px;">B — Popover on click</div>
+    <div class="mockup">
+      <div class="mockup-body" style="padding: 16px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #4ade80; flex-shrink: 0;"></div>
+          <span style="font-weight: 600;">r4topunk.eth</span>
+          <span style="color: #888;">voted</span>
+          <span style="background: #dcfce7; color: #166534; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px;">FOR</span>
+          <span style="color: #888;">with</span>
+          <strong>41 votes</strong>
+          <span style="font-size: 11px; background: #f1f5f9; color: #475569; padding: 2px 7px; border-radius: 4px;">20 own</span>
+          <span style="font-size: 11px; background: #ede9fe; color: #6d28d9; padding: 2px 7px; border-radius: 4px; cursor: pointer;">21 delegated ↗</span>
+        </div>
+        <!-- popover below -->
+        <div style="margin-top: 12px; margin-left: 46px; background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; max-width: 280px;">
+          <div style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px;">Delegated votes breakdown</div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f1f5f9;"><span>gnarly.eth</span><span style="color: #7c3aed; font-weight: 600;">12 votes</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f1f5f9;"><span>0x4f2a…</span><span style="color: #7c3aed; font-weight: 600;">6 votes</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;"><span>skater.eth</span><span style="color: #7c3aed; font-weight: 600;">3 votes</span></div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size: 13px; color: #888; margin-top: 6px;">Click the tag → inline panel expands below the header row. Stays visible until dismissed. Works on mobile. Good when you want the user to intentionally read it.</p>
+  </div>
+
+  <!-- Option C: Inline expand toggle -->
+  <div style="margin-bottom: 36px;">
+    <div class="label" style="margin-bottom: 10px;">C — Expand row in-place</div>
+    <div class="mockup">
+      <div class="mockup-body" style="padding: 16px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #4ade80; flex-shrink: 0;"></div>
+          <span style="font-weight: 600;">r4topunk.eth</span>
+          <span style="color: #888;">voted</span>
+          <span style="background: #dcfce7; color: #166534; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px;">FOR</span>
+          <span style="color: #888;">with</span>
+          <strong>41 votes</strong>
+          <span style="font-size: 11px; background: #f1f5f9; color: #475569; padding: 2px 7px; border-radius: 4px;">20 own</span>
+          <span style="font-size: 11px; background: #ede9fe; color: #6d28d9; padding: 2px 7px; border-radius: 4px; cursor: pointer;">21 delegated ▾</span>
+          <span style="color: #aaa; font-size: 13px; margin-left: auto;">2h ago</span>
+        </div>
+        <!-- expanded delegators as avatars row -->
+        <div style="padding-left: 46px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 5px; background: #f8f5ff; border-radius: 6px; padding: 4px 8px;">
+            <div style="width: 18px; height: 18px; border-radius: 50%; background: #a78bfa;"></div>
+            <span style="font-size: 11px; color: #4c1d95;">gnarly.eth</span>
+            <span style="font-size: 11px; font-weight: 600; color: #7c3aed;">12</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px; background: #f8f5ff; border-radius: 6px; padding: 4px 8px;">
+            <div style="width: 18px; height: 18px; border-radius: 50%; background: #c4b5fd;"></div>
+            <span style="font-size: 11px; color: #4c1d95;">0x4f2a…</span>
+            <span style="font-size: 11px; font-weight: 600; color: #7c3aed;">6</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px; background: #f8f5ff; border-radius: 6px; padding: 4px 8px;">
+            <div style="width: 18px; height: 18px; border-radius: 50%; background: #ddd6fe;"></div>
+            <span style="font-size: 11px; color: #4c1d95;">skater.eth</span>
+            <span style="font-size: 11px; font-weight: 600; color: #7c3aed;">3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size: 13px; color: #888; margin-top: 6px;">Click tag → delegators appear as pill chips below, inline. The card grows in place. Mobile-friendly, visually distinct from the vote reason text.</p>
+  </div>
+
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content"><h3>Tooltip</h3><p>Hover, ephemeral</p></div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content"><h3>Popover</h3><p>Click, inline panel</p></div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content"><h3>Expand row</h3><p>Click, chips in-place</p></div>
+  </div>
+</div>

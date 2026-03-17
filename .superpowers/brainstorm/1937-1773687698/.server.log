@@ -1,0 +1,8 @@
+{"type":"server-started","port":56474,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:56474","screen_dir":"/Users/r4to/Script/gnars-website/.superpowers/brainstorm/1937-1773687698"}
+{"type":"screen-added","file":"/Users/r4to/Script/gnars-website/.superpowers/brainstorm/1937-1773687698/vote-power-breakdown.html"}
+{"type":"screen-added","file":"/Users/r4to/Script/gnars-website/.superpowers/brainstorm/1937-1773687698/vote-card-breakdown.html"}
+{"source":"user-event","type":"click","text":"A\n    Inline tagsSame line, minimal","choice":"a","id":null,"timestamp":1773688011178}
+{"type":"screen-added","file":"/Users/r4to/Script/gnars-website/.superpowers/brainstorm/1937-1773687698/delegation-interaction.html"}
+{"type":"screen-added","file":"/Users/r4to/Script/gnars-website/.superpowers/brainstorm/1937-1773687698/delegation-interaction-v2.html"}
+{"type":"screen-added","file":"/Users/r4to/Script/gnars-website/.superpowers/brainstorm/1937-1773687698/tooltip-colorscheme.html"}
+{"type":"server-stopped","reason":"idle timeout"}

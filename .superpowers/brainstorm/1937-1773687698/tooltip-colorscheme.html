@@ -1,0 +1,133 @@
+<h2>Tooltip in the actual color scheme</h2>
+<p class="subtitle">Light and dark side by side — using the project's exact design tokens (grayscale, Shadcn/UI neutral palette)</p>
+
+<div class="split" style="gap: 20px; align-items: flex-start;">
+
+  <!-- LIGHT MODE -->
+  <div>
+    <div class="label" style="margin-bottom: 10px;">Light mode</div>
+    <div style="background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; font-family: system-ui, sans-serif; min-width: 340px;">
+
+      <!-- Vote card 1: no delegation -->
+      <div style="border: 1px solid #e9e9e9; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; background: #fff;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: #d4d4d4; flex-shrink: 0;"></div>
+          <span style="font-weight: 600; font-size: 13px; color: #1a1a1a;">fcarva.eth</span>
+          <span style="color: #777; font-size: 13px;">voted</span>
+          <span style="background: #dcfce7; color: #166534; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px;">FOR</span>
+          <span style="color: #777; font-size: 13px;">with <b style="color:#1a1a1a;">4 votes</b></span>
+          <span style="color: #aaa; font-size: 11px; margin-left: auto;">1h ago</span>
+        </div>
+      </div>
+
+      <!-- Vote card 2: with delegation + tooltip visible -->
+      <div style="border: 1px solid #e9e9e9; border-radius: 8px; padding: 12px 14px; background: #fff; margin-bottom: 10px;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: #4ade80; flex-shrink: 0;"></div>
+          <span style="font-weight: 600; font-size: 13px; color: #1a1a1a;">r4topunk.eth</span>
+          <span style="color: #777; font-size: 13px;">voted</span>
+          <span style="background: #dcfce7; color: #166534; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px;">FOR</span>
+          <span style="color: #777; font-size: 13px;">with <b style="color:#1a1a1a;">41 votes</b></span>
+          <!-- tags -->
+          <span style="font-size: 10px; background: #f3f4f6; color: #6b7280; padding: 2px 7px; border-radius: 4px;">20 own</span>
+          <span style="position: relative; display: inline-block;">
+            <span style="font-size: 10px; background: #f3f4f6; color: #374151; padding: 2px 7px; border-radius: 4px; cursor: pointer; border: 1px solid #d1d5db; font-weight: 500;">21 delegated ↓</span>
+            <!-- tooltip: popover token colors -->
+            <div style="position: absolute; top: calc(100% + 6px); left: 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; width: 200px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10;">
+              <div style="position: absolute; top: -5px; left: 14px; width: 9px; height: 9px; background: #fff; border-left: 1px solid #e5e7eb; border-top: 1px solid #e5e7eb; transform: rotate(45deg);"></div>
+              <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; margin-bottom: 8px;">Delegated from</div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #f3f4f6;">
+                <span style="color: #374151;">gnarly.eth</span><span style="font-weight: 600; color: #1a1a1a;">12</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #f3f4f6;">
+                <span style="color: #374151;">0x4f2a…c3d1</span><span style="font-weight: 600; color: #1a1a1a;">6</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0;">
+                <span style="color: #374151;">skater.eth</span><span style="font-weight: 600; color: #1a1a1a;">3</span>
+              </div>
+            </div>
+          </span>
+          <span style="color: #aaa; font-size: 11px; margin-left: auto;">2h ago</span>
+        </div>
+      </div>
+
+      <!-- Vote card 3 -->
+      <div style="border: 1px solid #e9e9e9; border-radius: 8px; padding: 12px 14px; background: #fff;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: #60a5fa; flex-shrink: 0;"></div>
+          <span style="font-weight: 600; font-size: 13px; color: #1a1a1a;">pamtech.eth</span>
+          <span style="color: #777; font-size: 13px;">voted</span>
+          <span style="background: #dcfce7; color: #166534; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px;">FOR</span>
+          <span style="color: #777; font-size: 13px;">with <b style="color:#1a1a1a;">59 votes</b></span>
+          <span style="color: #aaa; font-size: 11px; margin-left: auto;">2h ago</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DARK MODE -->
+  <div>
+    <div class="label" style="margin-bottom: 10px;">Dark mode</div>
+    <div style="background: #1a1a1a; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px 18px; font-family: system-ui, sans-serif; min-width: 340px;">
+
+      <!-- Vote card 1: no delegation -->
+      <div style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; background: #272727;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: #444; flex-shrink: 0;"></div>
+          <span style="font-weight: 600; font-size: 13px; color: #fafafa;">fcarva.eth</span>
+          <span style="color: #aaa; font-size: 13px;">voted</span>
+          <span style="background: rgba(74,222,128,0.15); color: #4ade80; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px;">FOR</span>
+          <span style="color: #aaa; font-size: 13px;">with <b style="color:#fafafa;">4 votes</b></span>
+          <span style="color: #555; font-size: 11px; margin-left: auto;">1h ago</span>
+        </div>
+      </div>
+
+      <!-- Vote card 2: with delegation + tooltip -->
+      <div style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px 14px; background: #272727; margin-bottom: 10px;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: #4ade80; flex-shrink: 0;"></div>
+          <span style="font-weight: 600; font-size: 13px; color: #fafafa;">r4topunk.eth</span>
+          <span style="color: #aaa; font-size: 13px;">voted</span>
+          <span style="background: rgba(74,222,128,0.15); color: #4ade80; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px;">FOR</span>
+          <span style="color: #aaa; font-size: 13px;">with <b style="color:#fafafa;">41 votes</b></span>
+          <!-- tags -->
+          <span style="font-size: 10px; background: #333; color: #aaa; padding: 2px 7px; border-radius: 4px;">20 own</span>
+          <span style="position: relative; display: inline-block;">
+            <span style="font-size: 10px; background: #333; color: #e5e7eb; padding: 2px 7px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(255,255,255,0.18); font-weight: 500;">21 delegated ↓</span>
+            <!-- tooltip: popover dark token -->
+            <div style="position: absolute; top: calc(100% + 6px); left: 0; background: #272727; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 10px 12px; width: 200px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); z-index: 10;">
+              <div style="position: absolute; top: -5px; left: 14px; width: 9px; height: 9px; background: #272727; border-left: 1px solid rgba(255,255,255,0.12); border-top: 1px solid rgba(255,255,255,0.12); transform: rotate(45deg);"></div>
+              <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #666; margin-bottom: 8px;">Delegated from</div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <span style="color: #d1d5db;">gnarly.eth</span><span style="font-weight: 600; color: #fafafa;">12</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <span style="color: #d1d5db;">0x4f2a…c3d1</span><span style="font-weight: 600; color: #fafafa;">6</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0;">
+                <span style="color: #d1d5db;">skater.eth</span><span style="font-weight: 600; color: #fafafa;">3</span>
+              </div>
+            </div>
+          </span>
+          <span style="color: #555; font-size: 11px; margin-left: auto;">2h ago</span>
+        </div>
+      </div>
+
+      <!-- Vote card 3 -->
+      <div style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px 14px; background: #272727;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: #60a5fa; flex-shrink: 0;"></div>
+          <span style="font-weight: 600; font-size: 13px; color: #fafafa;">pamtech.eth</span>
+          <span style="color: #aaa; font-size: 13px;">voted</span>
+          <span style="background: rgba(74,222,128,0.15); color: #4ade80; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px;">FOR</span>
+          <span style="color: #aaa; font-size: 13px;">with <b style="color:#fafafa;">59 votes</b></span>
+          <span style="color: #555; font-size: 11px; margin-left: auto;">2h ago</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<p style="font-size: 13px; color: #888; margin-top: 20px;">Tags use <code>bg-muted / text-muted-foreground</code>. The "delegated" tag gets a subtle border for affordance. Tooltip uses <code>bg-popover / border / shadow</code> — exactly what shadcn <code>&lt;Tooltip&gt;</code> renders. No custom colors needed.</p>
