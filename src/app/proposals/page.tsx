@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ProposalsGridSkeleton } from "@/components/proposals/ProposalsGrid";
 import { ProposalsView } from "@/components/proposals/ProposalsView";
-import { listProposals } from "@/services/proposals";
+import { listMultiChainProposals } from "@/services/multi-chain-proposals";
 
 export const revalidate = 60;
 
@@ -28,7 +28,8 @@ export const metadata: Metadata = {
 
 async function getProposals() {
   try {
-    return await listProposals(200, 0);
+    // Fetch proposals from all chains (Base + Ethereum mainnet)
+    return await listMultiChainProposals(200, true, false);
   } catch (error) {
     console.error("Failed to fetch proposals:", error);
     return [];
@@ -41,7 +42,7 @@ export default async function ProposalsPage() {
   return (
     <div className="py-8">
       <Suspense fallback={<ProposalsGridSkeleton />}>
-        <ProposalsView proposals={proposals} />
+        <ProposalsView proposals={proposals} showSnapshotLink />
       </Suspense>
     </div>
   );
