@@ -2,6 +2,7 @@ import { cache } from "react";
 import type { Proposal } from "@/components/proposals/types";
 import { listProposals as listBaseProposals } from "./proposals";
 import { getProposalStatus, ProposalStatus } from "@/lib/schemas/proposals";
+import type { SnapshotProposal } from "@/types/snapshot";
 
 export type ProposalSource = "base" | "ethereum" | "snapshot";
 
@@ -86,15 +87,84 @@ async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainPropos
 }
 
 /**
+ * Load Snapshot proposals from static JSON and convert to MultiChainProposal format
+ */
+async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainProposal[]> {
+  try {
+    const response = await fetch("/data/snapshot-proposals.json");
+    const snapshotProposalsData = (await response.json()) as SnapshotProposal[];
+    const proposals = snapshotProposalsData.slice(skip, skip + limit);
+
+    return proposals.map((p, index) => {
+      const proposalNumber = snapshotProposalsData.length - skip - index;
+      const createdAt = p.created * 1000;
+      
+      // Map Snapshot state to ProposalStatus
+      let status: ProposalStatus;
+      switch (p.state) {
+        case "active":
+          status = ProposalStatus.ACTIVE;
+          break;
+        case "closed":
+          status = ProposalStatus.EXECUTED;
+          break;
+        case "pending":
+          status = ProposalStatus.PENDING;
+          break;
+        default:
+          status = ProposalStatus.EXECUTED;
+      }
+
+      return {
+        proposalId: p.id,
+        proposalNumber,
+        title: p.title || `Snapshot Proposal #${proposalNumber}`,
+        description: p.body || "",
+        proposer: p.author,
+        proposerEnsName: undefined,
+        status,
+        createdAt,
+        endBlock: 0,
+        snapshotBlock: p.snapshot,
+        endDate: undefined,
+        forVotes: p.scores[0] || 0,
+        againstVotes: p.scores[1] || 0,
+        abstainVotes: p.scores[2] || 0,
+        quorumVotes: 0,
+        calldatas: [],
+        targets: [],
+        values: [],
+        signatures: [],
+        transactionHash: "",
+        votes: [],
+        voteStart: new Date(p.start * 1000).toISOString(),
+        voteEnd: new Date(p.end * 1000).toISOString(),
+        expiresAt: undefined,
+        timeCreated: p.created,
+        executableFrom: undefined,
+        queuedAt: undefined,
+        executedAt: p.state === "closed" ? new Date(p.end * 1000).toISOString() : undefined,
+        descriptionHash: "",
+        source: "snapshot" as const,
+        chainId: 0, // Snapshot is off-chain
+      };
+    });
+  } catch (error) {
+    console.error("[multi-chain-proposals] Failed to load Snapshot proposals:", error);
+    return [];
+  }
+}
+
+/**
  * Fetch proposals from all chains and merge chronologically
  * @param includeEthereum - Include legacy Ethereum mainnet proposals
- * @param includeSnapshot - Include Snapshot proposals (not yet implemented)
+ * @param includeSnapshot - Include Snapshot proposals
  */
 export const listMultiChainProposals = cache(
   async (
     limit = 200,
     includeEthereum = true,
-    _includeSnapshot = false,
+    includeSnapshot = true,
   ): Promise<MultiChainProposal[]> => {
     // Fetch Base proposals (live data from subgraph)
     const baseProposals = await listBaseProposals(limit).then((proposals) =>
@@ -110,8 +180,11 @@ export const listMultiChainProposals = cache(
     // Load Ethereum proposals from static JSON (historical data)
     const ethProposals = includeEthereum ? await loadEthProposals(limit) : [];
 
+    // Load Snapshot proposals from static JSON (historical data)
+    const snapshotProposals = includeSnapshot ? await loadSnapshotProposals(limit) : [];
+
     // Merge and sort chronologically (newest first)
-    const allProposals = [...baseProposals, ...ethProposals].sort(
+    const allProposals = [...baseProposals, ...ethProposals, ...snapshotProposals].sort(
       (a, b) => b.createdAt - a.createdAt,
     );
 

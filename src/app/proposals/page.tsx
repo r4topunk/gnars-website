@@ -28,8 +28,8 @@ export const metadata: Metadata = {
 
 async function getProposals() {
   try {
-    // Fetch proposals from all chains (Base + Ethereum mainnet)
-    return await listMultiChainProposals(200, true, false);
+    // Fetch proposals from all chains (Base + Ethereum mainnet + Snapshot)
+    return await listMultiChainProposals(200, true, true);
   } catch (error) {
     console.error("Failed to fetch proposals:", error);
     return [];
@@ -42,7 +42,7 @@ export default async function ProposalsPage() {
   return (
     <div className="py-8">
       <Suspense fallback={<ProposalsGridSkeleton />}>
-        <ProposalsView proposals={proposals} showSnapshotLink />
+        <ProposalsView proposals={proposals} />
       </Suspense>
     </div>
   );

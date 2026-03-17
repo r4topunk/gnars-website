@@ -15,10 +15,9 @@ import type { MultiChainProposal, ProposalSource } from "@/services/multi-chain-
 
 interface ProposalsViewProps {
   proposals: (Proposal | MultiChainProposal)[];
-  showSnapshotLink?: boolean;
 }
 
-export function ProposalsView({ proposals: allProposals, showSnapshotLink }: ProposalsViewProps) {
+export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   const ALL_STATUSES = useMemo(() => Object.values(ProposalStatus) as ProposalStatus[], []);
   const ALL_SOURCES: ProposalSource[] = ["base", "ethereum", "snapshot"];
   
@@ -32,7 +31,7 @@ export function ProposalsView({ proposals: allProposals, showSnapshotLink }: Pro
   );
   
   const [activeSources, setActiveSources] = useState<Set<ProposalSource>>(
-    () => new Set(["base", "ethereum"] as ProposalSource[]) // Default: show both
+    () => new Set(["base", "ethereum", "snapshot"] as ProposalSource[]) // Default: show all
   );
   
   const availableStatuses = useMemo(() => {
@@ -78,16 +77,7 @@ export function ProposalsView({ proposals: allProposals, showSnapshotLink }: Pro
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold tracking-tight">Proposals</h1>
-            {showSnapshotLink && (
-              <Link href="/proposals/snapshot">
-                <Button variant="outline" size="sm">
-                  Snapshot →
-                </Button>
-              </Link>
-            )}
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">Proposals</h1>
           <p className="text-muted-foreground">
             Proposals are how the community funds skateboarding projects, media, and public work.
             This is where skateboarding grants and skateboarding funding decisions are proposed,
@@ -128,7 +118,7 @@ export function ProposalsView({ proposals: allProposals, showSnapshotLink }: Pro
             }}
             onSelectAll={() => setActiveSources(new Set(ALL_SOURCES))}
             onClearAll={() => setActiveSources(new Set())}
-            onSelectDefault={() => setActiveSources(new Set(["base", "ethereum"] as ProposalSource[]))}
+            onSelectDefault={() => setActiveSources(new Set(["base", "ethereum", "snapshot"] as ProposalSource[]))}
           />
           <StatusFilter
             allStatuses={ALL_STATUSES}
