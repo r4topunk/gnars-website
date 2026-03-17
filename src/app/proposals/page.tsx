@@ -13,6 +13,17 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/proposals",
   },
+  openGraph: {
+    title: "Gnars Proposals — Skateboarding Grants & Funding",
+    description:
+      "Explore Gnars proposals to see how the community funds skateboarding grants, media, and culture-driven projects.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Gnars Proposals — Skateboarding Grants & Funding",
+    description:
+      "Explore Gnars proposals to see how the community funds skateboarding grants, media, and culture-driven projects.",
+  },
 };
 
 async function getProposals() {

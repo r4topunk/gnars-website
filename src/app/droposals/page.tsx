@@ -1,8 +1,26 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { DroposalsGrid } from "@/components/droposals/DroposalsGrid";
 import { fetchDroposals } from "@/services/droposals";
 
 export const revalidate = 1800; // 30 minutes
+
+export const metadata: Metadata = {
+  title: "Gnars Drops — Community Art & Skate Media",
+  description:
+    "Community-approved drops and skate media created by Gnars DAO members.",
+  openGraph: {
+    title: "Gnars Drops — Community Art & Skate Media",
+    description:
+      "Community-approved drops and skate media created by Gnars DAO members.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Gnars Drops — Community Art & Skate Media",
+    description:
+      "Community-approved drops and skate media created by Gnars DAO members.",
+  },
+};
 
 export default async function DroposalsPage() {
   const items = await fetchDroposals(24);
