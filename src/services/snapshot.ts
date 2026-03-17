@@ -1,6 +1,5 @@
 import { cache } from "react";
 import type { SnapshotProposal } from "@/types/snapshot";
-import snapshotProposalsData from "../../data/snapshot-proposals.json";
 
 /**
  * Load Snapshot proposals from static JSON (no API calls needed)
@@ -13,7 +12,9 @@ export const listSnapshotProposals = cache(
     state?: "pending" | "active" | "closed"
   ): Promise<SnapshotProposal[]> => {
     try {
-      let proposals = snapshotProposalsData as SnapshotProposal[];
+      const response = await fetch("/data/snapshot-proposals.json");
+      const snapshotProposalsData = (await response.json()) as SnapshotProposal[];
+      let proposals = snapshotProposalsData;
 
       // Filter by state if provided
       if (state) {
@@ -35,8 +36,9 @@ export const listSnapshotProposals = cache(
 export const getSnapshotProposal = cache(
   async (id: string): Promise<SnapshotProposal | null> => {
     try {
-      const proposals = snapshotProposalsData as SnapshotProposal[];
-      return proposals.find((p) => p.id === id) ?? null;
+      const response = await fetch("/data/snapshot-proposals.json");
+      const snapshotProposalsData = (await response.json()) as SnapshotProposal[];
+      return snapshotProposalsData.find((p) => p.id === id) ?? null;
     } catch (error) {
       console.error("[snapshot] Failed to load proposal:", error);
       return null;

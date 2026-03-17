@@ -2,7 +2,6 @@ import { cache } from "react";
 import type { Proposal } from "@/components/proposals/types";
 import { listProposals as listBaseProposals } from "./proposals";
 import { getProposalStatus, ProposalStatus } from "@/lib/schemas/proposals";
-import ethereumProposalsData from "../../data/ethereum-proposals.json";
 
 export type ProposalSource = "base" | "ethereum" | "snapshot";
 
@@ -33,10 +32,11 @@ interface EthProposalRaw {
  * Load Ethereum proposals from static JSON (no API calls needed)
  * Data is historical and won't change (all governance moved to Base)
  */
-function loadEthProposals(limit = 100, skip = 0): MultiChainProposal[] {
+async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainProposal[]> {
   try {
-    const proposals = (ethereumProposalsData as unknown as EthProposalRaw[])
-      .slice(skip, skip + limit);
+    const response = await fetch("/data/ethereum-proposals.json");
+    const ethereumProposalsData = (await response.json()) as EthProposalRaw[];
+    const proposals = ethereumProposalsData.slice(skip, skip + limit);
 
     return proposals.map((p) => {
       const proposalNumber = Number.parseInt(p.id, 10);
@@ -108,7 +108,7 @@ export const listMultiChainProposals = cache(
     );
 
     // Load Ethereum proposals from static JSON (historical data)
-    const ethProposals = includeEthereum ? loadEthProposals(limit) : [];
+    const ethProposals = includeEthereum ? await loadEthProposals(limit) : [];
 
     // Merge and sort chronologically (newest first)
     const allProposals = [...baseProposals, ...ethProposals].sort(
@@ -142,7 +142,7 @@ export const getMultiChainProposal = cache(
     }
 
     if (source === "ethereum") {
-      const ethProposals = loadEthProposals(1000);
+      const ethProposals = await loadEthProposals(1000);
       const proposal = ethProposals.find(
         (p) =>
           p.proposalId === idOrNumber ||
