@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
     // Build the signed URL request
     const signBody: Record<string, unknown> = {
       network: "public",
+      date: Math.floor(Date.now() / 1000),
       expires: 300, // 5 minutes
     };
 
