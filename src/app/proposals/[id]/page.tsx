@@ -47,10 +47,60 @@ export async function generateMetadata({ params }: ProposalPageProps): Promise<M
       fit: "cover",
     }) ?? rawImageUrl;
 
-  // Truncate description for metadata
-  const description = proposal.description
-    ? proposal.description.slice(0, 160) + (proposal.description.length > 160 ? "..." : "")
-    : `Vote on Proposal #${proposal.proposalNumber}: ${proposal.title}`;
+  // Strip markdown and create rich description
+  const stripMarkdown = (text: string): string => {
+    return text
+      .replace(/!\[.*?\]\(.*?\)/g, "") // Remove images
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1") // Remove links but keep text
+      .replace(/#{1,6}\s*/g, "") // Remove headers
+      .replace(/\*\*([^*]+)\*\*/g, "$1") // Remove bold
+      .replace(/\*([^*]+)\*/g, "$1") // Remove italic
+      .replace(/`([^`]+)`/g, "$1") // Remove inline code
+      .replace(/^\s*[-*+]\s+/gm, "") // Remove list markers
+      .replace(/^\s*>\s+/gm, "") // Remove blockquotes
+      .replace(/\n{2,}/g, " ") // Collapse multiple newlines
+      .trim();
+  };
+
+  const cleanDescription = stripMarkdown(proposal.description);
+  
+  // Extract funding amount from proposal (sum of values array)
+  const totalFunding = proposal.values.reduce((sum, val) => {
+    const eth = parseFloat(val) / 1e18;
+    return sum + eth;
+  }, 0);
+  const fundingStr = totalFunding > 0 ? `${totalFunding.toFixed(2)} ETH` : null;
+
+  // Calculate deadline for active proposals
+  const getTimeUntil = (endDate: string): string => {
+    const now = new Date();
+    const end = new Date(endDate);
+    const diffMs = end.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return "Ended";
+    if (diffDays === 0) return "Ends today";
+    if (diffDays === 1) return "Ends tomorrow";
+    if (diffDays <= 7) return `Ends in ${diffDays} days`;
+    return `Ends ${end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+  };
+
+  // Build compelling description based on status
+  let description = "";
+  
+  if (proposal.status === "Active") {
+    const deadline = getTimeUntil(proposal.voteEnd);
+    const votes = `${proposal.forVotes} FOR, ${proposal.againstVotes} AGAINST`;
+    const prefix = fundingStr ? `${fundingStr} · ${deadline} · ${votes}` : `${deadline} · ${votes}`;
+    description = `${prefix} | ${cleanDescription.slice(0, 100)}${cleanDescription.length > 100 ? "..." : ""}`;
+  } else if (proposal.status === "Executed" && fundingStr) {
+    description = `Executed · ${fundingStr} allocated | ${cleanDescription.slice(0, 120)}${cleanDescription.length > 120 ? "..." : ""}`;
+  } else if (proposal.status === "Succeeded" && fundingStr) {
+    description = `Passed · ${fundingStr} pending execution | ${cleanDescription.slice(0, 110)}${cleanDescription.length > 110 ? "..." : ""}`;
+  } else {
+    const prefix = fundingStr ? `${proposal.status} · ${fundingStr}` : proposal.status;
+    description = `${prefix} | ${cleanDescription.slice(0, 130)}${cleanDescription.length > 130 ? "..." : ""}`;
+  }
 
   const proposalUrl = `${BASE_URL}/proposals/${id}`;
   const miniappImageUrl = `${BASE_URL}/proposals/${id}/miniapp-image`;
