@@ -3,6 +3,7 @@
 
 import { Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { AddressDisplay } from "@/components/ui/address-display";
 import type { DelegatorWithCount } from "@/services/members";
 
 type DelegationStatus = "loading" | "done" | "error";
@@ -46,10 +47,16 @@ export function DelegationTooltip({ totalVotes, delegators, status }: Delegation
               </p>
               <div className="space-y-1">
                 {delegators.map((d) => (
-                  <div key={d.owner} className="flex justify-between gap-6 text-xs">
-                    <span className="opacity-80 font-mono">
-                      {d.owner.slice(0, 6)}…{d.owner.slice(-4)}
-                    </span>
+                  <div key={d.owner} className="flex items-center justify-between gap-6 text-xs">
+                    <AddressDisplay
+                      address={d.owner}
+                      variant="compact"
+                      showAvatar={false}
+                      showCopy={false}
+                      showExplorer={false}
+                      avatarSize="xs"
+                      truncateLength={4}
+                    />
                     <span className="font-semibold">{d.tokenCount}</span>
                   </div>
                 ))}
