@@ -17,6 +17,37 @@ interface ProposalsViewProps {
   proposals: (Proposal | MultiChainProposal)[];
 }
 
+// Raw JSON types from static files
+interface RawEthProposal {
+  id: string;
+  createdTimestamp: string;
+  startBlock: string;
+  endBlock: string;
+  executionETA: string | null;
+  title: string;
+  description?: string;
+  status: string;
+  proposer: { id: string };
+  forVotes: string;
+  abstainVotes: string;
+  againstVotes: string;
+  quorumVotes: string;
+  totalSupply: string;
+}
+
+interface RawSnapshotProposal {
+  id: string;
+  title: string;
+  body: string;
+  author: string;
+  created: number;
+  start: number;
+  end: number;
+  snapshot: number;
+  state: string;
+  scores: number[];
+}
+
 export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   const ALL_STATUSES = useMemo(() => Object.values(ProposalStatus) as ProposalStatus[], []);
   const ALL_SOURCES: ProposalSource[] = ["base", "ethereum", "snapshot"];
@@ -48,9 +79,9 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
     setIsLoadingEthereum(true);
     try {
       const response = await fetch('/data/ethereum-proposals.json');
-      const data = await response.json();
+      const data: RawEthProposal[] = await response.json();
       // Transform to MultiChainProposal format (similar to server-side logic)
-      const proposals: MultiChainProposal[] = data.map((p: any) => ({
+      const proposals: MultiChainProposal[] = data.map((p) => ({
         proposalId: p.id,
         proposalNumber: Number.parseInt(p.id, 10),
         title: p.title || `Proposal #${p.id}`,
@@ -91,9 +122,9 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
     setIsLoadingSnapshot(true);
     try {
       const response = await fetch('/data/snapshot-proposals.json');
-      const data = await response.json();
+      const data: RawSnapshotProposal[] = await response.json();
       // Transform to MultiChainProposal format
-      const proposals: MultiChainProposal[] = data.map((p: any, index: number) => ({
+      const proposals: MultiChainProposal[] = data.map((p, index) => ({
         proposalId: p.id,
         proposalNumber: data.length - index,
         title: p.title || `Snapshot Proposal #${data.length - index}`,
