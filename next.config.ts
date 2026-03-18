@@ -70,6 +70,13 @@ const nextConfig: NextConfig = {
     const blogRedirects = generateBlogRedirects();
 
     return [
+      // Legacy proposal routes (before multi-chain support)
+      // Redirect /proposals/119 -> /proposals/base/119
+      {
+        source: "/proposals/:id(\\d+)",
+        destination: "/proposals/base/:id",
+        permanent: false, // Use temporary redirect for easier rollback if needed
+      },
       // DAO URL pattern changes
       {
         source: "/dao/proposal/:id",
