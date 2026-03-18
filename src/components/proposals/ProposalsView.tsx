@@ -18,19 +18,6 @@ interface ProposalsViewProps {
 }
 
 export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
-  // Debug: log what we received from server
-  useEffect(() => {
-    console.log('[ProposalsView] Initial props:', {
-      count: allProposals.length,
-      sources: [...new Set(allProposals.map(p => (p as MultiChainProposal).source || 'base'))],
-      sample: allProposals.slice(0, 2).map(p => ({
-        id: p.proposalId,
-        number: p.proposalNumber,
-        source: (p as MultiChainProposal).source,
-      })),
-    });
-  }, [allProposals]);
-
   const ALL_STATUSES = useMemo(() => Object.values(ProposalStatus) as ProposalStatus[], []);
   const ALL_SOURCES: ProposalSource[] = ["base", "ethereum", "snapshot"];
   
@@ -189,43 +176,11 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
       proposalsToFilter = mergedProposals.filter((p) => idSet.has(p.proposalId));
     }
 
-    const filtered = proposalsToFilter.filter((p) => {
+    return proposalsToFilter.filter((p) => {
       const source = (p as MultiChainProposal).source || "base";
-      const statusMatch = activeStatuses.has(p.status);
-      const sourceMatch = activeSources.has(source);
-      
-      // Debug individual proposal filtering
-      if (!statusMatch || !sourceMatch) {
-        if (typeof window !== "undefined" && Math.random() < 0.01) { // Log 1% of filtered-out proposals
-          console.log('[ProposalsView] Filtered out:', {
-            id: p.proposalId,
-            status: p.status,
-            source,
-            statusMatch,
-            sourceMatch,
-            activeStatuses: Array.from(activeStatuses),
-            activeSources: Array.from(activeSources),
-          });
-        }
-      }
-      
-      return statusMatch && sourceMatch;
+      return activeStatuses.has(p.status) && activeSources.has(source);
     });
-
-    // Debug logging
-    if (typeof window !== "undefined") {
-      console.log('[ProposalsView]', {
-        allProposalsCount: allProposals.length,
-        mergedCount: mergedProposals.length,
-        filteredCount: filtered.length,
-        activeSources: Array.from(activeSources),
-        ethereumCount: ethereumProposals.length,
-        snapshotCount: snapshotProposals.length,
-      });
-    }
-
-    return filtered;
-  }, [mergedProposals, activeStatuses, activeSources, searchFilteredIds, allProposals, ethereumProposals, snapshotProposals]);
+  }, [mergedProposals, activeStatuses, activeSources, searchFilteredIds]);
 
   return (
     <div className="space-y-6">
