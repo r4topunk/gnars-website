@@ -18,6 +18,19 @@ interface ProposalsViewProps {
 }
 
 export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
+  // Debug: log what we received from server
+  useEffect(() => {
+    console.log('[ProposalsView] Initial props:', {
+      count: allProposals.length,
+      sources: [...new Set(allProposals.map(p => (p as MultiChainProposal).source || 'base'))],
+      sample: allProposals.slice(0, 2).map(p => ({
+        id: p.proposalId,
+        number: p.proposalNumber,
+        source: (p as MultiChainProposal).source,
+      })),
+    });
+  }, [allProposals]);
+
   const ALL_STATUSES = useMemo(() => Object.values(ProposalStatus) as ProposalStatus[], []);
   const ALL_SOURCES: ProposalSource[] = ["base", "ethereum", "snapshot"];
   

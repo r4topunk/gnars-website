@@ -30,7 +30,12 @@ async function getProposals() {
   try {
     // Only fetch Base proposals by default (for performance)
     // Ethereum and Snapshot are loaded client-side when filters are activated
-    return await listMultiChainProposals(200, false, false);
+    const proposals = await listMultiChainProposals(200, false, false);
+    console.log('[ProposalsPage SSR]', {
+      count: proposals.length,
+      sources: [...new Set(proposals.map(p => (p as any).source || 'base'))],
+    });
+    return proposals;
   } catch (error) {
     console.error("Failed to fetch proposals:", error);
     return [];
