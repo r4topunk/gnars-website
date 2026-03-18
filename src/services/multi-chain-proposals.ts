@@ -35,7 +35,11 @@ interface EthProposalRaw {
  */
 async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainProposal[]> {
   try {
-    const response = await fetch("/data/ethereum-proposals.json");
+    const fs = await import("fs");
+    const path = await import("path");
+    const filePath = path.join(process.cwd(), "public/data/ethereum-proposals.json");
+    const fileContents = fs.readFileSync(filePath, "utf8");
+    const response = { json: async () => JSON.parse(fileContents) };
     const ethereumProposalsData = (await response.json()) as EthProposalRaw[];
     const proposals = ethereumProposalsData.slice(skip, skip + limit);
 
@@ -91,8 +95,11 @@ async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainPropos
  */
 async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainProposal[]> {
   try {
-    const response = await fetch("/data/snapshot-proposals.json");
-    const snapshotProposalsData = (await response.json()) as SnapshotProposal[];
+    const fs = await import("fs");
+    const path = await import("path");
+    const filePath = path.join(process.cwd(), "public/data/snapshot-proposals.json");
+    const fileContents = fs.readFileSync(filePath, "utf8");
+    const snapshotProposalsData = JSON.parse(fileContents) as SnapshotProposal[];
     const proposals = snapshotProposalsData.slice(skip, skip + limit);
 
     return proposals.map((p, index) => {
