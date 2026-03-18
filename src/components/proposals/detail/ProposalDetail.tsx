@@ -12,6 +12,7 @@ import { ProposalVotesList } from "@/components/proposals/detail/ProposalVotesLi
 import { ProposalMetrics } from "@/components/proposals/ProposalMetrics";
 import { ProposalTransactionVisualization } from "@/components/proposals/transaction/ProposalTransactionVisualization";
 import { Proposal, type ProposalVote } from "@/components/proposals/types";
+import type { MultiChainProposal } from "@/services/multi-chain-proposals";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePropdates } from "@/hooks/use-propdates";
@@ -20,7 +21,7 @@ import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
 
 interface ProposalDetailProps {
-  proposal: Proposal;
+  proposal: Proposal | MultiChainProposal;
 }
 
 export function ProposalDetailSkeleton() {
@@ -51,6 +52,16 @@ export function ProposalDetailSkeleton() {
 export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const router = useRouter();
   const { address } = useAccount();
+  
+  // Detect proposal source for conditional rendering
+  const proposalSource = (proposal as MultiChainProposal).source || "base";
+  const isSnapshot = proposalSource === "snapshot";
+  const isEthereum = proposalSource === "ethereum";
+  const isBase = proposalSource === "base";
+  
+  // Snapshot and Ethereum proposals are read-only (no voting)
+  const isReadOnly = isSnapshot || isEthereum;
+  
   const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
   const [userVoteReason, setUserVoteReason] = useState<string | null>(null);
   const [hasRecentVoteConfirmation, setHasRecentVoteConfirmation] = useState(false);
@@ -188,14 +199,23 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
 
   // Show votes tab if there are any votes (for any status: Active, Executed, Defeated, etc.)
   const shouldShowVotesTab = votesList.length > 0;
+  
+  // Show transactions tab only if proposal has transaction data
+  // Snapshot proposals don't have calldatas/targets/values
+  const hasTransactionData = 
+    proposal.calldatas && 
+    proposal.calldatas.length > 0 && 
+    proposal.targets && 
+    proposal.targets.length > 0;
 
   // Count visible tabs to determine if we should show tabs at all
   const visibleTabsCount = 1 + (shouldShowVotesTab ? 1 : 0) + (shouldShowPropdatesTab ? 1 : 0);
   const shouldShowTabs = visibleTabsCount > 1;
 
   // Show voting card for active proposals (connection check moved to VotingControls to avoid hydration issues)
+  // Hide voting for read-only proposals (Snapshot and Ethereum)
   const isProposalActive = proposal.status === "Active";
-  const shouldShowVotingCard = isProposalActive;
+  const shouldShowVotingCard = isProposalActive && !isReadOnly;
 
   const endDate = proposal.endDate ? new Date(proposal.endDate) : undefined;
   const startDate = proposal.voteStart ? new Date(proposal.voteStart) : undefined;
@@ -209,6 +229,36 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         status={proposal.status}
         transactionHash={proposal.transactionHash}
       />
+      {isReadOnly && (
+        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-blue-600 dark:text-blue-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  {isSnapshot ? "Snapshot Proposal (Historical)" : "Ethereum Mainnet Proposal (Historical)"}
+                </p>
+                <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                  This proposal was {isSnapshot ? "voted on via Snapshot" : "executed on Ethereum mainnet"}. 
+                  Voting is not available on this interface. All Gnars governance now happens on Base L2.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <ProposalMetrics
         forVotes={String(voteTotals.forVotes)}
         againstVotes={String(voteTotals.againstVotes)}
@@ -258,19 +308,21 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
           </div>
           <TabsContent value="details" className="space-y-6 mt-6">
             <ProposalDescriptionCard description={proposal.description} />
-            <Card>
-              <CardHeader>
-                <CardTitle>Proposed Transactions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ProposalTransactionVisualization
-                  targets={proposal.targets}
-                  values={proposal.values}
-                  signatures={proposal.signatures}
-                  calldatas={proposal.calldatas}
-                />
-              </CardContent>
-            </Card>
+            {hasTransactionData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Proposed Transactions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ProposalTransactionVisualization
+                    targets={proposal.targets}
+                    values={proposal.values}
+                    signatures={proposal.signatures}
+                    calldatas={proposal.calldatas}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
           {shouldShowVotesTab && (
             <TabsContent value="votes" className="mt-6 space-y-6">
@@ -296,19 +348,21 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       ) : (
         <div className="space-y-6">
           <ProposalDescriptionCard description={proposal.description} />
-          <Card>
-            <CardHeader>
-              <CardTitle>Proposed Transactions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProposalTransactionVisualization
-                targets={proposal.targets}
-                values={proposal.values}
-                signatures={proposal.signatures}
-                calldatas={proposal.calldatas}
-              />
-            </CardContent>
-          </Card>
+          {hasTransactionData && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Proposed Transactions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ProposalTransactionVisualization
+                  targets={proposal.targets}
+                  values={proposal.values}
+                  signatures={proposal.signatures}
+                  calldatas={proposal.calldatas}
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </div>

@@ -227,8 +227,18 @@ export const getMultiChainProposal = cache(
       return proposal ?? null;
     }
 
+    if (source === "snapshot") {
+      const snapshotProposals = await loadSnapshotProposals(1000);
+      const proposal = snapshotProposals.find(
+        (p) =>
+          p.proposalId === idOrNumber ||
+          p.proposalNumber === Number.parseInt(idOrNumber, 10),
+      );
+      return proposal ?? null;
+    }
+
     // No source specified - check all chains
-    const allProposals = await listMultiChainProposals(1000, true, false);
+    const allProposals = await listMultiChainProposals(1000, true, true);
     return (
       allProposals.find(
         (p) =>
