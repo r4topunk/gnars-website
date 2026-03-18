@@ -191,7 +191,25 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
 
     const filtered = proposalsToFilter.filter((p) => {
       const source = (p as MultiChainProposal).source || "base";
-      return activeStatuses.has(p.status) && activeSources.has(source);
+      const statusMatch = activeStatuses.has(p.status);
+      const sourceMatch = activeSources.has(source);
+      
+      // Debug individual proposal filtering
+      if (!statusMatch || !sourceMatch) {
+        if (typeof window !== "undefined" && Math.random() < 0.01) { // Log 1% of filtered-out proposals
+          console.log('[ProposalsView] Filtered out:', {
+            id: p.proposalId,
+            status: p.status,
+            source,
+            statusMatch,
+            sourceMatch,
+            activeStatuses: Array.from(activeStatuses),
+            activeSources: Array.from(activeSources),
+          });
+        }
+      }
+      
+      return statusMatch && sourceMatch;
     });
 
     // Debug logging
