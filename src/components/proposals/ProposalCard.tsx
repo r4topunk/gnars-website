@@ -22,12 +22,14 @@ function formatAssetAmount(value: number, maxFractionDigits = 4): string {
   }).format(value);
 }
 
+import type { MultiChainProposal } from "@/services/multi-chain-proposals";
+
 export function ProposalCard({
   proposal,
   showBanner = false,
   showRequested = true,
 }: {
-  proposal: Proposal;
+  proposal: Proposal | MultiChainProposal;
   showBanner?: boolean;
   showRequested?: boolean;
 }) {
@@ -76,8 +78,11 @@ export function ProposalCard({
     setIsImageLoaded(false);
   }, [currentBannerSrc]);
 
+  const source = (proposal as MultiChainProposal).source || "base";
+  const proposalUrl = `/proposals/${source}/${proposal.proposalNumber}`;
+
   return (
-    <Link href={`/proposals/${proposal.proposalNumber}`} className="block">
+    <Link href={proposalUrl} className="block">
       <Card className="overflow-hidden cursor-pointer transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-md">
         {showBanner && (
           <div className="mx-4 border rounded-md overflow-hidden">
