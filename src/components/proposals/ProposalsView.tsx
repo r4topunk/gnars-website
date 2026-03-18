@@ -149,12 +149,12 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   
   const availableSources = useMemo(() => {
     const sources = new Set<ProposalSource>();
-    mergedProposals.forEach((p) => {
-      const source = (p as MultiChainProposal).source || "base";
-      sources.add(source);
-    });
+    // Always show all sources (Base is always available, others load on-demand)
+    sources.add("base");
+    sources.add("ethereum");
+    sources.add("snapshot");
     return sources;
-  }, [mergedProposals]);
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
@@ -176,11 +176,25 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
       proposalsToFilter = mergedProposals.filter((p) => idSet.has(p.proposalId));
     }
 
-    return proposalsToFilter.filter((p) => {
+    const filtered = proposalsToFilter.filter((p) => {
       const source = (p as MultiChainProposal).source || "base";
       return activeStatuses.has(p.status) && activeSources.has(source);
     });
-  }, [mergedProposals, activeStatuses, activeSources, searchFilteredIds]);
+
+    // Debug logging
+    if (typeof window !== "undefined") {
+      console.log('[ProposalsView]', {
+        allProposalsCount: allProposals.length,
+        mergedCount: mergedProposals.length,
+        filteredCount: filtered.length,
+        activeSources: Array.from(activeSources),
+        ethereumCount: ethereumProposals.length,
+        snapshotCount: snapshotProposals.length,
+      });
+    }
+
+    return filtered;
+  }, [mergedProposals, activeStatuses, activeSources, searchFilteredIds, allProposals, ethereumProposals, snapshotProposals]);
 
   return (
     <div className="space-y-6">
