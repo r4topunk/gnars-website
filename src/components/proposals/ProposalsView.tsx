@@ -30,22 +30,131 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
       ),
   );
   
+  // Default: only Base proposals (server-loaded)
+  // Ethereum and Snapshot are loaded client-side when filters activated
   const [activeSources, setActiveSources] = useState<Set<ProposalSource>>(
-    () => new Set(["base", "ethereum", "snapshot"] as ProposalSource[]) // Default: show all
+    () => new Set(["base"] as ProposalSource[])
   );
   
+  // Client-side proposals (loaded on-demand)
+  const [ethereumProposals, setEthereumProposals] = useState<MultiChainProposal[]>([]);
+  const [snapshotProposals, setSnapshotProposals] = useState<MultiChainProposal[]>([]);
+  const [isLoadingEthereum, setIsLoadingEthereum] = useState(false);
+  const [isLoadingSnapshot, setIsLoadingSnapshot] = useState(false);
+  
+  // Load Ethereum proposals on-demand
+  const loadEthereumProposals = async () => {
+    if (ethereumProposals.length > 0) return; // Already loaded
+    setIsLoadingEthereum(true);
+    try {
+      const response = await fetch('/data/ethereum-proposals.json');
+      const data = await response.json();
+      // Transform to MultiChainProposal format (similar to server-side logic)
+      const proposals: MultiChainProposal[] = data.map((p: any) => ({
+        proposalId: p.id,
+        proposalNumber: Number.parseInt(p.id, 10),
+        title: p.title || `Proposal #${p.id}`,
+        description: p.description || "",
+        proposer: p.proposer.id,
+        status: p.status as ProposalStatus,
+        createdAt: Number(p.createdTimestamp) * 1000,
+        endBlock: Number(p.endBlock),
+        snapshotBlock: Number(p.startBlock),
+        forVotes: Number(p.forVotes),
+        againstVotes: Number(p.againstVotes),
+        abstainVotes: Number(p.abstainVotes),
+        quorumVotes: Number(p.quorumVotes),
+        calldatas: [],
+        targets: [],
+        values: [],
+        signatures: [],
+        transactionHash: "",
+        votes: [],
+        voteStart: new Date(Number(p.startBlock) * 12 * 1000).toISOString(),
+        voteEnd: new Date(Number(p.endBlock) * 12 * 1000).toISOString(),
+        timeCreated: Number(p.createdTimestamp),
+        descriptionHash: "",
+        source: "ethereum" as const,
+        chainId: 1,
+      }));
+      setEthereumProposals(proposals);
+    } catch (error) {
+      console.error('Failed to load Ethereum proposals:', error);
+    } finally {
+      setIsLoadingEthereum(false);
+    }
+  };
+
+  // Load Snapshot proposals on-demand
+  const loadSnapshotProposals = async () => {
+    if (snapshotProposals.length > 0) return; // Already loaded
+    setIsLoadingSnapshot(true);
+    try {
+      const response = await fetch('/data/snapshot-proposals.json');
+      const data = await response.json();
+      // Transform to MultiChainProposal format
+      const proposals: MultiChainProposal[] = data.map((p: any, index: number) => ({
+        proposalId: p.id,
+        proposalNumber: data.length - index,
+        title: p.title || `Snapshot Proposal #${data.length - index}`,
+        description: p.body || "",
+        proposer: p.author,
+        status: p.state === "active" ? ProposalStatus.ACTIVE : ProposalStatus.EXECUTED,
+        createdAt: p.created * 1000,
+        endBlock: 0,
+        snapshotBlock: p.snapshot,
+        forVotes: p.scores[0] || 0,
+        againstVotes: p.scores[1] || 0,
+        abstainVotes: p.scores[2] || 0,
+        quorumVotes: 0,
+        calldatas: [],
+        targets: [],
+        values: [],
+        signatures: [],
+        transactionHash: "",
+        votes: [],
+        voteStart: new Date(p.start * 1000).toISOString(),
+        voteEnd: new Date(p.end * 1000).toISOString(),
+        timeCreated: p.created,
+        descriptionHash: "",
+        source: "snapshot" as const,
+        chainId: 0,
+      }));
+      setSnapshotProposals(proposals);
+    } catch (error) {
+      console.error('Failed to load Snapshot proposals:', error);
+    } finally {
+      setIsLoadingSnapshot(false);
+    }
+  };
+
+  // Load proposals when filters are activated
+  useEffect(() => {
+    if (activeSources.has("ethereum")) {
+      loadEthereumProposals();
+    }
+    if (activeSources.has("snapshot")) {
+      loadSnapshotProposals();
+    }
+  }, [activeSources]);
+
+  // Merge all proposals (server + client)
+  const mergedProposals = useMemo(() => {
+    return [...allProposals, ...ethereumProposals, ...snapshotProposals];
+  }, [allProposals, ethereumProposals, snapshotProposals]);
+
   const availableStatuses = useMemo(() => {
-    return new Set(allProposals.map((p) => p.status));
-  }, [allProposals]);
+    return new Set(mergedProposals.map((p) => p.status));
+  }, [mergedProposals]);
   
   const availableSources = useMemo(() => {
     const sources = new Set<ProposalSource>();
-    allProposals.forEach((p) => {
+    mergedProposals.forEach((p) => {
       const source = (p as MultiChainProposal).source || "base";
       sources.add(source);
     });
     return sources;
-  }, [allProposals]);
+  }, [mergedProposals]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
@@ -53,25 +162,25 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
     init: initSearchWorker,
     ids: searchFilteredIds,
     search: searchProposals,
-  } = useProposalSearch(allProposals);
+  } = useProposalSearch(mergedProposals);
 
   useEffect(() => {
     searchProposals(deferredSearchQuery);
   }, [deferredSearchQuery, searchProposals]);
 
   const filteredProposals = useMemo(() => {
-    let proposalsToFilter = allProposals;
+    let proposalsToFilter = mergedProposals;
 
     if (searchFilteredIds) {
       const idSet = new Set(searchFilteredIds);
-      proposalsToFilter = allProposals.filter((p) => idSet.has(p.proposalId));
+      proposalsToFilter = mergedProposals.filter((p) => idSet.has(p.proposalId));
     }
 
     return proposalsToFilter.filter((p) => {
       const source = (p as MultiChainProposal).source || "base";
       return activeStatuses.has(p.status) && activeSources.has(source);
     });
-  }, [allProposals, activeStatuses, activeSources, searchFilteredIds]);
+  }, [mergedProposals, activeStatuses, activeSources, searchFilteredIds]);
 
   return (
     <div className="space-y-6">
@@ -118,7 +227,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
             }}
             onSelectAll={() => setActiveSources(new Set(ALL_SOURCES))}
             onClearAll={() => setActiveSources(new Set())}
-            onSelectDefault={() => setActiveSources(new Set(["base", "ethereum", "snapshot"] as ProposalSource[]))}
+            onSelectDefault={() => setActiveSources(new Set(["base"] as ProposalSource[]))}
           />
           <StatusFilter
             allStatuses={ALL_STATUSES}
@@ -140,6 +249,11 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
           />
         </div>
       </div>
+      {(isLoadingEthereum || isLoadingSnapshot) && (
+        <div className="text-center text-sm text-muted-foreground py-4">
+          Loading {isLoadingEthereum ? "Ethereum" : ""} {isLoadingSnapshot ? "Snapshot" : ""} proposals...
+        </div>
+      )}
       <ProposalsGrid proposals={filteredProposals} />
     </div>
   );

@@ -28,8 +28,9 @@ export const metadata: Metadata = {
 
 async function getProposals() {
   try {
-    // Fetch proposals from all chains (Base + Ethereum mainnet + Snapshot)
-    return await listMultiChainProposals(200, true, true);
+    // Only fetch Base proposals by default (for performance)
+    // Ethereum and Snapshot are loaded client-side when filters are activated
+    return await listMultiChainProposals(200, false, false);
   } catch (error) {
     console.error("Failed to fetch proposals:", error);
     return [];
