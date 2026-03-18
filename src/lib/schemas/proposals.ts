@@ -59,6 +59,9 @@ export const proposalSchema = z.object({
   queuedAt: z.string().optional(), // ISO date string - When proposal was queued
   executedAt: z.string().optional(), // ISO date string - When proposal was executed
   descriptionHash: z.string().optional(), // Hash needed for execute call
+  // Multi-chain support
+  source: z.enum(["base", "ethereum", "snapshot"]).optional(), // Chain source
+  chainId: z.number().optional(), // Chain ID (8453 for Base, 1 for Ethereum, 0 for Snapshot)
 });
 
 export function getProposalStatus(state: unknown): ProposalStatus {
