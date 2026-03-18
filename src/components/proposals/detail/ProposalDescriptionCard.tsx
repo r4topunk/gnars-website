@@ -9,9 +9,11 @@ interface ProposalDescriptionCardProps {
 
 export function ProposalDescriptionCard({ description }: ProposalDescriptionCardProps) {
   // Convert IPFS URLs in markdown before rendering
+  // Note: snapshot-proposals.json already uses SkateHive gateway for most images
+  // This is a fallback for any remaining ipfs:// URLs
   const processedDescription = description.replace(
     /!\[([^\]]*)\]\(ipfs:\/\/([a-zA-Z0-9]+)\)/g,
-    (match, alt, cid) => `![${alt}](https://ipfs.snapshot.box/ipfs/${cid})`
+    (match, alt, cid) => `![${alt}](https://ipfs.skatehive.app/ipfs/${cid})`
   );
   
   return (
