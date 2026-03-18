@@ -205,7 +205,7 @@ export const listMultiChainProposals = cache(
     includeSnapshot = true,
   ): Promise<MultiChainProposal[]> => {
     // Fetch Base proposals (live data from subgraph)
-    const baseProposals = await listBaseProposals(limit).then((proposals) =>
+    const baseProposals = await listBaseProposals(1000).then((proposals) =>
       proposals.map(
         (p): MultiChainProposal => ({
           ...p,
@@ -216,10 +216,10 @@ export const listMultiChainProposals = cache(
     );
 
     // Load Ethereum proposals from static JSON (historical data)
-    const ethProposals = includeEthereum ? await loadEthProposals(limit) : [];
+    const ethProposals = includeEthereum ? await loadEthProposals(1000) : [];
 
     // Load Snapshot proposals from static JSON (historical data)
-    const snapshotProposals = includeSnapshot ? await loadSnapshotProposals(limit) : [];
+    const snapshotProposals = includeSnapshot ? await loadSnapshotProposals(1000) : [];
 
     // Merge and sort chronologically (newest first)
     const allProposals = [...baseProposals, ...ethProposals, ...snapshotProposals].sort(
