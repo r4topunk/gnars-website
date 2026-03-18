@@ -1,6 +1,6 @@
 import { cache } from "react";
 import type { Proposal } from "@/components/proposals/types";
-import { listProposals as listBaseProposals } from "./proposals";
+import { listProposals as listBaseProposals, getProposalByIdOrNumber } from "./proposals";
 import { getProposalStatus, ProposalStatus } from "@/lib/schemas/proposals";
 import type { SnapshotProposal } from "@/types/snapshot";
 
@@ -206,12 +206,8 @@ export const getMultiChainProposal = cache(
   async (idOrNumber: string, source?: ProposalSource): Promise<MultiChainProposal | null> => {
     // If source is specified, only check that chain
     if (source === "base") {
-      const baseProposals = await listBaseProposals(1000);
-      const proposal = baseProposals.find(
-        (p) =>
-          p.proposalId === idOrNumber ||
-          p.proposalNumber === Number.parseInt(idOrNumber, 10),
-      );
+      // Use getProposalByIdOrNumber to fetch votes with timestamps
+      const proposal = await getProposalByIdOrNumber(idOrNumber);
       return proposal
         ? {
             ...proposal,
