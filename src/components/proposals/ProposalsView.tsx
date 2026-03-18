@@ -11,13 +11,16 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useProposalSearch } from "@/hooks/use-proposal-search";
 import { ProposalStatus } from "@/lib/schemas/proposals";
+import type { MultiChainProposal, ProposalSource } from "@/services/multi-chain-proposals";
 
 interface ProposalsViewProps {
-  proposals: Proposal[];
+  proposals: (Proposal | MultiChainProposal)[];
 }
 
 export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   const ALL_STATUSES = useMemo(() => Object.values(ProposalStatus) as ProposalStatus[], []);
+  const ALL_SOURCES: ProposalSource[] = ["base", "ethereum", "snapshot"];
+  
   const [activeStatuses, setActiveStatuses] = useState<Set<ProposalStatus>>(
     () =>
       new Set(
@@ -26,8 +29,22 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
         ),
       ),
   );
+  
+  const [activeSources, setActiveSources] = useState<Set<ProposalSource>>(
+    () => new Set(["base", "ethereum", "snapshot"] as ProposalSource[]) // Default: show all
+  );
+  
   const availableStatuses = useMemo(() => {
     return new Set(allProposals.map((p) => p.status));
+  }, [allProposals]);
+  
+  const availableSources = useMemo(() => {
+    const sources = new Set<ProposalSource>();
+    allProposals.forEach((p) => {
+      const source = (p as MultiChainProposal).source || "base";
+      sources.add(source);
+    });
+    return sources;
   }, [allProposals]);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,8 +67,11 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
       proposalsToFilter = allProposals.filter((p) => idSet.has(p.proposalId));
     }
 
-    return proposalsToFilter.filter((p) => activeStatuses.has(p.status));
-  }, [allProposals, activeStatuses, searchFilteredIds]);
+    return proposalsToFilter.filter((p) => {
+      const source = (p as MultiChainProposal).source || "base";
+      return activeStatuses.has(p.status) && activeSources.has(source);
+    });
+  }, [allProposals, activeStatuses, activeSources, searchFilteredIds]);
 
   return (
     <div className="space-y-6">
@@ -75,7 +95,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
             .
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2 shrink-0 flex-wrap">
           <Input
             type="text"
             placeholder="Search proposals..."
@@ -83,6 +103,22 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={initSearchWorker}
             className="w-full sm:max-w-xs"
+          />
+          <ChainFilter
+            allSources={ALL_SOURCES}
+            availableSources={availableSources}
+            activeSources={activeSources}
+            onToggleSource={(s) => {
+              setActiveSources((prev) => {
+                const next = new Set(prev);
+                if (next.has(s)) next.delete(s);
+                else next.add(s);
+                return next;
+              });
+            }}
+            onSelectAll={() => setActiveSources(new Set(ALL_SOURCES))}
+            onClearAll={() => setActiveSources(new Set())}
+            onSelectDefault={() => setActiveSources(new Set(["base", "ethereum", "snapshot"] as ProposalSource[]))}
           />
           <StatusFilter
             allStatuses={ALL_STATUSES}
@@ -106,6 +142,77 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
       </div>
       <ProposalsGrid proposals={filteredProposals} />
     </div>
+  );
+}
+
+function ChainFilter({
+  allSources,
+  availableSources,
+  activeSources,
+  onToggleSource,
+  onSelectAll,
+  onClearAll,
+  onSelectDefault,
+}: {
+  allSources: ProposalSource[];
+  availableSources: Set<ProposalSource>;
+  activeSources: Set<ProposalSource>;
+  onToggleSource: (source: ProposalSource) => void;
+  onSelectAll: () => void;
+  onClearAll: () => void;
+  onSelectDefault: () => void;
+}) {
+  const sourceLabels: Record<ProposalSource, string> = {
+    base: "Base",
+    ethereum: "Ethereum",
+    snapshot: "Snapshot",
+  };
+  
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline">Filter chain</Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" sideOffset={8} className="w-56 p-2">
+        <div className="px-2 pb-2 text-sm font-medium">Chain</div>
+        <div className="max-h-[60vh] overflow-auto pr-1">
+          <div className="flex flex-col gap-1">
+            {allSources
+              .filter((s) => availableSources.has(s))
+              .map((source) => {
+                const id = `source-${source}`;
+                return (
+                  <label
+                    key={source}
+                    htmlFor={id}
+                    className="flex items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-accent"
+                  >
+                    <Checkbox
+                      id={id}
+                      checked={activeSources.has(source)}
+                      onCheckedChange={() => onToggleSource(source)}
+                    />
+                    <Label htmlFor={id} className="text-sm font-normal leading-none">
+                      {sourceLabels[source]}
+                    </Label>
+                  </label>
+                );
+              })}
+          </div>
+        </div>
+        <div className="mt-2 flex px-2 w-full justify-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onSelectDefault}>
+            Default
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onSelectAll}>
+            All
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onClearAll}>
+            None
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

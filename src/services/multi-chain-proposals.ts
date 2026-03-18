@@ -1,0 +1,244 @@
+import { cache } from "react";
+import type { Proposal } from "@/components/proposals/types";
+import { listProposals as listBaseProposals } from "./proposals";
+import { getProposalStatus, ProposalStatus } from "@/lib/schemas/proposals";
+import type { SnapshotProposal } from "@/types/snapshot";
+
+export type ProposalSource = "base" | "ethereum" | "snapshot";
+
+export interface MultiChainProposal extends Proposal {
+  source: ProposalSource;
+  chainId: number;
+}
+
+// Ethereum proposal data structure from static JSON
+interface EthProposalRaw {
+  id: string;
+  createdTimestamp: string;
+  startBlock: string;
+  endBlock: string;
+  executionETA: string | null;
+  title: string;
+  description?: string;
+  status: string;
+  proposer: { id: string };
+  forVotes: string;
+  abstainVotes: string;
+  againstVotes: string;
+  quorumVotes: string;
+  totalSupply: string;
+}
+
+/**
+ * Load Ethereum proposals from static JSON (no API calls needed)
+ * Data is historical and won't change (all governance moved to Base)
+ */
+async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainProposal[]> {
+  try {
+    const fs = await import("fs");
+    const path = await import("path");
+    const filePath = path.join(process.cwd(), "public/data/ethereum-proposals.json");
+    const fileContents = fs.readFileSync(filePath, "utf8");
+    const response = { json: async () => JSON.parse(fileContents) };
+    const ethereumProposalsData = (await response.json()) as EthProposalRaw[];
+    const proposals = ethereumProposalsData.slice(skip, skip + limit);
+
+    return proposals.map((p) => {
+      const proposalNumber = Number.parseInt(p.id, 10);
+      const createdAt = Number(p.createdTimestamp) * 1000;
+      const status = getProposalStatus(p.status as ProposalStatus) || ProposalStatus.EXECUTED;
+
+      return {
+        proposalId: p.id,
+        proposalNumber,
+        title: p.title || `Proposal #${proposalNumber}`,
+        description: p.description || "",
+        proposer: p.proposer.id,
+        proposerEnsName: undefined,
+        status,
+        createdAt,
+        endBlock: Number(p.endBlock),
+        snapshotBlock: Number(p.startBlock),
+        endDate: undefined,
+        forVotes: Number(p.forVotes),
+        againstVotes: Number(p.againstVotes),
+        abstainVotes: Number(p.abstainVotes),
+        quorumVotes: Number(p.quorumVotes),
+        calldatas: [],
+        targets: [],
+        values: [],
+        signatures: [],
+        transactionHash: "",
+        votes: [],
+        voteStart: new Date(Number(p.startBlock) * 12 * 1000).toISOString(),
+        voteEnd: new Date(Number(p.endBlock) * 12 * 1000).toISOString(),
+        expiresAt: p.executionETA
+          ? new Date(Number(p.executionETA) * 1000).toISOString()
+          : undefined,
+        timeCreated: Number(p.createdTimestamp),
+        executableFrom: undefined,
+        queuedAt: undefined,
+        executedAt: undefined,
+        descriptionHash: "",
+        source: "ethereum" as const,
+        chainId: 1,
+      };
+    });
+  } catch (error) {
+    console.error("[multi-chain-proposals] Failed to load ETH proposals:", error);
+    return [];
+  }
+}
+
+/**
+ * Load Snapshot proposals from static JSON and convert to MultiChainProposal format
+ */
+async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainProposal[]> {
+  try {
+    const fs = await import("fs");
+    const path = await import("path");
+    const filePath = path.join(process.cwd(), "public/data/snapshot-proposals.json");
+    const fileContents = fs.readFileSync(filePath, "utf8");
+    const snapshotProposalsData = JSON.parse(fileContents) as SnapshotProposal[];
+    const proposals = snapshotProposalsData.slice(skip, skip + limit);
+
+    return proposals.map((p, index) => {
+      const proposalNumber = snapshotProposalsData.length - skip - index;
+      const createdAt = p.created * 1000;
+      
+      // Map Snapshot state to ProposalStatus
+      let status: ProposalStatus;
+      switch (p.state) {
+        case "active":
+          status = ProposalStatus.ACTIVE;
+          break;
+        case "closed":
+          status = ProposalStatus.EXECUTED;
+          break;
+        case "pending":
+          status = ProposalStatus.PENDING;
+          break;
+        default:
+          status = ProposalStatus.EXECUTED;
+      }
+
+      return {
+        proposalId: p.id,
+        proposalNumber,
+        title: p.title || `Snapshot Proposal #${proposalNumber}`,
+        description: p.body || "",
+        proposer: p.author,
+        proposerEnsName: undefined,
+        status,
+        createdAt,
+        endBlock: 0,
+        snapshotBlock: p.snapshot,
+        endDate: undefined,
+        forVotes: p.scores[0] || 0,
+        againstVotes: p.scores[1] || 0,
+        abstainVotes: p.scores[2] || 0,
+        quorumVotes: 0,
+        calldatas: [],
+        targets: [],
+        values: [],
+        signatures: [],
+        transactionHash: "",
+        votes: [],
+        voteStart: new Date(p.start * 1000).toISOString(),
+        voteEnd: new Date(p.end * 1000).toISOString(),
+        expiresAt: undefined,
+        timeCreated: p.created,
+        executableFrom: undefined,
+        queuedAt: undefined,
+        executedAt: p.state === "closed" ? new Date(p.end * 1000).toISOString() : undefined,
+        descriptionHash: "",
+        source: "snapshot" as const,
+        chainId: 0, // Snapshot is off-chain
+      };
+    });
+  } catch (error) {
+    console.error("[multi-chain-proposals] Failed to load Snapshot proposals:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetch proposals from all chains and merge chronologically
+ * @param includeEthereum - Include legacy Ethereum mainnet proposals
+ * @param includeSnapshot - Include Snapshot proposals
+ */
+export const listMultiChainProposals = cache(
+  async (
+    limit = 200,
+    includeEthereum = true,
+    includeSnapshot = true,
+  ): Promise<MultiChainProposal[]> => {
+    // Fetch Base proposals (live data from subgraph)
+    const baseProposals = await listBaseProposals(limit).then((proposals) =>
+      proposals.map(
+        (p): MultiChainProposal => ({
+          ...p,
+          source: "base",
+          chainId: 8453,
+        }),
+      ),
+    );
+
+    // Load Ethereum proposals from static JSON (historical data)
+    const ethProposals = includeEthereum ? await loadEthProposals(limit) : [];
+
+    // Load Snapshot proposals from static JSON (historical data)
+    const snapshotProposals = includeSnapshot ? await loadSnapshotProposals(limit) : [];
+
+    // Merge and sort chronologically (newest first)
+    const allProposals = [...baseProposals, ...ethProposals, ...snapshotProposals].sort(
+      (a, b) => b.createdAt - a.createdAt,
+    );
+
+    return allProposals.slice(0, limit);
+  },
+);
+
+/**
+ * Get a specific proposal by ID or number, checking both chains
+ */
+export const getMultiChainProposal = cache(
+  async (idOrNumber: string, source?: ProposalSource): Promise<MultiChainProposal | null> => {
+    // If source is specified, only check that chain
+    if (source === "base") {
+      const baseProposals = await listBaseProposals(1000);
+      const proposal = baseProposals.find(
+        (p) =>
+          p.proposalId === idOrNumber ||
+          p.proposalNumber === Number.parseInt(idOrNumber, 10),
+      );
+      return proposal
+        ? {
+            ...proposal,
+            source: "base",
+            chainId: 8453,
+          }
+        : null;
+    }
+
+    if (source === "ethereum") {
+      const ethProposals = await loadEthProposals(1000);
+      const proposal = ethProposals.find(
+        (p) =>
+          p.proposalId === idOrNumber ||
+          p.proposalNumber === Number.parseInt(idOrNumber, 10),
+      );
+      return proposal ?? null;
+    }
+
+    // No source specified - check all chains
+    const allProposals = await listMultiChainProposals(1000, true, false);
+    return (
+      allProposals.find(
+        (p) =>
+          p.proposalId === idOrNumber ||
+          p.proposalNumber === Number.parseInt(idOrNumber, 10),
+      ) ?? null
+    );
+  },
+);

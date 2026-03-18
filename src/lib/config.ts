@@ -56,6 +56,21 @@ export const SPLITS_ADDRESSES = {
 export const SUBGRAPH = {
   // Official Nouns Builder Subgraph URL for Gnars on Base (Goldsky public)
   url: `https://api.goldsky.com/api/public/${process.env.NEXT_PUBLIC_GOLDSKY_PROJECT_ID || "project_cm33ek8kjx6pz010i2c3w8z25"}/subgraphs/nouns-builder-base-mainnet/latest/gn`,
+  
+  // Legacy Gnars subgraph on Ethereum mainnet (The Graph Studio)
+  ethMainnet: "https://api.studio.thegraph.com/query/84885/gnars-mainnet/v1.0.0",
+} as const;
+
+// Ethereum mainnet config (for legacy proposals)
+export const CHAIN_ETH = {
+  id: 1,
+  name: "ethereum",
+} as const;
+
+export const GNARS_ADDRESSES_ETH = {
+  token: "0x558bfff0d583416f7c4e380625c7865821b8e95c",
+  governor: "0xd10e3dee203579fcee90ed7d0bdd8086f7e53beb",
+  treasury: "0x4d3a210f40f83286dc5e4d3fe285dcfef30cce52",
 } as const;
 
 export const DAO_DESCRIPTION =
