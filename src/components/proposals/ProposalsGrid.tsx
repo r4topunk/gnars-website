@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { Proposal } from "@/components/proposals/types";
+import type { MultiChainProposal } from "@/services/multi-chain-proposals";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 
 export function ProposalsGridSkeleton() {
@@ -17,7 +18,7 @@ export function ProposalsGridSkeleton() {
   );
 }
 
-export function ProposalsGrid({ proposals }: { proposals: Proposal[] }) {
+export function ProposalsGrid({ proposals }: { proposals: (Proposal | MultiChainProposal)[] }) {
   const PAGE_SIZE = 12;
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
