@@ -52,22 +52,48 @@ async function fetchAllProposals() {
           orderDirection: desc
         ) {
           id
-          title
-          body
-          choices
-          start
-          end
-          snapshot
-          state
-          author
-          created
-          scores
-          scores_total
-          votes
+          ipfs
           space {
             id
             name
+            avatar
+            network
+            admins
+            moderators
+            members
+            symbol
+            terms
           }
+          type
+          title
+          body
+          discussion
+          author
+          quorum
+          quorumType
+          start
+          end
+          snapshot
+          choices
+          scores
+          scores_total
+          scores_state
+          state
+          strategies {
+            name
+            params
+            network
+          }
+          validation {
+            name
+            params
+          }
+          created
+          updated
+          votes
+          privacy
+          plugins
+          flagged
         }
       }
     `;
