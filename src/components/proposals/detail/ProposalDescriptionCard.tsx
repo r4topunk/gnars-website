@@ -8,13 +8,19 @@ interface ProposalDescriptionCardProps {
 }
 
 export function ProposalDescriptionCard({ description }: ProposalDescriptionCardProps) {
+  // Convert IPFS URLs in markdown before rendering
+  const processedDescription = description.replace(
+    /!\[([^\]]*)\]\(ipfs:\/\/([a-zA-Z0-9]+)\)/g,
+    (match, alt, cid) => `![${alt}](https://ipfs.snapshot.box/ipfs/${cid})`
+  );
+  
   return (
     <Card>
       <CardHeader>
         <CardTitle>Description</CardTitle>
       </CardHeader>
       <CardContent>
-        <Markdown>{description}</Markdown>
+        <Markdown>{processedDescription}</Markdown>
       </CardContent>
     </Card>
   );
