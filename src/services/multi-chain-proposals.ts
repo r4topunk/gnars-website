@@ -35,12 +35,27 @@ interface EthProposalRaw {
  */
 async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainProposal[]> {
   try {
-    const fs = await import("fs");
-    const path = await import("path");
-    const filePath = path.join(process.cwd(), "public/data/ethereum-proposals.json");
-    const fileContents = fs.readFileSync(filePath, "utf8");
-    const response = { json: async () => JSON.parse(fileContents) };
-    const ethereumProposalsData = (await response.json()) as EthProposalRaw[];
+    let ethereumProposalsData: EthProposalRaw[];
+    
+    // Try filesystem first (for build time), then fetch (for runtime)
+    try {
+      const fs = await import("fs");
+      const path = await import("path");
+      const filePath = path.join(process.cwd(), "public/data/ethereum-proposals.json");
+      const fileContents = fs.readFileSync(filePath, "utf8");
+      ethereumProposalsData = JSON.parse(fileContents);
+    } catch (fsError) {
+      // Fallback to fetch if file system access fails (e.g., in serverless)
+      console.log("[loadEthProposals] Filesystem failed, trying fetch:", fsError);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://gnars.com'}/data/ethereum-proposals.json`, {
+        next: { revalidate: 3600 }
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ethereum proposals: ${response.status}`);
+      }
+      ethereumProposalsData = await response.json();
+    }
+    
     const proposals = ethereumProposalsData.slice(skip, skip + limit);
 
     return proposals.map((p) => {
@@ -95,11 +110,27 @@ async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainPropos
  */
 async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainProposal[]> {
   try {
-    const fs = await import("fs");
-    const path = await import("path");
-    const filePath = path.join(process.cwd(), "public/data/snapshot-proposals.json");
-    const fileContents = fs.readFileSync(filePath, "utf8");
-    const snapshotProposalsData = JSON.parse(fileContents) as SnapshotProposal[];
+    let snapshotProposalsData: SnapshotProposal[];
+    
+    // Try filesystem first (for build time), then fetch (for runtime)
+    try {
+      const fs = await import("fs");
+      const path = await import("path");
+      const filePath = path.join(process.cwd(), "public/data/snapshot-proposals.json");
+      const fileContents = fs.readFileSync(filePath, "utf8");
+      snapshotProposalsData = JSON.parse(fileContents);
+    } catch (fsError) {
+      // Fallback to fetch if file system access fails (e.g., in serverless)
+      console.log("[loadSnapshotProposals] Filesystem failed, trying fetch:", fsError);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://gnars.com'}/data/snapshot-proposals.json`, {
+        next: { revalidate: 3600 }
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch snapshot proposals: ${response.status}`);
+      }
+      snapshotProposalsData = await response.json();
+    }
+    
     const proposals = snapshotProposalsData.slice(skip, skip + limit);
 
     return proposals.map((p, index) => {
