@@ -290,7 +290,7 @@ export async function GET(): Promise<Response> {
 
 
   const proposalEntries: SitemapEntry[] = proposals.map((proposal) => ({
-    url: toUrl(`/proposals/${proposal.proposalNumber}`),
+    url: toUrl(`/proposals/base/${proposal.proposalNumber}`),
     lastModified:
       toDate(proposal.executedAt) ||
       toDate(proposal.queuedAt) ||

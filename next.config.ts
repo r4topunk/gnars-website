@@ -72,10 +72,11 @@ const nextConfig: NextConfig = {
     return [
       // Legacy proposal routes (before multi-chain support)
       // Redirect /proposals/119 -> /proposals/base/119
+      // Permanent (301) redirect for proper SEO handling
       {
         source: "/proposals/:id(\\d+)",
         destination: "/proposals/base/:id",
-        permanent: false, // Use temporary redirect for easier rollback if needed
+        permanent: true,
       },
       // DAO URL pattern changes
       {
