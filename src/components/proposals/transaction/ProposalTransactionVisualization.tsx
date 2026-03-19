@@ -22,11 +22,6 @@ import {
 // Ethereum mainnet USDC address (different from Base USDC)
 const USDC_ETH_MAINNET = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
 
-// Known ERC-20 tokens on Ethereum mainnet with their decimals
-const ETH_MAINNET_TOKENS: Record<string, { symbol: string; decimals: number }> = {
-  [USDC_ETH_MAINNET.toLowerCase()]: { symbol: "USDC", decimals: 6 },
-};
-
 // Function selectors for prepending to selector-less calldatas
 const TRANSFER_SELECTOR = "0xa9059cbb" as const; // transfer(address,uint256)
 const TRANSFER_FROM_SELECTOR = "0x23b872dd" as const; // transferFrom(address,address,uint256)

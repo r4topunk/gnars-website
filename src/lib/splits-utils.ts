@@ -19,37 +19,6 @@ export interface SplitValidationError {
 }
 
 /**
- * Validates that a split configuration is valid
- */
-function validateSplitConfig(config: SplitConfig): SplitValidationError[] {
-  const errors: SplitValidationError[] = [];
-
-  // Validate recipients
-  const recipientErrors = validateSplitRecipients(config.recipients);
-  errors.push(...recipientErrors);
-
-  // Validate distributor fee
-  if (config.distributorFeePercent < 0 || config.distributorFeePercent > 10) {
-    errors.push({
-      field: "distributorFeePercent",
-      message: "Distributor fee must be between 0% and 10%",
-    });
-  }
-
-  // Validate controller address if provided
-  if (config.controller && config.controller !== "0x0000000000000000000000000000000000000000") {
-    if (!isAddress(config.controller)) {
-      errors.push({
-        field: "controller",
-        message: "Controller must be a valid Ethereum address",
-      });
-    }
-  }
-
-  return errors;
-}
-
-/**
  * Validates split recipients
  */
 export function validateSplitRecipients(recipients: SplitRecipient[]): SplitValidationError[] {
@@ -138,19 +107,6 @@ export function validateSplitRecipients(recipients: SplitRecipient[]): SplitVali
 }
 
 /**
- * Validates individual percentage allocation
- */
-function validatePercentage(value: number): string | null {
-  if (value <= 0) return "Must be greater than 0";
-  if (value > 100) return "Cannot exceed 100%";
-  
-  const decimals = (value.toString().split(".")[1] || "").length;
-  if (decimals > 4) return "Maximum 4 decimal places";
-  
-  return null;
-}
-
-/**
  * Formats split address for display (shortened)
  */
 export function formatSplitAddress(address: string): string {
@@ -162,13 +118,6 @@ export function formatSplitAddress(address: string): string {
  * Gets the controller address for immutable splits
  */
 export const IMMUTABLE_CONTROLLER = "0x0000000000000000000000000000000000000000" as const;
-
-/**
- * Checks if a split is immutable (no controller)
- */
-function isImmutableSplit(controller?: string): boolean {
-  return !controller || controller === IMMUTABLE_CONTROLLER;
-}
 
 /**
  * Prepares split config for SDK call

@@ -135,7 +135,7 @@ async function loadSnapshotTransactions(): Promise<Map<string, SnapshotTransacti
       const filePath = path.join(process.cwd(), "public/data/snapshot-transactions.json");
       const fileContents = fs.readFileSync(filePath, "utf8");
       txData = JSON.parse(fileContents);
-    } catch (fsError) {
+    } catch {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://gnars.com'}/data/snapshot-transactions.json`, {
         next: { revalidate: 3600 }
       });

@@ -290,7 +290,7 @@ function ExecuteProposalButtonDemo() {
 }
 
 function TimelockAlertDemo() {
-  const [timeLeft, setTimeLeft] = useState("2d 4h 23m");
+  const [timeLeft] = useState("2d 4h 23m");
 
   return (
     <div className="space-y-4">

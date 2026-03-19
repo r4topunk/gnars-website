@@ -57,8 +57,6 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const proposalSource = (proposal as MultiChainProposal).source || "base";
   const isSnapshot = proposalSource === "snapshot";
   const isEthereum = proposalSource === "ethereum";
-  const isBase = proposalSource === "base";
-  
   // Snapshot and Ethereum proposals are read-only (no voting)
   const isReadOnly = isSnapshot || isEthereum;
   

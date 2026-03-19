@@ -273,12 +273,4 @@ export function generateMockFeedEvents(hours: number = 24): FeedEvent[] {
   return events.sort((a, b) => b.timestamp - a.timestamp);
 }
 
-/**
- * Get a single mock event for testing
- */
-function generateMockEvent(type: FeedEvent["type"]): FeedEvent {
-  const events = generateMockFeedEvents(1);
-  const matchingEvent = events.find(e => e.type === type);
-  return matchingEvent || events[0];
-}
 

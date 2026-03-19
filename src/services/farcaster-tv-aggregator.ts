@@ -494,8 +494,6 @@ function parseUsd(value: string | null | undefined): number {
 
 function isGnarsRelatedToken({
   address,
-  name: _name,
-  symbol: _symbol,
 }: {
   address?: string | null;
   name?: string | null;
@@ -597,7 +595,6 @@ function mapCoinToTVItem(coin: CoinNode, creatorHandle: string): TVItemData | nu
 function mapFarcasterCoinToTVItem(
   coin: CoinNode,
   profile: FarcasterProfile,
-  balance: FarcasterTokenBalance,
 ): TVItemData | null {
   const baseItem = mapCoinToTVItem(coin, profile.username);
   if (!baseItem) return null;
@@ -710,7 +707,7 @@ async function fetchFarcasterHoldings(
               return null;
             }
 
-            const item = mapFarcasterCoinToTVItem(coin, match.profile, balance);
+            const item = mapFarcasterCoinToTVItem(coin, match.profile);
             if (!item) return null;
             farcasterLoadedKeys.add(key);
             return item;
