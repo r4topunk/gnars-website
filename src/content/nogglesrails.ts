@@ -88,7 +88,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Nouns Amigos",
       link: "",
     },
-    slug: "santo-domingo",
+    slug: "republica-dominicana",
   },
   {
     position: [-22.891659522582522, -43.192417292690315],
