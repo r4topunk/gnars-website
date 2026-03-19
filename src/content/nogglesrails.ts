@@ -198,6 +198,9 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Asia",
     type: "Rail",
     images: [
+      "https://images.hive.blog/DQmSyemca91jAsjDR9oQFQBDE5qZEjCHfncdJWgdMi5r9NE/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.14.32.png",
+      "https://images.hive.blog/DQmYH1H2ygGgd1VUSD2bMqNAg5CafmhUQJj4B6fdGZBcVQB/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.14.42.png",
+      "https://images.hive.blog/DQmYV6oG6tNqAEtZXQ5RnXQ8Xy9G882tG2p48NHT1A5FDrN/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.14.25.png",
       "https://gnars.center/rutsujpg.jpg",
     ],
     iconUrl: "/nogglesRail3D.png",
