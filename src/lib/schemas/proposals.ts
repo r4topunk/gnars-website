@@ -105,6 +105,7 @@ export function getProposalStatus(state: unknown): ProposalStatus {
     case "DEFEATED":
       return ProposalStatus.DEFEATED;
     case "CANCELED":
+    case "CANCELLED":
       return ProposalStatus.CANCELLED;
     case "VETOED":
       return ProposalStatus.VETOED;

@@ -22,7 +22,34 @@ function formatAssetAmount(value: number, maxFractionDigits = 4): string {
   }).format(value);
 }
 
-import type { MultiChainProposal } from "@/services/multi-chain-proposals";
+import type { MultiChainProposal, ProposalSource } from "@/services/multi-chain-proposals";
+
+const CHAIN_INDICATOR_CONFIG: Record<string, { label: string; className: string }> = {
+  ethereum: {
+    label: "ETH",
+    className: "bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400",
+  },
+  snapshot: {
+    label: "Snap",
+    className: "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
+  },
+};
+
+function ChainIndicator({ source }: { source: ProposalSource }) {
+  const config = CHAIN_INDICATOR_CONFIG[source];
+  if (!config) return null;
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded px-1 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide",
+        config.className,
+      )}
+    >
+      {config.label}
+    </span>
+  );
+}
 
 export function ProposalCard({
   proposal,
@@ -109,9 +136,14 @@ export function ProposalCard({
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Prop #{proposal.proposalNumber}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Prop #{proposal.proposalNumber}
+                    </span>
+                    {source !== "base" && (
+                      <ChainIndicator source={source} />
+                    )}
+                  </div>
                   <div className="flex-shrink-0">
                     <ProposalStatusBadge status={proposal.status} className="text-xs" />
                   </div>

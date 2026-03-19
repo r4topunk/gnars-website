@@ -1,16 +1,20 @@
 "use client";
 
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { ProposalsGrid } from "@/components/proposals/ProposalsGrid";
 import { Proposal } from "@/components/proposals/types";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Spinner } from "@/components/ui/spinner";
 import { useProposalSearch } from "@/hooks/use-proposal-search";
-import { ProposalStatus } from "@/lib/schemas/proposals";
+import { getProposalStatus, ProposalStatus } from "@/lib/schemas/proposals";
+import { cn } from "@/lib/utils";
 import type { MultiChainProposal, ProposalSource } from "@/services/multi-chain-proposals";
 
 interface ProposalsViewProps {
@@ -48,10 +52,29 @@ interface RawSnapshotProposal {
   scores: number[];
 }
 
+const SOURCE_CONFIG: Record<ProposalSource, { label: string; activeClass: string; dotClass: string }> = {
+  base: {
+    label: "Base",
+    activeClass: "bg-blue-500/15 text-blue-700 border-blue-300 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40",
+    dotClass: "bg-blue-500",
+  },
+  ethereum: {
+    label: "Ethereum",
+    activeClass: "bg-indigo-500/15 text-indigo-700 border-indigo-300 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40",
+    dotClass: "bg-indigo-500",
+  },
+  snapshot: {
+    label: "Snapshot",
+    activeClass: "bg-amber-500/15 text-amber-700 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40",
+    dotClass: "bg-amber-500",
+  },
+};
+
+const ALL_SOURCES: ProposalSource[] = ["base", "ethereum", "snapshot"];
+
 export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   const ALL_STATUSES = useMemo(() => Object.values(ProposalStatus) as ProposalStatus[], []);
-  const ALL_SOURCES: ProposalSource[] = ["base", "ethereum", "snapshot"];
-  
+
   const [activeStatuses, setActiveStatuses] = useState<Set<ProposalStatus>>(
     () =>
       new Set(
@@ -60,34 +83,31 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
         ),
       ),
   );
-  
-  // Default: only Base proposals (server-loaded)
-  // Ethereum and Snapshot are loaded client-side when filters activated
+
   const [activeSources, setActiveSources] = useState<Set<ProposalSource>>(
-    () => new Set(["base"] as ProposalSource[])
+    () => new Set(["base"] as ProposalSource[]),
   );
-  
+
   // Client-side proposals (loaded on-demand)
   const [ethereumProposals, setEthereumProposals] = useState<MultiChainProposal[]>([]);
   const [snapshotProposals, setSnapshotProposals] = useState<MultiChainProposal[]>([]);
   const [isLoadingEthereum, setIsLoadingEthereum] = useState(false);
   const [isLoadingSnapshot, setIsLoadingSnapshot] = useState(false);
-  
+
   // Load Ethereum proposals on-demand
   const loadEthereumProposals = async () => {
-    if (ethereumProposals.length > 0) return; // Already loaded
+    if (ethereumProposals.length > 0) return;
     setIsLoadingEthereum(true);
     try {
-      const response = await fetch('/data/ethereum-proposals.json');
+      const response = await fetch("/data/ethereum-proposals.json");
       const data: RawEthProposal[] = await response.json();
-      // Transform to MultiChainProposal format (similar to server-side logic)
       const proposals: MultiChainProposal[] = data.map((p) => ({
         proposalId: p.id,
         proposalNumber: Number.parseInt(p.id, 10),
         title: p.title || `Proposal #${p.id}`,
         description: p.description || "",
         proposer: p.proposer.id,
-        status: p.status as ProposalStatus,
+        status: getProposalStatus(p.status),
         createdAt: Number(p.createdTimestamp) * 1000,
         endBlock: Number(p.endBlock),
         snapshotBlock: Number(p.startBlock),
@@ -101,8 +121,8 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
         signatures: [],
         transactionHash: "",
         votes: [],
-        voteStart: new Date(Number(p.startBlock) * 12 * 1000).toISOString(),
-        voteEnd: new Date(Number(p.endBlock) * 12 * 1000).toISOString(),
+        voteStart: new Date(Number(p.createdTimestamp) * 1000).toISOString(),
+        voteEnd: new Date(Number(p.createdTimestamp) * 1000).toISOString(),
         timeCreated: Number(p.createdTimestamp),
         descriptionHash: "",
         source: "ethereum" as const,
@@ -110,7 +130,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
       }));
       setEthereumProposals(proposals);
     } catch (error) {
-      console.error('Failed to load Ethereum proposals:', error);
+      console.error("Failed to load Ethereum proposals:", error);
     } finally {
       setIsLoadingEthereum(false);
     }
@@ -118,12 +138,11 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
 
   // Load Snapshot proposals on-demand
   const loadSnapshotProposals = async () => {
-    if (snapshotProposals.length > 0) return; // Already loaded
+    if (snapshotProposals.length > 0) return;
     setIsLoadingSnapshot(true);
     try {
-      const response = await fetch('/data/snapshot-proposals.json');
+      const response = await fetch("/data/snapshot-proposals.json");
       const data: RawSnapshotProposal[] = await response.json();
-      // Transform to MultiChainProposal format
       const proposals: MultiChainProposal[] = data.map((p, index) => ({
         proposalId: p.id,
         proposalNumber: data.length - index,
@@ -153,13 +172,14 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
       }));
       setSnapshotProposals(proposals);
     } catch (error) {
-      console.error('Failed to load Snapshot proposals:', error);
+      console.error("Failed to load Snapshot proposals:", error);
     } finally {
       setIsLoadingSnapshot(false);
     }
   };
 
   // Load proposals when filters are activated
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (activeSources.has("ethereum")) {
       loadEthereumProposals();
@@ -177,15 +197,6 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   const availableStatuses = useMemo(() => {
     return new Set(mergedProposals.map((p) => p.status));
   }, [mergedProposals]);
-  
-  const availableSources = useMemo(() => {
-    const sources = new Set<ProposalSource>();
-    // Always show all sources (Base is always available, others load on-demand)
-    sources.add("base");
-    sources.add("ethereum");
-    sources.add("snapshot");
-    return sources;
-  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
@@ -213,57 +224,77 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
     });
   }, [mergedProposals, activeStatuses, activeSources, searchFilteredIds]);
 
+  // Count proposals per source for badges
+  const sourceCounts = useMemo(() => {
+    const counts: Record<ProposalSource, number> = { base: 0, ethereum: 0, snapshot: 0 };
+    for (const p of mergedProposals) {
+      const source = (p as MultiChainProposal).source || "base";
+      counts[source]++;
+    }
+    return counts;
+  }, [mergedProposals]);
+
+  const activeStatusCount = activeStatuses.size;
+  const totalStatusCount = ALL_STATUSES.filter((s) => availableStatuses.has(s)).length;
+  const isStatusFiltered = activeStatusCount < totalStatusCount;
+
+  const toggleSource = (source: ProposalSource) => {
+    setActiveSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(source)) next.delete(source);
+      else next.add(source);
+      return next;
+    });
+  };
+
+  const isLoading = isLoadingEthereum || isLoadingSnapshot;
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Proposals</h1>
-          <p className="text-muted-foreground">
-            Proposals are how the community funds skateboarding projects, media, and public work.
-            This is where skateboarding grants and skateboarding funding decisions are proposed,
-            discussed, and voted on.
-          </p>
-          <p className="text-muted-foreground mt-2">
-            New here? Read{" "}
-            <Link href="/about" className="text-foreground underline underline-offset-4">
-              what Gnars is
-            </Link>{" "}
-            or see how{" "}
-            <Link href="/auctions" className="text-foreground underline underline-offset-4">
-              auctions support skate culture
-            </Link>
-            .
-          </p>
-        </div>
-        <div className="flex gap-2 shrink-0 flex-wrap">
-          <Input
-            type="text"
-            placeholder="Search proposals..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={initSearchWorker}
-            className="w-full sm:max-w-xs"
-          />
-          <ChainFilter
-            allSources={ALL_SOURCES}
-            availableSources={availableSources}
-            activeSources={activeSources}
-            onToggleSource={(s) => {
-              setActiveSources((prev) => {
-                const next = new Set(prev);
-                if (next.has(s)) next.delete(s);
-                else next.add(s);
-                return next;
-              });
-            }}
-            onSelectAll={() => setActiveSources(new Set(ALL_SOURCES))}
-            onClearAll={() => setActiveSources(new Set())}
-            onSelectDefault={() => setActiveSources(new Set(["base"] as ProposalSource[]))}
-          />
+    <div className="space-y-5">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Proposals</h1>
+        <p className="text-muted-foreground mt-1">
+          How the community funds skateboarding projects, media, and public
+          work.{" "}
+          <Link
+            href="/about"
+            className="text-foreground underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground transition-colors"
+          >
+            Learn more
+          </Link>
+        </p>
+      </div>
+
+      {/* Filters toolbar */}
+      <div className="flex flex-col gap-3">
+        {/* Row 1: Search + Status filter */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Search proposals..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={initSearchWorker}
+              className="pl-9"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
           <StatusFilter
             allStatuses={ALL_STATUSES}
             availableStatuses={availableStatuses}
             activeStatuses={activeStatuses}
+            isFiltered={isStatusFiltered}
             onToggleStatus={(s) => {
               setActiveStatuses((prev) => {
                 const next = new Set(prev);
@@ -272,92 +303,74 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
                 return next;
               });
             }}
-            onSelectAll={() => setActiveStatuses(new Set(ALL_STATUSES))}
+            onSelectAll={() =>
+              setActiveStatuses(
+                new Set(ALL_STATUSES.filter((s) => availableStatuses.has(s))),
+              )
+            }
             onClearAll={() => setActiveStatuses(new Set())}
             onSelectDefault={() =>
-              setActiveStatuses(new Set(ALL_STATUSES.filter((s) => s !== ProposalStatus.CANCELLED)))
+              setActiveStatuses(
+                new Set(ALL_STATUSES.filter((s) => s !== ProposalStatus.CANCELLED)),
+              )
             }
           />
         </div>
-      </div>
-      {(isLoadingEthereum || isLoadingSnapshot) && (
-        <div className="text-center text-sm text-muted-foreground py-4">
-          Loading {isLoadingEthereum ? "Ethereum" : ""} {isLoadingSnapshot ? "Snapshot" : ""} proposals...
-        </div>
-      )}
-      <ProposalsGrid proposals={filteredProposals} />
-    </div>
-  );
-}
 
-function ChainFilter({
-  allSources,
-  availableSources,
-  activeSources,
-  onToggleSource,
-  onSelectAll,
-  onClearAll,
-  onSelectDefault,
-}: {
-  allSources: ProposalSource[];
-  availableSources: Set<ProposalSource>;
-  activeSources: Set<ProposalSource>;
-  onToggleSource: (source: ProposalSource) => void;
-  onSelectAll: () => void;
-  onClearAll: () => void;
-  onSelectDefault: () => void;
-}) {
-  const sourceLabels: Record<ProposalSource, string> = {
-    base: "Base",
-    ethereum: "Ethereum",
-    snapshot: "Snapshot",
-  };
-  
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline">Filter chain</Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" sideOffset={8} className="w-56 p-2">
-        <div className="px-2 pb-2 text-sm font-medium">Chain</div>
-        <div className="max-h-[60vh] overflow-auto pr-1">
-          <div className="flex flex-col gap-1">
-            {allSources
-              .filter((s) => availableSources.has(s))
-              .map((source) => {
-                const id = `source-${source}`;
-                return (
-                  <label
-                    key={source}
-                    htmlFor={id}
-                    className="flex items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-accent"
-                  >
-                    <Checkbox
-                      id={id}
-                      checked={activeSources.has(source)}
-                      onCheckedChange={() => onToggleSource(source)}
-                    />
-                    <Label htmlFor={id} className="text-sm font-normal leading-none">
-                      {sourceLabels[source]}
-                    </Label>
-                  </label>
-                );
-              })}
-          </div>
+        {/* Row 2: Chain toggle pills */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider mr-0.5">
+            Chain
+          </span>
+          {ALL_SOURCES.map((source) => {
+            const config = SOURCE_CONFIG[source];
+            const isActive = activeSources.has(source);
+            const isSourceLoading =
+              (source === "ethereum" && isLoadingEthereum) ||
+              (source === "snapshot" && isLoadingSnapshot);
+            const count = sourceCounts[source];
+
+            return (
+              <button
+                key={source}
+                type="button"
+                onClick={() => toggleSource(source)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                  "hover:shadow-sm active:scale-[0.97]",
+                  isActive
+                    ? config.activeClass
+                    : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/20",
+                )}
+              >
+                {isSourceLoading ? (
+                  <Spinner className="size-2.5" />
+                ) : (
+                  <span
+                    className={cn(
+                      "size-2 rounded-full transition-colors",
+                      isActive ? config.dotClass : "bg-muted-foreground/30",
+                    )}
+                  />
+                )}
+                {config.label}
+                {count > 0 && isActive && (
+                  <span className="opacity-60 tabular-nums">{count}</span>
+                )}
+              </button>
+            );
+          })}
+
+          {filteredProposals.length !== mergedProposals.length && (
+            <span className="text-xs text-muted-foreground ml-auto tabular-nums">
+              {filteredProposals.length} of {mergedProposals.length}
+            </span>
+          )}
         </div>
-        <div className="mt-2 flex px-2 w-full justify-center gap-2">
-          <Button variant="ghost" size="sm" onClick={onSelectDefault}>
-            Default
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onSelectAll}>
-            All
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onClearAll}>
-            None
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
+      </div>
+
+      <ProposalsGrid proposals={filteredProposals} isLoading={isLoading} />
+    </div>
   );
 }
 
@@ -365,6 +378,7 @@ function StatusFilter({
   allStatuses,
   availableStatuses,
   activeStatuses,
+  isFiltered,
   onToggleStatus,
   onSelectAll,
   onClearAll,
@@ -373,6 +387,7 @@ function StatusFilter({
   allStatuses: ProposalStatus[];
   availableStatuses: Set<ProposalStatus>;
   activeStatuses: Set<ProposalStatus>;
+  isFiltered: boolean;
   onToggleStatus: (status: ProposalStatus) => void;
   onSelectAll: () => void;
   onClearAll: () => void;
@@ -381,12 +396,29 @@ function StatusFilter({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline">Filter status</Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn(
+            "gap-1.5 shrink-0",
+            isFiltered && "border-foreground/20",
+          )}
+        >
+          <SlidersHorizontal className="size-3.5" />
+          Status
+          {isFiltered && (
+            <Badge
+              variant="secondary"
+              className="size-5 p-0 justify-center rounded-full text-[10px] leading-none"
+            >
+              {activeStatuses.size}
+            </Badge>
+          )}
+        </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" sideOffset={8} className="w-64 p-2">
-        <div className="px-2 pb-2 text-sm font-medium">Status</div>
-        <div className="max-h-[60vh] overflow-auto pr-1">
-          <div className="flex flex-col gap-1">
+      <PopoverContent align="end" sideOffset={8} className="w-52 p-1.5">
+        <div className="max-h-[60vh] overflow-auto">
+          <div className="flex flex-col">
             {allStatuses
               .filter((s) => availableStatuses.has(s))
               .map((status) => {
@@ -395,14 +427,17 @@ function StatusFilter({
                   <label
                     key={status}
                     htmlFor={id}
-                    className="flex items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-accent"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent cursor-pointer"
                   >
                     <Checkbox
                       id={id}
                       checked={activeStatuses.has(status)}
                       onCheckedChange={() => onToggleStatus(status)}
                     />
-                    <Label htmlFor={id} className="text-sm font-normal leading-none">
+                    <Label
+                      htmlFor={id}
+                      className="text-sm font-normal leading-none cursor-pointer"
+                    >
                       {status}
                     </Label>
                   </label>
@@ -410,14 +445,29 @@ function StatusFilter({
               })}
           </div>
         </div>
-        <div className="mt-2 flex px-2 w-full justify-center gap-2">
-          <Button variant="ghost" size="sm" onClick={onSelectDefault}>
+        <div className="mt-1.5 flex border-t border-border pt-1.5 gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex-1 h-7 text-xs"
+            onClick={onSelectDefault}
+          >
             Default
           </Button>
-          <Button variant="ghost" size="sm" onClick={onSelectAll}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex-1 h-7 text-xs"
+            onClick={onSelectAll}
+          >
             All
           </Button>
-          <Button variant="ghost" size="sm" onClick={onClearAll}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex-1 h-7 text-xs"
+            onClick={onClearAll}
+          >
             None
           </Button>
         </div>
