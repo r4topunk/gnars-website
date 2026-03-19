@@ -111,6 +111,43 @@ async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainPropos
 /**
  * Load Snapshot proposals from static JSON and convert to MultiChainProposal format
  */
+// Load Snapshot transaction data from static JSON
+interface SnapshotTransaction {
+  proposalId: string;
+  proposalNumber: number;
+  transactions: Array<{
+    target: string;
+    value: string;
+    calldata: string;
+    description?: string;
+  }>;
+}
+
+async function loadSnapshotTransactions(): Promise<Map<string, SnapshotTransaction>> {
+  try {
+    let txData: SnapshotTransaction[];
+    
+    try {
+      const fs = await import("fs");
+      const path = await import("path");
+      const filePath = path.join(process.cwd(), "public/data/snapshot-transactions.json");
+      const fileContents = fs.readFileSync(filePath, "utf8");
+      txData = JSON.parse(fileContents);
+    } catch (fsError) {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://gnars.com'}/data/snapshot-transactions.json`, {
+        next: { revalidate: 3600 }
+      });
+      if (!response.ok) return new Map();
+      txData = await response.json();
+    }
+    
+    return new Map(txData.map(tx => [tx.proposalId, tx]));
+  } catch (error) {
+    console.error("[loadSnapshotTransactions] Failed:", error);
+    return new Map();
+  }
+}
+
 async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainProposal[]> {
   try {
     let snapshotProposalsData: SnapshotProposal[];
@@ -134,6 +171,9 @@ async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainP
       snapshotProposalsData = await response.json();
     }
     
+    // Load transaction data
+    const txMap = await loadSnapshotTransactions();
+    
     const proposals = snapshotProposalsData.slice(skip, skip + limit);
 
     return proposals.map((p, index) => {
@@ -156,6 +196,12 @@ async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainP
           status = ProposalStatus.EXECUTED;
       }
 
+      // Check if we have transaction data for this proposal
+      const txData = txMap.get(p.id);
+      const targets = txData?.transactions.map(tx => tx.target) || [];
+      const values = txData?.transactions.map(tx => tx.value) || [];
+      const calldatas = txData?.transactions.map(tx => tx.calldata) || [];
+
       return {
         proposalId: p.id,
         proposalNumber,
@@ -172,9 +218,9 @@ async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainP
         againstVotes: p.scores[1] || 0,
         abstainVotes: p.scores[2] || 0,
         quorumVotes: 0,
-        calldatas: [],
-        targets: [],
-        values: [],
+        calldatas,
+        targets,
+        values,
         signatures: [],
         transactionHash: "",
         votes: [],

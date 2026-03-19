@@ -1,0 +1,14 @@
+[
+  {
+    "proposalId": "0x0925892015b8809cc4ab3a7030c77364657c46f64ee083eba9f4fd5c61058b9b",
+    "proposalNumber": 101,
+    "transactions": [
+      {
+        "target": "0x4d3a210f40f83286dc5e4d3fe285dcfef30cce52",
+        "value": "253000000000000000",
+        "calldata": "0x",
+        "description": "Send 0.253 ETH (~$1000) to Carolina Cristine for Ode to Skate film production"
+      }
+    ]
+  }
+]
