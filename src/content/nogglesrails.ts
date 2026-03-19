@@ -78,6 +78,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Americas",
     type: "Rail",
     images: [
+      "https://images.hive.blog/DQmPZCpD6HXMm2nkKrH5XknciXn2cj3VW9rfcUaL8Gj4dAi/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.51.36.png",
       "https://images.hive.blog/DQmZeFXz6M33cmc7eE3ktJdRNvta7qd7RsAcaqSPijbuFDP/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.31.01.png",
       "https://images.hive.blog/DQmTd6ax62hHNe28QH3GHmwjaZ8VdfM2UXTnDuZ7BA9JtV5/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.33.24.png",
     ],
@@ -89,7 +90,6 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Nouns Amigos",
       link: "",
     },
-    thumbnailPosition: "top",
     slug: "republica-dominicana",
   },
   {
