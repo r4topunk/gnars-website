@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -15,11 +16,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProposalEligibilityProvider } from "@/components/proposals/ProposalEligibilityContext";
 import { useProposalEligibility } from "@/hooks/useProposalEligibility";
 import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { getProposalTemplate } from "@/lib/proposal-templates";
 import { proposalSchema, type ProposalFormValues } from "./schema";
 
 export function ProposalWizard() {
   const [currentTab, setCurrentTab] = useState("details");
   const [isEditingTransaction, setIsEditingTransaction] = useState(false);
+  const searchParams = useSearchParams();
 
   const methods = useForm<ProposalFormValues>({
     resolver: zodResolver(proposalSchema),
@@ -31,6 +34,23 @@ export function ProposalWizard() {
     },
     mode: "onChange",
   });
+
+  // Pre-fill form from ?template= query param
+  useEffect(() => {
+    const templateSlug = searchParams.get("template");
+    if (!templateSlug) return;
+
+    const template = getProposalTemplate(templateSlug);
+    if (!template) return;
+
+    // Only pre-fill if the form is still empty (don't overwrite user edits)
+    const currentTitle = methods.getValues("title");
+    const currentDesc = methods.getValues("description");
+    if (currentTitle || currentDesc) return;
+
+    methods.setValue("title", template.defaultTitle, { shouldDirty: false });
+    methods.setValue("description", template.description, { shouldDirty: false });
+  }, [searchParams, methods]);
 
   const { address, isConnected } = useAccount();
   const eligibility = useProposalEligibility({

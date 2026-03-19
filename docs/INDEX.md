@@ -35,6 +35,8 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/research/seo-metadata-audit.md` — full audit of metadata and OG image coverage across all pages; includes priority list for missing items
 - `docs/research/build-bundle-audit.md` — deep audit of next.config, tsconfig, dependencies, Client/Server boundaries, image optimization, and bundle splitting; ranked recommendations
 - `docs/research/propdates-audit.md` — DONE/PARTIAL/MISSING audit of propdates feature against Trello card requirements (Phase 1 + Phase 2)
+- `docs/research/gnars-tv-audit.md` — comprehensive audit of the TV feed: data flow, Zora SDK calls, creator qualification gates, hardcoded addresses, sorting algorithm, and why specific profiles may not appear
+- `docs/research/passed-proposals-categorized.md` — all 77 executed proposals categorized into 8 types (athlete sponsorship, events, physical installations, content/media, dev/tech, droposals, travel, partnerships); includes patterns and geographic breakdown
 
 ## References (External/Vendor)
 
