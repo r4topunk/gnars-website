@@ -17,6 +17,7 @@ export interface NogglesRailLocation {
     link: string;
   };
   video?: string;
+  droposals?: number[];
   slug: string;
 }
 
@@ -43,6 +44,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Gnars Proposal",
       link: "https://snapshot.box/#/s:gnars.eth/proposal/0xb63306dbfe950dd9754d5edcf8f48c6ff9bdd32eeeff4c644cb90c974a3055fa",
     },
+    droposals: [93],
     slug: "rio-de-janeiro",
   },
   {

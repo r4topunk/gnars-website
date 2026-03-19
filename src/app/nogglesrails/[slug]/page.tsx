@@ -39,7 +39,36 @@ function getYouTubeEmbedUrl(url: string): string {
   return match ? `https://www.youtube.com/embed/${match[1]}` : url;
 }
 
+function isDroposalEmbed(url: string): boolean {
+  return url.startsWith("droposal:");
+}
+
+function getDroposalId(url: string): string {
+  return url.replace("droposal:", "");
+}
+
 function MediaItem({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
+  if (isDroposalEmbed(src)) {
+    const droposalId = getDroposalId(src);
+    return (
+      <div className={`h-full w-full flex flex-col ${className}`}>
+        <iframe
+          src={`/droposals/${droposalId}`}
+          title={`Droposal #${droposalId}`}
+          className="h-full w-full border-0"
+          loading="lazy"
+        />
+        <a
+          href={`/droposals/${droposalId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm text-xs px-3 py-1.5 rounded-md border hover:bg-background transition-colors z-10"
+        >
+          Droposal #{droposalId} ↗
+        </a>
+      </div>
+    );
+  }
   if (isYouTubeUrl(src)) {
     return (
       <iframe
@@ -63,13 +92,15 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
   if (!rail) notFound();
 
   const proposalUrl = resolveLink(rail.proposal.link);
-  // Sort: videos first, then images
-  const sortedMedia = [...rail.images].sort((a, b) => {
-    const aIsVideo = isYouTubeUrl(a) ? 0 : 1;
-    const bIsVideo = isYouTubeUrl(b) ? 0 : 1;
-    return aIsVideo - bIsVideo;
-  });
-  const [hero, ...gallery] = sortedMedia;
+
+  // Build media list: droposal embeds first, then videos, then images
+  const droposalUrls = (rail.droposals ?? []).map(
+    (id) => `droposal:${id}`
+  );
+  const videos = rail.images.filter((src) => isYouTubeUrl(src));
+  const images = rail.images.filter((src) => !isYouTubeUrl(src));
+  const allMedia = [...droposalUrls, ...videos, ...images];
+  const [hero, ...gallery] = allMedia;
 
   return (
     <div className="py-6">
@@ -120,7 +151,7 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
                 {gallery.map((src, i) => (
                   <div
                     key={i}
-                    className={`relative overflow-hidden rounded-lg border bg-muted ${isYouTubeUrl(src) ? "aspect-video" : "aspect-[4/3]"}`}
+                    className={`relative overflow-hidden rounded-lg border bg-muted ${isDroposalEmbed(src) ? "aspect-[3/4] sm:col-span-2" : isYouTubeUrl(src) ? "aspect-video" : "aspect-[4/3]"}`}
                   >
                     <MediaItem src={src} alt={`${rail.label} — media ${i + 2}`} />
                   </div>
