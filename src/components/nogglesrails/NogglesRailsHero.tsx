@@ -109,8 +109,8 @@ export default function NogglesRailsHero() {
           </div>
         </div>
 
-        {/* Right — 3D Model */}
-        <div className="flex items-center justify-center min-h-[400px]">
+        {/* Right — 3D Model (hidden on mobile) */}
+        <div className="hidden lg:flex items-center justify-center min-h-[400px]">
           <div className="w-full h-[400px]">
             <Canvas
               shadows
