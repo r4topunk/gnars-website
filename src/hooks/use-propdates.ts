@@ -22,7 +22,7 @@ export function usePropdates(proposalId: string) {
     isError: isWriteError,
     reset: resetWrite,
   } = useWriteContract();
-  const [submissionPhase, setSubmissionPhase] = useState<"idle" | "confirming-wallet" | "pending-tx">("idle");
+  const [submissionPhase, setSubmissionPhase] = useState<"idle" | "confirming-wallet" | "pending-tx" | "syncing">("idle");
   const [createError, setCreateError] = useState<string | null>(null);
   const [pendingHash, setPendingHash] = useState<Hex | null>(null);
   const pendingProposalIdRef = useRef<string | null>(null);
@@ -91,6 +91,10 @@ export function usePropdates(proposalId: string) {
         setPendingHash(txHash);
 
         await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+        // Wait for EAS indexer to sync (Base blocks are ~2s, indexer lag ~2-4s)
+        setSubmissionPhase("syncing");
+        await new Promise((resolve) => setTimeout(resolve, 4000));
 
         queryClient.invalidateQueries({ queryKey: ["propdates", targetProposalId] });
 
