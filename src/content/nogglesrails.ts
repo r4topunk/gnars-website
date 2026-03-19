@@ -70,6 +70,27 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     slug: "silverado",
   },
   {
+    position: [18.4861, -69.9312],
+    label: "Santo Domingo",
+    city: "Santo Domingo",
+    country: "Dominican Republic",
+    continent: "Americas",
+    type: "Rail",
+    images: [
+      "https://images.hive.blog/DQmZeFXz6M33cmc7eE3ktJdRNvta7qd7RsAcaqSPijbuFDP/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.31.01.png",
+      "https://images.hive.blog/DQmTd6ax62hHNe28QH3GHmwjaZ8VdfM2UXTnDuZ7BA9JtV5/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.33.24.png",
+    ],
+    iconUrl: "/nogglesRail3D.png",
+    iconSize: [30, 30],
+    description:
+      "The original NogglesRail in Santo Domingo, installed through a Nouns Amigos activation in the República Dominicana. A symbol of the Nounish movement connecting with local street culture, where Gnars DAO bridges subDAOs and expands the global Nounish network.",
+    proposal: {
+      name: "Nouns Amigos",
+      link: "",
+    },
+    slug: "santo-domingo",
+  },
+  {
     position: [-22.891659522582522, -43.192417292690315],
     label: "Aquario",
     city: "Rio de Janeiro",
