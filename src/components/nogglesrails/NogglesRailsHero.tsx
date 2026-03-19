@@ -17,66 +17,33 @@ function NogglesRailModel3D() {
   const clonedLogoScene = useMemo(() => {
     return gnarsLogoModel.scene.clone();
   }, [gnarsLogoModel.scene]);
-  
-  // Load metal plate textures
-  const metalColorMap = useLoader(
-    TextureLoader,
-    "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/corrugated_iron/corrugated_iron_diff_1k.jpg",
-  );
-  const metalRoughnessMap = useLoader(
-    TextureLoader,
-    "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/corrugated_iron/corrugated_iron_rough_1k.jpg",
-  );
-  const metalNormalMap = useLoader(
-    TextureLoader,
-    "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/corrugated_iron/corrugated_iron_nor_gl_1k.jpg",
-  );
 
-  // Configure textures
+  // Center model and apply noggles colors (red frame, black/white lenses)
   useEffect(() => {
-    if (metalColorMap) {
-      metalColorMap.colorSpace = THREE.SRGBColorSpace;
-      metalColorMap.wrapS = metalColorMap.wrapT = THREE.RepeatWrapping;
-      metalColorMap.repeat.set(2, 2);
-      metalColorMap.needsUpdate = true;
-    }
-    if (metalNormalMap) {
-      metalNormalMap.colorSpace = THREE.LinearSRGBColorSpace;
-      metalNormalMap.wrapS = metalNormalMap.wrapT = THREE.RepeatWrapping;
-      metalNormalMap.repeat.set(2, 2);
-      metalNormalMap.needsUpdate = true;
-    }
-    if (metalRoughnessMap) {
-      metalRoughnessMap.colorSpace = THREE.LinearSRGBColorSpace;
-      metalRoughnessMap.wrapS = metalRoughnessMap.wrapT = THREE.RepeatWrapping;
-      metalRoughnessMap.repeat.set(2, 2);
-      metalRoughnessMap.needsUpdate = true;
-    }
+    if (clonedLogoScene) {
+      const box = new THREE.Box3().setFromObject(clonedLogoScene);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      clonedLogoScene.position.sub(center);
 
-    // Apply textures to model
-    if (clonedLogoScene && metalColorMap && metalNormalMap && metalRoughnessMap) {
+      // Apply silver/chrome material
       clonedLogoScene.traverse((child: THREE.Object3D) => {
         const mesh = child as THREE.Mesh;
-        if (mesh.isMesh && mesh.material) {
-          const material = (mesh.material as THREE.MeshStandardMaterial).clone();
-          mesh.material = material;
-          if (material.isMeshStandardMaterial) {
-            material.map = metalColorMap;
-            material.normalMap = metalNormalMap;
-            material.roughnessMap = metalRoughnessMap;
-            material.metalness = 0.95;
-            material.roughness = 0.25;
-            material.needsUpdate = true;
-          }
-        }
+        if (!mesh.isMesh) return;
+        mesh.material = new THREE.MeshStandardMaterial({
+          color: new THREE.Color('#D8D8D8'),
+          metalness: 0.6,
+          roughness: 0.25,
+          emissive: new THREE.Color('#888888'),
+          emissiveIntensity: 0.2,
+        });
       });
     }
-  }, [metalColorMap, metalNormalMap, metalRoughnessMap, clonedLogoScene]);
+  }, [clonedLogoScene]);
 
-  // Static positioning - no animation
-  // Scaled down to show complete rail structure
+  // Auto-centered via bounding box above
   return (
-    <group ref={logoRef} scale={1.2} position={[0, 0, 0]} rotation={[-0.2, 0.4, 0]}>
+    <group ref={logoRef} scale={1} position={[0, 0, 0]} rotation={[-0.15, -0.3, 0]}>
       <primitive object={clonedLogoScene} />
     </group>
   );
@@ -148,11 +115,13 @@ export default function NogglesRailsHero() {
               gl={{ alpha: true, antialias: true }}
               style={{ background: "transparent" }}
             >
-              <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={60} />
+              <PerspectiveCamera makeDefault position={[50, 30, 160]} fov={50} />
               <OrbitControls
                 enableZoom={false}
                 enablePan={false}
-                enableRotate={false}
+                enableRotate={true}
+                enableDamping
+                dampingFactor={0.05}
               />
               <ambientLight intensity={0.8} />
               <directionalLight position={[5, 5, 5]} intensity={2.0} castShadow />
