@@ -9,6 +9,7 @@ import { createPropdate as encodePropdateRequest, listPropdates } from "@/servic
 interface CreatePropdateInput {
   proposalId: string;
   messageText: string;
+  originalMessageId?: string;
 }
 
 export function usePropdates(proposalId: string) {
@@ -56,7 +57,11 @@ export function usePropdates(proposalId: string) {
         pendingProposalIdRef.current = targetProposalId;
         setSubmissionPhase("confirming-wallet");
 
-        const attestationRequest = await encodePropdateRequest(targetProposalId, input.messageText);
+        const attestationRequest = await encodePropdateRequest(
+          targetProposalId,
+          input.messageText,
+          input.originalMessageId,
+        );
 
         if (!publicClient) {
           throw new Error("Public client not available");

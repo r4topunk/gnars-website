@@ -83,10 +83,15 @@ export function Propdates({ proposalId }: PropdatesProps) {
       {showForm && (
         <PropdateForm
           proposalId={proposalId}
+          replyTo={replyingTo}
           onSuccess={() => {
             setShowForm(false);
             setReplyingTo(null);
             refetch();
+          }}
+          onCancel={() => {
+            setShowForm(false);
+            setReplyingTo(null);
           }}
         />
       )}
