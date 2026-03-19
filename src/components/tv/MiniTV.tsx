@@ -72,7 +72,7 @@ export function MiniTV() {
       >
         <button
           onClick={handleClose}
-          className="absolute right-4 top-20 z-[60] rounded-lg bg-black/60 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
+          className="absolute right-4 top-20 z-[61] rounded-lg bg-black/60 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
           aria-label="Close fullscreen"
         >
           <X className="h-6 w-6" />
@@ -97,6 +97,9 @@ export function MiniTV() {
   // Mini TV — hidden when hero TV is visible
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label="Open Gnars TV fullscreen"
       className={`fixed bottom-4 left-4 z-40 h-[120px] w-[120px] cursor-pointer transition-all duration-500 ease-out ${
         isLoaded && !heroTVVisible
           ? "opacity-100 scale-100 translate-y-0"
@@ -105,6 +108,7 @@ export function MiniTV() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleClick(); }}
     >
       <div className="h-full w-full overflow-hidden rounded-lg shadow-lg ring-1 ring-white/10">
         <Gnar3DTVScene
