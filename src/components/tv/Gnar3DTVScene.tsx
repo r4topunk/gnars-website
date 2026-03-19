@@ -13,6 +13,8 @@ interface Gnar3DTVSceneProps {
   autoRotate?: boolean;
   onNextVideo?: () => void;
   creatorCoinImages?: CreatorCoinImage[];
+  dpr?: number;
+  enableOrbitControls?: boolean;
 }
 
 export function Gnar3DTVScene({
@@ -20,6 +22,8 @@ export function Gnar3DTVScene({
   autoRotate = true,
   onNextVideo,
   creatorCoinImages = [],
+  dpr = 0.6,
+  enableOrbitControls = true,
 }: Gnar3DTVSceneProps) {
   const { config } = useTVTextureControls();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -74,7 +78,7 @@ export function Gnar3DTVScene({
         }}
         onCreated={handleCreated}
         style={{ background: "transparent" }}
-        dpr={0.6}
+        dpr={dpr}
       >
         {/* Lighting - simplified for better performance */}
         <ambientLight intensity={3.5} />
@@ -94,13 +98,15 @@ export function Gnar3DTVScene({
         </Suspense>
 
         {/* Controls */}
-        <OrbitControls
-          enableDamping={false}
-          minDistance={2}
-          maxDistance={8}
-          enablePan={false}
-          enableZoom={false}
-        />
+        {enableOrbitControls && (
+          <OrbitControls
+            enableDamping={false}
+            minDistance={2}
+            maxDistance={8}
+            enablePan={false}
+            enableZoom={false}
+          />
+        )}
       </Canvas>
     </div>
   );
