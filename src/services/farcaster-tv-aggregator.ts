@@ -332,7 +332,7 @@ async function fetchCandidateCreators(): Promise<CandidateCreator[]> {
   return candidates;
 }
 
-const MAX_NFT_HOLDER_CANDIDATES = 100;
+const MAX_NFT_HOLDER_CANDIDATES = 200;
 
 /**
  * Discover creators by Gnars NFT ownership via Builder DAO subgraph.
@@ -342,7 +342,7 @@ async function fetchNftHolderCandidates(
   excludeHandles: Set<string>,
 ): Promise<CandidateCreator[]> {
   const dao = GNARS_NFT_ADDRESS.toLowerCase();
-  const PAGE_SIZE = 100;
+  const PAGE_SIZE = 200;
 
   // Query Builder DAO subgraph for top NFT holders
   const query = /* GraphQL */ `
