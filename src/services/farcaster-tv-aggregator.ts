@@ -76,6 +76,7 @@ export interface TVItemData {
   farcasterUsername?: string;
   farcasterFollowerCount?: number;
   farcasterType?: "coin" | "nft";
+  creatorCoinBalance?: number;
 }
 
 export interface FarcasterTVData {

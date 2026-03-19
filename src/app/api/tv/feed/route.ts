@@ -168,6 +168,15 @@ function computeFarcasterBoost(followerCount?: number): number {
   return (capped / FARCASTER_FOLLOWER_BOOST_CAP) * FARCASTER_FOLLOWER_BOOST_MAX_MS;
 }
 
+const COIN_BALANCE_BOOST_MAX_MS = 1000 * 60 * 60 * 3; // 3 hours
+const COIN_BALANCE_BOOST_CAP = 1_000_000;
+
+function computeCoinBalanceBoost(coinBalance?: number): number {
+  if (!coinBalance || coinBalance <= 0) return 0;
+  const capped = Math.min(coinBalance, COIN_BALANCE_BOOST_CAP);
+  return (capped / COIN_BALANCE_BOOST_CAP) * COIN_BALANCE_BOOST_MAX_MS;
+}
+
 /**
  * Fetch content from creators with concurrency limit
  */
@@ -202,6 +211,7 @@ async function fetchCreatorContent(
 
           const item = mapCoinToTVItem(coin, creator.handle);
           if (item) {
+            item.creatorCoinBalance = creator.coinBalance;
             loadedAddresses.add(addr);
             allItems.push(item);
           }
@@ -433,8 +443,14 @@ export async function GET() {
     allItems.sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      const boostedA = dateA + computeFarcasterBoost(a.farcasterFollowerCount);
-      const boostedB = dateB + computeFarcasterBoost(b.farcasterFollowerCount);
+      const boostedA =
+        dateA +
+        computeFarcasterBoost(a.farcasterFollowerCount) +
+        computeCoinBalanceBoost(a.creatorCoinBalance);
+      const boostedB =
+        dateB +
+        computeFarcasterBoost(b.farcasterFollowerCount) +
+        computeCoinBalanceBoost(b.creatorCoinBalance);
       return boostedB - boostedA;
     });
 
