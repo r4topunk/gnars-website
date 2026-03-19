@@ -126,20 +126,19 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     slug: "porto-alegre",
   },
   {
-    position: [9.082, 8.6753],
+    position: [-1.2864, 36.8172],
     label: "Kenya",
     city: "Nairobi",
     country: "Kenya",
     continent: "Africa",
     type: "Rail",
     images: [
-      "https://gnars.center/kenya.jpg",
-      "https://gnars.center/kenya2.jpg",
+      "/images/nogglesrails/kenya-noungnarversary.jpg",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The first NogglesRail on the African continent. Connecting Nounish culture with the growing East African skate community.",
+      "GnarsDAO x NounsDAO Africa NounGnarversary Celebration in Nairobi, Kenya showcasing the Gnars Shreddable Noggles. Red NogglesRail obstacle designed by Nouns DAO / Nouns DAO Africa. An open, permissionless and decentralised celebration of nounish and gnarly culture globally.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://gnars.com/proposals/73",
