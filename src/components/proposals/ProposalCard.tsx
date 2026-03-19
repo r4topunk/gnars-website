@@ -219,16 +219,15 @@ export function ProposalCard({
 
             {showRequested && (
               <div className="space-y-1 border-t border-border/60 pt-2">
-                <div className="flex items-start justify-between gap-3">
-                  <span className="text-xs text-muted-foreground pt-0.5">Requested</span>
-                  <div className="min-w-0 text-right">
-                    <div className="space-y-0.5 tabular-nums">
-                      {requestedLines.map((line) => (
-                        <div key={line} className="truncate font-medium text-foreground">
-                          {line}
-                        </div>
-                      ))}
-                    </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-muted-foreground">Requested</span>
+                  <div className="flex items-center gap-2 font-medium text-foreground tabular-nums text-sm">
+                    {requestedLines.map((line, idx) => (
+                      <span key={line}>
+                        {line}
+                        {idx < requestedLines.length - 1 && <span className="text-muted-foreground mx-1">+</span>}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
