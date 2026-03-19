@@ -324,7 +324,8 @@ async function fetchPairedCoins(loadedAddresses: Set<string>): Promise<TVItemDat
     console.log(`[api/tv] Loaded ${items.length} GNARS-paired coins with media`);
     return items;
   } catch (err) {
-    console.warn("[api/tv] Failed to fetch paired coins:", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[api/tv] Paired coins unavailable: ${msg}`);
     return [];
   }
 }
