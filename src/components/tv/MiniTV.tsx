@@ -58,6 +58,7 @@ export function MiniTV() {
   const handleClose = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsFullscreen(false);
+    setIsHovered(false);
   }, []);
 
   // Determine video URL: only pass when hovered or fullscreen
@@ -100,17 +101,17 @@ export function MiniTV() {
       role="button"
       tabIndex={0}
       aria-label="Open Gnars TV fullscreen"
-      className={`fixed bottom-4 left-4 z-40 h-[120px] w-[120px] cursor-pointer transition-all duration-500 ease-out ${
+      className={`fixed bottom-4 left-4 z-40 h-[120px] w-[120px] cursor-pointer transition-opacity duration-700 ease-in-out ${
         isLoaded && !heroTVVisible
-          ? "opacity-100 scale-100 translate-y-0"
-          : "opacity-0 scale-75 translate-y-4 pointer-events-none"
+          ? "opacity-100"
+          : "opacity-0 pointer-events-none"
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleClick(); }}
     >
-      <div className="h-full w-full overflow-hidden rounded-lg shadow-lg ring-1 ring-white/10">
+      <div className="h-full w-full overflow-hidden rounded-lg shadow-lg">
         <Gnar3DTVScene
           videoUrl={videoUrl}
           autoRotate={true}
