@@ -449,9 +449,25 @@ async function fetchProfileWallets(candidates: CandidateCreator[]): Promise<Cand
 }
 
 async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
-  const candidates = await fetchCandidateCreators();
-  const candidatesWithWallets = await fetchProfileWallets(candidates);
+  // Path A: Coin holder discovery (Zora SDK)
+  const coinCandidates = await fetchCandidateCreators();
 
+  // Merge & dedup — coin candidates take priority (they have coin balance data)
+  const seenHandles = new Set<string>(coinCandidates.map((c) => c.handle));
+
+  // Path B: NFT holder discovery (Builder DAO subgraph)
+  const nftCandidates = await fetchNftHolderCandidates(seenHandles);
+
+  const allCandidates = [...coinCandidates, ...nftCandidates];
+
+  console.log(
+    `[farcaster-tv] Candidates: ${coinCandidates.length} from coin holders, ${nftCandidates.length} from NFT holders`,
+  );
+
+  // Resolve wallets for all candidates (coin candidates may already have wallets from prior step)
+  const candidatesWithWallets = await fetchProfileWallets(allCandidates);
+
+  // Batch check NFT balances across all wallets
   const allWallets = new Set<string>();
   for (const candidate of candidatesWithWallets) {
     for (const wallet of candidate.wallets) {
@@ -461,6 +477,7 @@ async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
 
   const nftBalances = await batchCheckNftBalances(Array.from(allWallets));
 
+  // Qualify: NFT ≥ 1 is the only gate
   const qualifiedCreators: QualifiedCreator[] = [];
 
   for (const candidate of candidatesWithWallets) {
@@ -489,16 +506,6 @@ async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
       nftBalance: creator.nftBalance,
     });
   }
-
-  console.log(
-    `[farcaster-tv] Qualified creators (${qualifiedCreators.length}):`,
-    qualifiedCreators.map((creator) => ({
-      handle: creator.handle,
-      wallets: creator.wallets,
-      coinBalance: creator.coinBalance,
-      nftBalance: creator.nftBalance,
-    })),
-  );
 
   return qualifiedCreators;
 }
