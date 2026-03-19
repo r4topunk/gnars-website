@@ -324,7 +324,11 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
           )}
           {shouldShowPropdatesTab && (
             <TabsContent value="propdates" className="mt-6">
-              <Propdates proposalId={proposal.proposalId} />
+              <Propdates
+                proposalId={proposal.proposalId}
+                proposer={proposal.proposer}
+                targets={proposal.targets}
+              />
             </TabsContent>
           )}
         </Tabs>

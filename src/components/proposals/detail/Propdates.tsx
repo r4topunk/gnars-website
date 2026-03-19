@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { zeroHash } from "viem";
+import { useAccount } from "wagmi";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -14,34 +15,56 @@ import { PropdateForm } from "./PropdateForm";
 
 interface PropdatesProps {
   proposalId: string;
+  proposer?: string;
+  targets?: string[];
 }
 
-export function Propdates({ proposalId }: PropdatesProps) {
+export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
   const { propdates, isLoading, isError, refetch } = usePropdates(proposalId);
   const { data: daoMembers } = useDaoMembers();
+  const { address } = useAccount();
   const [showForm, setShowForm] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Propdate | null>(null);
-  const [showOnlyMembers, setShowOnlyMembers] = useState(false);
 
-  const filteredPropdates = useMemo(() => {
-    if (!propdates) return [];
-    if (showOnlyMembers && daoMembers) {
-      return propdates.filter((p) => daoMembers.has(p.attester.toLowerCase()));
+  // Allowed to create top-level propdates: proposer + tx target addresses
+  const allowedAuthors = useMemo(() => {
+    const set = new Set<string>();
+    if (proposer) set.add(proposer.toLowerCase());
+    if (targets) {
+      for (const t of targets) {
+        if (t) set.add(t.toLowerCase());
+      }
     }
-    return propdates;
-  }, [propdates, showOnlyMembers, daoMembers]);
+    return set;
+  }, [proposer, targets]);
+
+  const canCreatePropdate = address
+    ? allowedAuthors.has(address.toLowerCase())
+    : false;
+
+  const canReply = address && daoMembers
+    ? daoMembers.has(address.toLowerCase())
+    : false;
 
   const topLevel = useMemo(() => {
-    return filteredPropdates
+    if (!propdates) return [];
+    return propdates
       .filter((p) => !p.originalMessageId || p.originalMessageId === zeroHash)
       .sort((a, b) => b.timeCreated - a.timeCreated);
-  }, [filteredPropdates]);
+  }, [propdates]);
 
+  // Replies: only show those from DAO members
   const getReplies = useCallback((parentTxid: string): Propdate[] => {
-    return filteredPropdates
-      .filter((p) => p.originalMessageId === parentTxid)
+    if (!propdates) return [];
+    return propdates
+      .filter((p) => {
+        if (p.originalMessageId !== parentTxid) return false;
+        // Only show replies from DAO members
+        if (!daoMembers) return true; // show all while loading members
+        return daoMembers.has(p.attester.toLowerCase());
+      })
       .sort((a, b) => a.timeCreated - b.timeCreated);
-  }, [filteredPropdates]);
+  }, [propdates, daoMembers]);
 
   const handleReplyClick = (propdate: Propdate) => {
     if (replyingTo?.txid === propdate.txid) {
@@ -81,14 +104,7 @@ export function Propdates({ proposalId }: PropdatesProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Propdates</h3>
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => setShowOnlyMembers(!showOnlyMembers)}
-            variant="ghost"
-            size="sm"
-          >
-            {showOnlyMembers ? "Show All" : "DAO Members Only"}
-          </Button>
+        {canCreatePropdate && (
           <Button
             onClick={handleNewPropdate}
             variant={showForm && !replyingTo ? "destructive" : "outline"}
@@ -96,7 +112,7 @@ export function Propdates({ proposalId }: PropdatesProps) {
           >
             {showForm && !replyingTo ? "Cancel" : "Create Propdate"}
           </Button>
-        </div>
+        )}
       </div>
       {showForm && (
         <PropdateForm
@@ -122,7 +138,7 @@ export function Propdates({ proposalId }: PropdatesProps) {
               propdate={propdate}
               replies={getReplies(propdate.txid)}
               isReplying={replyingTo?.txid === propdate.txid}
-              onReplyClick={handleReplyClick}
+              onReplyClick={canReply ? handleReplyClick : undefined}
             />
           ))}
         </div>
