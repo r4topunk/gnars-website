@@ -1,18 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { Address, formatEther, parseEther } from "viem";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { createTradeCall, setApiKey, type TradeParameters } from "@zoralabs/coins-sdk";
 import { GNARS_ADDRESSES } from "@/lib/config";
-import { CustomTransactionForm } from "@/components/proposals/builder/forms/custom-transaction-form";
-import { DroposalForm } from "@/components/proposals/builder/forms/droposal-form";
-import { SendEthForm } from "@/components/proposals/builder/forms/send-eth-form";
-import { SendNFTsForm } from "@/components/proposals/builder/forms/send-nfts-form";
-import { SendTokensForm } from "@/components/proposals/builder/forms/send-tokens-form";
-import { SendUsdcForm } from "@/components/proposals/builder/forms/send-usdc-form";
-import { BuyCoinForm } from "@/components/proposals/builder/forms/buy-coin-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +14,14 @@ import { Separator } from "@/components/ui/separator";
 import { type ProposalFormValues, type TransactionFormValues } from "../schema";
 import { useSplitCreation } from "@/hooks/use-split-creation";
 import { validateSplitRecipients, prepareSplitConfigForSDK, IMMUTABLE_CONTROLLER } from "@/lib/splits-utils";
+
+const CustomTransactionForm = dynamic(() => import("@/components/proposals/builder/forms/custom-transaction-form").then(mod => ({ default: mod.CustomTransactionForm })));
+const DroposalForm = dynamic(() => import("@/components/proposals/builder/forms/droposal-form").then(mod => ({ default: mod.DroposalForm })));
+const SendEthForm = dynamic(() => import("@/components/proposals/builder/forms/send-eth-form").then(mod => ({ default: mod.SendEthForm })));
+const SendNFTsForm = dynamic(() => import("@/components/proposals/builder/forms/send-nfts-form").then(mod => ({ default: mod.SendNFTsForm })));
+const SendTokensForm = dynamic(() => import("@/components/proposals/builder/forms/send-tokens-form").then(mod => ({ default: mod.SendTokensForm })));
+const SendUsdcForm = dynamic(() => import("@/components/proposals/builder/forms/send-usdc-form").then(mod => ({ default: mod.SendUsdcForm })));
+const BuyCoinForm = dynamic(() => import("@/components/proposals/builder/forms/buy-coin-form").then(mod => ({ default: mod.BuyCoinForm })));
 
 interface ActionFormsProps {
   index: number;

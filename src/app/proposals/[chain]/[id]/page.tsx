@@ -10,8 +10,21 @@ import { BASE_URL } from "@/lib/config";
 import { toOgImageUrl } from "@/lib/og-images";
 import { PROPOSALS_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import { getMultiChainProposal, type MultiChainProposal, type ProposalSource } from "@/services/multi-chain-proposals";
+import { listProposals } from "@/services/proposals";
 
 export const revalidate = 60;
+
+export async function generateStaticParams() {
+  try {
+    const proposals = await listProposals(20);
+    return proposals.map((p) => ({
+      chain: "base",
+      id: String(p.proposalNumber),
+    }));
+  } catch {
+    return [];
+  }
+}
 
 const VALID_CHAINS: ProposalSource[] = ["base", "ethereum", "snapshot"];
 

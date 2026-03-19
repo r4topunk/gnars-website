@@ -1,10 +1,11 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { GnarsTVFeed } from "@/components/tv/GnarsTVFeed";
 import { BASE_URL } from "@/lib/config";
 import { TV_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 type Props = {
   params: { coinAddress: string };
@@ -109,7 +110,9 @@ export default async function TVCoinPage({ params }: Props) {
   return (
     <>
       <h1 className="sr-only">Gnars TV skateboarding coin feed</h1>
-      <GnarsTVFeed priorityCoinAddress={coinAddress} />
+      <Suspense>
+        <GnarsTVFeed priorityCoinAddress={coinAddress} />
+      </Suspense>
     </>
   );
 }
