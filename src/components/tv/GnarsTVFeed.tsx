@@ -100,8 +100,8 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     priorityCoinAddress,
   });
 
-  // Filter to only video items
-  const videoItems = useMemo(() => items.filter((i) => i.videoUrl), [items]);
+  // Include items with video or image
+  const videoItems = useMemo(() => items.filter((i) => i.videoUrl || i.imageUrl), [items]);
 
   // Count how many posts were created since the last TV session.
   useEffect(() => {
@@ -673,7 +673,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
               >
                 {/* Optimized video player with virtualization */}
                 <TVVideoPlayer
-                  src={item.videoUrl!}
+                  src={item.videoUrl}
                   poster={item.imageUrl}
                   isActive={isActive}
                   isMuted={isMuted}
