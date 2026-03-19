@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Markdown } from "@/components/common/Markdown";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { usePropdates } from "@/hooks/use-propdates";
 import { type Propdate } from "@/services/propdates";
@@ -68,12 +70,30 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Textarea
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            placeholder={replyTo ? "Write your reply..." : "Share an update on this proposal..."}
-            required
-          />
+          <Tabs defaultValue="write" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="write">Write</TabsTrigger>
+              <TabsTrigger value="preview">Preview</TabsTrigger>
+            </TabsList>
+            <TabsContent value="write">
+              <Textarea
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder={replyTo ? "Write your reply..." : "Share an update on this proposal..."}
+                required
+                rows={6}
+              />
+            </TabsContent>
+            <TabsContent value="preview">
+              <div className="min-h-[150px] rounded-md border p-3">
+                {messageText.trim() ? (
+                  <Markdown>{messageText}</Markdown>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Nothing to preview</p>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
           <Button type="submit" disabled={isCreating || !messageText.trim()}>
             {buttonLabel}
           </Button>
