@@ -57,8 +57,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Americas",
     type: "Rail",
     images: [
-      "https://gnars.center/tom_silverdo.jpg",
-      "https://gnars.center/example-image2.jpg",
+      "https://ipfs.skatehive.app/ipfs/QmRUjz5j6bo8dwrWw12Bap4wcBnyZxkvXaSE3mfp9cG8Qo",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
