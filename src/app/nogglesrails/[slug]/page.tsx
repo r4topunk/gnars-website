@@ -6,6 +6,7 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { NOGGLES_RAILS, getRailBySlug } from "@/content/nogglesrails";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DroposalEmbed } from "@/components/nogglesrails/DroposalEmbed";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -49,25 +50,8 @@ function getDroposalId(url: string): string {
 
 function MediaItem({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
   if (isDroposalEmbed(src)) {
-    const droposalId = getDroposalId(src);
-    return (
-      <div className={`h-full w-full flex flex-col ${className}`}>
-        <iframe
-          src={`/droposals/${droposalId}`}
-          title={`Droposal #${droposalId}`}
-          className="h-full w-full border-0"
-          loading="lazy"
-        />
-        <a
-          href={`/droposals/${droposalId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm text-xs px-3 py-1.5 rounded-md border hover:bg-background transition-colors z-10"
-        >
-          Droposal #{droposalId} ↗
-        </a>
-      </div>
-    );
+    const droposalId = Number(getDroposalId(src));
+    return <DroposalEmbed droposalId={droposalId} />;
   }
   if (isYouTubeUrl(src)) {
     return (
