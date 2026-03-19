@@ -6,16 +6,6 @@ import { BlogCardSkeleton } from "@/components/blogs/BlogCardSkeleton";
 import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 import type { BlogSummary } from "@/lib/schemas/blogs";
 
-export function BlogsGridSkeleton() {
-  return (
-    <div className="grid gap-6 md:grid-cols-2">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <BlogCardSkeleton key={i} />
-      ))}
-    </div>
-  );
-}
-
 export function BlogsGrid({ blogs }: { blogs: BlogSummary[] }) {
   const PAGE_SIZE = 6;
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);

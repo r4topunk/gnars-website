@@ -5,7 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import type { WebGLRenderer } from "three";
 import { TV3DModel } from "./TV3DModel";
-import { useTVTextureControls, TV_PRESETS } from "./TVTextureControls";
+import { useTVTextureControls } from "./TVTextureControls";
 import type { CreatorCoinImage } from "./useTVFeed";
 
 interface Gnar3DTVSceneProps {
@@ -105,6 +105,3 @@ export function Gnar3DTVScene({
     </div>
   );
 }
-
-// Export presets for external use
-export { TV_PRESETS };

@@ -1,5 +1,5 @@
 import { sdk } from "@farcaster/miniapp-sdk";
-import { custom, type EIP1193Provider } from "viem";
+import { type EIP1193Provider } from "viem";
 import { createConnector } from "wagmi";
 
 /**
@@ -181,16 +181,4 @@ export function farcasterWallet() {
       config.emitter.emit("disconnect");
     },
   }));
-}
-
-/**
- * Get a viem transport for the Farcaster wallet provider
- * Useful for creating wallet clients directly with viem
- */
-export async function getFarcasterTransport() {
-  const provider = await sdk.wallet.getEthereumProvider();
-  if (!provider) {
-    throw new Error("Farcaster wallet not available");
-  }
-  return custom(provider as EIP1193Provider);
 }

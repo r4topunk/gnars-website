@@ -598,7 +598,7 @@ async function fetchFeedEventsUncached(hoursBack: number = 24): Promise<FeedEven
  * Uses unstable_cache for automatic revalidation on Vercel.
  * Cache is tagged for manual revalidation if needed.
  */
-export const fetchFeedEvents = unstable_cache(
+const fetchFeedEvents = unstable_cache(
   async (hoursBack: number = 24) => {
     return await fetchFeedEventsUncached(hoursBack);
   },
@@ -614,7 +614,7 @@ export const fetchFeedEvents = unstable_cache(
  * 
  * These events are derived from current data and time, not blockchain events.
  */
-export async function generateComputedEvents(): Promise<FeedEvent[]> {
+async function generateComputedEvents(): Promise<FeedEvent[]> {
   const events: FeedEvent[] = [];
   const now = Math.floor(Date.now() / 1000);
 

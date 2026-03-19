@@ -494,8 +494,6 @@ function parseUsd(value: string | null | undefined): number {
 
 function isGnarsRelatedToken({
   address,
-  name: _name,
-  symbol: _symbol,
 }: {
   address?: string | null;
   name?: string | null;
@@ -597,7 +595,6 @@ function mapCoinToTVItem(coin: CoinNode, creatorHandle: string): TVItemData | nu
 function mapFarcasterCoinToTVItem(
   coin: CoinNode,
   profile: FarcasterProfile,
-  balance: FarcasterTokenBalance,
 ): TVItemData | null {
   const baseItem = mapCoinToTVItem(coin, profile.username);
   if (!baseItem) return null;
@@ -710,7 +707,7 @@ async function fetchFarcasterHoldings(
               return null;
             }
 
-            const item = mapFarcasterCoinToTVItem(coin, match.profile, balance);
+            const item = mapFarcasterCoinToTVItem(coin, match.profile);
             if (!item) return null;
             farcasterLoadedKeys.add(key);
             return item;
@@ -834,27 +831,3 @@ export const getFarcasterTVData = reactCache(async (): Promise<FarcasterTVData> 
 
   return { ...payload, cache: { source: "next" } };
 });
-
-/**
- * Uncached debug helper for running the Farcaster TV aggregation outside Next.js.
- * Avoids unstable_cache/reactCache to allow script execution in Node.
- */
-export async function getFarcasterTVDataUncached(): Promise<FarcasterTVData> {
-  const start = Date.now();
-  const qualifiedCreators = await fetchQualifiedCreators();
-  const shouldFetchFarcaster = assertNeynarApiKey("farcaster-tv");
-
-  const farcasterHoldings = shouldFetchFarcaster
-    ? await fetchFarcasterHoldings(qualifiedCreators, false)
-    : { items: [], stats: { creators: 0, coins: 0, nfts: 0 } };
-
-  const durationMs = Date.now() - start;
-
-  return {
-    qualifiedCreators,
-    items: farcasterHoldings.items,
-    stats: farcasterHoldings.stats,
-    durationMs,
-    cache: { source: "next" },
-  };
-}

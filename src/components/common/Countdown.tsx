@@ -46,6 +46,7 @@ export function Countdown({ end, onEnd, style, className }: CountdownProps) {
     const interval = setInterval(updateCountdown, 1000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [end]); // Only depend on 'end' - restart countdown when target changes
 
   return (

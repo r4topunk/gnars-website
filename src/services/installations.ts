@@ -9,9 +9,3 @@ export async function getInstallationBySlug(slug: string): Promise<Installation 
   const installation = installationsData.installations.find((i) => i.slug === slug);
   return (installation as Installation) || null;
 }
-
-export async function getInstallationsByCountry(country: string): Promise<Installation[]> {
-  return installationsData.installations.filter(
-    (i) => i.location.country.toLowerCase() === country.toLowerCase()
-  ) as Installation[];
-}

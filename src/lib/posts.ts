@@ -72,7 +72,7 @@ export function getPostBySlug(directory: string, slug: string): {
 
   const filePath = path.join(process.cwd(), "src", "content", directory, post.filename);
   const fileContent = fs.readFileSync(filePath, "utf8");
-  const { data, content } = matter(fileContent);
+  const { content } = matter(fileContent);
 
   return {
     metadata: post,

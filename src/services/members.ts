@@ -117,64 +117,6 @@ export async function fetchMemberOverview(address: string): Promise<MemberOvervi
   };
 }
 
-type ProposalsQuery = {
-  proposals: Array<{
-    id: string;
-    proposalNumber: number;
-    title?: string | null;
-    description?: string | null;
-    timeCreated: string;
-    proposer: string;
-    canceled: boolean;
-    executed: boolean;
-    vetoed: boolean;
-  }>;
-};
-
-const MEMBER_PROPOSALS_GQL = /* GraphQL */ `
-  query MemberProposals($dao: ID!, $proposer: Bytes!, $first: Int!, $skip: Int!) {
-    proposals(
-      where: { dao: $dao, proposer: $proposer }
-      orderBy: timeCreated
-      orderDirection: desc
-      first: $first
-      skip: $skip
-    ) {
-      id
-      proposalNumber
-      title
-      description
-      timeCreated
-      proposer
-      canceled
-      executed
-      vetoed
-    }
-  }
-`;
-
-export async function fetchMemberProposals(address: string, limit = 50): Promise<MemberProposals> {
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
-  const PAGE = Math.min(limit, 50);
-  const data = await subgraphQuery<ProposalsQuery>(MEMBER_PROPOSALS_GQL, {
-    dao,
-    proposer: address.toLowerCase(),
-    first: PAGE,
-    skip: 0,
-  });
-
-  const proposals = (data.proposals || []).map((p) => ({
-    id: p.id,
-    proposalNumber: Number(p.proposalNumber),
-    title: p.title,
-    description: p.description,
-    timeCreated: Number(p.timeCreated) * 1000,
-    state: p.vetoed ? "VETOED" : p.canceled ? "CANCELED" : p.executed ? "EXECUTED" : undefined,
-  }));
-
-  return { proposals };
-}
-
 type VotesQuery = {
   proposalVotes: Array<{
     id: string;

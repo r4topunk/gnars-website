@@ -5,9 +5,6 @@ import { Proposal } from "@/components/proposals/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 
-// Re-export for backwards compatibility
-export { type Proposal } from "@/components/proposals/types";
-export { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface RecentProposalsProps {
   proposals: Proposal[];

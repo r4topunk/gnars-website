@@ -222,6 +222,7 @@ function usePlaceSearch({
     fetchResults();
 
     return () => abortController.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     debouncedQuery,
     props.lang,

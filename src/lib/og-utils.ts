@@ -4,7 +4,6 @@
 
 export const OG_SIZE = { width: 1200, height: 630 };
 export const MINIAPP_SIZE = { width: 1200, height: 800 };
-export const OG_CONTENT_TYPE = "image/png";
 
 // Dark theme colors (consistent with existing member OG)
 export const OG_COLORS = {
@@ -21,7 +20,7 @@ export const OG_COLORS = {
 } as const;
 
 // Status colors for proposals
-export const PROPOSAL_STATUS_COLORS: Record<string, string> = {
+const PROPOSAL_STATUS_COLORS: Record<string, string> = {
   Active: "#22c55e",
   Pending: "#fbbf24",
   Succeeded: "#22c55e",

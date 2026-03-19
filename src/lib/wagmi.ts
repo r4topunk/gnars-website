@@ -8,7 +8,7 @@ import { farcasterWallet } from "@/lib/farcaster-connector";
 
 // Multiple Base RPC endpoints for failover
 // Ordered by reliability and rate limit tolerance
-export const BASE_RPC_URLS = [
+const BASE_RPC_URLS = [
   // Custom RPC (if provided)
   ...(process.env.NEXT_PUBLIC_BASE_RPC_URL ? [process.env.NEXT_PUBLIC_BASE_RPC_URL] : []),
   // High-reliability public endpoints (green score, good privacy)
@@ -23,17 +23,13 @@ export const BASE_RPC_URLS = [
   "https://mainnet.base.org",
 ];
 
-// Export chains for use in Providers
-export const chains = [base] as const;
-
-// Export chain type for type safety
-export type SupportedChain = (typeof chains)[number];
+const chains = [base] as const;
 
 /**
  * Create transport configuration with RPC fallback
  * This is SSR-safe and can be called during module initialization
  */
-export function createTransports() {
+function createTransports() {
   return {
     [base.id]: fallback(
       BASE_RPC_URLS.map((url) =>
@@ -55,7 +51,7 @@ export function createTransports() {
 /**
  * Create SSR-safe storage configuration
  */
-export function createSsrStorage() {
+function createSsrStorage() {
   return createStorage({
     storage: cookieStorage,
   });

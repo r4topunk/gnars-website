@@ -201,7 +201,6 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
   };
 
   // Load proposals when filters are activated
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (activeSources.has("ethereum")) {
       loadEthereumProposals();
@@ -209,6 +208,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
     if (activeSources.has("snapshot")) {
       loadSnapshotProposals();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSources]);
 
   // Merge all proposals (server + client)

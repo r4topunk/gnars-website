@@ -30,7 +30,7 @@ export const postSchema = z
     return data;
   });
 
-export const paginationSchema = z.object({
+const paginationSchema = z.object({
   cursor: z.string().optional(),
   hasMore: z.boolean(),
   total: z.number().optional(),

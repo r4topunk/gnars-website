@@ -7,20 +7,6 @@ export function isProposalSuccessful(status: ProposalStatus): boolean {
   return [ProposalStatus.SUCCEEDED, ProposalStatus.QUEUED].includes(status);
 }
 
-/**
- * Check if proposal is queued and ready to be executed
- */
-export function isProposalExecutable(proposal: {
-  status: ProposalStatus;
-  executableFrom?: string | null;
-}): boolean {
-  if (proposal.status !== ProposalStatus.QUEUED || !proposal.executableFrom) {
-    return false;
-  }
-
-  const executableDate = parseBlockchainTimestamp(proposal.executableFrom);
-  return executableDate < new Date();
-}
 
 /**
  * Parse a blockchain timestamp (can be Unix seconds or ISO string) to Date
@@ -82,37 +68,3 @@ export function formatTimeRemaining(targetDate: Date): string {
   return parts.join(" ");
 }
 
-/**
- * Get a readable description of proposal state with time context
- */
-export function getProposalStateDescription(proposal: {
-  status: ProposalStatus;
-  executableFrom?: string | null;
-  expiresAt?: string | null;
-}): string {
-  switch (proposal.status) {
-    case ProposalStatus.SUCCEEDED:
-      return "Ready to queue";
-    case ProposalStatus.QUEUED:
-      if (isProposalExecutable(proposal)) {
-        return "Ready to execute";
-      }
-      return "Queued - waiting for timelock";
-    case ProposalStatus.EXECUTED:
-      return "Executed";
-    case ProposalStatus.ACTIVE:
-      return "Active - voting in progress";
-    case ProposalStatus.PENDING:
-      return "Pending";
-    case ProposalStatus.DEFEATED:
-      return "Defeated";
-    case ProposalStatus.CANCELLED:
-      return "Cancelled";
-    case ProposalStatus.EXPIRED:
-      return "Expired";
-    case ProposalStatus.VETOED:
-      return "Vetoed";
-    default:
-      return "Unknown";
-  }
-}

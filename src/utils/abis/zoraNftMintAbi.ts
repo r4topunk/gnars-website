@@ -88,5 +88,3 @@ export const zoraNftMintAbi = [
     outputs: [{ name: "owner", type: "address" }],
   },
 ] as const;
-
-export default zoraNftMintAbi;

@@ -8,24 +8,12 @@
  */
 
 import type { CoinMedia, CoinNode, TVItem } from "./types";
-import type { DroposalListItem } from "@/services/droposals";
-import { GNARS_ADDRESSES, GNARS_CREATOR_COIN, GNARS_ZORA_HANDLE } from "@/lib/config";
+import { GNARS_ADDRESSES, GNARS_CREATOR_COIN } from "@/lib/config";
 
-// Re-export for convenience
-export const GNARS_TREASURY = GNARS_ADDRESSES.treasury;
-export { GNARS_CREATOR_COIN, GNARS_ZORA_HANDLE };
-export const SKATEHIVE_REFERRER = "0xb4964e1eca55db36a94e8aeffbfbab48529a2f6c";
-
-// Broken droposal contracts to exclude from TV feed
-export const BROKEN_DROPOSAL_CONTRACTS = [
-  "0x9e1038b1ff820849edf6eff36a93d7eadc917026",
-];
-
-// Broken droposal proposal numbers to exclude from TV feed
-export const BROKEN_DROPOSAL_PROPOSALS = [69];
+const GNARS_TREASURY = GNARS_ADDRESSES.treasury;
+const SKATEHIVE_REFERRER = "0xb4964e1eca55db36a94e8aeffbfbab48529a2f6c";
 
 // Pagination config
-export const INITIAL_COINS_PER_CREATOR = 50;
 export const PRELOAD_THRESHOLD = 10;
 
 // Fallback items when no content is available
@@ -43,7 +31,7 @@ export const FALLBACK_ITEMS: TVItem[] = [
 /**
  * Convert IPFS URIs to HTTP gateway URLs
  */
-export function toHttpUrl(uri?: string | null): string | undefined {
+function toHttpUrl(uri?: string | null): string | undefined {
   if (!uri) return undefined;
   if (uri.startsWith("ipfs://")) {
     return uri.replace("ipfs://", "https://ipfs.io/ipfs/");
@@ -52,21 +40,9 @@ export function toHttpUrl(uri?: string | null): string | undefined {
 }
 
 /**
- * Fisher-Yates shuffle algorithm for efficient random sorting
- */
-export function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
-
-/**
  * Extract media URLs from a coin node
  */
-export function extractMediaFromCoin(coin: CoinNode): { imageUrl?: string; videoUrl?: string } {
+function extractMediaFromCoin(coin: CoinNode): { imageUrl?: string; videoUrl?: string } {
   const media: CoinMedia =
     coin?.mediaContent || coin?.media || coin?.coin?.mediaContent || coin?.coin?.media || {};
 
@@ -167,66 +143,6 @@ export function mapCoinToTVItem(
 }
 
 /**
- * Interleave items from different creators within a group
- */
-export function interleaveByCreator(items: TVItem[]): TVItem[] {
-  const byCreator = new Map<string, TVItem[]>();
-  items.forEach((item) => {
-    const creator = item.creator;
-    if (!byCreator.has(creator)) {
-      byCreator.set(creator, []);
-    }
-    byCreator.get(creator)!.push(item);
-  });
-
-  // Shuffle each creator's videos
-  byCreator.forEach((videos, creator) => {
-    byCreator.set(creator, shuffleArray(videos));
-  });
-
-  const result: TVItem[] = [];
-  // Shuffle creator order so the feed varies between sessions
-  const creators = shuffleArray(Array.from(byCreator.keys()));
-  let hasMore = true;
-
-  while (hasMore) {
-    hasMore = false;
-    for (const creator of creators) {
-      const videos = byCreator.get(creator)!;
-      if (videos.length > 0) {
-        result.push(videos.shift()!);
-        hasMore = true;
-      }
-    }
-  }
-
-  return result;
-}
-
-/**
- * Sort and organize items by priority (Gnars Paired > Gnarly > Normal)
- */
-export function sortByPriority(items: TVItem[]): TVItem[] {
-  const paired = items.filter((item) => item.poolCurrencyTokenAddress === GNARS_CREATOR_COIN);
-  const gnarly = items.filter(
-    (item) =>
-      item.platformReferrer === GNARS_TREASURY &&
-      item.poolCurrencyTokenAddress !== GNARS_CREATOR_COIN,
-  );
-  const normal = items.filter(
-    (item) =>
-      item.platformReferrer !== GNARS_TREASURY &&
-      item.poolCurrencyTokenAddress !== GNARS_CREATOR_COIN,
-  );
-
-  const interleavedPaired = interleaveByCreator(paired);
-  const interleavedGnarly = interleaveByCreator(gnarly);
-  const interleavedNormal = interleaveByCreator(normal);
-
-  return [...interleavedPaired, ...interleavedGnarly, ...interleavedNormal];
-}
-
-/**
  * Check if an item is Gnars paired (uses Gnars Creator Coin as pool currency)
  */
 export function isGnarsPaired(item: TVItem): boolean {
@@ -252,46 +168,4 @@ export function isSkatehive(item: TVItem): boolean {
  */
 export function isDroposal(item: TVItem): boolean {
   return item.isDroposal === true;
-}
-
-/**
- * Map a DroposalListItem to a TVItem (only if it has video content)
- */
-export function mapDroposalToTVItem(droposal: DroposalListItem): TVItem | null {
-  // Only include droposals with video content (animationUrl)
-  if (!droposal.animationUrl) return null;
-
-  // Exclude broken droposals by proposal number
-  if (BROKEN_DROPOSAL_PROPOSALS.includes(droposal.proposalNumber)) {
-    return null;
-  }
-
-  // Exclude broken droposal contracts (if tokenAddress is available)
-  if (droposal.tokenAddress && BROKEN_DROPOSAL_CONTRACTS.includes(droposal.tokenAddress.toLowerCase())) {
-    return null;
-  }
-
-  // Use executedAt if available, otherwise createdAt (timestamps are in milliseconds)
-  const timestamp = droposal.executedAt || droposal.createdAt;
-  const createdAt = timestamp ? new Date(timestamp).toISOString() : undefined;
-
-  return {
-    id: `droposal-${droposal.proposalId}`,
-    title: droposal.name || droposal.title,
-    creator: droposal.fundsRecipient || GNARS_TREASURY,
-    creatorName: "Gnars DAO",
-    creatorAvatar: "/gnars.webp", // Use Gnars logo for droposals
-    symbol: droposal.symbol,
-    imageUrl: droposal.bannerImage,
-    videoUrl: droposal.animationUrl,
-    createdAt: createdAt,
-    // Droposal-specific fields
-    isDroposal: true,
-    priceEth: droposal.priceEth,
-    proposalNumber: droposal.proposalNumber,
-    editionSize: droposal.editionSize,
-    description: droposal.description,
-    tokenAddress: droposal.tokenAddress, // May be undefined, resolved lazily
-    executionTransactionHash: droposal.executionTransactionHash, // For resolving tokenAddress
-  };
 }

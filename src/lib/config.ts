@@ -47,11 +47,6 @@ export const DROPOSAL_TARGET = {
 // Default mint limit per address for droposals (effectively unlimited)
 export const DROPOSAL_DEFAULT_MINT_LIMIT = 1000000 as const;
 
-// 0xSplits contract addresses for revenue sharing
-export const SPLITS_ADDRESSES = {
-  // SplitMain contract on Base - used to create new splits
-  splitMain: "0x2ed6c4B5dA6378c7897AC67Ba9e43102Feb694EE",
-} as const;
 
 export const SUBGRAPH = {
   // Official Nouns Builder Subgraph URL for Gnars on Base (Goldsky public)
@@ -61,11 +56,6 @@ export const SUBGRAPH = {
   ethMainnet: "https://api.studio.thegraph.com/query/84885/gnars-mainnet/v1.0.0",
 } as const;
 
-// Ethereum mainnet config (for legacy proposals)
-export const CHAIN_ETH = {
-  id: 1,
-  name: "ethereum",
-} as const;
 
 export const GNARS_ADDRESSES_ETH = {
   token: "0x558bfff0d583416f7c4e380625c7865821b8e95c",
