@@ -95,4 +95,4 @@ export const TREASURY_TOKEN_ALLOWLIST = {
 
 export const TREASURY_TOKEN_ADDRESSES = Object.values(TREASURY_TOKEN_ALLOWLIST);
 
-export const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com";
+export const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.gnars.com";
