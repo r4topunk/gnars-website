@@ -30,13 +30,46 @@ function resolveLink(link: string): string {
   return link.startsWith("http") ? link : `https://${link}`;
 }
 
+function isYouTubeUrl(url: string): boolean {
+  return url.includes("youtube.com/watch") || url.includes("youtu.be/");
+}
+
+function getYouTubeEmbedUrl(url: string): string {
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+}
+
+function MediaItem({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
+  if (isYouTubeUrl(src)) {
+    return (
+      <iframe
+        src={getYouTubeEmbedUrl(src)}
+        title={alt}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        className={`h-full w-full ${className}`}
+      />
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} className={`h-full w-full object-cover ${className}`} />
+  );
+}
+
 export default async function NogglesRailDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const rail = getRailBySlug(slug);
   if (!rail) notFound();
 
   const proposalUrl = resolveLink(rail.proposal.link);
-  const [hero, ...gallery] = rail.images;
+  // Sort: videos first, then images
+  const sortedMedia = [...rail.images].sort((a, b) => {
+    const aIsVideo = isYouTubeUrl(a) ? 0 : 1;
+    const bIsVideo = isYouTubeUrl(b) ? 0 : 1;
+    return aIsVideo - bIsVideo;
+  });
+  const [hero, ...gallery] = sortedMedia;
 
   return (
     <div className="py-6">
@@ -66,15 +99,10 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
         {/* Main */}
         <div className="space-y-8">
-          {/* Hero image */}
+          {/* Hero media (video or image) */}
           {hero && (
             <div className="relative aspect-video overflow-hidden rounded-lg border bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={hero}
-                alt={rail.label}
-                className="h-full w-full object-cover"
-              />
+              <MediaItem src={hero} alt={rail.label} />
             </div>
           )}
 
@@ -92,15 +120,9 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
                 {gallery.map((src, i) => (
                   <div
                     key={i}
-                    className="relative aspect-[4/3] overflow-hidden rounded-lg border bg-muted"
+                    className={`relative overflow-hidden rounded-lg border bg-muted ${isYouTubeUrl(src) ? "aspect-video" : "aspect-[4/3]"}`}
                   >
-                    <Image
-                      src={src}
-                      alt={`${rail.label} — photo ${i + 2}`}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
+                    <MediaItem src={src} alt={`${rail.label} — media ${i + 2}`} />
                   </div>
                 ))}
               </div>
