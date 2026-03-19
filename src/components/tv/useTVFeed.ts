@@ -28,6 +28,25 @@ function normalizeItemUrls(item: TVItem): TVItem {
   };
 }
 
+// Module-level cache to deduplicate concurrent fetches to /api/tv/feed
+let feedCache: { promise: Promise<APIFeedResponse>; timestamp: number } | null = null;
+const FEED_CACHE_TTL = 60_000; // 1 minute client-side dedup
+
+async function fetchFeedCached(): Promise<APIFeedResponse> {
+  const now = Date.now();
+  if (feedCache && now - feedCache.timestamp < FEED_CACHE_TTL) {
+    return feedCache.promise;
+  }
+  const promise = fetch("/api/tv/feed").then((res) => {
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    return res.json() as Promise<APIFeedResponse>;
+  });
+  feedCache = { promise, timestamp: now };
+  // Clear cache on error so next caller retries
+  promise.catch(() => { feedCache = null; });
+  return promise;
+}
+
 interface UseTVFeedOptions {
   priorityCoinAddress?: string;
 }
@@ -138,14 +157,8 @@ export function useTVFeed({
           }
         }
 
-        // Fetch from API (cached)
-        const response = await fetch("/api/tv/feed");
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        const data: APIFeedResponse = await response.json();
+        // Fetch from API (deduplicated across components)
+        const data = await fetchFeedCached();
 
         if (cancelled.current) return;
 
