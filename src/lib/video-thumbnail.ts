@@ -107,30 +107,3 @@ export const generateVideoThumbnail = async (videoFile: File): Promise<File> => 
   });
 };
 
-/**
- * Check if a file is a supported video format
- */
-export const isSupportedVideo = (file: File): boolean => {
-  const supportedTypes = [
-    "video/mp4",
-    "video/webm", 
-    "video/quicktime",
-    "video/x-m4v"
-  ];
-  return supportedTypes.includes(file.type);
-};
-
-/**
- * Check if a file is a supported image format
- */
-export const isSupportedImage = (file: File): boolean => {
-  const supportedTypes = [
-    "image/jpeg",
-    "image/jpg", 
-    "image/png",
-    "image/gif",
-    "image/webp",
-    "image/svg+xml",
-  ];
-  return supportedTypes.includes(file.type);
-};

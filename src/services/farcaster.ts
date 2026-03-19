@@ -19,7 +19,6 @@ type NeynarUser = {
 const MAX_ADDRESSES_PER_REQUEST = 350;
 const CACHE_REVALIDATE_SECONDS = 60 * 15;
 
-export const hasNeynarApiKey = Boolean(apiKey);
 
 export type FarcasterProfile = {
   fid: number;

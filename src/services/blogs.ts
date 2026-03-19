@@ -218,7 +218,7 @@ const getCachedPublication = unstable_cache(
   },
 );
 
-export async function listBlogs(
+async function listBlogs(
   cursor?: string,
 ): Promise<{ blogs: Blog[]; hasMore: boolean; nextCursor?: string }> {
   try {

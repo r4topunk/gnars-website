@@ -73,12 +73,6 @@ export const zoraFactoryAbi = [
 ] as const;
 
 /**
- * Re-export constants from config for convenience
+ * Re-export factory address from config for convenience
  */
-export { ZORA_FACTORY_ADDRESS, GNARS_CREATOR_COIN } from "@/lib/config";
-
-/**
- * ZORA token address on Base (chainId 8453)
- * Used for rewards/hooks reference
- */
-export const ZORA_TOKEN_ADDRESS = "0x1111111111166b7FE7bd91427724B487980aFc69" as const;
+export { ZORA_FACTORY_ADDRESS } from "@/lib/config";

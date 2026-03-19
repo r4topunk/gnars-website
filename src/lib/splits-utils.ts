@@ -21,7 +21,7 @@ export interface SplitValidationError {
 /**
  * Validates that a split configuration is valid
  */
-export function validateSplitConfig(config: SplitConfig): SplitValidationError[] {
+function validateSplitConfig(config: SplitConfig): SplitValidationError[] {
   const errors: SplitValidationError[] = [];
 
   // Validate recipients
@@ -140,7 +140,7 @@ export function validateSplitRecipients(recipients: SplitRecipient[]): SplitVali
 /**
  * Validates individual percentage allocation
  */
-export function validatePercentage(value: number): string | null {
+function validatePercentage(value: number): string | null {
   if (value <= 0) return "Must be greater than 0";
   if (value > 100) return "Cannot exceed 100%";
   
@@ -166,7 +166,7 @@ export const IMMUTABLE_CONTROLLER = "0x0000000000000000000000000000000000000000"
 /**
  * Checks if a split is immutable (no controller)
  */
-export function isImmutableSplit(controller?: string): boolean {
+function isImmutableSplit(controller?: string): boolean {
   return !controller || controller === IMMUTABLE_CONTROLLER;
 }
 

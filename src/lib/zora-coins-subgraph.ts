@@ -159,13 +159,6 @@ export async function getGnarsPairedCoinByAddress(
   return result.gnarsPairedCoins?.[0] ?? null;
 }
 
-/**
- * Check if a coin is GNARS-paired
- */
-export async function isGnarsPairedCoin(coinAddress: string): Promise<boolean> {
-  const coin = await getGnarsPairedCoinByAddress(coinAddress);
-  return coin !== null;
-}
 
 /**
  * Get subgraph sync status
@@ -193,22 +186,3 @@ export async function getSubgraphStatus(): Promise<{
   };
 }
 
-/**
- * Get total count of GNARS-paired coins
- */
-export async function getGnarsPairedCoinsCount(): Promise<number> {
-  let total = 0;
-  let hasMore = true;
-  const pageSize = 1000;
-
-  while (hasMore) {
-    const coins = await fetchGnarsPairedCoins({
-      first: pageSize,
-      skip: total,
-    });
-    total += coins.length;
-    hasMore = coins.length === pageSize;
-  }
-
-  return total;
-}

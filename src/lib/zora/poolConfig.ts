@@ -20,23 +20,10 @@ import { Address, Hex, encodeAbiParameters } from "viem";
  * Pool version constants
  * Must match CoinConfigurationVersions.sol
  */
-export const POOL_VERSION = {
+const POOL_VERSION = {
   DOPPLER_MULTICURVE_UNI_V4: 4,
 } as const;
 
-/**
- * Backing currency types
- * 0 = ETH
- * 1 = ZORA
- * 2 = CREATOR_COIN
- */
-export const BACKING = {
-  ETH: 0,
-  ZORA: 1,
-  CREATOR_COIN: 2,
-} as const;
-
-export type BackingType = (typeof BACKING)[keyof typeof BACKING];
 
 /**
  * Encodes poolConfig for a Content Coin backed by a Creator Coin
@@ -86,75 +73,3 @@ export function encodeContentPoolConfigForCreator(
   );
 }
 
-/**
- * Encodes poolConfig for a Content Coin backed by ETH
- */
-export function encodeContentPoolConfigForETH(opts?: {
-  tickLower?: number[];
-  tickUpper?: number[];
-  numDiscoveryPositions?: number[];
-  maxDiscoverySupplyShare?: bigint[];
-}): Hex {
-  const tickLower = opts?.tickLower ?? [-250_000];
-  const tickUpper = opts?.tickUpper ?? [-195_000];
-  const numDiscoveryPositions = opts?.numDiscoveryPositions ?? [11];
-  const maxDiscoverySupplyShare = opts?.maxDiscoverySupplyShare ?? [50000000000000000n]; // 0.05e18
-
-  return encodeAbiParameters(
-    [
-      { type: "uint8" },
-      { type: "address" },
-      { type: "int24[]" },
-      { type: "int24[]" },
-      { type: "uint16[]" },
-      { type: "uint256[]" },
-    ],
-    [
-      POOL_VERSION.DOPPLER_MULTICURVE_UNI_V4,
-      "0x0000000000000000000000000000000000000000" as Address, // ETH = address(0)
-      tickLower,
-      tickUpper,
-      numDiscoveryPositions,
-      maxDiscoverySupplyShare,
-    ]
-  );
-}
-
-/**
- * Encodes poolConfig for a Content Coin backed by ZORA token
- * 
- * @param zoraTokenAddress - Address of ZORA token (0x1111111111166b7FE7bd91427724B487980aFc69 on Base)
- */
-export function encodeContentPoolConfigForZORA(
-  zoraTokenAddress: Address,
-  opts?: {
-    tickLower?: number[];
-    tickUpper?: number[];
-    numDiscoveryPositions?: number[];
-    maxDiscoverySupplyShare?: bigint[];
-  }
-): Hex {
-  const tickLower = opts?.tickLower ?? [-138_000];
-  const tickUpper = opts?.tickUpper ?? [-81_000];
-  const numDiscoveryPositions = opts?.numDiscoveryPositions ?? [11];
-  const maxDiscoverySupplyShare = opts?.maxDiscoverySupplyShare ?? [50000000000000000n]; // 0.05e18
-
-  return encodeAbiParameters(
-    [
-      { type: "uint8" },
-      { type: "address" },
-      { type: "int24[]" },
-      { type: "int24[]" },
-      { type: "uint16[]" },
-      { type: "uint256[]" },
-    ],
-    [
-      POOL_VERSION.DOPPLER_MULTICURVE_UNI_V4,
-      zoraTokenAddress,
-      tickLower,
-      tickUpper,
-      numDiscoveryPositions,
-      maxDiscoverySupplyShare,
-    ]
-  );
-}

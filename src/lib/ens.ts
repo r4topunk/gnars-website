@@ -127,7 +127,7 @@ export async function resolveAddressFromENS(name: string): Promise<Address | nul
   return request;
 }
 
-export async function resolveENSBatch(
+async function resolveENSBatch(
   addresses: (string | Address)[],
 ): Promise<Map<Address, ENSData>> {
   const valid = addresses
@@ -169,18 +169,4 @@ export async function resolveENSBatch(
     result.set(lower, data);
   }
   return result;
-}
-
-export function clearENSCache(): void {
-  localEnsCache.clear();
-  localNameToAddressCache.clear();
-  pendingRequests.clear();
-  pendingNameRequests.clear();
-}
-
-export function getENSCacheStats(): { size: number; hitRate: number } {
-  return {
-    size: localEnsCache.size,
-    hitRate: 0,
-  };
 }

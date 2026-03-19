@@ -132,14 +132,3 @@ export function usePropdates(proposalId: string) {
     isWriteError,
   };
 }
-
-export function usePropdatesList(proposalIds: string[]) {
-  return useQuery({
-    queryKey: ["propdates-list", proposalIds],
-    queryFn: async () => {
-      const results = await Promise.all(proposalIds.map(listPropdates));
-      return results.flat();
-    },
-    enabled: proposalIds.length > 0,
-  });
-}

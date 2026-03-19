@@ -77,21 +77,21 @@ const baseTransactionSchema = z.object({
 });
 
 // Send ETH transaction
-export const sendEthTransactionSchema = baseTransactionSchema.extend({
+const sendEthTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("send-eth"),
   target: addressSchema,
   value: positiveNumericString(z.string().min(1, "Amount is required")),
 });
 
 // Send USDC transaction
-export const sendUsdcTransactionSchema = baseTransactionSchema.extend({
+const sendUsdcTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("send-usdc"),
   recipient: addressSchema,
   amount: positiveNumericString(z.string().min(1, "Amount is required")),
 });
 
 // Send Tokens transaction
-export const sendTokensTransactionSchema = baseTransactionSchema.extend({
+const sendTokensTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("send-tokens"),
   tokenAddress: addressSchema,
   recipient: addressSchema,
@@ -99,7 +99,7 @@ export const sendTokensTransactionSchema = baseTransactionSchema.extend({
 });
 
 // Send NFTs transaction
-export const sendNftsTransactionSchema = baseTransactionSchema.extend({
+const sendNftsTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("send-nfts"),
   contractAddress: addressSchema,
   tokenId: nonNegativeNumericString(z.string().min(1, "Token ID is required")),
@@ -109,7 +109,7 @@ export const sendNftsTransactionSchema = baseTransactionSchema.extend({
 });
 
 // Droposal transaction
-export const droposalTransactionSchema = baseTransactionSchema.extend({
+const droposalTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("droposal"),
   name: z.string().min(1, "Name is required"),
   symbol: z.string().min(1, "Symbol is required"),
@@ -149,7 +149,7 @@ export const droposalTransactionSchema = baseTransactionSchema.extend({
 });
 
 // Custom transaction
-export const customTransactionSchema = baseTransactionSchema.extend({
+const customTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("custom"),
   target: addressSchema,
   calldata: hexSchema,
@@ -157,7 +157,7 @@ export const customTransactionSchema = baseTransactionSchema.extend({
 });
 
 // Buy Coin transaction (Zora Coins SDK integration)
-export const buyCoinTransactionSchema = baseTransactionSchema.extend({
+const buyCoinTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("buy-coin"),
   coinAddress: addressSchema,
   ethAmount: positiveNumericString(z.string().min(1, "ETH amount is required")),
@@ -198,10 +198,3 @@ export const proposalSchema = z.object({
 // Types
 export type ProposalFormValues = z.infer<typeof proposalSchema>;
 export type TransactionFormValues = z.infer<typeof transactionSchema>;
-export type SendEthTransaction = z.infer<typeof sendEthTransactionSchema>;
-export type SendUsdcTransaction = z.infer<typeof sendUsdcTransactionSchema>;
-export type SendTokensTransaction = z.infer<typeof sendTokensTransactionSchema>;
-export type SendNftsTransaction = z.infer<typeof sendNftsTransactionSchema>;
-export type DroposalTransaction = z.infer<typeof droposalTransactionSchema>;
-export type BuyCoinTransaction = z.infer<typeof buyCoinTransactionSchema>;
-export type CustomTransaction = z.infer<typeof customTransactionSchema>;

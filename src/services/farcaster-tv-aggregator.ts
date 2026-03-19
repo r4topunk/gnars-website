@@ -834,27 +834,3 @@ export const getFarcasterTVData = reactCache(async (): Promise<FarcasterTVData> 
 
   return { ...payload, cache: { source: "next" } };
 });
-
-/**
- * Uncached debug helper for running the Farcaster TV aggregation outside Next.js.
- * Avoids unstable_cache/reactCache to allow script execution in Node.
- */
-export async function getFarcasterTVDataUncached(): Promise<FarcasterTVData> {
-  const start = Date.now();
-  const qualifiedCreators = await fetchQualifiedCreators();
-  const shouldFetchFarcaster = assertNeynarApiKey("farcaster-tv");
-
-  const farcasterHoldings = shouldFetchFarcaster
-    ? await fetchFarcasterHoldings(qualifiedCreators, false)
-    : { items: [], stats: { creators: 0, coins: 0, nfts: 0 } };
-
-  const durationMs = Date.now() - start;
-
-  return {
-    qualifiedCreators,
-    items: farcasterHoldings.items,
-    stats: farcasterHoldings.stats,
-    durationMs,
-    cache: { source: "next" },
-  };
-}

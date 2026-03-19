@@ -32,22 +32,3 @@ export const listSnapshotProposals = cache(
     }
   }
 );
-
-/**
- * Get a specific Snapshot proposal from static JSON
- */
-export const getSnapshotProposal = cache(
-  async (id: string): Promise<SnapshotProposal | null> => {
-    try {
-      const fs = await import("fs");
-      const path = await import("path");
-      const filePath = path.join(process.cwd(), "public/data/snapshot-proposals.json");
-      const fileContents = fs.readFileSync(filePath, "utf8");
-      const snapshotProposalsData = JSON.parse(fileContents) as SnapshotProposal[];
-      return snapshotProposalsData.find((p) => p.id === id) ?? null;
-    } catch (error) {
-      console.error("[snapshot] Failed to load proposal:", error);
-      return null;
-    }
-  }
-);

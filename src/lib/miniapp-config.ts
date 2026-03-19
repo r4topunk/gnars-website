@@ -76,17 +76,6 @@ export const MINIAPP_EMBED_CONFIG = {
   },
 };
 
-/**
- * Check if the mini app configuration is complete
- * (has accountAssociation credentials)
- */
-export function isMiniAppConfigured(): boolean {
-  return Boolean(
-    MINIAPP_CONFIG.accountAssociation.header &&
-      MINIAPP_CONFIG.accountAssociation.payload &&
-      MINIAPP_CONFIG.accountAssociation.signature
-  );
-}
 
 /**
  * TV Mini App Configuration
@@ -188,36 +177,6 @@ export const PROPOSALS_MINIAPP_EMBED_CONFIG = {
   },
 };
 
-/**
- * Members Mini App Configuration
- * Custom configuration for member profiles
- */
-export const MEMBERS_MINIAPP_CONFIG = {
-  accountAssociation: MINIAPP_CONFIG.accountAssociation,
-  baseBuilder: MINIAPP_CONFIG.baseBuilder,
-  miniapp: {
-    version: "1",
-    name: "Gnars Members",
-    subtitle: "DAO Member Profiles",
-    description:
-      "Explore Gnars DAO member profiles, voting history, proposals, and creator coins. See who's building in the action sports DAO.",
-    homeUrl: `${BASE_URL}/members`,
-    iconUrl: `${BASE_URL}/gnars.webp`,
-    splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
-    splashBackgroundColor: "#000000",
-    webhookUrl: `${BASE_URL}/api/miniapp/webhook`,
-    primaryCategory: "social" as const,
-    tags: ["dao", "members", "profiles", "gnars", "base", "creators"],
-    screenshotUrls: [] as string[],
-    heroImageUrl: `${BASE_URL}/opengraph-image`,
-    tagline: "DAO member profiles on Base",
-    ogTitle: "Gnars DAO Members",
-    ogDescription:
-      "Explore Gnars DAO member profiles and see who's building in the action sports DAO.",
-    ogImageUrl: `${BASE_URL}/opengraph-image`,
-    noindex: false,
-  },
-} as const;
 
 /**
  * Members Embed metadata configuration for fc:miniapp meta tag

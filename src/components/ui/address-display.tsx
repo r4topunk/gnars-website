@@ -276,27 +276,6 @@ export function AddressDisplay({
   );
 }
 
-/**
- * Simple address display without ENS resolution (for performance)
- */
-export function SimpleAddressDisplay({
-  address,
-  truncateLength = 6,
-  className = "",
-}: {
-  address: string | Address;
-  truncateLength?: number;
-  className?: string;
-}) {
-  if (!address || !isAddress(address)) {
-    return <span className={`text-muted-foreground ${className}`}>Invalid Address</span>;
-  }
-
-  const normalizedAddress = address.toLowerCase() as Address;
-  const truncated = `${normalizedAddress.slice(0, truncateLength)}...${normalizedAddress.slice(-truncateLength)}`;
-
-  return <code className={`font-mono ${className}`}>{truncated}</code>;
-}
 
 /**
  * Address display with loading skeleton
