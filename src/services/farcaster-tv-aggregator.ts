@@ -5,6 +5,7 @@ import { unstable_cache } from "next/cache";
 import { getCoin, getCoinHolders, getProfile } from "@zoralabs/coins-sdk";
 import { createPublicClient, http, parseAbi } from "viem";
 import { base } from "viem/chains";
+import { subgraphQuery } from "@/lib/subgraph";
 import {
   assertNeynarApiKey,
   fetchFarcasterProfilesByAddress,
@@ -326,6 +327,88 @@ async function fetchCandidateCreators(): Promise<CandidateCreator[]> {
       break;
     }
   }
+
+  return candidates;
+}
+
+const MAX_NFT_HOLDER_CANDIDATES = 100;
+
+/**
+ * Discover creators by Gnars NFT ownership via Builder DAO subgraph.
+ * Resolves NFT holder wallets to Zora profiles.
+ */
+async function fetchNftHolderCandidates(
+  excludeHandles: Set<string>,
+): Promise<CandidateCreator[]> {
+  const dao = GNARS_NFT_ADDRESS.toLowerCase();
+  const PAGE_SIZE = 100;
+
+  // Query Builder DAO subgraph for top NFT holders
+  const query = /* GraphQL */ `
+    query TopNftHolders($dao: ID!, $first: Int!) {
+      daotokenOwners(
+        where: { dao: $dao }
+        orderBy: daoTokenCount
+        orderDirection: desc
+        first: $first
+      ) {
+        owner
+        daoTokenCount
+      }
+    }
+  `;
+
+  let holders: Array<{ owner: string; daoTokenCount: number }> = [];
+  try {
+    const result = await subgraphQuery<{
+      daotokenOwners: Array<{ owner: string; daoTokenCount: number }>;
+    }>(query, { dao, first: PAGE_SIZE });
+    holders = result.daotokenOwners || [];
+  } catch (err) {
+    console.warn("[farcaster-tv] Failed to fetch NFT holders from subgraph:", err);
+    return [];
+  }
+
+  console.log(`[farcaster-tv] NFT holder candidates from subgraph: ${holders.length}`);
+
+  // Resolve wallets to Zora profiles
+  const candidates: CandidateCreator[] = [];
+
+  await runWithConcurrency(
+    holders.slice(0, MAX_NFT_HOLDER_CANDIDATES),
+    async (holder) => {
+      try {
+        const profileResult = await getProfile({ identifier: holder.owner });
+        const profile = profileResult?.data?.profile;
+        if (!profile) return;
+
+        const handle = (profile as { handle?: string }).handle;
+        if (!handle || excludeHandles.has(handle)) return;
+
+        const avatarRaw = profile as {
+          avatar?: { previewImage?: { medium?: string; small?: string } };
+        };
+        const avatarUrl =
+          avatarRaw.avatar?.previewImage?.medium ||
+          avatarRaw.avatar?.previewImage?.small ||
+          null;
+
+        candidates.push({
+          handle,
+          avatarUrl,
+          coinBalance: 0, // NFT-discovered, no coin balance known yet
+          wallets: [holder.owner.toLowerCase()],
+        });
+      } catch {
+        // Skip wallet if profile resolution fails
+      }
+    },
+    MAX_CONCURRENT_PROFILE_FETCHES,
+  );
+
+  console.log(
+    `[farcaster-tv] NFT holder candidates with Zora profiles: ${candidates.length}`,
+  );
 
   return candidates;
 }
