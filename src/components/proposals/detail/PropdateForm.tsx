@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Markdown } from "@/components/common/Markdown";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { usePropdates } from "@/hooks/use-propdates";
+import { uploadToPinata } from "@/lib/pinata";
 import { type Propdate } from "@/services/propdates";
 
 interface PropdateFormProps {
@@ -19,6 +20,9 @@ interface PropdateFormProps {
 
 export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: PropdateFormProps) {
   const [messageText, setMessageText] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const { createPropdate, isCreating, createError, submissionPhase } = usePropdates(proposalId);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,14 +42,40 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
     }
   };
 
+  const handleFileAttach = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadProgress(0);
+    setUploadError(null);
+
+    const result = await uploadToPinata(file, file.name, setUploadProgress);
+
+    if (result.success && result.data) {
+      const isImage = file.type.startsWith("image/");
+      const mdLink = isImage
+        ? `![${file.name}](${result.data.gatewayUrl})`
+        : `[${file.name}](${result.data.gatewayUrl})`;
+      setMessageText((prev) => (prev ? `${prev}\n\n${mdLink}` : mdLink));
+    } else {
+      setUploadError(result.error || "Upload failed");
+    }
+
+    setUploading(false);
+    e.target.value = "";
+  };
+
   const buttonLabel =
     submissionPhase === "confirming-wallet"
       ? "Confirm in wallet..."
       : submissionPhase === "pending-tx"
         ? "Waiting for confirmation..."
-        : replyTo
-          ? "Submit Reply"
-          : "Submit";
+        : submissionPhase === "syncing"
+          ? "Syncing..."
+          : replyTo
+            ? "Submit Reply"
+            : "Submit";
 
   return (
     <Card>
@@ -94,6 +124,21 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
               </div>
             </TabsContent>
           </Tabs>
+          <div className="flex items-center gap-2">
+            <label className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <input
+                type="file"
+                className="hidden"
+                onChange={handleFileAttach}
+                disabled={uploading || isCreating}
+                accept="image/*,.pdf,.md,.txt"
+              />
+              {uploading ? `Uploading... ${uploadProgress}%` : "Attach file"}
+            </label>
+            {uploadError && (
+              <span className="text-sm text-destructive">{uploadError}</span>
+            )}
+          </div>
           <Button type="submit" disabled={isCreating || !messageText.trim()}>
             {buttonLabel}
           </Button>
