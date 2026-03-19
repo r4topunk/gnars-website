@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { Plus } from "lucide-react";
 import { zeroHash } from "viem";
 import { useAccount } from "wagmi";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { PropdateCardSkeleton } from "@/components/propdates/PropdatesFeedSkeleton";
 import { useDaoMembers } from "@/hooks/use-dao-members";
 import { usePropdates } from "@/hooks/use-propdates";
 import { type Propdate } from "@/services/propdates";
@@ -83,11 +85,22 @@ export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-4" aria-busy="true" aria-label="Loading propdates">
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-      </div>
+      <Card aria-busy="true" aria-label="Loading propdates">
+        <CardHeader>
+          <CardTitle>Propdates</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="animate-in fade-in-0"
+              style={{ animationDelay: `${i * 50}ms`, animationFillMode: "both" }}
+            >
+              <PropdateCardSkeleton />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     );
   }
 
@@ -101,52 +114,69 @@ export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Propdates</h3>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardTitle>Propdates</CardTitle>
         {canCreatePropdate && (
           <Button
             onClick={handleNewPropdate}
             variant={showForm && !replyingTo ? "destructive" : "outline"}
             size="sm"
           >
-            {showForm && !replyingTo ? "Cancel" : "Create Propdate"}
+            {showForm && !replyingTo ? (
+              "Cancel"
+            ) : (
+              <>
+                <Plus className="mr-1 h-4 w-4" />
+                Create Propdate
+              </>
+            )}
           </Button>
         )}
-      </div>
-      {showForm && (
-        <PropdateForm
-          proposalId={proposalId}
-          replyTo={replyingTo}
-          onSuccess={() => {
-            setShowForm(false);
-            setReplyingTo(null);
-            refetch();
-          }}
-          onCancel={() => {
-            setShowForm(false);
-            setReplyingTo(null);
-          }}
-        />
-      )}
-      <Separator />
-      {topLevel.length > 0 ? (
-        <div className="space-y-4">
-          {topLevel.map((propdate) => (
-            <PropdateCard
-              key={propdate.txid}
-              propdate={propdate}
-              replies={getReplies(propdate.txid)}
-              isReplying={replyingTo?.txid === propdate.txid}
-              onReplyClick={canReply ? handleReplyClick : undefined}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 text-muted-foreground">
-          No updates on this proposal yet!
-        </div>
-      )}
-    </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {showForm && (
+          <PropdateForm
+            proposalId={proposalId}
+            replyTo={replyingTo}
+            onSuccess={() => {
+              setShowForm(false);
+              setReplyingTo(null);
+              refetch();
+            }}
+            onCancel={() => {
+              setShowForm(false);
+              setReplyingTo(null);
+            }}
+          />
+        )}
+        <Separator />
+        {topLevel.length > 0 ? (
+          <div className="space-y-4">
+            {topLevel.map((propdate, i) => (
+              <div
+                key={propdate.txid}
+                className="animate-in fade-in-0"
+                style={{ animationDelay: `${i * 40}ms`, animationFillMode: "both" }}
+              >
+                <PropdateCard
+                  propdate={propdate}
+                  replies={getReplies(propdate.txid)}
+                  isReplying={replyingTo?.txid === propdate.txid}
+                  onReplyClick={canReply ? handleReplyClick : undefined}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-muted-foreground">No updates on this proposal yet!</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">
+              The proposer can post progress updates here
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -15,12 +15,21 @@ export function PropdateReplyCard({ reply }: PropdateReplyCardProps) {
   });
 
   return (
-    <div className="rounded-lg border bg-muted/50 p-4">
-      <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-        <AddressDisplay address={reply.attester} showCopy={false} showExplorer={false} />
-        <span>{timeCreated}</span>
+    <div className="rounded-md border bg-muted/40 p-3">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <AddressDisplay
+            address={reply.attester}
+            variant="compact"
+            showAvatar
+            showCopy={false}
+            showExplorer={false}
+            avatarSize="sm"
+          />
+        </div>
+        <span className="text-xs text-muted-foreground shrink-0">{timeCreated}</span>
       </div>
-      <Markdown>{reply.message}</Markdown>
+      <Markdown className="prose-sm">{reply.message}</Markdown>
     </div>
   );
 }

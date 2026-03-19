@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Paperclip } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Markdown } from "@/components/common/Markdown";
@@ -23,6 +26,7 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { createPropdate, isCreating, createError, submissionPhase } = usePropdates(proposalId);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,8 +81,10 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
             ? "Submit Reply"
             : "Submit";
 
+  const isSubmitting = isCreating;
+
   return (
-    <Card>
+    <Card className="border-2 border-dashed">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>{replyTo ? "Reply to Propdate" : "Create a Propdate"}</CardTitle>
@@ -91,10 +97,16 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
       </CardHeader>
       <CardContent>
         {replyTo && (
-          <div className="mb-4 rounded-lg border-l-4 border-muted-foreground/30 bg-muted/50 p-3">
+          <div className="mb-4 rounded-md border bg-muted/40 p-3 border-l-2 border-primary/30">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
               <span>Replying to</span>
-              <AddressDisplay address={replyTo.attester} showCopy={false} showExplorer={false} />
+              <AddressDisplay
+                address={replyTo.attester}
+                variant="compact"
+                showAvatar
+                showCopy={false}
+                showExplorer={false}
+              />
             </div>
             <p className="text-sm text-muted-foreground line-clamp-2">{replyTo.message}</p>
           </div>
@@ -124,29 +136,56 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
               </div>
             </TabsContent>
           </Tabs>
+
           <div className="flex items-center gap-2">
-            <label className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors">
-              <input
-                type="file"
-                className="hidden"
-                onChange={handleFileAttach}
-                disabled={uploading || isCreating}
-                accept="image/*,.pdf,.md,.txt"
-              />
-              {uploading ? `Uploading... ${uploadProgress}%` : "Attach file"}
-            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={handleFileAttach}
+              disabled={uploading || isCreating}
+              accept="image/*,.pdf,.md,.txt"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploading || isCreating}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {uploading ? (
+                <>
+                  <Spinner className="mr-1.5" />
+                  Uploading... {uploadProgress}%
+                </>
+              ) : (
+                <>
+                  <Paperclip className="mr-1.5 size-4" />
+                  Attach file
+                </>
+              )}
+            </Button>
             {uploadError && (
               <span className="text-sm text-destructive">{uploadError}</span>
             )}
           </div>
-          <Button type="submit" disabled={isCreating || uploading || !messageText.trim()}>
-            {buttonLabel}
-          </Button>
+
+          <div className={replyTo ? "flex items-center justify-end gap-2" : ""}>
+            <Button
+              type="submit"
+              disabled={isSubmitting || uploading || !messageText.trim()}
+              className={replyTo ? "" : "w-full"}
+            >
+              {isSubmitting && <Spinner className="mr-1.5" />}
+              {buttonLabel}
+            </Button>
+          </div>
         </form>
+
         {createError && (
-          <p className="mt-2 text-sm text-destructive" role="alert">
-            {createError}
-          </p>
+          <Alert variant="destructive" className="mt-3">
+            <AlertDescription>{createError}</AlertDescription>
+          </Alert>
         )}
       </CardContent>
     </Card>

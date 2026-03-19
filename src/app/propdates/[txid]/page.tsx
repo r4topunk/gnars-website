@@ -13,7 +13,6 @@ interface PageProps {
 export default function PropdatePage({ params }: PageProps) {
   return (
     <div className="py-8">
-      <h1 className="text-2xl font-bold mb-6">Propdate</h1>
       <Suspense fallback={<PropdateDetailSkeleton />}>
         <PropdateContent params={params} />
       </Suspense>

@@ -1,45 +1,214 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { zeroHash } from "viem";
+import { formatDistanceToNow } from "date-fns";
+import { FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { PropdateCard } from "@/components/proposals/detail/PropdateCard";
+import { Markdown } from "@/components/common/Markdown";
+import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AddressDisplay } from "@/components/ui/address-display";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PropdatesFeedSkeleton } from "@/components/propdates/PropdatesFeedSkeleton";
-import { listDaoPropdates, type Propdate } from "@/services/propdates";
+import type { ProposalWithPropdates } from "@/services/propdates-enriched";
+import type { ProposalStatus } from "@/lib/schemas/proposals";
+
+// ---------------------------------------------------------------------------
+// Types — the API returns JSON so dates are numbers and status is a string.
+// ---------------------------------------------------------------------------
+
+interface ProposalSummaryJSON {
+  proposalId: string;
+  proposalNumber: number;
+  title: string;
+  status: ProposalStatus;
+  proposer: string;
+}
+
+interface PropdateJSON {
+  txid: string;
+  message: string;
+  timeCreated: number;
+  proposalId: string;
+  attester: string;
+  milestoneId: number | null;
+  originalMessageId: string | null;
+}
+
+interface ProposalWithPropdatesJSON {
+  proposal: ProposalSummaryJSON;
+  propdates: PropdateJSON[];
+  latestUpdate: number;
+  updateCount: number;
+}
+
+// ---------------------------------------------------------------------------
+// Individual feed card
+// ---------------------------------------------------------------------------
+
+interface ProposalUpdateCardProps {
+  entry: ProposalWithPropdatesJSON;
+  index: number;
+}
+
+function ProposalUpdateCard({ entry, index }: ProposalUpdateCardProps) {
+  const { proposal, propdates, updateCount, latestUpdate } = entry;
+  const latestPropdate = propdates[0];
+
+  const timeAgo = formatDistanceToNow(new Date(latestUpdate * 1000), {
+    addSuffix: true,
+  });
+
+  const proposalHref = `/proposals/base/${proposal.proposalNumber}`;
+  const allUpdatesHref = `${proposalHref}?tab=propdates`;
+
+  return (
+    <div
+      className="animate-in fade-in-0"
+      style={{ animationDelay: `${index * 40}ms`, animationFillMode: "both" }}
+    >
+      <Card className="overflow-hidden transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-md">
+        {/* Card header — proposal context */}
+        <CardContent className="p-4 pb-0">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-xs font-medium text-muted-foreground tracking-wide">
+              Prop #{proposal.proposalNumber}
+            </span>
+            <ProposalStatusBadge status={proposal.status} className="text-xs shrink-0" />
+          </div>
+
+          <Link
+            href={proposalHref}
+            className="mt-1 block text-sm font-semibold leading-snug hover:text-primary transition-colors line-clamp-2"
+          >
+            {proposal.title}
+          </Link>
+
+          <div className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+            <span>by</span>
+            <AddressDisplay
+              address={proposal.proposer}
+              variant="compact"
+              showAvatar={false}
+              showCopy={false}
+              showExplorer={false}
+              avatarSize="xs"
+              className="text-xs text-muted-foreground"
+            />
+          </div>
+        </CardContent>
+
+        {/* Divider */}
+        <div className="mx-4 my-3 border-t" />
+
+        {/* Latest update content */}
+        <CardContent className="px-4 pt-0 pb-3">
+          <p className="text-xs text-muted-foreground mb-2">
+            Latest Update&nbsp;·&nbsp;{timeAgo}
+          </p>
+
+          {latestPropdate && (
+            <div className="rounded-md border bg-muted/40 p-3 relative overflow-hidden" style={{ maxHeight: 160 }}>
+              <Markdown className="prose-sm">{latestPropdate.message}</Markdown>
+              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-card to-transparent" />
+            </div>
+          )}
+        </CardContent>
+
+        {/* Footer */}
+        <div className="mx-4 border-t" />
+        <CardContent className="px-4 py-2.5">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <FileText className="h-3.5 w-3.5" />
+              {updateCount === 1 ? "1 update" : `${updateCount} updates`}
+            </span>
+            <Link
+              href={allUpdatesHref}
+              className="text-xs font-medium text-primary hover:underline transition-colors"
+            >
+              View all &rarr;
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Feed skeleton matching the new card layout
+// ---------------------------------------------------------------------------
+
+function EnrichedFeedSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="space-y-4" aria-busy="true" aria-label="Loading propdates feed">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="animate-in fade-in-0"
+          style={{ animationDelay: `${i * 50}ms`, animationFillMode: "both" }}
+        >
+          <Card className="overflow-hidden">
+            <CardContent className="p-4 pb-0">
+              <div className="flex items-start justify-between gap-2">
+                <Skeleton className="h-3.5 w-16" />
+                <Skeleton className="h-5 w-20 rounded-md" />
+              </div>
+              <Skeleton className="mt-2 h-4 w-3/4" />
+              <Skeleton className="mt-1.5 h-3 w-32" />
+            </CardContent>
+            <div className="mx-4 my-3 border-t" />
+            <CardContent className="px-4 pt-0 pb-3">
+              <Skeleton className="mb-2 h-3 w-28" />
+              <div className="rounded-md border bg-muted/40 p-3 space-y-2">
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-11/12" />
+                <Skeleton className="h-3 w-10/12" />
+              </div>
+            </CardContent>
+            <div className="mx-4 border-t" />
+            <CardContent className="px-4 py-2.5">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-3 w-14" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main feed component
+// ---------------------------------------------------------------------------
+
+const PAGE_SIZE = 12;
 
 export function PropdatesFeed() {
   const {
-    data: propdates,
+    data: feed,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ["propdates-feed"],
-    queryFn: () => listDaoPropdates(),
+  } = useQuery<ProposalWithPropdatesJSON[]>({
+    queryKey: ["propdates-feed-enriched"],
+    queryFn: () => fetch("/api/propdates/enriched").then((r) => r.json()),
   });
 
-  // Filter out replies (they belong nested under their parent, not as standalone feed items)
-  // and sort newest first
-  const sorted = useMemo(
-    () =>
-      [...(propdates ?? [])]
-        .filter((p: Propdate) => !p.originalMessageId || p.originalMessageId === zeroHash)
-        .sort((a: Propdate, b: Propdate) => b.timeCreated - a.timeCreated),
-    [propdates],
-  );
-
-  // Incremental rendering like ProposalsGrid
-  const PAGE_SIZE = 12;
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
+  const entries = feed ?? [];
+
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, sorted.length));
+      (obs) => {
+        if (obs[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, entries.length));
         }
       },
       { rootMargin: "200px" },
@@ -50,43 +219,64 @@ export function PropdatesFeed() {
     return () => {
       if (current) observer.unobserve(current);
     };
-  }, [sorted.length]);
+  }, [entries.length]);
 
   useEffect(() => {
-    setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), sorted.length || PAGE_SIZE));
-  }, [sorted.length]);
+    setVisibleCount((prev) =>
+      Math.min(Math.max(PAGE_SIZE, prev), entries.length || PAGE_SIZE),
+    );
+  }, [entries.length]);
 
   if (isLoading) {
-    return <PropdatesFeedSkeleton />;
+    return <EnrichedFeedSkeleton />;
   }
 
   if (error) {
     return (
       <Alert variant="destructive">
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription>Failed to load propdates feed. Please try again later.</AlertDescription>
+        <AlertDescription>
+          Failed to load propdates feed. Please try again later.
+        </AlertDescription>
       </Alert>
     );
   }
 
-  if (sorted.length === 0) {
-    return <div className="text-center py-12 text-muted-foreground">No propdates yet</div>;
+  if (entries.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <p className="text-muted-foreground">No propdates yet</p>
+        <p className="mt-1 text-sm text-muted-foreground/70">
+          Proposers can post progress updates after their proposals pass
+        </p>
+      </div>
+    );
   }
+
+  const visibleEntries = entries.slice(0, visibleCount);
 
   return (
     <>
       <div className="space-y-4">
-        {sorted.slice(0, visibleCount).map((p) => (
-          <Link key={p.txid} href={`/propdates/${p.txid}`} className="block">
-            <PropdateCard propdate={p} preview showContent />
-          </Link>
+        {visibleEntries.map((entry, i) => (
+          <ProposalUpdateCard key={entry.proposal.proposalId} entry={entry} index={i} />
         ))}
       </div>
-      {sorted.length > visibleCount && (
-        <div className="mt-4">
-          <Skeleton className="h-24 w-full" />
+
+      {entries.length > visibleCount && (
+        <div className="mt-4 space-y-4">
+          {Array.from({ length: Math.min(3, entries.length - visibleCount) }).map((_, i) => (
+            <Skeleton key={i} className="h-48 w-full" />
+          ))}
         </div>
       )}
+
+      {visibleEntries.length < entries.length && (
+        <div className="mt-4 text-center text-sm text-muted-foreground">
+          Showing {visibleEntries.length} of {entries.length}
+        </div>
+      )}
+
       <div ref={sentinelRef} className="h-10" />
     </>
   );

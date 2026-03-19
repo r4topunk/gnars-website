@@ -34,6 +34,7 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/research/agent-team-candidates.md` — top 4 multi-agent task candidates with file lists and agent splits
 - `docs/research/seo-metadata-audit.md` — full audit of metadata and OG image coverage across all pages; includes priority list for missing items
 - `docs/research/build-bundle-audit.md` — deep audit of next.config, tsconfig, dependencies, Client/Server boundaries, image optimization, and bundle splitting; ranked recommendations
+- `docs/research/propdates-audit.md` — DONE/PARTIAL/MISSING audit of propdates feature against Trello card requirements (Phase 1 + Phase 2)
 
 ## References (External/Vendor)
 
