@@ -18,6 +18,7 @@ export interface NogglesRailLocation {
   };
   video?: string;
   droposals?: number[];
+  thumbnailPosition?: string;
   slug: string;
 }
 
@@ -88,6 +89,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Nouns Amigos",
       link: "",
     },
+    thumbnailPosition: "top",
     slug: "republica-dominicana",
   },
   {
@@ -305,6 +307,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Europe",
     type: "Rail",
     images: [
+      "https://images.hive.blog/DQmRiidbfUGk7NNyzuRApn5pW1cVxjNzQr4RvZReumGMk6V/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.44.48.png",
       "https://gnars.center/milan.jpg",
     ],
     iconUrl: "/nogglesRail3D.png",
