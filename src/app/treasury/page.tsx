@@ -18,22 +18,34 @@ export const metadata: Metadata = {
     description: "Explore the Gnars DAO treasury: ETH holdings, ERC-20 tokens, NFT assets, and on-chain analytics. Full transparency into community-owned funds on Base.",
   },
 };
+
+export const revalidate = 300;
+
+import dynamic from "next/dynamic";
 import {
   MetricSkeleton,
   NftGridSkeleton,
   TableSkeleton,
 } from "@/components/skeletons/treasury-skeletons";
-import {
-  ProposalsPerMonthChart,
-  MemberActivityChart,
-  AuctionBidsPerMonthChart,
-} from "@/components/treasury/DashboardCharts";
 import { NftHoldings } from "@/components/treasury/NftHoldings";
 import { TokenHoldings } from "@/components/treasury/TokenHoldings";
 import { ZoraCoinHoldings } from "@/components/treasury/ZoraCoinHoldings";
 import { TreasuryBalance } from "@/components/treasury/TreasuryBalance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GNARS_ADDRESSES } from "@/lib/config";
+
+const AuctionBidsPerMonthChart = dynamic(
+  () => import("@/components/treasury/AuctionBidsPerMonthChart").then(mod => ({ default: mod.AuctionBidsPerMonthChart })),
+  { loading: () => <div className="h-[300px] rounded-xl bg-muted animate-pulse" /> }
+);
+const ProposalsPerMonthChart = dynamic(
+  () => import("@/components/treasury/ProposalsPerMonthChart").then(mod => ({ default: mod.ProposalsPerMonthChart })),
+  { loading: () => <div className="h-[300px] rounded-xl bg-muted animate-pulse" /> }
+);
+const MemberActivityChart = dynamic(
+  () => import("@/components/treasury/MemberActivityChart").then(mod => ({ default: mod.MemberActivityChart })),
+  { loading: () => <div className="h-[300px] rounded-xl bg-muted animate-pulse" /> }
+);
 
 export default function TreasuryPage() {
   return (

@@ -1,7 +1,6 @@
 import { cache } from "react";
-import { headers } from "next/headers";
 import { formatEther } from "viem";
-import { TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
+import { BASE_URL, TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 import { fetchTotalAuctionSalesWei } from "@/services/dao";
 
 interface TokenBalance {
@@ -31,14 +30,8 @@ export interface TreasurySnapshot {
   totalAuctionSales: number;
 }
 
-async function getBaseUrl() {
-  const h = await headers();
-  const protocol = h.get("x-forwarded-proto") ?? "https";
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  if (!host) {
-    throw new Error("Unable to determine request host");
-  }
-  return `${protocol}://${host}`;
+function getBaseUrl() {
+  return BASE_URL;
 }
 
 async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
@@ -48,7 +41,7 @@ async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
       "Content-Type": "application/json",
       ...(init.headers || {}),
     },
-    cache: "no-store",
+    next: { revalidate: 60 },
   });
 
   if (!response.ok) {
@@ -64,7 +57,7 @@ async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
  */
 export const loadTreasurySnapshot = cache(
   async (treasuryAddress: string): Promise<TreasurySnapshot> => {
-    const baseUrl = await getBaseUrl();
+    const baseUrl = getBaseUrl();
 
     const [ethRes, tokenRes, priceRes, ethPriceRes, auctionSalesWei] = await Promise.all([
       fetchJson<{ result?: string }>(`${baseUrl}/api/alchemy`, {

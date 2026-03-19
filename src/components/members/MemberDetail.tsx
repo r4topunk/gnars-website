@@ -1,15 +1,11 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
-import { MemberCreatedCoinsGrid } from "@/components/members/detail/MemberCreatedCoinsGrid";
-import { MemberDelegatorsTable } from "@/components/members/detail/MemberDelegatorsTable";
 import { MemberHeader } from "@/components/members/detail/MemberHeader";
-import { MemberProposalsGrid } from "@/components/members/detail/MemberProposalsGrid";
 import { MemberQuickStats } from "@/components/members/detail/MemberQuickStats";
-import { MemberTokensGrid } from "@/components/members/detail/MemberTokensGrid";
-import { MemberVotesTable } from "@/components/members/detail/MemberVotesTable";
 import { FarcasterProfileSummary } from "@/components/members/FarcasterProfileSummary";
 import { ZoraProfileSummary } from "@/components/members/ZoraProfileSummary";
 import { type Proposal as UiProposal } from "@/components/proposals/types";
@@ -27,6 +23,12 @@ import {
   fetchMemberVotes,
   type MemberListItem,
 } from "@/services/members";
+
+const MemberProposalsGrid = dynamic(() => import("@/components/members/detail/MemberProposalsGrid").then(mod => ({ default: mod.MemberProposalsGrid })));
+const MemberVotesTable = dynamic(() => import("@/components/members/detail/MemberVotesTable").then(mod => ({ default: mod.MemberVotesTable })));
+const MemberTokensGrid = dynamic(() => import("@/components/members/detail/MemberTokensGrid").then(mod => ({ default: mod.MemberTokensGrid })));
+const MemberDelegatorsTable = dynamic(() => import("@/components/members/detail/MemberDelegatorsTable").then(mod => ({ default: mod.MemberDelegatorsTable })));
+const MemberCreatedCoinsGrid = dynamic(() => import("@/components/members/detail/MemberCreatedCoinsGrid").then(mod => ({ default: mod.MemberCreatedCoinsGrid })));
 
 interface MemberDetailProps {
   address: string;

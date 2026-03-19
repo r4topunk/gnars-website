@@ -30,8 +30,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Revalidate every 15 seconds for fresh data
-export const revalidate = 15;
+// Revalidate every 60 seconds for fresh data
+export const revalidate = 60;
 
 /**
  * Fetch feed events from The Graph subgraph
@@ -80,7 +80,7 @@ export default async function LiveFeedPage() {
       <div className="mt-8 p-4 rounded-lg border bg-muted/50">
         <p className="text-sm text-muted-foreground">
           Live events from the Gnars DAO on Base (last 30 days). Data refreshes automatically every
-          15 seconds.
+          60 seconds.
         </p>
       </div>
     </div>
