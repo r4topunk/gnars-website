@@ -27,6 +27,9 @@ interface EthProposalRaw {
   againstVotes: string;
   quorumVotes: string;
   totalSupply: string;
+  calldatas?: string[];
+  targets?: string[];
+  values?: string[];
 }
 
 /**
@@ -79,9 +82,9 @@ async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainPropos
         againstVotes: Number(p.againstVotes),
         abstainVotes: Number(p.abstainVotes),
         quorumVotes: Number(p.quorumVotes),
-        calldatas: [],
-        targets: [],
-        values: [],
+        calldatas: p.calldatas ?? [],
+        targets: p.targets ?? [],
+        values: p.values ?? [],
         signatures: [],
         transactionHash: "",
         votes: [],

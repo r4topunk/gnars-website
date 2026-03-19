@@ -38,6 +38,9 @@ const ETH_QUERY = `
       startBlock
       endBlock
       executionETA
+      calldatas
+      targets
+      values
     }
   }
 `;
@@ -141,7 +144,7 @@ async function fetchAllSnapshotProposals() {
 }
 
 async function main() {
-  const dataDir = path.join(__dirname, "..", "data");
+  const dataDir = path.join(__dirname, "..", "public", "data");
   
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });

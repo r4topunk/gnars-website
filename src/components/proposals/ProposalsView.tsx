@@ -37,6 +37,9 @@ interface RawEthProposal {
   againstVotes: string;
   quorumVotes: string;
   totalSupply: string;
+  calldatas?: string[];
+  targets?: string[];
+  values?: string[];
 }
 
 interface RawSnapshotProposal {
@@ -115,9 +118,9 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
         againstVotes: Number(p.againstVotes),
         abstainVotes: Number(p.abstainVotes),
         quorumVotes: Number(p.quorumVotes),
-        calldatas: [],
-        targets: [],
-        values: [],
+        calldatas: p.calldatas ?? [],
+        targets: p.targets ?? [],
+        values: p.values ?? [],
         signatures: [],
         transactionHash: "",
         votes: [],
