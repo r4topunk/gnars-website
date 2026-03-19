@@ -11,7 +11,7 @@ import * as THREE from "three";
 // 3D NogglesRail Model Component
 function NogglesRailModel3D() {
   const logoRef = useRef<THREE.Group>(null);
-  const gnarsLogoModel = useGLTF("/models/noggles-rail.glb");
+  const gnarsLogoModel = useGLTF("/models/NogRail.glb");
   
   // Clone the model scene
   const clonedLogoScene = useMemo(() => {
