@@ -32,13 +32,10 @@ async function fetchProposalData(chain: string, id: string): Promise<MultiChainP
   if (!VALID_CHAINS.includes(chain as ProposalSource)) {
     return null;
   }
-  
-  try {
-    return await getMultiChainProposal(id, chain as ProposalSource);
-  } catch (error) {
-    console.error("Failed to fetch proposal:", error);
-    return null;
-  }
+
+  // Let errors propagate — they'll be caught by error.tsx with a retry button.
+  // Only return null for genuinely missing proposals (not RPC/network failures).
+  return await getMultiChainProposal(id, chain as ProposalSource);
 }
 
 interface ProposalPageProps {
