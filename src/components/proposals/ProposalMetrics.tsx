@@ -110,15 +110,15 @@ export function ProposalMetrics({
                   : "Ends"}
             </CardTitle>
           </CardHeader>
-          <CardContent className="py-1 px-4">
-            <div className="text-xl md:text-2xl font-semibold">
+          <CardContent className="py-1 px-4" suppressHydrationWarning>
+            <div className="text-xl md:text-2xl font-semibold" suppressHydrationWarning>
               {dateToShow.toLocaleDateString(undefined, {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
               })}
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground" suppressHydrationWarning>
               {dateToShow.toLocaleTimeString(undefined, {
                 hour: "2-digit",
                 minute: "2-digit",

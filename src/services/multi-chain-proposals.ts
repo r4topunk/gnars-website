@@ -85,8 +85,8 @@ async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainPropos
         signatures: [],
         transactionHash: "",
         votes: [],
-        voteStart: new Date(Number(p.startBlock) * 12 * 1000).toISOString(),
-        voteEnd: new Date(Number(p.endBlock) * 12 * 1000).toISOString(),
+        voteStart: new Date(Number(p.createdTimestamp) * 1000).toISOString(),
+        voteEnd: new Date((Number(p.createdTimestamp) + (Number(p.endBlock) - Number(p.startBlock)) * 12) * 1000).toISOString(),
         expiresAt: p.executionETA
           ? new Date(Number(p.executionETA) * 1000).toISOString()
           : undefined,

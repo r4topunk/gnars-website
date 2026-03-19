@@ -122,7 +122,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
         transactionHash: "",
         votes: [],
         voteStart: new Date(Number(p.createdTimestamp) * 1000).toISOString(),
-        voteEnd: new Date(Number(p.createdTimestamp) * 1000).toISOString(),
+        voteEnd: new Date((Number(p.createdTimestamp) + (Number(p.endBlock) - Number(p.startBlock)) * 12) * 1000).toISOString(),
         timeCreated: Number(p.createdTimestamp),
         descriptionHash: "",
         source: "ethereum" as const,
