@@ -135,18 +135,16 @@ export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-6">
-        {showForm && (
+        {/* Top-level form (new propdate, not a reply) */}
+        {showForm && !replyingTo && (
           <PropdateForm
             proposalId={proposalId}
-            replyTo={replyingTo}
             onSuccess={() => {
               setShowForm(false);
-              setReplyingTo(null);
               refetch();
             }}
             onCancel={() => {
               setShowForm(false);
-              setReplyingTo(null);
             }}
           />
         )}
@@ -165,6 +163,24 @@ export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
                   isReplying={replyingTo?.txid === propdate.txid}
                   onReplyClick={canReply ? handleReplyClick : undefined}
                 />
+                {/* Inline reply form — appears directly below the card being replied to */}
+                {replyingTo?.txid === propdate.txid && showForm && (
+                  <div className="mt-2 ml-6">
+                    <PropdateForm
+                      proposalId={proposalId}
+                      replyTo={replyingTo}
+                      onSuccess={() => {
+                        setShowForm(false);
+                        setReplyingTo(null);
+                        refetch();
+                      }}
+                      onCancel={() => {
+                        setShowForm(false);
+                        setReplyingTo(null);
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
