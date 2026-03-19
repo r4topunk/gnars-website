@@ -73,15 +73,9 @@ function NogglesRailModel3D() {
     }
   }, [metalColorMap, metalNormalMap, metalRoughnessMap, clonedLogoScene]);
 
-  // Spinning animation
-  useFrame((state) => {
-    if (!logoRef.current) return;
-    const time = state.clock.getElapsedTime();
-    logoRef.current.rotation.y = time * 0.5; // Slow spin
-  });
-
+  // Static positioning - no animation
   return (
-    <group ref={logoRef} scale={1.5}>
+    <group ref={logoRef} scale={8} position={[0, -1, 0]} rotation={[-0.2, 0.3, 0]}>
       <primitive object={clonedLogoScene} />
     </group>
   );
@@ -153,19 +147,17 @@ export default function NogglesRailsHero() {
               gl={{ alpha: true, antialias: true }}
               style={{ background: "transparent" }}
             >
-              <PerspectiveCamera makeDefault position={[0, 0, 3]} fov={45} />
+              <PerspectiveCamera makeDefault position={[0, 0, 8]} fov={45} />
               <OrbitControls
-                enableZoom={true}
+                enableZoom={false}
                 enablePan={false}
-                minDistance={2}
-                maxDistance={6}
-                enableDamping
-                dampingFactor={0.05}
+                enableRotate={false}
               />
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[5, 5, 5]} intensity={1.5} castShadow />
-              <directionalLight position={[-3, 3, -3]} intensity={0.6} color="#88aaff" />
-              <Environment preset="warehouse" background={false} />
+              <ambientLight intensity={0.8} />
+              <directionalLight position={[5, 5, 5]} intensity={2.0} castShadow />
+              <directionalLight position={[-3, 3, -3]} intensity={1.2} color="#ffffff" />
+              <spotLight position={[0, 5, 0]} intensity={1.5} angle={0.6} penumbra={1} />
+              <Environment preset="city" background={false} />
               <NogglesRailModel3D />
             </Canvas>
           </div>
