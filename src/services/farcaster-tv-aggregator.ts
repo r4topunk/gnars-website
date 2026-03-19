@@ -5,6 +5,7 @@ import { unstable_cache } from "next/cache";
 import { getCoin, getCoinHolders, getProfile } from "@zoralabs/coins-sdk";
 import { createPublicClient, http, parseAbi } from "viem";
 import { base } from "viem/chains";
+import { subgraphQuery } from "@/lib/subgraph";
 import {
   assertNeynarApiKey,
   fetchFarcasterProfilesByAddress,
@@ -20,7 +21,6 @@ import {
 const GNARS_COIN_ADDRESS = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
 const GNARS_NFT_ADDRESS = "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17";
 
-const MIN_COIN_BALANCE = 300_000;
 const MIN_NFT_BALANCE = 1;
 
 const MAX_CONCURRENT_PROFILE_FETCHES = 10;
@@ -76,6 +76,7 @@ export interface TVItemData {
   farcasterUsername?: string;
   farcasterFollowerCount?: number;
   farcasterType?: "coin" | "nft";
+  creatorCoinBalance?: number;
 }
 
 export interface FarcasterTVData {
@@ -281,7 +282,7 @@ async function fetchCandidateCreators(): Promise<CandidateCreator[]> {
   let cursor: string | undefined;
   let page = 1;
 
-  while (page <= 5) {
+  while (page <= 10) {
     try {
       const result = await getCoinHolders({
         address: GNARS_COIN_ADDRESS as `0x${string}`,
@@ -308,8 +309,6 @@ async function fetchCandidateCreators(): Promise<CandidateCreator[]> {
         const rawBalance = node.balance || "0";
         const balanceNum = Number(BigInt(rawBalance)) / 1e18;
 
-        if (balanceNum < MIN_COIN_BALANCE) continue;
-
         const avatarUrl =
           profile?.avatar?.previewImage?.medium || profile?.avatar?.previewImage?.small || null;
 
@@ -329,6 +328,88 @@ async function fetchCandidateCreators(): Promise<CandidateCreator[]> {
       break;
     }
   }
+
+  return candidates;
+}
+
+const MAX_NFT_HOLDER_CANDIDATES = 200;
+
+/**
+ * Discover creators by Gnars NFT ownership via Builder DAO subgraph.
+ * Resolves NFT holder wallets to Zora profiles.
+ */
+async function fetchNftHolderCandidates(
+  excludeHandles: Set<string>,
+): Promise<CandidateCreator[]> {
+  const dao = GNARS_NFT_ADDRESS.toLowerCase();
+  const PAGE_SIZE = 200;
+
+  // Query Builder DAO subgraph for top NFT holders
+  const query = /* GraphQL */ `
+    query TopNftHolders($dao: ID!, $first: Int!) {
+      daotokenOwners(
+        where: { dao: $dao }
+        orderBy: daoTokenCount
+        orderDirection: desc
+        first: $first
+      ) {
+        owner
+        daoTokenCount
+      }
+    }
+  `;
+
+  let holders: Array<{ owner: string; daoTokenCount: number }> = [];
+  try {
+    const result = await subgraphQuery<{
+      daotokenOwners: Array<{ owner: string; daoTokenCount: number }>;
+    }>(query, { dao, first: PAGE_SIZE });
+    holders = result.daotokenOwners || [];
+  } catch (err) {
+    console.warn("[farcaster-tv] Failed to fetch NFT holders from subgraph:", err);
+    return [];
+  }
+
+  console.log(`[farcaster-tv] NFT holder candidates from subgraph: ${holders.length}`);
+
+  // Resolve wallets to Zora profiles
+  const candidates: CandidateCreator[] = [];
+
+  await runWithConcurrency(
+    holders.slice(0, MAX_NFT_HOLDER_CANDIDATES),
+    async (holder) => {
+      try {
+        const profileResult = await getProfile({ identifier: holder.owner });
+        const profile = profileResult?.data?.profile;
+        if (!profile) return;
+
+        const handle = (profile as { handle?: string }).handle;
+        if (!handle || excludeHandles.has(handle)) return;
+
+        const avatarRaw = profile as {
+          avatar?: { previewImage?: { medium?: string; small?: string } };
+        };
+        const avatarUrl =
+          avatarRaw.avatar?.previewImage?.medium ||
+          avatarRaw.avatar?.previewImage?.small ||
+          null;
+
+        candidates.push({
+          handle,
+          avatarUrl,
+          coinBalance: 0, // NFT-discovered, no coin balance known yet
+          wallets: [holder.owner.toLowerCase()],
+        });
+      } catch {
+        // Skip wallet if profile resolution fails
+      }
+    },
+    MAX_CONCURRENT_PROFILE_FETCHES,
+  );
+
+  console.log(
+    `[farcaster-tv] NFT holder candidates with Zora profiles: ${candidates.length}`,
+  );
 
   return candidates;
 }
@@ -369,9 +450,25 @@ async function fetchProfileWallets(candidates: CandidateCreator[]): Promise<Cand
 }
 
 async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
-  const candidates = await fetchCandidateCreators();
-  const candidatesWithWallets = await fetchProfileWallets(candidates);
+  // Path A: Coin holder discovery (Zora SDK)
+  const coinCandidates = await fetchCandidateCreators();
 
+  // Merge & dedup — coin candidates take priority (they have coin balance data)
+  const seenHandles = new Set<string>(coinCandidates.map((c) => c.handle));
+
+  // Path B: NFT holder discovery (Builder DAO subgraph)
+  const nftCandidates = await fetchNftHolderCandidates(seenHandles);
+
+  const allCandidates = [...coinCandidates, ...nftCandidates];
+
+  console.log(
+    `[farcaster-tv] Candidates: ${coinCandidates.length} from coin holders, ${nftCandidates.length} from NFT holders`,
+  );
+
+  // Resolve wallets for all candidates (coin candidates may already have wallets from prior step)
+  const candidatesWithWallets = await fetchProfileWallets(allCandidates);
+
+  // Batch check NFT balances across all wallets
   const allWallets = new Set<string>();
   for (const candidate of candidatesWithWallets) {
     for (const wallet of candidate.wallets) {
@@ -381,6 +478,7 @@ async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
 
   const nftBalances = await batchCheckNftBalances(Array.from(allWallets));
 
+  // Qualify: NFT ≥ 1 is the only gate
   const qualifiedCreators: QualifiedCreator[] = [];
 
   for (const candidate of candidatesWithWallets) {
@@ -409,16 +507,6 @@ async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
       nftBalance: creator.nftBalance,
     });
   }
-
-  console.log(
-    `[farcaster-tv] Qualified creators (${qualifiedCreators.length}):`,
-    qualifiedCreators.map((creator) => ({
-      handle: creator.handle,
-      wallets: creator.wallets,
-      coinBalance: creator.coinBalance,
-      nftBalance: creator.nftBalance,
-    })),
-  );
 
   return qualifiedCreators;
 }
