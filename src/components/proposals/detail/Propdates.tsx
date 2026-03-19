@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { zeroHash } from "viem";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePropdates } from "@/hooks/use-propdates";
+import { type Propdate } from "@/services/propdates";
 import { PropdateCard } from "./PropdateCard";
 import { PropdateForm } from "./PropdateForm";
 
@@ -16,6 +18,36 @@ interface PropdatesProps {
 export function Propdates({ proposalId }: PropdatesProps) {
   const { propdates, isLoading, isError, refetch } = usePropdates(proposalId);
   const [showForm, setShowForm] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Propdate | null>(null);
+
+  const topLevel = useMemo(() => {
+    if (!propdates) return [];
+    return propdates
+      .filter((p) => !p.originalMessageId || p.originalMessageId === zeroHash)
+      .sort((a, b) => b.timeCreated - a.timeCreated);
+  }, [propdates]);
+
+  const getReplies = (parentTxid: string): Propdate[] => {
+    if (!propdates) return [];
+    return propdates
+      .filter((p) => p.originalMessageId === parentTxid)
+      .sort((a, b) => a.timeCreated - b.timeCreated);
+  };
+
+  const handleReplyClick = (propdate: Propdate) => {
+    if (replyingTo?.txid === propdate.txid) {
+      setShowForm(false);
+      setReplyingTo(null);
+    } else {
+      setReplyingTo(propdate);
+      setShowForm(true);
+    }
+  };
+
+  const handleNewPropdate = () => {
+    setReplyingTo(null);
+    setShowForm(!showForm);
+  };
 
   if (isLoading) {
     return (
@@ -40,8 +72,12 @@ export function Propdates({ proposalId }: PropdatesProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Propdates</h3>
-        <Button onClick={() => setShowForm(!showForm)} variant="outline" size="sm">
-          {showForm ? "Cancel" : "Create Propdate"}
+        <Button
+          onClick={handleNewPropdate}
+          variant={showForm && !replyingTo ? "destructive" : "outline"}
+          size="sm"
+        >
+          {showForm && !replyingTo ? "Cancel" : "Create Propdate"}
         </Button>
       </div>
       {showForm && (
@@ -49,15 +85,22 @@ export function Propdates({ proposalId }: PropdatesProps) {
           proposalId={proposalId}
           onSuccess={() => {
             setShowForm(false);
+            setReplyingTo(null);
             refetch();
           }}
         />
       )}
       <Separator />
-      {(propdates?.length ?? 0) > 0 ? (
+      {topLevel.length > 0 ? (
         <div className="space-y-4">
-          {propdates!.map((propdate) => (
-            <PropdateCard key={propdate.txid} propdate={propdate} />
+          {topLevel.map((propdate) => (
+            <PropdateCard
+              key={propdate.txid}
+              propdate={propdate}
+              replies={getReplies(propdate.txid)}
+              isReplying={replyingTo?.txid === propdate.txid}
+              onReplyClick={handleReplyClick}
+            />
           ))}
         </div>
       ) : (
