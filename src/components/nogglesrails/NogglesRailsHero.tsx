@@ -30,12 +30,16 @@ function NogglesRailModel3D() {
       clonedLogoScene.traverse((child: THREE.Object3D) => {
         const mesh = child as THREE.Mesh;
         if (!mesh.isMesh) return;
-        mesh.material = new THREE.MeshStandardMaterial({
-          color: new THREE.Color('#D8D8D8'),
-          metalness: 0.6,
-          roughness: 0.25,
-          emissive: new THREE.Color('#888888'),
-          emissiveIntensity: 0.2,
+        mesh.material = new THREE.MeshPhysicalMaterial({
+          color: new THREE.Color('#E8E8E8'),
+          metalness: 0.85,
+          roughness: 0.1,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.05,
+          reflectivity: 1.0,
+          emissive: new THREE.Color('#AAAAAA'),
+          emissiveIntensity: 0.1,
+          envMapIntensity: 2.0,
         });
       });
     }
@@ -123,11 +127,13 @@ export default function NogglesRailsHero() {
                 enableDamping
                 dampingFactor={0.05}
               />
-              <ambientLight intensity={0.8} />
-              <directionalLight position={[5, 5, 5]} intensity={2.0} castShadow />
-              <directionalLight position={[-3, 3, -3]} intensity={1.2} color="#ffffff" />
-              <spotLight position={[0, 5, 0]} intensity={1.5} angle={0.6} penumbra={1} />
-              <Environment preset="city" background={false} />
+              <ambientLight intensity={0.6} />
+              <directionalLight position={[5, 5, 5]} intensity={2.5} castShadow />
+              <directionalLight position={[-5, 3, 2]} intensity={1.5} color="#ffffff" />
+              <spotLight position={[0, 8, 3]} intensity={3.0} angle={0.4} penumbra={0.5} color="#ffffff" />
+              <spotLight position={[3, 3, 5]} intensity={2.0} angle={0.6} penumbra={1} color="#f0f0ff" />
+              <pointLight position={[-2, 2, 4]} intensity={1.5} color="#ffffff" />
+              <Environment preset="studio" background={false} />
               <NogglesRailModel3D />
             </Canvas>
           </div>

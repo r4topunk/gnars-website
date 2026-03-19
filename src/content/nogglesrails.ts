@@ -29,9 +29,9 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Americas",
     type: "Rail",
     images: [
+      "https://gnars.center/xv-mentex-fscrooks.png",
       "https://gnars.center/rocknogles.gif",
       "https://gnars.center/xvgroup.jpg",
-      "https://gnars.center/xv-mentex-fscrooks.png",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
