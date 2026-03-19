@@ -11,6 +11,7 @@ import {
   type Hex,
 } from "viem";
 import { TransactionVisualization } from "./TransactionVisualization";
+import { RecipientBundleCard, getRecipient } from "./RecipientBundleCard";
 import { type TransactionFormValues } from "../schema";
 import {
   DROPOSAL_TARGET,
@@ -481,20 +482,91 @@ export function ProposalTransactionVisualization({
     },
   ] as const;
 
+  // Parse all transactions
+  const parsedTransactions = targets.map((target, index) => {
+    const calldata = normalizeHex(calldatas[index]);
+    const transaction = mapProposalTransaction(
+      target,
+      values[index] || 0,
+      signatures[index] || "",
+      calldata,
+      index,
+    );
+    const typeInfo =
+      transactionTypes.find((t) => t.type === transaction.type) || transactionTypes[5];
+    return { transaction, typeInfo, index, description: descriptions?.[index] };
+  });
+
+  // Group ALL transferable txs by recipient (regardless of order)
+  const transferableTypes = new Set(["send-eth", "send-usdc", "send-tokens", "send-nfts"]);
+
+  type ParsedTx = (typeof parsedTransactions)[number];
+  type RenderItem =
+    | { kind: "single"; tx: ParsedTx }
+    | { kind: "bundle"; txs: ParsedTx[]; recipient: string; from: string };
+
+  // Collect transferable txs by recipient
+  const recipientGroups = new Map<string, ParsedTx[]>();
+  const recipientOrder: string[] = [];
+
+  for (const parsed of parsedTransactions) {
+    const recipient = getRecipient(parsed.transaction);
+    if (transferableTypes.has(parsed.transaction.type) && recipient) {
+      if (!recipientGroups.has(recipient)) {
+        recipientGroups.set(recipient, []);
+        recipientOrder.push(recipient);
+      }
+      recipientGroups.get(recipient)!.push(parsed);
+    }
+  }
+
+  // Track which txs are bundled (2+ txs to same recipient)
+  const bundledIndices = new Set<number>();
+  for (const [, group] of recipientGroups) {
+    if (group.length > 1) {
+      for (const tx of group) bundledIndices.add(tx.index);
+    }
+  }
+
+  // Build render items: bundles appear at the position of the first tx in the group
+  const renderItems: RenderItem[] = [];
+  const emittedRecipients = new Set<string>();
+
+  for (const parsed of parsedTransactions) {
+    if (bundledIndices.has(parsed.index)) {
+      const recipient = getRecipient(parsed.transaction)!;
+      if (!emittedRecipients.has(recipient)) {
+        emittedRecipients.add(recipient);
+        const group = recipientGroups.get(recipient)!;
+        const nftTx = group.find((g) => g.transaction.type === "send-nfts");
+        const from =
+          nftTx && nftTx.transaction.type === "send-nfts"
+            ? nftTx.transaction.from
+            : "";
+        renderItems.push({ kind: "bundle", txs: group, recipient, from });
+      }
+      // Skip — already emitted as part of a bundle
+    } else {
+      renderItems.push({ kind: "single", tx: parsed });
+    }
+  }
+
   return (
     <div className="space-y-4">
-      {targets.map((target, index) => {
-        const calldata = normalizeHex(calldatas[index]);
-        const transaction = mapProposalTransaction(
-          target,
-          values[index] || 0,
-          signatures[index] || "",
-          calldata,
-          index,
-        );
+      {renderItems.map((item, renderIndex) => {
+        if (item.kind === "bundle") {
+          return (
+            <RecipientBundleCard
+              key={`bundle-${renderIndex}`}
+              recipient={item.recipient}
+              from={item.from}
+              transactions={item.txs.map((t) => t.transaction)}
+              indices={item.txs.map((t) => t.index)}
+            />
+          );
+        }
 
-        const typeInfo = transactionTypes.find((t) => t.type === transaction.type) || transactionTypes[5];
-        const description = descriptions?.[index];
+        const { transaction, typeInfo, index, description } = item.tx;
 
         return (
           <div key={index} className="space-y-0">
