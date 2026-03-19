@@ -20,7 +20,6 @@ import {
 const GNARS_COIN_ADDRESS = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
 const GNARS_NFT_ADDRESS = "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17";
 
-const MIN_COIN_BALANCE = 300_000;
 const MIN_NFT_BALANCE = 1;
 
 const MAX_CONCURRENT_PROFILE_FETCHES = 10;
@@ -281,7 +280,7 @@ async function fetchCandidateCreators(): Promise<CandidateCreator[]> {
   let cursor: string | undefined;
   let page = 1;
 
-  while (page <= 5) {
+  while (page <= 10) {
     try {
       const result = await getCoinHolders({
         address: GNARS_COIN_ADDRESS as `0x${string}`,
@@ -307,8 +306,6 @@ async function fetchCandidateCreators(): Promise<CandidateCreator[]> {
 
         const rawBalance = node.balance || "0";
         const balanceNum = Number(BigInt(rawBalance)) / 1e18;
-
-        if (balanceNum < MIN_COIN_BALANCE) continue;
 
         const avatarUrl =
           profile?.avatar?.previewImage?.medium || profile?.avatar?.previewImage?.small || null;
