@@ -139,7 +139,7 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
               <span className="text-sm text-destructive">{uploadError}</span>
             )}
           </div>
-          <Button type="submit" disabled={isCreating || !messageText.trim()}>
+          <Button type="submit" disabled={isCreating || uploading || !messageText.trim()}>
             {buttonLabel}
           </Button>
         </form>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { zeroHash } from "viem";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -23,31 +23,25 @@ export function Propdates({ proposalId }: PropdatesProps) {
   const [replyingTo, setReplyingTo] = useState<Propdate | null>(null);
   const [showOnlyMembers, setShowOnlyMembers] = useState(false);
 
-  const topLevel = useMemo(() => {
+  const filteredPropdates = useMemo(() => {
     if (!propdates) return [];
-    let filtered = propdates;
     if (showOnlyMembers && daoMembers) {
-      filtered = filtered.filter((p) =>
-        daoMembers.has(p.attester.toLowerCase()),
-      );
+      return propdates.filter((p) => daoMembers.has(p.attester.toLowerCase()));
     }
-    return filtered
-      .filter((p) => !p.originalMessageId || p.originalMessageId === zeroHash)
-      .sort((a, b) => b.timeCreated - a.timeCreated);
+    return propdates;
   }, [propdates, showOnlyMembers, daoMembers]);
 
-  const getReplies = (parentTxid: string): Propdate[] => {
-    if (!propdates) return [];
-    let filtered = propdates;
-    if (showOnlyMembers && daoMembers) {
-      filtered = filtered.filter((p) =>
-        daoMembers.has(p.attester.toLowerCase()),
-      );
-    }
-    return filtered
+  const topLevel = useMemo(() => {
+    return filteredPropdates
+      .filter((p) => !p.originalMessageId || p.originalMessageId === zeroHash)
+      .sort((a, b) => b.timeCreated - a.timeCreated);
+  }, [filteredPropdates]);
+
+  const getReplies = useCallback((parentTxid: string): Propdate[] => {
+    return filteredPropdates
       .filter((p) => p.originalMessageId === parentTxid)
       .sort((a, b) => a.timeCreated - b.timeCreated);
-  };
+  }, [filteredPropdates]);
 
   const handleReplyClick = (propdate: Propdate) => {
     if (replyingTo?.txid === propdate.txid) {
