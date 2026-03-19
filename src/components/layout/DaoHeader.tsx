@@ -123,10 +123,10 @@ const navigationItems = [
         description: "Browse all DAO members and holders",
       },
       {
-        title: "Map",
-        href: "/map",
+        title: "NogglesRails",
+        href: "/nogglesrails",
         icon: Map,
-        description: "Explore global Gnars installations",
+        description: "Global network of community skate infrastructure",
         badge: "NEW!",
       },
       {
