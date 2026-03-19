@@ -144,9 +144,26 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
     if (snapshotProposals.length > 0) return;
     setIsLoadingSnapshot(true);
     try {
-      const response = await fetch("/data/snapshot-proposals.json");
-      const data: RawSnapshotProposal[] = await response.json();
-      const proposals: MultiChainProposal[] = data.map((p, index) => ({
+      // Fetch proposals and transaction data in parallel
+      const [proposalsRes, txRes] = await Promise.all([
+        fetch("/data/snapshot-proposals.json"),
+        fetch("/data/snapshot-transactions.json").catch(() => null),
+      ]);
+      const data: RawSnapshotProposal[] = await proposalsRes.json();
+
+      // Build tx lookup map
+      const txMap = new Map<string, { target: string; value: string; calldata: string; description?: string }[]>();
+      if (txRes?.ok) {
+        const txData: { proposalId: string; transactions: { target: string; value: string; calldata: string; description?: string }[] }[] =
+          await txRes.json();
+        for (const entry of txData) {
+          txMap.set(entry.proposalId, entry.transactions);
+        }
+      }
+
+      const proposals: MultiChainProposal[] = data.map((p, index) => {
+        const txs = txMap.get(p.id);
+        return {
         proposalId: p.id,
         proposalNumber: data.length - index,
         title: p.title || `Snapshot Proposal #${data.length - index}`,
@@ -160,9 +177,10 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
         againstVotes: p.scores[1] || 0,
         abstainVotes: p.scores[2] || 0,
         quorumVotes: 0,
-        calldatas: [],
-        targets: [],
-        values: [],
+        calldatas: txs?.map((t) => t.calldata) ?? [],
+        targets: txs?.map((t) => t.target) ?? [],
+        values: txs?.map((t) => t.value) ?? [],
+        txDescriptions: txs?.map((t) => t.description || "") ?? undefined,
         signatures: [],
         transactionHash: "",
         votes: [],
@@ -172,7 +190,8 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
         descriptionHash: "",
         source: "snapshot" as const,
         chainId: 0,
-      }));
+      };
+      });
       setSnapshotProposals(proposals);
     } catch (error) {
       console.error("Failed to load Snapshot proposals:", error);

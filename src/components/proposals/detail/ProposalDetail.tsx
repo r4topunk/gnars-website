@@ -303,6 +303,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
                     values={proposal.values}
                     signatures={proposal.signatures}
                     calldatas={proposal.calldatas}
+                    descriptions={(proposal as MultiChainProposal).txDescriptions}
                   />
                 </CardContent>
               </Card>

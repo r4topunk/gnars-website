@@ -9,6 +9,8 @@ export type ProposalSource = "base" | "ethereum" | "snapshot";
 export interface MultiChainProposal extends Proposal {
   source: ProposalSource;
   chainId: number;
+  /** Optional human-readable descriptions for each transaction (from manually annotated data) */
+  txDescriptions?: string[];
 }
 
 // Ethereum proposal data structure from static JSON
@@ -201,6 +203,7 @@ async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainP
       const targets = txData?.transactions.map(tx => tx.target) || [];
       const values = txData?.transactions.map(tx => tx.value) || [];
       const calldatas = txData?.transactions.map(tx => tx.calldata) || [];
+      const txDescriptions = txData?.transactions.map(tx => tx.description || "") || [];
 
       return {
         proposalId: p.id,
@@ -232,6 +235,7 @@ async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainP
         queuedAt: undefined,
         executedAt: p.state === "closed" ? new Date(p.end * 1000).toISOString() : undefined,
         descriptionHash: "",
+        txDescriptions: txDescriptions.length > 0 ? txDescriptions : undefined,
         source: "snapshot" as const,
         chainId: 0, // Snapshot is off-chain
       };

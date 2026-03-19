@@ -434,6 +434,8 @@ interface ProposalTransactionVisualizationProps {
   values: (string | number)[];
   signatures: string[];
   calldatas: string[];
+  /** Optional human-readable descriptions for each transaction */
+  descriptions?: string[];
 }
 
 export function ProposalTransactionVisualization({
@@ -441,6 +443,7 @@ export function ProposalTransactionVisualization({
   values,
   signatures,
   calldatas,
+  descriptions,
 }: ProposalTransactionVisualizationProps) {
   if (targets.length === 0) {
     return (
@@ -496,15 +499,22 @@ export function ProposalTransactionVisualization({
         );
 
         const typeInfo = transactionTypes.find((t) => t.type === transaction.type) || transactionTypes[5];
+        const description = descriptions?.[index];
 
         return (
-          <TransactionVisualization
-            key={index}
-            index={index}
-            transaction={transaction}
-            label={typeInfo.label}
-            icon={typeInfo.icon}
-          />
+          <div key={index} className="space-y-0">
+            <TransactionVisualization
+              index={index}
+              transaction={transaction}
+              label={typeInfo.label}
+              icon={typeInfo.icon}
+            />
+            {description && (
+              <div className="mx-4 -mt-1 mb-2 px-3 py-1.5 rounded-b-lg bg-muted/50 border border-t-0 border-border/50 text-xs text-muted-foreground">
+                {description}
+              </div>
+            )}
+          </div>
         );
       })}
     </div>
