@@ -131,7 +131,8 @@ export function usePropdates(proposalId: string) {
   return {
     propdates: query.data,
     isLoading: query.isLoading,
-    isError: query.error,
+    isError: query.isError,
+    error: query.error,
     refetch: query.refetch,
     createPropdate: handleCreatePropdate,
     isCreating: submissionPhase !== "idle",
