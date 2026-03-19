@@ -8,13 +8,96 @@ import { Sparkles, Gift, TrendingUp, ChevronUp, ChevronDown, Zap, Trophy, Coins 
 import { formatGnarsAmount } from "@/lib/lootbox";
 import { AnimatedChest3D } from "@/components/lootbox";
 import type { Chain } from "wagmi/chains";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useRef, useEffect } from "react";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { Environment, OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
+import { TextureLoader } from "three";
+import * as THREE from "three";
 
 const LOOTBOX_TIERS: { eth: string; label: string; description: string; tier: "bronze" | "silver" | "gold" }[] = [
   { eth: "0.002", label: "Mongo Box", description: "Starter tier", tier: "bronze" },
   { eth: "0.01", label: "Kickfliper Box", description: "Better rewards", tier: "silver" },
   { eth: "0.05", label: "Pro Box", description: "Premium tier", tier: "gold" },
 ];
+
+// 3D Gnars Logo Component
+function GnarsLogoModel() {
+  const logoRef = useRef<THREE.Group>(null);
+  const gnarsLogoModel = useGLTF("/models/gnars-logo.glb");
+  
+  // Clone the model scene
+  const clonedLogoScene = useMemo(() => {
+    return gnarsLogoModel.scene.clone();
+  }, [gnarsLogoModel.scene]);
+  
+  // Load metal plate textures
+  const metalColorMap = useLoader(
+    TextureLoader,
+    "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/corrugated_iron/corrugated_iron_diff_1k.jpg",
+  );
+  const metalRoughnessMap = useLoader(
+    TextureLoader,
+    "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/corrugated_iron/corrugated_iron_rough_1k.jpg",
+  );
+  const metalNormalMap = useLoader(
+    TextureLoader,
+    "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/corrugated_iron/corrugated_iron_nor_gl_1k.jpg",
+  );
+
+  // Configure textures
+  useEffect(() => {
+    if (metalColorMap) {
+      metalColorMap.colorSpace = THREE.SRGBColorSpace;
+      metalColorMap.wrapS = metalColorMap.wrapT = THREE.RepeatWrapping;
+      metalColorMap.repeat.set(2, 2);
+      metalColorMap.needsUpdate = true;
+    }
+    if (metalNormalMap) {
+      metalNormalMap.colorSpace = THREE.LinearSRGBColorSpace;
+      metalNormalMap.wrapS = metalNormalMap.wrapT = THREE.RepeatWrapping;
+      metalNormalMap.repeat.set(2, 2);
+      metalNormalMap.needsUpdate = true;
+    }
+    if (metalRoughnessMap) {
+      metalRoughnessMap.colorSpace = THREE.LinearSRGBColorSpace;
+      metalRoughnessMap.wrapS = metalRoughnessMap.wrapT = THREE.RepeatWrapping;
+      metalRoughnessMap.repeat.set(2, 2);
+      metalRoughnessMap.needsUpdate = true;
+    }
+
+    // Apply textures to model
+    if (clonedLogoScene && metalColorMap && metalNormalMap && metalRoughnessMap) {
+      clonedLogoScene.traverse((child: THREE.Object3D) => {
+        const mesh = child as THREE.Mesh;
+        if (mesh.isMesh && mesh.material) {
+          const material = (mesh.material as THREE.MeshStandardMaterial).clone();
+          mesh.material = material;
+          if (material.isMeshStandardMaterial) {
+            material.map = metalColorMap;
+            material.normalMap = metalNormalMap;
+            material.roughnessMap = metalRoughnessMap;
+            material.metalness = 0.95;
+            material.roughness = 0.25;
+            material.needsUpdate = true;
+          }
+        }
+      });
+    }
+  }, [metalColorMap, metalNormalMap, metalRoughnessMap, clonedLogoScene]);
+
+  // Spinning animation
+  useFrame((state) => {
+    if (!logoRef.current) return;
+    const time = state.clock.getElapsedTime();
+    logoRef.current.rotation.y = time * 0.5; // Slow spin
+  });
+
+  return (
+    <group ref={logoRef} scale={1.5}>
+      <primitive object={clonedLogoScene} />
+    </group>
+  );
+}
 
 interface JoinDAOTabProps {
   flexEth: string;
@@ -246,14 +329,41 @@ export function JoinDAOTab({
             </div>
           </div>
 
-          {/* Purchase UI - Right Side */}
-          <div className="p-6 space-y-6">
-            <CardTitle className="text-xl flex items-center gap-2">
+          {/* Purchase UI with 3D Background - Right Side */}
+          <div className="relative p-6 space-y-6">
+            {/* 3D Gnars Logo Background */}
+            <div className="absolute inset-0 opacity-30 pointer-events-none">
+              <Canvas
+                shadows
+                dpr={[1, 2]}
+                performance={{ min: 0.5 }}
+                gl={{ alpha: true, antialias: true }}
+                style={{ background: "transparent" }}
+              >
+                <PerspectiveCamera makeDefault position={[0, 0, 3]} fov={45} />
+                <OrbitControls
+                  enableZoom={true}
+                  enablePan={false}
+                  minDistance={2}
+                  maxDistance={6}
+                  enableDamping
+                  dampingFactor={0.05}
+                />
+                <ambientLight intensity={0.5} />
+                <directionalLight position={[5, 5, 5]} intensity={1.5} castShadow />
+                <directionalLight position={[-3, 3, -3]} intensity={0.6} color="#88aaff" />
+                <Environment preset="warehouse" background={false} />
+                <GnarsLogoModel />
+              </Canvas>
+            </div>
+
+            {/* Form Content (on top of 3D background) */}
+            <CardTitle className="text-xl flex items-center gap-2 relative z-10">
               Gnars is for everyone <Sparkles className="h-4 w-4 text-yellow-500" />
             </CardTitle>
 
             {/* Big Interactive ETH Input */}
-            <div className="space-y-2">
+            <div className="space-y-2 relative z-10">
               <label className="text-sm font-medium text-muted-foreground">Contribute ETH</label>
               <div className="flex items-center gap-2">
                 {/* Decrement Button */}
@@ -298,7 +408,7 @@ export function JoinDAOTab({
             </div>
 
             {/* Fun Rewards Display */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 relative z-10">
               {/* GNARS Reward Card */}
               <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-xl p-4 space-y-1">
                 <div className="flex items-center gap-2 text-yellow-500">
@@ -325,7 +435,7 @@ export function JoinDAOTab({
             </div>
 
             {/* Chance Bars */}
-            <div className="space-y-3">
+            <div className="space-y-3 relative z-10">
               <p className="text-sm font-medium">Reward Breakdown</p>
               
               {/* GNARS Chance Bar */}
@@ -377,7 +487,7 @@ export function JoinDAOTab({
 
             {/* Join Button */}
             <Button 
-              className="w-full h-14 text-lg font-bold bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90" 
+              className="w-full h-14 text-lg font-bold bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 relative z-10" 
               size="lg" 
               onClick={handleOpenFlex} 
               disabled={!isConnected || !!isPaused}
@@ -392,7 +502,7 @@ export function JoinDAOTab({
             </Button>
 
             {/* Contract Stats Mini */}
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground relative z-10">
               <span>Min: {minFlexEth ? formatEther(minFlexEth) : "0.0002"} ETH</span>
               <span>•</span>
               <span>{flexStats ? `${flexStats[0].toString()} NFTs` : "..."} in pool</span>
