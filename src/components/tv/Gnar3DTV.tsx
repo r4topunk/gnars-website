@@ -23,7 +23,7 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
   // Fetch TV feed data
   const { items, creatorCoinImages } = useTVFeed({});
 
-  // Filter to only video items
+  // 3D TV only supports video (renders on texture)
   const videoItems = useMemo(() => items.filter((i) => i.videoUrl), [items]);
 
   // Current video

@@ -16,8 +16,10 @@ function toHttpUrl(url: string): string {
 
 type LoadState = "idle" | "loading" | "canplay" | "playing" | "error" | "waiting";
 
+const IMAGE_DISPLAY_DURATION_MS = 3000;
+
 interface TVVideoPlayerProps {
-  src: string;
+  src?: string;
   poster?: string;
   isActive: boolean;
   isMuted: boolean;
@@ -48,8 +50,10 @@ export function TVVideoPlayer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [loadState, setLoadState] = useState<LoadState>("idle");
 
+  const isImageOnly = !src && !!poster;
+
   // Convert IPFS URLs to HTTP gateway
-  const videoSrc = useMemo(() => toHttpUrl(src), [src]);
+  const videoSrc = useMemo(() => src ? toHttpUrl(src) : "", [src]);
   const [loadProgress, setLoadProgress] = useState(0);
   const [hasFirstFrame, setHasFirstFrame] = useState(false);
   const mountedRef = useRef(true);
@@ -163,6 +167,56 @@ export function TVVideoPlayer({
       video.muted = isMuted;
     }
   }, [isMuted]);
+
+  // Image-only items: show with subtle zoom, auto-advance after 3s
+  const imageTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [imageZoom, setImageZoom] = useState(false);
+
+  useEffect(() => {
+    if (!isImageOnly) return;
+
+    if (isActive && shouldRender) {
+      // Start zoom animation
+      setImageZoom(true);
+      // Auto-advance after duration
+      imageTimerRef.current = setTimeout(() => {
+        onEnded?.();
+      }, IMAGE_DISPLAY_DURATION_MS);
+    } else {
+      setImageZoom(false);
+      if (imageTimerRef.current) {
+        clearTimeout(imageTimerRef.current);
+        imageTimerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (imageTimerRef.current) {
+        clearTimeout(imageTimerRef.current);
+        imageTimerRef.current = null;
+      }
+    };
+  }, [isImageOnly, isActive, shouldRender, onEnded]);
+
+  if (isImageOnly) {
+    return (
+      <div className="absolute inset-0 bg-black overflow-hidden">
+        {poster && (
+          <Image
+            src={poster}
+            alt=""
+            fill
+            className={`object-contain transition-transform duration-[3000ms] ease-out ${
+              imageZoom ? "scale-105" : "scale-100"
+            }`}
+            sizes="100vw"
+            unoptimized
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+      </div>
+    );
+  }
 
   // If not rendering, show placeholder
   if (!shouldRender) {
