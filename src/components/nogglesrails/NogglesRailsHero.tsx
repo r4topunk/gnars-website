@@ -74,9 +74,9 @@ function NogglesRailModel3D() {
   }, [metalColorMap, metalNormalMap, metalRoughnessMap, clonedLogoScene]);
 
   // Static positioning - no animation
-  // Adjusted for complete rail visibility
+  // Scaled down to show complete rail structure
   return (
-    <group ref={logoRef} scale={3.5} position={[0, 0, 0]} rotation={[-0.3, 0.5, 0.1]}>
+    <group ref={logoRef} scale={1.2} position={[0, 0, 0]} rotation={[-0.2, 0.4, 0]}>
       <primitive object={clonedLogoScene} />
     </group>
   );
@@ -148,7 +148,7 @@ export default function NogglesRailsHero() {
               gl={{ alpha: true, antialias: true }}
               style={{ background: "transparent" }}
             >
-              <PerspectiveCamera makeDefault position={[2, 1, 6]} fov={50} />
+              <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={60} />
               <OrbitControls
                 enableZoom={false}
                 enablePan={false}
