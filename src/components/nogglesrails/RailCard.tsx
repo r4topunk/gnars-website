@@ -5,14 +5,23 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { type NogglesRailLocation } from "@/content/nogglesrails";
 
+function getThumbnail(images: string[]): string {
+  // Use first non-video, non-droposal image as thumbnail
+  const img = images.find(
+    (src) => !src.includes("youtube.com") && !src.includes("youtu.be") && !src.startsWith("droposal:")
+  );
+  return img || images[0] || "/nogglesRail3D.png";
+}
+
 export function RailCard({ rail }: { rail: NogglesRailLocation }) {
+  const thumbnail = getThumbnail(rail.images);
   return (
     <Link href={`/nogglesrails/${rail.slug}`} className="group block">
       <div className="overflow-hidden rounded-lg border transition-colors hover:border-foreground/20">
         {/* Image */}
         <div className="relative aspect-[3/2] w-full overflow-hidden bg-muted">
           <Image
-            src={rail.images[0]}
+            src={thumbnail}
             alt={`${rail.label} — ${rail.city}, ${rail.country}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

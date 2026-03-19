@@ -32,6 +32,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     images: [
       "https://www.youtube.com/watch?v=r4GEIl2b_WI",
       "https://www.youtube.com/watch?v=lYkAEhMmFsU",
+      "https://ipfs.skatehive.app/ipfs/QmVKzejFTSNyf8mnjootYPKtLir7D7Mu1rkxkuEkWwXduW",
       "https://gnars.center/xv-mentex-fscrooks.png",
       "https://gnars.center/rocknogles.gif",
       "https://gnars.center/xvgroup.jpg",
