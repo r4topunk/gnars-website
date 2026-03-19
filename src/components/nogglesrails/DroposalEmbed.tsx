@@ -91,14 +91,14 @@ export function DroposalEmbed({ droposalId }: { droposalId: number }) {
         </div>
 
         <div className="flex gap-2">
-          <Button asChild size="sm" className="flex-1">
+          <Button asChild size="sm" className="flex-1 bg-primary hover:bg-primary/90">
             <Link href={`/droposals/${droposalId}`}>
-              Collect
+              🎨 Collect / Mint
             </Link>
           </Button>
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" className="flex-1">
             <Link href={`/droposals/${droposalId}`} target="_blank">
-              <ExternalLink className="h-3.5 w-3.5" />
+              View Droposal <ExternalLink className="ml-1 h-3.5 w-3.5" />
             </Link>
           </Button>
         </div>

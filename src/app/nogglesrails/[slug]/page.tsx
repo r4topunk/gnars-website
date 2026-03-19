@@ -114,11 +114,15 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
         {/* Main */}
         <div className="space-y-8">
-          {/* Hero media (video or image) */}
+          {/* Hero media (droposal embed, video or image) */}
           {hero && (
-            <div className="relative aspect-video overflow-hidden rounded-lg border bg-muted">
+            isDroposalEmbed(hero) ? (
               <MediaItem src={hero} alt={rail.label} />
-            </div>
+            ) : (
+              <div className="relative aspect-video overflow-hidden rounded-lg border bg-muted">
+                <MediaItem src={hero} alt={rail.label} />
+              </div>
+            )
           )}
 
           {/* Description */}
