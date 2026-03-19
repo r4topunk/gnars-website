@@ -99,6 +99,9 @@ async function isVideoUrl(mediaUrl: string): Promise<boolean> {
   if (VIDEO_EXTENSIONS.some((ext) => normalized.endsWith(ext))) return true;
   if (IMAGE_EXTENSIONS.some((ext) => normalized.endsWith(ext))) return false;
 
+  // Only attempt HEAD for HTTP(S) URLs — skip ipfs://, ar://, etc.
+  if (!mediaUrl.startsWith("http://") && !mediaUrl.startsWith("https://")) return false;
+
   try {
     const response = await fetch(mediaUrl, { method: "HEAD" });
     const contentType = response.headers.get("content-type") || "";

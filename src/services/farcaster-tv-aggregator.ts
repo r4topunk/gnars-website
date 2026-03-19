@@ -6,6 +6,7 @@ import { getCoin, getCoinHolders, getProfile } from "@zoralabs/coins-sdk";
 import { createPublicClient, http, parseAbi } from "viem";
 import { base } from "viem/chains";
 import { subgraphQuery } from "@/lib/subgraph";
+import { GNARS_CREATOR_ALLOWLIST } from "@/lib/config";
 import {
   assertNeynarApiKey,
   fetchFarcasterProfilesByAddress,
@@ -494,6 +495,23 @@ async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
         coinBalance: candidate.coinBalance,
         nftBalance: totalNfts,
         wallets: candidate.wallets,
+      });
+    }
+  }
+
+  // Path C: Allowlisted creators — bypass NFT gate for known community members
+  const qualifiedHandles = new Set(qualifiedCreators.map((c) => c.handle));
+  const allowlistMissing = GNARS_CREATOR_ALLOWLIST.filter((h) => !qualifiedHandles.has(h));
+
+  if (allowlistMissing.length > 0) {
+    console.log(`[farcaster-tv] Adding ${allowlistMissing.length} allowlisted creators:`, allowlistMissing);
+    for (const handle of allowlistMissing) {
+      qualifiedCreators.push({
+        handle,
+        avatarUrl: null,
+        coinBalance: 0,
+        nftBalance: 0,
+        wallets: [],
       });
     }
   }

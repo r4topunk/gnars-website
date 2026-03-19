@@ -33,6 +33,13 @@ export const GNARS_CREATOR_COIN = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b" a
 // The SDK expects a profile identifier (handle or wallet), not the token address directly
 export const GNARS_ZORA_HANDLE = "gnars" as const;
 
+// Creator allowlist — Zora handles that bypass the NFT qualification gate.
+// Use for known community members whose wallets are fragmented across profiles.
+export const GNARS_CREATOR_ALLOWLIST: readonly string[] = [
+  "skatehacker", // vlad — NFTs on skateboard/maconhinha.base.eth wallets
+  "nogenta",     // nogenta — 9 NFTs, may fall outside top-200 subgraph scan
+] as const;
+
 // Zora Factory contract on Base
 export const ZORA_FACTORY_ADDRESS = "0x777777751622c0d3258f214F9DF38E35BF45baF3" as const;
 
