@@ -83,16 +83,16 @@ const navigationItems = [
     title: "Governance",
     items: [
       {
-        title: "Auctions",
-        href: "/auctions",
-        icon: Gavel,
-        description: "Bid on Gnars NFTs in active auctions",
-      },
-      {
         title: "Proposals",
         href: "/proposals",
         icon: Vote,
         description: "View and vote on DAO proposals",
+      },
+      {
+        title: "Delegation",
+        href: "#delegation",
+        icon: UserCheck,
+        description: "Manage your voting delegation",
       },
       {
         title: "Create Proposal",
@@ -101,10 +101,10 @@ const navigationItems = [
         description: "Submit a new proposal to the DAO",
       },
       {
-        title: "Delegation",
-        href: "#delegation",
-        icon: UserCheck,
-        description: "Manage your voting delegation",
+        title: "Auctions",
+        href: "/auctions",
+        icon: Gavel,
+        description: "Bid on Gnars NFTs in active auctions",
       },
     ],
   },

@@ -53,11 +53,6 @@ const daoNavigation = [
     title: "Governance",
     items: [
       {
-        title: "Auctions",
-        url: "/auctions",
-        icon: Gavel,
-      },
-      {
         title: "Proposals",
         url: "/proposals",
         icon: Vote,
@@ -66,6 +61,11 @@ const daoNavigation = [
         title: "Create Proposal",
         url: "/propose",
         icon: PlusCircle,
+      },
+      {
+        title: "Auctions",
+        url: "/auctions",
+        icon: Gavel,
       },
     ],
   },
