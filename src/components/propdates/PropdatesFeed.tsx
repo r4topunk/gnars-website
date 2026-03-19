@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { zeroHash } from "viem";
 import { useQuery } from "@tanstack/react-query";
 import { PropdateCard } from "@/components/proposals/detail/PropdateCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -19,9 +20,13 @@ export function PropdatesFeed() {
     queryFn: () => listDaoPropdates(),
   });
 
-  // Keep hooks order consistent across renders (compute sorted and set up state/refs before any early returns)
+  // Filter out replies (they belong nested under their parent, not as standalone feed items)
+  // and sort newest first
   const sorted = useMemo(
-    () => [...(propdates ?? [])].sort((a: Propdate, b: Propdate) => b.timeCreated - a.timeCreated),
+    () =>
+      [...(propdates ?? [])]
+        .filter((p: Propdate) => !p.originalMessageId || p.originalMessageId === zeroHash)
+        .sort((a: Propdate, b: Propdate) => b.timeCreated - a.timeCreated),
     [propdates],
   );
 

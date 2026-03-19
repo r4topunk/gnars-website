@@ -229,7 +229,11 @@ export async function getPropdateByTxid(txid: string): Promise<Propdate | null> 
 
 const propdateSchemaParams = parseAbiParameters(PROPDATE_SCHEMA);
 
-function encodePropdateMessage(proposalId: string, messageText: string): `0x${string}` {
+function encodePropdateMessage(
+  proposalId: string,
+  messageText: string,
+  originalMessageId?: string,
+): `0x${string}` {
   const trimmedProposalId = proposalId.trim();
   if (!trimmedProposalId || !isHex(trimmedProposalId)) {
     throw new Error("Invalid proposal ID for propdate");
@@ -240,9 +244,14 @@ function encodePropdateMessage(proposalId: string, messageText: string): `0x${st
     throw new Error("Propdate message must not be empty");
   }
 
+  const replyTo =
+    originalMessageId && isHex(originalMessageId)
+      ? (originalMessageId as `0x${string}`)
+      : zeroHash;
+
   return encodeAbiParameters(propdateSchemaParams, [
     trimmedProposalId as `0x${string}`,
-    zeroHash,
+    replyTo,
     PropdateMessageType.INLINE_TEXT,
     trimmedMessage,
   ]);
@@ -251,8 +260,9 @@ function encodePropdateMessage(proposalId: string, messageText: string): `0x${st
 export async function createPropdate(
   proposalId: string,
   messageText: string,
+  originalMessageId?: string,
 ): Promise<AttestationRequest> {
-  const encoded = encodePropdateMessage(proposalId, messageText);
+  const encoded = encodePropdateMessage(proposalId, messageText, originalMessageId);
 
   return {
     schema: PROPDATE_SCHEMA_UID,
