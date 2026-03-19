@@ -10,6 +10,8 @@ import { MiniAppReady } from "@/components/miniapp/MiniAppReady";
 import { NogglesCopyFooter } from "@/components/home/NogglesCopyFooter";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { MiniTVVisibilityProvider } from "@/components/tv/MiniTVVisibilityContext";
+import { MiniTV } from "@/components/tv/MiniTV";
 import { MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import "./globals.css";
 
@@ -75,13 +77,16 @@ export default function RootLayout({
         >
           <Providers>
             <TooltipProvider>
-              <MiniAppReady />
-              {/* <MuralBackground /> */}
-              <ScrollToTop />
-              <DaoHeader />
-              <main className="max-w-6xl mx-auto px-4">{children}</main>
-              <NogglesCopyFooter />
-              <Toaster />
+              <MiniTVVisibilityProvider>
+                <MiniAppReady />
+                {/* <MuralBackground /> */}
+                <ScrollToTop />
+                <DaoHeader />
+                <main className="max-w-6xl mx-auto px-4">{children}</main>
+                <NogglesCopyFooter />
+                <Toaster />
+                <MiniTV />
+              </MiniTVVisibilityProvider>
             </TooltipProvider>
           </Providers>
         </ThemeProvider>

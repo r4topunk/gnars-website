@@ -15,6 +15,7 @@ import {
   RecentProposalsSkeleton,
 } from "@/components/skeletons/home-skeletons";
 import { Gnar3DTVClient } from "@/components/tv/Gnar3DTVClient";
+import { HeroTVObserver } from "@/components/tv/HeroTVObserver";
 
 export const revalidate = 60;
 
@@ -56,9 +57,11 @@ export default function Home() {
               </div>
 
               {/* Right Column - 3D TV (Client Component) */}
-              <div className="flex items-center justify-center">
-                <Gnar3DTVClient autoRotate={true} />
-              </div>
+              <HeroTVObserver>
+                <div className="flex items-center justify-center">
+                  <Gnar3DTVClient autoRotate={true} />
+                </div>
+              </HeroTVObserver>
             </div>
           </div>
         </div>
