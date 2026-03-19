@@ -105,7 +105,7 @@ export default function DebugTVPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {filteredItems.map((item, index) => (
           <div
-            key={item.id}
+            key={`${item.id}-${index}`}
             className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-yellow-400/50 transition-colors"
           >
             {/* Media */}
