@@ -86,10 +86,36 @@ async function runWithConcurrency<T, R>(
   return results;
 }
 
+const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov"];
+const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif"];
+
+function normalizeMediaUrl(url: string) {
+  return url.toLowerCase().split("?")[0];
+}
+
+async function isVideoUrl(mediaUrl: string): Promise<boolean> {
+  const normalized = normalizeMediaUrl(mediaUrl);
+
+  if (VIDEO_EXTENSIONS.some((ext) => normalized.endsWith(ext))) return true;
+  if (IMAGE_EXTENSIONS.some((ext) => normalized.endsWith(ext))) return false;
+
+  try {
+    const response = await fetch(mediaUrl, { method: "HEAD" });
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.startsWith("video/")) return true;
+    if (contentType.startsWith("image/")) return false;
+  } catch (error) {
+    console.warn("[api/tv] Failed to detect media type:", error);
+  }
+
+  return false;
+}
+
 /**
- * Extract video URL from coin media
+ * Extract video URL from coin media.
+ * Falls back to HEAD request for ambiguous URIs.
  */
-function extractVideoUrl(coin: CoinNode): string | undefined {
+async function extractVideoUrl(coin: CoinNode): Promise<string | undefined> {
   const media = coin.mediaContent || coin.media;
   if (!media) return undefined;
 
@@ -97,18 +123,32 @@ function extractVideoUrl(coin: CoinNode): string | undefined {
   if (mimeType.startsWith("video/")) {
     return media.originalUri || media.animationUrl || media.videoUrl;
   }
+  if (mimeType.startsWith("image/")) {
+    return undefined;
+  }
 
   const uri = media.originalUri || media.animationUrl || media.videoUrl;
-  if (uri) {
-    const lower = uri.toLowerCase();
-    if (
-      lower.includes(".mp4") ||
-      lower.includes(".webm") ||
-      lower.includes(".mov") ||
-      lower.includes("video")
-    ) {
-      return uri;
-    }
+  if (!uri) return undefined;
+
+  const lower = uri.toLowerCase();
+  // Fast path: recognizable extension
+  if (
+    lower.includes(".mp4") ||
+    lower.includes(".webm") ||
+    lower.includes(".mov") ||
+    lower.includes("video")
+  ) {
+    return uri;
+  }
+
+  // Known image extensions — skip HEAD request
+  if (IMAGE_EXTENSIONS.some((ext) => normalizeMediaUrl(uri).endsWith(ext))) {
+    return undefined;
+  }
+
+  // Ambiguous URI — use HEAD request to detect content type
+  if (await isVideoUrl(uri)) {
+    return uri;
   }
 
   return undefined;
@@ -133,11 +173,13 @@ function extractImageUrl(coin: CoinNode): string | undefined {
 /**
  * Map coin to TV item
  */
-function mapCoinToTVItem(coin: CoinNode, creatorHandle: string): TVItemData | null {
-  const videoUrl = extractVideoUrl(coin);
+async function mapCoinToTVItem(
+  coin: CoinNode,
+  creatorHandle: string,
+): Promise<TVItemData | null> {
+  const videoUrl = await extractVideoUrl(coin);
   const imageUrl = extractImageUrl(coin);
 
-  // Skip if no media
   if (!videoUrl && !imageUrl) return null;
 
   const address = coin.address || coin.contract;
@@ -209,7 +251,7 @@ async function fetchCreatorContent(
           const addr = (coin.address || coin.contract)?.toLowerCase();
           if (!addr || loadedAddresses.has(addr)) continue;
 
-          const item = mapCoinToTVItem(coin, creator.handle);
+          const item = await mapCoinToTVItem(coin, creator.handle);
           if (item) {
             item.creatorCoinBalance = creator.coinBalance;
             loadedAddresses.add(addr);
@@ -262,7 +304,7 @@ async function fetchPairedCoins(loadedAddresses: Set<string>): Promise<TVItemDat
 
           const creatorHandle = coin?.creatorProfile?.handle || pairedCoin.coin.slice(0, 10);
 
-          const item = mapCoinToTVItem(coin, creatorHandle);
+          const item = await mapCoinToTVItem(coin, creatorHandle);
 
           if (item) {
             item.poolCurrencyTokenAddress = GNARS_COIN_ADDRESS;
@@ -298,24 +340,33 @@ async function fetchGnarsProfileContent(loadedAddresses: Set<string>): Promise<T
 
     const edges = (response?.data?.profile?.createdCoins?.edges || []) as CoinEdge[];
 
-    const items = edges
-      .map((edge) => {
-        const node = edge?.node;
-        if (!node) return null;
+    // Build coin list first, then resolve media concurrently
+    const coins: Array<{ coin: CoinNode; addr: string }> = [];
+    for (const edge of edges) {
+      const node = edge?.node;
+      if (!node) continue;
 
-        const coin = ("coin" in node ? node.coin : node) as CoinNode | undefined;
-        if (!coin) return null;
+      const coin = ("coin" in node ? node.coin : node) as CoinNode | undefined;
+      if (!coin) continue;
 
-        const addr = (coin.address || coin.contract)?.toLowerCase();
-        if (!addr || loadedAddresses.has(addr)) return null;
+      const addr = (coin.address || coin.contract)?.toLowerCase();
+      if (!addr || loadedAddresses.has(addr)) continue;
 
-        const item = mapCoinToTVItem(coin, GNARS_PROFILE_HANDLE);
+      coins.push({ coin, addr });
+    }
+
+    const items: TVItemData[] = [];
+    await runWithConcurrency(
+      coins,
+      async ({ coin, addr }) => {
+        const item = await mapCoinToTVItem(coin, GNARS_PROFILE_HANDLE);
         if (item) {
           loadedAddresses.add(addr);
+          items.push(item);
         }
-        return item;
-      })
-      .filter((item): item is TVItemData => item !== null);
+      },
+      MAX_CONCURRENT_COIN_FETCHES,
+    );
 
     console.log(`[api/tv] Loaded ${items.length} from Gnars profile`);
     return items;
@@ -323,31 +374,6 @@ async function fetchGnarsProfileContent(loadedAddresses: Set<string>): Promise<T
     console.warn("[api/tv] Failed to fetch Gnars profile:", err);
     return [];
   }
-}
-
-const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov"];
-const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif"];
-
-function normalizeMediaUrl(url: string) {
-  return url.toLowerCase().split("?")[0];
-}
-
-async function isVideoUrl(mediaUrl: string): Promise<boolean> {
-  const normalized = normalizeMediaUrl(mediaUrl);
-
-  if (VIDEO_EXTENSIONS.some((ext) => normalized.endsWith(ext))) return true;
-  if (IMAGE_EXTENSIONS.some((ext) => normalized.endsWith(ext))) return false;
-
-  try {
-    const response = await fetch(mediaUrl, { method: "HEAD" });
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.startsWith("video/")) return true;
-    if (contentType.startsWith("image/")) return false;
-  } catch (error) {
-    console.warn("[api/tv] Failed to detect media type:", error);
-  }
-
-  return false;
 }
 
 /**
