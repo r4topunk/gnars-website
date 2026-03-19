@@ -54,20 +54,48 @@ function decodeErc20TransferAmount(calldata: Hex): bigint {
   return amount;
 }
 
+// Ethereum mainnet USDC (different from Base USDC)
+const USDC_ETH_MAINNET = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+
+/**
+ * For selector-less calldatas (Nouns protocol subgraph format),
+ * prepend the transfer selector so decoding works.
+ */
+function ensureSelector(calldata: Hex, target: string): Hex {
+  // If first 4 bytes are zeros, it's likely params without selector
+  if (calldata.length >= 10 && calldata.slice(2, 10) === "00000000") {
+    const paramBytes = (calldata.length - 2) / 2;
+    const isUsdc =
+      target === TREASURY_TOKEN_ALLOWLIST.USDC.toLowerCase() ||
+      target === USDC_ETH_MAINNET.toLowerCase();
+    if (isUsdc && paramBytes === 64) {
+      return `${ERC20_TRANSFER_SELECTOR}${calldata.slice(2)}` as Hex;
+    }
+  }
+  return calldata;
+}
+
 export function getProposalFundingTotals(source: ProposalFundingSource): ProposalFundingTotals {
   let totalEthWei = 0n;
   let totalUsdcRaw = 0n;
-  const usdcAddress = TREASURY_TOKEN_ALLOWLIST.USDC.toLowerCase();
+  const usdcAddresses = new Set([
+    TREASURY_TOKEN_ALLOWLIST.USDC.toLowerCase(),
+    USDC_ETH_MAINNET.toLowerCase(),
+  ]);
 
   for (let i = 0; i < source.targets.length; i += 1) {
     const target = String(source.targets[i] ?? "").toLowerCase();
     const valueWei = toBigInt(source.values[i]);
     if (valueWei > 0n) totalEthWei += valueWei;
 
-    if (target !== usdcAddress) continue;
+    if (!usdcAddresses.has(target)) continue;
 
-    const calldata = normalizeHex(source.calldatas[i]);
+    let calldata = normalizeHex(source.calldatas[i]);
     if (!calldata || calldata === "0x") continue;
+
+    // Handle selector-less calldatas from Nouns protocol subgraph
+    calldata = ensureSelector(calldata, target);
+
     if (calldata.slice(0, 10).toLowerCase() !== ERC20_TRANSFER_SELECTOR) continue;
 
     try {

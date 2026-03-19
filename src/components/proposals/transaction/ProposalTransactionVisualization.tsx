@@ -15,8 +15,21 @@ import { type TransactionFormValues } from "../schema";
 import {
   DROPOSAL_TARGET,
   GNARS_ADDRESSES,
+  GNARS_ADDRESSES_ETH,
   TREASURY_TOKEN_ALLOWLIST,
 } from "@/lib/config";
+
+// Ethereum mainnet USDC address (different from Base USDC)
+const USDC_ETH_MAINNET = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+
+// Known ERC-20 tokens on Ethereum mainnet with their decimals
+const ETH_MAINNET_TOKENS: Record<string, { symbol: string; decimals: number }> = {
+  [USDC_ETH_MAINNET.toLowerCase()]: { symbol: "USDC", decimals: 6 },
+};
+
+// Function selectors for prepending to selector-less calldatas
+const TRANSFER_SELECTOR = "0xa9059cbb" as const; // transfer(address,uint256)
+const TRANSFER_FROM_SELECTOR = "0x23b872dd" as const; // transferFrom(address,address,uint256)
 
 type TransactionType = TransactionFormValues["type"];
 
@@ -96,6 +109,7 @@ const DROPOSAL_CREATE_EDITION_ABI = [
 
 const TOKEN_DECIMALS: Record<string, number> = {
   [TREASURY_TOKEN_ALLOWLIST.USDC.toLowerCase()]: 6,
+  [USDC_ETH_MAINNET.toLowerCase()]: 6,
   [TREASURY_TOKEN_ALLOWLIST.WETH.toLowerCase()]: 18,
   [TREASURY_TOKEN_ALLOWLIST.SENDIT.toLowerCase()]: 18,
 };
@@ -122,6 +136,45 @@ function toBigInt(value: string | number | undefined): bigint {
   }
 }
 
+/**
+ * Check if a calldata is missing its function selector.
+ * The Nouns protocol subgraph stores calldatas WITHOUT selectors (just ABI-encoded params).
+ * We detect this when the first 4 bytes are zeros (0x00000000) - not a valid selector.
+ */
+function isSelectorLess(calldata: Hex | null): boolean {
+  if (!calldata || calldata.length < 10) return false;
+  return calldata.slice(2, 10) === "00000000";
+}
+
+/**
+ * For selector-less calldatas, prepend the correct function selector
+ * based on target address and parameter structure.
+ */
+function reconstructCalldata(target: string, calldata: Hex): Hex | null {
+  const normalizedTarget = target.toLowerCase();
+  const paramBytes = (calldata.length - 2) / 2; // hex chars to bytes
+
+  // Target is a known ERC-20 (USDC, etc.) + 64 bytes of params = transfer(address,uint256)
+  const isKnownErc20 =
+    normalizedTarget === USDC_ETH_MAINNET.toLowerCase() ||
+    normalizedTarget === TREASURY_TOKEN_ALLOWLIST.USDC.toLowerCase();
+
+  if (isKnownErc20 && paramBytes === 64) {
+    return `${TRANSFER_SELECTOR}${calldata.slice(2)}` as Hex;
+  }
+
+  // Target is an NFT contract + 96 bytes = transferFrom(address,address,uint256)
+  const isNftContract =
+    normalizedTarget === GNARS_ADDRESSES.token.toLowerCase() ||
+    normalizedTarget === GNARS_ADDRESSES_ETH.token.toLowerCase();
+
+  if (isNftContract && paramBytes === 96) {
+    return `${TRANSFER_FROM_SELECTOR}${calldata.slice(2)}` as Hex;
+  }
+
+  return null;
+}
+
 function determineTransactionType(
   target: string,
   signature: string,
@@ -130,7 +183,6 @@ function determineTransactionType(
 ): TransactionType {
   const normalizedTarget = target.toLowerCase();
   const trimmedSignature = signature?.trim();
-  const selector = calldata && calldata.length >= 10 ? calldata.slice(0, 10).toLowerCase() : null;
   const isEthTransfer = !calldata || calldata === "0x";
 
   if (normalizedTarget === DROPOSAL_TARGET.base.toLowerCase()) {
@@ -141,13 +193,35 @@ function determineTransactionType(
     return toBigInt(rawValue) > 0n ? "send-eth" : "custom";
   }
 
+  // Handle selector-less calldatas from Nouns protocol subgraph
+  let effectiveCalldata = calldata;
+  if (isSelectorLess(calldata)) {
+    const reconstructed = reconstructCalldata(target, calldata!);
+    if (reconstructed) {
+      effectiveCalldata = reconstructed;
+    }
+  }
+
+  const selector =
+    effectiveCalldata && effectiveCalldata.length >= 10
+      ? effectiveCalldata.slice(0, 10).toLowerCase()
+      : null;
+
   if (selector === "0xa9059cbb") {
-    if (normalizedTarget === TREASURY_TOKEN_ALLOWLIST.USDC.toLowerCase()) return "send-usdc";
+    if (
+      normalizedTarget === TREASURY_TOKEN_ALLOWLIST.USDC.toLowerCase() ||
+      normalizedTarget === USDC_ETH_MAINNET.toLowerCase()
+    )
+      return "send-usdc";
     return "send-tokens";
   }
 
   if (selector === "0x23b872dd" || selector === "0x42842e0e" || selector === "0xb88d4fde") {
-    if (normalizedTarget === GNARS_ADDRESSES.token.toLowerCase()) return "send-nfts";
+    if (
+      normalizedTarget === GNARS_ADDRESSES.token.toLowerCase() ||
+      normalizedTarget === GNARS_ADDRESSES_ETH.token.toLowerCase()
+    )
+      return "send-nfts";
     return "custom";
   }
 
@@ -268,6 +342,13 @@ function mapProposalTransaction(
   const type = determineTransactionType(target, signature, calldata, rawValue);
   const valueBigInt = toBigInt(rawValue);
 
+  // Reconstruct calldata with selector if needed (for Nouns protocol subgraph)
+  let decodableCalldata = calldata;
+  if (calldata && isSelectorLess(calldata)) {
+    const reconstructed = reconstructCalldata(target, calldata);
+    if (reconstructed) decodableCalldata = reconstructed;
+  }
+
   const baseTransaction = {
     type,
     id: `proposal-tx-${index}`,
@@ -284,7 +365,7 @@ function mapProposalTransaction(
     }
 
     case "send-usdc": {
-      const decoded = calldata ? decodeErc20Transfer(calldata) : null;
+      const decoded = decodableCalldata ? decodeErc20Transfer(decodableCalldata) : null;
       return {
         ...baseTransaction,
         tokenAddress: target,
@@ -294,7 +375,7 @@ function mapProposalTransaction(
     }
 
     case "send-tokens": {
-      const decoded = calldata ? decodeErc20Transfer(calldata) : null;
+      const decoded = decodableCalldata ? decodeErc20Transfer(decodableCalldata) : null;
       const amount = decoded ? formatTokenAmount(target, decoded.amount) : formatEther(valueBigInt);
       return {
         ...baseTransaction,
@@ -305,9 +386,9 @@ function mapProposalTransaction(
     }
 
     case "send-nfts": {
-      const decoded = calldata
-        ? decodeErc721Transfer(ERC721_SAFE_TRANSFER_FROM_ABI, calldata) ||
-          decodeErc721Transfer(ERC721_TRANSFER_FROM_ABI, calldata)
+      const decoded = decodableCalldata
+        ? decodeErc721Transfer(ERC721_SAFE_TRANSFER_FROM_ABI, decodableCalldata) ||
+          decodeErc721Transfer(ERC721_TRANSFER_FROM_ABI, decodableCalldata)
         : null;
       return {
         ...baseTransaction,
