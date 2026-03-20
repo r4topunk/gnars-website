@@ -141,7 +141,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Americas",
     type: "Rail",
     images: [
-      "https://gnars.center/IAPI1.jpg",
+      "https://images.hive.blog/DQmbpQJ818tPxC9wtyCLA1HSu23KMbS1KrvoMVs1iFHYa2a/Captura%20de%20Tela%202026-03-20%20a%CC%80s%2017.01.45.png",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
