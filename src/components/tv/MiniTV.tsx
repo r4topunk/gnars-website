@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { useTVFeed } from "./useTVFeed";
 import { useMiniTVVisibility } from "./MiniTVVisibilityContext";
@@ -16,7 +17,9 @@ export function MiniTV() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const pathname = usePathname();
   const { heroTVVisible } = useMiniTVVisibility();
+  const isOnTVPage = pathname.startsWith("/tv");
 
   // Feed is fetched on mount, but videoUrl only passed on hover
   const { items, creatorCoinImages } = useTVFeed({});
@@ -102,7 +105,7 @@ export function MiniTV() {
       tabIndex={0}
       aria-label="Open Gnars TV fullscreen"
       className={`fixed bottom-4 left-4 z-40 h-[120px] w-[120px] cursor-pointer transition-opacity duration-700 ease-in-out ${
-        isLoaded && !heroTVVisible
+        isLoaded && !heroTVVisible && !isOnTVPage
           ? "opacity-100"
           : "opacity-0 pointer-events-none"
       }`}
