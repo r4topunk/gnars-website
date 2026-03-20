@@ -111,7 +111,7 @@ export function MiniTV() {
       onClick={handleClick}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleClick(); }}
     >
-      <div className="h-full w-full overflow-hidden rounded-lg shadow-lg">
+      <div className="h-full w-full overflow-hidden">
         <Gnar3DTVScene
           videoUrl={videoUrl}
           autoRotate={true}
