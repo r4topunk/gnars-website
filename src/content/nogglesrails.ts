@@ -58,7 +58,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Americas",
     type: "Rail",
     images: [
-      "https://ipfs.skatehive.app/ipfs/QmRUjz5j6bo8dwrWw12Bap4wcBnyZxkvXaSE3mfp9cG8Qo",
+      "https://images.hive.blog/DQmb6uJxrG5HsBbmRvtMrA1dcR4Uw1b9LPfiovW9vjVRhzb/Captura%20de%20Tela%202026-03-20%20a%CC%80s%2016.48.29.png",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
