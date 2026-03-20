@@ -7,6 +7,8 @@
  * @see /subgraphs/zora-coins for the subgraph source
  */
 
+import { unstable_cache } from "next/cache";
+
 // Subgraph URL - set after deploying to Goldsky
 const ZORA_COINS_SUBGRAPH_URL =
   process.env.NEXT_PUBLIC_ZORA_COINS_SUBGRAPH_URL || "";
@@ -59,7 +61,7 @@ async function querySubgraph<T>(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, variables }),
-    cache: "no-store",
+    next: { revalidate: 900 },
   });
 
   if (!response.ok) {
@@ -80,51 +82,57 @@ async function querySubgraph<T>(
 /**
  * Fetch GNARS-paired coins from the subgraph
  * These are content coins that use $GNARS as their backing currency
+ *
+ * Cached for 15 minutes via unstable_cache to avoid hitting the subgraph on every request.
  */
-export async function fetchGnarsPairedCoins(options?: {
-  first?: number;
-  skip?: number;
-  orderBy?: "blockNumber" | "blockTimestamp";
-  orderDirection?: "asc" | "desc";
-}): Promise<GnarsPairedCoin[]> {
-  const {
-    first = 100,
-    skip = 0,
-    orderBy = "blockNumber",
-    orderDirection = "desc",
-  } = options || {};
+export const fetchGnarsPairedCoins = unstable_cache(
+  async (options?: {
+    first?: number;
+    skip?: number;
+    orderBy?: "blockNumber" | "blockTimestamp";
+    orderDirection?: "asc" | "desc";
+  }): Promise<GnarsPairedCoin[]> => {
+    const {
+      first = 100,
+      skip = 0,
+      orderBy = "blockNumber",
+      orderDirection = "desc",
+    } = options || {};
 
-  const query = `
-    query GnarsPairedCoins($first: Int!, $skip: Int!, $orderBy: GnarsPairedCoin_orderBy!, $orderDirection: OrderDirection!) {
-      gnarsPairedCoins(
-        first: $first
-        skip: $skip
-        orderBy: $orderBy
-        orderDirection: $orderDirection
-      ) {
-        id
-        coin
-        backingCurrency
-        poolId
-        fee
-        tickSpacing
-        hooks
-        blockNumber
-        blockTimestamp
-        transactionHash
+    const query = `
+      query GnarsPairedCoins($first: Int!, $skip: Int!, $orderBy: GnarsPairedCoin_orderBy!, $orderDirection: OrderDirection!) {
+        gnarsPairedCoins(
+          first: $first
+          skip: $skip
+          orderBy: $orderBy
+          orderDirection: $orderDirection
+        ) {
+          id
+          coin
+          backingCurrency
+          poolId
+          fee
+          tickSpacing
+          hooks
+          blockNumber
+          blockTimestamp
+          transactionHash
+        }
       }
-    }
-  `;
+    `;
 
-  const result = await querySubgraph<GnarsPairedCoinsResponse>(query, {
-    first,
-    skip,
-    orderBy,
-    orderDirection,
-  });
+    const result = await querySubgraph<GnarsPairedCoinsResponse>(query, {
+      first,
+      skip,
+      orderBy,
+      orderDirection,
+    });
 
-  return result.gnarsPairedCoins || [];
-}
+    return result.gnarsPairedCoins || [];
+  },
+  ["gnars-paired-coins"],
+  { revalidate: 900, tags: ["gnars-paired-coins"] },
+);
 
 /**
  * Get a specific coin by its address

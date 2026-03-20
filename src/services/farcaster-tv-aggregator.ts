@@ -884,10 +884,20 @@ async function fetchFarcasterHoldings(
   return { items, stats: { creators: ranked.length, coins: coinCount, nfts: nftCount } };
 }
 
+/**
+ * Cached qualified creators list — exported so the feed route can start
+ * fetchCreatorContent in parallel with Farcaster holdings.
+ */
+export const getQualifiedCreators = unstable_cache(
+  fetchQualifiedCreators,
+  ["qualified-creators", FARCASTER_TV_CACHE_KEY],
+  { revalidate: CACHE_REVALIDATE_SECONDS, tags: ["farcaster-tv-aggregator"] },
+);
+
 const getCachedFarcasterTVPayload = unstable_cache(
   async (): Promise<FarcasterTVPayload> => {
     const start = Date.now();
-    const qualifiedCreators = await fetchQualifiedCreators();
+    const qualifiedCreators = await getQualifiedCreators();
     const shouldFetchFarcaster = assertNeynarApiKey("farcaster-tv");
 
     const farcasterHoldingsPromise = shouldFetchFarcaster

@@ -4,12 +4,15 @@ import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 import { fetchDroposals } from "@/services/droposals";
 import {
   getFarcasterTVData,
+  getQualifiedCreators,
   type QualifiedCreator,
   type TVItemData,
 } from "@/services/farcaster-tv-aggregator";
 import { GNARS_CREATOR_COIN, GNARS_ZORA_HANDLE } from "@/lib/config";
 
-export const dynamic = "force-dynamic";
+// Let Next.js handle caching via ISR — serves stale response instantly while
+// revalidating in the background. No more synchronous cache rebuilds blocking requests.
+export const revalidate = 3600; // 1 hour
 
 // Gnars addresses (use centralized config)
 const GNARS_COIN_ADDRESS = GNARS_CREATOR_COIN;
@@ -93,6 +96,9 @@ function normalizeMediaUrl(url: string) {
   return url.toLowerCase().split("?")[0];
 }
 
+// In-memory cache for HEAD probe results to avoid repeated round-trips
+const headProbeCache = new Map<string, boolean>();
+
 async function isVideoUrl(mediaUrl: string): Promise<boolean> {
   const normalized = normalizeMediaUrl(mediaUrl);
 
@@ -102,15 +108,26 @@ async function isVideoUrl(mediaUrl: string): Promise<boolean> {
   // Only attempt HEAD for HTTP(S) URLs — skip ipfs://, ar://, etc.
   if (!mediaUrl.startsWith("http://") && !mediaUrl.startsWith("https://")) return false;
 
+  // Check cache first
+  const cached = headProbeCache.get(normalized);
+  if (cached !== undefined) return cached;
+
   try {
     const response = await fetch(mediaUrl, { method: "HEAD" });
     const contentType = response.headers.get("content-type") || "";
-    if (contentType.startsWith("video/")) return true;
-    if (contentType.startsWith("image/")) return false;
+    if (contentType.startsWith("video/")) {
+      headProbeCache.set(normalized, true);
+      return true;
+    }
+    if (contentType.startsWith("image/")) {
+      headProbeCache.set(normalized, false);
+      return false;
+    }
   } catch (error) {
     console.warn("[api/tv] Failed to detect media type:", error);
   }
 
+  headProbeCache.set(normalized, false);
   return false;
 }
 
@@ -423,22 +440,25 @@ export async function GET() {
   const loadedAddresses = new Set<string>();
 
   try {
-    // Phase 1: Fetch independent data sources in parallel
+    // Phase 1: Fetch all data sources in parallel
     // - Paired coins (subgraph + Zora API)
     // - Gnars profile content
     // - Droposals
     // - Farcaster TV aggregator (qualified creators + holdings)
-    const [pairedCoins, gnarsContent, droposals, farcasterData] = await Promise.all([
+    // - Creator content (starts from cached qualified creators list — no longer blocked on Farcaster)
+    const creatorContentPromise = getQualifiedCreators().then((creators) =>
+      fetchCreatorContent(creators, loadedAddresses),
+    );
+
+    const [pairedCoins, gnarsContent, droposals, farcasterData, creatorContent] = await Promise.all([
       fetchPairedCoins(loadedAddresses),
       fetchGnarsProfileContent(loadedAddresses),
       fetchDroposals(50).catch(() => []),
       getFarcasterTVData(),
+      creatorContentPromise,
     ]);
 
     const qualifiedCreators = farcasterData.qualifiedCreators;
-
-    // Phase 2: Fetch creator content (depends on qualified creators list)
-    const creatorContent = await fetchCreatorContent(qualifiedCreators, loadedAddresses);
 
     // Map droposals
     const droposalItems = (await Promise.all(droposals.map(mapDroposalToTVItem))).filter(
@@ -491,35 +511,29 @@ export async function GET() {
     );
     console.log(`[api/tv] Farcaster cache: ${farcasterData.cache.source}`);
 
-    const headers = new Headers();
-    headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=3600");
-
-    return NextResponse.json(
-      {
-        items: allItems,
-        creators: qualifiedCreators.map((c) => ({
-          handle: c.handle,
-          avatarUrl: c.avatarUrl,
-          coinBalance: c.coinBalance,
-          nftBalance: c.nftBalance,
-        })),
-        stats: {
-          total: allItems.length,
-          withVideo: allItems.filter((i) => i.videoUrl).length,
-          withImage: allItems.filter((i) => !i.videoUrl && i.imageUrl).length,
-          gnarsPaired: pairedCoins.length,
-          droposals: droposalItems.length,
-          creatorsCount: qualifiedCreators.length,
-          farcasterItems: farcasterItems.length,
-          farcasterCreators: farcasterData.stats.creators,
-          farcasterCoins: farcasterData.stats.coins,
-          farcasterNfts: farcasterData.stats.nfts,
-        },
-        fetchedAt: new Date().toISOString(),
-        durationMs: elapsed,
+    return NextResponse.json({
+      items: allItems,
+      creators: qualifiedCreators.map((c) => ({
+        handle: c.handle,
+        avatarUrl: c.avatarUrl,
+        coinBalance: c.coinBalance,
+        nftBalance: c.nftBalance,
+      })),
+      stats: {
+        total: allItems.length,
+        withVideo: allItems.filter((i) => i.videoUrl).length,
+        withImage: allItems.filter((i) => !i.videoUrl && i.imageUrl).length,
+        gnarsPaired: pairedCoins.length,
+        droposals: droposalItems.length,
+        creatorsCount: qualifiedCreators.length,
+        farcasterItems: farcasterItems.length,
+        farcasterCreators: farcasterData.stats.creators,
+        farcasterCoins: farcasterData.stats.coins,
+        farcasterNfts: farcasterData.stats.nfts,
       },
-      { headers },
-    );
+      fetchedAt: new Date().toISOString(),
+      durationMs: elapsed,
+    });
   } catch (error) {
     console.error("[api/tv] Feed fetch error:", error);
     return NextResponse.json({ error: "Failed to fetch TV feed" }, { status: 500 });

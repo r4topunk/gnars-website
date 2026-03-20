@@ -128,37 +128,43 @@ export function useTVFeed({
 
         console.log("[gnars-tv] Fetching feed from API...");
 
-        // Fetch priority coin directly if provided
-        let priorityItem: TVItem | null = null;
-        if (normalizedPriority) {
-          try {
-            const response = await getCoin({
+        // Fetch priority coin and feed in parallel (not sequentially)
+        const priorityCoinPromise = normalizedPriority
+          ? getCoin({
               address: normalizedPriority as `0x${string}`,
               chain: 8453,
-            });
-            const coin = response?.data?.zora20Token as CoinNode | undefined;
-            if (coin) {
-              priorityItem = mapCoinToTVItem(
-                coin,
-                0,
-                coin?.creatorProfile?.handle || normalizedPriority
+            }).catch((err: unknown) => {
+              console.error("[gnars-tv] Failed to fetch priority coin", {
+                coinAddress: normalizedPriority,
+                error: err,
+              });
+              return null;
+            })
+          : null;
+
+        const feedPromise = fetchFeedCached();
+
+        const [priorityCoinResponse, data] = await Promise.all([
+          priorityCoinPromise,
+          feedPromise,
+        ]);
+
+        let priorityItem: TVItem | null = null;
+        if (priorityCoinResponse) {
+          const coin = priorityCoinResponse?.data?.zora20Token as CoinNode | undefined;
+          if (coin) {
+            priorityItem = mapCoinToTVItem(
+              coin,
+              0,
+              coin?.creatorProfile?.handle || normalizedPriority!
+            );
+            if (priorityItem?.coinAddress) {
+              loadedCoinAddressesRef.current.add(
+                priorityItem.coinAddress.toLowerCase()
               );
-              if (priorityItem?.coinAddress) {
-                loadedCoinAddressesRef.current.add(
-                  priorityItem.coinAddress.toLowerCase()
-                );
-              }
             }
-          } catch (err) {
-            console.error("[gnars-tv] Failed to fetch priority coin", {
-              coinAddress: normalizedPriority,
-              error: err,
-            });
           }
         }
-
-        // Fetch from API (deduplicated across components)
-        const data = await fetchFeedCached();
 
         if (cancelled.current) return;
 

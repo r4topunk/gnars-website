@@ -140,16 +140,17 @@ export function useVideoPreloader(
   const preloadedUrlsRef = useRef<Map<string, HTMLLinkElement>>(new Map());
   const [tier, setTier] = useState<PerformanceTier>(() => performanceTracker.getTier());
 
-  // Update tier periodically based on learned performance
+  // Update tier when tab becomes visible or after recording new load times
   useEffect(() => {
-    const interval = setInterval(() => {
+    const checkTier = () => {
       const newTier = performanceTracker.getTier();
       if (newTier !== tier) {
         setTier(newTier);
       }
-    }, 5000); // Check every 5s
+    };
 
-    return () => clearInterval(interval);
+    document.addEventListener("visibilitychange", checkTier);
+    return () => document.removeEventListener("visibilitychange", checkTier);
   }, [tier]);
 
   // Cleanup ONLY on unmount
