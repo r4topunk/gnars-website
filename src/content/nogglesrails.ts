@@ -100,8 +100,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Americas",
     type: "Obstacle",
     images: [
-      "https://ipfs.skatehive.app/ipfs/Qmb5vK5V5SJWC8EQJWDaRFztkYBcYzJi8Q6c7appjeQejA",
-      "https://ipfs.skatehive.app/ipfs/QmZt4DZvvqAo8YA6S3ZQfGENGG9AZcLLtLGFDEJ9PL1Sgm",
+      "https://img.paragraph.com/cdn-cgi/image/format=auto,width=1200,quality=85/https://storage.googleapis.com/papyrus_images/c560404490a3f18a87eb362cd9e5abce01ba362ec1ee7148602019cb4f25162d.png",
     ],
     iconUrl: "https://i.ibb.co/hF3Xx1HB/image.png",
     iconSize: [40, 40],
@@ -141,7 +140,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Americas",
     type: "Rail",
     images: [
-      "https://images.hive.blog/DQmbpQJ818tPxC9wtyCLA1HSu23KMbS1KrvoMVs1iFHYa2a/Captura%20de%20Tela%202026-03-20%20a%CC%80s%2017.01.45.png",
+      "https://img.paragraph.com/cdn-cgi/image/format=auto,width=1200,quality=85/https://storage.googleapis.com/papyrus_images/5cc8ec2b3e85ced20e76f38b184eb1f25216dbd690c0b09d4ee0b0025d772283.png",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
@@ -201,7 +200,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Americas",
     type: "Rail",
     images: [
-      "https://gnars.center/manhuacurail.png",
+      "https://images.hive.blog/DQmPXKkeMSPYtTVuEYfod2ua5gRcwtewA5u5d45zLdTQWr9/Captura%20de%20Tela%202026-03-20%20a%CC%80s%2017.22.21.png",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
