@@ -312,7 +312,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "Milan's NogglesRail brings Nounish culture to the heart of Italian design and skateboarding, connecting open-source infrastructure with one of Europe's most influential creative capitals. Activated during the APPCON crypto event under the coordination of builder Jacopo, the project integrates the Gnars ecosystem with cutting-edge technology, establishing another Nounish skateable landmark in Europe. The installation reinforces the expansion of Nounish architecture into urban environments, blending design, culture, and decentralized collaboration within Milan's dynamic landscape.",
+      "Milan's NogglesRail brings Nounish culture to the heart of Italian design and skateboarding, connecting open-source infrastructure with one of Europe's most influential creative capitals.\n\nActivated during the APPCON crypto event under the coordination of builder Jacopo, the project integrates the Gnars ecosystem with cutting-edge technology, establishing another Nounish skateable landmark in Europe.\n\nThe installation reinforces the expansion of Nounish architecture into urban environments, blending design, culture, and decentralized collaboration within Milan's dynamic landscape.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/68",
@@ -332,7 +332,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "A Nounish ramp in Orange County, California, expanding the NogglesRails network beyond rails into full skateable obstacles and new terrain for progression. Ideated by shredder Dave Bachinsky, the project focuses on proliferation through creative expression and viral content, bringing unconventional and bizarre tricks to the miniramp format. The activation highlights how Nounish infrastructure evolves beyond a single format, encouraging experimentation, visibility, and community-driven content. Explore the videos and images to dive deeper into the experience.",
+      "A Nounish ramp in Orange County, California, expanding the NogglesRails network beyond rails into full skateable obstacles and new terrain for progression.\n\nIdeated by shredder Dave Bachinsky, the project focuses on proliferation through creative expression and viral content, bringing unconventional and \"bizarre\" tricks to the miniramp format.\n\nThe activation highlights how Nounish infrastructure evolves beyond a single format, encouraging experimentation, visibility, and community-driven content. Explore the videos and images to dive deeper into the experience.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://www.gnars.com/proposals/63",
@@ -352,7 +352,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The NogglesRail at the Itapetininga Skate Park in São Paulo state supports local skate infrastructure in smaller cities, expanding the reach of Nounish culture beyond major urban centers. Led by shredder Garcia, the activation featured a cash-for-tricks session and a premier, bringing the community together around progression and shared energy. The rail was presented in a blue colorway as a tribute to the BASE ecosystem, connecting design, symbolism, and decentralized culture. Explore the images to see more of the activation, the environment, and the community impact.",
+      "The NogglesRail at the Itapetininga Skate Park in São Paulo state supports local skate infrastructure in smaller cities, expanding the reach of Nounish culture beyond major urban centers.\n\nLed by shredder Garcia, the activation featured a cash-for-tricks session and a premier, bringing the community together around progression and shared energy. The rail was presented in a blue colorway as a tribute to the BASE ecosystem, connecting design, symbolism, and decentralized culture.\n\nExplore the images to see more of the activation, the environment, and the community impact.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://www.gnars.com/proposals/89",
