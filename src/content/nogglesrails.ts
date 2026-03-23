@@ -165,7 +165,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The NounGnarversary celebration in Nairobi, Kenya, brought together GnarsDAO and NounsDAO Africa, showcasing the Gnars Shreddable Noggles and marking a milestone moment for the global Nounish movement.",
+      "The NounGnarversary celebration in Nairobi, Kenya, brought together GnarsDAO and NounsDAO Africa, showcasing the Gnars Shreddable Noggles and marking a milestone moment for the global Nounish movement.\n\nFeaturing a Red NogglesRail obstacle designed by NounsDAO and NounsDAO Africa, the activation highlighted the intersection of skate culture, community, and decentralized coordination.\n\nThe event stands as an open, permissionless, and decentralized celebration of Nounish and gnarly culture worldwide, connecting communities across regions through shared creativity and action.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://gnars.com/proposals/73",
@@ -185,7 +185,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The Sopa de Letras spot in São Paulo represents a creative intersection of street art, skateboarding, and Nounish expression. As part of a proposal execution by Will Dias, the project reimagined and revitalized a classic plaza, reactivating the space through Nounish events and transforming it into a gnarly gathering point. A standout element of the activation was the presence of a SLAP in the classic Noggles shape, reinforcing the visual identity of the Nounish movement. Explore the photos and videos to experience the space, its energy, and its impact on the local scene.",
+      "The Sopa de Letras spot in São Paulo represents a creative intersection of street art, skateboarding, and Nounish expression.\n\nAs part of a proposal execution by Will Dias, the project reimagined and revitalized a classic plaza, reactivating the space through Nounish events and transforming it into a gnarly gathering point.\n\nA standout element of the activation was the presence of a SLAP in the classic Noggles shape, reinforcing the visual identity of the Nounish movement. Explore the photos and videos to experience the space, its energy, and its impact on the local scene.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/4",
@@ -205,7 +205,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "An organically proliferated NogglesRail in the hills of Minas Gerais, representing the pure expression of community-driven action within the Nounish movement. With no formal proposal, the project emerged through grassroots initiative and community spirit, rooted in the energy of the Gnars Contest 2024, where the best NogglesRail clips were rewarded with ETH and recognition within the Gnars community. The Minas Gerais crew, Coletivo Beach Park, stepped up by creating and documenting their own NogglesRail, contributing to the global narrative and proving that Nounish culture thrives through participation, creativity, and action. Legends.",
+      "An organically proliferated NogglesRail in the hills of Minas Gerais, representing the pure expression of community-driven action within the Nounish movement.\n\nWith no formal proposal, the project emerged through grassroots initiative and community spirit, rooted in the energy of the Gnars Contest 2024, where the best NogglesRail clips were rewarded with ETH and recognition within the Gnars community.\n\nThe Minas Gerais crew, Coletivo Beach Park, stepped up by creating and documenting their own NogglesRail, contributing to the global narrative and proving that Nounish culture thrives through participation, creativity, and action. Legends.",
     proposal: {
       name: "Organic Proliferation",
       link: "",
@@ -228,7 +228,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The NogglesRail at Rusutsu Resort in Hokkaido, Japan, marks a meeting point between snowboarding culture and Nounish open-source infrastructure. Executed through Alps DAO and guided by gnarly master Benbodhi, the project expands the reach of action sports into new frontiers, bridging underground ski and snowboard communities with the broader Nounish ecosystem. Set in one of Japan's most iconic winter landscapes, the activation reinforces the spirit of exploration, collaboration, and decentralized culture across snow, mountains, and beyond.",
+      "The NogglesRail at Rusutsu Resort in Hokkaido, Japan, marks a meeting point between snowboarding culture and Nounish open-source infrastructure.\n\nExecuted through Alps DAO and guided by gnarly master Benbodhi, the project expands the reach of action sports into new frontiers, bridging underground ski and snowboard communities with the broader Nounish ecosystem.\n\nSet in one of Japan's most iconic winter landscapes, the activation reinforces the spirit of exploration, collaboration, and decentralized culture across snow, mountains, and beyond.",
     proposal: {
       name: "Nouns Proposal",
       link: "https://www.nouns.camp/proposals/218",
@@ -249,7 +249,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The Medellín NogglesRail is embedded within Colombia's vibrant skate scene, serving as a key node connecting Latin American skate culture. Organized by Builder DCOT, founder of the DHNOUNS project—focused on downhill—the activation expanded into the local street skating communities of Medellín and Bogotá, creating a powerful cross-discipline collaboration. The project came to life through a special activation on World Skate Day, bringing together skaters, creators, and the community. Explore the images to experience the energy and impact of the moment.",
+      "The Medellín NogglesRail is embedded within Colombia's vibrant skate scene, serving as a key node connecting Latin American skate culture.\n\nOrganized by Builder DCOT, founder of the DHNOUNS project—focused on downhill—the activation expanded into the local street skating communities of Medellín and Bogotá, creating a powerful cross-discipline collaboration.\n\nThe project came to life through a special activation on World Skate Day, bringing together skaters, creators, and the community. Explore the images to experience the energy and impact of the moment.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/25",
@@ -270,7 +270,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The NogglesRail in London bridges the UK skate community with the decentralized Nouns ecosystem, expanding Nounish culture into one of the world's most influential urban centers. Organized by Joe Atkinson and Gnarly Master Gami (Origami), the activation took place during a major skate and inline event, bringing together diverse communities in a shared space for progression and expression. The session featured cash-for-tricks dynamics and a premier video, capturing the energy, creativity, and impact of the moment. Explore the images and videos to dive deeper into the experience.",
+      "The NogglesRail in London bridges the UK skate community with the decentralized Nouns ecosystem, expanding Nounish culture into one of the world's most influential urban centers.\n\nOrganized by Joe Atkinson and Gnarly Master Gami (Origami), the activation took place during a major skate and inline event, bringing together diverse communities in a shared space for progression and expression.\n\nThe session featured cash-for-tricks dynamics and a premier video, capturing the energy, creativity, and impact of the moment. Explore the images and videos to dive deeper into the experience.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/33",
@@ -291,7 +291,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The Buenos Aires NogglesRail contributes to the dense South American network of community-owned skate infrastructure, reinforcing the growth of Nounish presence across the region. Organized by partners from 7CTV and Revista 7 Capas, in collaboration with Achee Jazz and other contributors, the project hosted two distinct events that brought together large crowds, live jazz performances, cash-for-tricks sessions, and premier screenings.",
+      "The Buenos Aires NogglesRail contributes to the dense South American network of community-owned skate infrastructure, reinforcing the growth of Nounish presence across the region.\n\nOrganized by partners from 7CTV and Revista 7 Capas, in collaboration with Achee Jazz and other contributors, the project hosted two distinct events that brought together large crowds, live jazz performances, cash-for-tricks sessions, and premier screenings.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://www.gnars.com/proposals/41",
