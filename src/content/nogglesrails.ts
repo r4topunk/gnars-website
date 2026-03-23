@@ -42,7 +42,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The original NogglesRail in Rio de Janeiro, installed at the iconic Praca XV skate spot. A symbol of the Nounish movement meeting Brazilian street culture.",
+      "The original NogglesRail in Rio de Janeiro, installed at the iconic Praça XV skate spot, stands as a symbol of the Nounish movement meeting Brazilian street culture.\n\nAs part of the Sponsor I ⌐◨-◨ ❤️ XV event, the project brought together a collective effort from Coletivo XV, Pharra, and Vlad (sktbrd), reinforcing the bridge between creative communities and skateboarding culture.\n\nThe activation featured the original NogglesRail as the central obstacle, with cash-for-tricks dynamics and premier clips capturing the energy, style, and progression of the session highlighting both performance and community-driven expression.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://snapshot.box/#/s:gnars.eth/proposal/0xb63306dbfe950dd9754d5edcf8f48c6ff9bdd32eeeff4c644cb90c974a3055fa",
@@ -63,7 +63,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "Silverado rail in Long Beach, California. Funded through a Nouns proposal, bringing Noggles to the West Coast skate scene.",
+      "The Silverado Rail in Long Beach, California, funded through a Nouns proposal, brings Noggles to the West Coast skate scene as a landmark within the evolving Nounish movement.\n\nThis NogglesRail became widely known after going viral across the internet, fueled by a sequence of clips from the Power Peralta team, alongside other local shredders who helped amplify its presence and energy within the global skate community.\n\nBlending community funding, cultural exchange, and high-performance skateboarding, the rail stands as both a physical obstacle and a digital catalyst for visibility, creativity, and progression.",
     proposal: {
       name: "Nouns Proposal",
       link: "https://www.nouns.camp/proposals/303",
@@ -85,7 +85,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The original NogglesRail in Santo Domingo, installed through a Nouns Amigos activation in the República Dominicana. A symbol of the Nounish movement connecting with local street culture, where Gnars DAO bridges subDAOs and expands the global Nounish network.",
+      "The original NogglesRail in Santo Domingo, installed through a Nouns Amigos activation in the República Dominicana, stands as a symbol of the Nounish movement connecting with local street culture.\n\nThe project highlights the role of Gnars DAO in bridging subDAOs and strengthening the expansion of the global Nounish network, fostering collaboration, culture, and community-driven initiatives across regions.\n\nRooted in both on-chain coordination and off-chain expression, the rail becomes a point of convergence between digital governance and real-world skateboarding culture.",
     proposal: {
       name: "Nouns Amigos",
       link: "",
@@ -105,7 +105,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "https://i.ibb.co/hF3Xx1HB/image.png",
     iconSize: [40, 40],
     description:
-      "A custom obstacle near the Aquario area in Rio, expanding the network of Nounish skateable infrastructure in the city.",
+      "A custom obstacle installed near the Aquario area in Rio de Janeiro, expanding the network of Nounish skateable infrastructure across the city.\n\nOriginating from a Part 2 proposal focused on a new Nounish architecture, the community voted between four different models and selected the NogglesDelta, shaping a collective decision that materialized into the build.\n\nThe project resulted in a series of events and activations, bringing together skaters, creators, and the community. Explore the clips, Droposals, additional material, and the full proposal to dive deeper into the process and impact.",
     proposal: {
       name: "Gnars Proposal 20",
       link: "https://www.gnars.com/proposals/20",
@@ -125,7 +125,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "NogglesRail in Chicago, bringing CC0 skate infrastructure to the Midwest. Community-funded and community-built.",
+      "The NogglesRail in Chicago brings CC0 skate infrastructure to the Midwest, expanding the reach of the Nounish movement through community-funded and community-built initiatives.\n\nDeveloped as part of efforts to proliferate and onboard Chicago into the Gnars ecosystem, the project was activated through the ETH Chicago Hackathon and the \"A Lil Gnarly Skate Jam,\" a three-day gathering combining a hackathon, conference, and skate session.\n\nThe initiative connects builders, skaters, and creators, reinforcing the bridge between on-chain coordination and off-chain action while growing the Nounish network in new regions.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://snapshot.box/#/s:gnars.eth/proposal/0x487760526824abbe7997ee2fe4887de10af737eb60d35a4165025b8f58148e50",
@@ -145,7 +145,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The Iapi rail in Porto Alegre, southern Brazil. Part of the organic proliferation of NogglesRails across South America.",
+      "The Iapi Rail in Porto Alegre, southern Brazil, is part of the organic proliferation of NogglesRails across South America, expanding the presence of Nounish skate infrastructure into new regions.\n\nOrganized by Ygor Picollino at the iconic IAPI skate spot, the activation featured a cash-for-tricks format, premier production, and a gnarly community-driven session, bringing together local skaters and contributors.\n\nExplore more through the video, additional materials, and documentation to experience the energy, progression, and impact of the event.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://www.gnars.wtf/dao/proposals/eth/31",
@@ -165,7 +165,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The NounGnarversary celebration in Nairobi, Kenya, brought together GnarsDAO and NounsDAO Africa, showcasing the Gnars Shreddable Noggles and marking a milestone moment for the global Nounish movement. Featuring a Red NogglesRail obstacle designed by NounsDAO and NounsDAO Africa, the activation highlighted the intersection of skate culture, community, and decentralized coordination. The event stands as an open, permissionless, and decentralized celebration of Nounish and gnarly culture worldwide, connecting communities across regions through shared creativity and action.",
+      "The NounGnarversary celebration in Nairobi, Kenya, brought together GnarsDAO and NounsDAO Africa, showcasing the Gnars Shreddable Noggles and marking a milestone moment for the global Nounish movement.",
     proposal: {
       name: "Gnars Proposal",
       link: "https://gnars.com/proposals/73",
