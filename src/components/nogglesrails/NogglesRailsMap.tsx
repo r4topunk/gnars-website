@@ -15,7 +15,7 @@ import {
   type NogglesRailLocation,
 } from "@/content/nogglesrails";
 
-function toLocationData(rail: NogglesRailLocation): LocationData {
+export function toLocationData(rail: NogglesRailLocation): LocationData {
   return {
     position: rail.position,
     label: rail.label,
