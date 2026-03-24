@@ -1,51 +1,73 @@
 "use client";
 
-import { useMemo, useRef, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Environment, OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
+import * as THREE from "three";
 import { Button } from "@/components/ui/button";
 import { NOGGLES_RAILS } from "@/content/nogglesrails";
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import { Environment, OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
-import { TextureLoader } from "three";
-import * as THREE from "three";
+
+const DEFAULT_FRAME_COLOR = "#D93F2A";
 
 // 3D NogglesRail Model Component
-function NogglesRailModel3D() {
+function NogglesRailModel3D({ frameColor }: { frameColor: string }) {
   const logoRef = useRef<THREE.Group>(null);
-  const gnarsLogoModel = useGLTF("/models/NogRail.glb");
-  
-  // Clone the model scene
+  const gnarsLogoModel = useGLTF("/models/NogRail-colors.glb");
+
   const clonedLogoScene = useMemo(() => {
     return gnarsLogoModel.scene.clone();
   }, [gnarsLogoModel.scene]);
 
-  // Center model and apply noggles colors (red frame, black/white lenses)
+  // Center model on first mount
   useEffect(() => {
     if (clonedLogoScene) {
       const box = new THREE.Box3().setFromObject(clonedLogoScene);
       const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
       clonedLogoScene.position.sub(center);
 
-      // Apply silver/chrome material
+      // Apply fixed lens materials once
       clonedLogoScene.traverse((child: THREE.Object3D) => {
         const mesh = child as THREE.Mesh;
         if (!mesh.isMesh) return;
-        mesh.material = new THREE.MeshPhysicalMaterial({
-          color: new THREE.Color('#E8E8E8'),
-          metalness: 0.85,
-          roughness: 0.1,
-          clearcoat: 1.0,
-          clearcoatRoughness: 0.05,
-          reflectivity: 1.0,
-          emissive: new THREE.Color('#AAAAAA'),
-          emissiveIntensity: 0.1,
-          envMapIntensity: 2.0,
-        });
+
+        if (mesh.name === "NogRail_2") {
+          // White lens
+          mesh.material = new THREE.MeshStandardMaterial({
+            color: new THREE.Color("#FFFFFF"),
+            roughness: 0.3,
+          });
+        } else if (mesh.name === "NogRail_3") {
+          // Black lens
+          mesh.material = new THREE.MeshStandardMaterial({
+            color: new THREE.Color("#1A1A1A"),
+            roughness: 0.3,
+          });
+        }
       });
     }
   }, [clonedLogoScene]);
 
-  // Auto-centered via bounding box above
+  // Update frame color reactively
+  useEffect(() => {
+    if (!clonedLogoScene) return;
+    clonedLogoScene.traverse((child: THREE.Object3D) => {
+      const mesh = child as THREE.Mesh;
+      if (!mesh.isMesh || mesh.name !== "NogRail_1") return;
+
+      mesh.material = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(frameColor),
+        metalness: 0.85,
+        roughness: 0.1,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.05,
+        reflectivity: 1.0,
+        emissive: new THREE.Color(frameColor),
+        emissiveIntensity: 0.05,
+        envMapIntensity: 2.0,
+      });
+    });
+  }, [clonedLogoScene, frameColor]);
+
   return (
     <group ref={logoRef} scale={1} position={[0, 0, 0]} rotation={[-0.15, -0.3, 0]}>
       <primitive object={clonedLogoScene} />
@@ -54,6 +76,8 @@ function NogglesRailModel3D() {
 }
 
 export default function NogglesRailsHero() {
+  const [frameColor, setFrameColor] = useState(DEFAULT_FRAME_COLOR);
+
   const stats = useMemo(() => {
     const countries = new Set(NOGGLES_RAILS.map((r) => r.country));
     const continents = new Set(NOGGLES_RAILS.map((r) => r.continent));
@@ -65,17 +89,17 @@ export default function NogglesRailsHero() {
   }, []);
 
   return (
-    <section className="py-8 md:py-10 lg:py-12">
+    <section className="relative overflow-hidden py-8 md:py-10 lg:py-12">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
         {/* Left — text */}
-        <div className="flex flex-col justify-center space-y-6">
+        <div className="relative z-10 flex flex-col justify-center space-y-6">
           <div className="space-y-3">
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
               NogglesRails
             </h1>
             <p className="text-lg text-muted-foreground md:text-xl">
-              Community-funded skate rails installed in spots around the world.
-              Open, CC0, owned by no one and everyone.
+              Community-funded skate rails installed in spots around the world. Open, CC0, owned by
+              no one and everyone.
             </p>
           </div>
 
@@ -90,11 +114,9 @@ export default function NogglesRailsHero() {
           </div>
 
           {/* Actions */}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button
-              onClick={() =>
-                document.getElementById("map")?.scrollIntoView({ behavior: "smooth" })
-              }
+              onClick={() => document.getElementById("map")?.scrollIntoView({ behavior: "smooth" })}
             >
               Explore Map
             </Button>
@@ -106,37 +128,67 @@ export default function NogglesRailsHero() {
             >
               View All Rails
             </Button>
+            {/* Color picker */}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="color"
+                value={frameColor}
+                onChange={(e) => setFrameColor(e.target.value)}
+                className="h-8 w-8 cursor-pointer rounded border border-border bg-transparent p-0"
+              />
+              <span className="text-sm text-muted-foreground">Frame Color</span>
+            </label>
           </div>
         </div>
 
-        {/* Right — 3D Model (hidden on mobile) */}
-        <div className="hidden lg:flex items-center justify-center min-h-[400px]">
-          <div className="w-full h-[400px]">
-            <Canvas
-              shadows
-              dpr={[1, 2]}
-              performance={{ min: 0.5 }}
-              gl={{ alpha: true, antialias: true }}
-              style={{ background: "transparent" }}
-            >
-              <PerspectiveCamera makeDefault position={[50, 30, 160]} fov={50} />
-              <OrbitControls
-                enableZoom={false}
-                enablePan={false}
-                enableRotate={true}
-                enableDamping
-                dampingFactor={0.05}
-              />
-              <ambientLight intensity={0.6} />
-              <directionalLight position={[5, 5, 5]} intensity={2.5} castShadow />
-              <directionalLight position={[-5, 3, 2]} intensity={1.5} color="#ffffff" />
-              <spotLight position={[0, 8, 3]} intensity={3.0} angle={0.4} penumbra={0.5} color="#ffffff" />
-              <spotLight position={[3, 3, 5]} intensity={2.0} angle={0.6} penumbra={1} color="#f0f0ff" />
-              <pointLight position={[-2, 2, 4]} intensity={1.5} color="#ffffff" />
-              <Environment preset="studio" background={false} />
-              <NogglesRailModel3D />
-            </Canvas>
-          </div>
+        {/* Right — 3D Model: oversized canvas so the rail never clips when rotated */}
+        <div
+          className="pointer-events-none absolute hidden lg:block"
+          style={{
+            width: "140%",
+            height: "140%",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-25%, -50%)",
+          }}
+        >
+          <Canvas
+            shadows
+            dpr={[1, 2]}
+            performance={{ min: 0.5 }}
+            gl={{ alpha: true, antialias: true }}
+            style={{ background: "transparent", pointerEvents: "auto" }}
+          >
+            <PerspectiveCamera makeDefault position={[50, 30, 230]} fov={50} />
+            <OrbitControls
+              target={[0, 0, 0]}
+              enableZoom={false}
+              enablePan={false}
+              enableRotate={true}
+              enableDamping
+              dampingFactor={0.05}
+            />
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[5, 5, 5]} intensity={2.5} castShadow />
+            <directionalLight position={[-5, 3, 2]} intensity={1.5} color="#ffffff" />
+            <spotLight
+              position={[0, 8, 3]}
+              intensity={3.0}
+              angle={0.4}
+              penumbra={0.5}
+              color="#ffffff"
+            />
+            <spotLight
+              position={[3, 3, 5]}
+              intensity={2.0}
+              angle={0.6}
+              penumbra={1}
+              color="#f0f0ff"
+            />
+            <pointLight position={[-2, 2, 4]} intensity={1.5} color="#ffffff" />
+            <Environment preset="studio" background={false} />
+            <NogglesRailModel3D frameColor={frameColor} />
+          </Canvas>
         </div>
       </div>
     </section>
