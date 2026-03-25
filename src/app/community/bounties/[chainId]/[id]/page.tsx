@@ -10,7 +10,7 @@ import { CHAIN_NAMES, getExplorerUrl } from '@/lib/poidh/config';
 export default function BountyDetailPage() {
   const params = useParams();
   const chainId = parseInt(params.chainId as string, 10);
-  const id = params.id as string;
+  const id = parseInt(params.id as string, 10);
 
   // Fetch all bounties and find the one we need
   // TODO: Create individual bounty API endpoint
@@ -57,7 +57,7 @@ export default function BountyDetailPage() {
 
   const chainName = CHAIN_NAMES[chainId as keyof typeof CHAIN_NAMES] || 'Unknown';
   const amountEth = formatEther(BigInt(bounty.amount));
-  const explorerUrl = getExplorerUrl(chainId, 'address', bounty.issuer);
+  const explorerUrl = getExplorerUrl(chainId, bounty.issuer);
 
   return (
     <div className="container mx-auto px-4 py-12">
