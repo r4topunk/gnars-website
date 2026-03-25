@@ -14,7 +14,7 @@ interface PoidhBountiesResponse {
 }
 
 export function usePoidhBounties(options: UsePoidhBountiesOptions = {}) {
-  const { status = 'open', limit = 100, filterGnarly = true } = options;
+  const { status = 'open', limit = 100, filterGnarly = false } = options;
 
   return useQuery<PoidhBountiesResponse, Error>({
     queryKey: ['poidh-bounties', status, limit, filterGnarly],

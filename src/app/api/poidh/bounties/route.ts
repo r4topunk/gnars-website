@@ -8,9 +8,17 @@ const CACHE_TTL = 60 * 15; // 15 minutes
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const status = searchParams.get('status') || 'open';
+  const rawStatus = searchParams.get('status') || 'open';
   const limit = parseInt(searchParams.get('limit') || '100', 10);
   const filterGnarly = searchParams.get('filterGnarly') !== 'false'; // default true
+
+  // Map frontend status to POIDH API status
+  const statusMap: Record<string, string> = {
+    open: 'open',
+    closed: 'past',
+    all: 'all',
+  };
+  const status = statusMap[rawStatus] || 'open';
 
   try {
     const input = JSON.stringify({

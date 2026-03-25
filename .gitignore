@@ -57,3 +57,4 @@ next-env.d.ts
 
 # MCP server config (may contain private keys)
 .mcp.json
+.env*.local
