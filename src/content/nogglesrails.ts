@@ -33,8 +33,11 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     images: [
       "https://www.youtube.com/watch?v=r4GEIl2b_WI",
       "https://www.youtube.com/watch?v=lYkAEhMmFsU",
+      "https://www.youtube.com/watch?v=lUX8N8sJBuI&list=PLl7vUE747Ao8qRzEmY66Nm7TMgA6NMXLa&index=4",
+      "https://www.youtube.com/watch?v=lUX8N8sJBuI&t=1s",
       "https://ipfs.skatehive.app/ipfs/QmVKzejFTSNyf8mnjootYPKtLir7D7Mu1rkxkuEkWwXduW",
       "https://ipfs.skatehive.app/ipfs/QmRNaq6eSWLw2w8MBtENMeST6yyxU66oEMEktBcdFx17xx",
+      "https://images.hive.blog/DQmcjfGfSy32Ts86c5A31WBMe6zGqEgcpyA7adp8H4SWaWr/gif%20XV.webp",
       "https://gnars.center/xv-mentex-fscrooks.png",
       "https://gnars.center/rocknogles.gif",
       "https://gnars.center/xvgroup.jpg",
@@ -59,6 +62,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     type: "Rail",
     images: [
       "https://images.hive.blog/DQmb6uJxrG5HsBbmRvtMrA1dcR4Uw1b9LPfiovW9vjVRhzb/Captura%20de%20Tela%202026-03-20%20a%CC%80s%2016.48.29.png",
+      "https://images.hive.blog/DQmVNHUegz2MmxPQnw6zSNc5dRG9Rmars563Z4W6JQHUJYD/skatehive-gif-1774446531844.gif",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
@@ -81,6 +85,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       "https://images.hive.blog/DQmPZCpD6HXMm2nkKrH5XknciXn2cj3VW9rfcUaL8Gj4dAi/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.51.36.png",
       "https://images.hive.blog/DQmZeFXz6M33cmc7eE3ktJdRNvta7qd7RsAcaqSPijbuFDP/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.31.01.png",
       "https://images.hive.blog/DQmTd6ax62hHNe28QH3GHmwjaZ8VdfM2UXTnDuZ7BA9JtV5/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.33.24.png",
+      "https://images.hive.blog/DQmQhmokunRCaWrYVqK6fgHtTqAyMrYL8zG6ANchAf8Dnud/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2011.28.47.png",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
@@ -101,6 +106,10 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     type: "Obstacle",
     images: [
       "https://img.paragraph.com/cdn-cgi/image/format=auto,width=1200,quality=85/https://storage.googleapis.com/papyrus_images/c560404490a3f18a87eb362cd9e5abce01ba362ec1ee7148602019cb4f25162d.png",
+      "https://youtu.be/bL4WJx86TPo?si=hd8-gBWTgmEWG8RH",
+      "https://images.hive.blog/DQmZyC8cP9RJsWhXEht8qn8RZKKzsykK37wATzfoiXX5exp/IMG_0231.jpg",
+      "https://images.hive.blog/DQmW9tQSDa9wKC9PGgRi7fiVHu9vVk4xLrLU3TvBMpReX6w/IMG_0232.jpg",
+      "https://images.hive.blog/DQmSGaJC3VZZCHwME9vTJcTjsntinngBikWfQVkt2FHwnG2/IMG_0233.jpg",
     ],
     iconUrl: "https://i.ibb.co/hF3Xx1HB/image.png",
     iconSize: [40, 40],
@@ -141,6 +150,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     type: "Rail",
     images: [
       "https://img.paragraph.com/cdn-cgi/image/format=auto,width=1200,quality=85/https://storage.googleapis.com/papyrus_images/5cc8ec2b3e85ced20e76f38b184eb1f25216dbd690c0b09d4ee0b0025d772283.png",
+      "https://youtu.be/q3unXaYpMl8?si=xPW5DTxfBnfhSp6d",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
@@ -161,6 +171,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     type: "Rail",
     images: [
       "/images/nogglesrails/kenya-noungnarversary.jpg",
+      "https://youtu.be/FfK1xY_gGzA?si=r6NzmucuGT7i2Pd-",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
@@ -224,6 +235,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       "https://images.hive.blog/DQmYH1H2ygGgd1VUSD2bMqNAg5CafmhUQJj4B6fdGZBcVQB/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.14.42.png",
       "https://images.hive.blog/DQmYV6oG6tNqAEtZXQ5RnXQ8Xy9G882tG2p48NHT1A5FDrN/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.14.25.png",
       "https://gnars.center/rutsujpg.jpg",
+      "https://www.youtube.com/watch?v=_iJ7YgQMaRM&t=5s",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
@@ -245,6 +257,9 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     images: [
       "https://gnars.center/medellin.png",
       "https://ipfs.skatehive.app/ipfs/Qme5iX2KMzwnJyaP6ThqTWVd7WoU197cjuDZ6zpcxMtDfJ",
+      "https://www.youtube.com/watch?v=oIxdiQCE9GQ",
+      "https://images.hive.blog/DQmTZ7jdNCvF96tMDNPw3P64DxwTMjj82EqE1vCivXX8KSK/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2010.27.08.png",
+      "https://images.hive.blog/DQmSwajifN6CgAqDz56ys5Vx5zBPz5uvHpqAC8ZSrXVqZU4/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2010.32.43.png",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
@@ -264,8 +279,10 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Europe",
     type: "Rail",
     images: [
+      "https://images.hive.blog/DQmR5THcAeGVNiEaUWgpBdQKBBBRPpHGmkzVV39tnNJMfHm/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2011.11.03.png",
       "https://gnars.center/london.png",
       "https://gnars.center/london2.png",
+      "https://youtu.be/3tAw0cCsxPk?si=XIYWj68j_G4ktK4A",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
@@ -287,6 +304,8 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     images: [
       "https://gnars.center/argentina1.jpg",
       "https://gnars.center/argentina2.jpg",
+      "https://images.hive.blog/DQmNXxXJFs9dJ5oCGM6xix9tPjZxgDCDrEDECZAUNqZuHQ7/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2010.54.08.png",
+      "https://images.hive.blog/DQmdJxCBp5nCwyAgzLYEb9HnstD29A66qfRRVtqbsPKRwDa/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2010.58.22.png",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
@@ -308,6 +327,8 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     images: [
       "https://images.hive.blog/DQmRiidbfUGk7NNyzuRApn5pW1cVxjNzQr4RvZReumGMk6V/Captura%20de%20Tela%202026-03-19%20a%CC%80s%2018.44.48.png",
       "https://gnars.center/milan.jpg",
+      "https://images.hive.blog/DQmU2RxzvHnSZyai7mQDGsDubLC8N1pwAH1knoWnfboJgaY/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2011.14.56.png",
+      "https://images.hive.blog/DQmbtp1UX7hcma4uQ9CuRznPyp2EtdeJHDQZLEcZzf4dAQi/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2011.16.26.png",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
@@ -328,6 +349,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     type: "Obstacle",
     images: [
       "https://gnars.center/ocramp.png",
+      "https://images.hive.blog/DQmeYLYByu54VEGNvciWYsSNq79F3KnZodQRTF54RFq4nfD/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2011.13.11.png",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
@@ -348,6 +370,9 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     type: "Spot",
     images: [
       "https://gnars.center/noggle_itape.jpeg",
+      "https://images.hive.blog/DQmf4z8HUXDrVA6WtezygS35f72MN5CS6AiF8CuJ1qBzjju/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2011.00.26.png",
+      "https://images.hive.blog/DQmbCfRVbKtjskPWDavrGboT6FD9McfxgYwuhK5jqUPJvga/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2010.59.56.png",
+      "https://images.hive.blog/DQmVpwNUbr7mgqQ3TivciErZZUHB9aUm9dd1RfF1ZCFd5Yz/Captura%20de%20Tela%202026-03-25%20a%CC%80s%2010.59.37.png",
     ],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
