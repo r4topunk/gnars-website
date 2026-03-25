@@ -12,33 +12,53 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '100', 10);
   const filterGnarly = searchParams.get('filterGnarly') !== 'false'; // default true
 
-  // Map frontend status to POIDH API status
-  const statusMap: Record<string, string> = {
-    open: 'open',
-    closed: 'past',
-    all: 'all',
-  };
-  const status = statusMap[rawStatus] || 'open';
-
   try {
-    const input = JSON.stringify({
-      json: { status, sortType: 'date', limit }
-    });
-    
-    const url = `${POIDH_API}?input=${encodeURIComponent(input)}`;
-    const res = await fetch(url, { 
-      next: { revalidate: CACHE_TTL },
-      headers: {
-        'Content-Type': 'application/json',
+    let bounties: PoidhBounty[] = [];
+
+    // If "all", fetch open + progress + past and merge
+    if (rawStatus === 'all') {
+      const statuses = ['open', 'progress', 'past'];
+      const results = await Promise.all(
+        statuses.map(async (status) => {
+          const input = JSON.stringify({
+            json: { status, sortType: 'date', limit: Math.ceil(limit / 3) }
+          });
+          const url = `${POIDH_API}?input=${encodeURIComponent(input)}`;
+          const res = await fetch(url, { 
+            next: { revalidate: CACHE_TTL },
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (!res.ok) return [];
+          const data = await res.json();
+          return data.result?.data?.json?.items || [];
+        })
+      );
+      bounties = results.flat().slice(0, limit);
+    } else {
+      // Single status fetch
+      const statusMap: Record<string, string> = {
+        open: 'open',
+        closed: 'past',
+      };
+      const status = statusMap[rawStatus] || 'open';
+
+      const input = JSON.stringify({
+        json: { status, sortType: 'date', limit }
+      });
+      
+      const url = `${POIDH_API}?input=${encodeURIComponent(input)}`;
+      const res = await fetch(url, { 
+        next: { revalidate: CACHE_TTL },
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!res.ok) {
+        throw new Error(`POIDH API error: ${res.status}`);
       }
-    });
 
-    if (!res.ok) {
-      throw new Error(`POIDH API error: ${res.status}`);
+      const data = await res.json();
+      bounties = data.result?.data?.json?.items || [];
     }
-
-    const data = await res.json();
-    const bounties: PoidhBounty[] = data.result?.data?.json?.items || [];
 
     // Filter: supported chains + optionally gnars keywords
     const supportedChainIds: number[] = Object.values(SUPPORTED_CHAINS);
