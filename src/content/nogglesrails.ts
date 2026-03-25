@@ -32,13 +32,10 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     type: "Rail",
     images: [
       "https://www.youtube.com/watch?v=r4GEIl2b_WI",
-      "https://www.youtube.com/watch?v=lYkAEhMmFsU",
-      "https://www.youtube.com/watch?v=lUX8N8sJBuI&list=PLl7vUE747Ao8qRzEmY66Nm7TMgA6NMXLa&index=4",
       "https://www.youtube.com/watch?v=lUX8N8sJBuI&t=1s",
       "https://ipfs.skatehive.app/ipfs/QmVKzejFTSNyf8mnjootYPKtLir7D7Mu1rkxkuEkWwXduW",
       "https://ipfs.skatehive.app/ipfs/QmRNaq6eSWLw2w8MBtENMeST6yyxU66oEMEktBcdFx17xx",
       "https://images.hive.blog/DQmcjfGfSy32Ts86c5A31WBMe6zGqEgcpyA7adp8H4SWaWr/gif%20XV.webp",
-      "https://gnars.center/xv-mentex-fscrooks.png",
       "https://gnars.center/rocknogles.gif",
       "https://gnars.center/xvgroup.jpg",
     ],
