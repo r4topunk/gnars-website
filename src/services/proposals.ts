@@ -31,6 +31,7 @@ async function fetchVoteTimestamps(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query }),
     });
+    if (!res.ok) return {};
     const data = await res.json();
     const map: Record<string, number> = {};
     for (const v of data?.data?.proposalVotes ?? []) {

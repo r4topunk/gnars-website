@@ -60,9 +60,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
     const url = new URL("/api/members", window.location.origin);
     url.searchParams.set("search", targetAddress);
     const res = await fetch(url.toString(), { cache: "no-store" });
-    if (!res.ok) {
-      throw new Error(`Failed to fetch members: ${res.status}`);
-    }
+    if (!res.ok) return null;
     const json = (await res.json()) as { members: MemberListItem[] };
     const match = json.members.find(
       (member) => member.owner.toLowerCase() === targetAddress.toLowerCase(),
