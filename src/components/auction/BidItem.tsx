@@ -2,7 +2,6 @@
 "use client";
 
 import { formatDistanceToNowStrict } from "date-fns";
-import { MessageSquare } from "lucide-react";
 import { formatEther } from "viem";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { cn } from "@/lib/utils";
@@ -46,17 +45,17 @@ export function BidItem({ bidder, amount, bidTime, comment, isNew }: BidItemProp
         </span>
       </div>
 
-      {comment && (
-        <div className="mt-2 flex items-start gap-1.5">
-          <MessageSquare className="mt-0.5 h-3 w-3 shrink-0 text-indigo-400" />
-          <p className="rounded border-l-2 border-indigo-500/50 bg-indigo-500/5 px-2 py-1 text-xs text-indigo-300">
-            {comment.length > 140 ? `${comment.slice(0, 140)}…` : comment}
+      <div className="mt-1.5 flex items-center justify-between gap-2">
+        {comment ? (
+          <p className="flex-1 truncate text-xs italic text-muted-foreground">
+            &ldquo;{comment.length > 140 ? `${comment.slice(0, 140)}…` : comment}&rdquo;
           </p>
-        </div>
-      )}
-
-      <div className="mt-1.5 text-right text-[10px] text-muted-foreground">
-        {timeAgo}
+        ) : (
+          <span />
+        )}
+        <span className="shrink-0 text-[10px] text-muted-foreground">
+          {timeAgo}
+        </span>
       </div>
     </div>
   );

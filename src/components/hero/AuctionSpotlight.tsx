@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Clock, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
 import { formatEther, parseEther, zeroAddress, encodeFunctionData, concat, toHex } from "viem";
 import { base } from "wagmi/chains";
 import { useDaoAuction } from "@buildeross/hooks";
 import { useAccount, useReadContract, useSimulateContract, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, useSendTransaction } from "wagmi";
+import { useQueryClient } from "@tanstack/react-query";
 import { GnarImageTile } from "@/components/auctions/GnarImageTile";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
@@ -26,11 +27,17 @@ import { BidHistoryModal } from "@/components/auction/BidHistoryModal";
 export function AuctionSpotlight() {
   const { address, isConnected, chain } = useAccount();
   const { switchChainAsync } = useSwitchChain();
+  const queryClient = useQueryClient();
   const { highestBid, highestBidder, endTime, startTime, tokenId, tokenUri } = useDaoAuction({
     collectionAddress: DAO_ADDRESSES.token,
     auctionAddress: DAO_ADDRESSES.auction,
     chainId: CHAIN.id,
   });
+
+  // Invalidate all wagmi contract reads to refresh auction data without page reload
+  const invalidateAuctionData = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["readContract"] });
+  }, [queryClient]);
 
   // Read reserve price from auction contract
   const { data: reservePriceWei } = useReadContract({
@@ -45,6 +52,7 @@ export function AuctionSpotlight() {
   const [isSettling, setIsSettling] = useState(false);
   const [settleTxHash, setSettleTxHash] = useState<`0x${string}` | undefined>();
   const [isBidding, setIsBidding] = useState(false);
+  const [bidTxHash, setBidTxHash] = useState<`0x${string}` | undefined>();
   const [bidComment, setBidComment] = useState("");
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
@@ -136,6 +144,26 @@ export function AuctionSpotlight() {
   const { writeContractAsync } = useWriteContract();
   const { sendTransactionAsync } = useSendTransaction();
 
+  // Wait for bid transaction confirmation
+  const { isLoading: isBidConfirming, isSuccess: isBidConfirmed } = useWaitForTransactionReceipt({
+    hash: bidTxHash,
+    chainId: CHAIN.id,
+  });
+
+  // Refresh auction data when bid is confirmed
+  useEffect(() => {
+    if (isBidConfirmed && bidTxHash) {
+      toast.success("Bid confirmed!", {
+        description: "Auction data updated.",
+      });
+      invalidateAuctionData();
+      setBidTxHash(undefined);
+      setIsBidding(false);
+      setBidComment("");
+      setIsCommentOpen(false);
+    }
+  }, [isBidConfirmed, bidTxHash, invalidateAuctionData]);
+
   // Handle bid submission
   const handleBid = async () => {
     if (!isConnected || !bidAmountWei || !tokenId || !isValidBid) return;
@@ -150,6 +178,8 @@ export function AuctionSpotlight() {
         await switchChainAsync({ chainId: base.id });
       }
 
+      let hash: `0x${string}`;
+
       if (trimmedComment.length > 0) {
         // Comment path: encode createBid calldata + append UTF-8 comment bytes
         const baseCalldata = encodeFunctionData({
@@ -160,7 +190,7 @@ export function AuctionSpotlight() {
         const commentBytes = toHex(new TextEncoder().encode(trimmedComment));
         const fullData = concat([baseCalldata, commentBytes]);
 
-        await sendTransactionAsync({
+        hash = await sendTransactionAsync({
           to: DAO_ADDRESSES.auction as `0x${string}`,
           data: fullData,
           value: bidAmountWei,
@@ -168,7 +198,7 @@ export function AuctionSpotlight() {
         });
       } else {
         // Original path (no regression)
-        await writeContractAsync({
+        hash = await writeContractAsync({
           address: DAO_ADDRESSES.auction as `0x${string}`,
           abi: auctionAbi,
           functionName: "createBid",
@@ -178,16 +208,13 @@ export function AuctionSpotlight() {
         });
       }
 
+      setBidTxHash(hash);
       toast.success("Bid submitted", {
-        description: trimmedComment.length > 0
-          ? "Your comment was recorded on-chain."
-          : "Waiting for confirmation...",
+        description: "Waiting for confirmation...",
       });
-      setTimeout(() => window.location.reload(), 3000);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to submit bid";
       toast.error("Bid failed", { description: message });
-    } finally {
       setIsBidding(false);
     }
   };
@@ -241,15 +268,17 @@ export function AuctionSpotlight() {
     }
   };
 
-  // Handle successful confirmation
+  // Handle successful settlement confirmation — refresh auction data
   useEffect(() => {
     if (isConfirmed && settleTxHash) {
       toast.success("Settlement confirmed!", {
-        description: "Reloading to show new auction...",
+        description: "Loading new auction...",
       });
-      setTimeout(() => window.location.reload(), 2000);
+      invalidateAuctionData();
+      setIsSettling(false);
+      setSettleTxHash(undefined);
     }
-  }, [isConfirmed, settleTxHash]);
+  }, [isConfirmed, settleTxHash, invalidateAuctionData]);
 
   return (
     <Card className="w-full bg-card">
@@ -312,10 +341,15 @@ export function AuctionSpotlight() {
                   </Tooltip>
                   <Button
                     className="flex-[7] touch-manipulation"
-                    disabled={!isConnected || isBidding || !isValidBid}
+                    disabled={!isConnected || isBidding || isBidConfirming || !isValidBid}
                     onClick={handleBid}
                   >
-                    {isBidding ? (
+                    {isBidConfirming ? (
+                      <>
+                        <Spinner />
+                        Confirming...
+                      </>
+                    ) : isBidding ? (
                       <>
                         <Spinner />
                         Bidding...
