@@ -57,3 +57,9 @@ next-env.d.ts
 
 # MCP server config (may contain private keys)
 .mcp.json
+
+# Prevent stale docs/scripts from accumulating in root
+# Only README.md, CLAUDE.md, AGENTS.md belong in root — everything else goes in docs/
+/tasks/
+/references/
+/*.sh
