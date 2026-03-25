@@ -21,6 +21,7 @@ import { getStatusConfig } from "@/components/proposals/utils";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
+import { BidHistoryModal } from "@/components/auction/BidHistoryModal";
 
 export function AuctionSpotlight() {
   const { address, isConnected, chain } = useAccount();
@@ -36,6 +37,7 @@ export function AuctionSpotlight() {
   const [isBidding, setIsBidding] = useState(false);
   const [bidComment, setBidComment] = useState("");
   const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
 
   // Calculate minimum bid (1% increment)
   const minNextBidEth = useMemo(() => {
@@ -384,6 +386,21 @@ export function AuctionSpotlight() {
                 />
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={() => setIsBidHistoryOpen(true)}
+              className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+            >
+              View bids
+            </button>
+
+            <BidHistoryModal
+              tokenId={tokenId?.toString()}
+              tokenName={tokenUri?.name}
+              open={isBidHistoryOpen}
+              onOpenChange={setIsBidHistoryOpen}
+            />
           </div>
         </div>
       </CardContent>
