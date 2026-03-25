@@ -8,9 +8,9 @@
  */
 
 import type { CoinMedia, CoinNode, TVItem } from "./types";
-import { GNARS_ADDRESSES, GNARS_CREATOR_COIN } from "@/lib/config";
+import { DAO_ADDRESSES, GNARS_CREATOR_COIN } from "@/lib/config";
 
-const GNARS_TREASURY = GNARS_ADDRESSES.treasury;
+const GNARS_TREASURY = DAO_ADDRESSES.treasury;
 const SKATEHIVE_REFERRER = "0xb4964e1eca55db36a94e8aeffbfbab48529a2f6c";
 
 // Pagination config
