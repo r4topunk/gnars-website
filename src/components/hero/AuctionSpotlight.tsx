@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Clock, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
-import { parseEther, zeroAddress, encodeFunctionData, concat, toHex } from "viem";
+import { formatEther, parseEther, zeroAddress, encodeFunctionData, concat, toHex } from "viem";
 import { base } from "wagmi/chains";
 import { useDaoAuction } from "@buildeross/hooks";
 import { useAccount, useReadContract, useSimulateContract, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, useSendTransaction } from "wagmi";
@@ -32,6 +32,16 @@ export function AuctionSpotlight() {
     chainId: CHAIN.id,
   });
 
+  // Read reserve price from auction contract
+  const { data: reservePriceWei } = useReadContract({
+    address: DAO_ADDRESSES.auction as `0x${string}`,
+    abi: auctionAbi,
+    functionName: "reservePrice",
+    chainId: CHAIN.id,
+    query: { staleTime: 60 * 1000 },
+  });
+  const reservePriceEth = reservePriceWei ? Number(formatEther(reservePriceWei)) : 0.01;
+
   const [isSettling, setIsSettling] = useState(false);
   const [settleTxHash, setSettleTxHash] = useState<`0x${string}` | undefined>();
   const [isBidding, setIsBidding] = useState(false);
@@ -39,12 +49,12 @@ export function AuctionSpotlight() {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
 
-  // Calculate minimum bid (1% increment)
+  // Calculate minimum bid: reserve price when no bids, otherwise 1% increment
   const minNextBidEth = useMemo(() => {
     const current = Number(highestBid ?? "0");
-    if (!Number.isFinite(current) || current <= 0) return 0.01;
+    if (!Number.isFinite(current) || current <= 0) return reservePriceEth;
     return Math.max(0, current * 1.01);
-  }, [highestBid]);
+  }, [highestBid, reservePriceEth]);
 
   const [bidAmount, setBidAmount] = useState(minNextBidEth.toFixed(4));
   const tokenName = tokenUri?.name;
