@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GNARS_ADDRESSES } from "@/lib/config";
+import { subgraphQuery } from "@/lib/subgraph";
 
 const AUCTION_BIDS_QUERY = `
   query GetAuctionBids($auctionId: String!) {
@@ -54,7 +55,6 @@ export function useAuctionBids(
     try {
       if (isFirstFetch.current) setIsLoading(true);
 
-      const { subgraphQuery } = await import("@/lib/subgraph");
       const auctionId = `${GNARS_ADDRESSES.token}:${tokenId}`;
       const data = await subgraphQuery<{ auctionBids: AuctionBid[] }>(
         AUCTION_BIDS_QUERY,

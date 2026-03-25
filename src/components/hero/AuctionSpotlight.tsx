@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Clock, ChevronDown, MessageSquare } from "lucide-react";
+import { Clock, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
 import { parseEther, zeroAddress, encodeFunctionData, concat, toHex } from "viem";
 import { base } from "wagmi/chains";
 import { useDaoAuction } from "@buildeross/hooks";
@@ -373,27 +373,33 @@ export function AuctionSpotlight() {
             )}
 
             {highestBidder && highestBidder !== zeroAddress && (
-              <div className="text-center text-xs text-muted-foreground">
-                <span className="mr-1">{isLive ? "Leading bidder:" : "Winner:"}</span>
-                <AddressDisplay
-                  address={highestBidder}
-                  variant="compact"
-                  showAvatar={false}
-                  showCopy={false}
-                  showExplorer={false}
-                  truncateLength={4}
-                  className="inline-flex"
-                />
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsBidHistoryOpen(true)}
+                className="group flex w-full flex-col gap-1 rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5 transition-all hover:border-border/80 hover:bg-muted/40"
+              >
+                <span className="text-[11px] text-muted-foreground/60">
+                  {isLive ? "Leading bidder" : "Winner"}
+                </span>
+                <div className="flex w-full items-center justify-between">
+                  <AddressDisplay
+                    address={highestBidder}
+                    variant="compact"
+                    showAvatar={true}
+                    avatarSize="sm"
+                    showCopy={false}
+                    showExplorer={false}
+                    truncateLength={4}
+                    onAddressClick={() => {}}
+                    className="text-sm text-foreground pointer-events-none"
+                  />
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground transition-colors group-hover:text-foreground">
+                    <span>View bids</span>
+                    <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </div>
+              </button>
             )}
-
-            <button
-              type="button"
-              onClick={() => setIsBidHistoryOpen(true)}
-              className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
-            >
-              View bids
-            </button>
 
             <BidHistoryModal
               tokenId={tokenId?.toString()}
