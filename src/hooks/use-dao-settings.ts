@@ -2,7 +2,7 @@
 
 import { useReadContracts } from "wagmi";
 import { governorAbi, treasuryAbi } from "@buildeross/sdk";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 
 export interface DaoSettings {
   votingDelay: bigint; // blocks before voting starts
@@ -32,19 +32,19 @@ export function useDaoSettings(): DaoSettings {
   const { data, isLoading, isError } = useReadContracts({
     contracts: [
       {
-        address: GNARS_ADDRESSES.governor as `0x${string}`,
+        address: DAO_ADDRESSES.governor as `0x${string}`,
         abi: governorAbi,
         functionName: "votingDelay",
         chainId: CHAIN.id,
       },
       {
-        address: GNARS_ADDRESSES.governor as `0x${string}`,
+        address: DAO_ADDRESSES.governor as `0x${string}`,
         abi: governorAbi,
         functionName: "votingPeriod",
         chainId: CHAIN.id,
       },
       {
-        address: GNARS_ADDRESSES.treasury as `0x${string}`,
+        address: DAO_ADDRESSES.treasury as `0x${string}`,
         abi: treasuryAbi,
         functionName: "delay",
         chainId: CHAIN.id,

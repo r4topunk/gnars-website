@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { createProposalAction } from "@/app/propose/actions";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { ipfsToGatewayUrl } from "@/lib/pinata";
 import { encodeTransactions } from "@/lib/proposal-utils";
 import { type ProposalFormValues } from "./schema";
@@ -100,7 +100,7 @@ export function ProposalPreview() {
 
         console.log("Calling writeContract...");
         await writeContract({
-          address: GNARS_ADDRESSES.governor as `0x${string}`,
+          address: DAO_ADDRESSES.governor as `0x${string}`,
           abi: governorAbi,
           functionName: "propose",
           args: [

@@ -7,7 +7,7 @@
 
 import { unstable_cache } from "next/cache";
 import { SubgraphSDK } from "@buildeross/sdk";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 import type { FeedEvent } from "@/lib/types/feed-events";
 
@@ -366,7 +366,7 @@ function transformTokenToEvent(t: SubgraphToken): FeedEvent {
 async function fetchFeedEventsUncached(hoursBack: number = 24): Promise<FeedEvent[]> {
   const now = Math.floor(Date.now() / 1000);
   const since = now - (hoursBack * 3600);
-  const daoAddress = GNARS_ADDRESSES.token.toLowerCase();
+  const daoAddress = DAO_ADDRESSES.token.toLowerCase();
 
   const events: FeedEvent[] = [];
 
@@ -445,6 +445,7 @@ async function fetchFeedEventsUncached(hoursBack: number = 24): Promise<FeedEven
             transactionHash
           }
           proposalVotes(
+            where: { proposal_: { dao: $daoAddress } }
             orderBy: timestamp
             orderDirection: desc
             first: 100
@@ -623,7 +624,7 @@ async function generateComputedEvents(): Promise<FeedEvent[]> {
     const sdk = SubgraphSDK.connect(CHAIN.id);
     const { proposals } = await sdk.proposals({
       where: {
-        dao: GNARS_ADDRESSES.token.toLowerCase(),
+        dao: DAO_ADDRESSES.token.toLowerCase(),
       },
       first: 20,
     });

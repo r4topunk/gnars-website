@@ -1,4 +1,4 @@
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 import type { FarcasterProfile } from "@/services/farcaster";
 
@@ -87,7 +87,7 @@ const MEMBER_TOKENS_GQL = /* GraphQL */ `
 `;
 
 export async function fetchMemberOverview(address: string): Promise<MemberOverview> {
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const dao = DAO_ADDRESSES.token.toLowerCase();
 
   // Fetch tokens held by the member
   const tokensData = await subgraphQuery<TokensQuery>(MEMBER_TOKENS_GQL, {
@@ -158,7 +158,7 @@ const MEMBER_VOTES_GQL = /* GraphQL */ `
 `;
 
 export async function fetchMemberVotes(address: string, limit = 100): Promise<MemberVotes> {
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const dao = DAO_ADDRESSES.token.toLowerCase();
   const PAGE = Math.min(limit, 100);
   const data = await subgraphQuery<VotesQuery>(MEMBER_VOTES_GQL, {
     dao,
@@ -200,7 +200,7 @@ const MEMBER_DELEGATED_BY_TOKENS_GQL = /* GraphQL */ `
 `;
 
 export async function fetchDelegators(address: string): Promise<string[]> {
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const dao = DAO_ADDRESSES.token.toLowerCase();
   const data = await subgraphQuery<DelegatedByTokensQuery>(MEMBER_DELEGATED_BY_TOKENS_GQL, {
     dao,
     delegate: address.toLowerCase(),
@@ -253,7 +253,7 @@ const DAO_MEMBERS_LIST_GQL = /* GraphQL */ `
  * Fetch all members (unique owners) of the DAO and aggregate their token counts.
  */
 export async function fetchAllMembers(): Promise<MemberListItem[]> {
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const dao = DAO_ADDRESSES.token.toLowerCase();
   const PAGE_SIZE = 1000;
   let skip = 0;
   const aggregated: MemberListItem[] = [];
@@ -313,7 +313,7 @@ export async function fetchActiveVotesForVoters(
   addresses: string[],
 ): Promise<Record<string, number>> {
   if (addresses.length === 0) return {};
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const dao = DAO_ADDRESSES.token.toLowerCase();
   const counts: Record<string, number> = {};
   const unique = Array.from(new Set(addresses.map((a) => a.toLowerCase())));
   const PAGE = 1000;
@@ -373,7 +373,7 @@ const DELEGATORS_WITH_COUNTS_GQL = /* GraphQL */ `
 `;
 
 export async function fetchDelegatorsWithCounts(address: string): Promise<DelegatorWithCount[]> {
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const dao = DAO_ADDRESSES.token.toLowerCase();
   const PAGE_SIZE = 1000;
   let skip = 0;
   const results: DelegatorWithCount[] = [];
@@ -430,7 +430,7 @@ export async function fetchVotesCountForVoters(
   addresses: string[],
 ): Promise<Record<string, number>> {
   if (addresses.length === 0) return {};
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const dao = DAO_ADDRESSES.token.toLowerCase();
   const counts: Record<string, number> = {};
   const uniqueAddresses = Array.from(new Set(addresses.map((a) => a.toLowerCase())));
   const chunks = chunkArray(uniqueAddresses, 100);
@@ -489,7 +489,7 @@ export async function fetchVoteSupportForVoters(
   addresses: string[],
 ): Promise<Record<string, { total: number; forCount: number }>> {
   if (addresses.length === 0) return {};
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const dao = DAO_ADDRESSES.token.toLowerCase();
   const supportMap: Record<string, { total: number; forCount: number }> = {};
   const uniqueAddresses = Array.from(new Set(addresses.map((a) => a.toLowerCase())));
   const chunks = chunkArray(uniqueAddresses, 100);
@@ -545,7 +545,7 @@ const NON_CANCELED_PROPOSALS_GQL = /* GraphQL */ `
  * Count non-canceled proposals for the DAO.
  */
 export async function fetchNonCanceledProposalsCount(): Promise<number> {
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const dao = DAO_ADDRESSES.token.toLowerCase();
   const PAGE_SIZE = 1000;
   let skip = 0;
   let count = 0;
@@ -627,7 +627,7 @@ export async function fetchActiveMembers(
   windowSize = 10,
   threshold = 5,
 ): Promise<ActiveMember[]> {
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const dao = DAO_ADDRESSES.token.toLowerCase();
 
   // Step 1: Fetch last N non-canceled proposals
   const proposalsData = await subgraphQuery<NonCanceledProposalsQuery>(

@@ -18,7 +18,7 @@ import {
   useDaoSettings,
   type StartTimeCalculation,
 } from "@/hooks/use-dao-settings";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { createDefaultSplitConfig } from "@/lib/splits-utils";
 import type { SplitRecipient } from "@/lib/splits-utils";
 import { DroposalDebugPanel } from "./droposal/DroposalDebugPanel";
@@ -51,7 +51,7 @@ export function DroposalForm({ index }: Props) {
     const currentRecipients = watch(`transactions.${index}.splitRecipients`);
 
     if (!currentRecipients || currentRecipients.length === 0) {
-      const defaultConfig = createDefaultSplitConfig(GNARS_ADDRESSES.treasury, address || "");
+      const defaultConfig = createDefaultSplitConfig(DAO_ADDRESSES.treasury, address || "");
       setValue(`transactions.${index}.splitRecipients` as const, defaultConfig.recipients);
       setValue(
         `transactions.${index}.splitDistributorFee` as const,
@@ -93,7 +93,7 @@ export function DroposalForm({ index }: Props) {
     const current = watch(`transactions.${index}.payoutAddress`);
     const isUsingSplit = watch(`transactions.${index}.useSplit`);
     if (!current && !isUsingSplit) {
-      setValue(`transactions.${index}.payoutAddress` as const, GNARS_ADDRESSES.treasury);
+      setValue(`transactions.${index}.payoutAddress` as const, DAO_ADDRESSES.treasury);
     }
   }, [index, setValue, watch]);
 
@@ -146,7 +146,7 @@ export function DroposalForm({ index }: Props) {
     if (checked) {
       setValue(`transactions.${index}.payoutAddress` as const, "");
     } else {
-      setValue(`transactions.${index}.payoutAddress` as const, GNARS_ADDRESSES.treasury);
+      setValue(`transactions.${index}.payoutAddress` as const, DAO_ADDRESSES.treasury);
     }
   };
 
@@ -290,7 +290,7 @@ export function DroposalForm({ index }: Props) {
                 <Label htmlFor="payoutAddress">Payout Address</Label>
                 <Input
                   id="payoutAddress"
-                  placeholder={`0x... or ENS name (defaults to ${GNARS_ADDRESSES.treasury.slice(0, 6)}...)`}
+                  placeholder={`0x... or ENS name (defaults to ${DAO_ADDRESSES.treasury.slice(0, 6)}...)`}
                   {...register(`transactions.${index}.payoutAddress` as const)}
                 />
                 {getErrorMessage("payoutAddress") && (

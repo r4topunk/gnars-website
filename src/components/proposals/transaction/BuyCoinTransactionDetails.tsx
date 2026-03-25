@@ -3,7 +3,7 @@
 import { ArrowLeftRight, AlertCircle } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { getETHDisplayProps } from "@/lib/utils";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { type TransactionFormValues } from "../schema";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,7 @@ export function BuyCoinTransactionDetails({ transaction }: BuyCoinTransactionDet
             <div>
               <p className="text-sm font-medium">DAO Treasury</p>
               <p className="text-xs text-muted-foreground font-mono">
-                {GNARS_ADDRESSES.treasury.slice(0, 6)}...{GNARS_ADDRESSES.treasury.slice(-4)}
+                {DAO_ADDRESSES.treasury.slice(0, 6)}...{DAO_ADDRESSES.treasury.slice(-4)}
               </p>
             </div>
           </div>

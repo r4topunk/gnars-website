@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { formatEther } from "viem";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 import { toOgImageUrl } from "@/lib/og-images";
 import { OG_SIZE, OG_COLORS, OG_FONTS, formatEthDisplay } from "@/lib/og-utils";
@@ -41,7 +41,7 @@ const LATEST_AUCTION_GQL = /* GraphQL */ `
 async function fetchLatestAuction(): Promise<AuctionData | null> {
   try {
     const data = await subgraphQuery<AuctionQuery>(LATEST_AUCTION_GQL, {
-      dao: GNARS_ADDRESSES.token.toLowerCase(),
+      dao: DAO_ADDRESSES.token.toLowerCase(),
     });
 
     return data.auctions?.[0] ?? null;

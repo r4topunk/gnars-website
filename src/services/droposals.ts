@@ -1,5 +1,5 @@
 import { formatEther } from "viem";
-import { DROPOSAL_TARGET, GNARS_ADDRESSES } from "@/lib/config";
+import { DROPOSAL_TARGET, DAO_ADDRESSES } from "@/lib/config";
 import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
 import { subgraphQuery } from "@/lib/subgraph";
@@ -126,7 +126,7 @@ function mapDroposalItems(proposals: ProposalData[]): DroposalListItem[] {
 }
 
 async function fetchDroposalProposalsPage(first: number, skip: number): Promise<ProposalData[]> {
-  const dao = GNARS_ADDRESSES.token.toLowerCase();
+  const dao = DAO_ADDRESSES.token.toLowerCase();
   const data = await subgraphQuery<ProposalsQuery>(PROPOSALS_GQL, {
     dao,
     // Filter by the droposal target address used in Gnars proposals

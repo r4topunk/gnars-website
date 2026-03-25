@@ -11,7 +11,7 @@ import { DroposalMintProvider } from "@/components/droposals/detail/DroposalMint
 import { DroposalSupporters } from "@/components/droposals/detail/DroposalSupporters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BASE_URL, GNARS_ADDRESSES } from "@/lib/config";
+import { BASE_URL, DAO_ADDRESSES } from "@/lib/config";
 import { decodeDroposalParams, formatDroposalForTable, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
 import { DROPOSALS_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
@@ -88,7 +88,7 @@ async function fetchDroposal(id: string): Promise<{
     const num = Number.parseInt(id, 10);
     if (!Number.isNaN(num)) {
       const byNumber = await subgraphQuery<ProposalsByNumberQuery>(PROPOSALS_BY_NUMBER_GQL, {
-        dao: GNARS_ADDRESSES.token.toLowerCase(),
+        dao: DAO_ADDRESSES.token.toLowerCase(),
         proposalNumber: num,
       });
       proposal = byNumber.proposals?.[0] ?? null;

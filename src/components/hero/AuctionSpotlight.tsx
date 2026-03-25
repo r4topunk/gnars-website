@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Clock, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
-import { parseEther, zeroAddress, encodeFunctionData, concat, toHex } from "viem";
+import { formatEther, parseEther, zeroAddress, encodeFunctionData, concat, toHex } from "viem";
 import { base } from "wagmi/chains";
 import { useDaoAuction } from "@buildeross/hooks";
 import { useAccount, useReadContract, useSimulateContract, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, useSendTransaction } from "wagmi";
@@ -16,7 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { getStatusConfig } from "@/components/proposals/utils";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import auctionAbi from "@/utils/abis/auctionAbi";
@@ -27,10 +27,20 @@ export function AuctionSpotlight() {
   const { address, isConnected, chain } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const { highestBid, highestBidder, endTime, startTime, tokenId, tokenUri } = useDaoAuction({
-    collectionAddress: GNARS_ADDRESSES.token,
-    auctionAddress: GNARS_ADDRESSES.auction,
+    collectionAddress: DAO_ADDRESSES.token,
+    auctionAddress: DAO_ADDRESSES.auction,
     chainId: CHAIN.id,
   });
+
+  // Read reserve price from auction contract
+  const { data: reservePriceWei } = useReadContract({
+    address: DAO_ADDRESSES.auction as `0x${string}`,
+    abi: auctionAbi,
+    functionName: "reservePrice",
+    chainId: CHAIN.id,
+    query: { staleTime: 60 * 1000 },
+  });
+  const reservePriceEth = reservePriceWei ? Number(formatEther(reservePriceWei)) : 0.01;
 
   const [isSettling, setIsSettling] = useState(false);
   const [settleTxHash, setSettleTxHash] = useState<`0x${string}` | undefined>();
@@ -39,12 +49,12 @@ export function AuctionSpotlight() {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
 
-  // Calculate minimum bid (1% increment)
+  // Calculate minimum bid: reserve price when no bids, otherwise 1% increment
   const minNextBidEth = useMemo(() => {
     const current = Number(highestBid ?? "0");
-    if (!Number.isFinite(current) || current <= 0) return 0.01;
+    if (!Number.isFinite(current) || current <= 0) return reservePriceEth;
     return Math.max(0, current * 1.01);
-  }, [highestBid]);
+  }, [highestBid, reservePriceEth]);
 
   const [bidAmount, setBidAmount] = useState(minNextBidEth.toFixed(4));
   const tokenName = tokenUri?.name;
@@ -113,7 +123,7 @@ export function AuctionSpotlight() {
 
   // Check if auctions are paused - cache for 30 seconds since this can change
   const { data: isPaused } = useReadContract({
-    address: GNARS_ADDRESSES.auction as `0x${string}`,
+    address: DAO_ADDRESSES.auction as `0x${string}`,
     abi: auctionAbi,
     functionName: "paused",
     chainId: CHAIN.id,
@@ -151,7 +161,7 @@ export function AuctionSpotlight() {
         const fullData = concat([baseCalldata, commentBytes]);
 
         await sendTransactionAsync({
-          to: GNARS_ADDRESSES.auction as `0x${string}`,
+          to: DAO_ADDRESSES.auction as `0x${string}`,
           data: fullData,
           value: bidAmountWei,
           chainId: base.id,
@@ -159,7 +169,7 @@ export function AuctionSpotlight() {
       } else {
         // Original path (no regression)
         await writeContractAsync({
-          address: GNARS_ADDRESSES.auction as `0x${string}`,
+          address: DAO_ADDRESSES.auction as `0x${string}`,
           abi: auctionAbi,
           functionName: "createBid",
           args: [BigInt(tokenId)],
@@ -185,7 +195,7 @@ export function AuctionSpotlight() {
   // Settlement simulation - only when auction has ended
   const isAuctionEnded = !isLive && timeLeft.total <= 0;
   const { data: settleData, error: settleError } = useSimulateContract({
-    address: GNARS_ADDRESSES.auction as `0x${string}`,
+    address: DAO_ADDRESSES.auction as `0x${string}`,
     abi: auctionAbi,
     functionName: isPaused ? "settleAuction" : "settleCurrentAndCreateNewAuction",
     chainId: CHAIN.id,
@@ -247,7 +257,7 @@ export function AuctionSpotlight() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="text-xl font-semibold">
-              {tokenName?.replace("Gnars", "Gnar") || (tokenId ? `Gnar #${tokenId.toString()}` : "Latest Auction")}
+              {tokenName || (tokenId ? `#${tokenId.toString()}` : "Latest Auction")}
             </div>
             <Badge className={`${color} text-xs`}>{badgeLabel}</Badge>
           </div>

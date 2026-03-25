@@ -10,7 +10,7 @@ import { Proposal } from "@/components/proposals/types";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 // import { useVotes } from "@/hooks/useVotes";
-// import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+// import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
 import { useProposalEta } from "@/hooks/useProposalEta";
@@ -36,8 +36,8 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
   // Check if user has voting power (at least 1 Gnar)
   // const { hasVotingPower, isLoading: votesLoading } = useVotes({
   //   chainId: CHAIN.id,
-  //   collectionAddress: GNARS_ADDRESSES.token,
-  //   governorAddress: GNARS_ADDRESSES.governor,
+  //   collectionAddress: DAO_ADDRESSES.token,
+  //   governorAddress: DAO_ADDRESSES.governor,
   //   signerAddress: address ?? undefined,
   // });
 

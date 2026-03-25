@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 import { cn } from "@/lib/utils";
 import { type ProposalFormValues } from "../../schema";
@@ -65,8 +65,8 @@ export function SendNFTsForm({ index }: Props) {
         // page through all results from the API
         for (;;) {
           const page = await subgraphQuery<TreasuryTokensQuery>(TREASURY_TOKENS_GQL, {
-            dao: GNARS_ADDRESSES.token.toLowerCase(),
-            owner: GNARS_ADDRESSES.treasury.toLowerCase(),
+            dao: DAO_ADDRESSES.token.toLowerCase(),
+            owner: DAO_ADDRESSES.treasury.toLowerCase(),
             first: pageSize,
             skip,
           });
@@ -126,8 +126,8 @@ export function SendNFTsForm({ index }: Props) {
   const handleSelect = (id: number) => {
     setSelectedTokenId(id);
     const token = tokens.find((t) => t.id === id);
-    setValue(`transactions.${index}.contractAddress` as const, GNARS_ADDRESSES.token);
-    setValue(`transactions.${index}.from` as const, GNARS_ADDRESSES.treasury);
+    setValue(`transactions.${index}.contractAddress` as const, DAO_ADDRESSES.token);
+    setValue(`transactions.${index}.from` as const, DAO_ADDRESSES.treasury);
     setValue(`transactions.${index}.tokenId` as const, String(id));
     if (token?.imageUrl) {
       setValue(`transactions.${index}.nftImage` as const, token.imageUrl);

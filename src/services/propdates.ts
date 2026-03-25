@@ -6,7 +6,7 @@ import {
   type PropDate,
 } from "@buildeross/sdk/eas";
 import { encodeAbiParameters, getAddress, isAddress, isHex, parseAbiParameters, zeroHash } from "viem";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { AttestationRequest, PropdateMessageType, PROPDATE_SCHEMA, PROPDATE_SCHEMA_UID } from "@/lib/eas";
 
 export type Propdate = PropDate;
@@ -41,12 +41,12 @@ async function withRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
 }
 
 async function fetchDaoPropdatesFromEas(): Promise<Propdate[]> {
-  if (!isAddress(GNARS_ADDRESSES.token)) return [];
+  if (!isAddress(DAO_ADDRESSES.token)) return [];
 
   const { attestations } = await withRetry(() =>
     EasSDK.connect(CHAIN.id).propdates({
       schemaId: PROPDATE_SCHEMA_UID,
-      recipient: getAddress(GNARS_ADDRESSES.token),
+      recipient: getAddress(DAO_ADDRESSES.token),
     }),
   );
 
@@ -153,11 +153,11 @@ export async function listPropdates(proposalId: string): Promise<Propdate[]> {
     if (!proposalId || !isHex(proposalId)) {
       return [];
     }
-    if (!isAddress(GNARS_ADDRESSES.token)) {
+    if (!isAddress(DAO_ADDRESSES.token)) {
       return [];
     }
 
-    const propdates = await getPropDates(GNARS_ADDRESSES.token, CHAIN.id, proposalId);
+    const propdates = await getPropDates(DAO_ADDRESSES.token, CHAIN.id, proposalId);
     return propdates;
   } catch (err) {
     console.error("[propdates:listPropdates] fetch failed", {
@@ -267,7 +267,7 @@ export async function createPropdate(
   return {
     schema: PROPDATE_SCHEMA_UID,
     data: {
-      recipient: getAddress(GNARS_ADDRESSES.token),
+      recipient: getAddress(DAO_ADDRESSES.token),
       expirationTime: 0n,
       revocable: true,
       refUID: zeroHash,

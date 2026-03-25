@@ -2,7 +2,7 @@
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 
 interface CoinPurchasePreviewProps {
   purchaseData: {
@@ -47,11 +47,11 @@ export function CoinPurchasePreview({ purchaseData }: CoinPurchasePreviewProps) 
           </div>
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Sender (Treasury):</dt>
-            <dd className="font-mono text-xs">{GNARS_ADDRESSES.treasury}</dd>
+            <dd className="font-mono text-xs">{DAO_ADDRESSES.treasury}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Recipient (Treasury):</dt>
-            <dd className="font-mono text-xs">{GNARS_ADDRESSES.treasury}</dd>
+            <dd className="font-mono text-xs">{DAO_ADDRESSES.treasury}</dd>
           </div>
         </dl>
       </div>

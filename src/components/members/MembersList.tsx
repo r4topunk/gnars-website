@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { type MemberListItem } from "@/services/members";
 
 function FarcasterIcon({ className }: { className?: string }) {
@@ -291,7 +291,7 @@ export function MembersList({
               filteredMembers.slice(0, visibleCount).map((member) => (
                 <TableRow key={member.owner}>
                   <TableCell>
-                    {member.owner.toLowerCase() === GNARS_ADDRESSES.treasury.toLowerCase() ? (
+                    {member.owner.toLowerCase() === DAO_ADDRESSES.treasury.toLowerCase() ? (
                       <Link
                         href={`/members/${member.owner}`}
                         className="hover:underline font-medium"

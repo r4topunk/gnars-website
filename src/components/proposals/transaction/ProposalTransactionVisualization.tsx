@@ -15,7 +15,7 @@ import { RecipientBundleCard, getRecipient } from "./RecipientBundleCard";
 import { type TransactionFormValues } from "../schema";
 import {
   DROPOSAL_TARGET,
-  GNARS_ADDRESSES,
+  DAO_ADDRESSES,
   GNARS_ADDRESSES_ETH,
   TREASURY_TOKEN_ALLOWLIST,
 } from "@/lib/config";
@@ -161,7 +161,7 @@ function reconstructCalldata(target: string, calldata: Hex): Hex | null {
 
   // Target is an NFT contract + 96 bytes = transferFrom(address,address,uint256)
   const isNftContract =
-    normalizedTarget === GNARS_ADDRESSES.token.toLowerCase() ||
+    normalizedTarget === DAO_ADDRESSES.token.toLowerCase() ||
     normalizedTarget === GNARS_ADDRESSES_ETH.token.toLowerCase();
 
   if (isNftContract && paramBytes === 96) {
@@ -214,7 +214,7 @@ function determineTransactionType(
 
   if (selector === "0x23b872dd" || selector === "0x42842e0e" || selector === "0xb88d4fde") {
     if (
-      normalizedTarget === GNARS_ADDRESSES.token.toLowerCase() ||
+      normalizedTarget === DAO_ADDRESSES.token.toLowerCase() ||
       normalizedTarget === GNARS_ADDRESSES_ETH.token.toLowerCase()
     )
       return "send-nfts";
@@ -228,7 +228,7 @@ function determineTransactionType(
     return "send-tokens";
   }
   if (methodName === "safetransferfrom" || methodName === "transferfrom") {
-    if (normalizedTarget === GNARS_ADDRESSES.token.toLowerCase()) return "send-nfts";
+    if (normalizedTarget === DAO_ADDRESSES.token.toLowerCase()) return "send-nfts";
     return "custom";
   }
 

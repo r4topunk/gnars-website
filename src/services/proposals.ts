@@ -6,7 +6,7 @@ import {
   type Proposal as SdkProposal,
 } from "@buildeross/sdk";
 import type { Proposal } from "@/components/proposals/types";
-import { CHAIN, GNARS_ADDRESSES, SUBGRAPH } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES, SUBGRAPH } from "@/lib/config";
 import { serverPublicClient } from "@/lib/rpc";
 import { getProposalStatus } from "@/lib/schemas/proposals";
 
@@ -65,7 +65,7 @@ async function fetchProposalState(
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function formatWithState(raw: any): Promise<SdkProposal> {
-  const governorAddress = raw.dao?.governorAddress ?? GNARS_ADDRESSES.governor;
+  const governorAddress = raw.dao?.governorAddress ?? DAO_ADDRESSES.governor;
   const state = await fetchProposalState(governorAddress, raw.proposalId);
 
   return {
@@ -138,7 +138,7 @@ function transformProposal(p: SdkProposal): Proposal {
 
 export const listProposals = cache(async (limit = 200, page = 0): Promise<Proposal[]> => {
   const data = await SubgraphSDK.connect(CHAIN.id).proposals({
-    where: { dao: GNARS_ADDRESSES.token.toLowerCase() },
+    where: { dao: DAO_ADDRESSES.token.toLowerCase() },
     first: limit,
     skip: page * limit,
   });
@@ -158,7 +158,7 @@ export const getProposalByIdOrNumber = cache(
       ? { proposalId: idOrNumber.toLowerCase() }
       : {
           proposalNumber: Number.parseInt(idOrNumber, 10),
-          dao: GNARS_ADDRESSES.token.toLowerCase(),
+          dao: DAO_ADDRESSES.token.toLowerCase(),
         };
 
     const data = await SubgraphSDK.connect(CHAIN.id).proposals({

@@ -1,6 +1,6 @@
 import { getProposals } from "@buildeross/sdk";
 import { useQuery } from "@tanstack/react-query";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 
 export type ProposalWithVotes = {
   proposalNumber: number;
@@ -29,7 +29,7 @@ type MinimalSdkProposal = {
 async function fetchRecentProposalsWithVoters(limit: number): Promise<ProposalWithVotes[]> {
   // Fetch extra proposals to account for cancelled ones being filtered out
   const fetchLimit = Math.ceil(limit * 1.5);
-  const { proposals } = await getProposals(CHAIN.id, GNARS_ADDRESSES.token, fetchLimit);
+  const { proposals } = await getProposals(CHAIN.id, DAO_ADDRESSES.token, fetchLimit);
   const list = (proposals as MinimalSdkProposal[] | undefined) ?? [];
 
   return list

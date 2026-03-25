@@ -12,10 +12,10 @@ import { base } from "wagmi/chains";
 import { toast } from "sonner";
 import { parseEther } from "viem";
 import { zoraNftMintAbi, ZORA_PROTOCOL_REWARD } from "@/utils/abis/zoraNftMintAbi";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 
 // Treasury receives referral rewards
-const MINT_REFERRAL = GNARS_ADDRESSES.treasury as `0x${string}`;
+const MINT_REFERRAL = DAO_ADDRESSES.treasury as `0x${string}`;
 
 // Toast ID for managing loading states
 const MINT_TOAST_ID = "mint-transaction";

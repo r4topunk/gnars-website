@@ -10,19 +10,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 
 const contracts = [
-  { name: "Token (NFT)", address: GNARS_ADDRESSES.token, description: "Gnars NFT contract" },
+  { name: "Token (NFT)", address: DAO_ADDRESSES.token, description: "Gnars NFT contract" },
   {
     name: "$GNARS (ERC20)",
-    address: GNARS_ADDRESSES.gnarsErc20,
+    address: DAO_ADDRESSES.gnarsErc20,
     description: "$GNARS ERC20 token contract",
   },
-  { name: "Auction", address: GNARS_ADDRESSES.auction, description: "Auction house contract" },
-  { name: "Governor", address: GNARS_ADDRESSES.governor, description: "Governance contract" },
-  { name: "Treasury", address: GNARS_ADDRESSES.treasury, description: "Treasury contract" },
-  { name: "Metadata", address: GNARS_ADDRESSES.metadata, description: "Metadata contract" },
+  { name: "Auction", address: DAO_ADDRESSES.auction, description: "Auction house contract" },
+  { name: "Governor", address: DAO_ADDRESSES.governor, description: "Governance contract" },
+  { name: "Treasury", address: DAO_ADDRESSES.treasury, description: "Treasury contract" },
+  { name: "Metadata", address: DAO_ADDRESSES.metadata, description: "Metadata contract" },
 ];
 
 export function ContractsList() {

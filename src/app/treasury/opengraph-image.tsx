@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { headers } from "next/headers";
 import { formatEther } from "viem";
-import { GNARS_ADDRESSES, TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
+import { DAO_ADDRESSES, TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 import { OG_SIZE, OG_COLORS, OG_FONTS, formatEthDisplay, formatUsdDisplay } from "@/lib/og-utils";
 
 export const alt = "Gnars DAO Treasury";
@@ -40,14 +40,14 @@ async function fetchTreasurySnapshot(): Promise<{ ethBalance: string; usdTotal: 
         method: "POST",
         body: JSON.stringify({
           method: "eth_getBalance",
-          params: [GNARS_ADDRESSES.treasury, "latest"],
+          params: [DAO_ADDRESSES.treasury, "latest"],
         }),
       }),
       fetchJson<AlchemyTokenResponse>(`${baseUrl}/api/alchemy`, {
         method: "POST",
         body: JSON.stringify({
           method: "alchemy_getTokenBalances",
-          params: [GNARS_ADDRESSES.treasury, TREASURY_TOKEN_ADDRESSES.filter(Boolean)],
+          params: [DAO_ADDRESSES.treasury, TREASURY_TOKEN_ADDRESSES.filter(Boolean)],
         }),
       }),
       fetchJson<PriceResponse>(`${baseUrl}/api/prices`, {

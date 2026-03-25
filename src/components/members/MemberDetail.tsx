@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProfileCoins } from "@/hooks/use-profile-coins";
 import { useZoraProfile } from "@/hooks/use-zora-profile";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { resolveENS } from "@/lib/ens";
 import { getProposalStatus } from "@/lib/schemas/proposals";
 import type { FarcasterProfile } from "@/services/farcaster";
@@ -127,7 +127,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
         // Load proposals using the same SDK mapping as proposals page, then filter by proposer
         const { proposals: sdkProposals } = await getProposals(
           CHAIN.id,
-          GNARS_ADDRESSES.token,
+          DAO_ADDRESSES.token,
           200,
         );
         const mapped: UiProposal[] = ((sdkProposals as SdkProposal[] | undefined) ?? [])

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { formatEther } from "viem";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { subgraphQuery } from "@/lib/subgraph";
 import { toOgImageUrl } from "@/lib/og-images";
@@ -76,7 +76,7 @@ async function fetchDroposal(id: string): Promise<{
     const num = Number.parseInt(id, 10);
     if (!Number.isNaN(num)) {
       const byNumber = await subgraphQuery<{ proposals: ProposalData[] }>(PROPOSALS_BY_NUMBER_GQL, {
-        dao: GNARS_ADDRESSES.token.toLowerCase(),
+        dao: DAO_ADDRESSES.token.toLowerCase(),
         proposalNumber: num,
       });
       proposal = byNumber.proposals?.[0] ?? null;
