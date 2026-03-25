@@ -13,22 +13,22 @@ export default function BountiesPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">POIDH Bounties</h1>
-          <p className="text-gray-600">
+          <h1 className="text-4xl font-bold mb-2 text-foreground">POIDH Bounties</h1>
+          <p className="text-muted-foreground">
             Gnarly challenges from the action sports community on Base & Arbitrum
           </p>
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-4 mb-8 border-b border-gray-200">
+        <div className="flex gap-4 mb-8 border-b border-border">
           {(['open', 'closed', 'all'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setStatus(tab)}
               className={`pb-2 px-4 font-medium transition-colors ${
                 status === tab
-                  ? 'border-b-2 border-black text-black'
-                  : 'text-gray-500 hover:text-black'
+                  ? 'border-b-2 border-primary text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -38,7 +38,7 @@ export default function BountiesPage() {
 
         {/* Info Bar */}
         {data && !isLoading && (
-          <div className="mb-6 text-sm text-gray-500">
+          <div className="mb-6 text-sm text-muted-foreground">
             Found {data.total} {status === 'all' ? '' : status} bounties
           </div>
         )}
@@ -51,9 +51,9 @@ export default function BountiesPage() {
         />
 
         {/* Footer Info */}
-        <div className="mt-12 p-6 bg-gray-50 rounded-lg">
-          <h2 className="font-bold mb-2">What are POIDH Bounties?</h2>
-          <p className="text-sm text-gray-600 mb-4">
+        <div className="mt-12 p-6 bg-muted rounded-lg border border-border">
+          <h2 className="font-bold mb-2 text-foreground">What are POIDH Bounties?</h2>
+          <p className="text-sm text-muted-foreground mb-4">
             POIDH (Pics Or It Didn&apos;t Happen) is a decentralized bounty platform where 
             anyone can create challenges and reward proof of completion with ETH.
           </p>
@@ -62,7 +62,7 @@ export default function BountiesPage() {
               href="https://poidh.xyz" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-primary hover:underline"
             >
               Visit POIDH.xyz →
             </a>
@@ -70,7 +70,7 @@ export default function BountiesPage() {
               href="https://docs.poidh.xyz" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-primary hover:underline"
             >
               Read Docs →
             </a>

@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
-    const bounties: PoidhBounty[] = data.result?.data?.json?.bounties || [];
+    const bounties: PoidhBounty[] = data.result?.data?.json?.items || [];
 
     // Filter: supported chains + optionally gnars keywords
     const supportedChainIds: number[] = Object.values(SUPPORTED_CHAINS);
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
       if (filterGnarly) {
         const keywordMatch = matchesGnarsKeywords(
-          `${bounty.name} ${bounty.description}`
+          `${bounty.title} ${bounty.description}`
         );
         return keywordMatch;
       }

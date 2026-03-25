@@ -13,21 +13,21 @@ export function BountyCard({ bounty }: BountyCardProps) {
 
   return (
     <Link href={`/community/bounties/${bounty.chainId}/${bounty.id}`}>
-      <div className="border border-gray-200 rounded-lg p-4 hover:border-black transition-colors cursor-pointer">
+      <div className="border border-border rounded-lg p-4 hover:border-primary transition-colors cursor-pointer bg-card">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-bold text-lg line-clamp-2">{bounty.name}</h3>
-          <span className="text-xs bg-gray-100 px-2 py-1 rounded">{chainName}</span>
+          <h3 className="font-bold text-lg line-clamp-2 text-foreground">{bounty.title}</h3>
+          <span className="text-xs bg-muted px-2 py-1 rounded text-muted-foreground">{chainName}</span>
         </div>
         
-        <p className="text-sm text-gray-600 line-clamp-3 mb-3">
+        <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
           {bounty.description}
         </p>
         
         <div className="flex justify-between items-center">
-          <span className="font-bold text-xl">
+          <span className="font-bold text-xl text-foreground">
             {parseFloat(amountEth).toFixed(4)} ETH
           </span>
-          <span className="text-sm text-blue-600">View Details →</span>
+          <span className="text-sm text-primary">View Details →</span>
         </div>
         
         {bounty.isOpenBounty && (

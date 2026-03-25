@@ -156,6 +156,13 @@ const navigationItems = [
         badge: "NEW!",
       },
       {
+        title: "Bounties",
+        href: "/community/bounties",
+        icon: Gift,
+        description: "Gnarly challenges from the action sports community",
+        badge: "NEW!",
+      },
+      {
         title: "divider",
         label: "Beta",
       },
