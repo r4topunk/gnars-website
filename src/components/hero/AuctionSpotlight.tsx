@@ -16,7 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { getStatusConfig } from "@/components/proposals/utils";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import auctionAbi from "@/utils/abis/auctionAbi";
@@ -27,8 +27,8 @@ export function AuctionSpotlight() {
   const { address, isConnected, chain } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const { highestBid, highestBidder, endTime, startTime, tokenId, tokenUri } = useDaoAuction({
-    collectionAddress: GNARS_ADDRESSES.token,
-    auctionAddress: GNARS_ADDRESSES.auction,
+    collectionAddress: DAO_ADDRESSES.token,
+    auctionAddress: DAO_ADDRESSES.auction,
     chainId: CHAIN.id,
   });
 
@@ -113,7 +113,7 @@ export function AuctionSpotlight() {
 
   // Check if auctions are paused - cache for 30 seconds since this can change
   const { data: isPaused } = useReadContract({
-    address: GNARS_ADDRESSES.auction as `0x${string}`,
+    address: DAO_ADDRESSES.auction as `0x${string}`,
     abi: auctionAbi,
     functionName: "paused",
     chainId: CHAIN.id,
@@ -151,7 +151,7 @@ export function AuctionSpotlight() {
         const fullData = concat([baseCalldata, commentBytes]);
 
         await sendTransactionAsync({
-          to: GNARS_ADDRESSES.auction as `0x${string}`,
+          to: DAO_ADDRESSES.auction as `0x${string}`,
           data: fullData,
           value: bidAmountWei,
           chainId: base.id,
@@ -159,7 +159,7 @@ export function AuctionSpotlight() {
       } else {
         // Original path (no regression)
         await writeContractAsync({
-          address: GNARS_ADDRESSES.auction as `0x${string}`,
+          address: DAO_ADDRESSES.auction as `0x${string}`,
           abi: auctionAbi,
           functionName: "createBid",
           args: [BigInt(tokenId)],
@@ -185,7 +185,7 @@ export function AuctionSpotlight() {
   // Settlement simulation - only when auction has ended
   const isAuctionEnded = !isLive && timeLeft.total <= 0;
   const { data: settleData, error: settleError } = useSimulateContract({
-    address: GNARS_ADDRESSES.auction as `0x${string}`,
+    address: DAO_ADDRESSES.auction as `0x${string}`,
     abi: auctionAbi,
     functionName: isPaused ? "settleAuction" : "settleCurrentAndCreateNewAuction",
     chainId: CHAIN.id,
@@ -247,7 +247,7 @@ export function AuctionSpotlight() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="text-xl font-semibold">
-              {tokenName?.replace("Gnars", "Gnar") || (tokenId ? `Gnar #${tokenId.toString()}` : "Latest Auction")}
+              {tokenName || (tokenId ? `#${tokenId.toString()}` : "Latest Auction")}
             </div>
             <Badge className={`${color} text-xs`}>{badgeLabel}</Badge>
           </div>

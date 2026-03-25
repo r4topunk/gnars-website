@@ -2,7 +2,7 @@
 
 import { useReadContract } from "wagmi";
 import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 
 /**
  * Hook to read the ETA (execution timestamp) for a queued proposal
@@ -10,7 +10,7 @@ import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
  */
 export function useProposalEta(proposalId?: string) {
   const { data: eta, isLoading, isError } = useReadContract({
-    address: GNARS_ADDRESSES.governor as `0x${string}`,
+    address: DAO_ADDRESSES.governor as `0x${string}`,
     abi: gnarsGovernorAbi,
     functionName: "proposalEta",
     args: proposalId ? [proposalId as `0x${string}`] : undefined,

@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePropdates } from "@/hooks/use-propdates";
 import { useVotes } from "@/hooks/useVotes";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
 
 interface ProposalDetailProps {
@@ -173,8 +173,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     delegatedTo,
   } = useVotes({
     chainId: CHAIN.id,
-    collectionAddress: GNARS_ADDRESSES.token,
-    governorAddress: GNARS_ADDRESSES.governor,
+    collectionAddress: DAO_ADDRESSES.token,
+    governorAddress: DAO_ADDRESSES.governor,
     signerAddress: address ?? undefined,
     proposalId: proposal.proposalId as `0x${string}`,
     snapshotBlock: proposal.snapshotBlock ? BigInt(proposal.snapshotBlock) : undefined,

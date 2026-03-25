@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Address, Hex } from "viem";
 import { base } from "wagmi/chains";
 import { useAccount, useSimulateContract, useWaitForTransactionReceipt, useWriteContract, useSwitchChain } from "wagmi";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
@@ -25,7 +25,7 @@ export interface UseCastVoteArgs {
 export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteArgs) {
   const { address, chain, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
-  const governorAddress = GNARS_ADDRESSES.governor as Address;
+  const governorAddress = DAO_ADDRESSES.governor as Address;
 
   const isReady = Boolean(proposalId) && isConnected && Boolean(address);
 

@@ -15,7 +15,7 @@ import {
   useWriteContract,
 } from "wagmi";
 import { useMiniApp } from "@/components/miniapp/MiniAppProvider";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { ZORA_PROTOCOL_REWARD, zoraNftMintAbi } from "@/utils/abis/zoraNftMintAbi";
 import { TVControls } from "./TVControls";
 import { TVHeader } from "./TVHeader";
@@ -27,7 +27,7 @@ import { usePreloadTrigger, useTVFeed } from "./useTVFeed";
 import { useVideoPreloader, useRenderBuffer } from "./useVideoPreloader";
 
 // Treasury receives referral rewards
-const MINT_REFERRAL = GNARS_ADDRESSES.treasury as `0x${string}`;
+const MINT_REFERRAL = DAO_ADDRESSES.treasury as `0x${string}`;
 
 interface GnarsTVFeedProps {
   priorityCoinAddress?: string;

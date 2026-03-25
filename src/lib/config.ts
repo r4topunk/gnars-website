@@ -7,15 +7,13 @@ export const CHAIN = {
   name: "base",
 } as const;
 
-export const GNARS_ADDRESSES = {
-  token: "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17",
-  auction: "0x494eaa55ecf6310658b8fc004b0888dcb698097f",
-  // Hacker Dao Governor
-  // governor: "0x7c4c33efe412f06f83278acafc16b435be904b03",
-  // Gnars Governor  
-  governor: "0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c",
-  treasury: "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88",
-  metadata: "0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58",
+// Core Builder DAO addresses — override via env vars to deploy for a different DAO
+export const DAO_ADDRESSES = {
+  token: (process.env.NEXT_PUBLIC_TOKEN_ADDRESS || "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17") as `0x${string}`,
+  auction: (process.env.NEXT_PUBLIC_AUCTION_ADDRESS || "0x494eaa55ecf6310658b8fc004b0888dcb698097f") as `0x${string}`,
+  governor: (process.env.NEXT_PUBLIC_GOVERNOR_ADDRESS || "0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c") as `0x${string}`,
+  treasury: (process.env.NEXT_PUBLIC_TREASURY_ADDRESS || "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88") as `0x${string}`,
+  metadata: (process.env.NEXT_PUBLIC_METADATA_ADDRESS || "0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58") as `0x${string}`,
   gnarsErc20: "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b", // $GNARS ERC20 token
   lootbox: "0xc934804520ccc172909a093bae5bb07188e77cb2", // Gnars Lootbox V4
   lootboxTestNft: "0x6940100c44d214cd1570b394a1c42949c3eb820d", // HackerDAO Test NFT
@@ -44,7 +42,7 @@ export const GNARS_CREATOR_ALLOWLIST: readonly string[] = [
 export const ZORA_FACTORY_ADDRESS = "0x777777751622c0d3258f214F9DF38E35BF45baF3" as const;
 
 // Platform referrer for Zora coin creation (Gnars DAO treasury receives referral rewards)
-export const PLATFORM_REFERRER = GNARS_ADDRESSES.treasury;
+export const PLATFORM_REFERRER = DAO_ADDRESSES.treasury;
 
 // Droposal target (the contract used by Gnars droposals on Base)
 export const DROPOSAL_TARGET = {

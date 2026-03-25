@@ -1,5 +1,5 @@
 import { formatEther } from "viem";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 
 export type PastAuction = {
@@ -62,7 +62,7 @@ const AUCTIONS_GQL = /* GraphQL */ `
 
 export async function fetchRecentAuctions(limit: number): Promise<PastAuction[]> {
   const where = {
-    dao: GNARS_ADDRESSES.token.toLowerCase(),
+    dao: DAO_ADDRESSES.token.toLowerCase(),
     settled: true,
     bidCount_gt: 0,
   };
@@ -100,7 +100,7 @@ export async function fetchRecentAuctions(limit: number): Promise<PastAuction[]>
 
 export async function fetchAllAuctions(limit?: number): Promise<PastAuction[]> {
   const where = {
-    dao: GNARS_ADDRESSES.token.toLowerCase(),
+    dao: DAO_ADDRESSES.token.toLowerCase(),
     settled: true,
   };
 

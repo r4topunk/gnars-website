@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { cn, getETHDisplayProps } from "@/lib/utils";
 import { subgraphQuery } from "@/lib/subgraph";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { type TransactionFormValues } from "../schema";
 
 // --- Asset extraction helpers ---
@@ -114,7 +114,7 @@ function useNftImages(nftAssets: NftAsset[]) {
 
   const allTokenIds = nftAssets.flatMap((a) => a.tokenIds);
   const hasGnarsNfts = nftAssets.some(
-    (a) => a.contractAddress === GNARS_ADDRESSES.token.toLowerCase(),
+    (a) => a.contractAddress === DAO_ADDRESSES.token.toLowerCase(),
   );
 
   useEffect(() => {
@@ -122,7 +122,7 @@ function useNftImages(nftAssets: NftAsset[]) {
     let ignore = false;
 
     subgraphQuery<TokenImageQuery>(TOKEN_IMAGES_GQL, {
-      dao: GNARS_ADDRESSES.token.toLowerCase(),
+      dao: DAO_ADDRESSES.token.toLowerCase(),
       tokenIds: allTokenIds,
     })
       .then((data) => {
@@ -317,7 +317,7 @@ export function RecipientBundleCard({
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
           from{" "}
-          {from.toLowerCase() === GNARS_ADDRESSES.treasury.toLowerCase()
+          {from.toLowerCase() === DAO_ADDRESSES.treasury.toLowerCase()
             ? "DAO Treasury"
             : `${from.slice(0, 6)}...${from.slice(-4)}`}
         </p>

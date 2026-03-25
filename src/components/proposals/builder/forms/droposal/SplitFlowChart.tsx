@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useAccount } from "wagmi";
 import { useEnsNameAndAvatar } from "@/hooks/use-ens";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import type { SplitRecipient } from "@/lib/splits-utils";
 
 interface SplitFlowChartProps {
@@ -34,7 +34,7 @@ function RecipientNode({
   const { address: connectedAddress } = useAccount();
   const { ensName, ensAvatar } = useEnsNameAndAvatar(address);
 
-  const isGnarsTreasury = address.toLowerCase() === GNARS_ADDRESSES.treasury.toLowerCase();
+  const isGnarsTreasury = address.toLowerCase() === DAO_ADDRESSES.treasury.toLowerCase();
   const isConnectedUser = address.toLowerCase() === connectedAddress?.toLowerCase();
 
   const displayName = ensName || shortenAddress(address);
@@ -218,7 +218,7 @@ export function SplitFlowChart({ recipients }: SplitFlowChartProps) {
 
             // Check if this is Gnars treasury
             const isGnarsTreasury =
-              recipient.address.toLowerCase() === GNARS_ADDRESSES.treasury.toLowerCase();
+              recipient.address.toLowerCase() === DAO_ADDRESSES.treasury.toLowerCase();
 
             return (
               <path

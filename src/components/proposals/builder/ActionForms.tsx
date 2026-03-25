@@ -6,7 +6,7 @@ import { Address, formatEther, parseEther } from "viem";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { createTradeCall, setApiKey, type TradeParameters } from "@zoralabs/coins-sdk";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -93,8 +93,8 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
         buy: { type: "erc20", address: tx.coinAddress as Address },
         amountIn: parseEther(tx.ethAmount),
         slippage: parseFloat(tx.slippage) / 100,
-        sender: GNARS_ADDRESSES.treasury,
-        recipient: GNARS_ADDRESSES.treasury,
+        sender: DAO_ADDRESSES.treasury,
+        recipient: DAO_ADDRESSES.treasury,
       };
 
       // Generate trade call

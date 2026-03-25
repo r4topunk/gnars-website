@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { BASE_URL } from "@/lib/config";
+import { BASE_URL, DAO_ADDRESSES } from "@/lib/config";
 
 // Lightweight monthly treasury performance endpoint
 // - Returns one datapoint per month (including current month up to now)
@@ -22,8 +22,8 @@ const USDC_BASE = (
   process.env.USDC_BASE || "0x833589fCD6EDb6E08f4c7C32D4f71b54bdA02913"
 ).toLowerCase();
 
-// Gnars treasury by default; override with ?address=
-const DEFAULT_TREASURY = "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88".toLowerCase();
+// DAO treasury by default; override with ?address=
+const DEFAULT_TREASURY = DAO_ADDRESSES.treasury.toLowerCase();
 
 function monthEndsUtc(nMonths: number, anchor?: Date): Date[] {
   const now = anchor ? new Date(anchor) : new Date();

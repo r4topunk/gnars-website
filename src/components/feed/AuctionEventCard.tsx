@@ -1,18 +1,18 @@
 /**
  * AuctionEventCard - Auction event display
- * 
+ *
  * Displays auction-related events including bids, settlements, and alerts.
  */
 
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { Palette, DollarSign, Trophy, Clock, Radio } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { TokenImage } from "@/components/ui/token-image";
 import { cn } from "@/lib/utils";
 import { formatETH } from "@/lib/utils";
 import type { FeedEvent } from "@/lib/types/feed-events";
@@ -25,9 +25,9 @@ export interface AuctionEventCardProps {
 
 export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEventCardProps) {
   // Removed: timeAgo is redundant since we have day headers
-  
+
   const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
-  
+
   // Determine if auction is currently live
   const now = Math.floor(Date.now() / 1000);
   const isLive = event.type === "AuctionCreated" && event.endTime > now;
@@ -44,7 +44,7 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
             {sequenceNumber}
           </div>
         )}
-        
+
         <div className="flex items-start gap-3">
           {/* Event icon */}
           <div className={cn(
@@ -62,7 +62,7 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-sm font-medium">{title}</p>
                   {event.type === "AuctionBid" && (
-                    <span className="text-xs text-muted-foreground">on Gnar #{event.tokenId}</span>
+                    <span className="text-xs text-muted-foreground">on #{event.tokenId}</span>
                   )}
                 </div>
               </div>
@@ -91,7 +91,7 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
             {/* Action button */}
             {actionText && (
               <div className="pt-1">
-                <Link 
+                <Link
                   href={getEventLink(event)}
                   className="text-xs text-primary hover:underline font-medium"
                 >
@@ -111,44 +111,35 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
 function AuctionCreatedContent({ event }: { event: Extract<FeedEvent, { type: "AuctionCreated" }> }) {
   const now = Math.floor(Date.now() / 1000);
   const hasEnded = event.endTime <= now;
-  
+
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold">Gnar #{event.tokenId}</p>
+      <p className="text-sm font-semibold">#{event.tokenId}</p>
       <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-        {hasEnded 
+        {hasEnded
           ? `Ended ${formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}`
           : `Ends ${formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}`
         }
       </p>
       {event.imageUrl && (
-        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted relative">
-          <Image
-            src={event.imageUrl}
-            alt={`Gnar #${event.tokenId}`}
-            fill
-            className="object-cover"
-            sizes="96px"
-            unoptimized
-          />
-        </div>
+        <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />
       )}
     </div>
   );
 }
 
-function AuctionBidContent({ event, compact }: { 
-  event: Extract<FeedEvent, { type: "AuctionBid" }>; 
+function AuctionBidContent({ event, compact }: {
+  event: Extract<FeedEvent, { type: "AuctionBid" }>;
   compact?: boolean;
 }) {
-  const increase = event.previousBid 
+  const increase = event.previousBid
     ? ((parseFloat(event.amount) - parseFloat(event.previousBid)) / parseFloat(event.previousBid) * 100).toFixed(1)
     : null;
 
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 flex-wrap">
-        <AddressDisplay 
+        <AddressDisplay
           address={event.bidder}
           variant="compact"
           showAvatar={true}
@@ -167,20 +158,11 @@ function AuctionBidContent({ event, compact }: {
       </div>
       {event.extended && !compact && (
         <Badge variant="secondary" className="text-xs">
-          ⏱️ Auction Extended
+          Auction Extended
         </Badge>
       )}
       {event.imageUrl && (
-        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted relative">
-          <Image
-            src={event.imageUrl}
-            alt={`Gnar #${event.tokenId}`}
-            fill
-            className="object-cover"
-            sizes="96px"
-            unoptimized
-          />
-        </div>
+        <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />
       )}
     </div>
   );
@@ -188,16 +170,16 @@ function AuctionBidContent({ event, compact }: {
 
 function AuctionSettledContent({ event }: { event: Extract<FeedEvent, { type: "AuctionSettled" }> }) {
   const isZeroAddress = !event.winner || event.winner === "0x0000000000000000000000000000000000000000" || event.winner === "0x0";
-  
+
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold">Gnar #{event.tokenId}</p>
+      <p className="text-sm font-semibold">#{event.tokenId}</p>
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs text-muted-foreground">won by</span>
         {isZeroAddress ? (
           <span className="text-xs text-muted-foreground">Unknown</span>
         ) : (
-          <AddressDisplay 
+          <AddressDisplay
             address={event.winner}
             variant="compact"
             showAvatar={true}
@@ -213,16 +195,7 @@ function AuctionSettledContent({ event }: { event: Extract<FeedEvent, { type: "A
         </span>
       </div>
       {event.imageUrl && (
-        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted relative">
-          <Image
-            src={event.imageUrl}
-            alt={`Gnar #${event.tokenId}`}
-            fill
-            className="object-cover"
-            sizes="96px"
-            unoptimized
-          />
-        </div>
+        <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />
       )}
     </div>
   );
@@ -231,7 +204,7 @@ function AuctionSettledContent({ event }: { event: Extract<FeedEvent, { type: "A
 function AuctionEndingSoonContent({ event }: { event: Extract<FeedEvent, { type: "AuctionEndingSoon" }> }) {
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold">Gnar #{event.tokenId}</p>
+      <p className="text-sm font-semibold">#{event.tokenId}</p>
       <div className="flex items-center gap-1.5">
         <Badge variant="destructive" className="text-xs">
           {event.minutesLeft}m left!
@@ -241,16 +214,7 @@ function AuctionEndingSoonContent({ event }: { event: Extract<FeedEvent, { type:
         </span>
       </div>
       {event.imageUrl && (
-        <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted relative">
-          <Image
-            src={event.imageUrl}
-            alt={`Gnar #${event.tokenId}`}
-            fill
-            className="object-cover"
-            sizes="96px"
-            unoptimized
-          />
-        </div>
+        <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />
       )}
     </div>
   );
@@ -302,7 +266,6 @@ function getEventLink(event: Extract<FeedEvent, { category: "auction" }>): strin
     const hasEnded = event.endTime <= now;
     return hasEnded ? "/auctions" : "/";
   }
-  
+
   return "/auctions";
 }
-

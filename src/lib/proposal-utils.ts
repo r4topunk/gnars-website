@@ -1,6 +1,6 @@
 import { encodeFunctionData, parseEther, parseUnits } from "viem";
 import { TransactionFormValues } from "@/components/proposals/schema";
-import { TREASURY_TOKEN_ALLOWLIST, DROPOSAL_DEFAULT_MINT_LIMIT, DROPOSAL_TARGET, GNARS_ADDRESSES } from "@/lib/config";
+import { TREASURY_TOKEN_ALLOWLIST, DROPOSAL_DEFAULT_MINT_LIMIT, DROPOSAL_TARGET, DAO_ADDRESSES } from "@/lib/config";
 
 export function encodeTransactions(transactions: TransactionFormValues[]) {
   const targets: `0x${string}`[] = [];
@@ -144,7 +144,7 @@ export function encodeTransactions(transactions: TransactionFormValues[]) {
               tx.symbol,
               BigInt(tx.editionSize || "18446744073709551615"),
               Number(tx.royaltyPercentage || "5000"),
-              (tx.payoutAddress || GNARS_ADDRESSES.treasury) as `0x${string}`,
+              (tx.payoutAddress || DAO_ADDRESSES.treasury) as `0x${string}`,
               tx.defaultAdmin as `0x${string}`,
               {
                 publicSalePrice: parseEther(tx.price || "0"),

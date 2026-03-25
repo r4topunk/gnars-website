@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useVotes } from "@/hooks/useVotes";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { proposalSchema, type ProposalFormValues } from "@/components/proposals/schema";
 import { ProposalPreview } from "@/components/proposals/ProposalPreview";
 import { CoinPurchaseForm } from "./CoinPurchaseForm";
@@ -45,8 +45,8 @@ export function CoinProposalWizard() {
   const { isLoading, hasThreshold, votes, proposalVotesRequired, isDelegating, delegatedTo } =
     useVotes({
       chainId: CHAIN.id,
-      collectionAddress: GNARS_ADDRESSES.token,
-      governorAddress: GNARS_ADDRESSES.governor,
+      collectionAddress: DAO_ADDRESSES.token,
+      governorAddress: DAO_ADDRESSES.governor,
       signerAddress: address,
     });
 
@@ -82,8 +82,8 @@ export function CoinProposalWizard() {
         buy: { type: "erc20", address: data.coinAddress as Address },
         amountIn: parseEther(data.ethAmount),
         slippage: slippagePercent / 100,
-        sender: GNARS_ADDRESSES.treasury,
-        recipient: GNARS_ADDRESSES.treasury,
+        sender: DAO_ADDRESSES.treasury,
+        recipient: DAO_ADDRESSES.treasury,
       };
 
       console.log("Generating trade call with parameters:", tradeParameters);
@@ -109,7 +109,7 @@ This proposal will execute a trade to purchase the content coin at ${data.coinAd
 - **Coin Address**: ${data.coinAddress}
 - **ETH Amount**: ${data.ethAmount} ETH
 - **Max Slippage**: ${data.slippage}%
-- **Recipient**: Gnars DAO Treasury (${GNARS_ADDRESSES.treasury})
+- **Recipient**: Gnars DAO Treasury (${DAO_ADDRESSES.treasury})
 
 ### Technical Details
 The trade will be executed through the Uniswap v4 / Zora swap router with proper slippage protection and Zora hooks for fee distribution.
