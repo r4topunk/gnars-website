@@ -15,7 +15,7 @@ import {
   type NogglesRailLocation,
 } from "@/content/nogglesrails";
 
-function toLocationData(rail: NogglesRailLocation): LocationData {
+export function toLocationData(rail: NogglesRailLocation): LocationData {
   return {
     position: rail.position,
     label: rail.label,
@@ -91,8 +91,15 @@ export function NogglesRailsMap() {
 
       {/* Map */}
       <div className="h-[60vh] min-h-[350px] overflow-hidden rounded-lg border">
-        <Map center={[10, 0] as LatLngExpression} zoom={2} className="h-full w-full">
-          <MapTileLayer />
+        <Map
+          center={[10, 0] as LatLngExpression}
+          zoom={2}
+          minZoom={2}
+          maxBounds={[[-85, -180], [85, 180]]}
+          maxBoundsViscosity={1.0}
+          className="h-full w-full"
+        >
+          <MapTileLayer noWrap />
           {filtered.map((rail) => (
             <MapMarker
               key={rail.slug}
