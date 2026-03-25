@@ -5,11 +5,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { GNARS_ADDRESSES } from "@/lib/config";
 
 const AUCTION_BIDS_QUERY = `
-  query GetAuctionBids($daoAddress: String!, $tokenId: String!) {
+  query GetAuctionBids($auctionId: String!) {
     auctionBids(
-      where: {
-        auction_: { dao: $daoAddress, token_: { tokenId: $tokenId } }
-      }
+      where: { auction: $auctionId }
       orderBy: bidTime
       orderDirection: desc
       first: 100
@@ -57,12 +55,10 @@ export function useAuctionBids(
       if (isFirstFetch.current) setIsLoading(true);
 
       const { subgraphQuery } = await import("@/lib/subgraph");
+      const auctionId = `${GNARS_ADDRESSES.token}:${tokenId}`;
       const data = await subgraphQuery<{ auctionBids: AuctionBid[] }>(
         AUCTION_BIDS_QUERY,
-        {
-          daoAddress: GNARS_ADDRESSES.token,
-          tokenId,
-        },
+        { auctionId },
       );
 
       const fetched = data.auctionBids ?? [];
