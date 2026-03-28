@@ -1,115 +1,128 @@
-import Link from 'next/link';
-import { formatEther } from 'viem';
-import { Clock, Users, Circle } from 'lucide-react';
-import type { PoidhBounty } from '@/types/poidh';
-import { CHAIN_NAMES } from '@/lib/poidh/config';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import Link from "next/link";
+import { Clock, ExternalLink, Users } from "lucide-react";
+import { formatEther } from "viem";
+import { Button } from "@/components/ui/button";
+import { CHAIN_NAMES } from "@/lib/poidh/config";
+import type { PoidhBounty } from "@/types/poidh";
+import { useEthPrice, formatEthToUsd } from "@/hooks/use-eth-price";
 
 interface BountyCardProps {
   bounty: PoidhBounty;
 }
 
+const STATUS_STYLES = {
+  Canceled: "bg-red-500/10 text-red-400 border-red-500/20",
+  Voting: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+  Open: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+} as const;
+
+const CHAIN_DOT_COLORS: Record<number, string> = {
+  8453: "bg-blue-500", // Base
+  42161: "bg-cyan-400", // Arbitrum
+};
+
 export function BountyCard({ bounty }: BountyCardProps) {
-  const chainName = CHAIN_NAMES[bounty.chainId as keyof typeof CHAIN_NAMES] || 'Unknown';
+  const chainName = CHAIN_NAMES[bounty.chainId as keyof typeof CHAIN_NAMES] || "Unknown";
   const amountEth = formatEther(BigInt(bounty.amount));
   const daysAgo = Math.floor((Date.now() - bounty.createdAt * 1000) / (1000 * 60 * 60 * 24));
+  const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "1d ago" : `${daysAgo}d ago`;
 
-  const getStatusInfo = () => {
-    if (bounty.isCanceled) return { label: 'Canceled', variant: 'destructive' as const };
-    if (bounty.isVoting) return { label: 'Voting', variant: 'default' as const };
-    if (bounty.inProgress) return { label: 'In Progress', variant: 'secondary' as const };
-    return { label: 'Open', variant: 'default' as const };
+  const getStatus = (): keyof typeof STATUS_STYLES => {
+    if (bounty.isCanceled) return "Canceled";
+    if (bounty.isVoting) return "Voting";
+    return "Open";
   };
 
-  const status = getStatusInfo();
+  const status = getStatus();
+  const dotColor = CHAIN_DOT_COLORS[bounty.chainId] ?? "bg-gray-400";
+  const detailHref = `/community/bounties/${bounty.chainId}/${bounty.id}`;
+  const { ethPrice } = useEthPrice();
+  const ethAmount = parseFloat(amountEth);
+  const usdValue = formatEthToUsd(ethAmount, ethPrice);
 
   return (
-    <Card className="h-full hover:border-primary transition-all hover:shadow-lg group overflow-hidden">
-      <CardContent className="p-6 space-y-4">
-        {/* Header: Chain + Status */}
-        <div className="flex items-center gap-2 pb-3 border-b border-dashed border-border">
-          <Circle className="w-3 h-3 fill-current text-muted-foreground" />
-          <span className="text-sm font-medium text-muted-foreground">{chainName}</span>
-          <Badge variant={status.variant} className="ml-auto">
-            {status.label}
-          </Badge>
+    <div className="group relative flex flex-col rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-200 overflow-hidden">
+      {/* Top accent line */}
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      <div className="flex flex-col flex-1 p-5 gap-4">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
+            <span className="text-xs font-medium text-muted-foreground truncate">{chainName}</span>
+          </div>
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border shrink-0 ${STATUS_STYLES[status]}`}
+          >
+            {status}
+          </span>
         </div>
 
         {/* Title */}
-        <div>
-          <h3 className="font-bold text-xl leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-            {bounty.title || bounty.name}
-          </h3>
-        </div>
+        <h3 className="font-bold text-base leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-150">
+          {bounty.title || bounty.name}
+        </h3>
 
         {/* Description */}
-        <div className="pb-2">
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {bounty.description}
-          </p>
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1">
+          {bounty.description}
+        </p>
+
+        {/* Reward */}
+        <div className="rounded-lg bg-muted/40 px-4 py-3 border border-border/50">
+          <span className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Reward</span>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="text-2xl font-extrabold text-primary">{ethAmount.toFixed(4)}</span>
+            <span className="text-sm font-medium text-muted-foreground">ETH</span>
+            {ethPrice > 0 && (
+              <span className="ml-auto text-sm font-medium text-emerald-600 dark:text-emerald-400">{usdValue}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Meta */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Clock className="w-3 h-3 shrink-0" />
+            <span>{timeLabel}</span>
+          </div>
+          {bounty.isMultiplayer && (
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground/40">·</span>
+              <Users className="w-3 h-3 shrink-0" />
+              <span>Multiplayer</span>
+            </div>
+          )}
+          {bounty.hasClaims && (
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground/40">·</span>
+              <span>Has claims</span>
+            </div>
+          )}
           {bounty.isOpenBounty && (
-            <div className="flex items-center gap-1 mt-2">
-              <span className="text-xs text-muted-foreground">📹 Submission Requirements: Record a video of your attempt.</span>
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground/40">·</span>
+              <span>📹 Video required</span>
             </div>
           )}
         </div>
+      </div>
 
-        {/* Reward Section */}
-        <div className="pb-3 border-b border-dashed border-border">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Reward</span>
-            <span className="text-2xl font-bold text-primary">Ω {parseFloat(amountEth).toFixed(4)}</span>
-            <span className="text-sm text-muted-foreground">ETH</span>
-          </div>
-        </div>
-
-        {/* Metadata Row */}
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <span>⏰</span>
-            <span>Time Left</span>
-            <Circle className="w-1 h-1 fill-current mx-1" />
-            <span>{daysAgo === 0 ? 'Today' : `${daysAgo}d ago`}</span>
-          </div>
-          {bounty.isMultiplayer && (
-            <>
-              <Circle className="w-1 h-1 fill-current" />
-              <div className="flex items-center gap-1">
-                <Users className="w-3 h-3" />
-                <span>Multiplayer</span>
-              </div>
-            </>
-          )}
-          {bounty.hasClaims && (
-            <>
-              <Circle className="w-1 h-1 fill-current" />
-              <span>Current</span>
-            </>
-          )}
-        </div>
-
-        {/* CTA Buttons */}
-        <div className="flex gap-2 pt-2">
-          <Link href={`/community/bounties/${bounty.chainId}/${bounty.id}`} className="flex-1">
-            <Button 
-              variant="default" 
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-            >
-              Make Attempt
-            </Button>
-          </Link>
-          <Link href={`/community/bounties/${bounty.chainId}/${bounty.id}`} className="flex-1">
-            <Button 
-              variant="outline" 
-              className="w-full hover:bg-accent"
-            >
-              View Details →
-            </Button>
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
+      {/* Actions */}
+      <div className="flex gap-2 px-5 pb-5">
+        <Link href={detailHref} className="flex-1">
+          <Button variant="outline" className="w-full text-sm font-medium hover:bg-muted/60">
+            View Details
+            <ExternalLink className="w-3.5 h-3.5 ml-1.5 opacity-60" />
+          </Button>
+        </Link>
+        <Link href={detailHref} className="flex-1">
+          <Button className="w-full text-sm font-semibold bg-primary hover:bg-primary/90 text-primary-foreground">
+            Make Attempt
+          </Button>
+        </Link>
+      </div>
+    </div>
   );
 }

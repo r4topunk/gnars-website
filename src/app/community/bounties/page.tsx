@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { BountyGrid } from '@/components/bounties/BountyGrid';
 import { usePoidhBounties } from '@/hooks/usePoidhBounties';
+import { CreateBountyModal } from '@/components/bounties/CreateBountyModal';
+import { PlusCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function BountiesPage() {
   const [status, setStatus] = useState<'open' | 'closed' | 'all'>('open');
@@ -29,16 +32,33 @@ export default function BountiesPage() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-2xl">🏆</span>
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <span className="text-2xl">🏆</span>
+            </div>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">POIDH Bounties</h1>
+              <p className="text-muted-foreground">
+                Gnarly challenges from the action sports community
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground">POIDH Bounties</h1>
-            <p className="text-muted-foreground">
-              Gnarly challenges from the action sports community
-            </p>
-          </div>
+          <CreateBountyModal>
+            <Button className="shrink-0 hidden sm:flex">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Create Bounty
+            </Button>
+          </CreateBountyModal>
+        </div>
+        {/* Mobile create button */}
+        <div className="sm:hidden mb-2">
+          <CreateBountyModal>
+            <Button className="w-full">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Create Bounty
+            </Button>
+          </CreateBountyModal>
         </div>
       </div>
 
@@ -76,7 +96,7 @@ export default function BountiesPage() {
 
       {/* Category Filter Pills */}
       <div className="flex gap-2 mb-6">
-        {(['all', 'skate', 'surf', 'parkour', 'weed'] as const).map((cat) => (
+        {(['skate', 'surf', 'parkour', 'weed', 'all'] as const).map((cat) => (
           <button
             key={cat}
             onClick={() => setCategoryFilter(cat)}
@@ -94,7 +114,7 @@ export default function BountiesPage() {
       {/* Info Bar */}
       {data && !isLoading && (
         <div className="mb-6 text-sm text-muted-foreground">
-          Showing {filteredBounties.length} of {data.total} {status === 'all' ? '' : status} bounties
+          Showing {filteredBounties.length} of {data.total}{status !== 'all' ? ` ${status}` : ''} bounties
         </div>
       )}
 
