@@ -20,18 +20,24 @@ const getCachedMembers = unstable_cache(
     const members = await fetchAllMembers();
     const owners = members.map((m) => m.owner);
     const [
-      votesCountMap,
-      activeVotesMap,
-      nonCanceledCount,
-      voteSupportMap,
-      farcasterProfiles,
-    ] = await Promise.all([
+      votesCountResult,
+      activeVotesResult,
+      nonCanceledResult,
+      voteSupportResult,
+      farcasterResult,
+    ] = await Promise.allSettled([
       fetchVotesCountForVoters(owners),
       fetchActiveVotesForVoters(owners),
       fetchNonCanceledProposalsCount(),
       fetchVoteSupportForVoters(owners),
       fetchFarcasterProfilesByAddress(owners),
     ]);
+
+    const votesCountMap = votesCountResult.status === "fulfilled" ? votesCountResult.value : {};
+    const activeVotesMap = activeVotesResult.status === "fulfilled" ? activeVotesResult.value : {};
+    const nonCanceledCount = nonCanceledResult.status === "fulfilled" ? nonCanceledResult.value : 0;
+    const voteSupportMap = voteSupportResult.status === "fulfilled" ? voteSupportResult.value : {};
+    const farcasterProfiles = farcasterResult.status === "fulfilled" ? farcasterResult.value : {};
 
     return members.map((m) => {
       const key = m.owner.toLowerCase();

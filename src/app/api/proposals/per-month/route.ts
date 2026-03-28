@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SubgraphSDK } from "@buildeross/sdk";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 
 export const revalidate = 300; // 5 minutes
 
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch from subgraph (no RPC calls)
     const result = await SubgraphSDK.connect(CHAIN.id).proposals({
-      where: { dao: GNARS_ADDRESSES.token.toLowerCase() },
+      where: { dao: DAO_ADDRESSES.token.toLowerCase() },
       first: 500,
       skip: 0,
     });

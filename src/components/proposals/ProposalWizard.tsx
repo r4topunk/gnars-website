@@ -15,7 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProposalEligibilityProvider } from "@/components/proposals/ProposalEligibilityContext";
 import { useProposalEligibility } from "@/hooks/useProposalEligibility";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { getProposalTemplate } from "@/lib/proposal-templates";
 import { proposalSchema, type ProposalFormValues } from "./schema";
 
@@ -55,8 +55,8 @@ export function ProposalWizard() {
   const { address, isConnected } = useAccount();
   const eligibility = useProposalEligibility({
     chainId: CHAIN.id,
-    collectionAddress: GNARS_ADDRESSES.token,
-    governorAddress: GNARS_ADDRESSES.governor,
+    collectionAddress: DAO_ADDRESSES.token,
+    governorAddress: DAO_ADDRESSES.governor,
     signerAddress: address,
   });
 

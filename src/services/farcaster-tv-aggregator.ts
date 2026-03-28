@@ -6,7 +6,7 @@ import { getCoin, getCoinHolders, getProfile } from "@zoralabs/coins-sdk";
 import { createPublicClient, http, parseAbi } from "viem";
 import { base } from "viem/chains";
 import { subgraphQuery } from "@/lib/subgraph";
-import { GNARS_CREATOR_ALLOWLIST } from "@/lib/config";
+import { DAO_ADDRESSES, GNARS_CREATOR_ALLOWLIST } from "@/lib/config";
 import {
   assertNeynarApiKey,
   fetchFarcasterProfilesByAddress,
@@ -20,7 +20,7 @@ import {
 } from "@/services/farcaster";
 
 const GNARS_COIN_ADDRESS = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
-const GNARS_NFT_ADDRESS = "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17";
+const GNARS_NFT_ADDRESS = DAO_ADDRESSES.token;
 
 const MIN_NFT_BALANCE = 1;
 

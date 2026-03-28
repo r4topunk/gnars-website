@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import NogglesRailsHero from "@/components/nogglesrails/NogglesRailsHero";
-import { NogglesRailsMap } from "@/components/nogglesrails/NogglesRailsMap";
+import { NogglesRailsMapTabs } from "@/components/nogglesrails/NogglesRailsMapTabs";
 import { NogglesRailsGrid } from "@/components/nogglesrails/NogglesRailsGrid";
 import { NogglesRailsManifesto } from "@/components/nogglesrails/NogglesRailsManifesto";
 
@@ -39,7 +39,7 @@ export default function NogglesRailsPage() {
   return (
     <div className="flex flex-col gap-10 pb-8">
       <NogglesRailsHero />
-      <NogglesRailsMap />
+      <NogglesRailsMapTabs />
       <NogglesRailsGrid />
       <NogglesRailsManifesto />
     </div>

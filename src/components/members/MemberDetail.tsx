@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProfileCoins } from "@/hooks/use-profile-coins";
 import { useZoraProfile } from "@/hooks/use-zora-profile";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { resolveENS } from "@/lib/ens";
 import { getProposalStatus } from "@/lib/schemas/proposals";
 import type { FarcasterProfile } from "@/services/farcaster";
@@ -60,9 +60,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
     const url = new URL("/api/members", window.location.origin);
     url.searchParams.set("search", targetAddress);
     const res = await fetch(url.toString(), { cache: "no-store" });
-    if (!res.ok) {
-      throw new Error(`Failed to fetch members: ${res.status}`);
-    }
+    if (!res.ok) return null;
     const json = (await res.json()) as { members: MemberListItem[] };
     const match = json.members.find(
       (member) => member.owner.toLowerCase() === targetAddress.toLowerCase(),
@@ -129,7 +127,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
         // Load proposals using the same SDK mapping as proposals page, then filter by proposer
         const { proposals: sdkProposals } = await getProposals(
           CHAIN.id,
-          GNARS_ADDRESSES.token,
+          DAO_ADDRESSES.token,
           200,
         );
         const mapped: UiProposal[] = ((sdkProposals as SdkProposal[] | undefined) ?? [])

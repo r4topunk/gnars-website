@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Clock, ChevronDown, MessageSquare } from "lucide-react";
-import { parseEther, zeroAddress, encodeFunctionData, concat, toHex } from "viem";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Clock, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
+import { formatEther, parseEther, zeroAddress, encodeFunctionData, concat, toHex } from "viem";
 import { base } from "wagmi/chains";
 import { useDaoAuction } from "@buildeross/hooks";
 import { useAccount, useReadContract, useSimulateContract, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, useSendTransaction } from "wagmi";
+import { useQueryClient } from "@tanstack/react-query";
 import { GnarImageTile } from "@/components/auctions/GnarImageTile";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
@@ -16,33 +17,52 @@ import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { getStatusConfig } from "@/components/proposals/utils";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
+import { BidHistoryModal } from "@/components/auction/BidHistoryModal";
 
 export function AuctionSpotlight() {
   const { address, isConnected, chain } = useAccount();
   const { switchChainAsync } = useSwitchChain();
+  const queryClient = useQueryClient();
   const { highestBid, highestBidder, endTime, startTime, tokenId, tokenUri } = useDaoAuction({
-    collectionAddress: GNARS_ADDRESSES.token,
-    auctionAddress: GNARS_ADDRESSES.auction,
+    collectionAddress: DAO_ADDRESSES.token,
+    auctionAddress: DAO_ADDRESSES.auction,
     chainId: CHAIN.id,
   });
+
+  // Invalidate all wagmi contract reads to refresh auction data without page reload
+  const invalidateAuctionData = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["readContract"] });
+  }, [queryClient]);
+
+  // Read reserve price from auction contract
+  const { data: reservePriceWei } = useReadContract({
+    address: DAO_ADDRESSES.auction as `0x${string}`,
+    abi: auctionAbi,
+    functionName: "reservePrice",
+    chainId: CHAIN.id,
+    query: { staleTime: 60 * 1000 },
+  });
+  const reservePriceEth = reservePriceWei ? Number(formatEther(reservePriceWei)) : 0.01;
 
   const [isSettling, setIsSettling] = useState(false);
   const [settleTxHash, setSettleTxHash] = useState<`0x${string}` | undefined>();
   const [isBidding, setIsBidding] = useState(false);
+  const [bidTxHash, setBidTxHash] = useState<`0x${string}` | undefined>();
   const [bidComment, setBidComment] = useState("");
   const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
 
-  // Calculate minimum bid (1% increment)
+  // Calculate minimum bid: reserve price when no bids, otherwise 1% increment
   const minNextBidEth = useMemo(() => {
     const current = Number(highestBid ?? "0");
-    if (!Number.isFinite(current) || current <= 0) return 0.01;
+    if (!Number.isFinite(current) || current <= 0) return reservePriceEth;
     return Math.max(0, current * 1.01);
-  }, [highestBid]);
+  }, [highestBid, reservePriceEth]);
 
   const [bidAmount, setBidAmount] = useState(minNextBidEth.toFixed(4));
   const tokenName = tokenUri?.name;
@@ -111,7 +131,7 @@ export function AuctionSpotlight() {
 
   // Check if auctions are paused - cache for 30 seconds since this can change
   const { data: isPaused } = useReadContract({
-    address: GNARS_ADDRESSES.auction as `0x${string}`,
+    address: DAO_ADDRESSES.auction as `0x${string}`,
     abi: auctionAbi,
     functionName: "paused",
     chainId: CHAIN.id,
@@ -123,6 +143,26 @@ export function AuctionSpotlight() {
 
   const { writeContractAsync } = useWriteContract();
   const { sendTransactionAsync } = useSendTransaction();
+
+  // Wait for bid transaction confirmation
+  const { isLoading: isBidConfirming, isSuccess: isBidConfirmed } = useWaitForTransactionReceipt({
+    hash: bidTxHash,
+    chainId: CHAIN.id,
+  });
+
+  // Refresh auction data when bid is confirmed
+  useEffect(() => {
+    if (isBidConfirmed && bidTxHash) {
+      toast.success("Bid confirmed!", {
+        description: "Auction data updated.",
+      });
+      invalidateAuctionData();
+      setBidTxHash(undefined);
+      setIsBidding(false);
+      setBidComment("");
+      setIsCommentOpen(false);
+    }
+  }, [isBidConfirmed, bidTxHash, invalidateAuctionData]);
 
   // Handle bid submission
   const handleBid = async () => {
@@ -138,6 +178,8 @@ export function AuctionSpotlight() {
         await switchChainAsync({ chainId: base.id });
       }
 
+      let hash: `0x${string}`;
+
       if (trimmedComment.length > 0) {
         // Comment path: encode createBid calldata + append UTF-8 comment bytes
         const baseCalldata = encodeFunctionData({
@@ -148,16 +190,16 @@ export function AuctionSpotlight() {
         const commentBytes = toHex(new TextEncoder().encode(trimmedComment));
         const fullData = concat([baseCalldata, commentBytes]);
 
-        await sendTransactionAsync({
-          to: GNARS_ADDRESSES.auction as `0x${string}`,
+        hash = await sendTransactionAsync({
+          to: DAO_ADDRESSES.auction as `0x${string}`,
           data: fullData,
           value: bidAmountWei,
           chainId: base.id,
         });
       } else {
         // Original path (no regression)
-        await writeContractAsync({
-          address: GNARS_ADDRESSES.auction as `0x${string}`,
+        hash = await writeContractAsync({
+          address: DAO_ADDRESSES.auction as `0x${string}`,
           abi: auctionAbi,
           functionName: "createBid",
           args: [BigInt(tokenId)],
@@ -166,16 +208,13 @@ export function AuctionSpotlight() {
         });
       }
 
+      setBidTxHash(hash);
       toast.success("Bid submitted", {
-        description: trimmedComment.length > 0
-          ? "Your comment was recorded on-chain."
-          : "Waiting for confirmation...",
+        description: "Waiting for confirmation...",
       });
-      setTimeout(() => window.location.reload(), 3000);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to submit bid";
       toast.error("Bid failed", { description: message });
-    } finally {
       setIsBidding(false);
     }
   };
@@ -183,7 +222,7 @@ export function AuctionSpotlight() {
   // Settlement simulation - only when auction has ended
   const isAuctionEnded = !isLive && timeLeft.total <= 0;
   const { data: settleData, error: settleError } = useSimulateContract({
-    address: GNARS_ADDRESSES.auction as `0x${string}`,
+    address: DAO_ADDRESSES.auction as `0x${string}`,
     abi: auctionAbi,
     functionName: isPaused ? "settleAuction" : "settleCurrentAndCreateNewAuction",
     chainId: CHAIN.id,
@@ -229,15 +268,17 @@ export function AuctionSpotlight() {
     }
   };
 
-  // Handle successful confirmation
+  // Handle successful settlement confirmation — refresh auction data
   useEffect(() => {
     if (isConfirmed && settleTxHash) {
       toast.success("Settlement confirmed!", {
-        description: "Reloading to show new auction...",
+        description: "Loading new auction...",
       });
-      setTimeout(() => window.location.reload(), 2000);
+      invalidateAuctionData();
+      setIsSettling(false);
+      setSettleTxHash(undefined);
     }
-  }, [isConfirmed, settleTxHash]);
+  }, [isConfirmed, settleTxHash, invalidateAuctionData]);
 
   return (
     <Card className="w-full bg-card">
@@ -245,7 +286,7 @@ export function AuctionSpotlight() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="text-xl font-semibold">
-              {tokenName?.replace("Gnars", "Gnar") || (tokenId ? `Gnar #${tokenId.toString()}` : "Latest Auction")}
+              {tokenName || (tokenId ? `#${tokenId.toString()}` : "Latest Auction")}
             </div>
             <Badge className={`${color} text-xs`}>{badgeLabel}</Badge>
           </div>
@@ -300,10 +341,15 @@ export function AuctionSpotlight() {
                   </Tooltip>
                   <Button
                     className="flex-[7] touch-manipulation"
-                    disabled={!isConnected || isBidding || !isValidBid}
+                    disabled={!isConnected || isBidding || isBidConfirming || !isValidBid}
                     onClick={handleBid}
                   >
-                    {isBidding ? (
+                    {isBidConfirming ? (
+                      <>
+                        <Spinner />
+                        Confirming...
+                      </>
+                    ) : isBidding ? (
                       <>
                         <Spinner />
                         Bidding...
@@ -371,19 +417,40 @@ export function AuctionSpotlight() {
             )}
 
             {highestBidder && highestBidder !== zeroAddress && (
-              <div className="text-center text-xs text-muted-foreground">
-                <span className="mr-1">{isLive ? "Leading bidder:" : "Winner:"}</span>
-                <AddressDisplay
-                  address={highestBidder}
-                  variant="compact"
-                  showAvatar={false}
-                  showCopy={false}
-                  showExplorer={false}
-                  truncateLength={4}
-                  className="inline-flex"
-                />
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsBidHistoryOpen(true)}
+                className="group flex w-full flex-col gap-1 rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5 transition-all hover:border-border/80 hover:bg-muted/40"
+              >
+                <span className="text-[11px] text-muted-foreground/60">
+                  {isLive ? "Leading bidder" : "Winner"}
+                </span>
+                <div className="flex w-full items-center justify-between">
+                  <AddressDisplay
+                    address={highestBidder}
+                    variant="compact"
+                    showAvatar={true}
+                    avatarSize="sm"
+                    showCopy={false}
+                    showExplorer={false}
+                    truncateLength={4}
+                    onAddressClick={() => {}}
+                    className="text-sm text-foreground pointer-events-none"
+                  />
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground transition-colors group-hover:text-foreground">
+                    <span>View bids</span>
+                    <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </div>
+              </button>
             )}
+
+            <BidHistoryModal
+              tokenId={tokenId?.toString()}
+              tokenName={tokenUri?.name}
+              open={isBidHistoryOpen}
+              onOpenChange={setIsBidHistoryOpen}
+            />
           </div>
         </div>
       </CardContent>

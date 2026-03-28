@@ -37,14 +37,25 @@ async function fetchFeedCached(): Promise<APIFeedResponse> {
   if (feedCache && now - feedCache.timestamp < FEED_CACHE_TTL) {
     return feedCache.promise;
   }
+  // Clear stale/failed cache before creating new promise
+  feedCache = null;
   const promise = fetch("/api/tv/feed").then((res) => {
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     return res.json() as Promise<APIFeedResponse>;
   });
-  feedCache = { promise, timestamp: now };
-  // Clear cache on error so next caller retries
-  promise.catch(() => { feedCache = null; });
-  return promise;
+  // Only cache on success — failed promises are not shared
+  const cachedPromise = promise.then(
+    (data) => {
+      feedCache = { promise: cachedPromise, timestamp: now };
+      return data;
+    },
+    (err) => {
+      feedCache = null;
+      throw err;
+    },
+  );
+  feedCache = { promise: cachedPromise, timestamp: now };
+  return cachedPromise;
 }
 
 interface UseTVFeedOptions {

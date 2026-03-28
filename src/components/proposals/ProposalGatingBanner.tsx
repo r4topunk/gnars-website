@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAccount, useReadContract } from "wagmi";
 import { ConnectButton } from "@/components/ui/ConnectButton";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 
 const balanceOfAbi = [
   {
@@ -21,7 +21,7 @@ export function ProposalGatingBanner() {
   const { address, isConnected } = useAccount();
 
   const { data: nftBalance, isLoading } = useReadContract({
-    address: GNARS_ADDRESSES.token,
+    address: DAO_ADDRESSES.token,
     abi: balanceOfAbi,
     functionName: "balanceOf",
     args: address ? [address] : undefined,

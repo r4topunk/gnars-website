@@ -16,7 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
-import { CHAIN, GNARS_ADDRESSES } from "@/lib/config";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { toast } from "sonner";
 
 export interface ExecuteProposalButtonProps {
@@ -46,7 +46,7 @@ export function ExecuteProposalButton({
   const [open, setOpen] = useState(false);
 
   const { data: simulateData, isError: simulateError } = useSimulateContract({
-    address: GNARS_ADDRESSES.governor as `0x${string}`,
+    address: DAO_ADDRESSES.governor as `0x${string}`,
     abi: gnarsGovernorAbi,
     functionName: "execute",
     args,

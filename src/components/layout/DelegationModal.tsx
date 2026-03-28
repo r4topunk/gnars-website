@@ -34,7 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDelegate } from "@/hooks/useDelegate";
 import { useVotes } from "@/hooks/useVotes";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
 interface DelegationModalProps {
@@ -56,7 +56,7 @@ export function DelegationModal({
   const { data: balanceData } = useReadContracts({
     contracts: [
       {
-        address: GNARS_ADDRESSES.token as Address,
+        address: DAO_ADDRESSES.token as Address,
         abi: [
           {
             name: "balanceOf",
@@ -82,8 +82,8 @@ export function DelegationModal({
   // Fetch voting data - only when modal is open
   const votesData = useVotes({
     chainId: 8453,
-    collectionAddress: GNARS_ADDRESSES.token as Address,
-    governorAddress: GNARS_ADDRESSES.governor as Address,
+    collectionAddress: DAO_ADDRESSES.token as Address,
+    governorAddress: DAO_ADDRESSES.governor as Address,
     signerAddress: address,
     enabled: open,
   });

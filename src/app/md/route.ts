@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
+import { DAO_ADDRESSES, DAO_DESCRIPTION } from "@/lib/config";
 
 export const revalidate = 60;
 
 export async function GET() {
   const md = `# Gnars DAO
 
-Community-owned skateboarding DAO funding skate culture worldwide through auctions, proposals, and grants.
-
-## About
-
-Gnars is a skateboarding collective and community-owned skate brand. We support skaters, filmmakers, designers, and DIY projects by voting on proposals and funding them with community resources.
+${DAO_DESCRIPTION}
 
 ## Resources
 
@@ -21,10 +18,10 @@ Gnars is a skateboarding collective and community-owned skate brand. We support 
 
 ## Contracts (Base)
 
-- Token: \`0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17\`
-- Auction: \`0x494eaa55ecf6310658b8fc004b0888dcb698097f\`
-- Governor: \`0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c\`
-- Treasury: \`0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88\`
+- Token: \`${DAO_ADDRESSES.token}\`
+- Auction: \`${DAO_ADDRESSES.auction}\`
+- Governor: \`${DAO_ADDRESSES.governor}\`
+- Treasury: \`${DAO_ADDRESSES.treasury}\`
 `;
 
   return new NextResponse(md, {

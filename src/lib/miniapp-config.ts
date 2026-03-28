@@ -1,4 +1,4 @@
-import { BASE_URL, DAO_DESCRIPTION } from "./config";
+import { BASE_URL, DAO_DESCRIPTION, DAO_ADDRESSES } from "./config";
 
 /**
  * Farcaster Mini App Configuration
@@ -24,7 +24,7 @@ export const MINIAPP_CONFIG = {
 
   // Base builder configuration - add your Base account address
   baseBuilder: {
-    ownerAddress: "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88" as `0x${string}` | "",
+    ownerAddress: DAO_ADDRESSES.treasury as `0x${string}` | "",
   },
 
   // Mini app configuration

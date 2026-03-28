@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { GnarCard } from "@/components/auctions/GnarCard";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 
 interface NftHoldingsProps {
@@ -75,7 +75,7 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
       try {
         setIsLoading(true);
         setError(null);
-        const dao = GNARS_ADDRESSES.token.toLowerCase();
+        const dao = DAO_ADDRESSES.token.toLowerCase();
         const owner = treasuryAddress.toLowerCase();
 
         // Fetch all tokens using pagination (max 1000 per query in The Graph)

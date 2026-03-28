@@ -32,7 +32,7 @@ import { TokenHoldings } from "@/components/treasury/TokenHoldings";
 import { ZoraCoinHoldings } from "@/components/treasury/ZoraCoinHoldings";
 import { TreasuryBalance } from "@/components/treasury/TreasuryBalance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 
 const AuctionBidsPerMonthChart = dynamic(
   () => import("@/components/treasury/AuctionBidsPerMonthChart").then(mod => ({ default: mod.AuctionBidsPerMonthChart })),
@@ -67,7 +67,7 @@ export default function TreasuryPage() {
               </CardHeader>
               <CardContent>
                 <Suspense fallback={<MetricSkeleton />}>
-                  <TreasuryBalance treasuryAddress={GNARS_ADDRESSES.treasury} />
+                  <TreasuryBalance treasuryAddress={DAO_ADDRESSES.treasury} />
                 </Suspense>
               </CardContent>
             </Card>
@@ -78,7 +78,7 @@ export default function TreasuryPage() {
               </CardHeader>
               <CardContent>
                 <Suspense fallback={<MetricSkeleton />}>
-                  <TreasuryBalance treasuryAddress={GNARS_ADDRESSES.treasury} metric="eth" />
+                  <TreasuryBalance treasuryAddress={DAO_ADDRESSES.treasury} metric="eth" />
                 </Suspense>
               </CardContent>
             </Card>
@@ -89,7 +89,7 @@ export default function TreasuryPage() {
               </CardHeader>
               <CardContent>
                 <Suspense fallback={<MetricSkeleton />}>
-                  <TreasuryBalance treasuryAddress={GNARS_ADDRESSES.treasury} metric="auctions" />
+                  <TreasuryBalance treasuryAddress={DAO_ADDRESSES.treasury} metric="auctions" />
                 </Suspense>
               </CardContent>
             </Card>
@@ -110,12 +110,12 @@ export default function TreasuryPage() {
 
           {/* Token Holdings Table */}
           <Suspense fallback={<TableSkeleton />}>
-            <TokenHoldings treasuryAddress={GNARS_ADDRESSES.treasury} />
+            <TokenHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
           </Suspense>
 
           {/* Zora Coin Holdings */}
           <Suspense fallback={<TableSkeleton />}>
-            <ZoraCoinHoldings treasuryAddress={GNARS_ADDRESSES.treasury} />
+            <ZoraCoinHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
           </Suspense>
 
           {/* NFT Holdings Grid */}
@@ -127,7 +127,7 @@ export default function TreasuryPage() {
               </p>
             </div>
             <Suspense fallback={<NftGridSkeleton />}>
-              <NftHoldings treasuryAddress={GNARS_ADDRESSES.treasury} />
+              <NftHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
             </Suspense>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 
 const DAO_MEMBERS_QUERY = /* GraphQL */ `
@@ -24,9 +24,9 @@ interface DaoTokenOwner {
 
 export function useDaoMembers() {
   return useQuery({
-    queryKey: ["dao-members", GNARS_ADDRESSES.token],
+    queryKey: ["dao-members", DAO_ADDRESSES.token],
     queryFn: async () => {
-      const dao = GNARS_ADDRESSES.token.toLowerCase();
+      const dao = DAO_ADDRESSES.token.toLowerCase();
       const PAGE_SIZE = 1000;
       const addresses = new Set<string>();
       let skip = 0;

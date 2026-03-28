@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { formatEther } from "viem";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
 import { subgraphQuery } from "@/lib/subgraph";
@@ -37,7 +37,7 @@ export async function GET(
         targets: string[];
       }>;
     }>(PROPOSALS_BY_NUMBER_GQL, {
-      dao: GNARS_ADDRESSES.token.toLowerCase(),
+      dao: DAO_ADDRESSES.token.toLowerCase(),
       proposalNumber: num,
     });
 

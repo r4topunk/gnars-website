@@ -3,7 +3,7 @@
 import { ArrowRight, AlertCircle } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { type TransactionFormValues } from "../schema";
-import { GNARS_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
+import { DAO_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 
 interface SendUsdcTransactionDetailsProps {
   transaction: TransactionFormValues;
@@ -25,7 +25,7 @@ export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionD
             <div>
               <p className="text-sm font-medium">DAO Treasury</p>
               <p className="text-xs text-muted-foreground font-mono">
-                {GNARS_ADDRESSES.treasury.slice(0, 6)}...{GNARS_ADDRESSES.treasury.slice(-4)}
+                {DAO_ADDRESSES.treasury.slice(0, 6)}...{DAO_ADDRESSES.treasury.slice(-4)}
               </p>
             </div>
           </div>

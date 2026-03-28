@@ -1,6 +1,6 @@
 import { TrendingUp, Trophy, Users } from "lucide-react";
 import { CountUp } from "@/components/ui/count-up";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { fetchDaoStats } from "@/services/dao";
 import { loadTreasurySnapshot } from "@/services/treasury";
 
@@ -17,7 +17,7 @@ function formatLargeNumber(value: number): string {
 export async function HeroStatsValues() {
   const [daoStats, snapshot] = await Promise.all([
     fetchDaoStats().catch(() => ({ totalSupply: 0, ownerCount: 0 })),
-    loadTreasurySnapshot(GNARS_ADDRESSES.treasury).catch(() => ({
+    loadTreasurySnapshot(DAO_ADDRESSES.treasury).catch(() => ({
       usdTotal: 0,
       ethBalance: 0,
       totalAuctionSales: 0,

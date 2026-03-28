@@ -9,6 +9,7 @@ This file configures Claude as a **cost-efficient coordinator** that delegates a
 - Do not create or update documentation in `tasks/` or `src/**/README.md`.
 - When adding, moving, or removing docs, update `docs/INDEX.md` in the same change.
 - Docs must reflect the current code. If a doc is stale, update it or delete it.
+- **Do not create `.md` or `.sh` files in the repo root.** Only `README.md`, `CLAUDE.md`, and `AGENTS.md` belong there. Scripts go in `scripts/`, docs go in `docs/`.
 
 ## Core Principle: Delegate Only When Explicitly Asked
 
@@ -286,7 +287,7 @@ The `src/lib/config.ts` file contains all Gnars DAO contract addresses on Base:
 - Governor: `0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c`
 - Treasury: `0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88`
 - Metadata: `0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58`
-- Lootbox (V4): `GNARS_ADDRESSES.lootbox` (update after each deploy)
+- Lootbox (V4): `DAO_ADDRESSES.lootbox` (update after each deploy)
 
 ### Lootbox (V4 Only)
 
@@ -342,6 +343,63 @@ NEXT_PUBLIC_GOLDSKY_PROJECT_ID=""
 - Follow security best practices - no secrets in client code
 - Use Builder DAO's proven patterns and components where possible
 - Don't run `pnpm build` unless explicitly asked
+
+## Pull Request Protocol
+
+**All medium and large tasks MUST be delivered via Pull Request.** Do not commit directly to `main`.
+
+### Task Size Classification
+
+| Size | Criteria | PR Required? |
+|------|----------|--------------|
+| **Small** | Single-file fix, typo, config tweak, < 20 lines changed | Optional (can commit to main) |
+| **Medium** | Multi-file change, new component, feature addition, 20-100 lines | **Yes** |
+| **Large** | Cross-cutting change, new feature area, refactor, 100+ lines | **Yes** |
+
+**When in doubt, create a PR.** It's always safer.
+
+### PR Workflow
+
+1. **Create a feature branch** from `main` (or from current branch if stacking):
+   - Format: `feat/short-description`, `fix/short-description`, `update/short-description`
+   - Use git worktrees for isolation when working on the main repo
+
+2. **Commit with clear messages** as you go — small, atomic commits are preferred
+
+3. **Create the PR** using `gh pr create`:
+   - Title: concise, under 70 chars
+   - Body: use the template below
+   - Always target `main` unless stacking PRs
+
+4. **Report the PR URL** to the user
+
+### PR Body Template
+
+```markdown
+## Summary
+- [1-3 bullet points describing what changed and why]
+
+## Changes
+- [List of key files/areas modified]
+
+## Test plan
+- [ ] [How to verify the changes work]
+
+Generated with [Claude Code](https://claude.com/claude-code)
+```
+
+### When to Use Worktrees
+
+- When the current working directory has uncommitted changes on another branch
+- When implementing a plan that should be isolated from in-progress work
+- When the user explicitly asks for isolation
+
+### Stacking PRs
+
+For large features broken into sequential steps:
+1. Create first PR targeting `main`
+2. Subsequent PRs target the previous feature branch
+3. Merge in order, rebasing as needed
 
 ## Error Handling & Retries
 

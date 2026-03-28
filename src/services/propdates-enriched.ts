@@ -107,6 +107,7 @@ async function buildEnrichedFeed(): Promise<ProposalWithPropdates[]> {
 
     // Sort newest first within each group
     const sorted = [...propdates].sort((a, b) => b.timeCreated - a.timeCreated);
+    if (sorted.length === 0) continue;
 
     result.push({
       proposal,

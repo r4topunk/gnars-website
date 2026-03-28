@@ -10,7 +10,7 @@ import {
   useWriteContract,
   useSwitchChain,
 } from "wagmi";
-import { GNARS_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 
 // Token ABI for delegation
 const tokenDelegateAbi = [
@@ -31,7 +31,7 @@ export interface UseDelegateArgs {
 export function useDelegate({ onSubmitted, onSuccess }: UseDelegateArgs = {}) {
   const { address, chain, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
-  const tokenAddress = GNARS_ADDRESSES.token as Address;
+  const tokenAddress = DAO_ADDRESSES.token as Address;
 
   const isReady = isConnected && Boolean(address);
 
