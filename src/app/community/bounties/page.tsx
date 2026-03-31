@@ -76,7 +76,7 @@ export default function BountiesPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center justify-between mb-8 border-b border-border">
+      <div className="flex items-center mb-8 border-b border-border">
         <div className="flex gap-4">
           {(['open', 'closed', 'all'] as const).map((tab) => (
             <button
@@ -92,19 +92,6 @@ export default function BountiesPage() {
             </button>
           ))}
         </div>
-        
-        {/* Action Sports Filter Toggle */}
-        <label className="flex items-center gap-2 text-sm cursor-pointer pb-2">
-          <input
-            type="checkbox"
-            checked={filterGnarly}
-            onChange={(e) => setFilterGnarly(e.target.checked)}
-            className="w-4 h-4 rounded border-2 border-foreground/30 checked:bg-primary checked:border-primary"
-          />
-          <span className="text-foreground/80 hover:text-foreground">
-            🛹 Action sports only
-          </span>
-        </label>
       </div>
 
       {/* Category Filter Pills */}
