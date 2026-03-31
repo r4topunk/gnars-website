@@ -107,21 +107,33 @@ export function AuctionBidForm({
     });
   }, [queryClient]);
 
+  // Save comment/amount at submission time so optimistic update fires immediately
+  const pendingBidRef = useRef<{ comment: string; amount: string } | null>(null);
+
   const bidTx = useAuctionTransaction({
     onConfirmed: () => {
       toast.success("Bid confirmed!", { description: "Auction data updated." });
       invalidateAuctionData();
-      // Pass comment + amount up for optimistic display before clearing
-      onBidConfirmed?.(bidComment.trim(), bidAmount);
+      pendingBidRef.current = null;
       setBidComment("");
       setIsCommentOpen(false);
-      // Brief "Confirmed!" display, then reset
       resetTimerRef.current = setTimeout(() => bidTx.reset(), 1500);
     },
-    onError: (error) => {
-      toast.error("Bid failed", { description: error.message });
+    onError: () => {
+      // TX failed — clear optimistic state
+      pendingBidRef.current = null;
+      onBidConfirmed?.("", "");
+      toast.error("Bid failed");
     },
   });
+
+  // Set optimistic state as soon as TX is submitted (not confirmed)
+  // This fires before the event subscription updates bid value
+  useEffect(() => {
+    if (bidTx.phase === "submitted" && pendingBidRef.current) {
+      onBidConfirmed?.(pendingBidRef.current.comment, pendingBidRef.current.amount);
+    }
+  }, [bidTx.phase, onBidConfirmed]);
 
   // Handle wallet connect
   const handleConnectAndBid = () => {
@@ -140,6 +152,9 @@ export function AuctionBidForm({
     if (!bidAmountWei || !tokenId || !isValidBid || insufficientBalance) return;
 
     const trimmedComment = bidComment.trim();
+
+    // Store before execute so it's available when phase changes to "submitted"
+    pendingBidRef.current = { comment: trimmedComment, amount: bidAmount };
 
     await bidTx.execute(async () => {
       // Switch network if needed
