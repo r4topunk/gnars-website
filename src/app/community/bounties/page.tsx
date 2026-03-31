@@ -1,17 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { BountyGrid } from '@/components/bounties/BountyGrid';
 import { usePoidhBounties } from '@/hooks/usePoidhBounties';
 import { CreateBountyModal } from '@/components/bounties/CreateBountyModal';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatEther } from 'viem';
+import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
 
 export default function BountiesPage() {
   const [status, setStatus] = useState<'open' | 'closed' | 'all'>('open');
   const [filterGnarly, setFilterGnarly] = useState(false); // Default: show all
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const { data, isLoading, error } = usePoidhBounties({ status, filterGnarly });
+  const { ethPrice } = useEthPrice();
 
   // Client-side category filtering
   const filteredBounties = data?.bounties.filter((bounty) => {
@@ -27,6 +30,16 @@ export default function BountiesPage() {
     
     return categories[categoryFilter]?.some((keyword) => text.includes(keyword));
   }) || [];
+
+  // Calculate total bounty value
+  const totalValue = useMemo(() => {
+    const totalWei = filteredBounties.reduce((sum, bounty) => {
+      return sum + BigInt(bounty.amount);
+    }, 0n);
+    const totalEth = parseFloat(formatEther(totalWei));
+    const totalUsd = formatEthToUsd(totalEth, ethPrice);
+    return { eth: totalEth.toFixed(4), usd: totalUsd };
+  }, [filteredBounties, ethPrice]);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -111,10 +124,24 @@ export default function BountiesPage() {
         ))}
       </div>
 
-      {/* Info Bar */}
+      {/* Info Bar with Total Value */}
       {data && !isLoading && (
-        <div className="mb-6 text-sm text-muted-foreground">
-          Showing {filteredBounties.length} of {data.total}{status !== 'all' ? ` ${status}` : ''} bounties
+        <div className="mb-6 flex items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg border border-border">
+          <div className="text-sm text-muted-foreground">
+            Showing {filteredBounties.length} of {data.total}{status !== 'all' ? ` ${status}` : ''} bounties
+          </div>
+          <div className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-primary" />
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl font-bold text-foreground">{totalValue.eth}</span>
+              <span className="text-sm text-muted-foreground">ETH</span>
+              {ethPrice > 0 && (
+                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                  {totalValue.usd}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
