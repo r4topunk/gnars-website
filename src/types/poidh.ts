@@ -1,3 +1,13 @@
+export interface PoidhClaim {
+  id: number;
+  bountyId: number;
+  name: string;
+  description: string;
+  issuer: string;
+  createdAt: number;
+  accepted: boolean;
+}
+
 export interface PoidhBounty {
   id: number;
   onChainId: number;
@@ -18,4 +28,5 @@ export interface PoidhBounty {
   amountSort: number;
   hasClaims: boolean;
   hasParticipants: boolean;
+  claims?: PoidhClaim[];
 }
