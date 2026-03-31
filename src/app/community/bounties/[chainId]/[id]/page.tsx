@@ -25,7 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ClaimBountyModal } from '@/components/bounties/ClaimBountyModal';
-import { usePoidhCancelBounty, usePoidhJoinBounty } from '@/hooks/usePoidhContract';
+import { usePoidhCancelBounty, usePoidhJoinBounty, usePoidhWithdrawFromBounty } from '@/hooks/usePoidhContract';
 import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
 
 const STATUS_STYLES = {
@@ -72,6 +72,7 @@ export default function BountyDetailPage() {
 
   const cancelHook = usePoidhCancelBounty(chainId);
   const joinHook = usePoidhJoinBounty(chainId);
+  const withdrawHook = usePoidhWithdrawFromBounty(chainId);
 
   if (isLoading && !bounty) {
     return (
@@ -254,6 +255,60 @@ export default function BountyDetailPage() {
                             </>
                           ) : (
                             `Contribute ${joinAmount} ETH`
+                          )}
+                        </Button>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Withdraw from canceled bounty (participant) */}
+              {bounty.isCanceled && bounty.isOpenBounty && !isCreator && (
+                <Card className="border-border">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Withdraw Your Contribution</CardTitle>
+                    <CardDescription>
+                      This bounty was canceled. Recover your contribution.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {withdrawHook.isSuccess ? (
+                      <div className="flex flex-col items-center gap-2 py-2 text-center">
+                        <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                        <p className="text-sm font-medium">Withdrawal confirmed!</p>
+                        {withdrawHook.hash && (
+                          <a
+                            href={getTxUrl(chainId, withdrawHook.hash)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          >
+                            View tx <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        {withdrawHook.error && (
+                          <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                            <span>{withdrawHook.error.message.split('\n')[0]}</span>
+                          </div>
+                        )}
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          disabled={withdrawHook.isPending}
+                          onClick={() => withdrawHook.withdraw(bounty.onChainId)}
+                        >
+                          {withdrawHook.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              {withdrawHook.hash ? 'Confirming…' : 'Confirm in wallet…'}
+                            </>
+                          ) : (
+                            'Withdraw Funds'
                           )}
                         </Button>
                       </>
