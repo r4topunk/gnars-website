@@ -7,7 +7,6 @@ import { base } from "wagmi/chains";
 import {
   useAccount,
   useBalance,
-  useConnect,
   useSendTransaction,
   useSwitchChain,
   useWriteContract,
@@ -22,6 +21,7 @@ import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
 import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
+import { ConnectWalletModal } from "@/components/auction/ConnectWalletModal";
 
 interface AuctionBidFormProps {
   tokenId: bigint | undefined;
@@ -35,8 +35,8 @@ export function AuctionBidForm({
   reservePriceEth,
 }: AuctionBidFormProps) {
   const { address, isConnected, chain } = useAccount();
-  const { connectors, connectAsync } = useConnect();
   const { switchChainAsync } = useSwitchChain();
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const { writeContractAsync } = useWriteContract();
   const { sendTransactionAsync } = useSendTransaction();
   const queryClient = useQueryClient();
@@ -117,17 +117,9 @@ export function AuctionBidForm({
   });
 
   // Handle wallet connect
-  const handleConnectAndBid = async () => {
+  const handleConnectAndBid = () => {
     if (!isConnected) {
-      // Open first available connector
-      const connector = connectors[0];
-      if (connector) {
-        try {
-          await connectAsync({ connector });
-        } catch {
-          // User cancelled, do nothing
-        }
-      }
+      setIsConnectModalOpen(true);
       return;
     }
   };
@@ -310,6 +302,11 @@ export function AuctionBidForm({
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      <ConnectWalletModal
+        open={isConnectModalOpen}
+        onOpenChange={setIsConnectModalOpen}
+      />
     </>
   );
 }

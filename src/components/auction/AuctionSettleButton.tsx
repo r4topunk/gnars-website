@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Wallet } from "lucide-react";
 import { base } from "wagmi/chains";
 import {
   useAccount,
-  useConnect,
   useReadContract,
   useSimulateContract,
   useSwitchChain,
@@ -19,6 +18,7 @@ import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
 import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
+import { ConnectWalletModal } from "@/components/auction/ConnectWalletModal";
 
 interface AuctionSettleButtonProps {
   /** Whether the connected wallet is the auction winner */
@@ -30,10 +30,10 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
   useEffect(() => () => clearTimeout(resetTimerRef.current), []);
 
   const { isConnected, chain } = useAccount();
-  const { connectors, connectAsync } = useConnect();
   const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync } = useWriteContract();
   const queryClient = useQueryClient();
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
   const isWrongNetwork = isConnected && chain?.id !== base.id;
 
@@ -86,20 +86,9 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     },
   });
 
-  const handleConnect = async () => {
-    const connector = connectors[0];
-    if (connector) {
-      try {
-        await connectAsync({ connector });
-      } catch {
-        // User cancelled
-      }
-    }
-  };
-
   const handleSettle = async () => {
     if (!isConnected) {
-      handleConnect();
+      setIsConnectModalOpen(true);
       return;
     }
     if (isWrongNetwork) {
@@ -160,23 +149,30 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     (isConnected && !isWrongNetwork && (isSimulating || !!settleError || !settleData));
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className="w-full">
-          <Button
-            className="w-full touch-manipulation"
-            disabled={isDisabled}
-            onClick={handleSettle}
-          >
-            {getButtonContent()}
-          </Button>
-        </span>
-      </TooltipTrigger>
-      {isConnected && !isWrongNetwork && settleError && (
-        <TooltipContent side="bottom">
-          Settlement not available yet. Try again shortly.
-        </TooltipContent>
-      )}
-    </Tooltip>
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="w-full">
+            <Button
+              className="w-full touch-manipulation"
+              disabled={isDisabled}
+              onClick={handleSettle}
+            >
+              {getButtonContent()}
+            </Button>
+          </span>
+        </TooltipTrigger>
+        {isConnected && !isWrongNetwork && settleError && (
+          <TooltipContent side="bottom">
+            Settlement not available yet. Try again shortly.
+          </TooltipContent>
+        )}
+      </Tooltip>
+
+      <ConnectWalletModal
+        open={isConnectModalOpen}
+        onOpenChange={setIsConnectModalOpen}
+      />
+    </>
   );
 }
