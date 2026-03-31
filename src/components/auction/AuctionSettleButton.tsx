@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { Wallet } from "lucide-react";
 import { base } from "wagmi/chains";
 import {
   useAccount,
+  useConnect,
   useReadContract,
   useSimulateContract,
   useSwitchChain,
@@ -27,10 +29,13 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
   const resetTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(resetTimerRef.current), []);
 
-  const { chain } = useAccount();
+  const { isConnected, chain } = useAccount();
+  const { connectors, connectAsync } = useConnect();
   const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync } = useWriteContract();
   const queryClient = useQueryClient();
+
+  const isWrongNetwork = isConnected && chain?.id !== base.id;
 
   // Check if auctions are paused
   const { data: isPaused } = useReadContract({
@@ -41,7 +46,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     query: { staleTime: 30 * 1000 },
   });
 
-  // Simulation
+  // Simulation — only run when connected and on the right network
   const {
     data: settleData,
     error: settleError,
@@ -51,10 +56,10 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     abi: auctionAbi,
     functionName: isPaused ? "settleAuction" : "settleCurrentAndCreateNewAuction",
     chainId: CHAIN.id,
+    query: { enabled: isConnected && !isWrongNetwork },
   });
 
   // Scoped invalidation — only auction-related readContract queries
-  // wagmi useReadContract generates keys: ['readContract', { address, functionName, ... }]
   const invalidateAuctionData = useCallback(() => {
     queryClient.invalidateQueries({
       predicate: (query) => {
@@ -81,14 +86,32 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     },
   });
 
+  const handleConnect = async () => {
+    const connector = connectors[0];
+    if (connector) {
+      try {
+        await connectAsync({ connector });
+      } catch {
+        // User cancelled
+      }
+    }
+  };
+
   const handleSettle = async () => {
+    if (!isConnected) {
+      handleConnect();
+      return;
+    }
+    if (isWrongNetwork) {
+      try {
+        await switchChainAsync({ chainId: base.id });
+      } catch {
+        return;
+      }
+    }
     if (!settleData || settleError) return;
 
     await settleTx.execute(async () => {
-      if (chain?.id !== base.id) {
-        toast.info("Switching to Base network...");
-        await switchChainAsync({ chainId: base.id });
-      }
       return writeContractAsync({
         ...settleData.request,
         chainId: base.id,
@@ -106,6 +129,17 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
         </>
       );
     }
+    if (!isConnected) {
+      return (
+        <>
+          <Wallet className="h-4 w-4" />
+          Connect Wallet to Settle
+        </>
+      );
+    }
+    if (isWrongNetwork) {
+      return "Switch to Base";
+    }
     if (isSimulating) {
       return (
         <>
@@ -120,7 +154,10 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     return "Settle Auction";
   };
 
-  const isDisabled = settleTx.isActive || isSimulating || !!settleError || !settleData;
+  // Button is only disabled when actively transacting or simulation failed (while connected)
+  const isDisabled =
+    settleTx.isActive ||
+    (isConnected && !isWrongNetwork && (isSimulating || !!settleError || !settleData));
 
   return (
     <Tooltip>
@@ -135,7 +172,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
           </Button>
         </span>
       </TooltipTrigger>
-      {settleError && (
+      {isConnected && !isWrongNetwork && settleError && (
         <TooltipContent side="bottom">
           Settlement not available yet. Try again shortly.
         </TooltipContent>
