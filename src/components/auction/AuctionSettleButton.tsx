@@ -50,7 +50,8 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     chainId: CHAIN.id,
   });
 
-  // Scoped invalidation
+  // Scoped invalidation — only auction-related readContract queries
+  // wagmi useReadContract generates keys: ['readContract', { address, functionName, ... }]
   const invalidateAuctionData = useCallback(() => {
     queryClient.invalidateQueries({
       predicate: (query) => {
@@ -62,7 +63,6 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
         return false;
       },
     });
-    queryClient.invalidateQueries({ queryKey: ["daoAuction"] });
   }, [queryClient]);
 
   const settleTx = useAuctionTransaction({

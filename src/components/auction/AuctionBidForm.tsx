@@ -80,12 +80,12 @@ export function AuctionBidForm({
     }
   }, [bidAmount, isValidBid]);
 
-  // Scoped invalidation — only auction-related queries
+  // Scoped invalidation — only auction-related readContract queries
   const invalidateAuctionData = useCallback(() => {
     queryClient.invalidateQueries({
       predicate: (query) => {
         const key = query.queryKey;
-        // Invalidate readContract queries for the auction address
+        // wagmi useReadContract generates keys: ['readContract', { address, functionName, ... }]
         if (key[0] === "readContract" && Array.isArray(key)) {
           const serialized = JSON.stringify(key);
           return serialized.includes(DAO_ADDRESSES.auction.toLowerCase());
@@ -93,8 +93,6 @@ export function AuctionBidForm({
         return false;
       },
     });
-    // Also invalidate the Builder SDK auction query
-    queryClient.invalidateQueries({ queryKey: ["daoAuction"] });
   }, [queryClient]);
 
   const bidTx = useAuctionTransaction({
