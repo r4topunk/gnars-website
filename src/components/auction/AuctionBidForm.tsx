@@ -27,12 +27,15 @@ interface AuctionBidFormProps {
   tokenId: bigint | undefined;
   highestBid: string | undefined;
   reservePriceEth: number;
+  /** Called after bid is confirmed — passes the comment for optimistic display */
+  onBidConfirmed?: (comment: string, bidAmount: string) => void;
 }
 
 export function AuctionBidForm({
   tokenId,
   highestBid,
   reservePriceEth,
+  onBidConfirmed,
 }: AuctionBidFormProps) {
   const { address, isConnected, chain } = useAccount();
   const { switchChainAsync } = useSwitchChain();
@@ -108,6 +111,8 @@ export function AuctionBidForm({
     onConfirmed: () => {
       toast.success("Bid confirmed!", { description: "Auction data updated." });
       invalidateAuctionData();
+      // Pass comment + amount up for optimistic display before clearing
+      onBidConfirmed?.(bidComment.trim(), bidAmount);
       setBidComment("");
       setIsCommentOpen(false);
       // Brief "Confirmed!" display, then reset

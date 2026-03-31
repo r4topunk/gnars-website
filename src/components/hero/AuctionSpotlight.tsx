@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatEther } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { useDaoAuction } from "@buildeross/hooks";
@@ -21,6 +21,12 @@ export function AuctionSpotlight() {
   const { address } = useAccount();
   const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
 
+  // Optimistic state — shown immediately after user's bid confirms
+  const [optimistic, setOptimistic] = useState<{
+    comment: string;
+    bidAmount: string;
+  } | null>(null);
+
   // Primary auction data (metadata, tokenUri)
   const { highestBid, highestBidder, endTime, startTime, tokenId, tokenUri } = useDaoAuction({
     collectionAddress: DAO_ADDRESSES.token,
@@ -39,6 +45,13 @@ export function AuctionSpotlight() {
   // Fetch bids for this auction (always enabled — lightweight subgraph query)
   const { bids } = useAuctionBids(tokenId?.toString(), true, 15_000);
 
+  // Clear optimistic state once subgraph catches up (bids array updates)
+  useEffect(() => {
+    if (optimistic && bids.length > 0) {
+      setOptimistic(null);
+    }
+  }, [bids, optimistic]);
+
   // Fetch comment for the leading bid
   const leadingBidTxHash = bids.length > 0 ? bids[0].transactionHash : undefined;
   const txHashes = useMemo(
@@ -46,9 +59,13 @@ export function AuctionSpotlight() {
     [leadingBidTxHash],
   );
   const { comments } = useBidComments(txHashes);
-  const leadingBidComment = leadingBidTxHash
+  const fetchedComment = leadingBidTxHash
     ? comments.get(leadingBidTxHash) ?? undefined
     : undefined;
+
+  // Use optimistic comment until real data arrives
+  const leadingBidComment = optimistic?.comment || fetchedComment;
+  const optimisticBidCount = optimistic ? bids.length + 1 : bids.length;
 
   // Reserve price for min bid calculation
   const { data: reservePriceWei } = useReadContract({
@@ -102,6 +119,10 @@ export function AuctionSpotlight() {
     }
   }, [wasOutbid, latestBid, clearOutbid]);
 
+  const handleBidConfirmed = useCallback((comment: string, bidAmount: string) => {
+    setOptimistic({ comment, bidAmount });
+  }, []);
+
   return (
     <Card className="w-full bg-card">
       <CardContent className="py-2">
@@ -112,7 +133,7 @@ export function AuctionSpotlight() {
 
           <GnarImageTile tokenId={Number(tokenId || 0)} imageUrl={imageUrl} />
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <AuctionLiveStatus
               highestBid={displayBid}
               highestBidder={displayBidder}
@@ -120,7 +141,7 @@ export function AuctionSpotlight() {
               startTime={startTime}
               bidSignal={auctionLive.bidCount}
               leadingBidComment={leadingBidComment}
-              bidCount={bids.length}
+              bidCount={optimisticBidCount}
               onBidHistoryOpen={() => setIsBidHistoryOpen(true)}
             />
 
@@ -129,23 +150,26 @@ export function AuctionSpotlight() {
                 tokenId={tokenId ? BigInt(tokenId) : undefined}
                 highestBid={displayBid}
                 reservePriceEth={reservePriceEth}
+                onBidConfirmed={handleBidConfirmed}
               />
             ) : (
               <AuctionSettleButton isWinner={!!isWinner} />
             )}
 
-            <AuctionBidHistoryLink
-              bidCount={bids.length}
-              onBidHistoryOpen={() => setIsBidHistoryOpen(true)}
-            />
-
-            <BidHistoryModal
-              tokenId={tokenId?.toString()}
-              tokenName={tokenUri?.name}
-              open={isBidHistoryOpen}
-              onOpenChange={setIsBidHistoryOpen}
-            />
+            {optimisticBidCount > 0 && (
+              <AuctionBidHistoryLink
+                bidCount={optimisticBidCount}
+                onBidHistoryOpen={() => setIsBidHistoryOpen(true)}
+              />
+            )}
           </div>
+
+          <BidHistoryModal
+            tokenId={tokenId?.toString()}
+            tokenName={tokenUri?.name}
+            open={isBidHistoryOpen}
+            onOpenChange={setIsBidHistoryOpen}
+          />
         </div>
       </CardContent>
     </Card>
