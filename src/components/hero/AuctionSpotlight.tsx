@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatEther } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { useDaoAuction } from "@buildeross/hooks";
@@ -10,10 +10,12 @@ import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
 import { BidHistoryModal } from "@/components/auction/BidHistoryModal";
-import { AuctionLiveStatus } from "@/components/auction/AuctionLiveStatus";
+import { AuctionLiveStatus, AuctionBidHistoryLink } from "@/components/auction/AuctionLiveStatus";
 import { AuctionBidForm } from "@/components/auction/AuctionBidForm";
 import { AuctionSettleButton } from "@/components/auction/AuctionSettleButton";
 import { useAuctionLive } from "@/hooks/use-auction-live";
+import { useAuctionBids } from "@/hooks/use-auction-bids";
+import { useBidComments } from "@/hooks/use-bid-comments";
 
 export function AuctionSpotlight() {
   const { address } = useAccount();
@@ -33,6 +35,20 @@ export function AuctionSpotlight() {
   const displayBid = auctionLive.polledHighestBid ?? highestBid;
   const displayBidder = auctionLive.polledHighestBidder ?? highestBidder;
   const displayEndTime = auctionLive.polledEndTime ?? endTime;
+
+  // Fetch bids for this auction (always enabled — lightweight subgraph query)
+  const { bids } = useAuctionBids(tokenId?.toString(), true, 15_000);
+
+  // Fetch comment for the leading bid
+  const leadingBidTxHash = bids.length > 0 ? bids[0].transactionHash : undefined;
+  const txHashes = useMemo(
+    () => (leadingBidTxHash ? [leadingBidTxHash] : []),
+    [leadingBidTxHash],
+  );
+  const { comments } = useBidComments(txHashes);
+  const leadingBidComment = leadingBidTxHash
+    ? comments.get(leadingBidTxHash) ?? undefined
+    : undefined;
 
   // Reserve price for min bid calculation
   const { data: reservePriceWei } = useReadContract({
@@ -74,7 +90,6 @@ export function AuctionSpotlight() {
         action: {
           label: "Bid Again",
           onClick: () => {
-            // Focus the bid input — the form will handle scrolling
             const input = document.querySelector<HTMLInputElement>(
               'input[type="number"]',
             );
@@ -104,6 +119,8 @@ export function AuctionSpotlight() {
               endTime={displayEndTime}
               startTime={startTime}
               bidSignal={auctionLive.bidCount}
+              leadingBidComment={leadingBidComment}
+              bidCount={bids.length}
               onBidHistoryOpen={() => setIsBidHistoryOpen(true)}
             />
 
@@ -116,6 +133,11 @@ export function AuctionSpotlight() {
             ) : (
               <AuctionSettleButton isWinner={!!isWinner} />
             )}
+
+            <AuctionBidHistoryLink
+              bidCount={bids.length}
+              onBidHistoryOpen={() => setIsBidHistoryOpen(true)}
+            />
 
             <BidHistoryModal
               tokenId={tokenId?.toString()}

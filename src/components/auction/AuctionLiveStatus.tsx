@@ -1,13 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Clock } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { zeroAddress } from "viem";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { getStatusConfig } from "@/components/proposals/utils";
-import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface AuctionLiveStatusProps {
   highestBid: string | undefined;
@@ -16,6 +13,10 @@ interface AuctionLiveStatusProps {
   startTime: number | undefined;
   /** Increments when a new bid is detected — triggers animation */
   bidSignal: number;
+  /** Leading bid's on-chain comment (decoded from calldata) */
+  leadingBidComment: string | null | undefined;
+  /** Total number of bids on this auction */
+  bidCount: number;
   onBidHistoryOpen: () => void;
 }
 
@@ -25,6 +26,8 @@ export function AuctionLiveStatus({
   endTime,
   startTime,
   bidSignal,
+  leadingBidComment,
+  bidCount,
   onBidHistoryOpen,
 }: AuctionLiveStatusProps) {
   const endTimeMs = endTime ? endTime * 1000 : 0;
@@ -74,57 +77,50 @@ export function AuctionLiveStatus({
     return { progressPercentage: progress, isLive: live, isEndingSoon: endingSoon };
   }, [startTimeMs, endTimeMs, timeLeft.total]);
 
-  const badgeStatus: ProposalStatus = isLive
-    ? isEndingSoon
-      ? ProposalStatus.PENDING
-      : ProposalStatus.ACTIVE
-    : ProposalStatus.DEFEATED;
-  const { color } = getStatusConfig(badgeStatus);
-  const badgeLabel = isLive ? (isEndingSoon ? "Ending Soon" : "Live Auction") : "Ended";
+  // Progress bar color: green (plenty of time) → amber (< 30%) → red (< 10%)
+  const remainingPercent = 100 - progressPercentage;
+  const progressColor = remainingPercent <= 10
+    ? "[&>div]:bg-red-500"
+    : remainingPercent <= 30
+      ? "[&>div]:bg-amber-500"
+      : "[&>div]:bg-green-500";
+
+  const timeString = `${timeLeft.hours.toString().padStart(2, "0")}:${timeLeft.minutes.toString().padStart(2, "0")}:${timeLeft.seconds.toString().padStart(2, "0")}`;
+
+  const hasBidder = highestBidder && highestBidder !== zeroAddress;
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col text-center items-start">
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            Time left
-          </div>
-          <div className="text-xl font-mono">
-            {timeLeft.hours.toString().padStart(2, "0")}:
-            {timeLeft.minutes.toString().padStart(2, "0")}:
-            {timeLeft.seconds.toString().padStart(2, "0")}
-          </div>
+      {/* Status line: live indicator + time + current bid */}
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <span className={`inline-block h-2 w-2 rounded-full ${
+            isLive
+              ? isEndingSoon ? "bg-amber-500 animate-pulse" : "bg-green-500"
+              : "bg-muted-foreground"
+          }`} />
+          <span>
+            {isLive
+              ? isEndingSoon
+                ? `Ending soon · ${timeString}`
+                : `Live · ${timeString} left`
+              : "Ended"
+            }
+          </span>
         </div>
-        <div className="flex flex-col text-center items-end">
-          <div className="text-sm text-muted-foreground">Current Highest Bid</div>
-          <div
-            className={`text-2xl font-bold transition-all duration-300 ${
-              bidAnimating
-                ? "scale-110 text-primary"
-                : "scale-100"
-            }`}
-          >
-            {highestBid ? `${highestBid} ETH` : "—"}
-          </div>
-        </div>
+        <span className={`font-bold text-base transition-all duration-300 ${
+          bidAnimating ? "scale-110 text-primary" : "scale-100"
+        }`}>
+          {highestBid ? `${highestBid} ETH` : "—"}
+        </span>
       </div>
 
-      <Progress value={progressPercentage} className="h-2" />
-
-      <div className="flex items-center justify-between">
-        <Badge className={`${color} text-xs`}>{badgeLabel}</Badge>
-        {highestBidder && highestBidder !== zeroAddress && (
-          <button
-            type="button"
-            onClick={onBidHistoryOpen}
-            className={`group flex items-center gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-1.5 transition-all hover:border-border/80 hover:bg-muted/40 ${
-              bidAnimating ? "ring-2 ring-primary/30" : ""
-            }`}
-          >
-            <span className="text-[11px] text-muted-foreground/60">
-              {isLive ? "Leading" : "Winner"}
-            </span>
+      {/* Leading bid card */}
+      {hasBidder && (
+        <div className={`rounded-lg border border-border/60 bg-muted/30 p-3 transition-all ${
+          bidAnimating ? "ring-2 ring-primary/30" : ""
+        }`}>
+          <div className="flex items-center justify-between mb-1">
             <AddressDisplay
               address={highestBidder}
               variant="compact"
@@ -134,11 +130,47 @@ export function AuctionLiveStatus({
               showExplorer={false}
               truncateLength={4}
               onAddressClick={() => {}}
-              className="text-sm text-foreground pointer-events-none"
+              className="text-sm font-medium text-foreground pointer-events-none"
             />
-          </button>
-        )}
-      </div>
+            <span className="text-sm font-bold">
+              {highestBid ? `${highestBid} ETH` : ""}
+            </span>
+          </div>
+          {leadingBidComment && (
+            <p className="text-xs text-muted-foreground italic pl-7 mt-0.5">
+              &ldquo;{leadingBidComment}&rdquo;
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Colored progress bar */}
+      <Progress value={progressPercentage} className={`h-1.5 ${progressColor}`} />
+
+      {/* Bid history link (below the form, rendered by parent) */}
+      {/* This section only shows if there are bids */}
     </>
+  );
+}
+
+/** Separate component for the bid history footer link */
+export function AuctionBidHistoryLink({
+  bidCount,
+  onBidHistoryOpen,
+}: {
+  bidCount: number;
+  onBidHistoryOpen: () => void;
+}) {
+  if (bidCount === 0) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={onBidHistoryOpen}
+      className="group flex w-full items-center justify-end gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+    >
+      <span>{bidCount} {bidCount === 1 ? "bid" : "bids"} · View all</span>
+      <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+    </button>
   );
 }
