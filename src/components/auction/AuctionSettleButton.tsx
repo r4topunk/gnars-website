@@ -65,7 +65,9 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
       predicate: (query) => {
         const key = query.queryKey;
         if (key[0] === "readContract" && Array.isArray(key)) {
-          const serialized = JSON.stringify(key);
+          const serialized = JSON.stringify(key, (_, v) =>
+            typeof v === "bigint" ? v.toString() : v,
+          );
           return serialized.includes(DAO_ADDRESSES.auction.toLowerCase());
         }
         return false;

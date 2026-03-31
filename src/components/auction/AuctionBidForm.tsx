@@ -94,7 +94,9 @@ export function AuctionBidForm({
         const key = query.queryKey;
         // wagmi useReadContract generates keys: ['readContract', { address, functionName, ... }]
         if (key[0] === "readContract" && Array.isArray(key)) {
-          const serialized = JSON.stringify(key);
+          const serialized = JSON.stringify(key, (_, v) =>
+            typeof v === "bigint" ? v.toString() : v,
+          );
           return serialized.includes(DAO_ADDRESSES.auction.toLowerCase());
         }
         return false;
