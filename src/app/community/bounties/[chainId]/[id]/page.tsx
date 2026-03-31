@@ -19,6 +19,7 @@ import {
   Users,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import type { PoidhBounty } from '@/types/poidh';
 import { CHAIN_NAMES, getExplorerUrl, getTxUrl } from '@/lib/poidh/config';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -458,6 +459,7 @@ export default function BountyDetailPage() {
                     )}
                     <div className="text-xs text-muted-foreground prose prose-invert prose-xs max-w-none">
                       <ReactMarkdown
+                        rehypePlugins={[rehypeRaw]}
                         components={{
                           img: ({ src, alt }) => (
                             <div className="flex justify-center my-2">
@@ -467,19 +469,6 @@ export default function BountyDetailPage() {
                                 alt={alt || ''}
                                 className="rounded-md max-w-full h-auto max-h-48"
                                 loading="lazy"
-                              />
-                            </div>
-                          ),
-                          // Render iframes as responsive videos
-                          iframe: ({ src, title }: { src?: string; title?: string }) => (
-                            <div className="relative w-full pb-[56.25%] my-3">
-                              <iframe
-                                src={src}
-                                title={title || 'Video proof'}
-                                className="absolute top-0 left-0 w-full h-full rounded-md"
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
                               />
                             </div>
                           ),
