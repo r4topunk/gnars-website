@@ -26,6 +26,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ClaimBountyModal } from '@/components/bounties/ClaimBountyModal';
 import { usePoidhCancelBounty, usePoidhJoinBounty, usePoidhWithdrawFromBounty, usePoidhAcceptClaim } from '@/hooks/usePoidhContract';
 import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
@@ -184,14 +185,28 @@ export default function BountyDetailPage() {
                         );
                       }
                       
+                      const imageSrc = typeof src === 'string' ? src : '';
+                      
                       return (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={typeof src === 'string' ? src : ''}
-                          alt={alt || ''}
-                          className="rounded-lg max-w-full h-auto my-2"
-                          loading="lazy"
-                        />
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={imageSrc}
+                              alt={alt || ''}
+                              className="rounded-lg max-w-full h-auto my-2 cursor-pointer hover:opacity-90 transition-opacity"
+                              loading="lazy"
+                            />
+                          </DialogTrigger>
+                          <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={imageSrc}
+                              alt={alt || ''}
+                              className="w-full h-auto max-h-[95vh] object-contain"
+                            />
+                          </DialogContent>
+                        </Dialog>
                       );
                     },
                     a: ({ href, children }) => (
@@ -478,13 +493,25 @@ export default function BountyDetailPage() {
                             <track kind="captions" />
                           </video>
                         ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={claim.url}
-                            alt={claim.name}
-                            className="rounded-md max-w-full h-auto max-h-64 object-cover"
-                            loading="lazy"
-                          />
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={claim.url}
+                                alt={claim.name}
+                                className="rounded-md max-w-full h-auto max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                loading="lazy"
+                              />
+                            </DialogTrigger>
+                            <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={claim.url}
+                                alt={claim.name}
+                                className="w-full h-auto max-h-[95vh] object-contain"
+                              />
+                            </DialogContent>
+                          </Dialog>
                         )}
                       </div>
                     )}
@@ -512,15 +539,29 @@ export default function BountyDetailPage() {
                               );
                             }
                             
+                            const imageSrc = typeof src === 'string' ? src : '';
+                            
                             return (
                               <div className="flex justify-center my-2">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={typeof src === 'string' ? src : ''}
-                                  alt={alt || ''}
-                                  className="rounded-md max-w-full h-auto max-h-48"
-                                  loading="lazy"
-                                />
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={imageSrc}
+                                      alt={alt || ''}
+                                      className="rounded-md max-w-full h-auto max-h-48 cursor-pointer hover:opacity-90 transition-opacity"
+                                      loading="lazy"
+                                    />
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={imageSrc}
+                                      alt={alt || ''}
+                                      className="w-full h-auto max-h-[95vh] object-contain"
+                                    />
+                                  </DialogContent>
+                                </Dialog>
                               </div>
                             );
                           },
