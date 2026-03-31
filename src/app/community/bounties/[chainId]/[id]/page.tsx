@@ -166,15 +166,34 @@ export default function BountyDetailPage() {
               <div className="text-muted-foreground leading-relaxed prose prose-invert prose-sm max-w-none">
                 <ReactMarkdown
                   components={{
-                    img: ({ src, alt }) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={src}
-                        alt={alt || ''}
-                        className="rounded-lg max-w-full h-auto my-2"
-                        loading="lazy"
-                      />
-                    ),
+                    img: ({ src, alt }) => {
+                      // Check if src is a video file
+                      const isVideo = typeof src === 'string' && (src.endsWith('.mov') || src.endsWith('.mp4') || src.endsWith('.MOV') || src.endsWith('.MP4'));
+                      
+                      if (isVideo) {
+                        return (
+                          <video
+                            src={src}
+                            className="rounded-lg max-w-full h-auto my-2"
+                            controls
+                            muted
+                            playsInline
+                          >
+                            <track kind="captions" />
+                          </video>
+                        );
+                      }
+                      
+                      return (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={typeof src === 'string' ? src : ''}
+                          alt={alt || ''}
+                          className="rounded-lg max-w-full h-auto my-2"
+                          loading="lazy"
+                        />
+                      );
+                    },
                     a: ({ href, children }) => (
                       <a
                         href={href}
@@ -445,33 +464,66 @@ export default function BountyDetailPage() {
                         <Badge variant="default" className="shrink-0">✓ Accepted</Badge>
                       )}
                     </div>
-                    {/* Claim image from url field */}
+                    {/* Claim media from url field */}
                     {claim.url && (
                       <div className="flex justify-center">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={claim.url}
-                          alt={claim.name}
-                          className="rounded-md max-w-full h-auto max-h-64 object-cover"
-                          loading="lazy"
-                        />
+                        {(claim.url.endsWith('.mov') || claim.url.endsWith('.mp4') || claim.url.endsWith('.MOV') || claim.url.endsWith('.MP4')) ? (
+                          <video
+                            src={claim.url}
+                            className="rounded-md max-w-full h-auto max-h-64"
+                            controls
+                            muted
+                            playsInline
+                          >
+                            <track kind="captions" />
+                          </video>
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={claim.url}
+                            alt={claim.name}
+                            className="rounded-md max-w-full h-auto max-h-64 object-cover"
+                            loading="lazy"
+                          />
+                        )}
                       </div>
                     )}
                     <div className="text-xs text-muted-foreground prose prose-invert prose-xs max-w-none">
                       <ReactMarkdown
                         rehypePlugins={[rehypeRaw]}
                         components={{
-                          img: ({ src, alt }) => (
-                            <div className="flex justify-center my-2">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={src}
-                                alt={alt || ''}
-                                className="rounded-md max-w-full h-auto max-h-48"
-                                loading="lazy"
-                              />
-                            </div>
-                          ),
+                          img: ({ src, alt }) => {
+                            // Check if src is a video file
+                            const isVideo = typeof src === 'string' && (src.endsWith('.mov') || src.endsWith('.mp4') || src.endsWith('.MOV') || src.endsWith('.MP4'));
+                            
+                            if (isVideo) {
+                              return (
+                                <div className="flex justify-center my-2">
+                                  <video
+                                    src={src}
+                                    className="rounded-md max-w-full h-auto max-h-48"
+                                    controls
+                                    muted
+                                    playsInline
+                                  >
+                                    <track kind="captions" />
+                                  </video>
+                                </div>
+                              );
+                            }
+                            
+                            return (
+                              <div className="flex justify-center my-2">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={typeof src === 'string' ? src : ''}
+                                  alt={alt || ''}
+                                  className="rounded-md max-w-full h-auto max-h-48"
+                                  loading="lazy"
+                                />
+                              </div>
+                            );
+                          },
                           a: ({ href, children }) => (
                             <a
                               href={href}
