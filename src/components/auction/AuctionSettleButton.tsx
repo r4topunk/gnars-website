@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { base } from "wagmi/chains";
 import {
   useAccount,
@@ -24,6 +24,9 @@ interface AuctionSettleButtonProps {
 }
 
 export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(resetTimerRef.current), []);
+
   const { chain } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync } = useWriteContract();
@@ -71,7 +74,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
         description: "Loading new auction...",
       });
       invalidateAuctionData();
-      setTimeout(() => settleTx.reset(), 1500);
+      resetTimerRef.current = setTimeout(() => settleTx.reset(), 1500);
     },
     onError: (error) => {
       toast.error("Settlement failed", { description: error.message });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { CHAIN } from "@/lib/config";
 
@@ -38,6 +38,12 @@ export function useAuctionTransaction(
   const [phase, setPhase] = useState<TxPhase>("idle");
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
 
+  // Stable refs for callbacks to avoid stale closures in effects
+  const onConfirmedRef = useRef(onConfirmed);
+  const onErrorRef = useRef(onError);
+  useEffect(() => { onConfirmedRef.current = onConfirmed; });
+  useEffect(() => { onErrorRef.current = onError; });
+
   const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
     chainId: CHAIN.id,
@@ -47,9 +53,9 @@ export function useAuctionTransaction(
   useEffect(() => {
     if (isConfirmed && txHash && phase === "submitted") {
       setPhase("confirmed");
-      onConfirmed?.(txHash);
+      onConfirmedRef.current?.(txHash);
     }
-  }, [isConfirmed, txHash, phase, onConfirmed]);
+  }, [isConfirmed, txHash, phase]);
 
   const execute = useCallback(
     async (txFn: () => Promise<`0x${string}`>) => {
@@ -61,12 +67,12 @@ export function useAuctionTransaction(
       } catch (err) {
         const error =
           err instanceof Error ? err : new Error("Transaction failed");
-        onError?.(error);
+        onErrorRef.current?.(error);
         setPhase("idle");
         setTxHash(undefined);
       }
     },
-    [onError],
+    [],
   );
 
   const reset = useCallback(() => {

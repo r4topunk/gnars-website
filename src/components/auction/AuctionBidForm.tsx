@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, MessageSquare, Wallet } from "lucide-react";
 import { encodeFunctionData, concat, formatEther, parseEther, toHex } from "viem";
 import { base } from "wagmi/chains";
@@ -43,6 +43,10 @@ export function AuctionBidForm({
 
   const [bidComment, setBidComment] = useState("");
   const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Cleanup reset timer on unmount
+  useEffect(() => () => clearTimeout(resetTimerRef.current), []);
 
   // Balance check
   const { data: balanceData } = useBalance({
@@ -61,9 +65,12 @@ export function AuctionBidForm({
 
   const [bidAmount, setBidAmount] = useState(minNextBidEth.toFixed(4));
 
-  // Update bid amount when minimum changes (new bid came in)
+  // Update bid amount when minimum changes — only if current value is below new minimum
   useEffect(() => {
-    setBidAmount(minNextBidEth.toFixed(4));
+    setBidAmount((prev) => {
+      const parsed = parseFloat(prev);
+      return isNaN(parsed) || parsed < minNextBidEth ? minNextBidEth.toFixed(4) : prev;
+    });
   }, [minNextBidEth]);
 
   // Validation
@@ -102,7 +109,7 @@ export function AuctionBidForm({
       setBidComment("");
       setIsCommentOpen(false);
       // Brief "Confirmed!" display, then reset
-      setTimeout(() => bidTx.reset(), 1500);
+      resetTimerRef.current = setTimeout(() => bidTx.reset(), 1500);
     },
     onError: (error) => {
       toast.error("Bid failed", { description: error.message });
@@ -194,13 +201,19 @@ export function AuctionBidForm({
     return "Place Bid";
   };
 
-  const handleButtonClick = () => {
+  const handleButtonClick = async () => {
     if (!isConnected) {
       handleConnectAndBid();
       return;
     }
     if (isWrongNetwork) {
-      switchChainAsync({ chainId: base.id });
+      try {
+        await switchChainAsync({ chainId: base.id });
+        // After switching, proceed to bid
+        handleBid();
+      } catch {
+        // User rejected network switch
+      }
       return;
     }
     handleBid();
