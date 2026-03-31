@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatEther } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { useDaoAuction } from "@buildeross/hooks";
@@ -21,11 +21,12 @@ export function AuctionSpotlight() {
   const { address } = useAccount();
   const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
 
-  // Optimistic state — shown immediately after user's bid confirms
+  // Optimistic state — shown immediately after user's TX is submitted
   const [optimistic, setOptimistic] = useState<{
     comment: string;
     bidAmount: string;
   } | null>(null);
+  const bidsCountWhenOptimisticRef = useRef<number>(0);
 
   // Primary auction data (metadata, tokenUri)
   const { highestBid, highestBidder, endTime, startTime, tokenId, tokenUri } = useDaoAuction({
@@ -45,12 +46,12 @@ export function AuctionSpotlight() {
   // Fetch bids for this auction (always enabled — lightweight subgraph query)
   const { bids } = useAuctionBids(tokenId?.toString(), true, 15_000);
 
-  // Clear optimistic state once subgraph catches up (bids array updates)
+  // Clear optimistic state once subgraph has indexed the new bid
   useEffect(() => {
-    if (optimistic && bids.length > 0) {
+    if (optimistic && bids.length > bidsCountWhenOptimisticRef.current) {
       setOptimistic(null);
     }
-  }, [bids, optimistic]);
+  }, [bids.length, optimistic]);
 
   // Fetch comment for the leading bid
   const leadingBidTxHash = bids.length > 0 ? bids[0].transactionHash : undefined;
@@ -120,8 +121,9 @@ export function AuctionSpotlight() {
   }, [wasOutbid, latestBid, clearOutbid]);
 
   const handleBidConfirmed = useCallback((comment: string, bidAmount: string) => {
+    bidsCountWhenOptimisticRef.current = bids.length;
     setOptimistic({ comment, bidAmount });
-  }, []);
+  }, [bids.length]);
 
   return (
     <Card className="w-full bg-card">
