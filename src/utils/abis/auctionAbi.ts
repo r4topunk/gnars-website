@@ -58,6 +58,17 @@ const auctionAbi = [
     inputs: [],
     outputs: [{ name: "", type: "uint256" }],
   },
+  {
+    type: "event",
+    name: "AuctionBid",
+    inputs: [
+      { name: "tokenId", type: "uint256", indexed: false },
+      { name: "bidder", type: "address", indexed: false },
+      { name: "amount", type: "uint256", indexed: false },
+      { name: "extended", type: "bool", indexed: false },
+      { name: "endTime", type: "uint256", indexed: false },
+    ],
+  },
 ] as const;
 
 export default auctionAbi;
