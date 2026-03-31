@@ -51,7 +51,7 @@ export default function BountiesPage() {
               <span className="text-2xl">🏆</span>
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground">POIDH Bounties</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">Challenges</h1>
               <p className="text-muted-foreground">
                 Gnarly challenges from the action sports community
               </p>
