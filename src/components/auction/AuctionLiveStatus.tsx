@@ -91,36 +91,12 @@ export function AuctionLiveStatus({
 
   return (
     <>
-      {/* Status line: live indicator + time + current bid */}
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <span className={`inline-block h-2 w-2 rounded-full ${
-            isLive
-              ? isEndingSoon ? "bg-amber-500 animate-pulse" : "bg-green-500"
-              : "bg-muted-foreground"
-          }`} />
-          <span>
-            {isLive
-              ? isEndingSoon
-                ? `Ending soon · ${timeString}`
-                : `Live · ${timeString} left`
-              : "Ended"
-            }
-          </span>
-        </div>
-        <span className={`font-bold text-base transition-all duration-300 ${
-          bidAnimating ? "scale-110 text-primary" : "scale-100"
-        }`}>
-          {highestBid ? `${highestBid} ETH` : "—"}
-        </span>
-      </div>
-
-      {/* Leading bid card */}
-      {hasBidder && (
+      {/* Leading bid card — the hero element */}
+      {hasBidder ? (
         <div className={`rounded-lg border border-border/60 bg-muted/30 p-3 transition-all ${
           bidAnimating ? "ring-2 ring-primary/30" : ""
         }`}>
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between">
             <AddressDisplay
               address={highestBidder}
               variant="compact"
@@ -132,23 +108,41 @@ export function AuctionLiveStatus({
               onAddressClick={() => {}}
               className="text-sm font-medium text-foreground pointer-events-none"
             />
-            <span className="text-sm font-bold">
+            <span className={`text-lg font-bold transition-all duration-300 ${
+              bidAnimating ? "scale-110 text-primary" : "scale-100"
+            }`}>
               {highestBid ? `${highestBid} ETH` : ""}
             </span>
           </div>
           {leadingBidComment && (
-            <p className="text-xs text-muted-foreground italic pl-7 mt-0.5">
+            <p className="text-xs text-muted-foreground italic pl-7 mt-1">
               &ldquo;{leadingBidComment}&rdquo;
             </p>
           )}
         </div>
+      ) : (
+        <div className="text-center py-2 text-muted-foreground text-sm">
+          No bids yet — be the first!
+        </div>
       )}
 
-      {/* Colored progress bar */}
-      <Progress value={progressPercentage} className={`h-1.5 ${progressColor}`} />
-
-      {/* Bid history link (below the form, rendered by parent) */}
-      {/* This section only shows if there are bids */}
+      {/* Time + progress */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <span className={`inline-block h-1.5 w-1.5 rounded-full ${
+          isLive
+            ? isEndingSoon ? "bg-amber-500 animate-pulse" : "bg-green-500"
+            : "bg-muted-foreground"
+        }`} />
+        <span>
+          {isLive
+            ? isEndingSoon
+              ? `Ending soon · ${timeString}`
+              : `${timeString} left`
+            : "Ended"
+          }
+        </span>
+        <Progress value={progressPercentage} className={`h-1 flex-1 ${progressColor}`} />
+      </div>
     </>
   );
 }
