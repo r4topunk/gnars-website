@@ -76,9 +76,15 @@ export async function GET(request: NextRequest) {
       return true;
     });
 
+    // Map isOpenBounty from isMultiplayer (API list endpoint doesn't return isOpenBounty)
+    const mapped = filtered.map((b) => ({
+      ...b,
+      isOpenBounty: b.isOpenBounty ?? b.isMultiplayer,
+    }));
+
     return NextResponse.json({ 
-      bounties: filtered,
-      total: filtered.length,
+      bounties: mapped,
+      total: mapped.length,
       cached: true,
     });
   } catch (error) {
