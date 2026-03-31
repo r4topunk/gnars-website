@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ClaimBountyModal } from '@/components/bounties/ClaimBountyModal';
-import { usePoidhCancelBounty, usePoidhJoinBounty, usePoidhWithdrawFromBounty } from '@/hooks/usePoidhContract';
+import { usePoidhCancelBounty, usePoidhJoinBounty, usePoidhWithdrawFromBounty, usePoidhAcceptClaim } from '@/hooks/usePoidhContract';
 import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
 
 const STATUS_STYLES = {
@@ -65,6 +65,7 @@ export default function BountyDetailPage() {
   const cancelHook = usePoidhCancelBounty(chainId);
   const joinHook = usePoidhJoinBounty(chainId);
   const withdrawHook = usePoidhWithdrawFromBounty(chainId);
+  const acceptClaimHook = usePoidhAcceptClaim(chainId);
 
   if (isLoading && !bounty) {
     return (
@@ -445,25 +446,42 @@ export default function BountyDetailPage() {
                     </div>
                     {/* Claim image from url field */}
                     {claim.url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={claim.url}
-                        alt={claim.name}
-                        className="rounded-md max-w-full h-auto max-h-64 object-cover"
-                        loading="lazy"
-                      />
+                      <div className="flex justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={claim.url}
+                          alt={claim.name}
+                          className="rounded-md max-w-full h-auto max-h-64 object-cover"
+                          loading="lazy"
+                        />
+                      </div>
                     )}
                     <div className="text-xs text-muted-foreground prose prose-invert prose-xs max-w-none">
                       <ReactMarkdown
                         components={{
                           img: ({ src, alt }) => (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={src}
-                              alt={alt || ''}
-                              className="rounded-md max-w-full h-auto max-h-48 my-1"
-                              loading="lazy"
-                            />
+                            <div className="flex justify-center my-2">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={src}
+                                alt={alt || ''}
+                                className="rounded-md max-w-full h-auto max-h-48"
+                                loading="lazy"
+                              />
+                            </div>
+                          ),
+                          // Render iframes as responsive videos
+                          iframe: ({ src, title }: { src?: string; title?: string }) => (
+                            <div className="relative w-full pb-[56.25%] my-3">
+                              <iframe
+                                src={src}
+                                title={title || 'Video proof'}
+                                className="absolute top-0 left-0 w-full h-full rounded-md"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            </div>
                           ),
                           a: ({ href, children }) => (
                             <a
@@ -483,17 +501,57 @@ export default function BountyDetailPage() {
                         {claim.description}
                       </ReactMarkdown>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <User className="w-3 h-3" />
-                      <a
-                        href={getExplorerUrl(chainId, claim.issuer)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:underline"
-                      >
-                        {claim.issuer.slice(0, 6)}…{claim.issuer.slice(-4)}
-                      </a>
+                    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <User className="w-3 h-3" />
+                        <a
+                          href={getExplorerUrl(chainId, claim.issuer)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          {claim.issuer.slice(0, 6)}…{claim.issuer.slice(-4)}
+                        </a>
+                        <span>•</span>
+                        <Clock className="w-3 h-3" />
+                        <span>
+                          {new Date(claim.createdAt * 1000).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {/* Accept button (creator only, if not already accepted) */}
+                      {isCreator && !claim.accepted && !bounty.isCanceled && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          disabled={acceptClaimHook.isPending}
+                          onClick={() => acceptClaimHook.accept(bounty.onChainId, claim.id)}
+                        >
+                          {acceptClaimHook.isPending ? (
+                            <>
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              Accepting...
+                            </>
+                          ) : (
+                            '✓ Accept Claim'
+                          )}
+                        </Button>
+                      )}
                     </div>
+                    {/* Accept success message */}
+                    {acceptClaimHook.isSuccess && acceptClaimHook.hash && (
+                      <div className="flex items-center gap-2 py-2 px-3 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
+                        <CheckCircle2 className="w-4 h-4 shrink-0" />
+                        <span>Claim accepted!</span>
+                        <a
+                          href={getTxUrl(chainId, acceptClaimHook.hash)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-auto flex items-center gap-1 hover:underline"
+                        >
+                          View tx <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    )}
                   </div>
                 ))}
               </CardContent>

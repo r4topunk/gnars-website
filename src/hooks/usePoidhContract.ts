@@ -175,3 +175,27 @@ export function usePoidhWithdrawFromBounty(bountyChainId: number) {
 
   return { withdraw, hash, isPending: isPending || isConfirming, isSuccess, error, reset };
 }
+
+// ─── Accept Claim (creator only) ──────────────────────────────────────────────
+
+export function usePoidhAcceptClaim(bountyChainId: number) {
+  const { contract, ensureChain } = usePoidhBase(bountyChainId);
+  const { writeContractAsync, data: hash, isPending, error, reset } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const accept = useCallback(
+    async (onChainBountyId: number, claimId: number) => {
+      await ensureChain();
+      await writeContractAsync({
+        address: contract!,
+        abi: POIDH_ABI,
+        functionName: "acceptClaim",
+        args: [BigInt(onChainBountyId), BigInt(claimId)],
+        chainId: bountyChainId,
+      });
+    },
+    [ensureChain, writeContractAsync, contract, bountyChainId],
+  );
+
+  return { accept, hash, isPending: isPending || isConfirming, isSuccess, error, reset };
+}
