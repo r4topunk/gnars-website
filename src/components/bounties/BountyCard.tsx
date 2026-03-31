@@ -10,6 +10,17 @@ interface BountyCardProps {
   bounty: PoidhBounty;
 }
 
+/** Extract first markdown image URL from text */
+function extractImageUrl(text: string): string | null {
+  const match = text.match(/!\[.*?\]\((.*?)\)/);
+  return match ? match[1] : null;
+}
+
+/** Strip markdown image syntax for plain text preview */
+function stripMarkdownImages(text: string): string {
+  return text.replace(/!\[.*?\]\(.*?\)/g, '').replace(/Thumbnail:\s*/gi, '').trim();
+}
+
 const STATUS_STYLES = {
   Canceled: "bg-red-500/10 text-red-400 border-red-500/20",
   Voting: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
@@ -36,6 +47,8 @@ export function BountyCard({ bounty }: BountyCardProps) {
   const status = getStatus();
   const dotColor = CHAIN_DOT_COLORS[bounty.chainId] ?? "bg-gray-400";
   const detailHref = `/community/bounties/${bounty.chainId}/${bounty.id}`;
+  const thumbnailUrl = extractImageUrl(bounty.description);
+  const cleanDescription = stripMarkdownImages(bounty.description);
   const { ethPrice } = useEthPrice();
   const ethAmount = parseFloat(amountEth);
   const usdValue = formatEthToUsd(ethAmount, ethPrice);
@@ -59,6 +72,19 @@ export function BountyCard({ bounty }: BountyCardProps) {
           </span>
         </div>
 
+        {/* Thumbnail */}
+        {thumbnailUrl && (
+          <div className="rounded-lg overflow-hidden border border-border/50 -mx-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={thumbnailUrl}
+              alt={bounty.title || bounty.name}
+              className="w-full h-32 object-cover"
+              loading="lazy"
+            />
+          </div>
+        )}
+
         {/* Title */}
         <h3 className="font-bold text-base leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-150">
           {bounty.title || bounty.name}
@@ -66,7 +92,7 @@ export function BountyCard({ bounty }: BountyCardProps) {
 
         {/* Description */}
         <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1">
-          {bounty.description}
+          {cleanDescription}
         </p>
 
         {/* Reward */}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { formatEther } from 'viem';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Users,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import type { PoidhBounty } from '@/types/poidh';
 import { CHAIN_NAMES, getExplorerUrl, getTxUrl } from '@/lib/poidh/config';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,14 +46,6 @@ export default function BountyDetailPage() {
   const chainId = parseInt(params.chainId as string, 10);
   const id = parseInt(params.id as string, 10);
   const { address } = useAccount();
-  const queryClient = useQueryClient();
-
-  // Try to reuse cached list data first
-  const cached = queryClient
-    .getQueriesData<{ bounties: PoidhBounty[] }>({ queryKey: ['poidh-bounties'] })
-    .flatMap(([, d]) => d?.bounties ?? [])
-    .find((b) => b.chainId === chainId && b.id === id);
-
   const { data, isLoading, error } = useQuery<{ bounty: PoidhBounty }>({
     queryKey: ['poidh-bounty', chainId, id],
     queryFn: async () => {
@@ -60,11 +53,10 @@ export default function BountyDetailPage() {
       if (!res.ok) throw new Error('Bounty not found');
       return res.json();
     },
-    enabled: !cached,
     staleTime: 60_000,
   });
 
-  const bounty = cached ?? data?.bounty;
+  const bounty = data?.bounty;
 
   const { ethPrice } = useEthPrice();
   const [joinAmount, setJoinAmount] = useState('0.001');
@@ -169,9 +161,36 @@ export default function BountyDetailPage() {
               <CardTitle className="flex items-center gap-2">🎯 Objective</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                {bounty.description}
-              </p>
+              <div className="text-muted-foreground leading-relaxed prose prose-invert prose-sm max-w-none">
+                <ReactMarkdown
+                  components={{
+                    img: ({ src, alt }) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={src}
+                        alt={alt || ''}
+                        className="rounded-lg max-w-full h-auto my-2"
+                        loading="lazy"
+                      />
+                    ),
+                    a: ({ href, children }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {children}
+                      </a>
+                    ),
+                    p: ({ children }) => (
+                      <p className="whitespace-pre-wrap mb-2">{children}</p>
+                    ),
+                  }}
+                >
+                  {bounty.description}
+                </ReactMarkdown>
+              </div>
             </CardContent>
           </Card>
 
@@ -424,9 +443,46 @@ export default function BountyDetailPage() {
                         <Badge variant="default" className="shrink-0">✓ Accepted</Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">
-                      {claim.description}
-                    </p>
+                    {/* Claim image from url field */}
+                    {claim.url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={claim.url}
+                        alt={claim.name}
+                        className="rounded-md max-w-full h-auto max-h-64 object-cover"
+                        loading="lazy"
+                      />
+                    )}
+                    <div className="text-xs text-muted-foreground prose prose-invert prose-xs max-w-none">
+                      <ReactMarkdown
+                        components={{
+                          img: ({ src, alt }) => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={src}
+                              alt={alt || ''}
+                              className="rounded-md max-w-full h-auto max-h-48 my-1"
+                              loading="lazy"
+                            />
+                          ),
+                          a: ({ href, children }) => (
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              {children}
+                            </a>
+                          ),
+                          p: ({ children }) => (
+                            <p className="whitespace-pre-wrap mb-1">{children}</p>
+                          ),
+                        }}
+                      >
+                        {claim.description}
+                      </ReactMarkdown>
+                    </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <User className="w-3 h-3" />
                       <a
@@ -437,11 +493,6 @@ export default function BountyDetailPage() {
                       >
                         {claim.issuer.slice(0, 6)}…{claim.issuer.slice(-4)}
                       </a>
-                      <span>•</span>
-                      <Clock className="w-3 h-3" />
-                      <span>
-                        {new Date(claim.createdAt * 1000).toLocaleDateString()}
-                      </span>
                     </div>
                   </div>
                 ))}

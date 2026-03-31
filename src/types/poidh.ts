@@ -6,6 +6,7 @@ export interface PoidhClaim {
   issuer: string;
   createdAt: number;
   accepted: boolean;
+  url?: string | null;
 }
 
 export interface PoidhBounty {

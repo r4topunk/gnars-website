@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SUPPORTED_CHAINS } from '@/lib/poidh/config';
 
 const SUPPORTED_CHAIN_IDS = Object.values(SUPPORTED_CHAINS);
+const POIDH_TRPC = 'https://poidh.xyz/api/trpc';
 
 export const revalidate = 60; // 1 minute cache
 
@@ -18,30 +19,67 @@ export async function GET(
   }
 
   try {
-    const res = await fetch('https://poidh.xyz/api/trpc/bounties.fetchAll', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      next: { revalidate: 60 },
-    });
+    // Fetch bounty detail and claims in parallel using POIDH tRPC API
+    const bountyInput = JSON.stringify({ json: { id, chainId } });
+    const claimsInput = JSON.stringify({ json: { bountyId: id, chainId, limit: 50 } });
 
-    if (!res.ok) throw new Error(`POIDH API error: ${res.status}`);
+    const [bountyRes, claimsRes] = await Promise.all([
+      fetch(`${POIDH_TRPC}/bounties.fetch?input=${encodeURIComponent(bountyInput)}`, {
+        headers: { 'Content-Type': 'application/json' },
+        next: { revalidate: 60 },
+      }),
+      fetch(`${POIDH_TRPC}/claims.fetchBountyClaims?input=${encodeURIComponent(claimsInput)}`, {
+        headers: { 'Content-Type': 'application/json' },
+        next: { revalidate: 60 },
+      }),
+    ]);
 
-    const raw = await res.json();
-    const all: unknown[] = Array.isArray(raw?.result?.data?.json)
-      ? raw.result.data.json
-      : [];
+    if (!bountyRes.ok) throw new Error(`POIDH bounty API error: ${bountyRes.status}`);
 
-    const bounty = all.find(
-      (b: unknown) =>
-        (b as { chainId: number; id: number }).chainId === chainId &&
-        (b as { chainId: number; id: number }).id === id,
-    );
+    const bountyRaw = await bountyRes.json();
+    const bounty = bountyRaw?.result?.data?.json;
 
     if (!bounty) {
       return NextResponse.json({ error: 'Bounty not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ bounty });
+    // Parse claims (may fail independently - bounty still works without them)
+    let claims: unknown[] = [];
+    if (claimsRes.ok) {
+      const claimsRaw = await claimsRes.json();
+      claims = claimsRaw?.result?.data?.json?.items ?? [];
+    }
+
+    // Map claims to our format
+    const mappedClaims = claims.map((c: unknown) => {
+      const claim = c as {
+        id: number;
+        bountyId: number;
+        title?: string;
+        description?: string;
+        issuer: string;
+        isAccepted: boolean;
+        url?: string | null;
+        onChainId?: number;
+      };
+      return {
+        id: claim.id,
+        bountyId: claim.bountyId,
+        name: claim.title || `Claim #${claim.id}`,
+        description: claim.description || '',
+        issuer: claim.issuer,
+        createdAt: 0, // not returned by POIDH claims API
+        accepted: claim.isAccepted,
+        url: claim.url || null,
+      };
+    });
+
+    return NextResponse.json({
+      bounty: {
+        ...bounty,
+        claims: mappedClaims,
+      },
+    });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Failed to fetch bounty' },

@@ -241,7 +241,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                     {hash ? "Confirming…" : "Confirm in wallet…"}
                   </>
                 ) : (
-                  `Create & fund with ${reward || "0"} ETH`
+                  `Create & fund with ${parseFloat(reward || "0").toFixed(4)} ETH`
                 )}
               </Button>
             </div>
