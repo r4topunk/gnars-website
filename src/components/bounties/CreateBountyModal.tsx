@@ -21,7 +21,7 @@ const CHAIN_OPTIONS = [
   { label: "Arbitrum", chainId: SUPPORTED_CHAINS.ARBITRUM },
 ];
 
-const SUPPORTED_IDS = CHAIN_OPTIONS.map((c) => c.chainId);
+const SUPPORTED_IDS = CHAIN_OPTIONS.map((c) => c.chainId) as number[];
 
 interface CreateBountyModalProps {
   children?: React.ReactNode;
