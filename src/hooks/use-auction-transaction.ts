@@ -7,6 +7,8 @@ import { CHAIN } from "@/lib/config";
 export type TxPhase = "idle" | "wallet_confirm" | "submitted" | "confirmed";
 
 interface UseAuctionTransactionOptions {
+  /** Called when TX hash is received (submitted to mempool) */
+  onSubmitted?: (hash: `0x${string}`) => void;
   /** Called when TX is confirmed onchain */
   onConfirmed?: (hash: `0x${string}`) => void;
   /** Called when TX fails at any phase */
@@ -14,33 +16,26 @@ interface UseAuctionTransactionOptions {
 }
 
 interface UseAuctionTransactionReturn {
-  /** Current phase of the transaction lifecycle */
   phase: TxPhase;
-  /** The TX hash once submitted */
   txHash: `0x${string}` | undefined;
-  /** Whether any TX is in progress (not idle) */
   isActive: boolean;
-  /** Button label for current phase */
   buttonLabel: (idle: string) => string;
-  /**
-   * Execute a transaction. Pass an async function that calls
-   * writeContractAsync or sendTransactionAsync and returns the hash.
-   */
   execute: (txFn: () => Promise<`0x${string}`>) => Promise<void>;
-  /** Reset back to idle (e.g., after confirmed toast) */
   reset: () => void;
 }
 
 export function useAuctionTransaction(
   options: UseAuctionTransactionOptions = {},
 ): UseAuctionTransactionReturn {
-  const { onConfirmed, onError } = options;
+  const { onSubmitted, onConfirmed, onError } = options;
   const [phase, setPhase] = useState<TxPhase>("idle");
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
 
-  // Stable refs for callbacks to avoid stale closures in effects
+  // Stable refs for callbacks — called synchronously, no effect timing issues
+  const onSubmittedRef = useRef(onSubmitted);
   const onConfirmedRef = useRef(onConfirmed);
   const onErrorRef = useRef(onError);
+  useEffect(() => { onSubmittedRef.current = onSubmitted; });
   useEffect(() => { onConfirmedRef.current = onConfirmed; });
   useEffect(() => { onErrorRef.current = onError; });
 
@@ -64,6 +59,8 @@ export function useAuctionTransaction(
         const hash = await txFn();
         setTxHash(hash);
         setPhase("submitted");
+        // Fire immediately — no useEffect delay
+        onSubmittedRef.current?.(hash);
       } catch (err) {
         const error =
           err instanceof Error ? err : new Error("Transaction failed");

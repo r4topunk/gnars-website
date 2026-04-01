@@ -111,6 +111,12 @@ export function AuctionBidForm({
   const pendingBidRef = useRef<{ comment: string; amount: string } | null>(null);
 
   const bidTx = useAuctionTransaction({
+    onSubmitted: () => {
+      // Fires synchronously when TX hash is received — before any React render
+      if (pendingBidRef.current) {
+        onBidConfirmed?.(pendingBidRef.current.comment, pendingBidRef.current.amount);
+      }
+    },
     onConfirmed: () => {
       toast.success("Bid confirmed!", { description: "Auction data updated." });
       invalidateAuctionData();
@@ -120,20 +126,11 @@ export function AuctionBidForm({
       resetTimerRef.current = setTimeout(() => bidTx.reset(), 1500);
     },
     onError: () => {
-      // TX failed — clear optimistic state
       pendingBidRef.current = null;
       onBidConfirmed?.("", "");
       toast.error("Bid failed");
     },
   });
-
-  // Set optimistic state as soon as TX is submitted (not confirmed)
-  // This fires before the event subscription updates bid value
-  useEffect(() => {
-    if (bidTx.phase === "submitted" && pendingBidRef.current) {
-      onBidConfirmed?.(pendingBidRef.current.comment, pendingBidRef.current.amount);
-    }
-  }, [bidTx.phase, onBidConfirmed]);
 
   // Handle wallet connect
   const handleConnectAndBid = () => {
