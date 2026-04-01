@@ -255,17 +255,16 @@ export function AuctionBidForm({
 
       {/* Inline status row: balance + insufficient warning + comment toggle */}
       <div className="flex items-center justify-between text-xs">
-        <div className="text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-2">
+          <span>Min: {minNextBidEth.toFixed(4)} ETH</span>
           {isConnected && insufficientBalance ? (
             <span className="text-destructive">
-              Insufficient balance{balanceEth !== undefined ? ` (${balanceEth.toFixed(4)} ETH)` : ""}
+              · Insufficient{balanceEth !== undefined ? ` (${balanceEth.toFixed(4)})` : ""}
             </span>
           ) : isConnected && balanceEth !== undefined ? (
-            <span>Balance: {balanceEth.toFixed(4)} ETH</span>
+            <span>· Bal: {balanceEth.toFixed(4)}</span>
           ) : isWrongNetwork ? (
-            <span className="text-amber-500">Switch to Base to bid</span>
-          ) : !isConnected ? (
-            <span>Min: {minNextBidEth.toFixed(4)} ETH</span>
+            <span className="text-amber-500">· Wrong network</span>
           ) : null}
         </div>
         <Collapsible open={isCommentOpen} onOpenChange={setIsCommentOpen}>
