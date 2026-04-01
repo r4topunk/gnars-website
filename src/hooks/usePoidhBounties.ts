@@ -5,16 +5,16 @@ interface UsePoidhBountiesOptions {
   status?: 'open' | 'closed' | 'voting' | 'all';
   limit?: number;
   filterGnarly?: boolean;
+  initialData?: PoidhBountiesResponse;
 }
 
 interface PoidhBountiesResponse {
   bounties: PoidhBounty[];
   total: number;
-  cached: boolean;
 }
 
 export function usePoidhBounties(options: UsePoidhBountiesOptions = {}) {
-  const { status = 'open', limit = 100, filterGnarly = false } = options;
+  const { status = 'open', limit = 100, filterGnarly = false, initialData } = options;
 
   return useQuery<PoidhBountiesResponse, Error>({
     queryKey: ['poidh-bounties', status, limit, filterGnarly],
@@ -26,7 +26,7 @@ export function usePoidhBounties(options: UsePoidhBountiesOptions = {}) {
       });
 
       const res = await fetch(`/api/poidh/bounties?${params}`);
-      
+
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.details || 'Failed to fetch bounties');
@@ -34,7 +34,10 @@ export function usePoidhBounties(options: UsePoidhBountiesOptions = {}) {
 
       return res.json();
     },
-    staleTime: 60 * 1000, // 1 minute
-    gcTime: 15 * 60 * 1000, // 15 minutes (renamed from cacheTime)
+    initialData,
+    staleTime: 60 * 1000,
+    gcTime: 15 * 60 * 1000,
   });
 }
+
+export type { PoidhBountiesResponse };
