@@ -18,6 +18,10 @@ export async function GET(
     return NextResponse.json({ error: 'Unsupported chain' }, { status: 400 });
   }
 
+  if (isNaN(id) || id < 1) {
+    return NextResponse.json({ error: 'Invalid bounty id' }, { status: 400 });
+  }
+
   try {
     // Fetch bounty detail and claims in parallel using POIDH tRPC API
     const bountyInput = JSON.stringify({ json: { id, chainId } });

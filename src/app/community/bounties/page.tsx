@@ -42,7 +42,7 @@ export default function BountiesPage() {
   // Calculate total bounty value
   const totalValue = useMemo(() => {
     const totalWei = filteredBounties.reduce((sum, bounty) => {
-      return sum + BigInt(bounty.amount);
+      return sum + BigInt(bounty.amount ?? 0);
     }, 0n);
     const totalEth = parseFloat(formatEther(totalWei));
     const totalUsd = formatEthToUsd(totalEth, ethPrice);

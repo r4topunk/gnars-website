@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import type { PoidhBounty } from '@/types/poidh';
 import { CHAIN_NAMES, getExplorerUrl, getTxUrl } from '@/lib/poidh/config';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -322,7 +323,7 @@ export default function BountyDetailPage() {
                     )}
                     <div className="text-xs text-muted-foreground prose prose-invert prose-xs max-w-none">
                       <ReactMarkdown
-                        rehypePlugins={[rehypeRaw]}
+                        rehypePlugins={[rehypeRaw, [rehypeSanitize, { ...defaultSchema, tagNames: [...(defaultSchema.tagNames || []), 'iframe'], attributes: { ...defaultSchema.attributes, iframe: ['src', 'allowFullScreen', 'width', 'height', 'frameBorder'] } }]]}
                         components={{
                           img: ({ src, alt }) => {
                             const url = typeof src === 'string' ? src : '';
@@ -592,6 +593,9 @@ export default function BountyDetailPage() {
                         View tx <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
+                    <Button variant="outline" size="sm" className="mt-1" onClick={() => joinHook.reset()}>
+                      Contribute more
+                    </Button>
                   </div>
                 ) : (
                   <>
@@ -619,6 +623,7 @@ export default function BountyDetailPage() {
                       disabled={joinHook.isPending || !joinAmount}
                       onClick={() => {
                         if (!isConnected) { setShowConnectDialog(true); return; }
+                        if (!(parseFloat(joinAmount) > 0)) return;
                         joinHook.join(bounty.onChainId, joinAmount);
                       }}
                     >

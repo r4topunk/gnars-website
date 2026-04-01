@@ -9,7 +9,9 @@ const CACHE_TTL = 60 * 15; // 15 minutes
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const rawStatus = searchParams.get('status') || 'open';
-  const limit = parseInt(searchParams.get('limit') || '100', 10);
+  let limit = parseInt(searchParams.get('limit') || '100', 10);
+  if (isNaN(limit) || limit < 1) limit = 100;
+  if (limit > 500) limit = 500;
   const filterGnarly = searchParams.get('filterGnarly') !== 'false'; // default true
 
   try {
@@ -24,13 +26,14 @@ export async function GET(request: NextRequest) {
             json: { status, sortType: 'date', limit: Math.ceil(limit / 3) }
           });
           const url = `${POIDH_API}?input=${encodeURIComponent(input)}`;
-          const res = await fetch(url, { 
+          const res = await fetch(url, {
             next: { revalidate: CACHE_TTL },
             headers: { 'Content-Type': 'application/json' }
           });
           if (!res.ok) return [];
           const data = await res.json();
-          return data.result?.data?.json?.items || [];
+          const items: PoidhBounty[] = data.result?.data?.json?.items || [];
+          return items.map((item) => ({ ...item, isCompleted: status === 'past' }));
         })
       );
       bounties = results.flat().slice(0, limit);
@@ -81,7 +84,7 @@ export async function GET(request: NextRequest) {
     const mapped = filtered.map((b) => ({
       ...b,
       isOpenBounty: b.isOpenBounty ?? b.isMultiplayer,
-      isCompleted: rawStatus === 'closed',
+      isCompleted: rawStatus === 'all' ? (b.isCompleted ?? false) : rawStatus === 'closed',
     }));
 
     return NextResponse.json({ 
@@ -92,7 +95,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('POIDH API error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch bounties', details: (error as Error).message },
+      { error: 'Failed to fetch bounties' },
       { status: 500 }
     );
   }
