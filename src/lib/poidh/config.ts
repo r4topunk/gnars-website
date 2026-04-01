@@ -14,7 +14,7 @@ export const CHAIN_NAMES = {
  */
 export const POIDH_CONTRACTS: Record<number, `0x${string}`> = {
   8453:  '0xb502c5856f7244dccdd0264a541cc25675353d39', // Base mainnet
-  42161: '0x0aa50ce0d724cc28f8f7af4630c32377b4d5c27d', // Arbitrum
+  42161: '0x5555Fa783936C260f77385b4E153B9725feF1719', // Arbitrum (PoidhV3)
 };
 
 export function getExplorerUrl(chainId: number, address: string): string {

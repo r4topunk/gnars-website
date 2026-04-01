@@ -164,6 +164,7 @@ export default function BountyDetailPage() {
   });
   const isJoinable = onChainBountyData ? onChainBountyData.isOpenBounty : (bounty?.isOpenBounty || bounty?.isMultiplayer);
 
+
   const { data: participants } = useReadContract({
     address: POIDH_CONTRACTS[chainId],
     abi: POIDH_ABI,
@@ -656,7 +657,7 @@ export default function BountyDetailPage() {
                       onClick={() => {
                         if (!isConnected) { setShowConnectDialog(true); return; }
                         if (!(parseFloat(joinAmount) > 0)) return;
-                        joinHook.join(bounty.onChainId, joinAmount);
+joinHook.join(bounty.onChainId, joinAmount);
                       }}
                     >
                       {joinHook.isPending ? (
@@ -853,7 +854,7 @@ export default function BountyDetailPage() {
                     <Users className="w-4 h-4" />
                     <span className="font-medium">Contributors</span>
                   </div>
-                  <div className="space-y-1 mt-1">
+                  <div className="space-y-2 mt-2">
                     {(participants as `0x${string}`[]).slice(0, 5).map((addr) => (
                       <AddressDisplay
                         key={addr}
