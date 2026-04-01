@@ -153,13 +153,24 @@ export default function BountyDetailPage() {
   const deadlineTimestamp = bounty?.deadline ?? null;
   const countdown = useCountdown(deadlineTimestamp);
 
+  // Read the authoritative on-chain isOpenBounty flag (overrides API field which can be null on V2)
+  const { data: onChainBountyData } = useReadContract({
+    address: POIDH_CONTRACTS[chainId],
+    abi: POIDH_ABI,
+    functionName: 'getBounty',
+    args: [BigInt(bounty?.onChainId ?? 0)],
+    chainId,
+    query: { enabled: !!(bounty?.onChainId) },
+  });
+  const isJoinable = onChainBountyData ? onChainBountyData.isOpenBounty : (bounty?.isOpenBounty || bounty?.isMultiplayer);
+
   const { data: participants } = useReadContract({
     address: POIDH_CONTRACTS[chainId],
     abi: POIDH_ABI,
     functionName: 'getParticipants',
     args: [BigInt(bounty?.onChainId ?? 0)],
     chainId,
-    query: { enabled: !!(bounty && (bounty.isOpenBounty || bounty.isMultiplayer)) },
+    query: { enabled: !!(bounty && isJoinable) },
   });
 
   if (isLoading && !bounty) {
@@ -594,7 +605,7 @@ export default function BountyDetailPage() {
           )}
 
           {/* Join open bounty (add funds) */}
-          {(bounty.isOpenBounty || bounty.isMultiplayer) && !bounty.isCanceled && !bounty.isVoting && (
+          {isJoinable && !bounty.isCanceled && !bounty.isVoting && (
             <Card className="border-border">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -681,7 +692,7 @@ export default function BountyDetailPage() {
           )}
 
           {/* Withdraw from canceled bounty (participant) */}
-          {bounty.isCanceled && (bounty.isOpenBounty || bounty.isMultiplayer) && !isCreator && (
+          {bounty.isCanceled && isJoinable && !isCreator && (
             <Card className="border-border">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Withdraw Your Contribution</CardTitle>
@@ -748,7 +759,7 @@ export default function BountyDetailPage() {
                     ) : (
                       <div className="flex gap-2">
                         <Button variant="ghost" className="flex-1" onClick={() => setConfirmCancel(false)} disabled={cancelHook.isPending}>Keep it</Button>
-                        <Button variant="destructive" className="flex-1" disabled={cancelHook.isPending} onClick={() => cancelHook.cancel(bounty.onChainId, !!bounty.isOpenBounty)}>
+                        <Button variant="destructive" className="flex-1" disabled={cancelHook.isPending} onClick={() => cancelHook.cancel(bounty.onChainId, !!isJoinable)}>
                           {cancelHook.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{cancelHook.hash ? 'Confirming…' : 'Confirm in wallet…'}</> : 'Yes, cancel'}
                         </Button>
                       </div>
@@ -836,7 +847,7 @@ export default function BountyDetailPage() {
                 </div>
               </div>
 
-              {(bounty.isOpenBounty || bounty.isMultiplayer) && participants && participants.length > 0 && (
+              {isJoinable && participants && participants.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Users className="w-4 h-4" />
