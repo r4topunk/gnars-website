@@ -4,189 +4,168 @@ import { useState, useMemo } from 'react';
 import { BountyGrid } from '@/components/bounties/BountyGrid';
 import { usePoidhBounties } from '@/hooks/usePoidhBounties';
 import { CreateBountyModal } from '@/components/bounties/CreateBountyModal';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatEther } from 'viem';
 import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
 
+const CATEGORIES = [
+  { key: 'all', label: 'All' },
+  { key: 'skate', label: 'Skate' },
+  { key: 'surf', label: 'Surf' },
+  { key: 'parkour', label: 'Parkour' },
+  { key: 'weed', label: 'Weed' },
+] as const;
+
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  skate: ['skate', 'skateboard', 'kickflip', 'grind', 'ollie', 'flip', 'trick'],
+  surf: ['surf', 'wave', 'barrel', 'tube', 'ocean', 'beach'],
+  parkour: ['parkour', 'freerun', 'vault', 'flip', 'jump'],
+  weed: ['weed', 'cannabis', 'joint', 'blunt', '420', 'smoke', 'kush'],
+};
+
 export default function BountiesPage() {
   const [status, setStatus] = useState<'open' | 'closed' | 'voting' | 'all'>('open');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterGnarly, setFilterGnarly] = useState(false); // Default: show all
+  const [filterGnarly, setFilterGnarly] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>('skate');
   const { data, isLoading, error } = usePoidhBounties({ status, filterGnarly });
   const { ethPrice } = useEthPrice();
 
-  // Client-side category filtering
   const filteredBounties = data?.bounties.filter((bounty) => {
     const text = `${bounty.title} ${bounty.description}`.toLowerCase();
 
-    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.trim().toLowerCase();
       if (!text.includes(query)) return false;
     }
 
     if (categoryFilter === 'all') return true;
-    
-    const categories: Record<string, string[]> = {
-      skate: ['skate', 'skateboard', 'kickflip', 'grind', 'ollie', 'flip', 'trick'],
-      surf: ['surf', 'wave', 'barrel', 'tube', 'ocean', 'beach'],
-      parkour: ['parkour', 'freerun', 'vault', 'flip', 'jump'],
-      weed: ['weed', 'cannabis', 'joint', 'blunt', '420', 'smoke', 'kush'],
-    };
-    
-    return categories[categoryFilter]?.some((keyword) => text.includes(keyword));
+    return CATEGORY_KEYWORDS[categoryFilter]?.some((keyword) => text.includes(keyword));
   }) || [];
 
-  // Calculate total bounty value
   const totalValue = useMemo(() => {
     const totalWei = filteredBounties.reduce((sum, bounty) => {
       return sum + BigInt(bounty.amount ?? 0);
     }, 0n);
     const totalEth = parseFloat(formatEther(totalWei));
     const totalUsd = formatEthToUsd(totalEth, ethPrice);
-    return { eth: totalEth.toFixed(4), usd: totalUsd };
+    return { eth: totalEth.toFixed(4), usd: totalUsd, count: filteredBounties.length };
   }, [filteredBounties, ethPrice]);
+
+  const statusLabel = status !== 'all' ? status : '';
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex items-center gap-3">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Challenges</h1>
+            <p className="text-muted-foreground mt-1">
+              Gnarly challenges from the action sports community.{' '}
+              <a
+                href="https://poidh.xyz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground transition-colors"
+              >
+                Powered by POIDH
+              </a>
+            </p>
+          </div>
+          <CreateBountyModal>
+            <Button className="shrink-0">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Create Bounty</span>
+              <span className="sm:hidden">Create</span>
+            </Button>
+          </CreateBountyModal>
+        </div>
+
+        {/* Pool stats — the hook */}
+        {data && !isLoading && (
+          <div className="grid grid-cols-3 gap-4 rounded-lg border border-border bg-muted/30 px-5 py-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground">Challenges</h1>
-              <p className="text-muted-foreground">
-                Gnarly challenges from the action sports community
-              </p>
+              <div className="text-2xl font-bold tabular-nums tracking-tight">
+                {totalValue.eth}
+                <span className="text-base font-semibold text-muted-foreground ml-1.5">ETH</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {statusLabel ? `${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)} pool` : 'Total pool'}
+              </div>
+            </div>
+            {ethPrice > 0 && (
+              <div>
+                <div className="text-2xl font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400">
+                  {totalValue.usd}
+                </div>
+                <div className="text-xs text-muted-foreground mt-0.5">USD value</div>
+              </div>
+            )}
+            <div>
+              <div className="text-2xl font-bold tabular-nums tracking-tight">
+                {totalValue.count}
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {statusLabel ? `${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)} bounties` : 'Bounties'}
+              </div>
             </div>
           </div>
-          <CreateBountyModal>
-            <Button className="shrink-0 hidden sm:flex">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Create Bounty
-            </Button>
-          </CreateBountyModal>
-        </div>
-        {/* Mobile create button */}
-        <div className="sm:hidden mb-2">
-          <CreateBountyModal>
-            <Button className="w-full">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Create Bounty
-            </Button>
-          </CreateBountyModal>
-        </div>
-      </div>
+        )}
 
-      {/* Search Input */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        <Input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search bounties..."
-          className="pl-9"
+        {/* Filters */}
+        <div className="flex flex-col gap-3">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search bounties..."
+              className="pl-9"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Status + Category — same row, same visual weight */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <Tabs value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+              <TabsList>
+                <TabsTrigger value="open">Open</TabsTrigger>
+                <TabsTrigger value="voting">Voting</TabsTrigger>
+                <TabsTrigger value="closed">Closed</TabsTrigger>
+                <TabsTrigger value="all">All</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="h-5 w-px bg-border hidden sm:block" />
+            <Tabs value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
+              <TabsList>
+                {CATEGORIES.map(({ key, label }) => (
+                  <TabsTrigger key={key} value={key}>{label}</TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+
+        {/* Grid */}
+        <BountyGrid
+          bounties={filteredBounties}
+          isLoading={isLoading}
+          error={error}
         />
-      </div>
-
-      {/* Filter Tabs */}
-      <Tabs value={status} onValueChange={(v) => setStatus(v as typeof status)} className="mb-8">
-        <TabsList>
-          <TabsTrigger value="open">Open</TabsTrigger>
-          <TabsTrigger value="voting">Voting</TabsTrigger>
-          <TabsTrigger value="closed">Closed</TabsTrigger>
-          <TabsTrigger value="all">All</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      {/* Category Filter Pills */}
-      <div className="flex gap-2 mb-6">
-        {(['skate', 'surf', 'parkour', 'weed', 'all'] as const).map((cat) => (
-          <Button
-            key={cat}
-            variant={categoryFilter === cat ? 'default' : 'secondary'}
-            size="sm"
-            className="rounded-full"
-            onClick={() => setCategoryFilter(cat)}
-          >
-            {cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </Button>
-        ))}
-      </div>
-
-      {/* Total Value Banner */}
-      {data && !isLoading && (
-        <div className="mb-6 flex flex-col items-center justify-center gap-1 py-5 bg-muted/50 rounded-lg border border-border">
-          <div className="text-muted-foreground text-sm uppercase tracking-wide font-medium">
-            Total {status !== 'all' ? status : ''} bounty pool
-          </div>
-          <div className="flex items-baseline gap-3">
-            <span className="text-4xl md:text-5xl font-bold text-foreground">
-              {totalValue.eth}
-            </span>
-            <span className="text-xl font-semibold text-muted-foreground">ETH</span>
-          </div>
-          {ethPrice > 0 && (
-            <span className="text-lg font-semibold text-emerald-500 dark:text-emerald-400">
-              {totalValue.usd}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Grid */}
-      <BountyGrid
-        bounties={filteredBounties}
-        isLoading={isLoading}
-        error={error}
-      />
-
-      {/* Footer Info */}
-      <div className="mt-12 grid md:grid-cols-2 gap-6">
-        <div className="p-6 bg-muted/50 rounded-lg border border-border">
-          <h2 className="font-bold mb-2 text-foreground flex items-center gap-2">
-            <span className="text-xl">📸</span>
-            What is POIDH?
-          </h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            POIDH (Pics Or It Didn&apos;t Happen) is a decentralized bounty platform where 
-            anyone can create challenges and reward proof of completion with ETH on Base and Arbitrum.
-          </p>
-          <div className="flex flex-wrap gap-3 text-sm">
-            <a 
-              href="https://poidh.xyz" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary hover:underline font-medium"
-            >
-              Visit POIDH.xyz →
-            </a>
-            <a 
-              href="https://docs.poidh.xyz" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary hover:underline font-medium"
-            >
-              Documentation →
-            </a>
-          </div>
-        </div>
-
-        <div className="p-6 bg-muted/50 rounded-lg border border-border">
-          <h2 className="font-bold mb-2 text-foreground flex items-center gap-2">
-            <span className="text-xl">🛹</span>
-            Action Sports Filter
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Use the category filters to find bounties related to skateboarding, surfing,
-            parkour, and other action sports.
-          </p>
-        </div>
       </div>
     </div>
   );
