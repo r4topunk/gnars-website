@@ -13,7 +13,7 @@ export default function BountiesPage() {
   const [status, setStatus] = useState<'open' | 'closed' | 'voting' | 'all'>('open');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterGnarly, setFilterGnarly] = useState(false); // Default: show all
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('skate');
   const { data, isLoading, error } = usePoidhBounties({ status, filterGnarly });
   const { ethPrice } = useEthPrice();
 
