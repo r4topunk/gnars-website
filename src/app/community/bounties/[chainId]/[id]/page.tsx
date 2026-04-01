@@ -331,6 +331,24 @@ export default function BountyDetailPage() {
             </Card>
           )}
 
+          {/* No claims yet — empty state */}
+          {isActive && (!bounty.claims || bounty.claims.length === 0) && (
+            <Card className="border-dashed">
+              <CardContent className="py-10 flex flex-col items-center text-center gap-3">
+                <div className="text-4xl">🎬</div>
+                <div>
+                  <p className="font-semibold text-base">No claims yet</p>
+                  <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                    Be the first to complete this challenge. Film your proof and submit it on-chain.
+                  </p>
+                </div>
+                <ClaimBountyModal bounty={bounty}>
+                  <Button size="lg" className="mt-2">Make a Claim</Button>
+                </ClaimBountyModal>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Claims */}
           {bounty.claims && bounty.claims.length > 0 && (
             <Card>
