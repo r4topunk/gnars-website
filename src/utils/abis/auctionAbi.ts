@@ -59,6 +59,13 @@ const auctionAbi = [
     outputs: [{ name: "", type: "uint256" }],
   },
   {
+    type: "function",
+    stateMutability: "view",
+    name: "minBidIncrement",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
     type: "event",
     name: "AuctionBid",
     inputs: [

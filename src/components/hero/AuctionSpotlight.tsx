@@ -68,7 +68,7 @@ export function AuctionSpotlight() {
   const leadingBidComment = optimistic?.comment || fetchedComment;
   const optimisticBidCount = optimistic ? bids.length + 1 : bids.length;
 
-  // Reserve price for min bid calculation
+  // Reserve price and min bid increment from contract
   const { data: reservePriceWei } = useReadContract({
     address: DAO_ADDRESSES.auction as `0x${string}`,
     abi: auctionAbi,
@@ -77,6 +77,15 @@ export function AuctionSpotlight() {
     query: { staleTime: 60 * 1000 },
   });
   const reservePriceEth = reservePriceWei ? Number(formatEther(reservePriceWei)) : 0.01;
+
+  const { data: minBidIncrementRaw } = useReadContract({
+    address: DAO_ADDRESSES.auction as `0x${string}`,
+    abi: auctionAbi,
+    functionName: "minBidIncrement",
+    chainId: CHAIN.id,
+    query: { staleTime: 60 * 1000 },
+  });
+  const minBidIncrementPct = minBidIncrementRaw ? Number(minBidIncrementRaw) : 10;
 
   // Derived state
   const tokenName = tokenUri?.name;
@@ -152,6 +161,7 @@ export function AuctionSpotlight() {
                 tokenId={tokenId ? BigInt(tokenId) : undefined}
                 highestBid={displayBid}
                 reservePriceEth={reservePriceEth}
+                minBidIncrementPct={minBidIncrementPct}
                 onBidConfirmed={handleBidConfirmed}
               />
             ) : (

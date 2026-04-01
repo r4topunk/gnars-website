@@ -26,6 +26,8 @@ interface AuctionBidFormProps {
   tokenId: bigint | undefined;
   highestBid: string | undefined;
   reservePriceEth: number;
+  /** Min bid increment percentage from contract (e.g., 10 = 10%) */
+  minBidIncrementPct: number;
   onBidConfirmed?: (comment: string, bidAmount: string) => void;
 }
 
@@ -33,6 +35,7 @@ export function AuctionBidForm({
   tokenId,
   highestBid,
   reservePriceEth,
+  minBidIncrementPct,
   onBidConfirmed,
 }: AuctionBidFormProps) {
   const { address, isConnected, chain } = useAccount();
@@ -56,14 +59,15 @@ export function AuctionBidForm({
   });
   const balanceEth = balanceData ? Number(formatEther(balanceData.value)) : undefined;
 
-  // Min bid calculation — round UP to 6 decimals so displayed value always passes validation
+  // Min bid calculation — use contract's minBidIncrement percentage
   const minNextBidEth = useMemo(() => {
     const current = Number(highestBid ?? "0");
     if (!Number.isFinite(current) || current <= 0) return reservePriceEth;
-    const raw = current * 1.01;
+    const multiplier = 1 + minBidIncrementPct / 100; // e.g., 10% → 1.10
+    const raw = current * multiplier;
     // Ceil to 6 decimal places so displayed min is always >= actual min
     return Math.ceil(raw * 1e6) / 1e6;
-  }, [highestBid, reservePriceEth]);
+  }, [highestBid, reservePriceEth, minBidIncrementPct]);
 
   // Format with enough decimals to show the true minimum
   const minBidDisplay = useMemo(() => {
@@ -125,8 +129,9 @@ export function AuctionBidForm({
       invalidateAuctionData();
       // Force-set bid amount to new minimum based on user's own bid
       if (pendingBidRef.current) {
-        const newMin = (parseFloat(pendingBidRef.current.amount) * 1.01).toFixed(4);
-        setBidAmount(newMin);
+        const multiplier = 1 + minBidIncrementPct / 100;
+        const raw = parseFloat(pendingBidRef.current.amount) * multiplier;
+        setBidAmount((Math.ceil(raw * 1e6) / 1e6).toString());
       }
       pendingBidRef.current = null;
       setBidComment("");
