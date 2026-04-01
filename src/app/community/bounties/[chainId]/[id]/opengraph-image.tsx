@@ -1,11 +1,9 @@
 import { ImageResponse } from 'next/og';
+import { OG_SIZE, OG_COLORS, OG_FONTS } from '@/lib/og-utils';
 
 export const runtime = 'edge';
 export const alt = 'Gnars Challenge';
-export const size = {
-  width: 1200,
-  height: 630,
-};
+export const size = OG_SIZE;
 export const contentType = 'image/png';
 
 export default async function Image({
@@ -15,10 +13,9 @@ export default async function Image({
 }) {
   const { chainId, id } = await params;
 
-  // Fetch bounty data
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://gnars.com';
   let bountyTitle = 'Challenge';
-  let bountyAmount = '0 ETH';
+  let bountyAmount = '';
 
   try {
     const res = await fetch(`${baseUrl}/api/poidh/bounty/${chainId}/${id}`, {
@@ -41,52 +38,62 @@ export default async function Image({
     (
       <div
         style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          width: '100%',
           height: '100%',
+          width: '100%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          fontFamily: 'sans-serif',
-          padding: 60,
+          backgroundColor: OG_COLORS.background,
+          fontFamily: OG_FONTS.family,
+          padding: '60px',
         }}
       >
         <div
           style={{
-            display: 'flex',
-            fontSize: 100,
-            marginBottom: 30,
+            fontSize: 24,
+            color: OG_COLORS.muted,
+            marginBottom: '24px',
+            letterSpacing: '0.1em',
           }}
         >
-          🏆
+          GNARS CHALLENGE
         </div>
         <div
           style={{
-            fontSize: 56,
-            fontWeight: 'bold',
-            color: 'white',
-            marginBottom: 20,
+            fontSize: bountyTitle.length > 60 ? 44 : 60,
+            fontWeight: 800,
+            color: OG_COLORS.foreground,
             textAlign: 'center',
             maxWidth: 1000,
             lineHeight: 1.2,
+            marginBottom: '32px',
           }}
         >
           {bountyTitle}
         </div>
+        {bountyAmount ? (
+          <div
+            style={{
+              fontSize: 56,
+              fontWeight: 700,
+              color: OG_COLORS.accent,
+            }}
+          >
+            {bountyAmount}
+          </div>
+        ) : null}
         <div
           style={{
-            fontSize: 48,
-            color: 'rgba(255,255,255,0.95)',
-            fontWeight: 'bold',
+            fontSize: 20,
+            color: OG_COLORS.muted,
+            marginTop: '48px',
           }}
         >
-          {bountyAmount}
+          gnars.com/community/bounties
         </div>
       </div>
     ),
-    {
-      ...size,
-    }
+    { ...size }
   );
 }

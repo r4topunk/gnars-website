@@ -165,7 +165,7 @@ export default function BountyDetailPage() {
   const isJoinable = onChainBountyData ? onChainBountyData.isOpenBounty : (bounty?.isOpenBounty || bounty?.isMultiplayer);
 
 
-  const { data: participants } = useReadContract({
+  const { data: participantsData } = useReadContract({
     address: POIDH_CONTRACTS[chainId],
     abi: POIDH_ABI,
     functionName: 'getParticipants',
@@ -173,6 +173,8 @@ export default function BountyDetailPage() {
     chainId,
     query: { enabled: !!(bounty && isJoinable) },
   });
+  const participants = participantsData?.[0] as `0x${string}`[] | undefined;
+  const participantAmounts = participantsData?.[1] as bigint[] | undefined;
 
   if (isLoading && !bounty) {
     return (
@@ -472,7 +474,7 @@ export default function BountyDetailPage() {
                     )}
 
                     {/* Submit for Vote — show for contributors/creator when bounty is not yet in voting */}
-                    {!bounty.isVoting && !bounty.isCanceled && isConnected && (isCreator || (participants as `0x${string}`[] | undefined)?.some((p) => p.toLowerCase() === address?.toLowerCase())) && (
+                    {!bounty.isVoting && !bounty.isCanceled && isConnected && (isCreator || participants?.some((p) => p.toLowerCase() === address?.toLowerCase())) && (
                       <div className="pt-1">
                         <Button
                           size="sm"
@@ -855,17 +857,25 @@ joinHook.join(bounty.onChainId, joinAmount);
                     <span className="font-medium">Contributors</span>
                   </div>
                   <div className="space-y-2 mt-2">
-                    {(participants as `0x${string}`[]).slice(0, 5).map((addr) => (
-                      <AddressDisplay
-                        key={addr}
-                        address={addr}
-                        variant="compact"
-                        showAvatar={true}
-                        showCopy={false}
-                        showExplorer={false}
-                        avatarSize="xs"
-                      />
-                    ))}
+                    {participants.slice(0, 5).map((addr, i) => {
+                      const amt = participantAmounts?.[i];
+                      const eth = amt !== undefined ? (Number(amt) / 1e18).toFixed(4) : null;
+                      return (
+                        <div key={addr} className="flex items-center justify-between gap-2">
+                          <AddressDisplay
+                            address={addr}
+                            variant="compact"
+                            showAvatar={true}
+                            showCopy={false}
+                            showExplorer={false}
+                            avatarSize="xs"
+                          />
+                          {eth && (
+                            <span className="text-xs text-muted-foreground shrink-0">{eth} ETH</span>
+                          )}
+                        </div>
+                      );
+                    })}
                     {participants.length > 5 && (
                       <p className="text-xs text-muted-foreground">+{participants.length - 5} more</p>
                     )}

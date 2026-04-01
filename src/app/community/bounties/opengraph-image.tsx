@@ -1,11 +1,9 @@
 import { ImageResponse } from 'next/og';
+import { OG_SIZE, OG_COLORS, OG_FONTS } from '@/lib/og-utils';
 
 export const runtime = 'edge';
 export const alt = 'Gnars Challenges - Action Sports Bounties';
-export const size = {
-  width: 1200,
-  height: 630,
-};
+export const size = OG_SIZE;
 export const contentType = 'image/png';
 
 export default async function Image() {
@@ -13,49 +11,59 @@ export default async function Image() {
     (
       <div
         style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          width: '100%',
           height: '100%',
+          width: '100%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          fontFamily: 'sans-serif',
+          backgroundColor: OG_COLORS.background,
+          fontFamily: OG_FONTS.family,
+          padding: '60px',
         }}
       >
         <div
           style={{
-            display: 'flex',
-            fontSize: 120,
-            marginBottom: 40,
+            fontSize: 28,
+            color: OG_COLORS.muted,
+            marginBottom: '16px',
+            letterSpacing: '0.1em',
           }}
         >
-          🏆
+          GNARS DAO
         </div>
         <div
           style={{
-            fontSize: 72,
-            fontWeight: 'bold',
-            color: 'white',
-            marginBottom: 20,
+            fontSize: 96,
+            fontWeight: 800,
+            color: OG_COLORS.accent,
+            marginBottom: '24px',
+            lineHeight: 1,
           }}
         >
           Challenges
         </div>
         <div
           style={{
-            fontSize: 32,
-            color: 'rgba(255,255,255,0.9)',
+            fontSize: 36,
+            color: OG_COLORS.foreground,
             textAlign: 'center',
             maxWidth: 800,
           }}
         >
-          Gnarly challenges from the action sports community
+          Prove it. Earn ETH. Gnarly challenges from the action sports community.
+        </div>
+        <div
+          style={{
+            fontSize: 20,
+            color: OG_COLORS.muted,
+            marginTop: '48px',
+          }}
+        >
+          gnars.com/community/bounties
         </div>
       </div>
     ),
-    {
-      ...size,
-    }
+    { ...size }
   );
 }
