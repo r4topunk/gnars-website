@@ -15,7 +15,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import auctionAbi from "@/utils/abis/auctionAbi";
@@ -27,7 +26,6 @@ interface AuctionBidFormProps {
   tokenId: bigint | undefined;
   highestBid: string | undefined;
   reservePriceEth: number;
-  /** Called after bid is confirmed — passes the comment for optimistic display */
   onBidConfirmed?: (comment: string, bidAmount: string) => void;
 }
 
@@ -48,7 +46,6 @@ export function AuctionBidForm({
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Cleanup reset timer on unmount
   useEffect(() => () => clearTimeout(resetTimerRef.current), []);
 
   // Balance check
@@ -90,12 +87,11 @@ export function AuctionBidForm({
     }
   }, [bidAmount, isValidBid]);
 
-  // Scoped invalidation — only auction-related readContract queries
+  // Scoped invalidation
   const invalidateAuctionData = useCallback(() => {
     queryClient.invalidateQueries({
       predicate: (query) => {
         const key = query.queryKey;
-        // wagmi useReadContract generates keys: ['readContract', { address, functionName, ... }]
         if (key[0] === "readContract" && Array.isArray(key)) {
           const serialized = JSON.stringify(key, (_, v) =>
             typeof v === "bigint" ? v.toString() : v,
@@ -107,12 +103,10 @@ export function AuctionBidForm({
     });
   }, [queryClient]);
 
-  // Save comment/amount at submission time so optimistic update fires immediately
   const pendingBidRef = useRef<{ comment: string; amount: string } | null>(null);
 
   const bidTx = useAuctionTransaction({
     onSubmitted: () => {
-      // Fires synchronously when TX hash is received — before any React render
       if (pendingBidRef.current) {
         onBidConfirmed?.(pendingBidRef.current.comment, pendingBidRef.current.amount);
       }
@@ -120,6 +114,11 @@ export function AuctionBidForm({
     onConfirmed: () => {
       toast.success("Bid confirmed!", { description: "Auction data updated." });
       invalidateAuctionData();
+      // Force-set bid amount to new minimum based on user's own bid
+      if (pendingBidRef.current) {
+        const newMin = (parseFloat(pendingBidRef.current.amount) * 1.01).toFixed(4);
+        setBidAmount(newMin);
+      }
       pendingBidRef.current = null;
       setBidComment("");
       setIsCommentOpen(false);
@@ -132,15 +131,12 @@ export function AuctionBidForm({
     },
   });
 
-  // Handle wallet connect
   const handleConnectAndBid = () => {
     if (!isConnected) {
       setIsConnectModalOpen(true);
-      return;
     }
   };
 
-  // Handle bid submission
   const handleBid = async () => {
     if (!isConnected) {
       handleConnectAndBid();
@@ -149,12 +145,9 @@ export function AuctionBidForm({
     if (!bidAmountWei || !tokenId || !isValidBid || insufficientBalance) return;
 
     const trimmedComment = bidComment.trim();
-
-    // Store before execute so it's available when phase changes to "submitted"
     pendingBidRef.current = { comment: trimmedComment, amount: bidAmount };
 
     await bidTx.execute(async () => {
-      // Switch network if needed
       if (chain?.id !== base.id) {
         toast.info("Switching to Base network...");
         await switchChainAsync({ chainId: base.id });
@@ -188,7 +181,6 @@ export function AuctionBidForm({
     });
   };
 
-  // Determine button state
   const getButtonContent = () => {
     if (bidTx.isActive) {
       return (
@@ -220,10 +212,9 @@ export function AuctionBidForm({
     if (isWrongNetwork) {
       try {
         await switchChainAsync({ chainId: base.id });
-        // After switching, proceed to bid
         handleBid();
       } catch {
-        // User rejected network switch
+        // User rejected
       }
       return;
     }
@@ -236,29 +227,23 @@ export function AuctionBidForm({
 
   return (
     <>
+      {/* Bid input + button */}
       <div className="flex gap-2">
-        <Tooltip open={isConnected && !isWrongNetwork && !isValidBid && !!bidAmount}>
-          <TooltipTrigger asChild>
-            <InputGroup className="flex-[3]">
-              <InputGroupInput
-                type="number"
-                step="0.0001"
-                min={minNextBidEth}
-                value={bidAmount}
-                onChange={(e) => setBidAmount(e.target.value)}
-                placeholder={minNextBidEth.toFixed(4)}
-                disabled={bidTx.isActive}
-                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <InputGroupAddon align="inline-end">
-                <InputGroupText>ETH</InputGroupText>
-              </InputGroupAddon>
-            </InputGroup>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="font-mono">
-            Minimum bid: {minNextBidEth.toFixed(4)} ETH
-          </TooltipContent>
-        </Tooltip>
+        <InputGroup className="flex-[3]">
+          <InputGroupInput
+            type="number"
+            step="0.0001"
+            min={minNextBidEth}
+            value={bidAmount}
+            onChange={(e) => setBidAmount(e.target.value)}
+            placeholder={minNextBidEth.toFixed(4)}
+            disabled={bidTx.isActive}
+            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+          <InputGroupAddon align="inline-end">
+            <InputGroupText>ETH</InputGroupText>
+          </InputGroupAddon>
+        </InputGroup>
         <Button
           className="flex-[7] touch-manipulation"
           disabled={isButtonDisabled}
@@ -268,51 +253,49 @@ export function AuctionBidForm({
         </Button>
       </div>
 
-      {/* Balance warning */}
-      {isConnected && insufficientBalance && (
-        <p className="text-xs text-destructive">
-          Insufficient balance {balanceEth !== undefined ? `(you have ${balanceEth.toFixed(4)} ETH)` : ""}
-        </p>
-      )}
+      {/* Inline status row: balance + insufficient warning + comment toggle */}
+      <div className="flex items-center justify-between text-xs">
+        <div className="text-muted-foreground">
+          {isConnected && insufficientBalance ? (
+            <span className="text-destructive">
+              Insufficient balance{balanceEth !== undefined ? ` (${balanceEth.toFixed(4)} ETH)` : ""}
+            </span>
+          ) : isConnected && balanceEth !== undefined ? (
+            <span>Balance: {balanceEth.toFixed(4)} ETH</span>
+          ) : isWrongNetwork ? (
+            <span className="text-amber-500">Switch to Base to bid</span>
+          ) : !isConnected ? (
+            <span>Min: {minNextBidEth.toFixed(4)} ETH</span>
+          ) : null}
+        </div>
+        <Collapsible open={isCommentOpen} onOpenChange={setIsCommentOpen}>
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              disabled={bidTx.isActive}
+              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              <MessageSquare className="h-3 w-3" />
+              <span>Comment</span>
+              <ChevronDown
+                className={`h-3 w-3 transition-transform duration-200 ${isCommentOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+          </CollapsibleTrigger>
+        </Collapsible>
+      </div>
 
-      {/* Balance display when sufficient */}
-      {isConnected && !insufficientBalance && balanceEth !== undefined && (
-        <p className="text-xs text-muted-foreground">
-          Balance: {balanceEth.toFixed(4)} ETH
-        </p>
-      )}
-
-      {/* Wrong network warning */}
-      {isWrongNetwork && (
-        <p className="text-xs text-amber-500">
-          Switch to Base network to place a bid
-        </p>
-      )}
-
-      {/* Comment collapsible */}
+      {/* Comment textarea — outside the row so it expands below */}
       <Collapsible open={isCommentOpen} onOpenChange={setIsCommentOpen}>
-        <CollapsibleTrigger asChild>
-          <button
-            type="button"
-            disabled={bidTx.isActive}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none"
-          >
-            <MessageSquare className="h-3 w-3" />
-            Add a comment
-            <ChevronDown
-              className={`h-3 w-3 transition-transform duration-200 ${isCommentOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-        </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="mt-2 space-y-1">
+          <div className="space-y-1">
             <textarea
               maxLength={140}
               rows={2}
               value={bidComment}
               onChange={(e) => setBidComment(e.target.value)}
               disabled={bidTx.isActive}
-              placeholder="Optional on-chain comment (recorded permanently)…"
+              placeholder="On-chain comment (recorded permanently)…"
               className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             />
             <div className="text-right text-xs text-muted-foreground">

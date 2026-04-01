@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronRight } from "lucide-react";
 import { zeroAddress } from "viem";
 import { Progress } from "@/components/ui/progress";
 import { AddressDisplay } from "@/components/ui/address-display";
@@ -11,11 +10,8 @@ interface AuctionLiveStatusProps {
   highestBidder: string | undefined;
   endTime: number | undefined;
   startTime: number | undefined;
-  /** Increments when a new bid is detected — triggers animation */
   bidSignal: number;
-  /** Leading bid's on-chain comment (decoded from calldata) */
   leadingBidComment: string | null | undefined;
-  /** Total number of bids on this auction */
   bidCount: number;
   onBidHistoryOpen: () => void;
 }
@@ -36,7 +32,6 @@ export function AuctionLiveStatus({
   const [bidAnimating, setBidAnimating] = useState(false);
   const prevBidSignal = useRef<number>(bidSignal);
 
-  // Countdown timer
   useEffect(() => {
     if (!endTimeMs) return;
     const tick = () => {
@@ -57,7 +52,6 @@ export function AuctionLiveStatus({
     return () => clearInterval(timer);
   }, [endTimeMs]);
 
-  // Bid animation trigger
   useEffect(() => {
     if (bidSignal > prevBidSignal.current) {
       setBidAnimating(true);
@@ -77,7 +71,6 @@ export function AuctionLiveStatus({
     return { progressPercentage: progress, isLive: live, isEndingSoon: endingSoon };
   }, [startTimeMs, endTimeMs, timeLeft.total]);
 
-  // Progress bar color: green (plenty of time) → amber (< 30%) → red (< 10%)
   const remainingPercent = 100 - progressPercentage;
   const progressColor = remainingPercent <= 10
     ? "[&>div]:bg-red-500"
@@ -91,10 +84,10 @@ export function AuctionLiveStatus({
 
   return (
     <>
-      {/* Leading bid card — the hero element */}
+      {/* Leading bid card */}
       {hasBidder ? (
-        <div className={`rounded-lg border border-border/60 bg-muted/30 p-3 transition-all ${
-          bidAnimating ? "ring-2 ring-primary/30" : ""
+        <div className={`rounded-lg border border-border/60 bg-muted/30 p-3 ${
+          bidAnimating ? "ring-2 ring-primary/30 transition-shadow duration-300" : ""
         }`}>
           <div className="flex items-center justify-between">
             <AddressDisplay
@@ -108,14 +101,14 @@ export function AuctionLiveStatus({
               onAddressClick={() => {}}
               className="text-sm font-medium text-foreground pointer-events-none"
             />
-            <span className={`text-lg font-bold transition-all duration-300 ${
-              bidAnimating ? "scale-110 text-primary" : "scale-100"
+            <span className={`text-lg font-bold ${
+              bidAnimating ? "text-primary transition-colors duration-300" : ""
             }`}>
               {highestBid ? `${highestBid} ETH` : ""}
             </span>
           </div>
           {leadingBidComment && (
-            <p className="text-xs text-muted-foreground italic pl-7 mt-1">
+            <p className="text-xs text-muted-foreground italic pl-7 mt-1 line-clamp-2 break-words">
               &ldquo;{leadingBidComment}&rdquo;
             </p>
           )}
@@ -126,14 +119,14 @@ export function AuctionLiveStatus({
         </div>
       )}
 
-      {/* Time + progress */}
+      {/* Time + progress + bid count — single compact row */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className={`inline-block h-1.5 w-1.5 rounded-full ${
+        <span className={`inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
           isLive
             ? isEndingSoon ? "bg-amber-500 animate-pulse" : "bg-green-500"
             : "bg-muted-foreground"
         }`} />
-        <span>
+        <span className="shrink-0">
           {isLive
             ? isEndingSoon
               ? `Ending soon · ${timeString}`
@@ -142,29 +135,16 @@ export function AuctionLiveStatus({
           }
         </span>
         <Progress value={progressPercentage} className={`h-1 flex-1 ${progressColor}`} />
+        {bidCount > 0 && (
+          <button
+            type="button"
+            onClick={onBidHistoryOpen}
+            className="shrink-0 hover:text-foreground transition-colors"
+          >
+            {bidCount} {bidCount === 1 ? "bid" : "bids"} →
+          </button>
+        )}
       </div>
     </>
-  );
-}
-
-/** Separate component for the bid history footer link */
-export function AuctionBidHistoryLink({
-  bidCount,
-  onBidHistoryOpen,
-}: {
-  bidCount: number;
-  onBidHistoryOpen: () => void;
-}) {
-  if (bidCount === 0) return null;
-
-  return (
-    <button
-      type="button"
-      onClick={onBidHistoryOpen}
-      className="group flex w-full items-center justify-end gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-    >
-      <span>{bidCount} {bidCount === 1 ? "bid" : "bids"} · View all</span>
-      <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-    </button>
   );
 }

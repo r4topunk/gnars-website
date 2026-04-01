@@ -47,8 +47,8 @@ export function BidItem({ bidder, amount, bidTime, comment, isNew }: BidItemProp
 
       <div className="mt-1.5 flex items-center justify-between gap-2">
         {comment ? (
-          <p className="flex-1 truncate text-xs italic text-muted-foreground">
-            &ldquo;{comment.length > 140 ? `${comment.slice(0, 140)}…` : comment}&rdquo;
+          <p className="flex-1 text-xs italic text-muted-foreground line-clamp-2 break-words">
+            &ldquo;{comment}&rdquo;
           </p>
         ) : (
           <span />

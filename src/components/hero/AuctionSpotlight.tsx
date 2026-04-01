@@ -10,7 +10,7 @@ import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
 import { BidHistoryModal } from "@/components/auction/BidHistoryModal";
-import { AuctionLiveStatus, AuctionBidHistoryLink } from "@/components/auction/AuctionLiveStatus";
+import { AuctionLiveStatus } from "@/components/auction/AuctionLiveStatus";
 import { AuctionBidForm } from "@/components/auction/AuctionBidForm";
 import { AuctionSettleButton } from "@/components/auction/AuctionSettleButton";
 import { useAuctionLive } from "@/hooks/use-auction-live";
@@ -158,12 +158,6 @@ export function AuctionSpotlight() {
               <AuctionSettleButton isWinner={!!isWinner} />
             )}
 
-            {optimisticBidCount > 0 && (
-              <AuctionBidHistoryLink
-                bidCount={optimisticBidCount}
-                onBidHistoryOpen={() => setIsBidHistoryOpen(true)}
-              />
-            )}
           </div>
 
           <BidHistoryModal
