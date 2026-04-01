@@ -176,6 +176,78 @@ export function usePoidhWithdrawFromBounty(bountyChainId: number) {
   return { withdraw, hash, isPending: isPending || isConfirming, isSuccess, error, reset };
 }
 
+// ─── Submit Claim for Vote ────────────────────────────────────────────────────
+
+export function usePoidhSubmitClaimForVote(bountyChainId: number) {
+  const { contract, ensureChain } = usePoidhBase(bountyChainId);
+  const { writeContractAsync, data: hash, isPending, error, reset } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const submit = useCallback(
+    async (onChainBountyId: number, claimId: number) => {
+      await ensureChain();
+      await writeContractAsync({
+        address: contract!,
+        abi: POIDH_ABI,
+        functionName: "submitClaimForVote",
+        args: [BigInt(onChainBountyId), BigInt(claimId)],
+        chainId: bountyChainId,
+      });
+    },
+    [ensureChain, writeContractAsync, contract, bountyChainId],
+  );
+
+  return { submit, hash, isPending: isPending || isConfirming, isSuccess, error, reset };
+}
+
+// ─── Vote on Claim ────────────────────────────────────────────────────────────
+
+export function usePoidhVoteClaim(bountyChainId: number) {
+  const { contract, ensureChain } = usePoidhBase(bountyChainId);
+  const { writeContractAsync, data: hash, isPending, error, reset } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const vote = useCallback(
+    async (onChainBountyId: number, claimId: number, accept: boolean) => {
+      await ensureChain();
+      await writeContractAsync({
+        address: contract!,
+        abi: POIDH_ABI,
+        functionName: "voteClaim",
+        args: [BigInt(onChainBountyId), BigInt(claimId), accept],
+        chainId: bountyChainId,
+      });
+    },
+    [ensureChain, writeContractAsync, contract, bountyChainId],
+  );
+
+  return { vote, hash, isPending: isPending || isConfirming, isSuccess, error, reset };
+}
+
+// ─── Resolve Vote ─────────────────────────────────────────────────────────────
+
+export function usePoidhResolveVote(bountyChainId: number) {
+  const { contract, ensureChain } = usePoidhBase(bountyChainId);
+  const { writeContractAsync, data: hash, isPending, error, reset } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const resolve = useCallback(
+    async (onChainBountyId: number, claimId: number) => {
+      await ensureChain();
+      await writeContractAsync({
+        address: contract!,
+        abi: POIDH_ABI,
+        functionName: "resolveVote",
+        args: [BigInt(onChainBountyId), BigInt(claimId)],
+        chainId: bountyChainId,
+      });
+    },
+    [ensureChain, writeContractAsync, contract, bountyChainId],
+  );
+
+  return { resolve, hash, isPending: isPending || isConfirming, isSuccess, error, reset };
+}
+
 // ─── Accept Claim (creator only) ──────────────────────────────────────────────
 
 export function usePoidhAcceptClaim(bountyChainId: number) {

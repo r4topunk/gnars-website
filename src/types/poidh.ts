@@ -30,4 +30,5 @@ export interface PoidhBounty {
   hasClaims: boolean;
   hasParticipants: boolean;
   claims?: PoidhClaim[];
+  isCompleted?: boolean;
 }

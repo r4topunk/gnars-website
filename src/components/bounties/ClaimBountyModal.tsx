@@ -26,6 +26,7 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [mediaUrl, setMediaUrl] = useState("");
   const { isConnected } = useAccount();
   const { submit, hash, isPending, isSuccess, error, reset } = usePoidhCreateClaim(bounty.chainId);
   const chainName = CHAIN_NAMES[bounty.chainId as keyof typeof CHAIN_NAMES] ?? "Unknown";
@@ -34,7 +35,10 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
     e.preventDefault();
     if (!name.trim() || !description.trim()) return;
     try {
-      await submit(bounty.onChainId, name.trim(), description.trim());
+      const finalDescription = mediaUrl.trim()
+        ? `${description.trim()}\n\nMedia: ${mediaUrl.trim()}`
+        : description.trim();
+      await submit(bounty.onChainId, name.trim(), finalDescription);
     } catch {
       // error captured in hook
     }
@@ -44,6 +48,7 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
     if (!val) {
       setName("");
       setDescription("");
+      setMediaUrl("");
       reset();
     }
     setOpen(val);
@@ -116,6 +121,18 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
                 required
               />
               <p className="text-xs text-muted-foreground text-right">{description.length}/500</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Media URL (optional)</label>
+              <input
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                placeholder="https://... link to your video or photo"
+                value={mediaUrl}
+                onChange={(e) => setMediaUrl(e.target.value)}
+                disabled={isPending}
+                type="url"
+              />
             </div>
 
             {error && (

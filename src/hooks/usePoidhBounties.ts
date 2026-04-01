@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { PoidhBounty } from '@/types/poidh';
 
 interface UsePoidhBountiesOptions {
-  status?: 'open' | 'closed' | 'all';
+  status?: 'open' | 'closed' | 'voting' | 'all';
   limit?: number;
   filterGnarly?: boolean;
 }

@@ -25,6 +25,7 @@ const STATUS_STYLES = {
   Canceled: "bg-red-500/10 text-red-400 border-red-500/20",
   Voting: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
   Open: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  Closed: "bg-muted text-muted-foreground border-border",
 } as const;
 
 const CHAIN_DOT_COLORS: Record<number, string> = {
@@ -41,6 +42,7 @@ export function BountyCard({ bounty }: BountyCardProps) {
   const getStatus = (): keyof typeof STATUS_STYLES => {
     if (bounty.isCanceled) return "Canceled";
     if (bounty.isVoting) return "Voting";
+    if (bounty.isCompleted) return "Closed";
     return "Open";
   };
 
@@ -72,6 +74,11 @@ export function BountyCard({ bounty }: BountyCardProps) {
           </span>
         </div>
 
+        {/* Title */}
+        <h3 className="font-bold text-base leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-150">
+          {bounty.title || bounty.name}
+        </h3>
+
         {/* Thumbnail */}
         {thumbnailUrl && (
           <div className="rounded-lg overflow-hidden border border-border/50 -mx-1">
@@ -84,11 +91,6 @@ export function BountyCard({ bounty }: BountyCardProps) {
             />
           </div>
         )}
-
-        {/* Title */}
-        <h3 className="font-bold text-base leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-150">
-          {bounty.title || bounty.name}
-        </h3>
 
         {/* Description */}
         <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1">
@@ -145,7 +147,7 @@ export function BountyCard({ bounty }: BountyCardProps) {
         </Link>
         <Link href={detailHref} className="flex-1">
           <Button className="w-full text-sm font-semibold bg-primary hover:bg-primary/90 text-primary-foreground">
-            Make Attempt
+            Try it !
           </Button>
         </Link>
       </div>

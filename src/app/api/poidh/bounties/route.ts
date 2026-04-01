@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
       const statusMap: Record<string, string> = {
         open: 'open',
         closed: 'past',
+        voting: 'progress',
       };
       const status = statusMap[rawStatus] || 'open';
 
@@ -80,6 +81,7 @@ export async function GET(request: NextRequest) {
     const mapped = filtered.map((b) => ({
       ...b,
       isOpenBounty: b.isOpenBounty ?? b.isMultiplayer,
+      isCompleted: rawStatus === 'closed',
     }));
 
     return NextResponse.json({ 

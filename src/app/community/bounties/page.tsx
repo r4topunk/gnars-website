@@ -4,13 +4,14 @@ import { useState, useMemo } from 'react';
 import { BountyGrid } from '@/components/bounties/BountyGrid';
 import { usePoidhBounties } from '@/hooks/usePoidhBounties';
 import { CreateBountyModal } from '@/components/bounties/CreateBountyModal';
-import { PlusCircle, Trophy } from 'lucide-react';
+import { PlusCircle, Trophy, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatEther } from 'viem';
 import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
 
 export default function BountiesPage() {
-  const [status, setStatus] = useState<'open' | 'closed' | 'all'>('open');
+  const [status, setStatus] = useState<'open' | 'closed' | 'voting' | 'all'>('open');
+  const [searchQuery, setSearchQuery] = useState('');
   const [filterGnarly, setFilterGnarly] = useState(false); // Default: show all
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const { data, isLoading, error } = usePoidhBounties({ status, filterGnarly });
@@ -18,8 +19,15 @@ export default function BountiesPage() {
 
   // Client-side category filtering
   const filteredBounties = data?.bounties.filter((bounty) => {
-    if (categoryFilter === 'all') return true;
     const text = `${bounty.title} ${bounty.description}`.toLowerCase();
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.trim().toLowerCase();
+      if (!text.includes(query)) return false;
+    }
+
+    if (categoryFilter === 'all') return true;
     
     const categories: Record<string, string[]> = {
       skate: ['skate', 'skateboard', 'kickflip', 'grind', 'ollie', 'flip', 'trick'],
@@ -47,9 +55,6 @@ export default function BountiesPage() {
       <div className="mb-8">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <span className="text-2xl">🏆</span>
-            </div>
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground">Challenges</h1>
               <p className="text-muted-foreground">
@@ -75,10 +80,22 @@ export default function BountiesPage() {
         </div>
       </div>
 
+      {/* Search Input */}
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search bounties..."
+          className="w-full rounded-md border border-border bg-background pl-9 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+      </div>
+
       {/* Filter Tabs */}
       <div className="flex items-center mb-8 border-b border-border">
         <div className="flex gap-4">
-          {(['open', 'closed', 'all'] as const).map((tab) => (
+          {(['open', 'voting', 'closed', 'all'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setStatus(tab)}
@@ -111,24 +128,24 @@ export default function BountiesPage() {
         ))}
       </div>
 
-      {/* Info Bar with Total Value */}
+      {/* Total Value Banner */}
       {data && !isLoading && (
-        <div className="mb-6 flex items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg border border-border">
-          <div className="text-sm text-muted-foreground">
-            Showing {filteredBounties.length} of {data.total}{status !== 'all' ? ` ${status}` : ''} bounties
+        <div className="mb-6 flex flex-col items-center justify-center gap-1 py-5 bg-muted/50 rounded-lg border border-border">
+          <div className="flex items-center gap-2 text-muted-foreground text-sm uppercase tracking-widest font-medium">
+            <Trophy className="w-4 h-4" />
+            Total {status !== 'all' ? status : ''} bounty pool
           </div>
-          <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-primary" />
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold text-foreground">{totalValue.eth}</span>
-              <span className="text-sm text-muted-foreground">ETH</span>
-              {ethPrice > 0 && (
-                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                  {totalValue.usd}
-                </span>
-              )}
-            </div>
+          <div className="flex items-baseline gap-3 animate-pulse">
+            <span className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
+              {totalValue.eth}
+            </span>
+            <span className="text-xl font-semibold text-muted-foreground">ETH</span>
           </div>
+          {ethPrice > 0 && (
+            <span className="text-lg font-semibold text-emerald-500 dark:text-emerald-400">
+              {totalValue.usd}
+            </span>
+          )}
         </div>
       )}
 
@@ -175,13 +192,9 @@ export default function BountiesPage() {
             <span className="text-xl">🛹</span>
             Action Sports Filter
           </h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Use the category filters to find bounties related to skateboarding, surfing, 
-            parkour, and other action sports. Toggle &quot;Action sports only&quot; to see 
-            Gnars-curated challenges.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Full wallet integration for submitting claims coming soon to Gnars.com
+          <p className="text-sm text-muted-foreground">
+            Use the category filters to find bounties related to skateboarding, surfing,
+            parkour, and other action sports.
           </p>
         </div>
       </div>
