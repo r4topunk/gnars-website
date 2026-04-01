@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useAccount } from "wagmi";
-import { ExternalLink, Loader2, CheckCircle2, AlertCircle, PlusCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { ExternalLink, Loader2, CheckCircle2, AlertCircle, PlusCircle, ArrowLeftRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,8 @@ const CHAIN_OPTIONS = [
   { label: "Arbitrum", chainId: SUPPORTED_CHAINS.ARBITRUM },
 ];
 
+const SUPPORTED_IDS = CHAIN_OPTIONS.map((c) => c.chainId);
+
 interface CreateBountyModalProps {
   children?: React.ReactNode;
 }
@@ -28,20 +30,34 @@ interface CreateBountyModalProps {
 export function CreateBountyModal({ children }: CreateBountyModalProps) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"open" | "solo">("open");
-  const [chainId, setChainId] = useState<number>(SUPPORTED_CHAINS.BASE);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [reward, setReward] = useState("");
   const { isConnected } = useAccount();
+  const walletChainId = useChainId();
+  const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
+
+  // Default to wallet's chain if supported, else Base
+  const defaultChain = SUPPORTED_IDS.includes(walletChainId) ? walletChainId : SUPPORTED_CHAINS.BASE;
+  const [chainId, setChainId] = useState<number>(defaultChain);
+
+  // Keep form chain in sync when wallet switches externally
+  useEffect(() => {
+    if (SUPPORTED_IDS.includes(walletChainId)) {
+      setChainId(walletChainId);
+    }
+  }, [walletChainId]);
 
   const openBounty = usePoidhCreateOpenBounty(chainId);
   const soloBounty = usePoidhCreateSoloBounty(chainId);
   const active = type === "open" ? openBounty : soloBounty;
   const chainName = CHAIN_NAMES[chainId as keyof typeof CHAIN_NAMES] ?? "Unknown";
 
+  const wrongNetwork = isConnected && walletChainId !== chainId;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !description.trim() || !reward) return;
+    if (!name.trim() || !description.trim() || !reward || wrongNetwork) return;
     try {
       if (type === "open") {
         await openBounty.create(name.trim(), description.trim(), reward);
@@ -68,6 +84,10 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
   const isPending = active.isPending;
   const isSuccess = active.isSuccess;
   const error = active.error;
+
+  const currentWalletChainName =
+    CHAIN_NAMES[walletChainId as keyof typeof CHAIN_NAMES] ??
+    `Chain ${walletChainId}`;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -148,6 +168,33 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
               </div>
             </div>
 
+            {/* Wrong network banner — shown proactively before submit */}
+            {wrongNetwork && (
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3">
+                <div className="flex items-start gap-2 text-sm text-yellow-600 dark:text-yellow-400">
+                  <ArrowLeftRight className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>
+                    Your wallet is on <strong>{currentWalletChainName}</strong>.
+                    Switch to <strong>{chainName}</strong> to continue.
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="shrink-0 border-yellow-500/40 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/10"
+                  disabled={isSwitching}
+                  onClick={() => switchChainAsync({ chainId })}
+                >
+                  {isSwitching ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    `Switch to ${chainName}`
+                  )}
+                </Button>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Title</label>
               <input
@@ -189,16 +236,11 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
               />
             </div>
 
-            {type === "solo" && (
-              <p className="text-xs text-muted-foreground">
-                Solo bounties are self-funded — only you contribute to the prize pool.
-              </p>
-            )}
-            {type === "open" && (
-              <p className="text-xs text-muted-foreground">
-                Open bounties let anyone add funds to grow the prize pool.
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              {type === "open"
+                ? "Open bounties let anyone add funds to grow the prize pool."
+                : "Solo bounties are self-funded — only you contribute to the prize pool."}
+            </p>
 
             {error && (
               <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
@@ -220,7 +262,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isPending || !name.trim() || !description.trim() || !reward}
+                disabled={isPending || wrongNetwork || !name.trim() || !description.trim() || !reward}
               >
                 {isPending ? (
                   <>

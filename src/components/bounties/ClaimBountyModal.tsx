@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount } from "wagmi";
-import { ExternalLink, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { ExternalLink, Loader2, CheckCircle2, AlertCircle, ArrowLeftRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,8 +28,13 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
   const [description, setDescription] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
   const { isConnected } = useAccount();
+  const walletChainId = useChainId();
+  const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
   const { submit, hash, isPending, isSuccess, error, reset } = usePoidhCreateClaim(bounty.chainId);
   const chainName = CHAIN_NAMES[bounty.chainId as keyof typeof CHAIN_NAMES] ?? "Unknown";
+  const wrongNetwork = isConnected && walletChainId !== bounty.chainId;
+  const currentWalletChainName =
+    CHAIN_NAMES[walletChainId as keyof typeof CHAIN_NAMES] ?? `Chain ${walletChainId}`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +98,32 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+            {wrongNetwork && (
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3">
+                <div className="flex items-start gap-2 text-sm text-yellow-600 dark:text-yellow-400">
+                  <ArrowLeftRight className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>
+                    Your wallet is on <strong>{currentWalletChainName}</strong>.
+                    Switch to <strong>{chainName}</strong> to submit.
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="shrink-0 border-yellow-500/40 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/10"
+                  disabled={isSwitching}
+                  onClick={() => switchChainAsync({ chainId: bounty.chainId })}
+                >
+                  {isSwitching ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    `Switch to ${chainName}`
+                  )}
+                </Button>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Claim title</label>
               <input
@@ -152,7 +183,7 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isPending || !name.trim() || !description.trim()}
+                disabled={isPending || wrongNetwork || !name.trim() || !description.trim()}
               >
                 {isPending ? (
                   <>
