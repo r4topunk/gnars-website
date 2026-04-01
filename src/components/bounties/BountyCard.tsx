@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clock, ExternalLink, Users } from "lucide-react";
+import { Clock, Users } from "lucide-react";
 import { formatEther } from "viem";
 import { Button } from "@/components/ui/button";
 import { CHAIN_NAMES } from "@/lib/poidh/config";
@@ -138,16 +138,10 @@ export function BountyCard({ bounty }: BountyCardProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 px-5 pb-5">
-        <Link href={detailHref} className="flex-1">
-          <Button variant="outline" className="w-full text-sm font-medium hover:bg-muted/60">
-            View Details
-            <ExternalLink className="w-3.5 h-3.5 ml-1.5 opacity-60" />
-          </Button>
-        </Link>
-        <Link href={detailHref} className="flex-1">
+      <div className="px-5 pb-5">
+        <Link href={detailHref} className="block">
           <Button className="w-full text-sm font-semibold bg-primary hover:bg-primary/90 text-primary-foreground">
-            Try it !
+            Try it!
           </Button>
         </Link>
       </div>
