@@ -159,7 +159,7 @@ export default function BountyDetailPage() {
     functionName: 'getParticipants',
     args: [BigInt(bounty?.onChainId ?? 0)],
     chainId,
-    query: { enabled: !!(bounty && bounty.isOpenBounty) },
+    query: { enabled: !!(bounty && (bounty.isOpenBounty || bounty.isMultiplayer)) },
   });
 
   if (isLoading && !bounty) {
@@ -594,7 +594,7 @@ export default function BountyDetailPage() {
           )}
 
           {/* Join open bounty (add funds) */}
-          {bounty.isOpenBounty && !bounty.isCanceled && !bounty.isVoting && (
+          {(bounty.isOpenBounty || bounty.isMultiplayer) && !bounty.isCanceled && !bounty.isVoting && (
             <Card className="border-border">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -681,7 +681,7 @@ export default function BountyDetailPage() {
           )}
 
           {/* Withdraw from canceled bounty (participant) */}
-          {bounty.isCanceled && bounty.isOpenBounty && !isCreator && (
+          {bounty.isCanceled && (bounty.isOpenBounty || bounty.isMultiplayer) && !isCreator && (
             <Card className="border-border">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Withdraw Your Contribution</CardTitle>
@@ -759,18 +759,6 @@ export default function BountyDetailPage() {
             </Card>
           )}
 
-          {/* Debug info */}
-          {process.env.NODE_ENV === 'development' && (
-            <Card className="border-yellow-500/20 bg-yellow-500/5">
-              <CardContent className="py-3 text-xs">
-                <div>isOpenBounty: {bounty.isOpenBounty ? 'true' : 'false'}</div>
-                <div>isCanceled: {bounty.isCanceled ? 'true' : 'false'}</div>
-                <div>isVoting: {bounty.isVoting ? 'true' : 'false'}</div>
-                <div>onChainId: {bounty.onChainId}</div>
-                <div>isMultiplayer: {bounty.isMultiplayer ? 'true' : 'false'}</div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Bounty Details */}
           <Card>
@@ -848,7 +836,7 @@ export default function BountyDetailPage() {
                 </div>
               </div>
 
-              {bounty.isOpenBounty && participants && participants.length > 0 && (
+              {(bounty.isOpenBounty || bounty.isMultiplayer) && participants && participants.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Users className="w-4 h-4" />

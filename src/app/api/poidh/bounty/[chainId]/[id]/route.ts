@@ -81,7 +81,7 @@ export async function GET(
     return NextResponse.json({
       bounty: {
         ...bounty,
-        isOpenBounty: bounty.isOpenBounty === true,
+        isOpenBounty: bounty.isOpenBounty ?? bounty.isMultiplayer,
         claims: mappedClaims,
       },
     });
