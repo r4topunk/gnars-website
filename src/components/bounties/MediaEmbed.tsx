@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ExternalLink } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface MediaInfo {
   contentType: string;
@@ -29,7 +30,7 @@ export function MediaEmbed({ url, alt = '', className = '' }: MediaEmbedProps) {
   });
 
   if (isLoading) {
-    return <div className={`rounded-md bg-muted animate-pulse h-20 w-full ${className}`} />;
+    return <Skeleton className={`h-20 w-full ${className}`} />;
   }
 
   // Attachment or unknown — safe link, never auto-download

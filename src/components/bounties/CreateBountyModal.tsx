@@ -12,6 +12,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ConnectButton } from "@/components/ui/ConnectButton";
 import { usePoidhCreateOpenBounty, usePoidhCreateSoloBounty } from "@/hooks/usePoidhContract";
 import { getTxUrl, CHAIN_NAMES, SUPPORTED_CHAINS } from "@/lib/poidh/config";
@@ -142,29 +152,37 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
             {/* Chain + Type */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Chain</label>
-                <select
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-                  value={chainId}
-                  onChange={(e) => setChainId(Number(e.target.value))}
+                <Label>Chain</Label>
+                <Select
+                  value={String(chainId)}
+                  onValueChange={(v) => setChainId(Number(v))}
                   disabled={isPending}
                 >
-                  {CHAIN_OPTIONS.map((c) => (
-                    <option key={c.chainId} value={c.chainId}>{c.label}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CHAIN_OPTIONS.map((c) => (
+                      <SelectItem key={c.chainId} value={String(c.chainId)}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Type</label>
-                <select
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                <Label>Type</Label>
+                <Select
                   value={type}
-                  onChange={(e) => setType(e.target.value as "open" | "solo")}
+                  onValueChange={(v) => setType(v as "open" | "solo")}
                   disabled={isPending}
                 >
-                  <option value="open">Open (anyone can add funds)</option>
-                  <option value="solo">Solo (self-funded)</option>
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="open">Open (anyone can add funds)</SelectItem>
+                    <SelectItem value="solo">Solo (self-funded)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -196,9 +214,8 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
             )}
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Title</label>
-              <input
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+              <Label>Title</Label>
+              <Input
                 placeholder="e.g. Land a kickflip down the 5-stair"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -209,9 +226,9 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Description</label>
-              <textarea
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 min-h-[80px] resize-y"
+              <Label>Description</Label>
+              <Textarea
+                className="min-h-[80px] resize-y"
                 placeholder="Describe the challenge and what counts as valid proof..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -222,12 +239,11 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Reward (ETH)</label>
-              <input
+              <Label>Reward (ETH)</Label>
+              <Input
                 type="number"
                 step="0.0001"
                 min="0.0001"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
                 placeholder="0.01"
                 value={reward}
                 onChange={(e) => setReward(e.target.value)}

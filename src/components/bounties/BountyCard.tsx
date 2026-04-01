@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Clock, Users } from "lucide-react";
 import { formatEther } from "viem";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { CHAIN_NAMES } from "@/lib/poidh/config";
 import type { PoidhBounty } from "@/types/poidh";
 import { useEthPrice, formatEthToUsd } from "@/hooks/use-eth-price";
@@ -56,22 +57,17 @@ export function BountyCard({ bounty }: BountyCardProps) {
   const usdValue = formatEthToUsd(ethAmount, ethPrice);
 
   return (
-    <div className="group relative flex flex-col rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-200 overflow-hidden">
-      {/* Top accent line */}
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-      <div className="flex flex-col flex-1 p-5 gap-4">
+    <Card className="group hover:border-primary/50 overflow-hidden py-0">
+      <CardContent className="flex flex-col flex-1 px-5 pt-5 pb-0 gap-4">
         {/* Header */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
             <span className="text-xs font-medium text-muted-foreground truncate">{chainName}</span>
           </div>
-          <span
-            className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border shrink-0 ${STATUS_STYLES[status]}`}
-          >
+          <Badge variant="outline" className={STATUS_STYLES[status]}>
             {status}
-          </span>
+          </Badge>
         </div>
 
         {/* Title */}
@@ -101,7 +97,7 @@ export function BountyCard({ bounty }: BountyCardProps) {
         <div className="rounded-lg bg-muted/40 px-4 py-3 border border-border/50">
           <span className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Reward</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-extrabold text-primary">{ethAmount.toFixed(4)}</span>
+            <span className="text-2xl font-bold text-primary">{ethAmount.toFixed(4)}</span>
             <span className="text-sm font-medium text-muted-foreground">ETH</span>
             {ethPrice > 0 && (
               <span className="ml-auto text-sm font-medium text-emerald-600 dark:text-emerald-400">{usdValue}</span>
@@ -111,14 +107,10 @@ export function BountyCard({ bounty }: BountyCardProps) {
 
         {/* Meta */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Clock className="w-3 h-3 shrink-0" />
-            <span>{timeLabel}</span>
-          </div>
+          <span>{timeLabel}</span>
           {bounty.isMultiplayer && (
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground/40">·</span>
-              <Users className="w-3 h-3 shrink-0" />
               <span>Multiplayer</span>
             </div>
           )}
@@ -131,20 +123,20 @@ export function BountyCard({ bounty }: BountyCardProps) {
           {bounty.isOpenBounty && (
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground/40">·</span>
-              <span>📹 Video required</span>
+              <span>Video required</span>
             </div>
           )}
         </div>
-      </div>
+      </CardContent>
 
       {/* Actions */}
-      <div className="px-5 pb-5">
-        <Link href={detailHref} className="block">
+      <CardFooter className="px-5 pb-5 pt-4">
+        <Link href={detailHref} className="block w-full">
           <Button className="w-full text-sm font-semibold bg-primary hover:bg-primary/90 text-primary-foreground">
-            Try it!
+            View
           </Button>
         </Link>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }

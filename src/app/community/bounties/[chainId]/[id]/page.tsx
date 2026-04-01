@@ -9,7 +9,6 @@ import { useAccount, useConnect, useReadContract } from 'wagmi';
 import {
   ArrowLeft,
   ExternalLink,
-  Trophy,
   Clock,
   User,
   CheckCircle2,
@@ -20,6 +19,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import type { PoidhBounty } from '@/types/poidh';
@@ -27,6 +27,7 @@ import { CHAIN_NAMES, getExplorerUrl, getTxUrl } from '@/lib/poidh/config';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ClaimBountyModal } from '@/components/bounties/ClaimBountyModal';
@@ -242,8 +243,8 @@ export default function BountyDetailPage() {
           >
             {status}
           </span>
-          {bounty.isOpenBounty && <Badge variant="secondary">🌐 Open Bounty</Badge>}
-          {bounty.isMultiplayer && <Badge variant="secondary">👥 Multiplayer</Badge>}
+          {bounty.isOpenBounty && <Badge variant="secondary">Open Bounty</Badge>}
+          {bounty.isMultiplayer && <Badge variant="secondary">Multiplayer</Badge>}
         </div>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
@@ -251,8 +252,7 @@ export default function BountyDetailPage() {
         </h1>
 
         <div className="flex items-baseline gap-3">
-          <Trophy className="w-7 h-7 text-primary shrink-0" />
-          <span className="text-4xl md:text-5xl font-extrabold">{ethAmount.toFixed(4)}</span>
+          <span className="text-4xl md:text-5xl font-bold">{ethAmount.toFixed(4)}</span>
           <span className="text-xl text-muted-foreground">ETH</span>
           {ethPrice > 0 && (
             <span className="text-lg font-medium text-emerald-600 dark:text-emerald-400">
@@ -268,11 +268,12 @@ export default function BountyDetailPage() {
           {/* Description */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">🎯 Objective</CardTitle>
+              <CardTitle>Objective</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-muted-foreground leading-relaxed prose prose-invert prose-sm max-w-none">
                 <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA]]}
                   components={{
                     img: ({ src, alt }) => {
@@ -334,91 +335,95 @@ export default function BountyDetailPage() {
           {bounty.claims && bounty.claims.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  📋 Submitted Claims ({bounty.claims.length})
-                </CardTitle>
+                <CardTitle>Submitted Claims ({bounty.claims.length})</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {bounty.claims.map((claim) => (
                   <div
                     key={claim.id}
-                    className="rounded-md border border-border bg-card p-3 space-y-2"
+                    className="rounded-md border border-border p-4 space-y-3"
                   >
+                    {/* Claim header: name + accepted badge */}
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-medium text-sm">{claim.name}</p>
                       {claim.accepted && (
-                        <Badge variant="default" className="shrink-0">✓ Accepted</Badge>
+                        <Badge variant="default" className="shrink-0"><CheckCircle2 className="w-3 h-3" /> Accepted</Badge>
                       )}
                     </div>
-                    {/* Claim media from url field */}
+
+                    {/* Claim media */}
                     {claim.url && (
-                      <div className="flex justify-center">
+                      <div>
                         <MediaEmbed url={claim.url} alt={claim.name} />
                       </div>
                     )}
-                    <div className="text-xs text-muted-foreground prose prose-invert prose-xs max-w-none">
+
+                    {/* Claim description (markdown with auto-linked URLs) */}
+                    {(() => {
+                      // Strip the media URL from description to avoid duplicate "View media" links
+                      const desc = claim.url
+                        ? claim.description.replace(claim.url, '').trim()
+                        : claim.description;
+                      if (!desc) return null;
+                      return (
+                    <div className="text-sm text-muted-foreground prose prose-invert prose-sm max-w-none">
                       <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA]]}
                         components={{
                           img: ({ src, alt }) => {
                             const url = typeof src === 'string' ? src : '';
                             if (isEmbeddableVideo(url)) {
                               return (
-                                <div className="flex justify-center my-2">
-                                  <video src={url} className="rounded-md max-w-full h-auto max-h-48" controls muted playsInline>
-                                    <track kind="captions" />
-                                  </video>
-                                </div>
+                                <video src={url} className="rounded-md max-w-full h-auto max-h-48 my-2" controls muted playsInline>
+                                  <track kind="captions" />
+                                </video>
                               );
                             }
                             if (isIpfsCid(url)) {
                               return <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 my-1"><ExternalLink className="w-3 h-3" />View media</a>;
                             }
                             return (
-                              <div className="flex justify-center my-2">
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={url} alt={alt || ''} className="rounded-md max-w-full h-auto max-h-48 cursor-pointer hover:opacity-90 transition-opacity" loading="lazy" />
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={url} alt={alt || ''} className="w-full h-auto max-h-[95vh] object-contain" />
-                                  </DialogContent>
-                                </Dialog>
-                              </div>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={url} alt={alt || ''} className="rounded-md max-w-full h-auto max-h-48 cursor-pointer hover:opacity-90 transition-opacity my-2" loading="lazy" />
+                                </DialogTrigger>
+                                <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={url} alt={alt || ''} className="w-full h-auto max-h-[95vh] object-contain" />
+                                </DialogContent>
+                              </Dialog>
                             );
                           },
                           a: ({ href, children }) => {
                             if (isEmbeddableVideo(href)) {
                               return (
-                                <div className="flex justify-center my-2">
-                                  <video src={href} className="rounded-md max-w-full h-auto max-h-48" controls muted playsInline>
-                                    <track kind="captions" />
-                                  </video>
-                                </div>
+                                <video src={href} className="rounded-md max-w-full h-auto max-h-48 my-2" controls muted playsInline>
+                                  <track kind="captions" />
+                                </video>
                               );
                             }
-                            return <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{children}</a>;
+                            return <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">{children}</a>;
                           },
                           iframe: ({ src }) => {
                             const url = typeof src === 'string' ? src : '';
                             if (!url || !isAllowedIframeSrc(url)) return null;
-                            return (
-                              <div className="flex justify-center my-2">
-                                <MediaEmbed url={url} />
-                              </div>
-                            );
+                            return <MediaEmbed url={url} />;
                           },
                           p: ({ children }) => (
                             <p className="whitespace-pre-wrap mb-1">{children}</p>
                           ),
                         }}
                       >
-                        {claim.description}
+                        {desc}
                       </ReactMarkdown>
                     </div>
-                    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                      );
+                    })()}
+
+                    {/* Claim footer: address + date + actions */}
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50 text-xs text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <AddressDisplay
                           address={claim.issuer as `0x${string}`}
@@ -433,7 +438,6 @@ export default function BountyDetailPage() {
                         {claim.createdAt > 0 && (
                           <>
                             <span>•</span>
-                            <Clock className="w-3 h-3" />
                             <span>{new Date(claim.createdAt * 1000).toLocaleDateString()}</span>
                           </>
                         )}
@@ -452,7 +456,7 @@ export default function BountyDetailPage() {
                               Accepting...
                             </>
                           ) : (
-                            '✓ Accept Claim'
+                            'Accept Claim'
                           )}
                         </Button>
                       )}
@@ -515,7 +519,7 @@ export default function BountyDetailPage() {
                             {voteClaimHook.isPending ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
                             ) : (
-                              '👍 Vote Yes'
+                              'Vote Yes'
                             )}
                           </Button>
                           <Button
@@ -528,7 +532,7 @@ export default function BountyDetailPage() {
                             {voteClaimHook.isPending ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
                             ) : (
-                              '👎 Vote No'
+                              'Vote No'
                             )}
                           </Button>
                         </div>
@@ -611,9 +615,7 @@ export default function BountyDetailPage() {
           {isJoinable && !bounty.isCanceled && !bounty.isVoting && (
             <Card className="border-border">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Users className="w-4 h-4" /> Add to the Prize Pool
-                </CardTitle>
+                <CardTitle className="text-base">Add to the Prize Pool</CardTitle>
                 <CardDescription>
                   Contribute ETH to increase the reward for this bounty.
                 </CardDescription>
@@ -635,11 +637,11 @@ export default function BountyDetailPage() {
                 ) : (
                   <>
                     <div className="flex gap-2">
-                      <input
+                      <Input
                         type="number"
                         step="0.0001"
                         min="0.0001"
-                        className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="flex-1"
                         value={joinAmount}
                         onChange={(e) => setJoinAmount(e.target.value)}
                         disabled={joinHook.isPending}

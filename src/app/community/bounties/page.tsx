@@ -4,8 +4,10 @@ import { useState, useMemo } from 'react';
 import { BountyGrid } from '@/components/bounties/BountyGrid';
 import { usePoidhBounties } from '@/hooks/usePoidhBounties';
 import { CreateBountyModal } from '@/components/bounties/CreateBountyModal';
-import { PlusCircle, Trophy, Search } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatEther } from 'viem';
 import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
 
@@ -83,60 +85,48 @@ export default function BountiesPage() {
       {/* Search Input */}
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        <input
+        <Input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search bounties..."
-          className="w-full rounded-md border border-border bg-background pl-9 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="pl-9"
         />
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center mb-8 border-b border-border">
-        <div className="flex gap-4">
-          {(['open', 'voting', 'closed', 'all'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setStatus(tab)}
-              className={`pb-2 px-4 font-medium transition-colors ${
-                status === tab
-                  ? 'border-b-2 border-primary text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
+      <Tabs value={status} onValueChange={(v) => setStatus(v as typeof status)} className="mb-8">
+        <TabsList>
+          <TabsTrigger value="open">Open</TabsTrigger>
+          <TabsTrigger value="voting">Voting</TabsTrigger>
+          <TabsTrigger value="closed">Closed</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {/* Category Filter Pills */}
       <div className="flex gap-2 mb-6">
         {(['skate', 'surf', 'parkour', 'weed', 'all'] as const).map((cat) => (
-          <button
+          <Button
             key={cat}
+            variant={categoryFilter === cat ? 'default' : 'secondary'}
+            size="sm"
+            className="rounded-full"
             onClick={() => setCategoryFilter(cat)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              categoryFilter === cat
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            }`}
           >
             {cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </button>
+          </Button>
         ))}
       </div>
 
       {/* Total Value Banner */}
       {data && !isLoading && (
         <div className="mb-6 flex flex-col items-center justify-center gap-1 py-5 bg-muted/50 rounded-lg border border-border">
-          <div className="flex items-center gap-2 text-muted-foreground text-sm uppercase tracking-widest font-medium">
-            <Trophy className="w-4 h-4" />
+          <div className="text-muted-foreground text-sm uppercase tracking-wide font-medium">
             Total {status !== 'all' ? status : ''} bounty pool
           </div>
-          <div className="flex items-baseline gap-3 animate-pulse">
-            <span className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
+          <div className="flex items-baseline gap-3">
+            <span className="text-4xl md:text-5xl font-bold text-foreground">
               {totalValue.eth}
             </span>
             <span className="text-xl font-semibold text-muted-foreground">ETH</span>
@@ -158,7 +148,7 @@ export default function BountiesPage() {
 
       {/* Footer Info */}
       <div className="mt-12 grid md:grid-cols-2 gap-6">
-        <div className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+        <div className="p-6 bg-muted/50 rounded-lg border border-border">
           <h2 className="font-bold mb-2 text-foreground flex items-center gap-2">
             <span className="text-xl">📸</span>
             What is POIDH?

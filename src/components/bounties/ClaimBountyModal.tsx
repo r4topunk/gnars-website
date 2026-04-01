@@ -12,6 +12,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { ConnectButton } from "@/components/ui/ConnectButton";
 import { usePoidhCreateClaim } from "@/hooks/usePoidhContract";
 import { getTxUrl, CHAIN_NAMES } from "@/lib/poidh/config";
@@ -125,9 +128,8 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
             )}
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Claim title</label>
-              <input
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+              <Label>Claim title</Label>
+              <Input
                 placeholder="e.g. Kickflip down the 5-stair"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -138,9 +140,9 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Proof / description</label>
-              <textarea
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 min-h-[100px] resize-y"
+              <Label>Proof / description</Label>
+              <Textarea
+                className="min-h-[100px] resize-y"
                 placeholder="Describe your proof and include links to photos/videos..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -152,9 +154,8 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Media URL (optional)</label>
-              <input
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+              <Label>Media URL (optional)</Label>
+              <Input
                 placeholder="https://... link to your video or photo"
                 value={mediaUrl}
                 onChange={(e) => setMediaUrl(e.target.value)}

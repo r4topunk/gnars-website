@@ -1,4 +1,6 @@
 import { BountyCard } from './BountyCard';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
 import type { PoidhBounty } from '@/types/poidh';
 
 interface BountyGridProps {
@@ -9,23 +11,25 @@ interface BountyGridProps {
 
 function SkeletonCard() {
   return (
-    <div className="flex flex-col rounded-xl border border-border bg-card p-5 gap-4 animate-pulse">
-      <div className="flex items-center justify-between">
-        <div className="h-3 w-20 bg-muted rounded-full" />
-        <div className="h-5 w-20 bg-muted rounded-md" />
-      </div>
-      <div className="h-5 w-3/4 bg-muted rounded-md" />
-      <div className="space-y-2">
-        <div className="h-3 bg-muted rounded-full" />
-        <div className="h-3 w-4/5 bg-muted rounded-full" />
-      </div>
-      <div className="h-14 bg-muted/60 rounded-lg" />
-      <div className="h-3 w-1/3 bg-muted rounded-full" />
-      <div className="flex gap-2 mt-auto">
-        <div className="h-9 flex-1 bg-muted rounded-md" />
-        <div className="h-9 flex-1 bg-muted rounded-md" />
-      </div>
-    </div>
+    <Card>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-5 w-20" />
+        </div>
+        <Skeleton className="h-5 w-3/4" />
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-4/5" />
+        </div>
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-3 w-1/3" />
+        <div className="flex gap-2 mt-auto">
+          <Skeleton className="h-9 flex-1" />
+          <Skeleton className="h-9 flex-1" />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
