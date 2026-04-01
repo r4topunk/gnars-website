@@ -56,22 +56,31 @@ export function AuctionBidForm({
   });
   const balanceEth = balanceData ? Number(formatEther(balanceData.value)) : undefined;
 
-  // Min bid calculation
+  // Min bid calculation — round UP to 6 decimals so displayed value always passes validation
   const minNextBidEth = useMemo(() => {
     const current = Number(highestBid ?? "0");
     if (!Number.isFinite(current) || current <= 0) return reservePriceEth;
-    return Math.max(0, current * 1.01);
+    const raw = current * 1.01;
+    // Ceil to 6 decimal places so displayed min is always >= actual min
+    return Math.ceil(raw * 1e6) / 1e6;
   }, [highestBid, reservePriceEth]);
 
-  const [bidAmount, setBidAmount] = useState(minNextBidEth.toFixed(4));
+  // Format with enough decimals to show the true minimum
+  const minBidDisplay = useMemo(() => {
+    const s = minNextBidEth.toFixed(6);
+    // Trim trailing zeros but keep at least 4 decimals
+    return s.replace(/0+$/, "").replace(/\.$/, "") || s.slice(0, s.indexOf(".") + 5);
+  }, [minNextBidEth]);
+
+  const [bidAmount, setBidAmount] = useState(minBidDisplay);
 
   // Update bid amount when minimum changes — only if current value is below new minimum
   useEffect(() => {
     setBidAmount((prev) => {
       const parsed = parseFloat(prev);
-      return isNaN(parsed) || parsed < minNextBidEth ? minNextBidEth.toFixed(4) : prev;
+      return isNaN(parsed) || parsed < minNextBidEth ? minBidDisplay : prev;
     });
-  }, [minNextBidEth]);
+  }, [minNextBidEth, minBidDisplay]);
 
   // Validation
   const bidAmountNum = parseFloat(bidAmount);
@@ -236,7 +245,7 @@ export function AuctionBidForm({
             min={minNextBidEth}
             value={bidAmount}
             onChange={(e) => setBidAmount(e.target.value)}
-            placeholder={minNextBidEth.toFixed(4)}
+            placeholder={minBidDisplay}
             disabled={bidTx.isActive}
             className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
@@ -256,7 +265,7 @@ export function AuctionBidForm({
       {/* Inline status row: balance + insufficient warning + comment toggle */}
       <div className="flex items-center justify-between text-xs">
         <div className="text-muted-foreground flex items-center gap-2">
-          <span>Min: {minNextBidEth.toFixed(4)} ETH</span>
+          <span>Min: {minBidDisplay} ETH</span>
           {isConnected && insufficientBalance ? (
             <span className="text-destructive">
               · Insufficient{balanceEth !== undefined ? ` (${balanceEth.toFixed(4)})` : ""}
