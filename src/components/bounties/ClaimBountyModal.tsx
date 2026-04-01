@@ -35,10 +35,7 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
     e.preventDefault();
     if (!name.trim() || !description.trim()) return;
     try {
-      const finalDescription = mediaUrl.trim()
-        ? `${description.trim()}\n\nMedia: ${mediaUrl.trim()}`
-        : description.trim();
-      await submit(bounty.onChainId, name.trim(), finalDescription);
+      await submit(bounty.onChainId, name.trim(), description.trim(), mediaUrl.trim());
     } catch {
       // error captured in hook
     }

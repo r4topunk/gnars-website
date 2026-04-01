@@ -15,6 +15,11 @@ export const POIDH_ABI = [
         "internalType": "string",
         "name": "description",
         "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "imageUri",
+        "type": "string"
       }
     ],
     "name": "createClaim",
@@ -33,11 +38,6 @@ export const POIDH_ABI = [
         "internalType": "string",
         "name": "description",
         "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "claimer",
-        "type": "address"
       }
     ],
     "name": "createSoloBounty",

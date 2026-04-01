@@ -37,13 +37,13 @@ export function usePoidhCreateClaim(bountyChainId: number) {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const submit = useCallback(
-    async (onChainBountyId: number, name: string, description: string) => {
+    async (onChainBountyId: number, name: string, description: string, imageUri: string = '') => {
       await ensureChain();
       await writeContractAsync({
         address: contract!,
         abi: POIDH_ABI,
         functionName: "createClaim",
-        args: [BigInt(onChainBountyId), name, description],
+        args: [BigInt(onChainBountyId), name, description, imageUri],
         chainId: bountyChainId,
       });
     },
@@ -86,13 +86,13 @@ export function usePoidhCreateSoloBounty(bountyChainId: number) {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const create = useCallback(
-    async (name: string, description: string, claimer: `0x${string}`, rewardEth: string) => {
+    async (name: string, description: string, rewardEth: string) => {
       await ensureChain();
       await writeContractAsync({
         address: contract!,
         abi: POIDH_ABI,
         functionName: "createSoloBounty",
-        args: [name, description, claimer],
+        args: [name, description],
         value: parseEther(rewardEth),
         chainId: bountyChainId,
       });

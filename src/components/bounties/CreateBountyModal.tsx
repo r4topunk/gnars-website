@@ -47,8 +47,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
       if (type === "open") {
         await openBounty.create(name.trim(), description.trim(), reward);
       } else {
-        if (!claimer.startsWith("0x") || claimer.length !== 42) return;
-        await soloBounty.create(name.trim(), description.trim(), claimer as `0x${string}`, reward);
+        await soloBounty.create(name.trim(), description.trim(), reward);
       }
     } catch {
       // error captured in hook
@@ -146,7 +145,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                   disabled={isPending}
                 >
                   <option value="open">Open (anyone)</option>
-                  <option value="solo">Solo (specific address)</option>
+                  <option value="solo">Solo (only you can claim)</option>
                 </select>
               </div>
             </div>
@@ -193,18 +192,9 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
             </div>
 
             {type === "solo" && (
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">Claimer address</label>
-                <input
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground font-mono focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-                  placeholder="0x..."
-                  value={claimer}
-                  onChange={(e) => setClaimer(e.target.value)}
-                  pattern="^0x[0-9a-fA-F]{40}$"
-                  disabled={isPending}
-                  required
-                />
-              </div>
+              <p className="text-xs text-muted-foreground">
+                Solo bounties can only be claimed by you (the creator).
+              </p>
             )}
 
             {error && (
