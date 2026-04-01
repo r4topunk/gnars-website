@@ -12,9 +12,14 @@ export const CHAIN_NAMES = {
  * POIDH V3 contract addresses.
  * Verify at: basescan.org / arbiscan.io before using in production.
  */
+/**
+ * POIDH V3 contract addresses (confirmed by POIDH creator).
+ * Base: https://basescan.org/address/0x5555fa783936c260f77385b4e153b9725fef1719
+ * NOTE: 0xb502... is V2 (compromised) — do NOT use.
+ */
 export const POIDH_CONTRACTS: Record<number, `0x${string}`> = {
-  8453:  '0xb502c5856f7244dccdd0264a541cc25675353d39', // Base mainnet
-  42161: '0x5555Fa783936C260f77385b4E153B9725feF1719', // Arbitrum (PoidhV3)
+  8453:  '0x5555fa783936c260f77385b4e153b9725fef1719', // Base mainnet V3 ✅
+  42161: '0x5555Fa783936C260f77385b4E153B9725feF1719', // Arbitrum V3 (verify before use)
 };
 
 export function getExplorerUrl(chainId: number, address: string): string {

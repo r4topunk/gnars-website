@@ -32,7 +32,6 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [reward, setReward] = useState("");
-  const [claimer, setClaimer] = useState("");
   const { isConnected } = useAccount();
 
   const openBounty = usePoidhCreateOpenBounty(chainId);
@@ -59,7 +58,6 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
       setName("");
       setDescription("");
       setReward("");
-      setClaimer("");
       openBounty.reset();
       soloBounty.reset();
     }
@@ -144,8 +142,8 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                   onChange={(e) => setType(e.target.value as "open" | "solo")}
                   disabled={isPending}
                 >
-                  <option value="open">Open (anyone)</option>
-                  <option value="solo">Solo (only you can claim)</option>
+                  <option value="open">Open (anyone can add funds)</option>
+                  <option value="solo">Solo (self-funded)</option>
                 </select>
               </div>
             </div>
@@ -193,7 +191,12 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
 
             {type === "solo" && (
               <p className="text-xs text-muted-foreground">
-                Solo bounties can only be claimed by you (the creator).
+                Solo bounties are self-funded — only you contribute to the prize pool.
+              </p>
+            )}
+            {type === "open" && (
+              <p className="text-xs text-muted-foreground">
+                Open bounties let anyone add funds to grow the prize pool.
               </p>
             )}
 
@@ -217,13 +220,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={
-                  isPending ||
-                  !name.trim() ||
-                  !description.trim() ||
-                  !reward ||
-                  (type === "solo" && (!claimer.startsWith("0x") || claimer.length !== 42))
-                }
+                disabled={isPending || !name.trim() || !description.trim() || !reward}
               >
                 {isPending ? (
                   <>
