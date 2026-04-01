@@ -40,6 +40,26 @@ import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
 const VIDEO_EXTENSIONS = /\.(mov|mp4|webm|ogg|m4v)(\?.*)?$/i;
 const IPFS_GATEWAYS = ['ipfs.skatehive.app', 'ipfs.io', 'cloudflare-ipfs.com', 'gateway.pinata.cloud', 'dweb.link'];
 
+const ALLOWED_IFRAME_HOSTS = ['youtube.com', 'www.youtube.com', 'youtu.be', 'vimeo.com', 'player.vimeo.com', '3speak.tv'];
+
+function isAllowedIframeSrc(src: string): boolean {
+  try {
+    const { hostname } = new URL(src);
+    return ALLOWED_IFRAME_HOSTS.some((host) => hostname === host || hostname.endsWith('.' + host));
+  } catch {
+    return false;
+  }
+}
+
+const SANITIZE_SCHEMA = {
+  ...defaultSchema,
+  tagNames: [...(defaultSchema.tagNames ?? []), 'iframe'],
+  attributes: {
+    ...defaultSchema.attributes,
+    iframe: ['src', 'allowFullScreen', 'width', 'height', 'frameBorder'],
+  },
+};
+
 /** URL has a known video extension — safe to embed directly in <video> */
 function isEmbeddableVideo(url: string | undefined): boolean {
   if (!url) return false;
@@ -239,6 +259,7 @@ export default function BountyDetailPage() {
             <CardContent>
               <div className="text-muted-foreground leading-relaxed prose prose-invert prose-sm max-w-none">
                 <ReactMarkdown
+                  rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA]]}
                   components={{
                     img: ({ src, alt }) => {
                       const url = typeof src === 'string' ? src : '';
@@ -323,7 +344,7 @@ export default function BountyDetailPage() {
                     )}
                     <div className="text-xs text-muted-foreground prose prose-invert prose-xs max-w-none">
                       <ReactMarkdown
-                        rehypePlugins={[rehypeRaw, [rehypeSanitize, { ...defaultSchema, tagNames: [...(defaultSchema.tagNames || []), 'iframe'], attributes: { ...defaultSchema.attributes, iframe: ['src', 'allowFullScreen', 'width', 'height', 'frameBorder'] } }]]}
+                        rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA]]}
                         components={{
                           img: ({ src, alt }) => {
                             const url = typeof src === 'string' ? src : '';
@@ -368,7 +389,7 @@ export default function BountyDetailPage() {
                           },
                           iframe: ({ src }) => {
                             const url = typeof src === 'string' ? src : '';
-                            if (!url) return null;
+                            if (!url || !isAllowedIframeSrc(url)) return null;
                             return (
                               <div className="flex justify-center my-2">
                                 <MediaEmbed url={url} />
