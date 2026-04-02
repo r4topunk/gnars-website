@@ -205,3 +205,12 @@
     transform: rotateY(180deg);
   }
 }
+
+/* POIDH Claims: Responsive iframe videos */
+.prose iframe {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 0.375rem;
+  margin: 0.75rem 0;
+}

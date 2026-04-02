@@ -2,7 +2,7 @@
 
 import "@/lib/storage-shim";
 import { cookieStorage, createConfig, createStorage, fallback, http } from "wagmi";
-import { base } from "wagmi/chains";
+import { arbitrum, base } from "wagmi/chains";
 import { coinbaseWallet, metaMask, walletConnect } from "wagmi/connectors";
 import { farcasterWallet } from "@/lib/farcaster-connector";
 
@@ -23,7 +23,7 @@ const BASE_RPC_URLS = [
   "https://mainnet.base.org",
 ];
 
-const chains = [base] as const;
+const chains = [base, arbitrum] as const;
 
 /**
  * Create transport configuration with RPC fallback
@@ -40,11 +40,15 @@ function createTransports() {
         }),
       ),
       {
-        rank: false, // Disable ranking to use simple round-robin on failure
-        retryCount: BASE_RPC_URLS.length, // Try all endpoints
+        rank: false,
+        retryCount: BASE_RPC_URLS.length,
         retryDelay: 100,
       },
     ),
+    [arbitrum.id]: http('https://arb1.arbitrum.io/rpc', {
+      timeout: 8_000,
+      retryCount: 2,
+    }),
   };
 }
 
