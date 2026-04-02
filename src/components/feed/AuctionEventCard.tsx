@@ -6,6 +6,7 @@
 
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Palette, DollarSign, Trophy, Clock, Radio } from "lucide-react";
@@ -16,6 +17,7 @@ import { TokenImage } from "@/components/ui/token-image";
 import { cn } from "@/lib/utils";
 import { formatETH } from "@/lib/utils";
 import type { FeedEvent } from "@/lib/types/feed-events";
+import { useBidComments } from "@/hooks/use-bid-comments";
 
 export interface AuctionEventCardProps {
   event: Extract<FeedEvent, { category: "auction" }>;
@@ -136,6 +138,11 @@ function AuctionBidContent({ event, compact }: {
     ? ((parseFloat(event.amount) - parseFloat(event.previousBid)) / parseFloat(event.previousBid) * 100).toFixed(1)
     : null;
 
+  // Decode on-chain comment from TX calldata
+  const txHashes = useMemo(() => [event.transactionHash], [event.transactionHash]);
+  const { comments } = useBidComments(txHashes);
+  const comment = comments.get(event.transactionHash);
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 flex-wrap">
@@ -156,6 +163,11 @@ function AuctionBidContent({ event, compact }: {
           <span className="text-xs text-muted-foreground">(+{increase}%)</span>
         )}
       </div>
+      {comment && (
+        <p className="text-xs text-muted-foreground italic pl-1">
+          &ldquo;{comment}&rdquo;
+        </p>
+      )}
       {event.extended && !compact && (
         <Badge variant="secondary" className="text-xs">
           Auction Extended
