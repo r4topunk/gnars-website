@@ -13,14 +13,127 @@ The GNARS creator coin is currently paired with Zora. Problems:
 
 **Decision:** Relaunch the GNARS token on Clanker with a new ERC20 (100B supply), migrate holders, and rebuild content coin infrastructure on the Clanker ecosystem.
 
+## DAO Internal Decisions Required
+
+Before any technical work or external coordination, **the DAO needs to vote on the migration itself**. Gnars is a Builder DAO — proposals go through on-chain voting (~2 day delay, ~5 day voting period, + timelock). Nothing happens without governance approval.
+
+### Decision 1: Approve Token Migration (PROPOSAL REQUIRED)
+
+**What:** DAO vote to officially approve migrating from Zora-paired GNARS to Clanker-based GNARS.
+
+**Must define:**
+- Rationale for migration (Zora underperformance, ecosystem risks)
+- Commitment to Clanker ecosystem
+- Authorization for the team to execute the migration plan
+
+**Why first:** Without this, no one has authority to deploy a new token or move treasury funds. This is the legitimacy layer — everything else is unauthorized until the DAO votes FOR.
+
+### Decision 2: New Token Economics
+
+**What:** Define the new GNARS token parameters.
+
+**Must define:**
+- Total supply (100B discussed, but needs DAO approval)
+- Distribution split:
+  - Migration allocation (what % for existing holders?)
+  - Airdrop allocation (what % for contribution-weighted airdrop?)
+  - Treasury/vault reserve (up to 90% can be vaulted per Clanker)
+  - Team/operations allocation (if any)
+- Pairing asset: ETH vs GNARS vs other (Jack suggested ETH for "cold hard cash")
+- Fee structure on the Clanker pool
+
+**Trade-off:** More supply in vault = more runway for future growth, but less initial distribution = less holder engagement. Need community input.
+
+### Decision 3: Migration Method & Parameters
+
+**What:** Confirm migration tool and parameters.
+
+**Must define:**
+- Migration method: Compre tool (preferred) vs snapshot
+- Migration window duration (1 week discussed, but needs agreement)
+- Exchange ratio (old GNARS → new GNARS)
+- Deadline policy: what happens to unclaimed tokens after window closes?
+- Whether to support migration in waves or all-at-once
+
+### Decision 4: Airdrop Criteria
+
+**What:** Define who qualifies for the contribution-weighted airdrop beyond existing holders.
+
+**Must define:**
+- Criteria categories: NFT holders, content creators, athletes, builders, community contributors
+- Weighting formula (e.g., NFTs held x time + proposals voted + content created)
+- Data sources for snapshot (on-chain activity, Skatehive contributions, etc.)
+- Minimum threshold to qualify
+- Whether to include holders of related tokens (sk hacker, other creator coins)
+
+**From the call:** Jack suggested "weighting contributions to give people skin in the game" and Vlad mentioned potentially aggregating liquidity from other community tokens like sk hacker.
+
+### Decision 5: Existing Zora Content Coins
+
+**What:** What happens to content coins currently paired with GNARS on Zora?
+
+**Options:**
+1. Let them stay on Zora (they still work independently)
+2. Build aggregation tool: trade Zora creator coins → new GNARS (Vlad's idea from call)
+3. Snapshot holders and airdrop equivalent on Clanker
+4. Deprecate and start fresh on Clanker
+
+**This is critical** — creators have real value locked in Zora content coins. The decision affects community trust.
+
+### Decision 6: Treasury Operations
+
+**What:** What treasury actions are needed to support the migration?
+
+**Must define:**
+- How much ETH/USDC from treasury for initial liquidity on Clanker?
+- Does the treasury migrate its Zora coin holdings?
+- Who has execution authority? (Currently proposals go through Governor → Treasury timelock)
+- Do we need a multisig for faster operational decisions during migration?
+
+### Decision 7: Communication Plan
+
+**What:** How and when to communicate with holders.
+
+**Must define:**
+- Timeline: announce → explain → execute → follow-up
+- Channels: Farcaster, Telegram, website banner, GM Farcaster (Jack offered)
+- Who drafts messaging (Jack offered help with comms)
+- FAQ for holders (what to do, what not to do, deadlines)
+
+### Governance Path
+
+```
+1. Draft proposal (informal discussion — Telegram, Farcaster)
+   ↓
+2. Post proposal on-chain (Decisions 1-6 bundled or split)
+   ↓
+3. Voting delay (~2 days)
+   ↓
+4. Voting period (~5 days)
+   ↓
+5. If SUCCEEDED → Queue
+   ↓
+6. Timelock delay
+   ↓
+7. Execute — team authorized to proceed
+```
+
+**Minimum timeline from proposal to execution: ~2 weeks.**
+
+**Recommendation:** Bundle Decisions 1-3 into a single "Migration Authorization Proposal" that gives the team a mandate. Decisions 4-7 can be refined in parallel and executed under that mandate.
+
+---
+
 ## Migration Strategy (3 Phases)
 
 ### Phase 1: Pre-Migration (current)
 
-**Goal:** Research, plan, communicate.
+**Goal:** Get DAO approval, research, plan, communicate.
 
 | Task | Owner | Status | Blocker |
 |------|-------|--------|---------|
+| **DAO governance decisions (see above)** | Vlad + team | **TODO — CRITICAL** | Must pass before Phase 2 |
+| Draft migration authorization proposal | Vlad + r4to | TODO | Needs token economics defined |
 | Receive Clanker SDK method for custom pairing | Jack Dishman | WAITING | - |
 | Intro with Compreny/Kabrini (migration tool) | Jack Dishman | WAITING | - |
 | Research Clanker SDK and token pairing mechanics | r4to | TODO | SDK docs needed |
@@ -150,9 +263,19 @@ The GNARS creator coin is currently paired with Zora. Problems:
 
 ## Next Steps (Immediate)
 
-1. **r4to:** Wait for Clanker SDK docs from Jack → research token pairing mechanics
-2. **r4to:** Complete detailed per-file audit of what changes (this doc is the start)
-3. **Vlad:** Summarize call intentions for Telegram group with Compre
-4. **Jack:** Create Telegram group, intro Compre, send SDK method
-5. **Team:** Define contribution-weighted airdrop criteria
-6. **Team:** Create Trello cards for Phase 1 tasks
+### Step 0: Internal alignment (BEFORE anything external)
+1. **Vlad + r4to:** Align on the 7 DAO decisions above — draft answers
+2. **Vlad:** Discuss token economics with core team (supply, distribution, pairing asset)
+3. **Vlad + r4to:** Draft migration authorization proposal for DAO vote
+4. **Team:** Post proposal on-chain → voting → execution (~2 weeks minimum)
+
+### Step 1: Parallel research (while governance runs)
+5. **r4to:** Wait for Clanker SDK docs from Jack → research token pairing mechanics
+6. **r4to:** Complete detailed per-file audit of what changes (this doc is the start)
+7. **Vlad:** Summarize call intentions for Telegram group with Compre
+8. **Jack:** Create Telegram group, intro Compre, send SDK method
+
+### Step 2: Post-approval execution
+9. **Team:** Define contribution-weighted airdrop criteria
+10. **Team:** Create Trello cards for Phase 2 tasks
+11. **r4to:** Begin website migration work (only after DAO vote passes)
