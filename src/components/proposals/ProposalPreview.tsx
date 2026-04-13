@@ -3,9 +3,13 @@
 import { useEffect, useState, useTransition } from "react";
 import { AlertTriangle, CheckCircle, ExternalLink, Info, Loader2 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { base } from "wagmi/chains";
-import { useAccount, useSwitchChain, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { useAccount } from "wagmi";
+import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
+import { base } from "thirdweb/chains";
+import { useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { toast } from "sonner";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { ensureOnChain } from "@/lib/thirdweb-tx";
 import Image from "next/image";
 import { TransactionsSummaryList } from "@/components/proposals/preview/TransactionsSummaryList";
 import { ProposalDebugPanel } from "@/components/proposals/ProposalDebugPanel";
@@ -23,6 +27,7 @@ const governorAbi = [
   {
     name: "propose",
     type: "function",
+    stateMutability: "nonpayable",
     inputs: [
       { name: "targets", type: "address[]" },
       { name: "values", type: "uint256[]" },
@@ -44,17 +49,17 @@ export function ProposalPreview() {
     values: bigint[];
     calldatas: `0x${string}`[];
   } | undefined>();
-  const { chain, isConnected, address } = useAccount();
-  const { switchChainAsync } = useSwitchChain();
+  const { isConnected, address } = useAccount();
+  const wallet = useActiveWallet();
+  const sendTx = useSendTransaction();
+  const [hash, setHash] = useState<`0x${string}` | undefined>(undefined);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Watch form values for reactive preview
   const watchedData = useWatch<ProposalFormValues>();
 
-  const { writeContract, data: hash, isPending: isWalletPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-    chainId: base.id,
-  });
+  const isWalletPending = sendTx.isPending;
 
   // Get current form data
   const data = (watchedData as ProposalFormValues) || getValues();
@@ -84,35 +89,55 @@ export function ProposalPreview() {
   const handleFormSubmit = async (formData: ProposalFormValues) => {
     console.log("handleFormSubmit called with data:", formData);
     setValidationError(null);
+    setHash(undefined);
+    setIsConfirming(false);
+    setIsSuccess(false);
+
     startTransition(async () => {
       console.log("Inside startTransition");
       try {
-        // Check if on correct network, switch if needed
-        if (chain?.id !== base.id) {
-          console.log("Switching to Base network...");
-          toast.info("Switching to Base network...");
-          await switchChainAsync({ chainId: base.id });
+        const client = getThirdwebClient();
+        if (!client) {
+          throw new Error("Thirdweb client not configured");
         }
+
+        console.log("Ensuring Base network...");
+        await ensureOnChain(wallet, base);
 
         console.log("Calling createProposalAction...");
         const preparedTx = await createProposalAction(formData);
         console.log("Prepared transaction:", preparedTx);
 
-        console.log("Calling writeContract...");
-        await writeContract({
+        const contract = getContract({
+          client,
+          chain: base,
           address: DAO_ADDRESSES.governor as `0x${string}`,
           abi: governorAbi,
-          functionName: "propose",
-          args: [
+        });
+
+        const tx = prepareContractCall({
+          contract,
+          method: "propose",
+          params: [
             preparedTx.targets,
             preparedTx.values,
             preparedTx.calldatas,
             preparedTx.description,
           ],
-          chainId: base.id,
         });
+
+        console.log("Sending proposal tx...");
+        const result = await sendTx.mutateAsync(tx);
+        const txHash = result.transactionHash as `0x${string}`;
+        setHash(txHash);
+
+        setIsConfirming(true);
+        await waitForReceipt({ client, chain: base, transactionHash: txHash });
+        setIsConfirming(false);
+        setIsSuccess(true);
       } catch (error) {
         console.error("Error submitting proposal:", error);
+        setIsConfirming(false);
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
         setValidationError(errorMessage);
         toast.error("Failed to submit proposal", {

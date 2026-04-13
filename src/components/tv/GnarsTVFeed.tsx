@@ -5,17 +5,17 @@ import { useSearchParams } from "next/navigation";
 import { tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
 import { toast } from "sonner";
-import { createPublicClient, http, parseEther } from "viem";
-import { base } from "viem/chains";
-import {
-  useAccount,
-  usePublicClient,
-  useSwitchChain,
-  useWalletClient,
-  useWriteContract,
-} from "wagmi";
+import { createPublicClient, http, parseEther, type PublicClient, type WalletClient } from "viem";
+import { base as viemBase } from "viem/chains";
+import { useAccount } from "wagmi";
+import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
+import { base } from "thirdweb/chains";
+import { viemAdapter } from "thirdweb/adapters/viem";
+import { useActiveAccount, useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { useMiniApp } from "@/components/miniapp/MiniAppProvider";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
 import { ZORA_PROTOCOL_REWARD, zoraNftMintAbi } from "@/utils/abis/zoraNftMintAbi";
 import { TVControls } from "./TVControls";
 import { TVHeader } from "./TVHeader";
@@ -88,12 +88,11 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     }
   }, [searchParams]);
 
-  const { address, isConnected, chain } = useAccount();
-  const { data: walletClient } = useWalletClient();
-  const publicClient = usePublicClient();
+  const { address, isConnected } = useAccount();
+  const thirdwebAccount = useActiveAccount();
+  const wallet = useActiveWallet();
+  const sendTx = useSendTransaction();
   const { isInMiniApp, share: miniAppShare } = useMiniApp();
-  const { switchChainAsync } = useSwitchChain();
-  const { writeContractAsync } = useWriteContract();
 
   // Fetch TV feed data
   const { items, loading, loadingMore, error, hasMoreContent, loadMore } = useTVFeed({
@@ -397,7 +396,8 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         return;
       }
 
-      if (!walletClient || !publicClient) {
+      const client = getThirdwebClient();
+      if (!client || !wallet || !thirdwebAccount) {
         toast.error("Wallet not ready");
         return;
       }
@@ -406,6 +406,17 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
       const buyToast = toast.loading(`Buying ${coinTitle}...`);
 
       try {
+        // Bridge the bridged thirdweb wallet into viem shape for the Zora SDK.
+        const walletClient = viemAdapter.wallet.toViem({
+          wallet,
+          chain: base,
+          client,
+        }) as unknown as WalletClient;
+        const publicClient = viemAdapter.publicClient.toViem({
+          chain: base,
+          client,
+        }) as unknown as PublicClient;
+
         const tradeParameters: TradeParameters = {
           sell: { type: "eth" },
           buy: { type: "erc20", address: coinAddress as `0x${string}` },
@@ -417,7 +428,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         await tradeCoin({
           tradeParameters,
           walletClient,
-          account: walletClient.account,
+          account: walletClient.account!,
           publicClient,
         });
 
@@ -500,7 +511,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         setIsBuying(false);
       }
     },
-    [isConnected, address, walletClient, publicClient, supportAmount],
+    [isConnected, address, wallet, thirdwebAccount, supportAmount],
   );
 
   // Resolve token address from execution transaction hash
@@ -521,8 +532,8 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     }
 
     try {
-      const client = createPublicClient({ chain: base, transport: http() });
-      const receipt = await client.getTransactionReceipt({
+      const viemClient = createPublicClient({ chain: viemBase, transport: http() });
+      const receipt = await viemClient.getTransactionReceipt({
         hash: item.executionTransactionHash as `0x${string}`,
       });
 
@@ -548,17 +559,19 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         return;
       }
 
+      const client = getThirdwebClient();
+      if (!client) {
+        toast.error("Thirdweb client not configured");
+        return;
+      }
+
       const mintToast = toast.loading(`Preparing to mint ${item.title}...`);
       setIsBuying(true);
 
       try {
-        // Check if on correct network, switch if needed
-        if (chain?.id !== base.id) {
-          toast.loading("Switching to Base network...", { id: mintToast });
-          await switchChainAsync({ chainId: base.id });
-        }
+        toast.loading("Switching to Base network...", { id: mintToast });
+        await ensureOnChain(wallet, base);
 
-        // Resolve token address (may need to fetch from execution receipt)
         toast.loading("Resolving NFT contract...", { id: mintToast });
         const tokenAddress = await resolveTokenAddress(item);
 
@@ -570,57 +583,55 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
           return;
         }
 
-        // Calculate total price with protocol reward
         const priceEth = item.priceEth ? parseFloat(item.priceEth) : 0;
         const salePrice = priceEth * quantity;
         const protocolReward = ZORA_PROTOCOL_REWARD * quantity;
         const totalPrice = parseEther((salePrice + protocolReward).toFixed(18));
 
-        // Wait for wallet confirmation
         toast.loading("Confirm in your wallet...", {
           id: mintToast,
           description: `Minting ${quantity} NFT${quantity > 1 ? "s" : ""} for ${(salePrice + protocolReward).toFixed(5)} ETH`,
         });
 
-        // Execute mint transaction
-        const txHash = await writeContractAsync({
-          abi: zoraNftMintAbi,
+        const contract = getContract({
+          client,
+          chain: base,
           address: tokenAddress as `0x${string}`,
-          functionName: "mintWithRewards",
-          args: [
-            address, // recipient
-            BigInt(quantity), // quantity
-            "", // comment
-            MINT_REFERRAL, // mintReferral (treasury)
-          ],
-          value: totalPrice,
-          chainId: base.id,
+          abi: zoraNftMintAbi,
         });
+        const tx = prepareContractCall({
+          contract,
+          method: "mintWithRewards",
+          params: [address, BigInt(quantity), "", MINT_REFERRAL],
+          value: totalPrice,
+        });
+
+        const result = await sendTx.mutateAsync(tx);
+        const txHash = result.transactionHash as `0x${string}`;
+
+        toast.loading("Waiting for confirmation...", { id: mintToast });
+        await waitForReceipt({ client, chain: base, transactionHash: txHash });
 
         toast.success(`Successfully minted ${item.title}!`, {
           id: mintToast,
           description: `Transaction: ${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
         });
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        const isUserRejection =
-          errorMessage.includes("rejected") ||
-          errorMessage.includes("denied") ||
-          errorMessage.includes("User rejected");
+        const { category, message } = normalizeTxError(err);
 
-        if (isUserRejection) {
+        if (category === "user-rejected") {
           toast.error("Transaction cancelled", {
             id: mintToast,
             description: "You rejected the transaction in your wallet.",
           });
-        } else if (errorMessage.includes("insufficient funds")) {
+        } else if (message.includes("insufficient funds")) {
           toast.error("Insufficient funds", {
             id: mintToast,
             description: "You don't have enough ETH to complete this mint.",
           });
         } else if (
-          errorMessage.includes("Sale_Inactive") ||
-          errorMessage.includes("sale not active")
+          message.includes("Sale_Inactive") ||
+          message.includes("sale not active")
         ) {
           toast.error("Sale not active", {
             id: mintToast,
@@ -629,14 +640,14 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         } else {
           toast.error("Mint failed", {
             id: mintToast,
-            description: errorMessage.slice(0, 100),
+            description: message.slice(0, 100),
           });
         }
       } finally {
         setIsBuying(false);
       }
     },
-    [isConnected, address, chain, switchChainAsync, writeContractAsync, resolveTokenAddress],
+    [isConnected, address, wallet, sendTx, resolveTokenAddress],
   );
 
   return (
