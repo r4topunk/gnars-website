@@ -2,19 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Wallet } from "lucide-react";
-import { base } from "wagmi/chains";
-import {
-  useAccount,
-  useReadContract,
-  useSimulateContract,
-  useSwitchChain,
-  useWriteContract,
-} from "wagmi";
+import { useAccount, useReadContract, useSimulateContract } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
+import { getContract, prepareContractCall } from "thirdweb";
+import { base } from "thirdweb/chains";
+import { useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { ensureOnChain } from "@/lib/thirdweb-tx";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
 import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
@@ -30,14 +28,13 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
   useEffect(() => () => clearTimeout(resetTimerRef.current), []);
 
   const { isConnected, chain } = useAccount();
-  const { switchChainAsync } = useSwitchChain();
-  const { writeContractAsync } = useWriteContract();
+  const wallet = useActiveWallet();
+  const sendTx = useSendTransaction();
   const queryClient = useQueryClient();
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
   const isWrongNetwork = isConnected && chain?.id !== base.id;
 
-  // Check if auctions are paused
   const { data: isPaused } = useReadContract({
     address: DAO_ADDRESSES.auction as `0x${string}`,
     abi: auctionAbi,
@@ -46,7 +43,6 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     query: { staleTime: 30 * 1000 },
   });
 
-  // Simulation — only run when connected and on the right network
   const {
     data: settleData,
     error: settleError,
@@ -59,7 +55,6 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     query: { enabled: isConnected && !isWrongNetwork },
   });
 
-  // Scoped invalidation — only auction-related readContract queries
   const invalidateAuctionData = useCallback(() => {
     queryClient.invalidateQueries({
       predicate: (query) => {
@@ -93,24 +88,38 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
       setIsConnectModalOpen(true);
       return;
     }
-    if (isWrongNetwork) {
-      try {
-        await switchChainAsync({ chainId: base.id });
-      } catch {
-        return;
-      }
+
+    const client = getThirdwebClient();
+    if (!client) {
+      toast.error("Settlement failed", { description: "Thirdweb client not configured." });
+      return;
     }
+
     if (!settleData || settleError) return;
 
+    const methodName = isPaused ? "settleAuction" : "settleCurrentAndCreateNewAuction";
+
     await settleTx.execute(async () => {
-      return writeContractAsync({
-        ...settleData.request,
-        chainId: base.id,
+      await ensureOnChain(wallet, base);
+
+      const contract = getContract({
+        client,
+        chain: base,
+        address: DAO_ADDRESSES.auction as `0x${string}`,
+        abi: auctionAbi,
       });
+
+      const tx = prepareContractCall({
+        contract,
+        method: methodName,
+        params: [],
+      });
+
+      const result = await sendTx.mutateAsync(tx);
+      return result.transactionHash as `0x${string}`;
     });
   };
 
-  // Button content
   const getButtonContent = () => {
     if (settleTx.isActive) {
       return (
@@ -145,7 +154,6 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     return "Settle Auction";
   };
 
-  // Button is only disabled when actively transacting or simulation failed (while connected)
   const isDisabled =
     settleTx.isActive ||
     (isConnected && !isWrongNetwork && (isSimulating || !!settleError || !settleData));
@@ -171,10 +179,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
         )}
       </Tooltip>
 
-      <ConnectWalletModal
-        open={isConnectModalOpen}
-        onOpenChange={setIsConnectModalOpen}
-      />
+      <ConnectWalletModal open={isConnectModalOpen} onOpenChange={setIsConnectModalOpen} />
     </>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useWaitForTransactionReceipt } from "wagmi";
-import { CHAIN } from "@/lib/config";
+import { waitForReceipt } from "thirdweb";
+import { base } from "thirdweb/chains";
+import { getThirdwebClient } from "@/lib/thirdweb";
 
 export type TxPhase = "idle" | "wallet_confirm" | "submitted" | "confirmed";
 
@@ -24,6 +25,14 @@ interface UseAuctionTransactionReturn {
   reset: () => void;
 }
 
+/**
+ * State machine helper for auction bid/settle flows. The caller
+ * provides a txFn that resolves to a transaction hash; this hook
+ * drives the wallet_confirm -> submitted -> confirmed phases and
+ * fires the matching callbacks. Confirmation is done via
+ * thirdweb's imperative waitForReceipt so the whole flow is a
+ * single sequential async, no effect-driven transitions.
+ */
 export function useAuctionTransaction(
   options: UseAuctionTransactionOptions = {},
 ): UseAuctionTransactionReturn {
@@ -31,46 +40,41 @@ export function useAuctionTransaction(
   const [phase, setPhase] = useState<TxPhase>("idle");
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
 
-  // Stable refs for callbacks — called synchronously, no effect timing issues
   const onSubmittedRef = useRef(onSubmitted);
   const onConfirmedRef = useRef(onConfirmed);
   const onErrorRef = useRef(onError);
-  useEffect(() => { onSubmittedRef.current = onSubmitted; });
-  useEffect(() => { onConfirmedRef.current = onConfirmed; });
-  useEffect(() => { onErrorRef.current = onError; });
-
-  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash: txHash,
-    chainId: CHAIN.id,
+  useEffect(() => {
+    onSubmittedRef.current = onSubmitted;
+  });
+  useEffect(() => {
+    onConfirmedRef.current = onConfirmed;
+  });
+  useEffect(() => {
+    onErrorRef.current = onError;
   });
 
-  // Transition: submitted → confirmed
-  useEffect(() => {
-    if (isConfirmed && txHash && phase === "submitted") {
-      setPhase("confirmed");
-      onConfirmedRef.current?.(txHash);
-    }
-  }, [isConfirmed, txHash, phase]);
+  const execute = useCallback(async (txFn: () => Promise<`0x${string}`>) => {
+    try {
+      setPhase("wallet_confirm");
+      const hash = await txFn();
+      setTxHash(hash);
+      setPhase("submitted");
+      onSubmittedRef.current?.(hash);
 
-  const execute = useCallback(
-    async (txFn: () => Promise<`0x${string}`>) => {
-      try {
-        setPhase("wallet_confirm");
-        const hash = await txFn();
-        setTxHash(hash);
-        setPhase("submitted");
-        // Fire immediately — no useEffect delay
-        onSubmittedRef.current?.(hash);
-      } catch (err) {
-        const error =
-          err instanceof Error ? err : new Error("Transaction failed");
-        onErrorRef.current?.(error);
-        setPhase("idle");
-        setTxHash(undefined);
+      const client = getThirdwebClient();
+      if (client) {
+        await waitForReceipt({ client, chain: base, transactionHash: hash });
       }
-    },
-    [],
-  );
+
+      setPhase("confirmed");
+      onConfirmedRef.current?.(hash);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Transaction failed");
+      onErrorRef.current?.(error);
+      setPhase("idle");
+      setTxHash(undefined);
+    }
+  }, []);
 
   const reset = useCallback(() => {
     setPhase("idle");

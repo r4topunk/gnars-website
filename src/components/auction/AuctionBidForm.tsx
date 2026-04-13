@@ -2,21 +2,25 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, MessageSquare, Wallet } from "lucide-react";
-import { encodeFunctionData, concat, formatEther, parseEther, toHex } from "viem";
-import { base } from "wagmi/chains";
-import {
-  useAccount,
-  useBalance,
-  useSendTransaction,
-  useSwitchChain,
-  useWriteContract,
-} from "wagmi";
+import { concat, encodeFunctionData, formatEther, type Hex, parseEther, toHex } from "viem";
+import { base as wagmiBase } from "wagmi/chains";
+import { useAccount, useBalance } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
+import { getContract, prepareContractCall, prepareTransaction } from "thirdweb";
+import { base } from "thirdweb/chains";
+import { useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
-import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { ensureOnChain } from "@/lib/thirdweb-tx";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
 import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
@@ -39,10 +43,9 @@ export function AuctionBidForm({
   onBidConfirmed,
 }: AuctionBidFormProps) {
   const { address, isConnected, chain } = useAccount();
-  const { switchChainAsync } = useSwitchChain();
+  const wallet = useActiveWallet();
+  const sendTx = useSendTransaction();
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
-  const { writeContractAsync } = useWriteContract();
-  const { sendTransactionAsync } = useSendTransaction();
   const queryClient = useQueryClient();
 
   const [bidComment, setBidComment] = useState("");
@@ -51,34 +54,28 @@ export function AuctionBidForm({
 
   useEffect(() => () => clearTimeout(resetTimerRef.current), []);
 
-  // Balance check
   const { data: balanceData } = useBalance({
     address: address,
-    chainId: base.id,
+    chainId: wagmiBase.id,
     query: { enabled: isConnected },
   });
   const balanceEth = balanceData ? Number(formatEther(balanceData.value)) : undefined;
 
-  // Min bid calculation — use contract's minBidIncrement percentage
   const minNextBidEth = useMemo(() => {
     const current = Number(highestBid ?? "0");
     if (!Number.isFinite(current) || current <= 0) return reservePriceEth;
-    const multiplier = 1 + minBidIncrementPct / 100; // e.g., 10% → 1.10
+    const multiplier = 1 + minBidIncrementPct / 100;
     const raw = current * multiplier;
-    // Ceil to 6 decimal places so displayed min is always >= actual min
     return Math.ceil(raw * 1e6) / 1e6;
   }, [highestBid, reservePriceEth, minBidIncrementPct]);
 
-  // Format with enough decimals to show the true minimum
   const minBidDisplay = useMemo(() => {
     const s = minNextBidEth.toFixed(6);
-    // Trim trailing zeros but keep at least 4 decimals
     return s.replace(/0+$/, "").replace(/\.$/, "") || s.slice(0, s.indexOf(".") + 5);
   }, [minNextBidEth]);
 
   const [bidAmount, setBidAmount] = useState(minBidDisplay);
 
-  // Update bid amount when minimum changes — only if current value is below new minimum
   useEffect(() => {
     setBidAmount((prev) => {
       const parsed = parseFloat(prev);
@@ -86,11 +83,10 @@ export function AuctionBidForm({
     });
   }, [minNextBidEth, minBidDisplay]);
 
-  // Validation
   const bidAmountNum = parseFloat(bidAmount);
   const isValidBid = !isNaN(bidAmountNum) && bidAmountNum >= minNextBidEth;
   const insufficientBalance = isConnected && balanceEth !== undefined && bidAmountNum > balanceEth;
-  const isWrongNetwork = isConnected && chain?.id !== base.id;
+  const isWrongNetwork = isConnected && chain?.id !== wagmiBase.id;
 
   const bidAmountWei = useMemo(() => {
     try {
@@ -100,7 +96,6 @@ export function AuctionBidForm({
     }
   }, [bidAmount, isValidBid]);
 
-  // Scoped invalidation
   const invalidateAuctionData = useCallback(() => {
     queryClient.invalidateQueries({
       predicate: (query) => {
@@ -127,7 +122,6 @@ export function AuctionBidForm({
     onConfirmed: () => {
       toast.success("Bid confirmed!", { description: "Auction data updated." });
       invalidateAuctionData();
-      // Force-set bid amount to new minimum based on user's own bid
       if (pendingBidRef.current) {
         const multiplier = 1 + minBidIncrementPct / 100;
         const raw = parseFloat(pendingBidRef.current.amount) * multiplier;
@@ -158,14 +152,17 @@ export function AuctionBidForm({
     }
     if (!bidAmountWei || !tokenId || !isValidBid || insufficientBalance) return;
 
+    const client = getThirdwebClient();
+    if (!client) {
+      toast.error("Bid failed", { description: "Thirdweb client not configured." });
+      return;
+    }
+
     const trimmedComment = bidComment.trim();
     pendingBidRef.current = { comment: trimmedComment, amount: bidAmount };
 
     await bidTx.execute(async () => {
-      if (chain?.id !== base.id) {
-        toast.info("Switching to Base network...");
-        await switchChainAsync({ chainId: base.id });
-      }
+      await ensureOnChain(wallet, base);
 
       if (trimmedComment.length > 0) {
         const baseCalldata = encodeFunctionData({
@@ -176,22 +173,34 @@ export function AuctionBidForm({
         const commentBytes = toHex(new TextEncoder().encode(trimmedComment));
         const fullData = concat([baseCalldata, commentBytes]);
 
-        return sendTransactionAsync({
+        const tx = prepareTransaction({
+          chain: base,
           to: DAO_ADDRESSES.auction as `0x${string}`,
-          data: fullData,
+          data: fullData as Hex,
           value: bidAmountWei,
-          chainId: base.id,
+          client,
         });
-      } else {
-        return writeContractAsync({
-          address: DAO_ADDRESSES.auction as `0x${string}`,
-          abi: auctionAbi,
-          functionName: "createBid",
-          args: [tokenId],
-          value: bidAmountWei,
-          chainId: base.id,
-        });
+
+        const result = await sendTx.mutateAsync(tx);
+        return result.transactionHash as `0x${string}`;
       }
+
+      const contract = getContract({
+        client,
+        chain: base,
+        address: DAO_ADDRESSES.auction as `0x${string}`,
+        abi: auctionAbi,
+      });
+
+      const tx = prepareContractCall({
+        contract,
+        method: "createBid",
+        params: [tokenId],
+        value: bidAmountWei,
+      });
+
+      const result = await sendTx.mutateAsync(tx);
+      return result.transactionHash as `0x${string}`;
     });
   };
 
@@ -225,7 +234,7 @@ export function AuctionBidForm({
     }
     if (isWrongNetwork) {
       try {
-        await switchChainAsync({ chainId: base.id });
+        await ensureOnChain(wallet, base);
         handleBid();
       } catch {
         // User rejected
@@ -236,12 +245,10 @@ export function AuctionBidForm({
   };
 
   const isButtonDisabled =
-    bidTx.isActive ||
-    (isConnected && !isWrongNetwork && (!isValidBid || insufficientBalance));
+    bidTx.isActive || (isConnected && !isWrongNetwork && (!isValidBid || insufficientBalance));
 
   return (
     <>
-      {/* Bid input + button */}
       <div className="flex gap-2">
         <InputGroup className="flex-[3]">
           <InputGroupInput
@@ -267,7 +274,6 @@ export function AuctionBidForm({
         </Button>
       </div>
 
-      {/* Inline status row: balance + insufficient warning + comment toggle */}
       <div className="flex items-center justify-between text-xs">
         <div className="text-muted-foreground flex items-center gap-2">
           <span>Min: {minBidDisplay} ETH</span>
@@ -298,7 +304,6 @@ export function AuctionBidForm({
         </Collapsible>
       </div>
 
-      {/* Comment textarea — outside the row so it expands below */}
       <Collapsible open={isCommentOpen} onOpenChange={setIsCommentOpen}>
         <CollapsibleContent>
           <div className="space-y-1">
@@ -311,17 +316,12 @@ export function AuctionBidForm({
               placeholder="On-chain comment (recorded permanently)…"
               className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             />
-            <div className="text-right text-xs text-muted-foreground">
-              {bidComment.length}/140
-            </div>
+            <div className="text-right text-xs text-muted-foreground">{bidComment.length}/140</div>
           </div>
         </CollapsibleContent>
       </Collapsible>
 
-      <ConnectWalletModal
-        open={isConnectModalOpen}
-        onOpenChange={setIsConnectModalOpen}
-      />
+      <ConnectWalletModal open={isConnectModalOpen} onOpenChange={setIsConnectModalOpen} />
     </>
   );
 }
