@@ -10,28 +10,25 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { Address, Hex, decodeEventLog, encodeFunctionData, keccak256, toBytes } from "viem";
+import { useState } from "react";
+import { type Address, decodeEventLog, encodeFunctionData, type Hex, keccak256, toBytes } from "viem";
+import { useAccount } from "wagmi";
+import { prepareTransaction, waitForReceipt } from "thirdweb";
+import { base } from "thirdweb/chains";
+import { useSendTransaction } from "thirdweb/react";
 import {
-  useAccount,
-  useSendTransaction,
-  useWaitForTransactionReceipt,
-} from "wagmi";
-import {
-  zoraFactoryAbi,
-  ZORA_FACTORY_ADDRESS,
-} from "@/lib/zora/factoryAbi";
-import { PLATFORM_REFERRER, GNARS_CREATOR_COIN } from "@/lib/config";
-import { encodeContentPoolConfigForCreator } from "@/lib/zora/poolConfig";
-import {
+  createCoinCall,
   createMetadataBuilder,
   createZoraUploaderForCreator,
+  getProfile,
   setApiKey,
-  createCoinCall,
   type CreateCoinArgs,
 } from "@zoralabs/coins-sdk";
+import { GNARS_CREATOR_COIN, PLATFORM_REFERRER } from "@/lib/config";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { zoraFactoryAbi, ZORA_FACTORY_ADDRESS } from "@/lib/zora/factoryAbi";
+import { encodeContentPoolConfigForCreator } from "@/lib/zora/poolConfig";
 import { generateVideoThumbnail } from "@/lib/video-thumbnail";
-import { getProfile } from "@zoralabs/coins-sdk";
 
 // Type definitions for getProfile response
 interface ProfileResponse {
@@ -64,10 +61,8 @@ interface ProfileResponse {
 }
 
 /**
- * Check if a wallet address has a creator coin deployed
- * Uses the Zora SDK's getProfile function to check for creator coin
- * @param address - Wallet address to check
- * @returns Promise with creator coin info or null
+ * Check if a wallet address has a creator coin deployed.
+ * Uses the Zora SDK's getProfile function to check for creator coin.
  */
 export async function checkHasCreatorCoin(address: Address): Promise<{
   hasCreatorCoin: boolean;
@@ -79,33 +74,31 @@ export async function checkHasCreatorCoin(address: Address): Promise<{
   }
 
   try {
-    // Use SDK's getProfile to check if user has a creator coin
     const response = (await getProfile({
       identifier: address,
     })) as ProfileResponse;
-    
+
     const profile = response?.data?.profile;
-    
+
     if (profile?.creatorCoin?.address) {
-      const creatorCoinImage = profile.creatorCoin.mediaContent?.previewImage?.medium 
-        || profile.creatorCoin.mediaContent?.previewImage?.small
-        || profile.avatar?.medium
-        || profile.avatar?.small;
-      
+      const creatorCoinImage =
+        profile.creatorCoin.mediaContent?.previewImage?.medium ||
+        profile.creatorCoin.mediaContent?.previewImage?.small ||
+        profile.avatar?.medium ||
+        profile.avatar?.small;
+
       return {
         hasCreatorCoin: true,
         creatorCoinImage,
         creatorCoinName: profile.creatorCoin.name || profile.displayName,
       };
-    } else {
-      return { hasCreatorCoin: false };
     }
+    return { hasCreatorCoin: false };
   } catch {
     return null;
   }
 }
 
-// Type for CoinCreatedV4 event args
 interface CoinCreatedV4EventArgs {
   caller: Address;
   payoutRecipient: Address;
@@ -160,54 +153,14 @@ export interface CoinDeploymentData {
 
 export function useCreateCoin() {
   const { address: userAddress } = useAccount();
-  const { data: hash, sendTransaction, isPending: isWritePending, reset: resetTransaction } = useSendTransaction();
-  const { isLoading: isConfirming, isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash });
+  const sendTx = useSendTransaction();
 
   const [deployedCoinAddress, setDeployedCoinAddress] = useState<Address | null>(null);
   const [deploymentData, setDeploymentData] = useState<CoinDeploymentData | null>(null);
+  const [transactionHash, setTransactionHash] = useState<Hex | undefined>(undefined);
   const [isPreparingTransaction, setIsPreparingTransaction] = useState(false);
-
-  // Extract coin deployment data from transaction receipt
-  useEffect(() => {
-    if (isSuccess && receipt) {
-      try {
-        // Find and decode the CoinCreatedV4 event
-        for (const log of receipt.logs) {
-          try {
-            const decoded = decodeEventLog({
-              abi: zoraFactoryAbi,
-              data: log.data,
-              topics: log.topics,
-            });
-
-            if (decoded.eventName === "CoinCreatedV4") {
-              const args = decoded.args as CoinCreatedV4EventArgs;
-              const data: CoinDeploymentData = {
-                coin: args.coin,
-                caller: args.caller,
-                payoutRecipient: args.payoutRecipient,
-                platformReferrer: args.platformReferrer,
-                currency: args.currency,
-                name: args.name,
-                symbol: args.symbol,
-                poolKeyHash: args.poolKeyHash,
-                poolKey: args.poolKey,
-                version: args.version,
-              };
-
-              setDeployedCoinAddress(data.coin);
-              setDeploymentData(data);
-              break;
-            }
-          } catch {
-            continue;
-          }
-        }
-      } catch {
-        // Silent error - deployment succeeded but event parsing failed
-      }
-    }
-  }, [isSuccess, receipt]);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const createCoin = async (params: CreateCoinParams) => {
     const {
@@ -227,62 +180,64 @@ export function useCreateCoin() {
       throw new Error("No wallet connected. Please connect your wallet first.");
     }
 
-    // Set preparing state to show immediate feedback
+    const client = getThirdwebClient();
+    if (!client) {
+      throw new Error("Thirdweb client not configured.");
+    }
+
     setIsPreparingTransaction(true);
+    setIsSuccess(false);
+    setDeployedCoinAddress(null);
+    setDeploymentData(null);
+    setTransactionHash(undefined);
 
     try {
-      // Upload metadata (image/video + description) to IPFS via Zora's uploader
-      const builder = createMetadataBuilder()
-        .withName(name)
-        .withSymbol(symbol);
+      const builder = createMetadataBuilder().withName(name).withSymbol(symbol);
 
       if (description) {
         builder.withDescription(description);
       }
 
-      // Authenticate with Zora API for metadata upload
       const apiKey = process.env.NEXT_PUBLIC_ZORA_API_KEY;
       if (!apiKey) {
-        throw new Error("NEXT_PUBLIC_ZORA_API_KEY environment variable is required for metadata upload");
+        throw new Error(
+          "NEXT_PUBLIC_ZORA_API_KEY environment variable is required for metadata upload",
+        );
       }
       setApiKey(apiKey);
 
       const zoraUploader = createZoraUploaderForCreator(userAddress);
 
-      // Handle different media types (following SkateHive approach)
       const isImage = mediaFile.type.startsWith("image/");
       const isVideo = mediaFile.type.startsWith("video/");
 
       if (isImage) {
-        // Use withImage for image files (SDK validates these)
         builder.withImage(mediaFile);
       } else if (isVideo) {
-        // For videos, use withMedia() for the video file and withImage() for thumbnail
-        // Set the video as the main media (animation_url in metadata)
         builder.withMedia(mediaFile);
-
         if (customThumbnail) {
-          // Use the custom thumbnail selected by user
           builder.withImage(customThumbnail);
         } else {
           try {
-            // Auto-generate thumbnail for video
             const thumbnail = await generateVideoThumbnail(mediaFile);
             builder.withImage(thumbnail);
           } catch (thumbnailError) {
-            throw new Error(`Failed to generate video thumbnail: ${thumbnailError instanceof Error ? thumbnailError.message : String(thumbnailError)}`);
+            throw new Error(
+              `Failed to generate video thumbnail: ${
+                thumbnailError instanceof Error ? thumbnailError.message : String(thumbnailError)
+              }`,
+            );
           }
         }
       } else {
-        throw new Error(`Unsupported media type: ${mediaFile.type}. Please use an image or video file.`);
+        throw new Error(
+          `Unsupported media type: ${mediaFile.type}. Please use an image or video file.`,
+        );
       }
 
-      // Upload the metadata
       const { createMetadataParameters } = await builder.upload(zoraUploader);
-
       const metadataUri = createMetadataParameters.metadata.uri;
 
-      // Prepare SDK arguments
       const finalPayoutRecipient = payoutRecipient || userAddress;
       const finalPlatformReferrer = platformReferrer || PLATFORM_REFERRER;
       const additionalOwners = owners && owners.length > 0 ? owners : undefined;
@@ -292,19 +247,15 @@ export function useCreateCoin() {
       let value: bigint;
 
       if (useUserCreatorCoin && userAddress) {
-        // User wants to pair with their OWN creator coin
-        // Use SDK which handles looking up their creator coin
-        // Validate that user actually has a deployed creator coin
         const creatorCoinCheck = await checkHasCreatorCoin(userAddress);
-        
+
         if (!creatorCoinCheck?.hasCreatorCoin) {
-          console.error("[createCoin] ❌ User selected creator coin but none exists");
+          console.error("[createCoin] User selected creator coin but none exists");
           throw new Error(
-            "You don't have a creator coin deployed. Please deploy a creator coin first or use $GNARS backing."
+            "You don't have a creator coin deployed. Please deploy a creator coin first or use $GNARS backing.",
           );
         }
-        
-        // Use SDK for user's own creator coin - SDK will resolve their creator coin
+
         const sdkArgs: CreateCoinArgs = {
           creator: userAddress,
           name,
@@ -314,11 +265,12 @@ export function useCreateCoin() {
             uri: metadataUri,
           },
           currency: "CREATOR_COIN",
-          chainId: 8453, // Base
+          chainId: 8453,
           startingMarketCap,
           platformReferrer: finalPlatformReferrer,
           additionalOwners,
-          payoutRecipientOverride: finalPayoutRecipient !== userAddress ? finalPayoutRecipient : undefined,
+          payoutRecipientOverride:
+            finalPayoutRecipient !== userAddress ? finalPayoutRecipient : undefined,
         };
 
         const txParams = await createCoinCall(sdkArgs);
@@ -329,37 +281,30 @@ export function useCreateCoin() {
 
         ({ to, data, value } = txParams[0]!);
       } else {
-        // User wants to pair with GNARS creator coin
-        // Use DIRECT CONTRACT CALL to specify exact backing currency
-        // This allows: user's profile as owner + GNARS as backing currency
-        // Encode pool config with GNARS creator coin as backing currency
         const poolConfig = encodeContentPoolConfigForCreator(GNARS_CREATOR_COIN);
 
-        // Generate deterministic salt based on user, name, and symbol
         const coinSalt = keccak256(
-          toBytes(`${userAddress}-${name}-${symbol}-${Date.now()}`)
+          toBytes(`${userAddress}-${name}-${symbol}-${Date.now()}`),
         );
 
-        // Build owners array: user address + any additional owners
-        const ownersArray: Address[] = additionalOwners 
+        const ownersArray: Address[] = additionalOwners
           ? [userAddress, ...additionalOwners]
           : [userAddress];
 
-        // Encode the deploy function call
         data = encodeFunctionData({
           abi: zoraFactoryAbi,
           functionName: "deploy",
           args: [
-            finalPayoutRecipient,                                  // payoutRecipient
-            ownersArray,                                           // owners[]
-            metadataUri,                                           // uri
-            name,                                                  // name
-            symbol,                                                // symbol
-            poolConfig,                                            // poolConfig (GNARS backing)
-            finalPlatformReferrer,                                 // platformReferrer
-            "0x0000000000000000000000000000000000000000" as Address, // postDeployHook (none)
-            "0x" as Hex,                                           // postDeployHookData (empty)
-            coinSalt,                                              // coinSalt
+            finalPayoutRecipient,
+            ownersArray,
+            metadataUri,
+            name,
+            symbol,
+            poolConfig,
+            finalPlatformReferrer,
+            "0x0000000000000000000000000000000000000000" as Address,
+            "0x" as Hex,
+            coinSalt,
           ],
         });
 
@@ -367,35 +312,88 @@ export function useCreateCoin() {
         value = 0n;
       }
 
-      // Clear preparing state as wallet interaction begins
       setIsPreparingTransaction(false);
 
-      // Deploy the coin
-      sendTransaction({
+      const tx = prepareTransaction({
+        chain: base,
         to,
         data,
         value,
+        client,
       });
+
+      const sendResult = await sendTx.mutateAsync(tx);
+      const txHash = sendResult.transactionHash as Hex;
+      setTransactionHash(txHash);
+
+      setIsConfirming(true);
+      const receipt = await waitForReceipt({
+        client,
+        chain: base,
+        transactionHash: txHash,
+      });
+      setIsConfirming(false);
+      setIsSuccess(true);
+
+      // Decode the CoinCreatedV4 event from the receipt logs
+      try {
+        for (const log of receipt.logs) {
+          try {
+            const decoded = decodeEventLog({
+              abi: zoraFactoryAbi,
+              data: log.data,
+              topics: log.topics,
+            });
+
+            if (decoded.eventName === "CoinCreatedV4") {
+              const args = decoded.args as CoinCreatedV4EventArgs;
+              const deployment: CoinDeploymentData = {
+                coin: args.coin,
+                caller: args.caller,
+                payoutRecipient: args.payoutRecipient,
+                platformReferrer: args.platformReferrer,
+                currency: args.currency,
+                name: args.name,
+                symbol: args.symbol,
+                poolKeyHash: args.poolKeyHash,
+                poolKey: args.poolKey,
+                version: args.version,
+              };
+
+              setDeployedCoinAddress(deployment.coin);
+              setDeploymentData(deployment);
+              break;
+            }
+          } catch {
+            continue;
+          }
+        }
+      } catch {
+        // Silent - deployment succeeded but event parsing failed
+      }
     } catch (error) {
-      // Clear preparing state on error
       setIsPreparingTransaction(false);
+      setIsConfirming(false);
       throw error;
     }
   };
 
   const resetHook = () => {
-    resetTransaction();
+    sendTx.reset();
     setDeployedCoinAddress(null);
     setDeploymentData(null);
+    setTransactionHash(undefined);
     setIsPreparingTransaction(false);
+    setIsConfirming(false);
+    setIsSuccess(false);
   };
 
   return {
     createCoin,
-    isPending: isWritePending || isConfirming,
+    isPending: sendTx.isPending || isConfirming,
     isPreparingTransaction,
     isSuccess,
-    transactionHash: hash,
+    transactionHash,
     coinAddress: deployedCoinAddress,
     deploymentData,
     reset: resetHook,
