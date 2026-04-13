@@ -1,12 +1,17 @@
-import { useState } from "react";
-import { useAccount, useSendTransaction, usePublicClient } from "wagmi";
-import { createTradeCall, type TradeParameters } from "@zoralabs/coins-sdk";
-import { encodeFunctionData, type Address, type Hex } from "viem";
+"use client";
 
-// Multicall3 address (same on all EVM chains)
+import { useState } from "react";
+import { useAccount } from "wagmi";
+import { createTradeCall, type TradeParameters } from "@zoralabs/coins-sdk";
+import { type Address, encodeFunctionData, type Hex, type PublicClient } from "viem";
+import { prepareTransaction, waitForReceipt } from "thirdweb";
+import { base } from "thirdweb/chains";
+import { viemAdapter } from "thirdweb/adapters/viem";
+import { useSendTransaction } from "thirdweb/react";
+import { getThirdwebClient } from "@/lib/thirdweb";
+
 const MULTICALL3: Address = "0xcA11bde05977b3631167028862bE2a173976CA11";
 
-// Multicall3 ABI for aggregate3Value
 const MULTICALL3_ABI = [
   {
     name: "aggregate3Value",
@@ -57,17 +62,16 @@ interface MulticallCall {
 }
 
 /**
- * Batch purchase multiple content coins in a SINGLE transaction using Multicall3
- * Atomic execution - if one swap fails, all revert
+ * Batch purchase multiple content coins in a SINGLE transaction using Multicall3.
+ * Atomic execution - if one swap fails, all revert.
  */
 export function useBatchCoinPurchase({
   coins,
-  slippageBps = 500, // 5% default slippage for volatile content coins
+  slippageBps = 500,
   onSuccess,
   onError,
 }: UseBatchCoinPurchaseParams) {
   const { address: userAddress } = useAccount();
-  const publicClient = usePublicClient();
   const [isPreparingSwaps, setIsPreparingSwaps] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -76,7 +80,7 @@ export function useBatchCoinPurchase({
   const [preparedCalls, setPreparedCalls] = useState<MulticallCall[]>([]);
   const [totalValue, setTotalValue] = useState<bigint>(BigInt(0));
 
-  const { sendTransactionAsync } = useSendTransaction();
+  const sendTx = useSendTransaction();
 
   const executeBatchPurchase = async () => {
     if (!userAddress) {
@@ -86,8 +90,9 @@ export function useBatchCoinPurchase({
       throw err;
     }
 
-    if (!publicClient) {
-      const err = new Error("Public client not available");
+    const client = getThirdwebClient();
+    if (!client) {
+      const err = new Error("Thirdweb client not configured");
       setError(err);
       onError?.(err);
       throw err;
@@ -99,9 +104,6 @@ export function useBatchCoinPurchase({
       setIsConfirmed(false);
       setTxHash(null);
 
-      // ---------------------------------------------------------------------------
-      // 1) Generate swap calls for each coin
-      // ---------------------------------------------------------------------------
       const calls: MulticallCall[] = [];
       let totalEthValue = BigInt(0);
 
@@ -123,7 +125,7 @@ export function useBatchCoinPurchase({
 
         calls.push({
           target: quoteResp.call.target as Address,
-          allowFailure: false, // Atomic: if one fails, revert all
+          allowFailure: false,
           value: BigInt(quoteResp.call.value),
           callData: quoteResp.call.data as Hex,
         });
@@ -138,18 +140,19 @@ export function useBatchCoinPurchase({
       setPreparedCalls(calls);
       setTotalValue(totalEthValue);
 
-      // ---------------------------------------------------------------------------
-      // 2) Encode multicall data
-      // ---------------------------------------------------------------------------
       const multicallData = encodeFunctionData({
         abi: MULTICALL3_ABI,
         functionName: "aggregate3Value",
         args: [calls],
       });
 
-      // ---------------------------------------------------------------------------
-      // 3) Simulate transaction before sending
-      // ---------------------------------------------------------------------------
+      // Simulate via viem public client adapter so we fail fast on bad quotes.
+      // Cast via unknown — thirdweb's bundled viem types drift from the
+      // project's viem version, but the runtime shape is identical.
+      const publicClient = viemAdapter.publicClient.toViem({
+        chain: base,
+        client,
+      }) as unknown as PublicClient;
       try {
         await publicClient.call({
           account: userAddress,
@@ -166,24 +169,20 @@ export function useBatchCoinPurchase({
       setIsPreparingSwaps(false);
       setIsPending(true);
 
-      // ---------------------------------------------------------------------------
-      // 4) Send single multicall transaction
-      // ---------------------------------------------------------------------------
-      const hash = await sendTransactionAsync({
+      const tx = prepareTransaction({
+        chain: base,
         to: MULTICALL3,
         data: multicallData,
         value: totalEthValue,
+        client,
       });
+
+      const result = await sendTx.mutateAsync(tx);
+      const hash = result.transactionHash as `0x${string}`;
 
       setTxHash(hash);
 
-      // ---------------------------------------------------------------------------
-      // 5) Wait for confirmation
-      // ---------------------------------------------------------------------------
-      const receipt = await publicClient.waitForTransactionReceipt({
-        hash,
-        confirmations: 1,
-      });
+      const receipt = await waitForReceipt({ client, chain: base, transactionHash: hash });
 
       if (receipt.status === "reverted") {
         throw new Error("Transaction reverted");
@@ -211,7 +210,6 @@ export function useBatchCoinPurchase({
     isConfirmed,
     error,
     txHash,
-    // Legacy compatibility
     id: txHash,
     currentSwapIndex: 0,
     totalSwaps: preparedCalls.length || coins.length,
