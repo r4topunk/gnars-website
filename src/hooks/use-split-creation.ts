@@ -1,6 +1,12 @@
+"use client";
+
 import { useState } from "react";
-import { usePublicClient, useWalletClient } from "wagmi";
+import type { PublicClient, WalletClient } from "viem";
 import { SplitsClient } from "@0xsplits/splits-sdk";
+import { useActiveAccount, useActiveWallet } from "thirdweb/react";
+import { base } from "thirdweb/chains";
+import { viemAdapter } from "thirdweb/adapters/viem";
+import { getThirdwebClient } from "@/lib/thirdweb";
 import type { SplitConfig } from "@/lib/splits-utils";
 import { prepareSplitConfigForSDK } from "@/lib/splits-utils";
 
@@ -16,7 +22,9 @@ export interface UseSplitCreationResult {
 }
 
 /**
- * Hook for creating split contracts using 0xSplits SDK
+ * Hook for creating split contracts using 0xSplits SDK.
+ * The SDK expects viem walletClient + publicClient, so we bridge from
+ * the bridged thirdweb wallet via viemAdapter.
  */
 export function useSplitCreation(): UseSplitCreationResult {
   const [isPending, setIsPending] = useState(false);
@@ -26,11 +34,12 @@ export function useSplitCreation(): UseSplitCreationResult {
   const [splitAddress, setSplitAddress] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
+  const account = useActiveAccount();
+  const wallet = useActiveWallet();
 
   const createSplit = async (config: SplitConfig): Promise<string | null> => {
-    if (!publicClient || !walletClient) {
+    const client = getThirdwebClient();
+    if (!client || !account || !wallet) {
       const err = new Error("Wallet not connected");
       setError(err);
       setIsError(true);
@@ -45,9 +54,20 @@ export function useSplitCreation(): UseSplitCreationResult {
     setTxHash(null);
 
     try {
-      // Initialize Splits SDK client
+      // Bridge the bridged thirdweb wallet back into viem shape so the
+      // Splits SDK (which expects viem clients) accepts it.
+      const walletClient = viemAdapter.wallet.toViem({
+        wallet,
+        chain: base,
+        client,
+      }) as unknown as WalletClient;
+      const publicClient = viemAdapter.publicClient.toViem({
+        chain: base,
+        client,
+      }) as unknown as PublicClient;
+
       const splitsClient = new SplitsClient({
-        chainId: 8453, // Base
+        chainId: 8453,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         publicClient: publicClient as any,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,17 +75,14 @@ export function useSplitCreation(): UseSplitCreationResult {
         includeEnsNames: false,
       });
 
-      // Prepare config for SDK
       const sdkConfig = prepareSplitConfigForSDK(config);
 
-      // Create the split
       const response = await splitsClient.splitV1.createSplit({
         recipients: sdkConfig.recipients,
         distributorFeePercent: sdkConfig.distributorFeePercent,
         controller: sdkConfig.controller,
       });
 
-      // Extract split address and tx hash from response
       const createdSplitAddress = response.splitAddress;
       const transactionHash = response.event?.transactionHash;
 

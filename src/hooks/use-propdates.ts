@@ -1,9 +1,16 @@
+"use client";
+
 import { useCallback, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Hex } from "viem";
-import { useAccount, usePublicClient, useSwitchChain, useWriteContract } from "wagmi";
+import { encodeFunctionData, type Hex } from "viem";
+import { useAccount, usePublicClient } from "wagmi";
+import { prepareTransaction, waitForReceipt } from "thirdweb";
+import { base } from "thirdweb/chains";
+import { useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { EAS_CONTRACT_ADDRESS, easAbi } from "@/lib/eas";
 import { CHAIN } from "@/lib/config";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { createPropdate as encodePropdateRequest, listPropdates } from "@/services/propdates";
 
 interface CreatePropdateInput {
@@ -14,15 +21,13 @@ interface CreatePropdateInput {
 
 export function usePropdates(proposalId: string) {
   const queryClient = useQueryClient();
-  const { address, chain, isConnected } = useAccount();
-  const { switchChainAsync } = useSwitchChain();
+  const { address, isConnected } = useAccount();
+  const wallet = useActiveWallet();
+  const sendTx = useSendTransaction();
   const publicClient = usePublicClient({ chainId: CHAIN.id });
-  const {
-    writeContractAsync,
-    isError: isWriteError,
-    reset: resetWrite,
-  } = useWriteContract();
-  const [submissionPhase, setSubmissionPhase] = useState<"idle" | "confirming-wallet" | "pending-tx" | "syncing">("idle");
+  const [submissionPhase, setSubmissionPhase] = useState<
+    "idle" | "confirming-wallet" | "pending-tx" | "syncing"
+  >("idle");
   const [createError, setCreateError] = useState<string | null>(null);
   const [pendingHash, setPendingHash] = useState<Hex | null>(null);
   const pendingProposalIdRef = useRef<string | null>(null);
@@ -34,7 +39,10 @@ export function usePropdates(proposalId: string) {
   });
 
   const handleCreatePropdate = useCallback(
-    async (input: CreatePropdateInput, options?: { onSuccess?: (txHash: string) => void }) => {
+    async (
+      input: CreatePropdateInput,
+      options?: { onSuccess?: (txHash: string) => void },
+    ) => {
       setCreateError(null);
       try {
         const targetProposalId = input.proposalId || proposalId;
@@ -46,13 +54,12 @@ export function usePropdates(proposalId: string) {
           throw new Error("Connect wallet to create propdate");
         }
 
-        const targetChainId = CHAIN.id;
-        if (chain?.id !== targetChainId) {
-          if (!switchChainAsync) {
-            throw new Error("Please switch to the Base network");
-          }
-          await switchChainAsync({ chainId: targetChainId });
+        const client = getThirdwebClient();
+        if (!client) {
+          throw new Error("Thirdweb client not configured");
         }
+
+        await ensureOnChain(wallet, base);
 
         pendingProposalIdRef.current = targetProposalId;
         setSubmissionPhase("confirming-wallet");
@@ -67,30 +74,40 @@ export function usePropdates(proposalId: string) {
           throw new Error("Public client not available");
         }
 
-        // Simulate the transaction first
+        // Keep the simulation on wagmi's publicClient — simulateContract is a
+        // read (eth_call) and stays on the wagmi side of the migration split.
         await publicClient.simulateContract({
           address: EAS_CONTRACT_ADDRESS,
           abi: easAbi,
           functionName: "attest",
           // @ts-expect-error - wagmi type inference issue with complex tuple args
           args: [attestationRequest],
-          chainId: targetChainId,
+          chainId: CHAIN.id,
         });
 
-        // Execute the transaction
-        const txHash = (await writeContractAsync({
-          address: EAS_CONTRACT_ADDRESS,
+        // Encode the attest call ourselves and send via thirdweb's
+        // prepareTransaction so we don't have to wrestle with
+        // prepareContractCall's type inference on the complex tuple arg.
+        const attestCalldata = encodeFunctionData({
           abi: easAbi,
           functionName: "attest",
-          // @ts-expect-error - wagmi type inference issue with complex tuple args
           args: [attestationRequest],
-          chainId: targetChainId,
-        })) as Hex;
+        });
+
+        const tx = prepareTransaction({
+          chain: base,
+          to: EAS_CONTRACT_ADDRESS,
+          data: attestCalldata,
+          client,
+        });
+
+        const result = await sendTx.mutateAsync(tx);
+        const txHash = result.transactionHash as Hex;
 
         setSubmissionPhase("pending-tx");
         setPendingHash(txHash);
 
-        await publicClient.waitForTransactionReceipt({ hash: txHash });
+        await waitForReceipt({ client, chain: base, transactionHash: txHash });
 
         // Wait for EAS indexer to sync (Base blocks are ~2s, indexer lag ~2-4s)
         setSubmissionPhase("syncing");
@@ -101,7 +118,7 @@ export function usePropdates(proposalId: string) {
         setSubmissionPhase("idle");
         setPendingHash(null);
         pendingProposalIdRef.current = null;
-        resetWrite();
+        sendTx.reset();
 
         options?.onSuccess?.(txHash);
         return txHash;
@@ -111,21 +128,11 @@ export function usePropdates(proposalId: string) {
         pendingProposalIdRef.current = null;
         setSubmissionPhase("idle");
         setPendingHash(null);
-        resetWrite();
+        sendTx.reset();
         throw error;
       }
     },
-    [
-      address,
-      chain?.id,
-      isConnected,
-      proposalId,
-      publicClient,
-      queryClient,
-      resetWrite,
-      switchChainAsync,
-      writeContractAsync,
-    ],
+    [address, isConnected, proposalId, publicClient, queryClient, sendTx, wallet],
   );
 
   return {
@@ -139,6 +146,6 @@ export function usePropdates(proposalId: string) {
     submissionPhase,
     pendingHash,
     createError,
-    isWriteError,
+    isWriteError: Boolean(sendTx.error),
   };
 }
