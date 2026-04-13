@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount } from "wagmi";
 import { createTradeCall, type TradeParameters } from "@zoralabs/coins-sdk";
 import { type Address, encodeFunctionData, type Hex, type PublicClient } from "viem";
 import { prepareTransaction, waitForReceipt } from "thirdweb";
@@ -9,6 +8,7 @@ import { base } from "thirdweb/chains";
 import { viemAdapter } from "thirdweb/adapters/viem";
 import { useSendTransaction } from "thirdweb/react";
 import { getThirdwebClient } from "@/lib/thirdweb";
+import { useUserAddress } from "@/hooks/use-user-address";
 
 const MULTICALL3: Address = "0xcA11bde05977b3631167028862bE2a173976CA11";
 
@@ -71,7 +71,7 @@ export function useBatchCoinPurchase({
   onSuccess,
   onError,
 }: UseBatchCoinPurchaseParams) {
-  const { address: userAddress } = useAccount();
+  const { address: userAddress } = useUserAddress();
   const [isPreparingSwaps, setIsPreparingSwaps] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);

@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { parseEther } from "viem";
-import { useAccount, useSimulateContract } from "wagmi";
+import { useSimulateContract } from "wagmi";
 import { base as wagmiBase } from "wagmi/chains";
 import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
@@ -11,6 +11,7 @@ import { useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { zoraNftMintAbi, ZORA_PROTOCOL_REWARD } from "@/utils/abis/zoraNftMintAbi";
 
 const MINT_REFERRAL = DAO_ADDRESSES.treasury as `0x${string}`;
@@ -32,7 +33,7 @@ export function useMintDroposal({
   onError,
 }: UseMintDroposalArgs) {
   const [mintStatus, setMintStatus] = useState<MintStatus>("idle");
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useUserAddress();
   const wallet = useActiveWallet();
   const sendTx = useSendTransaction();
 

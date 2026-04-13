@@ -7,7 +7,6 @@ import type { TradeParameters } from "@zoralabs/coins-sdk";
 import { toast } from "sonner";
 import { createPublicClient, http, parseEther, type PublicClient, type WalletClient } from "viem";
 import { base as viemBase } from "viem/chains";
-import { useAccount } from "wagmi";
 import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { viemAdapter } from "thirdweb/adapters/viem";
@@ -16,6 +15,7 @@ import { useMiniApp } from "@/components/miniapp/MiniAppProvider";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { ZORA_PROTOCOL_REWARD, zoraNftMintAbi } from "@/utils/abis/zoraNftMintAbi";
 import { TVControls } from "./TVControls";
 import { TVHeader } from "./TVHeader";
@@ -88,7 +88,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     }
   }, [searchParams]);
 
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useUserAddress();
   const thirdwebAccount = useActiveAccount();
   const wallet = useActiveWallet();
   const sendTx = useSendTransaction();

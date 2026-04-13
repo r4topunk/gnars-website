@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useAccount, useReadContract } from "wagmi";
+import { useReadContract } from "wagmi";
 import { ConnectButton } from "@/components/ui/ConnectButton";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 
 const balanceOfAbi = [
@@ -18,7 +19,7 @@ const balanceOfAbi = [
 type BannerVariant = "disconnected" | "no-nft" | null;
 
 export function ProposalGatingBanner() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useUserAddress();
 
   const { data: nftBalance, isLoading } = useReadContract({
     address: DAO_ADDRESSES.token,

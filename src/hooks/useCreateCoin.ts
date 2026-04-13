@@ -12,10 +12,10 @@
 
 import { useState } from "react";
 import { type Address, decodeEventLog, encodeFunctionData, type Hex, keccak256, toBytes } from "viem";
-import { useAccount } from "wagmi";
 import { prepareTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { useSendTransaction } from "thirdweb/react";
+import { useUserAddress } from "@/hooks/use-user-address";
 import {
   createCoinCall,
   createMetadataBuilder,
@@ -152,7 +152,7 @@ export interface CoinDeploymentData {
 }
 
 export function useCreateCoin() {
-  const { address: userAddress } = useAccount();
+  const { address: userAddress } = useUserAddress();
   const sendTx = useSendTransaction();
 
   const [deployedCoinAddress, setDeployedCoinAddress] = useState<Address | null>(null);
