@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, type Config } from "wagmi";
 import { ThirdwebProvider } from "thirdweb/react";
 import { getWagmiConfig } from "@/lib/wagmi";
+import { ThirdwebWagmiBridge } from "@/components/layout/ThirdwebWagmiBridge";
 
 // Create singleton instances outside component to prevent re-creation
 // This avoids duplicate provider warnings in development mode
@@ -43,7 +44,9 @@ export default function Providers({ children }: { children: ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={client}>
-        <ThirdwebProvider>{children}</ThirdwebProvider>
+        <ThirdwebProvider>
+          <ThirdwebWagmiBridge>{children}</ThirdwebWagmiBridge>
+        </ThirdwebProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
