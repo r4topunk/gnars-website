@@ -74,7 +74,11 @@ export function AAOnboarding() {
 
   const eoaDelegate = useEoaDelegate({
     onSuccess: () => {
-      // status will refresh via the contract read; nothing more to do here
+      // Only dismiss the welcome modal on a successful delegation — if
+      // the user cancelled the wallet prompt or the tx reverted, keep
+      // the modal open so they can retry without being demoted to the
+      // smaller banner.
+      dismissWelcome();
     },
   });
 
@@ -83,11 +87,9 @@ export function AAOnboarding() {
   const handleDelegateAndContinue = useCallback(async () => {
     if (!status.smartAccountAddress) return;
     await eoaDelegate.delegate(status.smartAccountAddress);
-    // Mark welcome dismissed regardless of outcome so the user isn't
-    // re-prompted with the modal on retry — the banner remains until the
-    // delegation actually lands.
-    dismissWelcome();
-  }, [status.smartAccountAddress, eoaDelegate, dismissWelcome]);
+    // dismissWelcome is fired from the onSuccess callback above so a
+    // failed/cancelled tx leaves the modal in place.
+  }, [status.smartAccountAddress, eoaDelegate]);
 
   // Visibility: only matters once we've finished reading storage and
   // the bridge has resolved enough state to know if delegation is needed.

@@ -50,6 +50,7 @@ export function WalletDrawer() {
   const eoaDelegate = useEoaDelegate({
     onSuccess: () => {
       toast.success("Voting power delegated to your smart account");
+      setOpen(false);
     },
   });
 
@@ -89,7 +90,7 @@ export function WalletDrawer() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button size="sm" variant="ghost" className="cursor-pointer">
+        <Button size="sm" variant="ghost" className="w-full cursor-pointer">
           <span className="hidden sm:inline">
             <AddressDisplay
               address={address}
@@ -108,10 +109,17 @@ export function WalletDrawer() {
 
       <SheetContent
         side={isDesktop ? "right" : "bottom"}
-        className={isDesktop ? "w-full sm:max-w-md flex flex-col" : "h-[85vh] flex flex-col"}
+        className={isDesktop ? "w-full sm:max-w-md" : "h-[85vh]"}
       >
-        <SheetHeader className="text-left">
-          <SheetTitle>
+        <SheetHeader>
+          {/* Visually hide the title to keep semantic h2 for screen readers
+              while we render the avatar+ENS as a sibling — putting a div
+              (AddressDisplay) inside <h2> is invalid HTML. */}
+          <SheetTitle className="sr-only">Connected wallet</SheetTitle>
+          <SheetDescription className="sr-only">
+            Wallet details, voting status, and account actions
+          </SheetDescription>
+          <div className="pr-8">
             <AddressDisplay
               address={address}
               variant="compact"
@@ -122,10 +130,7 @@ export function WalletDrawer() {
               showExplorer={false}
               onAddressClick={() => {}}
             />
-          </SheetTitle>
-          <SheetDescription className="sr-only">
-            Wallet details, voting status, and account actions
-          </SheetDescription>
+          </div>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-5">

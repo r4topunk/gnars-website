@@ -71,7 +71,23 @@ export function MemberQuickStats({
             <CardTitle className="text-base">Gnars Held</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{overview.tokenCount}</div>
+            {showSmartAccountCard &&
+            delegationStatus.smartAccountTokenBalance !== undefined &&
+            delegationStatus.smartAccountTokenBalance > 0n ? (
+              <>
+                <div className="text-3xl font-bold">
+                  {(
+                    BigInt(overview.tokenCount) + delegationStatus.smartAccountTokenBalance
+                  ).toString()}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {overview.tokenCount} at wallet ·{" "}
+                  {delegationStatus.smartAccountTokenBalance.toString()} at smart account
+                </p>
+              </>
+            ) : (
+              <div className="text-3xl font-bold">{overview.tokenCount}</div>
+            )}
           </CardContent>
         </Card>
 
