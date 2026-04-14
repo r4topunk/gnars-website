@@ -15,14 +15,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Separator } from "@/components/ui/separator";
 import { useDelegationStatus } from "@/hooks/use-delegation-status";
 import { useEoaDelegate } from "@/hooks/use-eoa-delegate";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -36,17 +36,17 @@ function shortAddress(addr: string | undefined) {
 /**
  * Responsive wallet panel triggered from the header avatar.
  *
- * - Desktop (>= sm): centered Dialog modal
- * - Mobile (< sm): bottom Sheet drawer
+ * - Desktop (md+): centered Dialog modal
+ * - Mobile (< md): bottom vaul Drawer
  *
  * Hydration-safe: the trigger button is rendered on the server, the
- * Dialog/Sheet wrapper only mounts after the first effect so the
- * SSR HTML matches the initial client render. Both wrappers render
- * no DOM when closed, so the responsive switch is invisible.
+ * Dialog/Drawer wrapper only mounts after the first effect so the SSR
+ * HTML matches the initial client render. Both wrappers render no DOM
+ * when closed, so the responsive switch is invisible.
  */
 export function WalletDrawer() {
   const { address, isConnected } = useAccount();
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -61,7 +61,7 @@ export function WalletDrawer() {
       className="w-full cursor-pointer"
       onClick={() => setOpen(true)}
     >
-      <span className="hidden sm:inline">
+      <span className="hidden md:inline">
         <AddressDisplay
           address={address}
           variant="compact"
@@ -73,7 +73,7 @@ export function WalletDrawer() {
           onAddressClick={() => {}}
         />
       </span>
-      <span className="sm:hidden">{shortAddress(address)}</span>
+      <span className="md:hidden">{shortAddress(address)}</span>
     </Button>
   );
 
@@ -97,17 +97,17 @@ export function WalletDrawer() {
           </DialogContent>
         </Dialog>
       ) : (
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent side="bottom" className="p-0 gap-0 max-h-[85vh]">
-            <SheetHeader className="sr-only">
-              <SheetTitle>Connected wallet</SheetTitle>
-              <SheetDescription>
+        <Drawer open={open} onOpenChange={setOpen}>
+          <DrawerContent>
+            <DrawerHeader className="sr-only">
+              <DrawerTitle>Connected wallet</DrawerTitle>
+              <DrawerDescription>
                 Wallet details, voting status, and account actions
-              </SheetDescription>
-            </SheetHeader>
+              </DrawerDescription>
+            </DrawerHeader>
             <WalletPanelBody address={address} closePanel={() => setOpen(false)} />
-          </SheetContent>
-        </Sheet>
+          </DrawerContent>
+        </Drawer>
       )}
     </>
   );
