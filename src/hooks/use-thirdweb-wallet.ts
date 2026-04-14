@@ -19,6 +19,8 @@ export interface UseThirdwebWalletState {
   error: string | undefined;
   /** True when the active thirdweb wallet is a smart account wrapping an admin signer. */
   isSmartAccount: boolean;
+  /** The underlying admin EOA wallet when AA is on; same as wallet otherwise. */
+  adminWallet: Wallet | undefined;
   /** The underlying admin EOA account when AA is on; same as account otherwise. */
   adminAccount: Account | undefined;
 }
@@ -29,6 +31,7 @@ const initial: UseThirdwebWalletState = {
   isSyncing: false,
   error: undefined,
   isSmartAccount: false,
+  adminWallet: undefined,
   adminAccount: undefined,
 };
 
@@ -133,6 +136,7 @@ export function useThirdwebWallet(): UseThirdwebWalletState {
             isSyncing: false,
             error: undefined,
             isSmartAccount: true,
+            adminWallet: eoaWallet,
             adminAccount: eoaAccount,
           });
         } else {
@@ -152,6 +156,7 @@ export function useThirdwebWallet(): UseThirdwebWalletState {
             isSyncing: false,
             error: undefined,
             isSmartAccount: false,
+            adminWallet: eoaWallet,
             adminAccount: eoaAccount,
           });
         }
@@ -164,6 +169,7 @@ export function useThirdwebWallet(): UseThirdwebWalletState {
           isSyncing: false,
           error: `Failed to bridge wagmi -> thirdweb: ${message}`,
           isSmartAccount: false,
+          adminWallet: undefined,
           adminAccount: undefined,
         });
       }
