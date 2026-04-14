@@ -30,14 +30,13 @@ function buildStorageKey(eoa: string) {
 }
 
 /**
- * AA migration prompts at app root.
+ * AA migration prompt at app root.
  *
- * - AAWelcomeModal: Dialog (md+) / Drawer (mobile) shown once per EOA when
- *   the user holds Gnars but hasn't delegated voting power to their smart
- *   account. Dismissal is keyed on the EOA address in localStorage.
- * - AADelegationBanner: persistent Alert shown after the modal is dismissed
- *   but before delegation lands onchain. Always present in the page until
- *   needsSmartAccountDelegation flips false.
+ * AAWelcomeModal: Dialog (md+) / Drawer (mobile) shown once per EOA when
+ * the user holds Gnars but hasn't delegated voting power to their smart
+ * account. Dismissal is keyed on the EOA address in localStorage. After
+ * dismissal the user can re-trigger the delegation flow from the wallet
+ * panel (the delegation CTA there is still gated on needsSmartAccountDelegation).
  */
 export function AAOnboarding() {
   const status = useDelegationStatus();
@@ -86,25 +85,15 @@ export function AAOnboarding() {
 
   const needs = status.needsSmartAccountDelegation;
   const showWelcomeModal = needs && storageReady && !hasSeenWelcome;
-  const showBanner = needs && storageReady && hasSeenWelcome;
 
   return (
-    <>
-      <AAWelcomeModal
-        open={showWelcomeModal}
-        onDismiss={dismissWelcome}
-        onDelegate={handleDelegate}
-        eoaTokenBalance={status.eoaTokenBalance}
-        isDelegating={isDelegating}
-      />
-      {showBanner ? (
-        <AADelegationBanner
-          eoaTokenBalance={status.eoaTokenBalance}
-          isDelegating={isDelegating}
-          onDelegate={handleDelegate}
-        />
-      ) : null}
-    </>
+    <AAWelcomeModal
+      open={showWelcomeModal}
+      onDismiss={dismissWelcome}
+      onDelegate={handleDelegate}
+      eoaTokenBalance={status.eoaTokenBalance}
+      isDelegating={isDelegating}
+    />
   );
 }
 
@@ -193,37 +182,3 @@ function AAWelcomeModal({
   );
 }
 
-interface AADelegationBannerProps {
-  eoaTokenBalance: bigint | undefined;
-  isDelegating: boolean;
-  onDelegate: () => void | Promise<void>;
-}
-
-function AADelegationBanner({
-  eoaTokenBalance,
-  isDelegating,
-  onDelegate,
-}: AADelegationBannerProps) {
-  const balanceLabel = eoaTokenBalance !== undefined ? eoaTokenBalance.toString() : "your";
-  const noun = eoaTokenBalance === 1n ? "Gnar" : "Gnars";
-
-  return (
-    <div className="border-b">
-      <div className="max-w-6xl mx-auto px-4 py-3">
-        <Alert className="flex items-center gap-3">
-          <AlertDescription className="flex-1">
-            You hold {balanceLabel} {noun}. Delegate voting power to your smart account to vote.
-          </AlertDescription>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => void onDelegate()}
-            disabled={isDelegating}
-          >
-            {isDelegating ? "Delegating…" : "Delegate"}
-          </Button>
-        </Alert>
-      </div>
-    </div>
-  );
-}
