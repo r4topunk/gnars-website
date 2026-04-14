@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, LogOut, Sparkles, User } from "lucide-react";
+import { Check, Copy, LogOut, User } from "lucide-react";
 import { toast } from "sonner";
 import { useAccount, useDisconnect } from "wagmi";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,10 +40,8 @@ function shortAddress(addr: string | undefined) {
  * - Desktop (md+): centered Dialog modal
  * - Mobile (< md): bottom vaul Drawer
  *
- * Hydration-safe: the trigger button is rendered on the server, the
- * Dialog/Drawer wrapper only mounts after the first effect so the SSR
- * HTML matches the initial client render. Both wrappers render no DOM
- * when closed, so the responsive switch is invisible.
+ * Hydration-safe: trigger button renders on the server; the wrapper only
+ * mounts after first effect so SSR HTML matches the initial client render.
  */
 export function WalletDrawer() {
   const { address, isConnected } = useAccount();
@@ -86,7 +85,7 @@ export function WalletDrawer() {
       {triggerButton}
       {isDesktop ? (
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="sm:max-w-sm p-0 gap-0">
+          <DialogContent className="sm:max-w-sm gap-0 p-0">
             <DialogHeader className="sr-only">
               <DialogTitle>Connected wallet</DialogTitle>
               <DialogDescription>
@@ -174,8 +173,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
 
   return (
     <div className="flex flex-col">
-      {/* Identity header */}
-      <div className="px-5 pt-5 pb-4">
+      <div className="px-6 pt-6 pb-4">
         <AddressDisplay
           address={address}
           variant="compact"
@@ -190,8 +188,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
 
       <Separator />
 
-      {/* Two-column metadata table — labels on left, values on right */}
-      <div className="px-5 py-4 space-y-3 text-sm">
+      <div className="px-6 py-4 space-y-3 text-sm">
         <Row
           label="Wallet"
           value={
@@ -244,15 +241,12 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
           label="Voting"
           value={
             status.isDelegatedToSmartAccount ? (
-              <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+              <span className="inline-flex items-center gap-1.5 font-medium">
                 <Check className="size-3.5" />
                 Delegated
               </span>
             ) : status.needsSmartAccountDelegation ? (
-              <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
-                <Sparkles className="size-3.5" />
-                Action needed
-              </span>
+              <Badge variant="outline">Action needed</Badge>
             ) : status.isDelegatedToSelf ? (
               <span className="text-muted-foreground">Self</span>
             ) : status.currentDelegate ? (
@@ -264,51 +258,46 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
         />
       </div>
 
-      {/* Inline delegation CTA — only when needed */}
       {status.needsSmartAccountDelegation ? (
         <>
           <Separator />
-          <div className="px-5 py-4 space-y-2">
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              Delegate the voting power of your{" "}
-              <span className="text-foreground font-medium">
-                {status.eoaTokenBalance?.toString() ?? "0"}{" "}
-                {status.eoaTokenBalance === 1n ? "Gnar" : "Gnars"}
-              </span>{" "}
-              so you can vote through your smart account.
-            </p>
-            <Button
-              size="sm"
-              className="w-full"
-              onClick={handleDelegateToSmart}
-              disabled={isDelegationInFlight || !status.smartAccountAddress}
-            >
-              {isDelegationInFlight ? "Delegating…" : "Delegate voting power"}
-            </Button>
+          <div className="px-6 py-4">
+            <Alert>
+              <AlertTitle>Action needed</AlertTitle>
+              <AlertDescription>
+                <p>
+                  Delegate the voting power of your{" "}
+                  <span className="font-medium text-foreground">
+                    {status.eoaTokenBalance?.toString() ?? "0"}{" "}
+                    {status.eoaTokenBalance === 1n ? "Gnar" : "Gnars"}
+                  </span>{" "}
+                  so you can vote through your smart account.
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-2 w-full"
+                  onClick={handleDelegateToSmart}
+                  disabled={isDelegationInFlight || !status.smartAccountAddress}
+                >
+                  {isDelegationInFlight ? "Delegating…" : "Delegate voting power"}
+                </Button>
+              </AlertDescription>
+            </Alert>
           </div>
         </>
       ) : null}
 
       <Separator />
 
-      {/* Actions — both ghost buttons, identical shape, just different intent */}
-      <div className="p-2">
-        <button
-          type="button"
-          onClick={handleProfile}
-          className="w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
-        >
-          <User className="size-4 text-muted-foreground" />
+      <div className="flex flex-col gap-2 p-4 sm:flex-row sm:justify-end sm:p-6 sm:pt-4">
+        <Button variant="outline" onClick={handleProfile}>
+          <User />
           Profile
-        </button>
-        <button
-          type="button"
-          onClick={handleDisconnect}
-          className="w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
-        >
-          <LogOut className="size-4" />
+        </Button>
+        <Button variant="destructive" onClick={handleDisconnect}>
+          <LogOut />
           Disconnect
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -338,7 +327,7 @@ function CopyValue({ addr, onCopy }: CopyValueProps) {
     <button
       type="button"
       onClick={onCopy}
-      className="inline-flex items-center gap-1.5 font-mono text-xs hover:text-foreground transition-colors text-muted-foreground"
+      className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
     >
       <span>{shortAddress(addr)}</span>
       <Copy className="size-3 opacity-60" />

@@ -1,12 +1,21 @@
 "use client";
 
-import { Check, Sparkles } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useDelegationStatus } from "@/hooks/use-delegation-status";
 import { useEoaDelegate } from "@/hooks/use-eoa-delegate";
 
@@ -44,7 +53,9 @@ export function MemberQuickStats({
     connectedEoa !== undefined && connectedEoa.toLowerCase() === address.toLowerCase();
   const delegationStatus = useDelegationStatus();
   const showSmartAccountCard =
-    isOwnProfile && delegationStatus.isSmartAccount && Boolean(delegationStatus.smartAccountAddress);
+    isOwnProfile &&
+    delegationStatus.isSmartAccount &&
+    Boolean(delegationStatus.smartAccountAddress);
 
   const eoaDelegate = useEoaDelegate({
     onSuccess: () => {
@@ -54,7 +65,7 @@ export function MemberQuickStats({
   const isDelegating = eoaDelegate.isPending || eoaDelegate.isConfirming;
 
   const handleCopy = (value: string, label: string) => {
-    navigator.clipboard.writeText(value);
+    void navigator.clipboard.writeText(value);
     toast.success(`${label} copied`);
   };
 
@@ -63,41 +74,36 @@ export function MemberQuickStats({
     await eoaDelegate.delegate(delegationStatus.smartAccountAddress);
   };
 
+  const eoaCount = overview.tokenCount;
+  const saCount =
+    delegationStatus.smartAccountTokenBalance !== undefined
+      ? Number(delegationStatus.smartAccountTokenBalance)
+      : 0;
+  const totalGnars = showSmartAccountCard ? eoaCount + saCount : eoaCount;
+  const showBreakdown = showSmartAccountCard && saCount > 0;
+
   return (
     <>
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="@container/card">
           <CardHeader>
-            <CardTitle className="text-base">Gnars Held</CardTitle>
+            <CardDescription>Gnars Held</CardDescription>
+            <CardTitle className="text-3xl font-semibold tabular-nums">{totalGnars}</CardTitle>
           </CardHeader>
-          <CardContent>
-            {showSmartAccountCard &&
-            delegationStatus.smartAccountTokenBalance !== undefined &&
-            delegationStatus.smartAccountTokenBalance > 0n ? (
-              <>
-                <div className="text-3xl font-bold">
-                  {(
-                    BigInt(overview.tokenCount) + delegationStatus.smartAccountTokenBalance
-                  ).toString()}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {overview.tokenCount} at wallet ·{" "}
-                  {delegationStatus.smartAccountTokenBalance.toString()} at smart account
-                </p>
-              </>
-            ) : (
-              <div className="text-3xl font-bold">{overview.tokenCount}</div>
-            )}
-          </CardContent>
+          {showBreakdown ? (
+            <CardFooter className="text-sm text-muted-foreground">
+              {eoaCount} at wallet · {saCount} at smart account
+            </CardFooter>
+          ) : null}
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Delegation</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1">
+          <CardContent className="space-y-1 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Delegates to</span>
+              <span className="text-muted-foreground">Delegates to</span>
               <span className="font-medium">
                 {delegatedToAnother ? (
                   <AddressDisplay
@@ -114,8 +120,8 @@ export function MemberQuickStats({
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Delegated by</span>
-              <span className="font-medium">{delegatorsCount}</span>
+              <span className="text-muted-foreground">Delegated by</span>
+              <span className="font-medium tabular-nums">{delegatorsCount}</span>
             </div>
           </CardContent>
         </Card>
@@ -124,60 +130,52 @@ export function MemberQuickStats({
           <CardHeader>
             <CardTitle className="text-base">Activity</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1">
+          <CardContent className="space-y-1 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Proposals</span>
-              <span className="font-medium">{proposalsCount}</span>
+              <span className="text-muted-foreground">Proposals</span>
+              <span className="font-medium tabular-nums">{proposalsCount}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Votes</span>
-              <span className="font-medium">{votesCount}</span>
+              <span className="text-muted-foreground">Votes</span>
+              <span className="font-medium tabular-nums">{votesCount}</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {showSmartAccountCard ? (
-        <Card className="mt-6 border-amber-500/30">
-          <CardHeader className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Sparkles className="size-4 text-amber-500" />
-              <CardTitle className="text-base">Your smart account</CardTitle>
-              <Badge variant="secondary" className="h-4 px-1.5 text-[10px] font-normal">
-                gasless
-              </Badge>
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              An onchain account that signs Gnars transactions on your behalf. Gas is sponsored by
-              the DAO.
-            </p>
+        <Card className="mt-6">
+          <CardHeader>
+            <CardDescription>An onchain account that signs Gnars transactions on your behalf. Gas is sponsored by the DAO.</CardDescription>
+            <CardTitle className="text-base">Smart account</CardTitle>
+            <CardAction>
+              <Badge variant="secondary">gasless</Badge>
+            </CardAction>
           </CardHeader>
           <CardContent className="space-y-4">
-            <button
-              type="button"
-              className="w-full flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent transition-colors text-left"
+            <Button
+              variant="outline"
+              className="w-full justify-between font-mono text-xs"
               onClick={() =>
                 handleCopy(delegationStatus.smartAccountAddress!, "Smart account address")
               }
             >
-              <span className="font-mono text-sm">
-                {shortAddress(delegationStatus.smartAccountAddress)}
-              </span>
-              <span className="text-xs text-muted-foreground">copy</span>
-            </button>
+              <span>{shortAddress(delegationStatus.smartAccountAddress)}</span>
+              <Copy />
+            </Button>
 
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-lg border border-border p-3">
+              <div className="rounded-lg border p-3">
                 <div className="text-xs text-muted-foreground">Gnars at wallet</div>
-                <div className="text-xl font-semibold mt-1">
+                <div className="mt-1 text-xl font-semibold tabular-nums">
                   {delegationStatus.eoaTokenBalance !== undefined
                     ? delegationStatus.eoaTokenBalance.toString()
                     : "—"}
                 </div>
               </div>
-              <div className="rounded-lg border border-border p-3">
+              <div className="rounded-lg border p-3">
                 <div className="text-xs text-muted-foreground">Gnars at smart account</div>
-                <div className="text-xl font-semibold mt-1">
+                <div className="mt-1 text-xl font-semibold tabular-nums">
                   {delegationStatus.smartAccountTokenBalance !== undefined
                     ? delegationStatus.smartAccountTokenBalance.toString()
                     : "—"}
@@ -186,35 +184,33 @@ export function MemberQuickStats({
             </div>
 
             {delegationStatus.isDelegatedToSmartAccount ? (
-              <div className="flex items-start gap-2 rounded-lg border border-green-500/30 bg-green-500/[0.04] p-3 text-sm">
-                <Check className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
-                <div>
-                  <div className="font-medium">Voting power delegated</div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Your votes flow through your smart account.
-                  </p>
-                </div>
-              </div>
+              <Alert>
+                <Check />
+                <AlertTitle>Voting power delegated</AlertTitle>
+                <AlertDescription>
+                  Your votes flow through your smart account.
+                </AlertDescription>
+              </Alert>
             ) : delegationStatus.needsSmartAccountDelegation ? (
-              <div className="rounded-lg border border-amber-500/30 bg-amber-500/[0.04] p-3 space-y-3">
-                <div className="text-sm">
-                  <div className="font-medium">Action recommended</div>
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+              <Alert>
+                <AlertTitle>Action recommended</AlertTitle>
+                <AlertDescription>
+                  <p>
                     Delegate the voting power of your{" "}
                     {delegationStatus.eoaTokenBalance?.toString() ?? "0"}{" "}
                     {delegationStatus.eoaTokenBalance === 1n ? "Gnar" : "Gnars"} to your smart
                     account so you can vote through the new flow.
                   </p>
-                </div>
-                <Button
-                  size="sm"
-                  className="w-full"
-                  onClick={handleDelegateToSmart}
-                  disabled={isDelegating || !delegationStatus.smartAccountAddress}
-                >
-                  {isDelegating ? "Delegating…" : "Delegate voting power"}
-                </Button>
-              </div>
+                  <Button
+                    size="sm"
+                    className="mt-2 w-full"
+                    onClick={handleDelegateToSmart}
+                    disabled={isDelegating || !delegationStatus.smartAccountAddress}
+                  >
+                    {isDelegating ? "Delegating…" : "Delegate voting power"}
+                  </Button>
+                </AlertDescription>
+              </Alert>
             ) : (
               <p className="text-xs text-muted-foreground">
                 Voting via smart account is not enabled yet.
