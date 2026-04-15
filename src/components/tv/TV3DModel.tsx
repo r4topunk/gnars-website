@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTexture, useVideoTexture } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
@@ -996,6 +996,22 @@ function VideoScreen({ videoUrl, isVisible = true }: { videoUrl: string; isVisib
     video.playbackRate = 2;
     return () => {
       video.playbackRate = 1;
+    };
+  }, [texture]);
+
+  // drei's useVideoTexture calls video.play() without catching its promise.
+  // When we synchronously pause() on visibility change or unmount, that pending
+  // play() rejects with AbortError and surfaces as an unhandled rejection.
+  // Patch play() on this video element so every call swallows the abort.
+  // useLayoutEffect runs before drei's passive useEffect, so the first play
+  // call is also covered.
+  useLayoutEffect(() => {
+    const video = texture.image as HTMLVideoElement;
+    if (!video) return;
+    const originalPlay = video.play.bind(video);
+    video.play = () => originalPlay().catch(() => undefined) as Promise<void>;
+    return () => {
+      video.play = originalPlay;
     };
   }, [texture]);
 
