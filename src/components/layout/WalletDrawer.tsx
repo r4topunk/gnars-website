@@ -178,28 +178,38 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
       toast.error("Thirdweb client not configured");
       return;
     }
-    // Close our WalletDrawer before handing off to thirdweb's modal so
-    // the two Radix Dialogs don't stack. Stacking left the parent Dialog
-    // in a stuck state on dismiss — body `pointer-events: none` leaked
-    // from the inner modal's close transition and our trigger button
-    // ended up unclickable.
+    // Close our WalletDrawer first, then wait for the Radix close
+    // transition to settle before mounting thirdweb's Details modal.
+    // Opening the second dialog synchronously within the same tick
+    // confuses Radix's global `pointer-events` tracking and the outer
+    // trigger ends up permanently unclickable.
     closePanel();
-    // Open the Details modal directly on the linked-profiles screen and
-    // hide the wallet switcher entirely. thirdweb's default "main" screen
-    // lists every connected wallet — including the inAppWallet's internal
-    // enclave signer (Google/Apple icon), the smart wrap, and any stale
-    // wallets from previous sessions. `hiddenWallets` only applies to the
-    // Connect picker, not the already-connected list, so the only way to
-    // suppress the confusing multi-wallet view is to jump straight to the
-    // linking UI, which is the only thing inApp users need this modal for
-    // anyway. The "Manage account" button that opens this is already
-    // gated on `isInAppWallet` in the drawer footer.
-    detailsModal.open({
-      client,
-      manageWallet: { allowLinkingProfiles: true },
-      screen: "linked-profiles",
-      hideSwitchWallet: true,
-    });
+    setTimeout(() => {
+      // Open the Details modal directly on the linked-profiles screen and
+      // hide the wallet switcher entirely. thirdweb's default "main" screen
+      // lists every connected wallet — including the inAppWallet's internal
+      // enclave signer (Google/Apple icon), the smart wrap, and any stale
+      // wallets from previous sessions. `hiddenWallets` only applies to the
+      // Connect picker, not the already-connected list, so the only way to
+      // suppress the confusing multi-wallet view is to jump straight to the
+      // linking UI, which is the only thing inApp users need this modal for
+      // anyway. The "Manage account" button that opens this is already
+      // gated on `isInAppWallet` in the drawer footer.
+      detailsModal.open({
+        client,
+        manageWallet: { allowLinkingProfiles: true },
+        screen: "linked-profiles",
+        hideSwitchWallet: true,
+        // Workaround for a Radix `pointer-events: none` leak on body
+        // after the modal dismisses. Force the inline style back so
+        // the wallet trigger in the header stays clickable.
+        onClose: () => {
+          if (typeof document !== "undefined") {
+            document.body.style.pointerEvents = "";
+          }
+        },
+      });
+    }, 250);
   };
 
   const handleDisconnect = () => {
