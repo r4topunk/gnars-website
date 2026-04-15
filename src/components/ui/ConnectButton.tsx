@@ -1,32 +1,45 @@
 "use client";
 
-import { useState } from "react";
 import { Wallet } from "lucide-react";
-import { useAccount } from "wagmi";
+import { useConnectModal } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
-import { ConnectWalletModal } from "@/components/auction/ConnectWalletModal";
 import { WalletDrawer } from "@/components/layout/WalletDrawer";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 
 export function ConnectButton() {
-  const { isConnected } = useAccount();
-  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const { isConnected } = useUserAddress();
+  const { connect, isConnecting } = useConnectModal();
+  const client = getThirdwebClient();
 
-  if (!isConnected) {
-    return (
-      <>
-        <Button
-          size="sm"
-          variant="default"
-          className="w-full cursor-pointer"
-          onClick={() => setIsConnectModalOpen(true)}
-        >
-          <Wallet className="mr-2 h-4 w-4" />
-          Connect
-        </Button>
-        <ConnectWalletModal open={isConnectModalOpen} onOpenChange={setIsConnectModalOpen} />
-      </>
-    );
-  }
+  if (isConnected) return <WalletDrawer />;
 
-  return <WalletDrawer />;
+  const handleConnect = async () => {
+    if (!client) return;
+    try {
+      await connect({
+        client,
+        wallets: THIRDWEB_WALLETS,
+        accountAbstraction: THIRDWEB_AA_CONFIG,
+        size: "compact",
+        title: "Connect to Gnars",
+      });
+    } catch {
+      // User dismissed the modal — nothing to do.
+    }
+  };
+
+  return (
+    <Button
+      size="sm"
+      variant="default"
+      className="w-full cursor-pointer"
+      onClick={handleConnect}
+      disabled={isConnecting || !client}
+    >
+      <Wallet className="mr-2 h-4 w-4" />
+      Connect
+    </Button>
+  );
 }

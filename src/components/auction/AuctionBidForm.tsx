@@ -4,11 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, MessageSquare, Wallet } from "lucide-react";
 import { concat, encodeFunctionData, formatEther, type Hex, parseEther, toHex } from "viem";
 import { base as wagmiBase } from "wagmi/chains";
-import { useAccount, useBalance } from "wagmi";
+import { useBalance } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
 import { getContract, prepareContractCall, prepareTransaction } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveWallet, useSendTransaction } from "thirdweb/react";
+import {
+  useActiveWallet,
+  useActiveWalletChain,
+  useConnectModal,
+  useSendTransaction,
+} from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -21,10 +26,11 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
+import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
 import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
-import { ConnectWalletModal } from "@/components/auction/ConnectWalletModal";
+import { useUserAddress } from "@/hooks/use-user-address";
 
 interface AuctionBidFormProps {
   tokenId: bigint | undefined;
@@ -42,10 +48,11 @@ export function AuctionBidForm({
   minBidIncrementPct,
   onBidConfirmed,
 }: AuctionBidFormProps) {
-  const { address, isConnected, chain } = useAccount();
+  const { address, isConnected } = useUserAddress();
+  const activeChain = useActiveWalletChain();
   const wallet = useActiveWallet();
   const sendTx = useSendTransaction();
-  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const { connect: openConnectModal } = useConnectModal();
   const queryClient = useQueryClient();
 
   const [bidComment, setBidComment] = useState("");
@@ -86,7 +93,7 @@ export function AuctionBidForm({
   const bidAmountNum = parseFloat(bidAmount);
   const isValidBid = !isNaN(bidAmountNum) && bidAmountNum >= minNextBidEth;
   const insufficientBalance = isConnected && balanceEth !== undefined && bidAmountNum > balanceEth;
-  const isWrongNetwork = isConnected && chain?.id !== wagmiBase.id;
+  const isWrongNetwork = isConnected && activeChain?.id !== wagmiBase.id;
 
   const bidAmountWei = useMemo(() => {
     try {
@@ -139,15 +146,29 @@ export function AuctionBidForm({
     },
   });
 
-  const handleConnectAndBid = () => {
-    if (!isConnected) {
-      setIsConnectModalOpen(true);
+  const handleConnectAndBid = async () => {
+    if (isConnected) return;
+    const client = getThirdwebClient();
+    if (!client) {
+      toast.error("Connect failed", { description: "Thirdweb client not configured." });
+      return;
+    }
+    try {
+      await openConnectModal({
+        client,
+        wallets: THIRDWEB_WALLETS,
+        accountAbstraction: THIRDWEB_AA_CONFIG,
+        size: "compact",
+        title: "Connect to bid",
+      });
+    } catch {
+      // User dismissed the modal
     }
   };
 
   const handleBid = async () => {
     if (!isConnected) {
-      handleConnectAndBid();
+      await handleConnectAndBid();
       return;
     }
     if (!bidAmountWei || !tokenId || !isValidBid || insufficientBalance) return;
@@ -229,7 +250,7 @@ export function AuctionBidForm({
 
   const handleButtonClick = async () => {
     if (!isConnected) {
-      handleConnectAndBid();
+      await handleConnectAndBid();
       return;
     }
     if (isWrongNetwork) {
@@ -321,7 +342,6 @@ export function AuctionBidForm({
         </CollapsibleContent>
       </Collapsible>
 
-      <ConnectWalletModal open={isConnectModalOpen} onOpenChange={setIsConnectModalOpen} />
     </>
   );
 }

@@ -3,8 +3,6 @@
 import "@/lib/storage-shim";
 import { cookieStorage, createConfig, createStorage, fallback, http } from "wagmi";
 import { arbitrum, base } from "wagmi/chains";
-import { coinbaseWallet, metaMask, walletConnect } from "wagmi/connectors";
-import { farcasterWallet } from "@/lib/farcaster-connector";
 
 // Multiple Base RPC endpoints for failover
 // Ordered by reliability and rate limit tolerance
@@ -45,7 +43,7 @@ function createTransports() {
         retryDelay: 100,
       },
     ),
-    [arbitrum.id]: http('https://arb1.arbitrum.io/rpc', {
+    [arbitrum.id]: http("https://arb1.arbitrum.io/rpc", {
       timeout: 8_000,
       retryCount: 2,
     }),
@@ -62,35 +60,18 @@ function createSsrStorage() {
 }
 
 /**
- * Create wagmi configuration
- * Only call this on the client side (in a 'use client' component)
+ * Create wagmi configuration.
+ *
+ * Connectors are intentionally empty: thirdweb owns the connect/login path.
+ * Wagmi is kept solely as a read layer — `useReadContract`,
+ * `useReadContracts`, `useBalance`, and `useWaitForTransactionReceipt` all
+ * work without any connector configured because they target the transports
+ * defined above. See Option F migration plan for context.
  */
 export function getWagmiConfig() {
-  const isBrowser = typeof window !== "undefined";
-  const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
-  const enableWalletConnect = isBrowser && Boolean(walletConnectProjectId);
-
   return createConfig({
     chains,
-    connectors: isBrowser
-      ? [
-          // Farcaster wallet - first priority when in mini app context
-          farcasterWallet(),
-          // MetaMask
-          metaMask(),
-          // Injected wallets (other browser wallets)
-          // injected(),
-          // WalletConnect - only enable in the browser
-          ...(enableWalletConnect
-            ? [
-                walletConnect({
-                  projectId: walletConnectProjectId!,
-                }),
-              ]
-            : []),
-          coinbaseWallet({ appName: "Gnars DAO" }),
-        ]
-      : [],
+    connectors: [],
     transports: createTransports(),
     ssr: true,
     storage: createSsrStorage(),

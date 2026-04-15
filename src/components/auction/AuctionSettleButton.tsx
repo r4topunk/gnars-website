@@ -1,22 +1,28 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Wallet } from "lucide-react";
-import { useAccount, useReadContract, useSimulateContract } from "wagmi";
+import { useReadContract, useSimulateContract } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
 import { getContract, prepareContractCall } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveWallet, useSendTransaction } from "thirdweb/react";
+import {
+  useActiveWallet,
+  useActiveWalletChain,
+  useConnectModal,
+  useSendTransaction,
+} from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
+import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
 import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
-import { ConnectWalletModal } from "@/components/auction/ConnectWalletModal";
+import { useUserAddress } from "@/hooks/use-user-address";
 
 interface AuctionSettleButtonProps {
   /** Whether the connected wallet is the auction winner */
@@ -27,13 +33,14 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
   const resetTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(resetTimerRef.current), []);
 
-  const { isConnected, chain } = useAccount();
+  const { isConnected } = useUserAddress();
+  const activeChain = useActiveWalletChain();
   const wallet = useActiveWallet();
   const sendTx = useSendTransaction();
+  const { connect: openConnectModal } = useConnectModal();
   const queryClient = useQueryClient();
-  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
-  const isWrongNetwork = isConnected && chain?.id !== base.id;
+  const isWrongNetwork = isConnected && activeChain?.id !== base.id;
 
   const { data: isPaused } = useReadContract({
     address: DAO_ADDRESSES.auction as `0x${string}`,
@@ -85,7 +92,22 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
 
   const handleSettle = async () => {
     if (!isConnected) {
-      setIsConnectModalOpen(true);
+      const client = getThirdwebClient();
+      if (!client) {
+        toast.error("Connect failed", { description: "Thirdweb client not configured." });
+        return;
+      }
+      try {
+        await openConnectModal({
+          client,
+          wallets: THIRDWEB_WALLETS,
+          accountAbstraction: THIRDWEB_AA_CONFIG,
+          size: "compact",
+          title: "Connect to settle",
+        });
+      } catch {
+        // User dismissed the modal
+      }
       return;
     }
 
@@ -179,7 +201,6 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
         )}
       </Tooltip>
 
-      <ConnectWalletModal open={isConnectModalOpen} onOpenChange={setIsConnectModalOpen} />
     </>
   );
 }

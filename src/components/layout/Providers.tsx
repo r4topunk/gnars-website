@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, type Config } from "wagmi";
 import { ThirdwebProvider } from "thirdweb/react";
 import { getWagmiConfig } from "@/lib/wagmi";
-import { ThirdwebWagmiBridge } from "@/components/layout/ThirdwebWagmiBridge";
+import { ThirdwebBootstrap } from "@/components/layout/ThirdwebBootstrap";
 
 // Create singleton instances outside component to prevent re-creation
 // This avoids duplicate provider warnings in development mode
@@ -34,8 +34,10 @@ function getQueryClient() {
 }
 
 /**
- * Providers component that wraps the app with wagmi and react-query.
- * Uses module-level singletons to prevent duplicate instances.
+ * Providers component that wraps the app with wagmi (reads), react-query,
+ * and thirdweb (login + writes). `ThirdwebBootstrap` restores the active
+ * session on page load via `useAutoConnect` and, when applicable, wires up
+ * the Farcaster mini-app wallet adapter.
  */
 export default function Providers({ children }: { children: ReactNode }) {
   const config = getConfig();
@@ -45,7 +47,8 @@ export default function Providers({ children }: { children: ReactNode }) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={client}>
         <ThirdwebProvider>
-          <ThirdwebWagmiBridge>{children}</ThirdwebWagmiBridge>
+          <ThirdwebBootstrap />
+          {children}
         </ThirdwebProvider>
       </QueryClientProvider>
     </WagmiProvider>

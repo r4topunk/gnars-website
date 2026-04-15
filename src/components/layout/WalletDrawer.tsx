@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, LogOut, User } from "lucide-react";
+import { Check, Copy, LogOut, Settings, User } from "lucide-react";
 import { toast } from "sonner";
-import { useAccount, useDisconnect } from "wagmi";
+import {
+  useActiveWallet,
+  useDisconnect,
+  useWalletDetailsModal,
+} from "thirdweb/react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +31,8 @@ import { Separator } from "@/components/ui/separator";
 import { useDelegationStatus } from "@/hooks/use-delegation-status";
 import { useEoaDelegate } from "@/hooks/use-eoa-delegate";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { useThirdwebWallet } from "@/hooks/use-thirdweb-wallet";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { getThirdwebClient } from "@/lib/thirdweb";
 
 function shortAddress(addr: string | undefined) {
   if (!addr) return "";
@@ -44,7 +49,7 @@ function shortAddress(addr: string | undefined) {
  * mounts after first effect so SSR HTML matches the initial client render.
  */
 export function WalletDrawer() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useUserAddress();
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
@@ -118,9 +123,11 @@ interface WalletPanelBodyProps {
 }
 
 function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
-  const { disconnect } = useDisconnect();
   const router = useRouter();
-  const bridge = useThirdwebWallet();
+  const { adminAddress, isInAppWallet } = useUserAddress();
+  const wallet = useActiveWallet();
+  const { disconnect } = useDisconnect();
+  const detailsModal = useWalletDetailsModal();
   const status = useDelegationStatus();
 
   const eoaDelegate = useEoaDelegate({
@@ -131,10 +138,10 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
   });
   const isDelegationInFlight = eoaDelegate.isPending || eoaDelegate.isConfirming;
 
-  const showSmartAccount = bridge.isSmartAccount && Boolean(status.smartAccountAddress);
+  const showAdmin = Boolean(adminAddress);
 
   const totalGnars =
-    showSmartAccount && status.smartAccountTokenBalance !== undefined
+    showAdmin && status.smartAccountTokenBalance !== undefined
       ? (status.eoaTokenBalance ?? 0n) + status.smartAccountTokenBalance
       : status.eoaTokenBalance;
 
@@ -152,9 +159,25 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
     router.push(`/members/${address}`);
   };
 
+  const handleManageAccount = () => {
+    const client = getThirdwebClient();
+    if (!client) {
+      toast.error("Thirdweb client not configured");
+      return;
+    }
+    detailsModal.open({
+      client,
+      manageWallet: { allowLinkingProfiles: true },
+    });
+  };
+
   const handleDisconnect = () => {
+    if (!wallet) {
+      closePanel();
+      return;
+    }
     try {
-      disconnect();
+      disconnect(wallet);
       closePanel();
       toast("Disconnected");
     } catch (err: unknown) {
@@ -190,7 +213,16 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
 
       <div className="px-6 py-4 space-y-3 text-sm">
         <Row
-          label="Wallet"
+          label={
+            <span className="flex items-center gap-1.5">
+              Wallet
+              {showAdmin ? (
+                <Badge variant="secondary" className="h-4 px-1.5 text-[10px] font-normal">
+                  gasless
+                </Badge>
+              ) : null}
+            </span>
+          }
           value={
             <CopyValue
               addr={address}
@@ -199,22 +231,13 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
           }
         />
 
-        {showSmartAccount && status.smartAccountAddress ? (
+        {showAdmin && adminAddress ? (
           <Row
-            label={
-              <span className="flex items-center gap-1.5">
-                Smart account
-                <Badge variant="secondary" className="h-4 px-1.5 text-[10px] font-normal">
-                  gasless
-                </Badge>
-              </span>
-            }
+            label="Admin"
             value={
               <CopyValue
-                addr={status.smartAccountAddress}
-                onCopy={() =>
-                  handleCopyAddress(status.smartAccountAddress!, "Smart account address")
-                }
+                addr={adminAddress}
+                onCopy={() => handleCopyAddress(adminAddress, "Admin address")}
               />
             }
           />
@@ -225,7 +248,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
           value={
             <span className="font-medium tabular-nums">
               {totalGnars !== undefined ? totalGnars.toString() : "—"}
-              {showSmartAccount &&
+              {showAdmin &&
               status.smartAccountTokenBalance !== undefined &&
               status.smartAccountTokenBalance > 0n ? (
                 <span className="ml-2 text-xs font-normal text-muted-foreground">
@@ -289,12 +312,18 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
 
       <Separator />
 
-      <div className="flex flex-col gap-2 p-4 sm:flex-row sm:justify-end sm:p-6 sm:pt-4">
+      <div className="flex flex-col gap-2 p-4 sm:flex-row sm:flex-wrap sm:justify-end sm:p-6 sm:pt-4">
         <Button variant="outline" onClick={handleProfile}>
           <User />
           Profile
         </Button>
-        <Button variant="destructive" onClick={handleDisconnect}>
+        {isInAppWallet ? (
+          <Button variant="outline" onClick={handleManageAccount}>
+            <Settings />
+            Manage account
+          </Button>
+        ) : null}
+        <Button variant="destructive" onClick={handleDisconnect} disabled={!wallet}>
           <LogOut />
           Disconnect
         </Button>
