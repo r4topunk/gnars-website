@@ -62,6 +62,20 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     query: { enabled: isConnected && !isWrongNetwork },
   });
 
+  // DEBUG: surface the real revert reason behind the "not available yet"
+  // tooltip. Remove once the cause is confirmed.
+  useEffect(() => {
+    if (settleError) {
+      // eslint-disable-next-line no-console
+      console.log("[AuctionSettleButton] simulation revert:", {
+        functionName: isPaused ? "settleAuction" : "settleCurrentAndCreateNewAuction",
+        message: settleError.message,
+        shortMessage: (settleError as { shortMessage?: string }).shortMessage,
+        cause: settleError.cause,
+      });
+    }
+  }, [settleError, isPaused]);
+
   const invalidateAuctionData = useCallback(() => {
     queryClient.invalidateQueries({
       predicate: (query) => {
