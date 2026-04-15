@@ -4,15 +4,16 @@ import { useCallback, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { encodeFunctionData, type Hex } from "viem";
 import { usePublicClient } from "wagmi";
-import { prepareTransaction, waitForReceipt } from "thirdweb";
+import { prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveWallet, useSendTransaction } from "thirdweb/react";
+import { useActiveWallet } from "thirdweb/react";
 import { EAS_CONTRACT_ADDRESS, easAbi } from "@/lib/eas";
 import { CHAIN } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { createPropdate as encodePropdateRequest, listPropdates } from "@/services/propdates";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 
 interface CreatePropdateInput {
   proposalId: string;
@@ -24,13 +25,14 @@ export function usePropdates(proposalId: string) {
   const queryClient = useQueryClient();
   const { address, isConnected } = useUserAddress();
   const wallet = useActiveWallet();
-  const sendTx = useSendTransaction();
+  const writer = useWriteAccount();
   const publicClient = usePublicClient({ chainId: CHAIN.id });
   const [submissionPhase, setSubmissionPhase] = useState<
     "idle" | "confirming-wallet" | "pending-tx" | "syncing"
   >("idle");
   const [createError, setCreateError] = useState<string | null>(null);
   const [pendingHash, setPendingHash] = useState<Hex | null>(null);
+  const [hasWriteError, setHasWriteError] = useState(false);
   const pendingProposalIdRef = useRef<string | null>(null);
 
   const query = useQuery({
@@ -45,6 +47,7 @@ export function usePropdates(proposalId: string) {
       options?: { onSuccess?: (txHash: string) => void },
     ) => {
       setCreateError(null);
+      setHasWriteError(false);
       try {
         const targetProposalId = input.proposalId || proposalId;
         if (!targetProposalId) {
@@ -53,6 +56,10 @@ export function usePropdates(proposalId: string) {
 
         if (!isConnected || !address) {
           throw new Error("Connect wallet to create propdate");
+        }
+
+        if (!writer) {
+          throw new Error("Connect wallet first");
         }
 
         const client = getThirdwebClient();
@@ -102,7 +109,10 @@ export function usePropdates(proposalId: string) {
           client,
         });
 
-        const result = await sendTx.mutateAsync(tx);
+        const result = await sendTransaction({
+          account: writer.account,
+          transaction: tx,
+        });
         const txHash = result.transactionHash as Hex;
 
         setSubmissionPhase("pending-tx");
@@ -119,21 +129,20 @@ export function usePropdates(proposalId: string) {
         setSubmissionPhase("idle");
         setPendingHash(null);
         pendingProposalIdRef.current = null;
-        sendTx.reset();
 
         options?.onSuccess?.(txHash);
         return txHash;
       } catch (error) {
         const message = error instanceof Error ? error.message : "Propdate creation failed";
         setCreateError(message);
+        setHasWriteError(true);
         pendingProposalIdRef.current = null;
         setSubmissionPhase("idle");
         setPendingHash(null);
-        sendTx.reset();
         throw error;
       }
     },
-    [address, isConnected, proposalId, publicClient, queryClient, sendTx, wallet],
+    [address, isConnected, proposalId, publicClient, queryClient, wallet, writer],
   );
 
   return {
@@ -147,6 +156,6 @@ export function usePropdates(proposalId: string) {
     submissionPhase,
     pendingHash,
     createError,
-    isWriteError: Boolean(sendTx.error),
+    isWriteError: hasWriteError,
   };
 }

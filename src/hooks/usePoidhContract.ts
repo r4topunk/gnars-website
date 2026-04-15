@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
 import { arbitrum, base, type Chain } from "thirdweb/chains";
-import { useActiveAccount, useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount, type WriteAccount } from "@/hooks/use-write-account";
 import { POIDH_ABI } from "@/lib/poidh/abi";
 import { POIDH_CONTRACTS } from "@/lib/poidh/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
@@ -19,39 +19,52 @@ function resolveThirdwebChain(chainId: number): Chain | undefined {
 
 function usePoidhContext(chainId: number) {
   const { isConnected } = useUserAddress();
-  const account = useActiveAccount();
-  const wallet = useActiveWallet();
+  const writer = useWriteAccount();
   const contractAddress = POIDH_CONTRACTS[chainId];
   const twChain = resolveThirdwebChain(chainId);
 
-  return { isConnected, account, wallet, contractAddress, twChain };
+  return { isConnected, writer, contractAddress, twChain };
 }
 
 interface PoidhWriteState {
-  sendTx: ReturnType<typeof useSendTransaction>;
-  isConfirming: boolean;
+  hash: `0x${string}` | undefined;
+  isPending: boolean;
   isSuccess: boolean;
-  setIsConfirming: (value: boolean) => void;
+  error: Error | null;
+  setHash: (value: `0x${string}` | undefined) => void;
+  setIsPending: (value: boolean) => void;
   setIsSuccess: (value: boolean) => void;
+  setError: (value: Error | null) => void;
 }
 
 function usePoidhWriteState(): PoidhWriteState {
-  const sendTx = useSendTransaction();
-  const [isConfirming, setIsConfirming] = useState(false);
+  const [hash, setHash] = useState<`0x${string}` | undefined>(undefined);
+  const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  return { sendTx, isConfirming, isSuccess, setIsConfirming, setIsSuccess };
+  const [error, setError] = useState<Error | null>(null);
+  return {
+    hash,
+    isPending,
+    isSuccess,
+    error,
+    setHash,
+    setIsPending,
+    setIsSuccess,
+    setError,
+  };
 }
 
 function buildPoidhReturn(state: PoidhWriteState) {
   return {
-    hash: state.sendTx.data?.transactionHash as `0x${string}` | undefined,
-    isPending: state.sendTx.isPending || state.isConfirming,
+    hash: state.hash,
+    isPending: state.isPending,
     isSuccess: state.isSuccess,
-    error: state.sendTx.error ?? null,
+    error: state.error,
     reset: () => {
-      state.sendTx.reset();
-      state.setIsConfirming(false);
+      state.setHash(undefined);
+      state.setIsPending(false);
       state.setIsSuccess(false);
+      state.setError(null);
     },
   };
 }
@@ -59,36 +72,52 @@ function buildPoidhReturn(state: PoidhWriteState) {
 async function assertPoidhReady(ctx: ReturnType<typeof usePoidhContext>, chainId: number) {
   if (!ctx.isConnected) throw new Error("Connect your wallet first");
   if (!ctx.contractAddress) throw new Error(`Unsupported chain: ${chainId}`);
-  if (!ctx.account) throw new Error("No active account");
+  if (!ctx.writer) throw new Error("Connect your wallet first");
   if (!ctx.twChain) throw new Error(`Unsupported chain: ${chainId}`);
   const client = getThirdwebClient();
   if (!client) throw new Error("Thirdweb client not configured");
-  await ensureOnChain(ctx.wallet, ctx.twChain);
-  return { client, contractAddress: ctx.contractAddress, twChain: ctx.twChain };
+  await ensureOnChain(ctx.writer.wallet, ctx.twChain);
+  return {
+    client,
+    contractAddress: ctx.contractAddress,
+    twChain: ctx.twChain,
+    writer: ctx.writer,
+  };
 }
 
 async function sendAndConfirm(
   state: PoidhWriteState,
   client: ReturnType<typeof getThirdwebClient>,
   twChain: Chain,
+  writer: WriteAccount,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tx: any,
 ) {
   if (!client) throw new Error("Thirdweb client not configured");
+  state.setError(null);
   state.setIsSuccess(false);
-  const result = await state.sendTx.mutateAsync(tx);
-  state.setIsConfirming(true);
+  state.setHash(undefined);
+  state.setIsPending(true);
   try {
+    const result = await sendTransaction({
+      account: writer.account,
+      transaction: tx,
+    });
+    const txHash = result.transactionHash as `0x${string}`;
+    state.setHash(txHash);
     await waitForReceipt({
       client,
       chain: twChain,
-      transactionHash: result.transactionHash as `0x${string}`,
+      transactionHash: txHash,
     });
     state.setIsSuccess(true);
+    return txHash;
+  } catch (err) {
+    state.setError(err instanceof Error ? err : new Error(String(err)));
+    throw err;
   } finally {
-    state.setIsConfirming(false);
+    state.setIsPending(false);
   }
-  return result.transactionHash as `0x${string}`;
 }
 
 // ─── Submit a Claim ──────────────────────────────────────────────────────────
@@ -104,14 +133,14 @@ export function usePoidhCreateClaim(bountyChainId: number) {
       description: string,
       imageUri: string = "",
     ) => {
-      const { client, contractAddress, twChain } = await assertPoidhReady(ctx, bountyChainId);
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = prepareContractCall({
         contract,
         method: "createClaim",
         params: [BigInt(onChainBountyId), name, description, imageUri],
       });
-      await sendAndConfirm(state, client, twChain, tx);
+      await sendAndConfirm(state, client, twChain, writer, tx);
     },
     [ctx, bountyChainId, state],
   );
@@ -127,7 +156,7 @@ export function usePoidhCreateOpenBounty(bountyChainId: number) {
 
   const create = useCallback(
     async (name: string, description: string, rewardEth: string) => {
-      const { client, contractAddress, twChain } = await assertPoidhReady(ctx, bountyChainId);
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = prepareContractCall({
         contract,
@@ -135,7 +164,7 @@ export function usePoidhCreateOpenBounty(bountyChainId: number) {
         params: [name, description],
         value: parseEther(rewardEth),
       });
-      await sendAndConfirm(state, client, twChain, tx);
+      await sendAndConfirm(state, client, twChain, writer, tx);
     },
     [ctx, bountyChainId, state],
   );
@@ -151,7 +180,7 @@ export function usePoidhCreateSoloBounty(bountyChainId: number) {
 
   const create = useCallback(
     async (name: string, description: string, rewardEth: string) => {
-      const { client, contractAddress, twChain } = await assertPoidhReady(ctx, bountyChainId);
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = prepareContractCall({
         contract,
@@ -159,7 +188,7 @@ export function usePoidhCreateSoloBounty(bountyChainId: number) {
         params: [name, description],
         value: parseEther(rewardEth),
       });
-      await sendAndConfirm(state, client, twChain, tx);
+      await sendAndConfirm(state, client, twChain, writer, tx);
     },
     [ctx, bountyChainId, state],
   );
@@ -175,7 +204,7 @@ export function usePoidhJoinBounty(bountyChainId: number) {
 
   const join = useCallback(
     async (onChainBountyId: number, contributionEth: string) => {
-      const { client, contractAddress, twChain } = await assertPoidhReady(ctx, bountyChainId);
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = prepareContractCall({
         contract,
@@ -183,7 +212,7 @@ export function usePoidhJoinBounty(bountyChainId: number) {
         params: [BigInt(onChainBountyId)],
         value: parseEther(contributionEth),
       });
-      await sendAndConfirm(state, client, twChain, tx);
+      await sendAndConfirm(state, client, twChain, writer, tx);
     },
     [ctx, bountyChainId, state],
   );
@@ -199,7 +228,7 @@ export function usePoidhCancelBounty(bountyChainId: number) {
 
   const cancel = useCallback(
     async (onChainBountyId: number, isOpen: boolean) => {
-      const { client, contractAddress, twChain } = await assertPoidhReady(ctx, bountyChainId);
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = isOpen
         ? prepareContractCall({
@@ -212,7 +241,7 @@ export function usePoidhCancelBounty(bountyChainId: number) {
             method: "cancelSoloBounty",
             params: [BigInt(onChainBountyId)],
           });
-      await sendAndConfirm(state, client, twChain, tx);
+      await sendAndConfirm(state, client, twChain, writer, tx);
     },
     [ctx, bountyChainId, state],
   );
@@ -228,14 +257,14 @@ export function usePoidhWithdrawFromBounty(bountyChainId: number) {
 
   const withdraw = useCallback(
     async (onChainBountyId: number) => {
-      const { client, contractAddress, twChain } = await assertPoidhReady(ctx, bountyChainId);
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = prepareContractCall({
         contract,
         method: "withdrawFromOpenBounty",
         params: [BigInt(onChainBountyId)],
       });
-      await sendAndConfirm(state, client, twChain, tx);
+      await sendAndConfirm(state, client, twChain, writer, tx);
     },
     [ctx, bountyChainId, state],
   );
@@ -251,14 +280,14 @@ export function usePoidhSubmitClaimForVote(bountyChainId: number) {
 
   const submit = useCallback(
     async (onChainBountyId: number, claimId: number) => {
-      const { client, contractAddress, twChain } = await assertPoidhReady(ctx, bountyChainId);
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = prepareContractCall({
         contract,
         method: "submitClaimForVote",
         params: [BigInt(onChainBountyId), BigInt(claimId)],
       });
-      await sendAndConfirm(state, client, twChain, tx);
+      await sendAndConfirm(state, client, twChain, writer, tx);
     },
     [ctx, bountyChainId, state],
   );
@@ -274,14 +303,14 @@ export function usePoidhVoteClaim(bountyChainId: number) {
 
   const vote = useCallback(
     async (onChainBountyId: number, claimId: number, accept: boolean) => {
-      const { client, contractAddress, twChain } = await assertPoidhReady(ctx, bountyChainId);
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = prepareContractCall({
         contract,
         method: "voteClaim",
         params: [BigInt(onChainBountyId), BigInt(claimId), accept],
       });
-      await sendAndConfirm(state, client, twChain, tx);
+      await sendAndConfirm(state, client, twChain, writer, tx);
     },
     [ctx, bountyChainId, state],
   );
@@ -297,14 +326,14 @@ export function usePoidhResolveVote(bountyChainId: number) {
 
   const resolve = useCallback(
     async (onChainBountyId: number, claimId: number) => {
-      const { client, contractAddress, twChain } = await assertPoidhReady(ctx, bountyChainId);
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = prepareContractCall({
         contract,
         method: "resolveVote",
         params: [BigInt(onChainBountyId), BigInt(claimId)],
       });
-      await sendAndConfirm(state, client, twChain, tx);
+      await sendAndConfirm(state, client, twChain, writer, tx);
     },
     [ctx, bountyChainId, state],
   );
@@ -320,14 +349,14 @@ export function usePoidhAcceptClaim(bountyChainId: number) {
 
   const accept = useCallback(
     async (onChainBountyId: number, claimId: number) => {
-      const { client, contractAddress, twChain } = await assertPoidhReady(ctx, bountyChainId);
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = prepareContractCall({
         contract,
         method: "acceptClaim",
         params: [BigInt(onChainBountyId), BigInt(claimId)],
       });
-      await sendAndConfirm(state, client, twChain, tx);
+      await sendAndConfirm(state, client, twChain, writer, tx);
     },
     [ctx, bountyChainId, state],
   );

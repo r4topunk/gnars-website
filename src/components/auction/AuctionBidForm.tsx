@@ -6,13 +6,12 @@ import { concat, encodeFunctionData, formatEther, type Hex, parseEther, toHex } 
 import { base as wagmiBase } from "wagmi/chains";
 import { useBalance } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
-import { getContract, prepareContractCall, prepareTransaction } from "thirdweb";
+import { getContract, prepareContractCall, prepareTransaction, sendTransaction } from "thirdweb";
 import { base } from "thirdweb/chains";
 import {
   useActiveWallet,
   useActiveWalletChain,
   useConnectModal,
-  useSendTransaction,
 } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +30,7 @@ import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
 import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 
 interface AuctionBidFormProps {
   tokenId: bigint | undefined;
@@ -51,7 +51,7 @@ export function AuctionBidForm({
   const { address, isConnected } = useUserAddress();
   const activeChain = useActiveWalletChain();
   const wallet = useActiveWallet();
-  const sendTx = useSendTransaction();
+  const writer = useWriteAccount();
   const { connect: openConnectModal } = useConnectModal();
   const queryClient = useQueryClient();
 
@@ -173,6 +173,11 @@ export function AuctionBidForm({
     }
     if (!bidAmountWei || !tokenId || !isValidBid || insufficientBalance) return;
 
+    if (!writer) {
+      toast.error("Connect wallet first");
+      return;
+    }
+
     const client = getThirdwebClient();
     if (!client) {
       toast.error("Bid failed", { description: "Thirdweb client not configured." });
@@ -202,7 +207,10 @@ export function AuctionBidForm({
           client,
         });
 
-        const result = await sendTx.mutateAsync(tx);
+        const result = await sendTransaction({
+          account: writer.account,
+          transaction: tx,
+        });
         return result.transactionHash as `0x${string}`;
       }
 
@@ -220,7 +228,10 @@ export function AuctionBidForm({
         value: bidAmountWei,
       });
 
-      const result = await sendTx.mutateAsync(tx);
+      const result = await sendTransaction({
+        account: writer.account,
+        transaction: tx,
+      });
       return result.transactionHash as `0x${string}`;
     });
   };

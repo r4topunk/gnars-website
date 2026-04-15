@@ -4,13 +4,12 @@ import { useCallback, useEffect, useRef } from "react";
 import { Wallet } from "lucide-react";
 import { useReadContract, useSimulateContract } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
-import { getContract, prepareContractCall } from "thirdweb";
+import { getContract, prepareContractCall, sendTransaction } from "thirdweb";
 import { base } from "thirdweb/chains";
 import {
   useActiveWallet,
   useActiveWalletChain,
   useConnectModal,
-  useSendTransaction,
 } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -23,6 +22,7 @@ import auctionAbi from "@/utils/abis/auctionAbi";
 import { toast } from "sonner";
 import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 
 interface AuctionSettleButtonProps {
   /** Whether the connected wallet is the auction winner */
@@ -36,7 +36,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
   const { isConnected } = useUserAddress();
   const activeChain = useActiveWalletChain();
   const wallet = useActiveWallet();
-  const sendTx = useSendTransaction();
+  const writer = useWriteAccount();
   const { connect: openConnectModal } = useConnectModal();
   const queryClient = useQueryClient();
 
@@ -111,6 +111,11 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
       return;
     }
 
+    if (!writer) {
+      toast.error("Connect wallet first");
+      return;
+    }
+
     const client = getThirdwebClient();
     if (!client) {
       toast.error("Settlement failed", { description: "Thirdweb client not configured." });
@@ -137,7 +142,10 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
         params: [],
       });
 
-      const result = await sendTx.mutateAsync(tx);
+      const result = await sendTransaction({
+        account: writer.account,
+        transaction: tx,
+      });
       return result.transactionHash as `0x${string}`;
     });
   };
