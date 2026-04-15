@@ -1,6 +1,6 @@
 "use client";
 
-import { useActiveAccount, useActiveWallet } from "thirdweb/react";
+import { useActiveAccount, useActiveWallet, useAdminWallet } from "thirdweb/react";
 import type { Address } from "viem";
 import { useViewAccount, type ViewMode } from "@/components/layout/ViewAccountContext";
 
@@ -55,7 +55,23 @@ export interface UseUserAddressResult {
 export function useUserAddress(): UseUserAddressResult {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
-  const admin = wallet?.getAdminAccount?.();
+  const adminWallet = useAdminWallet();
+  // Detect inAppWallet sessions via the ADMIN wallet, not the active one.
+  // When `accountAbstraction` is enabled at the modal level, thirdweb
+  // wraps every chosen wallet in a SmartWallet, so `useActiveWallet().id`
+  // is always `"smart"` — even for social logins. The underlying wallet
+  // (reachable through `useAdminWallet`) is what distinguishes an inApp
+  // session from a MetaMask / Zerion / Coinbase one.
+  const isInAppWallet = adminWallet?.id === "inApp" || wallet?.id === "inApp";
+  // For inAppWallet sessions the "admin account" is thirdweb's enclave
+  // signer — an internal implementation detail the user has no awareness
+  // of. Treating it as a user-facing admin EOA would confuse the wallet
+  // panel (extra "Admin" row, view-as toggle), default the app into a
+  // fake EOA view, and most importantly route writes through an account
+  // that bypasses the SA wrap — breaking sponsored gas and tx semantics.
+  // Only surface the admin for external wallets (MetaMask / Zerion / etc.)
+  // where `getAdminAccount` actually points at the user's own EOA.
+  const admin = isInAppWallet ? undefined : wallet?.getAdminAccount?.();
   const { viewMode: storedViewMode } = useViewAccount();
 
   const saAddress = account?.address as Address | undefined;
@@ -77,7 +93,7 @@ export function useUserAddress(): UseUserAddressResult {
     saAddress,
     adminAddress,
     isConnected: Boolean(account),
-    isInAppWallet: wallet?.id === "inApp",
+    isInAppWallet,
     viewMode: effectiveViewMode,
     canSwitchView,
   };
