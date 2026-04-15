@@ -6,6 +6,7 @@ import { WagmiProvider, type Config } from "wagmi";
 import { ThirdwebProvider } from "thirdweb/react";
 import { getWagmiConfig } from "@/lib/wagmi";
 import { ThirdwebBootstrap } from "@/components/layout/ThirdwebBootstrap";
+import { ViewAccountProvider } from "@/components/layout/ViewAccountContext";
 
 // Create singleton instances outside component to prevent re-creation
 // This avoids duplicate provider warnings in development mode
@@ -48,7 +49,7 @@ export default function Providers({ children }: { children: ReactNode }) {
       <QueryClientProvider client={client}>
         <ThirdwebProvider>
           <ThirdwebBootstrap />
-          {children}
+          <ViewAccountProvider>{children}</ViewAccountProvider>
         </ThirdwebProvider>
       </QueryClientProvider>
     </WagmiProvider>

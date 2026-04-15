@@ -94,7 +94,10 @@ export interface DelegationStatus {
  *    `smartAccountAddress` undefined. `isSmartAccount` is false.
  */
 export function useDelegationStatus(): DelegationStatus {
-  const { address: activeAddress, adminAddress, isInAppWallet } = useUserAddress();
+  // Always use the raw SA / admin addresses — never the view-filtered
+  // `address`. The delegation flow needs to see both sides regardless of
+  // which one the user is "viewing as" in the wallet panel.
+  const { saAddress: activeAddress, adminAddress, isInAppWallet } = useUserAddress();
 
   const eoaAddress: Address | undefined = adminAddress ?? activeAddress;
   const isSmartAccount = Boolean(adminAddress) || isInAppWallet;

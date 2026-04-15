@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, LogOut, Settings, User } from "lucide-react";
+import { ArrowLeftRight, Check, Copy, LogOut, Settings, User } from "lucide-react";
 import { toast } from "sonner";
 import {
   useActiveWallet,
@@ -32,6 +32,7 @@ import { useDelegationStatus } from "@/hooks/use-delegation-status";
 import { useEoaDelegate } from "@/hooks/use-eoa-delegate";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useViewAccount } from "@/components/layout/ViewAccountContext";
 import { getThirdwebClient } from "@/lib/thirdweb";
 
 function shortAddress(addr: string | undefined) {
@@ -124,7 +125,9 @@ interface WalletPanelBodyProps {
 
 function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
   const router = useRouter();
-  const { adminAddress, isInAppWallet } = useUserAddress();
+  const { saAddress, adminAddress, isInAppWallet, viewMode, canSwitchView } =
+    useUserAddress();
+  const { toggleViewMode } = useViewAccount();
   const wallet = useActiveWallet();
   const { disconnect } = useDisconnect();
   const detailsModal = useWalletDetailsModal();
@@ -139,6 +142,9 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
   const isDelegationInFlight = eoaDelegate.isPending || eoaDelegate.isConfirming;
 
   const showAdmin = Boolean(adminAddress);
+  const viewingEoa = viewMode === "eoa" && canSwitchView;
+  const otherAddress = viewingEoa ? saAddress : adminAddress;
+  const switchLabel = viewingEoa ? "Switch to wallet" : "Switch to admin";
 
   const totalGnars =
     showAdmin && status.smartAccountTokenBalance !== undefined
@@ -215,10 +221,15 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
         <Row
           label={
             <span className="flex items-center gap-1.5">
-              Wallet
-              {showAdmin ? (
+              {viewingEoa ? "Admin" : "Wallet"}
+              {showAdmin && !viewingEoa ? (
                 <Badge variant="secondary" className="h-4 px-1.5 text-[10px] font-normal">
                   gasless
+                </Badge>
+              ) : null}
+              {viewingEoa ? (
+                <Badge variant="outline" className="h-4 px-1.5 text-[10px] font-normal">
+                  viewing
                 </Badge>
               ) : null}
             </span>
@@ -226,18 +237,34 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
           value={
             <CopyValue
               addr={address}
-              onCopy={() => handleCopyAddress(address, "Wallet address")}
+              onCopy={() =>
+                handleCopyAddress(address, viewingEoa ? "Admin address" : "Wallet address")
+              }
             />
           }
         />
 
-        {showAdmin && adminAddress ? (
+        {showAdmin && otherAddress ? (
           <Row
-            label="Admin"
+            label={
+              <span className="flex items-center gap-1.5">
+                {viewingEoa ? "Wallet" : "Admin"}
+                {viewingEoa ? (
+                  <Badge variant="secondary" className="h-4 px-1.5 text-[10px] font-normal">
+                    gasless
+                  </Badge>
+                ) : null}
+              </span>
+            }
             value={
               <CopyValue
-                addr={adminAddress}
-                onCopy={() => handleCopyAddress(adminAddress, "Admin address")}
+                addr={otherAddress}
+                onCopy={() =>
+                  handleCopyAddress(
+                    otherAddress,
+                    viewingEoa ? "Wallet address" : "Admin address",
+                  )
+                }
               />
             }
           />
@@ -313,6 +340,12 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
       <Separator />
 
       <div className="flex flex-col gap-2 p-4 sm:flex-row sm:flex-wrap sm:justify-end sm:p-6 sm:pt-4">
+        {canSwitchView ? (
+          <Button variant="outline" onClick={toggleViewMode}>
+            <ArrowLeftRight />
+            {switchLabel}
+          </Button>
+        ) : null}
         <Button variant="outline" onClick={handleProfile}>
           <User />
           Profile
