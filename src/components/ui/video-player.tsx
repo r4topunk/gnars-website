@@ -103,7 +103,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           return videoRef.current?.duration || 0;
         },
         play: () => {
-          videoRef.current?.play();
+          videoRef.current?.play().catch(() => {});
         },
         pause: () => {
           videoRef.current?.pause();

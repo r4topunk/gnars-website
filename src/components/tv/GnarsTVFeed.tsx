@@ -272,7 +272,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     const video = container?.querySelector("video");
     if (video) {
       if (video.paused) {
-        video.play();
+        video.play().catch(() => {});
         setIsPaused(false);
       } else {
         video.pause();
