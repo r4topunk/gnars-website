@@ -178,6 +178,12 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
       toast.error("Thirdweb client not configured");
       return;
     }
+    // Close our WalletDrawer before handing off to thirdweb's modal so
+    // the two Radix Dialogs don't stack. Stacking left the parent Dialog
+    // in a stuck state on dismiss — body `pointer-events: none` leaked
+    // from the inner modal's close transition and our trigger button
+    // ended up unclickable.
+    closePanel();
     // Open the Details modal directly on the linked-profiles screen and
     // hide the wallet switcher entirely. thirdweb's default "main" screen
     // lists every connected wallet — including the inAppWallet's internal
