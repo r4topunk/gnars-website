@@ -176,9 +176,21 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
       toast.error("Thirdweb client not configured");
       return;
     }
+    // Open the Details modal directly on the linked-profiles screen and
+    // hide the wallet switcher entirely. thirdweb's default "main" screen
+    // lists every connected wallet — including the inAppWallet's internal
+    // enclave signer (Google/Apple icon), the smart wrap, and any stale
+    // wallets from previous sessions. `hiddenWallets` only applies to the
+    // Connect picker, not the already-connected list, so the only way to
+    // suppress the confusing multi-wallet view is to jump straight to the
+    // linking UI, which is the only thing inApp users need this modal for
+    // anyway. The "Manage account" button that opens this is already
+    // gated on `isInAppWallet` in the drawer footer.
     detailsModal.open({
       client,
       manageWallet: { allowLinkingProfiles: true },
+      screen: "linked-profiles",
+      hideSwitchWallet: true,
     });
   };
 
