@@ -3,7 +3,6 @@
 import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -172,74 +171,93 @@ export function MemberQuickStats({
       {showSmartAccountCard && smartAccountAddress ? (
         <Card className="mt-6">
           <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              Smart account
+            </CardTitle>
             <CardDescription>
               An onchain account that signs Gnars transactions on behalf of the wallet. Gas is
               sponsored by the DAO.
             </CardDescription>
-            <CardTitle className="text-base">Smart account</CardTitle>
             <CardAction>
               <Badge variant="secondary">gasless</Badge>
             </CardAction>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Button
-              variant="outline"
-              className="w-full justify-between font-mono text-xs"
-              onClick={() => handleCopy(smartAccountAddress, "Smart account address")}
-            >
-              <span>{shortAddress(smartAccountAddress)}</span>
-              <Copy />
-            </Button>
 
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-lg border p-3">
-                <div className="text-xs text-muted-foreground">Gnars at wallet</div>
-                <div className="mt-1 text-xl font-semibold tabular-nums">{eoaCount}</div>
-              </div>
-              <div className="rounded-lg border p-3">
-                <div className="text-xs text-muted-foreground">Gnars at smart account</div>
-                <div className="mt-1 text-xl font-semibold tabular-nums">
-                  {smartAccountTokenCount}
-                </div>
-              </div>
+          <CardContent className="space-y-4">
+            {/* Address row — read-only pill with inline copy action */}
+            <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/30 px-3 py-2">
+              <span className="min-w-0 flex-1 select-all break-all font-mono text-xs text-muted-foreground">
+                {smartAccountAddress}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 shrink-0"
+                onClick={() => handleCopy(smartAccountAddress, "Smart account address")}
+              >
+                <Copy className="size-3.5" />
+                <span className="sr-only">Copy smart account address</span>
+              </Button>
             </div>
 
-            {isOwnProfile ? (
-              delegationStatus.isDelegatedToSmartAccount ? (
-                <Alert>
-                  <Check />
-                  <AlertTitle>Voting power delegated</AlertTitle>
-                  <AlertDescription>
-                    Your votes flow through your smart account.
-                  </AlertDescription>
-                </Alert>
-              ) : delegationStatus.needsSmartAccountDelegation ? (
-                <Alert>
-                  <AlertTitle>Action recommended</AlertTitle>
-                  <AlertDescription>
-                    <p>
-                      Delegate the voting power of your{" "}
-                      {delegationStatus.eoaTokenBalance?.toString() ?? "0"}{" "}
-                      {delegationStatus.eoaTokenBalance === 1n ? "Gnar" : "Gnars"} to your smart
-                      account so you can vote through the new flow.
-                    </p>
-                    <Button
-                      size="sm"
-                      className="mt-2 w-full"
-                      onClick={handleDelegateToSmart}
-                      disabled={isDelegating || !delegationStatus.smartAccountAddress}
-                    >
-                      {isDelegating ? "Delegating…" : "Delegate voting power"}
-                    </Button>
-                  </AlertDescription>
-                </Alert>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  Voting via smart account is not enabled yet.
-                </p>
-              )
-            ) : null}
+            {/* Stats — nested section cards using the dashboard-01 pattern */}
+            <div className="grid grid-cols-2 gap-3">
+              <Card className="bg-muted/30 shadow-none">
+                <CardHeader className="gap-1">
+                  <CardDescription className="text-xs">Gnars at wallet</CardDescription>
+                  <CardTitle className="text-2xl font-semibold tabular-nums">
+                    {eoaCount}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="bg-muted/30 shadow-none">
+                <CardHeader className="gap-1">
+                  <CardDescription className="text-xs">Gnars at smart account</CardDescription>
+                  <CardTitle className="text-2xl font-semibold tabular-nums">
+                    {smartAccountTokenCount}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+            </div>
           </CardContent>
+
+          {/* Action state — footer keeps the CTA visually separated from the
+              info block and gives the card a clean top-to-bottom reading order:
+              what it is → what it holds → what you can do about it. */}
+          {isOwnProfile ? (
+            delegationStatus.isDelegatedToSmartAccount ? (
+              <CardFooter className="flex items-center gap-2 border-t pt-4 text-sm">
+                <Check className="size-4 text-muted-foreground" />
+                <span className="text-muted-foreground">
+                  Voting power delegated to your smart account
+                </span>
+              </CardFooter>
+            ) : delegationStatus.needsSmartAccountDelegation ? (
+              <CardFooter className="flex-col items-stretch gap-3 border-t pt-4">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Action recommended</p>
+                  <p className="text-xs text-muted-foreground">
+                    Delegate the voting power of your{" "}
+                    {delegationStatus.eoaTokenBalance?.toString() ?? "0"}{" "}
+                    {delegationStatus.eoaTokenBalance === 1n ? "Gnar" : "Gnars"} to your smart
+                    account so you can vote through the new flow.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={handleDelegateToSmart}
+                  disabled={isDelegating || !delegationStatus.smartAccountAddress}
+                >
+                  {isDelegating ? "Delegating…" : "Delegate voting power"}
+                </Button>
+              </CardFooter>
+            ) : (
+              <CardFooter className="border-t pt-4 text-xs text-muted-foreground">
+                Voting via smart account is not enabled yet.
+              </CardFooter>
+            )
+          ) : null}
         </Card>
       ) : null}
     </>
