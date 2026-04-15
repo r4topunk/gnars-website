@@ -5,13 +5,13 @@ import { toast } from "sonner";
 import { parseEther } from "viem";
 import { useSimulateContract } from "wagmi";
 import { base as wagmiBase } from "wagmi/chains";
-import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { zoraNftMintAbi, ZORA_PROTOCOL_REWARD } from "@/utils/abis/zoraNftMintAbi";
 
 const MINT_REFERRAL = DAO_ADDRESSES.treasury as `0x${string}`;
@@ -34,8 +34,7 @@ export function useMintDroposal({
 }: UseMintDroposalArgs) {
   const [mintStatus, setMintStatus] = useState<MintStatus>("idle");
   const { address, isConnected } = useUserAddress();
-  const wallet = useActiveWallet();
-  const sendTx = useSendTransaction();
+  const writer = useWriteAccount();
 
   const isValidTokenAddress =
     tokenAddress &&
@@ -71,6 +70,13 @@ export function useMintDroposal({
         return;
       }
 
+      if (!writer) {
+        toast.error("Unable to mint", {
+          description: "Please connect your wallet first.",
+        });
+        return;
+      }
+
       const client = getThirdwebClient();
       if (!client) {
         toast.error("Unable to mint", {
@@ -82,7 +88,7 @@ export function useMintDroposal({
       try {
         setMintStatus("confirming-wallet");
 
-        await ensureOnChain(wallet, base);
+        await ensureOnChain(writer.wallet, base);
 
         toast.loading("Confirm in your wallet...", {
           id: MINT_TOAST_ID,
@@ -107,7 +113,10 @@ export function useMintDroposal({
           value: totalPrice,
         });
 
-        const result = await sendTx.mutateAsync(tx);
+        const result = await sendTransaction({
+          account: writer.account,
+          transaction: tx,
+        });
         const txHash = result.transactionHash as `0x${string}`;
 
         setMintStatus("pending-tx");
@@ -169,11 +178,11 @@ export function useMintDroposal({
         }, 100);
       }
     },
-    [isReady, tokenAddress, address, isConnected, wallet, sendTx, priceEth, onSuccess, onError],
+    [isReady, tokenAddress, address, isConnected, writer, priceEth, onSuccess, onError],
   );
 
   const isPending =
-    mintStatus === "confirming-wallet" || mintStatus === "pending-tx" || sendTx.isPending;
+    mintStatus === "confirming-wallet" || mintStatus === "pending-tx";
 
   return {
     isConnected,

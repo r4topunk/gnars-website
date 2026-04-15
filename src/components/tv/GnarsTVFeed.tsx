@@ -7,15 +7,16 @@ import type { TradeParameters } from "@zoralabs/coins-sdk";
 import { toast } from "sonner";
 import { createPublicClient, http, parseEther, type PublicClient, type WalletClient } from "viem";
 import { base as viemBase } from "viem/chains";
-import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { viemAdapter } from "thirdweb/adapters/viem";
-import { useActiveAccount, useActiveWallet, useSendTransaction } from "thirdweb/react";
+import { useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { useMiniApp } from "@/components/miniapp/MiniAppProvider";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { ZORA_PROTOCOL_REWARD, zoraNftMintAbi } from "@/utils/abis/zoraNftMintAbi";
 import { TVControls } from "./TVControls";
 import { TVHeader } from "./TVHeader";
@@ -91,7 +92,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   const { address, isConnected } = useUserAddress();
   const thirdwebAccount = useActiveAccount();
   const wallet = useActiveWallet();
-  const sendTx = useSendTransaction();
+  const writer = useWriteAccount();
   const { isInMiniApp, share: miniAppShare } = useMiniApp();
 
   // Fetch TV feed data
@@ -554,7 +555,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   // Mint droposal handler - mints directly from TV feed
   const handleMintDroposal = useCallback(
     async (item: TVItem, quantity: number) => {
-      if (!isConnected || !address) {
+      if (!isConnected || !address || !writer) {
         toast.error("Please connect your wallet first");
         return;
       }
@@ -570,7 +571,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
 
       try {
         toast.loading("Switching to Base network...", { id: mintToast });
-        await ensureOnChain(wallet, base);
+        await ensureOnChain(writer.wallet, base);
 
         toast.loading("Resolving NFT contract...", { id: mintToast });
         const tokenAddress = await resolveTokenAddress(item);
@@ -606,7 +607,10 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
           value: totalPrice,
         });
 
-        const result = await sendTx.mutateAsync(tx);
+        const result = await sendTransaction({
+          account: writer.account,
+          transaction: tx,
+        });
         const txHash = result.transactionHash as `0x${string}`;
 
         toast.loading("Waiting for confirmation...", { id: mintToast });
@@ -647,7 +651,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         setIsBuying(false);
       }
     },
-    [isConnected, address, wallet, sendTx, resolveTokenAddress],
+    [isConnected, address, writer, resolveTokenAddress],
   );
 
   return (

@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { createTradeCall, type TradeParameters } from "@zoralabs/coins-sdk";
 import { type Address, encodeFunctionData, type Hex, type PublicClient } from "viem";
-import { prepareTransaction, waitForReceipt } from "thirdweb";
+import { prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { viemAdapter } from "thirdweb/adapters/viem";
-import { useSendTransaction } from "thirdweb/react";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 
 const MULTICALL3: Address = "0xcA11bde05977b3631167028862bE2a173976CA11";
 
@@ -72,6 +72,7 @@ export function useBatchCoinPurchase({
   onError,
 }: UseBatchCoinPurchaseParams) {
   const { address: userAddress } = useUserAddress();
+  const writer = useWriteAccount();
   const [isPreparingSwaps, setIsPreparingSwaps] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -80,10 +81,15 @@ export function useBatchCoinPurchase({
   const [preparedCalls, setPreparedCalls] = useState<MulticallCall[]>([]);
   const [totalValue, setTotalValue] = useState<bigint>(BigInt(0));
 
-  const sendTx = useSendTransaction();
-
   const executeBatchPurchase = async () => {
     if (!userAddress) {
+      const err = new Error("Wallet not connected");
+      setError(err);
+      onError?.(err);
+      throw err;
+    }
+
+    if (!writer) {
       const err = new Error("Wallet not connected");
       setError(err);
       onError?.(err);
@@ -177,7 +183,10 @@ export function useBatchCoinPurchase({
         client,
       });
 
-      const result = await sendTx.mutateAsync(tx);
+      const result = await sendTransaction({
+        account: writer.account,
+        transaction: tx,
+      });
       const hash = result.transactionHash as `0x${string}`;
 
       setTxHash(hash);

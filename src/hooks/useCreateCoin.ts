@@ -12,10 +12,10 @@
 
 import { useState } from "react";
 import { type Address, decodeEventLog, encodeFunctionData, type Hex, keccak256, toBytes } from "viem";
-import { prepareTransaction, waitForReceipt } from "thirdweb";
+import { prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useSendTransaction } from "thirdweb/react";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import {
   createCoinCall,
   createMetadataBuilder,
@@ -153,12 +153,13 @@ export interface CoinDeploymentData {
 
 export function useCreateCoin() {
   const { address: userAddress } = useUserAddress();
-  const sendTx = useSendTransaction();
+  const writer = useWriteAccount();
 
   const [deployedCoinAddress, setDeployedCoinAddress] = useState<Address | null>(null);
   const [deploymentData, setDeploymentData] = useState<CoinDeploymentData | null>(null);
   const [transactionHash, setTransactionHash] = useState<Hex | undefined>(undefined);
   const [isPreparingTransaction, setIsPreparingTransaction] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -177,6 +178,10 @@ export function useCreateCoin() {
     } = params;
 
     if (!userAddress) {
+      throw new Error("No wallet connected. Please connect your wallet first.");
+    }
+
+    if (!writer) {
       throw new Error("No wallet connected. Please connect your wallet first.");
     }
 
@@ -322,7 +327,12 @@ export function useCreateCoin() {
         client,
       });
 
-      const sendResult = await sendTx.mutateAsync(tx);
+      setIsSending(true);
+      const sendResult = await sendTransaction({
+        account: writer.account,
+        transaction: tx,
+      });
+      setIsSending(false);
       const txHash = sendResult.transactionHash as Hex;
       setTransactionHash(txHash);
 
@@ -373,24 +383,25 @@ export function useCreateCoin() {
       }
     } catch (error) {
       setIsPreparingTransaction(false);
+      setIsSending(false);
       setIsConfirming(false);
       throw error;
     }
   };
 
   const resetHook = () => {
-    sendTx.reset();
     setDeployedCoinAddress(null);
     setDeploymentData(null);
     setTransactionHash(undefined);
     setIsPreparingTransaction(false);
+    setIsSending(false);
     setIsConfirming(false);
     setIsSuccess(false);
   };
 
   return {
     createCoin,
-    isPending: sendTx.isPending || isConfirming,
+    isPending: isSending || isConfirming,
     isPreparingTransaction,
     isSuccess,
     transactionHash,

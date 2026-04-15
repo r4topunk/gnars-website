@@ -6,12 +6,13 @@ import { type Address, parseEther } from "viem";
 import {
   getContract,
   prepareContractCall,
+  sendTransaction,
   type ThirdwebClient,
   waitForReceipt,
 } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import {
   getGnarlyRejectionMessage,
   isUserRejection,
@@ -44,8 +45,7 @@ export function useLootboxActions({
   setPendingLabel,
 }: UseLootboxActionsOptions) {
   const { address, isConnected } = useUserAddress();
-  const wallet = useActiveWallet();
-  const sendTx = useSendTransaction();
+  const writer = useWriteAccount();
 
   /**
    * Shared plumbing for every lootbox write. The caller provides a label
@@ -61,7 +61,7 @@ export function useLootboxActions({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       prepareFn: (client: ThirdwebClient) => any,
     ): Promise<`0x${string}` | null> => {
-      if (!isConnected || !address) {
+      if (!isConnected || !address || !writer) {
         toast.error("Connect your wallet to continue.");
         return null;
       }
@@ -75,9 +75,12 @@ export function useLootboxActions({
 
       setPendingLabel(label);
       try {
-        await ensureOnChain(wallet, base);
+        await ensureOnChain(writer.wallet, base);
         const tx = prepareFn(client);
-        const result = await sendTx.mutateAsync(tx);
+        const result = await sendTransaction({
+          account: writer.account,
+          transaction: tx,
+        });
         setPendingHash(result.transactionHash as `0x${string}`);
         return result.transactionHash as `0x${string}`;
       } catch (err) {
@@ -93,7 +96,7 @@ export function useLootboxActions({
         return null;
       }
     },
-    [address, isConnected, wallet, sendTx, setPendingHash, setPendingLabel],
+    [address, isConnected, writer, setPendingHash, setPendingLabel],
   );
 
   const handleOpenFlex = useCallback(
