@@ -12,13 +12,29 @@ import { fetchMemberOverview } from "@/services/members";
 export const dynamic = "force-dynamic";
 
 /**
- * Minimal ABI for detecting + resolving the admin of a thirdweb EIP-4337
- * smart account. Standard account implementations expose `owner()` —
- * multi-sig variants expose `getAllSigners()` but we only handle the
- * common single-owner case. If the call reverts we gracefully fall
- * through to rendering the contract address as-is.
+ * Minimal ABIs covering the common ways a thirdweb EIP-4337 smart account
+ * exposes its admin signer. Try each in order until one works.
+ *
+ * - `getAllAdmins() → address[]` — thirdweb's IAccountPermissions, used
+ *   by DEFAULT_ACCOUNT_FACTORY_V0_6 / _V0_7 deployed accounts. First
+ *   element is the primary admin (the EOA that signed the account
+ *   creation).
+ * - `owner() → address` — OpenZeppelin-style Ownable accounts and a few
+ *   non-thirdweb implementations.
+ * - `adminSigner() → address` — an older thirdweb factory variant that
+ *   stored the single admin directly.
  */
-const ACCOUNT_OWNER_ABI = [
+const GET_ALL_ADMINS_ABI = [
+  {
+    name: "getAllAdmins",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "address[]", name: "" }],
+  },
+] as const;
+
+const OWNER_ABI = [
   {
     name: "owner",
     type: "function",
@@ -28,28 +44,74 @@ const ACCOUNT_OWNER_ABI = [
   },
 ] as const;
 
+const ADMIN_SIGNER_ABI = [
+  {
+    name: "adminSigner",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "address", name: "" }],
+  },
+] as const;
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 /**
  * Detects whether the given address is a deployed contract on Base and,
- * if so, attempts to read `owner()` to find the admin EOA. Returns the
- * resolved EOA address when successful, `null` when the address is an
- * EOA to begin with, and `undefined` when the contract doesn't expose
- * an owner (unknown account implementation).
+ * if so, attempts to read its admin EOA via one of the standard thirdweb
+ * account patterns. Returns the resolved EOA address when successful,
+ * `null` when the address is an EOA to begin with, and `undefined` when
+ * none of the known patterns produce a usable admin.
  */
 async function resolveSmartAccountOwner(
   address: Address,
 ): Promise<Address | null | undefined> {
+  let code: `0x${string}` | undefined;
   try {
-    const code = await serverPublicClient.getCode({ address });
-    if (!code || code === "0x") return null; // EOA
-    const owner = (await serverPublicClient.readContract({
-      address,
-      abi: ACCOUNT_OWNER_ABI,
-      functionName: "owner",
-    })) as Address;
-    return owner;
+    code = await serverPublicClient.getCode({ address });
   } catch {
     return undefined;
   }
+  if (!code || code === "0x") return null; // EOA
+
+  // 1) thirdweb IAccountPermissions
+  try {
+    const admins = (await serverPublicClient.readContract({
+      address,
+      abi: GET_ALL_ADMINS_ABI,
+      functionName: "getAllAdmins",
+    })) as readonly Address[];
+    const first = admins.find((a) => a && a.toLowerCase() !== ZERO_ADDRESS);
+    if (first) return first;
+  } catch {
+    // fall through
+  }
+
+  // 2) OpenZeppelin Ownable
+  try {
+    const owner = (await serverPublicClient.readContract({
+      address,
+      abi: OWNER_ABI,
+      functionName: "owner",
+    })) as Address;
+    if (owner && owner.toLowerCase() !== ZERO_ADDRESS) return owner;
+  } catch {
+    // fall through
+  }
+
+  // 3) legacy thirdweb adminSigner
+  try {
+    const admin = (await serverPublicClient.readContract({
+      address,
+      abi: ADMIN_SIGNER_ABI,
+      functionName: "adminSigner",
+    })) as Address;
+    if (admin && admin.toLowerCase() !== ZERO_ADDRESS) return admin;
+  } catch {
+    // fall through
+  }
+
+  return undefined;
 }
 
 interface MemberPageProps {
