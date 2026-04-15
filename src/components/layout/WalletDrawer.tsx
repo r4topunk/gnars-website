@@ -6,6 +6,7 @@ import { ArrowLeftRight, Check, Copy, LogOut, Settings, User } from "lucide-reac
 import { toast } from "sonner";
 import {
   useActiveWallet,
+  useConnectedWallets,
   useDisconnect,
   useWalletDetailsModal,
 } from "thirdweb/react";
@@ -129,6 +130,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
     useUserAddress();
   const { toggleViewMode } = useViewAccount();
   const wallet = useActiveWallet();
+  const connectedWallets = useConnectedWallets();
   const { disconnect } = useDisconnect();
   const detailsModal = useWalletDetailsModal();
   const status = useDelegationStatus();
@@ -200,7 +202,19 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
       return;
     }
     try {
-      disconnect(wallet);
+      // Disconnect every wallet currently in thirdweb's connection
+      // manager, not just the active one. The active smart wrap holds a
+      // personal signer that stays in the manager unless we clean it up
+      // explicitly — otherwise `useAutoConnect` will revive the stale
+      // session on next page load and the user ends up "connected" to
+      // the wallet they just disconnected from.
+      for (const w of connectedWallets) {
+        try {
+          disconnect(w);
+        } catch {
+          // best effort per wallet
+        }
+      }
       closePanel();
       toast("Disconnected");
     } catch (err: unknown) {

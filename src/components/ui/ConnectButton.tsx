@@ -1,7 +1,11 @@
 "use client";
 
 import { Wallet } from "lucide-react";
-import { useConnectModal } from "thirdweb/react";
+import {
+  useConnectModal,
+  useConnectedWallets,
+  useDisconnect,
+} from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { WalletDrawer } from "@/components/layout/WalletDrawer";
 import { useUserAddress } from "@/hooks/use-user-address";
@@ -11,6 +15,8 @@ import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 export function ConnectButton() {
   const { isConnected } = useUserAddress();
   const { connect, isConnecting } = useConnectModal();
+  const connectedWallets = useConnectedWallets();
+  const { disconnect } = useDisconnect();
   const client = getThirdwebClient();
 
   if (isConnected) return <WalletDrawer />;
@@ -18,13 +24,29 @@ export function ConnectButton() {
   const handleConnect = async () => {
     if (!client) return;
     try {
-      await connect({
+      const nextWallet = await connect({
         client,
         wallets: THIRDWEB_WALLETS,
         accountAbstraction: THIRDWEB_AA_CONFIG,
         size: "compact",
         title: "Connect to Gnars",
       });
+
+      // Clean up any stale wallets left in thirdweb's connection manager
+      // from previous sessions. When users swap between social login and
+      // an external wallet without a full page reload, the old entries
+      // linger — `useAdminWallet` can then resolve to the wrong signer
+      // and our isInAppWallet detection lies about the active identity.
+      // Keep only the wallet returned by the connect modal.
+      for (const stale of connectedWallets) {
+        if (stale !== nextWallet) {
+          try {
+            disconnect(stale);
+          } catch {
+            // best effort
+          }
+        }
+      }
     } catch {
       // User dismissed the modal — nothing to do.
     }
