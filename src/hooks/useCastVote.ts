@@ -5,12 +5,18 @@ import { toast } from "sonner";
 import { type Address, type Hex } from "viem";
 import { base as wagmiBase } from "wagmi/chains";
 import { useSimulateContract } from "wagmi";
-import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
+import {
+  getContract,
+  prepareContractCall,
+  readContract,
+  sendTransaction,
+  waitForReceipt,
+} from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveAccount, useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
@@ -21,6 +27,33 @@ const supportMap: Record<VoteChoice, bigint> = {
   ABSTAIN: 2n,
 };
 
+// Minimal ABIs for the pre-check reads. The governor uses timestamp-based
+// clock mode (ERC-6372), so proposalSnapshot() returns a timestamp that
+// feeds directly into the token's getPastVotes(). Keeping these inline
+// avoids widening the shared governor ABI for a single read path.
+const governorSnapshotAbi = [
+  {
+    name: "proposalSnapshot",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "_proposalId", type: "bytes32" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+] as const;
+
+const tokenGetPastVotesAbi = [
+  {
+    name: "getPastVotes",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "account", type: "address" },
+      { name: "timepoint", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+] as const;
+
 export interface UseCastVoteArgs {
   proposalId?: Hex;
   onSubmitted?: (txHash: Hex) => void;
@@ -28,10 +61,14 @@ export interface UseCastVoteArgs {
 }
 
 export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteArgs) {
-  const account = useActiveAccount();
-  const wallet = useActiveWallet();
+  const writer = useWriteAccount();
   const governorAddress = DAO_ADDRESSES.governor as Address;
-  const address = account?.address as Address | undefined;
+  const tokenAddress = DAO_ADDRESSES.token as Address;
+
+  // Expose the effective signer so callers (VotingControls) can attribute
+  // the onSuccess voter to the actual tx signer, which may be the admin
+  // EOA or the smart account depending on view mode.
+  const address = writer?.account.address as Address | undefined;
   const isConnected = Boolean(address);
 
   const isReady = Boolean(proposalId) && isConnected;
@@ -46,11 +83,10 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
     chainId: wagmiBase.id,
   });
 
-  const sendTx = useSendTransaction();
   const [pendingHash, setPendingHash] = useState<Hex | undefined>(undefined);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const isPending = sendTx.isPending;
+  const [isPending, setIsPending] = useState(false);
 
   const castVote = useCallback(
     async (choice: VoteChoice, reason?: string) => {
@@ -59,7 +95,7 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
         toast.error("Unable to vote", { description: "Thirdweb client not configured." });
         return;
       }
-      if (!isReady || !proposalId || !account) {
+      if (!isReady || !proposalId || !writer) {
         toast.error("Unable to vote", { description: "Connect wallet and refresh." });
         return;
       }
@@ -70,9 +106,50 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
       setPendingHash(undefined);
       setIsConfirming(false);
       setIsConfirmed(false);
+      setIsPending(true);
 
       try {
-        await ensureOnChain(wallet, base);
+        // Pre-check: make sure the signer actually has voting power at the
+        // proposal's snapshot. In eoa view this reads from the EOA (where
+        // Gnars typically live); in sa view it reads from the smart account
+        // (usually self-delegated). Either way, if the signer has zero
+        // voting power we bail before prompting the wallet.
+        const governorReadContract = getContract({
+          client,
+          chain: base,
+          address: governorAddress,
+          abi: governorSnapshotAbi,
+        });
+
+        const snapshot = await readContract({
+          contract: governorReadContract,
+          method: "proposalSnapshot",
+          params: [proposalId],
+        });
+
+        const tokenReadContract = getContract({
+          client,
+          chain: base,
+          address: tokenAddress,
+          abi: tokenGetPastVotesAbi,
+        });
+
+        const priorVotes = await readContract({
+          contract: tokenReadContract,
+          method: "getPastVotes",
+          params: [writer.account.address as Address, snapshot],
+        });
+
+        if (priorVotes === 0n) {
+          setIsPending(false);
+          toast.error("No voting power", {
+            description:
+              "Your current signer has no voting power at this proposal's snapshot. If your Gnars are delegated, switch view in the wallet panel or cancel delegation to vote directly.",
+          });
+          return;
+        }
+
+        await ensureOnChain(writer.wallet, base);
 
         const contract = getContract({
           client,
@@ -94,10 +171,14 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
                 params: [proposalId, supportValue],
               });
 
-        const result = await sendTx.mutateAsync(tx);
+        const result = await sendTransaction({
+          account: writer.account,
+          transaction: tx,
+        });
         const txHash = result.transactionHash as Hex;
 
         setPendingHash(txHash);
+        setIsPending(false);
         onSubmitted?.(txHash);
 
         toast("Vote submitted", {
@@ -111,6 +192,7 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
 
         onSuccess?.(txHash, choice);
       } catch (err) {
+        setIsPending(false);
         setIsConfirming(false);
         const { category, message } = normalizeTxError(err);
         if (category === "user-rejected") {
@@ -126,7 +208,7 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
         toast.error("Vote failed", { description: message });
       }
     },
-    [account, wallet, governorAddress, isReady, onSubmitted, onSuccess, proposalId, sendTx],
+    [writer, governorAddress, tokenAddress, isReady, onSubmitted, onSuccess, proposalId],
   );
 
   return {

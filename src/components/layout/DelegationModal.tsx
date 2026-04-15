@@ -19,7 +19,7 @@
 import * as React from "react";
 import { Copy, ExternalLink, Loader2, UserCheck } from "lucide-react";
 import { toast } from "sonner";
-import { Address } from "viem";
+import { Address, Hex } from "viem";
 import { useReadContracts } from "wagmi";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +50,10 @@ export function DelegationModal({
   initialDelegateAddress,
 }: DelegationModalProps) {
   const { address, isConnected } = useUserAddress();
+  // `useDelegate` now respects `viewMode` via `useWriteAccount`, so when
+  // the user is in eoa view the delegate tx is signed directly by the
+  // admin EOA (where the NFTs actually live). sa view keeps signing from
+  // the active account. No branching needed at the component level.
   const [delegateAddress, setDelegateAddress] = React.useState("");
   const [isChanging, setIsChanging] = React.useState(false);
 
@@ -89,18 +93,19 @@ export function DelegationModal({
     enabled: open,
   });
 
-  // Delegation hook
+  const onDelegateSuccess = (_txHash: Hex, delegatee: Address) => {
+    toast.success("Delegation updated!", {
+      description: `Successfully delegated to ${formatAddress(delegatee)}`,
+    });
+    setIsChanging(false);
+    // Keep modal open to show confirmation
+    setTimeout(() => {
+      onOpenChange(false);
+    }, 2000);
+  };
+
   const { delegate, isPending, isConfirming, isConfirmed, pendingHash } = useDelegate({
-    onSuccess: (txHash, delegatee) => {
-      toast.success("Delegation updated!", {
-        description: `Successfully delegated to ${formatAddress(delegatee)}`,
-      });
-      setIsChanging(false);
-      // Keep modal open to show confirmation
-      setTimeout(() => {
-        onOpenChange(false);
-      }, 2000);
-    },
+    onSuccess: onDelegateSuccess,
   });
 
   const currentDelegate = votesData.delegatedTo;

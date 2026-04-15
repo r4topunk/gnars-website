@@ -3,9 +3,8 @@
 import { useCallback, useState } from "react";
 import { useSimulateContract } from "wagmi";
 import { Loader2 } from "lucide-react";
-import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveAccount, useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -22,6 +21,7 @@ import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { toast } from "sonner";
 
 export interface ExecuteProposalButtonProps {
@@ -49,9 +49,7 @@ export function ExecuteProposalButton({
 }: ExecuteProposalButtonProps) {
   const [isPending, setIsPending] = useState(false);
   const [open, setOpen] = useState(false);
-  const account = useActiveAccount();
-  const wallet = useActiveWallet();
-  const sendTx = useSendTransaction();
+  const writer = useWriteAccount();
 
   const { data: simulateData, isError: simulateError } = useSimulateContract({
     address: DAO_ADDRESSES.governor as `0x${string}`,
@@ -71,7 +69,7 @@ export function ExecuteProposalButton({
       });
       return;
     }
-    if (!account) {
+    if (!writer) {
       toast.error("Connect wallet to execute proposal", { id: proposalId });
       return;
     }
@@ -80,7 +78,7 @@ export function ExecuteProposalButton({
       setIsPending(true);
       toast.loading("Submitting execute transaction...", { id: proposalId });
 
-      await ensureOnChain(wallet, base);
+      await ensureOnChain(writer.wallet, base);
 
       const contract = getContract({
         client,
@@ -95,7 +93,10 @@ export function ExecuteProposalButton({
         params: args,
       });
 
-      const result = await sendTx.mutateAsync(tx);
+      const result = await sendTransaction({
+        account: writer.account,
+        transaction: tx,
+      });
       const txHash = result.transactionHash as `0x${string}`;
 
       toast.loading("Waiting for confirmation...", { id: proposalId });
@@ -116,7 +117,7 @@ export function ExecuteProposalButton({
         toast.error(`Failed to execute proposal: ${message}`, { id: proposalId });
       }
     }
-  }, [account, wallet, args, proposalId, sendTx, onSuccess]);
+  }, [writer, args, proposalId, onSuccess]);
 
   const isDisabled = disabled || isPending || simulateError || !simulateData;
 

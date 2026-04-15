@@ -3,11 +3,12 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { type Address, type Hex, isAddress } from "viem";
-import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveAccount, useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
+import { ensureOnChain } from "@/lib/thirdweb-tx";
+import { useWriteAccount } from "@/hooks/use-write-account";
 
 export interface UseDelegateArgs {
   onSubmitted?: (txHash: Hex) => void;
@@ -15,16 +16,13 @@ export interface UseDelegateArgs {
 }
 
 export function useDelegate({ onSubmitted, onSuccess }: UseDelegateArgs = {}) {
-  const account = useActiveAccount();
-  const wallet = useActiveWallet();
+  const writer = useWriteAccount();
   const tokenAddress = DAO_ADDRESSES.token as Address;
 
-  const sendTx = useSendTransaction();
+  const [isPending, setIsPending] = useState(false);
   const [pendingHash, setPendingHash] = useState<Hex | undefined>(undefined);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
-
-  const isPending = sendTx.isPending;
 
   const delegate = useCallback(
     async (delegatee: string) => {
@@ -37,7 +35,7 @@ export function useDelegate({ onSubmitted, onSuccess }: UseDelegateArgs = {}) {
         return;
       }
 
-      if (!account?.address) {
+      if (!writer) {
         toast.error("Unable to delegate", {
           description: "Connect wallet and refresh.",
         });
@@ -56,12 +54,14 @@ export function useDelegate({ onSubmitted, onSuccess }: UseDelegateArgs = {}) {
       setPendingHash(undefined);
       setIsConfirming(false);
       setIsConfirmed(false);
+      setIsPending(true);
 
       try {
-        if (wallet && wallet.getChain()?.id !== base.id) {
-          toast.info("Switching to Base network...");
-          await wallet.switchChain(base);
-        }
+        // Chain-switch on the underlying wallet. When the writer is the
+        // admin EOA (eoa view), the underlying wallet is still the AA wrap
+        // and `ensureOnChain` targets the wallet instance — same behavior
+        // as `use-eoa-delegate` to keep the EIP1193 provider aligned.
+        await ensureOnChain(writer.wallet, base);
 
         const contract = getContract({
           client,
@@ -75,10 +75,14 @@ export function useDelegate({ onSubmitted, onSuccess }: UseDelegateArgs = {}) {
           params: [delegateeAddress],
         });
 
-        const result = await sendTx.mutateAsync(tx);
+        const result = await sendTransaction({
+          account: writer.account,
+          transaction: tx,
+        });
         const txHash = result.transactionHash as Hex;
 
         setPendingHash(txHash);
+        setIsPending(false);
         onSubmitted?.(txHash);
 
         toast("Delegation submitted", {
@@ -96,6 +100,7 @@ export function useDelegate({ onSubmitted, onSuccess }: UseDelegateArgs = {}) {
 
         onSuccess?.(txHash, delegateeAddress);
       } catch (err: unknown) {
+        setIsPending(false);
         setIsConfirming(false);
 
         let message = "Unknown error";
@@ -135,7 +140,7 @@ export function useDelegate({ onSubmitted, onSuccess }: UseDelegateArgs = {}) {
         toast.error("Delegation failed", { description: message });
       }
     },
-    [account?.address, wallet, tokenAddress, sendTx, onSubmitted, onSuccess],
+    [writer, tokenAddress, onSubmitted, onSuccess],
   );
 
   return {

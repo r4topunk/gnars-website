@@ -3,11 +3,11 @@
 import { useEffect, useState, useTransition } from "react";
 import { AlertTriangle, CheckCircle, ExternalLink, Info, Loader2 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
+import { getContract, prepareContractCall, readContract, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { toast } from "sonner";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import Image from "next/image";
@@ -36,6 +36,26 @@ const governorAbi = [
     ],
     outputs: [{ name: "", type: "uint256" }],
   },
+  {
+    name: "proposalThreshold",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+] as const;
+
+// Minimal token ABI used only for the send-time voting-power pre-check.
+// Keeps the propose path self-contained without reaching into the shared
+// token ABI module.
+const tokenGetVotesAbi = [
+  {
+    name: "getVotes",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
 ] as const;
 
 export function ProposalPreview() {
@@ -50,16 +70,14 @@ export function ProposalPreview() {
     calldatas: `0x${string}`[];
   } | undefined>();
   const { address, isConnected } = useUserAddress();
-  const wallet = useActiveWallet();
-  const sendTx = useSendTransaction();
+  const writer = useWriteAccount();
   const [hash, setHash] = useState<`0x${string}` | undefined>(undefined);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isWalletPending, setIsWalletPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   // Watch form values for reactive preview
   const watchedData = useWatch<ProposalFormValues>();
-
-  const isWalletPending = sendTx.isPending;
 
   // Get current form data
   const data = (watchedData as ProposalFormValues) || getValues();
@@ -101,8 +119,51 @@ export function ProposalPreview() {
           throw new Error("Thirdweb client not configured");
         }
 
+        if (!writer) {
+          throw new Error("Connect wallet to submit a proposal");
+        }
+
         console.log("Ensuring Base network...");
-        await ensureOnChain(wallet, base);
+        await ensureOnChain(writer.wallet, base);
+
+        // Pre-check: confirm the actual signer has enough voting power to
+        // clear the proposal threshold. The eligibility context gates the
+        // submit button on this too, but we re-check at send time because
+        // view-mode toggles and delegation changes can happen between
+        // render and click — and a revert costs gas.
+        const governorReadContract = getContract({
+          client,
+          chain: base,
+          address: DAO_ADDRESSES.governor as `0x${string}`,
+          abi: governorAbi,
+        });
+        const tokenReadContract = getContract({
+          client,
+          chain: base,
+          address: DAO_ADDRESSES.token as `0x${string}`,
+          abi: tokenGetVotesAbi,
+        });
+
+        const [threshold, signerVotes] = await Promise.all([
+          readContract({
+            contract: governorReadContract,
+            method: "proposalThreshold",
+            params: [],
+          }),
+          readContract({
+            contract: tokenReadContract,
+            method: "getVotes",
+            params: [writer.account.address as `0x${string}`],
+          }),
+        ]);
+
+        if (signerVotes <= threshold) {
+          setIsWalletPending(false);
+          const detail = `You need more than ${threshold.toString()} votes to create a proposal. Your current signer has ${signerVotes.toString()}. Switch view or adjust delegation.`;
+          setValidationError(detail);
+          toast.error("Insufficient voting power", { description: detail });
+          return;
+        }
 
         console.log("Calling createProposalAction...");
         const preparedTx = await createProposalAction(formData);
@@ -127,9 +188,14 @@ export function ProposalPreview() {
         });
 
         console.log("Sending proposal tx...");
-        const result = await sendTx.mutateAsync(tx);
+        setIsWalletPending(true);
+        const result = await sendTransaction({
+          account: writer.account,
+          transaction: tx,
+        });
         const txHash = result.transactionHash as `0x${string}`;
         setHash(txHash);
+        setIsWalletPending(false);
 
         setIsConfirming(true);
         await waitForReceipt({ client, chain: base, transactionHash: txHash });
@@ -137,6 +203,7 @@ export function ProposalPreview() {
         setIsSuccess(true);
       } catch (error) {
         console.error("Error submitting proposal:", error);
+        setIsWalletPending(false);
         setIsConfirming(false);
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
         setValidationError(errorMessage);
