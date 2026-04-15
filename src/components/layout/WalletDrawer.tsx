@@ -162,7 +162,12 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
 
   const handleProfile = () => {
     closePanel();
-    router.push(`/members/${address}`);
+    // Always route to the admin EOA's profile when available — that's the
+    // canonical joint profile where both EOA and SA data are merged. Falls
+    // back to the active account for sessions without a distinct admin
+    // (inAppWallet / pure EOA).
+    const profileAddress = adminAddress ?? address;
+    router.push(`/members/${profileAddress}`);
   };
 
   const handleManageAccount = () => {
