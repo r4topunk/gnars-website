@@ -56,14 +56,21 @@ export function useUserAddress(): UseUserAddressResult {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
   const admin = wallet?.getAdminAccount?.();
-  const { viewMode } = useViewAccount();
+  const { viewMode: storedViewMode } = useViewAccount();
 
   const saAddress = account?.address as Address | undefined;
   const adminAddress = admin?.address as Address | undefined;
   const canSwitchView = Boolean(saAddress && adminAddress && saAddress !== adminAddress);
 
+  // External-wallet users (MetaMask, Zerion, Coinbase, etc.) default to
+  // viewing as their EOA because that's where their Gnars actually live
+  // and it's the address they recognize. inAppWallet / pure-EOA users
+  // default to the active account. Explicit toggles override the default.
+  const effectiveViewMode: ViewMode =
+    storedViewMode ?? (canSwitchView ? "eoa" : "sa");
+
   const effectiveAddress: Address | undefined =
-    viewMode === "eoa" && canSwitchView ? adminAddress : saAddress;
+    effectiveViewMode === "eoa" && canSwitchView ? adminAddress : saAddress;
 
   return {
     address: effectiveAddress,
@@ -71,7 +78,7 @@ export function useUserAddress(): UseUserAddressResult {
     adminAddress,
     isConnected: Boolean(account),
     isInAppWallet: wallet?.id === "inApp",
-    viewMode,
+    viewMode: effectiveViewMode,
     canSwitchView,
   };
 }

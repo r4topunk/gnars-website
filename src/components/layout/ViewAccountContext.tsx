@@ -15,26 +15,34 @@ export type ViewMode = "sa" | "eoa";
 const STORAGE_KEY = "gnars:view-as";
 
 interface ViewAccountContextValue {
-  viewMode: ViewMode;
+  /**
+   * The user's explicit choice, or `null` if they haven't chosen yet. When
+   * null, `useUserAddress` falls back to a wallet-shape-aware default
+   * ("eoa" for external wallets, "sa" for inAppWallet / pure EOA).
+   */
+  viewMode: ViewMode | null;
   setViewMode: (mode: ViewMode) => void;
-  toggleViewMode: () => void;
+  toggleViewMode: (currentEffective: ViewMode) => void;
 }
 
 const ViewAccountContext = createContext<ViewAccountContextValue | null>(null);
 
 /**
  * Client-side toggle that controls whether the app displays and queries
- * state as the smart account (default) or the underlying admin EOA.
+ * state as the smart account or the underlying admin EOA.
+ *
+ * The stored value is nullable: a fresh user has no choice yet, which
+ * lets `useUserAddress` apply a wallet-aware default (external-wallet
+ * users see their EOA by default, inAppWallet / pure-EOA users see the
+ * active account). Once the user explicitly toggles, we persist their
+ * choice to localStorage so subsequent reloads honor it.
  *
  * Writes are unaffected — they always flow through thirdweb's active
  * account (the SA). This only changes which address is fed to read hooks
- * via `useUserAddress()`, so the user can "view the app as their EOA"
- * without disconnecting.
- *
- * Persisted to localStorage so the mode survives reloads.
+ * via `useUserAddress()`.
  */
 export function ViewAccountProvider({ children }: { children: ReactNode }) {
-  const [viewMode, setViewModeState] = useState<ViewMode>("sa");
+  const [viewMode, setViewModeState] = useState<ViewMode | null>(null);
 
   useEffect(() => {
     try {
@@ -56,16 +64,14 @@ export function ViewAccountProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const toggleViewMode = useCallback(() => {
-    setViewModeState((prev) => {
-      const next = prev === "sa" ? "eoa" : "sa";
-      try {
-        window.localStorage.setItem(STORAGE_KEY, next);
-      } catch {
-        // ignore
-      }
-      return next;
-    });
+  const toggleViewMode = useCallback((currentEffective: ViewMode) => {
+    const next: ViewMode = currentEffective === "sa" ? "eoa" : "sa";
+    setViewModeState(next);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // ignore
+    }
   }, []);
 
   const value = useMemo<ViewAccountContextValue>(
@@ -85,7 +91,7 @@ export function useViewAccount(): ViewAccountContextValue {
   if (!ctx) {
     // Safe default when the provider is absent (e.g. unit tests).
     return {
-      viewMode: "sa",
+      viewMode: null,
       setViewMode: () => {},
       toggleViewMode: () => {},
     };

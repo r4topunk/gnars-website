@@ -341,7 +341,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
 
       <div className="flex flex-col gap-2 p-4 sm:flex-row sm:flex-wrap sm:justify-end sm:p-6 sm:pt-4">
         {canSwitchView ? (
-          <Button variant="outline" onClick={toggleViewMode}>
+          <Button variant="outline" onClick={() => toggleViewMode(viewMode)}>
             <ArrowLeftRight />
             {switchLabel}
           </Button>
