@@ -4,13 +4,13 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { Address, formatEther, parseEther } from "viem";
-import { useAccount } from "wagmi";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { createTradeCall, setApiKey, type TradeParameters } from "@zoralabs/coins-sdk";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { useVotes } from "@/hooks/useVotes";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { proposalSchema, type ProposalFormValues } from "@/components/proposals/schema";
@@ -41,7 +41,7 @@ export function CoinProposalWizard() {
     mode: "onChange",
   });
 
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useUserAddress();
   const { isLoading, hasThreshold, votes, proposalVotesRequired, isDelegating, delegatedTo } =
     useVotes({
       chainId: CHAIN.id,

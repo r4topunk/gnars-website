@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { formatEther } from 'viem';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { useAccount, useConnect, useReadContract } from 'wagmi';
+import { useReadContract } from 'wagmi';
+import { useConnectModal } from 'thirdweb/react';
 import {
   ArrowLeft,
   ExternalLink,
@@ -35,6 +36,9 @@ import { usePoidhCancelBounty, usePoidhJoinBounty, usePoidhWithdrawFromBounty, u
 import { POIDH_ABI } from '@/lib/poidh/abi';
 import { POIDH_CONTRACTS } from '@/lib/poidh/config';
 import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
+import { useUserAddress } from '@/hooks/use-user-address';
+import { getThirdwebClient } from '@/lib/thirdweb';
+import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from '@/lib/thirdweb-wallets';
 
 const VIDEO_EXTENSIONS = /\.(mov|mp4|webm|ogg|m4v)(\?.*)?$/i;
 const IPFS_GATEWAYS = ['ipfs.skatehive.app', 'ipfs.io', 'cloudflare-ipfs.com', 'gateway.pinata.cloud', 'dweb.link'];
@@ -125,8 +129,24 @@ interface BountyDetailViewProps {
 }
 
 export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDetailViewProps) {
-  const { address, isConnected } = useAccount();
-  const { connectors, connectAsync } = useConnect();
+  const { address, isConnected } = useUserAddress();
+  const { connect: openConnectModal } = useConnectModal();
+  const handleConnect = async () => {
+    const client = getThirdwebClient();
+    if (!client) return;
+    try {
+      await openConnectModal({
+        client,
+        wallets: THIRDWEB_WALLETS,
+        accountAbstraction: THIRDWEB_AA_CONFIG,
+        size: 'compact',
+        title: 'Connect to contribute',
+      });
+      setShowConnectDialog(false);
+    } catch {
+      // user cancelled
+    }
+  };
   const { data } = useQuery<{ bounty: PoidhBounty }>({
     queryKey: ['poidh-bounty', chainId, bountyId],
     queryFn: async () => {
@@ -664,15 +684,10 @@ joinHook.join(bounty.onChainId, joinAmount);
                             <h2 className="text-base font-semibold">Connect Wallet</h2>
                           </div>
                           <p className="text-sm text-muted-foreground">Connect your wallet to contribute to this bounty.</p>
-                          <div className="flex flex-col gap-2">
-                            {connectors.map((connector) => (
-                              <Button key={connector.uid} variant="outline" className="w-full justify-start"
-                                onClick={async () => { try { await connectAsync({ connector }); setShowConnectDialog(false); } catch { /* rejected */ } }}
-                              >
-                                {connector.name}
-                              </Button>
-                            ))}
-                          </div>
+                          <Button className="w-full" onClick={handleConnect}>
+                            <Wallet className="w-4 h-4 mr-2" />
+                            Connect
+                          </Button>
                         </div>
                       </DialogContent>
                     </Dialog>

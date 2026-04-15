@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatEther } from "viem";
-import { useAccount, useReadContract } from "wagmi";
+import { useReadContract } from "wagmi";
 import { useDaoAuction } from "@buildeross/hooks";
 import { GnarImageTile } from "@/components/auctions/GnarImageTile";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,9 +16,10 @@ import { AuctionSettleButton } from "@/components/auction/AuctionSettleButton";
 import { useAuctionLive } from "@/hooks/use-auction-live";
 import { useAuctionBids } from "@/hooks/use-auction-bids";
 import { useBidComments } from "@/hooks/use-bid-comments";
+import { useUserAddress } from "@/hooks/use-user-address";
 
 export function AuctionSpotlight() {
-  const { address } = useAccount();
+  const { address } = useUserAddress();
   const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
 
   // Optimistic state — shown immediately after user's TX is submitted

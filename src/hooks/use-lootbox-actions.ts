@@ -3,7 +3,6 @@
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { type Address, parseEther } from "viem";
-import { useAccount } from "wagmi";
 import {
   getContract,
   prepareContractCall,
@@ -12,6 +11,7 @@ import {
 } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { useActiveWallet, useSendTransaction } from "thirdweb/react";
+import { useUserAddress } from "@/hooks/use-user-address";
 import {
   getGnarlyRejectionMessage,
   isUserRejection,
@@ -43,7 +43,7 @@ export function useLootboxActions({
   setPendingHash,
   setPendingLabel,
 }: UseLootboxActionsOptions) {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useUserAddress();
   const wallet = useActiveWallet();
   const sendTx = useSendTransaction();
 

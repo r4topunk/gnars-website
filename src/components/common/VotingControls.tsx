@@ -11,7 +11,6 @@ import {
   Users,
 } from "lucide-react";
 import { Address } from "viem";
-import { useAccount } from "wagmi";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +25,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useCastVote } from "@/hooks/useCastVote";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { fetchDelegatorsWithCounts, type DelegatorWithCount } from "@/services/members";
 import { cn } from "@/lib/utils";
@@ -112,7 +112,7 @@ export function VotingControls({
   isDelegating = false,
   delegatedTo,
 }: VotingControlsProps) {
-  const { address: accountAddress, isConnected } = useAccount();
+  const { address: accountAddress, isConnected } = useUserAddress();
   const [voteChoice, setVoteChoice] = useState<VoteChoice | null>(existingUserVote ?? null);
   const [reason, setReason] = useState("");
   const [pendingVote, setPendingVote] = useState<{ choice: VoteChoice; reason?: string } | null>(

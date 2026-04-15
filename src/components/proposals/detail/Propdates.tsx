@@ -3,7 +3,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { zeroHash } from "viem";
-import { useAccount } from "wagmi";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { PropdateCardSkeleton } from "@/components/propdates/PropdatesFeedSkeleton";
 import { useDaoMembers } from "@/hooks/use-dao-members";
 import { usePropdates } from "@/hooks/use-propdates";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { type Propdate } from "@/services/propdates";
 import { PropdateCard } from "./PropdateCard";
 import { PropdateForm } from "./PropdateForm";
@@ -24,7 +24,7 @@ interface PropdatesProps {
 export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
   const { propdates, isLoading, isError, refetch } = usePropdates(proposalId);
   const { data: daoMembers } = useDaoMembers();
-  const { address } = useAccount();
+  const { address } = useUserAddress();
   const [showForm, setShowForm] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Propdate | null>(null);
 

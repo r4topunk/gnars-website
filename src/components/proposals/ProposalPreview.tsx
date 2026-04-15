@@ -3,11 +3,11 @@
 import { useEffect, useState, useTransition } from "react";
 import { AlertTriangle, CheckCircle, ExternalLink, Info, Loader2 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { useAccount } from "wagmi";
 import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { useActiveWallet, useSendTransaction } from "thirdweb/react";
 import { toast } from "sonner";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import Image from "next/image";
@@ -49,7 +49,7 @@ export function ProposalPreview() {
     values: bigint[];
     calldatas: `0x${string}`[];
   } | undefined>();
-  const { isConnected, address } = useAccount();
+  const { address, isConnected } = useUserAddress();
   const wallet = useActiveWallet();
   const sendTx = useSendTransaction();
   const [hash, setHash] = useState<`0x${string}` | undefined>(undefined);

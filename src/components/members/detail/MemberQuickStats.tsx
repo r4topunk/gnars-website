@@ -2,7 +2,6 @@
 
 import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
-import { useAccount } from "wagmi";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { useDelegationStatus } from "@/hooks/use-delegation-status";
 import { useEoaDelegate } from "@/hooks/use-eoa-delegate";
+import { useUserAddress } from "@/hooks/use-user-address";
 
 interface OverviewLike {
   tokenCount: number;
@@ -48,13 +48,18 @@ export function MemberQuickStats({
   const isSelfDelegating = overview.delegate.toLowerCase() === address.toLowerCase();
   const delegatedToAnother = !isSelfDelegating;
 
-  const { address: connectedEoa } = useAccount();
+  const { address: activeAddress, adminAddress } = useUserAddress();
+  const connectedEoa = adminAddress ?? activeAddress;
   const isOwnProfile =
     connectedEoa !== undefined && connectedEoa.toLowerCase() === address.toLowerCase();
   const delegationStatus = useDelegationStatus();
+  // Gate on a distinct admin wrap: only show the "Smart account" card when the
+  // active session is an AA-wrapped external wallet (MetaMask + AA). inAppWallet
+  // sessions also satisfy `isSmartAccount`, but their EOA and SA are the same
+  // account — rendering the card would double-count Gnars in the breakdown.
   const showSmartAccountCard =
     isOwnProfile &&
-    delegationStatus.isSmartAccount &&
+    Boolean(adminAddress) &&
     Boolean(delegationStatus.smartAccountAddress);
 
   const eoaDelegate = useEoaDelegate({

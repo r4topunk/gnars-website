@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { encodeFunctionData, type Hex } from "viem";
-import { useAccount, usePublicClient } from "wagmi";
+import { usePublicClient } from "wagmi";
 import { prepareTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { useActiveWallet, useSendTransaction } from "thirdweb/react";
@@ -12,6 +12,7 @@ import { CHAIN } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { createPropdate as encodePropdateRequest, listPropdates } from "@/services/propdates";
+import { useUserAddress } from "@/hooks/use-user-address";
 
 interface CreatePropdateInput {
   proposalId: string;
@@ -21,7 +22,7 @@ interface CreatePropdateInput {
 
 export function usePropdates(proposalId: string) {
   const queryClient = useQueryClient();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useUserAddress();
   const wallet = useActiveWallet();
   const sendTx = useSendTransaction();
   const publicClient = usePublicClient({ chainId: CHAIN.id });

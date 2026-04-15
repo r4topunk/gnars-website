@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { Address, isAddress, parseEther } from "viem";
 import {
-  useAccount,
   useBalance,
   useReadContract,
   useReadContracts,
@@ -12,7 +11,9 @@ import {
   useWatchContractEvent,
 } from "wagmi";
 import { base } from "wagmi/chains";
+import { useActiveWalletChain } from "thirdweb/react";
 import { useAllowedNft } from "@/hooks/use-allowed-nft";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { CHAIN } from "@/lib/config";
 import {
   erc20BalanceAbi,
@@ -51,7 +52,16 @@ export function useLootboxContract({
   onTransactionError,
   onTransactionConfirmed,
 }: UseLootboxContractOptions) {
-  const { address, isConnected, chain } = useAccount();
+  const { address, isConnected } = useUserAddress();
+  const activeChain = useActiveWalletChain();
+  // Back-compat shim: expose an object shaped like the minimal subset of the
+  // wagmi Chain that callers actually read (`.id`, `.name`). The prop type on
+  // JoinDAOTab is typed `Chain | undefined` from `wagmi/chains`, but the only
+  // fields consumed there are `id` and `name`, so we keep this narrow shape to
+  // avoid touching unrelated components.
+  const chain = activeChain
+    ? ({ id: activeChain.id, name: activeChain.name ?? "" } as unknown as typeof base)
+    : undefined;
   const seenFlexEvents = useRef<Set<string>>(new Set());
 
   // Reset seen events when lootbox address changes

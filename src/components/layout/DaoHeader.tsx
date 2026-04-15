@@ -41,8 +41,9 @@ import {
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useAccount, useSwitchChain } from "wagmi";
 import { base } from "wagmi/chains";
+import { base as thirdwebBase } from "thirdweb/chains";
+import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
 import { DelegationModal } from "@/components/layout/DelegationModal";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
@@ -65,6 +66,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { cn } from "@/lib/utils";
 
 // Navigation structure
@@ -343,9 +345,11 @@ function MobileNav() {
   const [open, setOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
   const [delegationModalOpen, setDelegationModalOpen] = React.useState(false);
-  const { isConnected, chain } = useAccount();
-  const { switchChain, isPending } = useSwitchChain();
-  const isWrongNetwork = isConnected && chain?.id !== base.id;
+  const { isConnected } = useUserAddress();
+  const activeChain = useActiveWalletChain();
+  const activeWallet = useActiveWallet();
+  const [isPending, setIsPending] = React.useState(false);
+  const isWrongNetwork = isConnected && activeChain?.id !== base.id;
 
   React.useEffect(() => {
     setMounted(true);
@@ -360,21 +364,20 @@ function MobileNav() {
     [pathname, mounted],
   );
 
-  const handleSwitchNetwork = React.useCallback(() => {
+  const handleSwitchNetwork = React.useCallback(async () => {
     if (isPending) return;
-
-    switchChain(
-      { chainId: base.id },
-      {
-        onSuccess: () => {
-          toast.success("Successfully switched to Base");
-        },
-        onError: (error) => {
-          toast.error(`Failed to switch network: ${error.message}`);
-        },
-      },
-    );
-  }, [switchChain, isPending]);
+    if (!activeWallet) return;
+    setIsPending(true);
+    try {
+      await activeWallet.switchChain(thirdwebBase);
+      toast.success("Successfully switched to Base");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Failed to switch network: ${message}`);
+    } finally {
+      setIsPending(false);
+    }
+  }, [activeWallet, isPending]);
 
   return (
     <>
@@ -502,25 +505,26 @@ function MobileNav() {
 }
 
 function HeaderActions() {
-  const { isConnected, chain } = useAccount();
-  const { switchChain, isPending } = useSwitchChain();
-  const isWrongNetwork = isConnected && chain?.id !== base.id;
+  const { isConnected } = useUserAddress();
+  const activeChain = useActiveWalletChain();
+  const activeWallet = useActiveWallet();
+  const [isPending, setIsPending] = React.useState(false);
+  const isWrongNetwork = isConnected && activeChain?.id !== base.id;
 
-  const handleSwitchNetwork = React.useCallback(() => {
+  const handleSwitchNetwork = React.useCallback(async () => {
     if (isPending) return;
-
-    switchChain(
-      { chainId: base.id },
-      {
-        onSuccess: () => {
-          toast.success("Successfully switched to Base");
-        },
-        onError: (error) => {
-          toast.error(`Failed to switch network: ${error.message}`);
-        },
-      },
-    );
-  }, [switchChain, isPending]);
+    if (!activeWallet) return;
+    setIsPending(true);
+    try {
+      await activeWallet.switchChain(thirdwebBase);
+      toast.success("Successfully switched to Base");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Failed to switch network: ${message}`);
+    } finally {
+      setIsPending(false);
+    }
+  }, [activeWallet, isPending]);
 
   return (
     <div className="flex items-center gap-2">

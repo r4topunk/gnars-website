@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useAccount } from "wagmi";
 import { getContract, prepareContractCall, waitForReceipt } from "thirdweb";
 import { arbitrum, base, type Chain } from "thirdweb/chains";
 import { useActiveAccount, useActiveWallet, useSendTransaction } from "thirdweb/react";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { POIDH_ABI } from "@/lib/poidh/abi";
 import { POIDH_CONTRACTS } from "@/lib/poidh/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
@@ -18,7 +18,7 @@ function resolveThirdwebChain(chainId: number): Chain | undefined {
 }
 
 function usePoidhContext(chainId: number) {
-  const { isConnected } = useAccount();
+  const { isConnected } = useUserAddress();
   const account = useActiveAccount();
   const wallet = useActiveWallet();
   const contractAddress = POIDH_CONTRACTS[chainId];
