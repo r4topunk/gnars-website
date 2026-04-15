@@ -128,7 +128,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
   const router = useRouter();
   const { saAddress, adminAddress, isInAppWallet, viewMode, canSwitchView } =
     useUserAddress();
-  const { toggleViewMode } = useViewAccount();
+  const { toggleViewMode, clearViewMode } = useViewAccount();
   const wallet = useActiveWallet();
   const connectedWallets = useConnectedWallets();
   const { disconnect } = useDisconnect();
@@ -215,6 +215,11 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
           // best effort per wallet
         }
       }
+      // Reset the persisted view-mode preference so the next connect
+      // gets a fresh wallet-aware default (external → eoa, inApp → sa).
+      // Otherwise a stored "sa" from a previous session would override
+      // the default and display the wrong address on reconnect.
+      clearViewMode();
       closePanel();
       toast("Disconnected");
     } catch (err: unknown) {

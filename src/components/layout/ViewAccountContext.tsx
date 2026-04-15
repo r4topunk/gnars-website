@@ -23,6 +23,8 @@ interface ViewAccountContextValue {
   viewMode: ViewMode | null;
   setViewMode: (mode: ViewMode) => void;
   toggleViewMode: (currentEffective: ViewMode) => void;
+  /** Reset to the wallet-aware default. Call on disconnect. */
+  clearViewMode: () => void;
 }
 
 const ViewAccountContext = createContext<ViewAccountContextValue | null>(null);
@@ -74,9 +76,18 @@ export function ViewAccountProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const clearViewMode = useCallback(() => {
+    setViewModeState(null);
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const value = useMemo<ViewAccountContextValue>(
-    () => ({ viewMode, setViewMode, toggleViewMode }),
-    [viewMode, setViewMode, toggleViewMode],
+    () => ({ viewMode, setViewMode, toggleViewMode, clearViewMode }),
+    [viewMode, setViewMode, toggleViewMode, clearViewMode],
   );
 
   return (
@@ -94,6 +105,7 @@ export function useViewAccount(): ViewAccountContextValue {
       viewMode: null,
       setViewMode: () => {},
       toggleViewMode: () => {},
+      clearViewMode: () => {},
     };
   }
   return ctx;

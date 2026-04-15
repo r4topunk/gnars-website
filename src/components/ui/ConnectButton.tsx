@@ -7,6 +7,7 @@ import {
   useDisconnect,
 } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
+import { useViewAccount } from "@/components/layout/ViewAccountContext";
 import { WalletDrawer } from "@/components/layout/WalletDrawer";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { getThirdwebClient } from "@/lib/thirdweb";
@@ -17,6 +18,7 @@ export function ConnectButton() {
   const { connect, isConnecting } = useConnectModal();
   const connectedWallets = useConnectedWallets();
   const { disconnect } = useDisconnect();
+  const { clearViewMode } = useViewAccount();
   const client = getThirdwebClient();
 
   if (isConnected) return <WalletDrawer />;
@@ -24,6 +26,12 @@ export function ConnectButton() {
   const handleConnect = async () => {
     if (!client) return;
     try {
+      // Reset the persisted view-mode preference BEFORE connecting so the
+      // fresh session starts with the wallet-aware default (external → eoa,
+      // inApp → sa). A stale "sa"/"eoa" from a previous user/session would
+      // otherwise override the default and display the wrong address.
+      clearViewMode();
+
       const nextWallet = await connect({
         client,
         wallets: THIRDWEB_WALLETS,
