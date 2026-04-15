@@ -33,7 +33,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
   const resetTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(resetTimerRef.current), []);
 
-  const { isConnected } = useUserAddress();
+  const { address: userAddress, isConnected } = useUserAddress();
   const activeChain = useActiveWalletChain();
   const wallet = useActiveWallet();
   const writer = useWriteAccount();
@@ -59,22 +59,15 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     abi: auctionAbi,
     functionName: isPaused ? "settleAuction" : "settleCurrentAndCreateNewAuction",
     chainId: CHAIN.id,
-    query: { enabled: isConnected && !isWrongNetwork },
+    // wagmi v2 looks up the simulation's `from` address on the active
+    // connector by default. Option F removed all wagmi connectors, so
+    // without an explicit `account` the simulation throws
+    // "Connector not connected." before it ever hits the RPC. Pass the
+    // thirdweb-sourced user address directly so the simulation runs
+    // independently of wagmi's (now-empty) connection state.
+    account: userAddress,
+    query: { enabled: isConnected && !isWrongNetwork && Boolean(userAddress) },
   });
-
-  // DEBUG: surface the real revert reason behind the "not available yet"
-  // tooltip. Remove once the cause is confirmed.
-  useEffect(() => {
-    if (settleError) {
-      // eslint-disable-next-line no-console
-      console.log("[AuctionSettleButton] simulation revert:", {
-        functionName: isPaused ? "settleAuction" : "settleCurrentAndCreateNewAuction",
-        message: settleError.message,
-        shortMessage: (settleError as { shortMessage?: string }).shortMessage,
-        cause: settleError.cause,
-      });
-    }
-  }, [settleError, isPaused]);
 
   const invalidateAuctionData = useCallback(() => {
     queryClient.invalidateQueries({

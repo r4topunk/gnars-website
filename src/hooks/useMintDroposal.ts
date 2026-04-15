@@ -53,6 +53,9 @@ export function useMintDroposal({
     functionName: "mintWithRewards",
     args: [address!, 1n, "", MINT_REFERRAL],
     value: simulationPrice,
+    // Explicit `account` so wagmi doesn't try to pull it from an empty
+    // connector list (Option F).
+    account: address,
     query: {
       enabled: isReady && mintStatus === "idle" && Boolean(address),
     },

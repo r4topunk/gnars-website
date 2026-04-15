@@ -79,6 +79,9 @@ export function useCastVote({ proposalId, onSubmitted, onSuccess }: UseCastVoteA
     address: governorAddress,
     functionName: "castVote",
     args: proposalId ? [proposalId, supportMap.FOR] : undefined,
+    // Explicit `account` so wagmi doesn't try to pull it from an empty
+    // connector list (Option F).
+    account: address,
     query: { enabled: isReady },
     chainId: wagmiBase.id,
   });

@@ -57,7 +57,10 @@ export function ExecuteProposalButton({
     functionName: "execute",
     args,
     chainId: CHAIN.id,
-    query: { enabled: !disabled && !isPending },
+    // Explicit `account` so wagmi doesn't try to pull it from an empty
+    // connector list (Option F).
+    account: writer?.account.address as `0x${string}` | undefined,
+    query: { enabled: !disabled && !isPending && Boolean(writer) },
   });
 
   const handleConfirm = useCallback(async () => {
