@@ -1,14 +1,56 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getProfile, setApiKey } from "@zoralabs/coins-sdk";
-import { isAddress } from "viem";
+import { isAddress, type Address } from "viem";
 import { MemberDetail } from "@/components/members/MemberDetail";
 import { BASE_URL } from "@/lib/config";
 import { MEMBERS_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import { resolveAddressFromENS } from "@/lib/ens";
+import { serverPublicClient } from "@/lib/rpc";
 import { fetchMemberOverview } from "@/services/members";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Minimal ABI for detecting + resolving the admin of a thirdweb EIP-4337
+ * smart account. Standard account implementations expose `owner()` —
+ * multi-sig variants expose `getAllSigners()` but we only handle the
+ * common single-owner case. If the call reverts we gracefully fall
+ * through to rendering the contract address as-is.
+ */
+const ACCOUNT_OWNER_ABI = [
+  {
+    name: "owner",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "address", name: "" }],
+  },
+] as const;
+
+/**
+ * Detects whether the given address is a deployed contract on Base and,
+ * if so, attempts to read `owner()` to find the admin EOA. Returns the
+ * resolved EOA address when successful, `null` when the address is an
+ * EOA to begin with, and `undefined` when the contract doesn't expose
+ * an owner (unknown account implementation).
+ */
+async function resolveSmartAccountOwner(
+  address: Address,
+): Promise<Address | null | undefined> {
+  try {
+    const code = await serverPublicClient.getCode({ address });
+    if (!code || code === "0x") return null; // EOA
+    const owner = (await serverPublicClient.readContract({
+      address,
+      abi: ACCOUNT_OWNER_ABI,
+      functionName: "owner",
+    })) as Address;
+    return owner;
+  } catch {
+    return undefined;
+  }
+}
 
 interface MemberPageProps {
   params: Promise<{ address: string }>;
@@ -172,6 +214,24 @@ export default async function MemberPage({ params, searchParams }: MemberPagePro
     }
     notFound();
   }
+
+  // If the URL address is a deployed smart account, redirect to its admin
+  // EOA's profile. The joint-fetch logic at the EOA page aggregates data
+  // from both sides, so landing on the EOA is canonical.
+  const owner = await resolveSmartAccountOwner(address);
+  if (owner && owner.toLowerCase() !== address.toLowerCase()) {
+    const qs = new URLSearchParams();
+    for (const [key, value] of Object.entries(sp ?? {})) {
+      if (typeof value === "string") {
+        qs.set(key, value);
+      } else if (Array.isArray(value)) {
+        for (const v of value) qs.append(key, v);
+      }
+    }
+    const suffix = qs.toString();
+    redirect(suffix ? `/members/${owner}?${suffix}` : `/members/${owner}`);
+  }
+
   return (
     <div className="py-8">
       <MemberDetail address={address} />
