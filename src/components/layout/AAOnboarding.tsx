@@ -83,6 +83,10 @@ export function AAOnboarding() {
     await eoaDelegate.delegate(status.smartAccountAddress);
   }, [status.smartAccountAddress, eoaDelegate]);
 
+  // Show once per EOA on first login when the user has Gnars but hasn't
+  // delegated to their smart account. Dismiss persists in localStorage so
+  // we never re-nag. If the user later decides they want sponsored gas,
+  // the same "Delegate voting power" CTA lives in the WalletDrawer panel.
   const needs = status.needsSmartAccountDelegation;
   const showWelcomeModal = needs && storageReady && !hasSeenWelcome;
 

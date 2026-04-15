@@ -23,6 +23,12 @@ interface OverviewLike {
   tokenCount: number;
   tokensHeld: number[];
   delegate: string;
+  smartAccount?: {
+    address: string;
+    tokenCount: number;
+    tokensHeld: number[];
+    delegate: string;
+  };
 }
 
 interface MemberQuickStatsProps {
@@ -46,21 +52,18 @@ export function MemberQuickStats({
   votesCount,
 }: MemberQuickStatsProps) {
   const isSelfDelegating = overview.delegate.toLowerCase() === address.toLowerCase();
-  const delegatedToAnother = !isSelfDelegating;
+  // Also treat "delegated to own smart account" as a form of self-delegation
+  // for display purposes — it's still the same user.
+  const isDelegatedToOwnSmartAccount =
+    overview.smartAccount?.address !== undefined &&
+    overview.delegate.toLowerCase() === overview.smartAccount.address.toLowerCase();
+  const delegatedToAnother = !isSelfDelegating && !isDelegatedToOwnSmartAccount;
 
   const { address: activeAddress, adminAddress } = useUserAddress();
   const connectedEoa = adminAddress ?? activeAddress;
   const isOwnProfile =
     connectedEoa !== undefined && connectedEoa.toLowerCase() === address.toLowerCase();
   const delegationStatus = useDelegationStatus();
-  // Gate on a distinct admin wrap: only show the "Smart account" card when the
-  // active session is an AA-wrapped external wallet (MetaMask + AA). inAppWallet
-  // sessions also satisfy `isSmartAccount`, but their EOA and SA are the same
-  // account — rendering the card would double-count Gnars in the breakdown.
-  const showSmartAccountCard =
-    isOwnProfile &&
-    Boolean(adminAddress) &&
-    Boolean(delegationStatus.smartAccountAddress);
 
   const eoaDelegate = useEoaDelegate({
     onSuccess: () => {
@@ -79,13 +82,29 @@ export function MemberQuickStats({
     await eoaDelegate.delegate(delegationStatus.smartAccountAddress);
   };
 
-  const eoaCount = overview.tokenCount;
-  const saCount =
-    delegationStatus.smartAccountTokenBalance !== undefined
-      ? Number(delegationStatus.smartAccountTokenBalance)
-      : 0;
-  const totalGnars = showSmartAccountCard ? eoaCount + saCount : eoaCount;
-  const showBreakdown = showSmartAccountCard && saCount > 0;
+  const saCountFromOverview = overview.smartAccount?.tokenCount ?? 0;
+  const eoaCount = overview.tokenCount - saCountFromOverview;
+  const totalGnars = overview.tokenCount;
+  const showBreakdown = saCountFromOverview > 0;
+
+  // Show the smart-account sub-card in two scenarios:
+  //  1. The viewed profile actually has tokens at its SA (subgraph-sourced,
+  //     works for any visitor including anonymous).
+  //  2. The viewer is the profile owner with an active AA session — shows
+  //     the sub-card even with 0 tokens so they can manage delegation.
+  const showSmartAccountCardFromOverview = Boolean(
+    overview.smartAccount && overview.smartAccount.tokenCount > 0,
+  );
+  const showSmartAccountCardFromSession =
+    isOwnProfile &&
+    Boolean(adminAddress) &&
+    Boolean(delegationStatus.smartAccountAddress);
+  const showSmartAccountCard =
+    showSmartAccountCardFromOverview || showSmartAccountCardFromSession;
+
+  const smartAccountAddress =
+    overview.smartAccount?.address ?? delegationStatus.smartAccountAddress;
+  const smartAccountTokenCount = overview.smartAccount?.tokenCount ?? 0;
 
   return (
     <>
@@ -97,7 +116,7 @@ export function MemberQuickStats({
           </CardHeader>
           {showBreakdown ? (
             <CardFooter className="text-sm text-muted-foreground">
-              {eoaCount} at wallet · {saCount} at smart account
+              {eoaCount} at wallet · {saCountFromOverview} at smart account
             </CardFooter>
           ) : null}
         </Card>
@@ -119,6 +138,8 @@ export function MemberQuickStats({
                     showExplorer={false}
                     avatarSize="sm"
                   />
+                ) : isDelegatedToOwnSmartAccount ? (
+                  "Smart account"
                 ) : (
                   "Self"
                 )}
@@ -148,10 +169,13 @@ export function MemberQuickStats({
         </Card>
       </div>
 
-      {showSmartAccountCard ? (
+      {showSmartAccountCard && smartAccountAddress ? (
         <Card className="mt-6">
           <CardHeader>
-            <CardDescription>An onchain account that signs Gnars transactions on your behalf. Gas is sponsored by the DAO.</CardDescription>
+            <CardDescription>
+              An onchain account that signs Gnars transactions on behalf of the wallet. Gas is
+              sponsored by the DAO.
+            </CardDescription>
             <CardTitle className="text-base">Smart account</CardTitle>
             <CardAction>
               <Badge variant="secondary">gasless</Badge>
@@ -161,66 +185,60 @@ export function MemberQuickStats({
             <Button
               variant="outline"
               className="w-full justify-between font-mono text-xs"
-              onClick={() =>
-                handleCopy(delegationStatus.smartAccountAddress!, "Smart account address")
-              }
+              onClick={() => handleCopy(smartAccountAddress, "Smart account address")}
             >
-              <span>{shortAddress(delegationStatus.smartAccountAddress)}</span>
+              <span>{shortAddress(smartAccountAddress)}</span>
               <Copy />
             </Button>
 
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-lg border p-3">
                 <div className="text-xs text-muted-foreground">Gnars at wallet</div>
-                <div className="mt-1 text-xl font-semibold tabular-nums">
-                  {delegationStatus.eoaTokenBalance !== undefined
-                    ? delegationStatus.eoaTokenBalance.toString()
-                    : "—"}
-                </div>
+                <div className="mt-1 text-xl font-semibold tabular-nums">{eoaCount}</div>
               </div>
               <div className="rounded-lg border p-3">
                 <div className="text-xs text-muted-foreground">Gnars at smart account</div>
                 <div className="mt-1 text-xl font-semibold tabular-nums">
-                  {delegationStatus.smartAccountTokenBalance !== undefined
-                    ? delegationStatus.smartAccountTokenBalance.toString()
-                    : "—"}
+                  {smartAccountTokenCount}
                 </div>
               </div>
             </div>
 
-            {delegationStatus.isDelegatedToSmartAccount ? (
-              <Alert>
-                <Check />
-                <AlertTitle>Voting power delegated</AlertTitle>
-                <AlertDescription>
-                  Your votes flow through your smart account.
-                </AlertDescription>
-              </Alert>
-            ) : delegationStatus.needsSmartAccountDelegation ? (
-              <Alert>
-                <AlertTitle>Action recommended</AlertTitle>
-                <AlertDescription>
-                  <p>
-                    Delegate the voting power of your{" "}
-                    {delegationStatus.eoaTokenBalance?.toString() ?? "0"}{" "}
-                    {delegationStatus.eoaTokenBalance === 1n ? "Gnar" : "Gnars"} to your smart
-                    account so you can vote through the new flow.
-                  </p>
-                  <Button
-                    size="sm"
-                    className="mt-2 w-full"
-                    onClick={handleDelegateToSmart}
-                    disabled={isDelegating || !delegationStatus.smartAccountAddress}
-                  >
-                    {isDelegating ? "Delegating…" : "Delegate voting power"}
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Voting via smart account is not enabled yet.
-              </p>
-            )}
+            {isOwnProfile ? (
+              delegationStatus.isDelegatedToSmartAccount ? (
+                <Alert>
+                  <Check />
+                  <AlertTitle>Voting power delegated</AlertTitle>
+                  <AlertDescription>
+                    Your votes flow through your smart account.
+                  </AlertDescription>
+                </Alert>
+              ) : delegationStatus.needsSmartAccountDelegation ? (
+                <Alert>
+                  <AlertTitle>Action recommended</AlertTitle>
+                  <AlertDescription>
+                    <p>
+                      Delegate the voting power of your{" "}
+                      {delegationStatus.eoaTokenBalance?.toString() ?? "0"}{" "}
+                      {delegationStatus.eoaTokenBalance === 1n ? "Gnar" : "Gnars"} to your smart
+                      account so you can vote through the new flow.
+                    </p>
+                    <Button
+                      size="sm"
+                      className="mt-2 w-full"
+                      onClick={handleDelegateToSmart}
+                      disabled={isDelegating || !delegationStatus.smartAccountAddress}
+                    >
+                      {isDelegating ? "Delegating…" : "Delegate voting power"}
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Voting via smart account is not enabled yet.
+                </p>
+              )
+            ) : null}
           </CardContent>
         </Card>
       ) : null}

@@ -19,6 +19,7 @@ import { getProposalStatus } from "@/lib/schemas/proposals";
 import type { FarcasterProfile } from "@/services/farcaster";
 import {
   fetchDelegators,
+  fetchJointMemberOverview,
   fetchMemberOverview,
   fetchMemberVotes,
   type MemberListItem,
@@ -115,7 +116,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
       try {
         setLoading(true);
         const [ov, dels, vts] = await Promise.all([
-          fetchMemberOverview(address),
+          fetchJointMemberOverview(address),
           fetchDelegators(address),
           fetchMemberVotes(address, 100),
         ]);
