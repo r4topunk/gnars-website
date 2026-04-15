@@ -20,7 +20,7 @@ import * as React from "react";
 import { Copy, ExternalLink, Loader2, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Address } from "viem";
-import { useAccount, useReadContracts } from "wagmi";
+import { useReadContracts } from "wagmi";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDelegate } from "@/hooks/useDelegate";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { useVotes } from "@/hooks/useVotes";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -48,7 +49,7 @@ export function DelegationModal({
   onOpenChange,
   initialDelegateAddress,
 }: DelegationModalProps) {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useUserAddress();
   const [delegateAddress, setDelegateAddress] = React.useState("");
   const [isChanging, setIsChanging] = React.useState(false);
 

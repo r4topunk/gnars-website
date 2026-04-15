@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { type Address, type Hex, isAddress } from "viem";
 import {
   getContract,
   prepareContractCall,
@@ -10,7 +9,8 @@ import {
   waitForReceipt,
 } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useThirdwebWallet } from "@/hooks/use-thirdweb-wallet";
+import { useActiveWallet } from "thirdweb/react";
+import { type Address, type Hex, isAddress } from "viem";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
@@ -21,17 +21,26 @@ interface UseEoaDelegateArgs {
 }
 
 /**
- * Sends a delegate() transaction signed by the connected EOA — bypassing
+ * Sends a delegate() transaction signed by the underlying EOA — bypassing
  * the smart account wrapper when AA is on. This is the migration tool: an
  * existing Gnars holder needs to delegate the voting power of NFTs that
  * live at their EOA to their newly-created smart account, and the
  * delegate call must therefore originate from the EOA itself.
  *
- * When AA is off this hook behaves like useDelegate (admin account ===
- * active account === EOA), so it's safe to call regardless of mode.
+ * Signer sourcing (post Option F):
+ *
+ *  - `MetaMask + AA wrap`: `wallet.getAdminAccount()` returns the EOA —
+ *    the signer we need. This is the main target of this hook.
+ *  - `Pure EOA without AA` (defensive — shouldn't happen after Option F):
+ *    `getAdminAccount` is undefined, so we fall back to `wallet.getAccount()`
+ *    and delegate from there.
+ *  - `inAppWallet`: thirdweb's enclave signer is NOT exposed as an Account,
+ *    so there is no externally-controllable EOA to call `delegate()` from.
+ *    The hook returns an error toast and a no-op — inAppWallet SAs
+ *    self-delegate by default so this path should never be reached anyway.
  */
 export function useEoaDelegate({ onSubmitted, onSuccess }: UseEoaDelegateArgs = {}) {
-  const bridge = useThirdwebWallet();
+  const wallet = useActiveWallet();
   const [isPending, setIsPending] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -46,12 +55,37 @@ export function useEoaDelegate({ onSubmitted, onSuccess }: UseEoaDelegateArgs = 
         });
         return;
       }
-      if (!bridge.adminAccount || !bridge.adminWallet) {
+      if (!wallet) {
         toast.error("Unable to delegate", {
           description: "Connect wallet and try again.",
         });
         return;
       }
+
+      // inAppWallet's admin signer is thirdweb's enclave key — unreachable
+      // from the client, and the SA self-delegates by default, so there's
+      // nothing for this hook to do. Refuse explicitly so a future UI path
+      // that loosens the upstream gate doesn't accidentally sign a delegate
+      // tx from the SA itself.
+      if (wallet.id === "inApp") {
+        toast.error("Delegation not supported", {
+          description:
+            "Social-login smart accounts self-delegate automatically — no manual delegation is needed.",
+        });
+        return;
+      }
+
+      // Prefer the admin account when the wallet is AA-wrapped. Fall back
+      // to the active account for pure EOA sessions.
+      const adminAccount = wallet.getAdminAccount?.() ?? wallet.getAccount();
+      if (!adminAccount) {
+        toast.error("Unable to delegate", {
+          description:
+            "Your current wallet doesn't expose an external signer for delegation. Switch to a MetaMask-backed smart account if you need to delegate EOA voting power.",
+        });
+        return;
+      }
+
       if (!isAddress(delegatee)) {
         toast.error("Invalid address", {
           description: "Please enter a valid Ethereum address.",
@@ -65,10 +99,11 @@ export function useEoaDelegate({ onSubmitted, onSuccess }: UseEoaDelegateArgs = 
       setIsPending(true);
 
       try {
-        // Switch the underlying EOA wallet's chain explicitly. With AA on
-        // the active wallet is the smart wallet; switching its chain does
-        // not propagate down to the EIP1193 provider that actually signs.
-        await ensureOnChain(bridge.adminWallet, base);
+        // Switch the underlying wallet's chain explicitly. With AA on the
+        // active wallet is the smart wallet; switching its chain does not
+        // always propagate down to the EIP1193 provider that actually signs,
+        // so we call ensureOnChain on the same Wallet instance here.
+        await ensureOnChain(wallet, base);
 
         const contract = getContract({
           client,
@@ -83,7 +118,7 @@ export function useEoaDelegate({ onSubmitted, onSuccess }: UseEoaDelegateArgs = 
         });
 
         const result = await sendTransaction({
-          account: bridge.adminAccount,
+          account: adminAccount,
           transaction: tx,
         });
         const txHash = result.transactionHash as Hex;
@@ -125,7 +160,7 @@ export function useEoaDelegate({ onSubmitted, onSuccess }: UseEoaDelegateArgs = 
         toast.error("Delegation failed", { description: message });
       }
     },
-    [bridge.adminAccount, bridge.adminWallet, onSubmitted, onSuccess],
+    [wallet, onSubmitted, onSuccess],
   );
 
   return {
