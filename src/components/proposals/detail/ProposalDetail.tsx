@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAccount } from "wagmi";
 import { VotingControls } from "@/components/common/VotingControls";
 import { Propdates } from "@/components/proposals/detail/Propdates";
 import { ProposalActions } from "@/components/proposals/detail/ProposalActions";
@@ -16,6 +15,7 @@ import type { MultiChainProposal } from "@/services/multi-chain-proposals";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePropdates } from "@/hooks/use-propdates";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { useVotes } from "@/hooks/useVotes";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
@@ -51,7 +51,7 @@ export function ProposalDetailSkeleton() {
 
 export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const router = useRouter();
-  const { address } = useAccount();
+  const { address } = useUserAddress();
   
   // Detect proposal source for conditional rendering
   const proposalSource = (proposal as MultiChainProposal).source || "base";

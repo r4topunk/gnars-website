@@ -9,6 +9,7 @@ This is the canonical entry point for project documentation. Everything below sh
 
 ## Architecture
 
+- `docs/architecture/thirdweb-wallet-layer.md` — provider tree, reads/writes split, view-mode toggle (EOA/SA), AA config, known escape hatches
 - `docs/architecture/exploration-progress.md`
 - `docs/architecture/refactor-audit.md`
 

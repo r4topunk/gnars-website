@@ -1,23 +1,20 @@
 "use client";
 
-import { useCallback, useState, useEffect, useRef } from "react";
-import {
-  useAccount,
-  useSimulateContract,
-  useWriteContract,
-  useWaitForTransactionReceipt,
-  useSwitchChain,
-} from "wagmi";
-import { base } from "wagmi/chains";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { parseEther } from "viem";
-import { zoraNftMintAbi, ZORA_PROTOCOL_REWARD } from "@/utils/abis/zoraNftMintAbi";
+import { useSimulateContract } from "wagmi";
+import { base as wagmiBase } from "wagmi/chains";
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
+import { base } from "thirdweb/chains";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
+import { zoraNftMintAbi, ZORA_PROTOCOL_REWARD } from "@/utils/abis/zoraNftMintAbi";
 
-// Treasury receives referral rewards
 const MINT_REFERRAL = DAO_ADDRESSES.treasury as `0x${string}`;
-
-// Toast ID for managing loading states
 const MINT_TOAST_ID = "mint-transaction";
 
 export interface UseMintDroposalArgs {
@@ -27,7 +24,6 @@ export interface UseMintDroposalArgs {
   onError?: (error: Error) => void;
 }
 
-// Mint status for UI feedback
 export type MintStatus = "idle" | "confirming-wallet" | "pending-tx" | "success" | "error";
 
 export function useMintDroposal({
@@ -37,67 +33,34 @@ export function useMintDroposal({
   onError,
 }: UseMintDroposalArgs) {
   const [mintStatus, setMintStatus] = useState<MintStatus>("idle");
-  const { address, isConnected, chain } = useAccount();
-  const { switchChainAsync } = useSwitchChain();
-  const successHandledRef = useRef<string | null>(null);
+  const { address, isConnected } = useUserAddress();
+  const writer = useWriteAccount();
 
-  // Validate token address - must be a valid address, not "0x" or empty
   const isValidTokenAddress =
     tokenAddress &&
     tokenAddress.length === 42 &&
     tokenAddress !== "0x0000000000000000000000000000000000000000";
 
-  const isReady = isValidTokenAddress && isConnected && Boolean(address);
+  const isReady = Boolean(isValidTokenAddress && isConnected && address);
 
-  // Calculate total price including protocol reward for simulation
   const simulationPrice = parseEther(
-    (parseFloat(priceEth) + ZORA_PROTOCOL_REWARD).toFixed(18)
+    (parseFloat(priceEth) + ZORA_PROTOCOL_REWARD).toFixed(18),
   );
 
-  // Simulate the mintWithRewards transaction
   const { isError: simulateError } = useSimulateContract({
     abi: zoraNftMintAbi,
     address: tokenAddress as `0x${string}`,
     functionName: "mintWithRewards",
     args: [address!, 1n, "", MINT_REFERRAL],
     value: simulationPrice,
+    // Explicit `account` so wagmi doesn't try to pull it from an empty
+    // connector list (Option F).
+    account: address,
     query: {
       enabled: isReady && mintStatus === "idle" && Boolean(address),
     },
-    chainId: base.id,
+    chainId: wagmiBase.id,
   });
-
-  const { writeContractAsync, data: pendingHash, reset: resetWrite } = useWriteContract();
-
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash: pendingHash,
-    query: {
-      enabled: Boolean(pendingHash),
-    },
-  });
-
-  // Handle successful transaction in useEffect to prevent multiple toasts
-  useEffect(() => {
-    if (isSuccess && pendingHash && successHandledRef.current !== pendingHash) {
-      successHandledRef.current = pendingHash;
-      setMintStatus("success");
-
-      // Dismiss loading toast and show success
-      toast.success("Successfully minted!", {
-        id: MINT_TOAST_ID,
-        description: `Transaction: ${pendingHash.slice(0, 10)}…${pendingHash.slice(-4)}`,
-        duration: 5000,
-      });
-
-      onSuccess?.(pendingHash);
-
-      // Reset to idle after showing success briefly
-      setTimeout(() => {
-        setMintStatus("idle");
-        resetWrite();
-      }, 3000);
-    }
-  }, [isSuccess, pendingHash, onSuccess, resetWrite]);
 
   const mint = useCallback(
     async (quantity: number = 1, comment?: string) => {
@@ -110,56 +73,83 @@ export function useMintDroposal({
         return;
       }
 
-      try {
-        // Check if on correct network, switch if needed
-        if (chain?.id !== base.id) {
-          toast.info("Switching to Base network...", { id: MINT_TOAST_ID });
-          await switchChainAsync({ chainId: base.id });
-        }
+      if (!writer) {
+        toast.error("Unable to mint", {
+          description: "Please connect your wallet first.",
+        });
+        return;
+      }
 
-        // Phase 1: Waiting for wallet confirmation
+      const client = getThirdwebClient();
+      if (!client) {
+        toast.error("Unable to mint", {
+          description: "Thirdweb client not configured.",
+        });
+        return;
+      }
+
+      try {
         setMintStatus("confirming-wallet");
+
+        await ensureOnChain(writer.wallet, base);
+
         toast.loading("Confirm in your wallet...", {
           id: MINT_TOAST_ID,
           description: "Please approve the transaction in your wallet.",
         });
 
-        // Calculate total price with protocol reward
         const salePrice = parseFloat(priceEth) * quantity;
         const protocolReward = ZORA_PROTOCOL_REWARD * quantity;
         const totalPrice = parseEther((salePrice + protocolReward).toFixed(18));
 
-        // Use mintWithRewards - the modern Zora mint function
-        // Treasury receives referral rewards
-        const txHash = await writeContractAsync({
-          abi: zoraNftMintAbi,
+        const contract = getContract({
+          client,
+          chain: base,
           address: tokenAddress,
-          functionName: "mintWithRewards",
-          args: [
-            address, // recipient
-            BigInt(quantity), // quantity
-            comment?.trim() || "", // comment
-            MINT_REFERRAL, // mintReferral (treasury)
-          ],
-          value: totalPrice,
-          chainId: base.id,
+          abi: zoraNftMintAbi,
         });
 
-        // Phase 2: Transaction submitted, waiting for confirmation
+        const tx = prepareContractCall({
+          contract,
+          method: "mintWithRewards",
+          params: [address, BigInt(quantity), comment?.trim() || "", MINT_REFERRAL],
+          value: totalPrice,
+        });
+
+        const result = await sendTransaction({
+          account: writer.account,
+          transaction: tx,
+        });
+        const txHash = result.transactionHash as `0x${string}`;
+
         setMintStatus("pending-tx");
         toast.loading("Transaction submitted!", {
           id: MINT_TOAST_ID,
           description: `Waiting for confirmation... ${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
         });
+
+        await waitForReceipt({ client, chain: base, transactionHash: txHash });
+
+        setMintStatus("success");
+        toast.success("Successfully minted!", {
+          id: MINT_TOAST_ID,
+          description: `Transaction: ${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
+          duration: 5000,
+        });
+
+        onSuccess?.(txHash);
+
+        setTimeout(() => {
+          setMintStatus("idle");
+        }, 3000);
       } catch (err: unknown) {
         setMintStatus("error");
         const error = err instanceof Error ? err : new Error("Mint failed");
-        const message = error.message;
+        const { category, message } = normalizeTxError(error);
 
-        // Dismiss loading toast first
         toast.dismiss(MINT_TOAST_ID);
 
-        if (message.includes("rejected") || message.includes("denied")) {
+        if (category === "user-rejected") {
           toast.error("Transaction cancelled", {
             description: "You rejected the transaction in your wallet.",
           });
@@ -186,27 +176,16 @@ export function useMintDroposal({
 
         onError?.(error);
 
-        // Reset to idle after error
         setTimeout(() => {
           setMintStatus("idle");
         }, 100);
       }
     },
-    [
-      chain,
-      switchChainAsync,
-      tokenAddress,
-      address,
-      isReady,
-      isConnected,
-      priceEth,
-      onError,
-      writeContractAsync,
-    ],
+    [isReady, tokenAddress, address, isConnected, writer, priceEth, onSuccess, onError],
   );
 
-  // Derive isPending from status for backwards compatibility
-  const isPending = mintStatus === "confirming-wallet" || mintStatus === "pending-tx" || isConfirming;
+  const isPending =
+    mintStatus === "confirming-wallet" || mintStatus === "pending-tx";
 
   return {
     isConnected,

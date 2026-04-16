@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { AAOnboarding } from "@/components/layout/AAOnboarding";
 import { DaoHeader } from "@/components/layout/DaoHeader";
 // import { MuralBackground } from "@/components/layout/MuralBackground";
 import Providers from "@/components/layout/Providers";
@@ -82,6 +83,7 @@ export default function RootLayout({
                 {/* <MuralBackground /> */}
                 <ScrollToTop />
                 <DaoHeader />
+                <AAOnboarding />
                 <main className="max-w-6xl mx-auto px-4">{children}</main>
                 <NogglesCopyFooter />
                 <Toaster />

@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Coins, ImageIcon, Info, Loader2, Upload, Video } from "lucide-react";
 import { toast } from "sonner";
-import { useAccount } from "wagmi";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { VideoThumbnailSelector } from "@/components/ui/video-thumbnail-selector";
 import { checkHasCreatorCoin, useCreateCoin } from "@/hooks/useCreateCoin";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { GNARS_CREATOR_COIN, PLATFORM_REFERRER } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
@@ -42,7 +42,7 @@ interface CreatedCoinData {
 
 export default function CreateCoinPage() {
   const router = useRouter();
-  const { isConnected, address } = useAccount();
+  const { address, isConnected } = useUserAddress();
   const {
     createCoin,
     isPending,

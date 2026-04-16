@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { arbitrum as thirdwebArbitrum, base as thirdwebBase } from "thirdweb/chains";
+import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
 import { ExternalLink, Loader2, CheckCircle2, AlertCircle, PlusCircle, ArrowLeftRight } from "lucide-react";
 import {
   Dialog,
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { ConnectButton } from "@/components/ui/ConnectButton";
 import { usePoidhCreateOpenBounty, usePoidhCreateSoloBounty } from "@/hooks/usePoidhContract";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { getTxUrl, CHAIN_NAMES, SUPPORTED_CHAINS } from "@/lib/poidh/config";
 
 const CHAIN_OPTIONS = [
@@ -43,9 +45,24 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [reward, setReward] = useState("");
-  const { isConnected } = useAccount();
-  const walletChainId = useChainId();
-  const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
+  const { isConnected } = useUserAddress();
+  const activeChain = useActiveWalletChain();
+  const activeWallet = useActiveWallet();
+  const walletChainId = activeChain?.id ?? SUPPORTED_CHAINS.BASE;
+  const [isSwitching, setIsSwitching] = useState(false);
+  const switchWalletChain = async (targetChainId: number) => {
+    if (!activeWallet || isSwitching) return;
+    const targetChain =
+      targetChainId === SUPPORTED_CHAINS.ARBITRUM ? thirdwebArbitrum : thirdwebBase;
+    setIsSwitching(true);
+    try {
+      await activeWallet.switchChain(targetChain);
+    } catch {
+      // user cancelled or failed silently
+    } finally {
+      setIsSwitching(false);
+    }
+  };
 
   // Default to wallet's chain if supported, else Base
   const defaultChain = SUPPORTED_IDS.includes(walletChainId) ? walletChainId : SUPPORTED_CHAINS.BASE;
@@ -202,7 +219,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                   variant="outline"
                   className="shrink-0 border-yellow-500/40 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/10"
                   disabled={isSwitching}
-                  onClick={() => switchChainAsync({ chainId })}
+                  onClick={() => switchWalletChain(chainId)}
                 >
                   {isSwitching ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />

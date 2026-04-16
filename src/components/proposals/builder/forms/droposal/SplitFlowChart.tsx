@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { useAccount } from "wagmi";
 import { useEnsNameAndAvatar } from "@/hooks/use-ens";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { DAO_ADDRESSES } from "@/lib/config";
 import type { SplitRecipient } from "@/lib/splits-utils";
 
@@ -31,7 +31,7 @@ function RecipientNode({
   y: number;
   index: number;
 }) {
-  const { address: connectedAddress } = useAccount();
+  const { address: connectedAddress } = useUserAddress();
   const { ensName, ensAvatar } = useEnsNameAndAvatar(address);
 
   const isGnarsTreasury = address.toLowerCase() === DAO_ADDRESSES.treasury.toLowerCase();

@@ -1,27 +1,14 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { Address, Hex, isAddress } from "viem";
-import { base } from "wagmi/chains";
-import {
-  useAccount,
-  useWaitForTransactionReceipt,
-  useWriteContract,
-  useSwitchChain,
-} from "wagmi";
+import { type Address, type Hex, isAddress } from "viem";
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
+import { base } from "thirdweb/chains";
 import { DAO_ADDRESSES } from "@/lib/config";
-
-// Token ABI for delegation
-const tokenDelegateAbi = [
-  {
-    name: "delegate",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "delegatee", type: "address" }],
-    outputs: [],
-  },
-] as const;
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { ensureOnChain } from "@/lib/thirdweb-tx";
+import { useWriteAccount } from "@/hooks/use-write-account";
 
 export interface UseDelegateArgs {
   onSubmitted?: (txHash: Hex) => void;
@@ -29,60 +16,93 @@ export interface UseDelegateArgs {
 }
 
 export function useDelegate({ onSubmitted, onSuccess }: UseDelegateArgs = {}) {
-  const { address, chain, isConnected } = useAccount();
-  const { switchChainAsync } = useSwitchChain();
+  const writer = useWriteAccount();
   const tokenAddress = DAO_ADDRESSES.token as Address;
 
-  const isReady = isConnected && Boolean(address);
-
-  const { writeContractAsync, data: pendingHash, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash: pendingHash,
-    chainId: base.id,
-    query: {
-      enabled: Boolean(pendingHash),
-    },
-  });
+  const [isPending, setIsPending] = useState(false);
+  const [pendingHash, setPendingHash] = useState<Hex | undefined>(undefined);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   const delegate = useCallback(
     async (delegatee: string) => {
-      if (!isReady) {
-        toast.error("Unable to delegate", { description: "Connect wallet and refresh." });
+      const client = getThirdwebClient();
+
+      if (!client) {
+        toast.error("Unable to delegate", {
+          description: "Thirdweb client not configured.",
+        });
         return;
       }
 
-      // Validate address
+      if (!writer) {
+        toast.error("Unable to delegate", {
+          description: "Connect wallet and refresh.",
+        });
+        return;
+      }
+
       if (!isAddress(delegatee)) {
-        toast.error("Invalid address", { description: "Please enter a valid Ethereum address." });
+        toast.error("Invalid address", {
+          description: "Please enter a valid Ethereum address.",
+        });
         return;
       }
 
       const delegateeAddress = delegatee as Address;
 
-      try {
-        // Check if on correct network, switch if needed
-        if (chain?.id !== base.id) {
-          toast.info("Switching to Base network...");
-          await switchChainAsync({ chainId: base.id });
-        }
+      setPendingHash(undefined);
+      setIsConfirming(false);
+      setIsConfirmed(false);
+      setIsPending(true);
 
-        const txHash = await writeContractAsync({
-          abi: tokenDelegateAbi,
+      try {
+        // Chain-switch on the underlying wallet. When the writer is the
+        // admin EOA (eoa view), the underlying wallet is still the AA wrap
+        // and `ensureOnChain` targets the wallet instance — same behavior
+        // as `use-eoa-delegate` to keep the EIP1193 provider aligned.
+        await ensureOnChain(writer.wallet, base);
+
+        const contract = getContract({
+          client,
+          chain: base,
           address: tokenAddress,
-          functionName: "delegate",
-          args: [delegateeAddress],
-          chainId: base.id,
         });
 
+        const tx = prepareContractCall({
+          contract,
+          method: "function delegate(address delegatee)",
+          params: [delegateeAddress],
+        });
+
+        const result = await sendTransaction({
+          account: writer.account,
+          transaction: tx,
+        });
+        const txHash = result.transactionHash as Hex;
+
+        setPendingHash(txHash);
+        setIsPending(false);
         onSubmitted?.(txHash);
 
         toast("Delegation submitted", {
           description: `Transaction: ${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
         });
 
+        setIsConfirming(true);
+        await waitForReceipt({
+          client,
+          chain: base,
+          transactionHash: txHash,
+        });
+        setIsConfirming(false);
+        setIsConfirmed(true);
+
         onSuccess?.(txHash, delegateeAddress);
       } catch (err: unknown) {
-        // Safely extract error message
+        setIsPending(false);
+        setIsConfirming(false);
+
         let message = "Unknown error";
         if (typeof err === "string") {
           message = err;
@@ -90,26 +110,29 @@ export function useDelegate({ onSubmitted, onSuccess }: UseDelegateArgs = {}) {
           message = String((err as { message: string }).message);
         }
 
-        // Handle user rejection
-        if (message.includes("User rejected") || message.includes("rejected") || message.includes("User denied")) {
+        if (
+          message.includes("User rejected") ||
+          message.includes("rejected") ||
+          message.includes("User denied")
+        ) {
           toast.error("Transaction cancelled", {
             description: "You cancelled the transaction",
           });
           return;
         }
 
-        // Handle timeout errors
         if (message.includes("timeout") || message.includes("Request timeout")) {
-          toast.error("Network timeout", { 
-            description: "RPC request timed out. Please try again or check your network connection." 
+          toast.error("Network timeout", {
+            description:
+              "RPC request timed out. Please try again or check your network connection.",
           });
           return;
         }
 
-        // Handle contract reverts
         if (message.includes("reverted")) {
-          toast.error("Transaction failed", { 
-            description: "The delegation transaction was reverted. You may not own any tokens to delegate." 
+          toast.error("Transaction failed", {
+            description:
+              "The delegation transaction was reverted. You may not own any tokens to delegate.",
           });
           return;
         }
@@ -117,7 +140,7 @@ export function useDelegate({ onSubmitted, onSuccess }: UseDelegateArgs = {}) {
         toast.error("Delegation failed", { description: message });
       }
     },
-    [isReady, chain?.id, tokenAddress, writeContractAsync, switchChainAsync, onSubmitted, onSuccess],
+    [writer, tokenAddress, onSubmitted, onSuccess],
   );
 
   return {

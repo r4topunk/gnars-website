@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatEther } from "viem";
-import { useAccount, useReadContract, useWatchContractEvent } from "wagmi";
+import { useReadContract, useWatchContractEvent } from "wagmi";
 import { base } from "wagmi/chains";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import auctionAbi from "@/utils/abis/auctionAbi";
 
@@ -34,7 +35,7 @@ interface UseAuctionLiveReturn {
 export function useAuctionLive(
   currentTokenId: bigint | undefined,
 ): UseAuctionLiveReturn {
-  const { address } = useAccount();
+  const { address } = useUserAddress();
   const [bidCount, setBidCount] = useState(0);
   const [latestBid, setLatestBid] = useState<NewBidEvent | undefined>();
   const [wasOutbid, setWasOutbid] = useState(false);

@@ -13,7 +13,7 @@ Project guide for the Gnars DAO website.
 
 ## Project Overview
 
-This is a Next.js 15.5+ application for the Gnars DAO website, built on Base chain. The site provides a complete DAO interface including auctions, treasury, governance, and member management. It uses the Nouns Builder architecture and integrates with Base's OnchainKit.
+This is a Next.js 15.5+ application for the Gnars DAO website, built on Base chain. The site provides a complete DAO interface including auctions, treasury, governance, and member management. It uses the Nouns Builder architecture. Wallet layer is split: **thirdweb owns login + writes + account abstraction**, **wagmi stays as a reads transport only**.
 
 ## Development Commands
 
@@ -37,7 +37,9 @@ pnpm lint
 
 - **Framework**: Next.js 15.5 with App Router
 - **Styling**: Tailwind CSS 4 with Shadcn/UI components
-- **Web3**: OnchainKit (Coinbase), Builder DAO SDK, Viem/Wagmi
+- **Web3 writes + login**: thirdweb v5 with account abstraction (`accountAbstraction: { chain: base, sponsorGas: true }`)
+- **Web3 reads**: wagmi + viem (connectors empty — only transports configured)
+- **DAO data**: Builder DAO SDK (`@buildeross/hooks`, `@buildeross/sdk`) + Goldsky subgraph
 - **Chain**: Base (chain ID 8453)
 - **Package Manager**: pnpm
 
@@ -92,17 +94,22 @@ The lootbox UI at `src/app/lootbox/page.tsx` is **V4‑only**:
 
 ### Web3 Integration
 
-- Chain configuration is hardcoded to Base (chain ID 8453)
-- Use OnchainKit hooks and components for wallet interactions
-- Builder DAO SDK (`@buildeross/hooks`, `@buildeross/sdk`) for DAO data
-- All contract addresses are centralized in `src/lib/config.ts`
+- Chain is hardcoded to Base (chain ID 8453)
+- Contract addresses in `src/lib/config.ts`
+- **Login**: thirdweb `useConnectModal` (social, email OTP, MetaMask, Coinbase, Rainbow, WalletConnect)
+- **Writes**: every onchain write goes through thirdweb `sendTransaction({ account, transaction })` dispatched via `useWriteAccount()` — signer matches the user's view mode (EOA direct vs SA via userop)
+- **Reads**: use wagmi `useReadContract`, `useReadContracts`, `useBalance`, `useWaitForTransactionReceipt`, `usePublicClient` — these work without connectors
+- **Address**: single source of truth is `useUserAddress()` → `{ address, saAddress, adminAddress, isConnected, isInAppWallet, viewMode, canSwitchView }`. Never call wagmi's `useAccount()` — it's disconnected from thirdweb state
+- **View-mode toggle**: external-wallet users can switch between SA view (sponsored gas) and EOA view (native wallet prompt) via `WalletDrawer`. Persisted to localStorage. In-app-wallet users are pinned to SA view
+- **Governance pre-checks**: write hooks that gate on voting power pre-read `getPastVotes` / `getVotes` and bail with a toast before prompting signatures
+- See `docs/architecture/thirdweb-wallet-layer.md` for the full provider tree and decision matrix
 
 ### Data Fetching
 
 - Server Components for initial data loading (SEO, performance)
 - Client Components only for interactive features (bidding, voting)
 - Utilize Builder DAO subgraph for historical data
-- OnchainKit for real-time blockchain data
+- wagmi/viem for real-time blockchain reads in client components
 
 ### Responsive Design
 
@@ -119,6 +126,9 @@ NEXT_PUBLIC_BASE_RPC_URL="https://mainnet.base.org"
 ALCHEMY_API_KEY=""
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=""
 NEXT_PUBLIC_GOLDSKY_PROJECT_ID=""
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID=""        # required — login + writes
+NEXT_PUBLIC_THIRDWEB_AA_ENABLED="false"   # optional — retained from spike
+NEXT_PUBLIC_THIRDWEB_AA_SPONSOR_GAS="true"
 ```
 
 ## Important Notes

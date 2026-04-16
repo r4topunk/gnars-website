@@ -1,24 +1,46 @@
+import { base as thirdwebBase } from "thirdweb/chains";
+import { predictSmartAccountAddress } from "thirdweb/wallets/smart";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
+import { getThirdwebClient } from "@/lib/thirdweb";
 import type { FarcasterProfile } from "@/services/farcaster";
 
 // Helper to delay between batched queries to avoid rate limits
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export type MemberToken = {
+  id: number;
+  imageUrl?: string | null;
+  mintedAt?: number;
+  endTime?: number;
+  settled?: boolean;
+  finalBidWei?: string;
+  winner?: string;
+  /**
+   * Which side of the joint profile the token belongs to. Undefined on
+   * single-address fetches for backwards compatibility.
+   */
+  heldBy?: "eoa" | "sa";
+};
 
 export type MemberOverview = {
   address: string;
   delegate: string;
   tokensHeld: number[];
   tokenCount: number;
-  tokens: Array<{
-    id: number;
-    imageUrl?: string | null;
-    mintedAt?: number;
-    endTime?: number;
-    settled?: boolean;
-    finalBidWei?: string;
-    winner?: string;
-  }>;
+  tokens: MemberToken[];
+  /**
+   * When present the overview is aggregated from two addresses — the
+   * admin EOA at the top level plus its deterministic thirdweb smart
+   * account. UI uses this to render breakdowns and the "Smart account"
+   * sub-card without re-querying.
+   */
+  smartAccount?: {
+    address: string;
+    tokenCount: number;
+    tokensHeld: number[];
+    delegate: string;
+  };
 };
 
 export type MemberProposals = {
@@ -114,6 +136,98 @@ export async function fetchMemberOverview(address: string): Promise<MemberOvervi
     tokensHeld: tokenIds,
     tokenCount: tokenIds.length,
     tokens,
+  };
+}
+
+/**
+ * Fetches a joint EOA + predicted-SA overview for a member, merging token
+ * counts and holdings from both sides into a single `MemberOverview`.
+ *
+ * Why: on the spike branch every external-wallet user's thirdweb smart
+ * account lives at a CREATE2-derived address that the Builder DAO
+ * subgraph indexes independently. A user who holds 14 Gnars at their
+ * MetaMask EOA plus 1 at the SA would otherwise see two separate
+ * profiles with a wrong total.
+ *
+ * Strategy:
+ *  1. Predict the SA address offchain via thirdweb's
+ *     `predictSmartAccountAddress` (deterministic CREATE2, matches
+ *     whatever `useConnectModal({ accountAbstraction })` deploys for
+ *     the same admin + factory).
+ *  2. Fetch both overviews from the subgraph in parallel.
+ *  3. Merge tokens/tokensHeld with a `heldBy` tag so UI can show the
+ *     breakdown. `tokenCount` = sum, `delegate` = EOA's (canonical).
+ *  4. Expose a `smartAccount` field with the raw SA figures so
+ *     `MemberQuickStats` can render a sub-card without refetching.
+ *
+ * When the thirdweb client isn't configured (no NEXT_PUBLIC_THIRDWEB_CLIENT_ID)
+ * or the predict call fails, falls back to a plain `fetchMemberOverview`.
+ * Never throws on the SA-side errors — the EOA data is always returned.
+ */
+export async function fetchJointMemberOverview(address: string): Promise<MemberOverview> {
+  const client = getThirdwebClient();
+  if (!client) {
+    return fetchMemberOverview(address);
+  }
+
+  let predictedSa: string | undefined;
+  try {
+    predictedSa = await predictSmartAccountAddress({
+      client,
+      chain: thirdwebBase,
+      adminAddress: address,
+    });
+  } catch (err) {
+    console.warn("[members] predictSmartAccountAddress failed", err);
+    return fetchMemberOverview(address);
+  }
+
+  if (!predictedSa || predictedSa.toLowerCase() === address.toLowerCase()) {
+    return fetchMemberOverview(address);
+  }
+
+  const [eoaOverview, saOverview] = await Promise.allSettled([
+    fetchMemberOverview(address),
+    fetchMemberOverview(predictedSa),
+  ]);
+
+  if (eoaOverview.status === "rejected") {
+    throw eoaOverview.reason;
+  }
+  const eoa = eoaOverview.value;
+  const sa = saOverview.status === "fulfilled" ? saOverview.value : null;
+
+  if (!sa || sa.tokenCount === 0) {
+    return {
+      ...eoa,
+      smartAccount: {
+        address: predictedSa,
+        tokenCount: 0,
+        tokensHeld: [],
+        delegate: predictedSa,
+      },
+    };
+  }
+
+  const eoaTokens: MemberToken[] = eoa.tokens.map((t) => ({ ...t, heldBy: "eoa" as const }));
+  const saTokens: MemberToken[] = sa.tokens.map((t) => ({ ...t, heldBy: "sa" as const }));
+
+  return {
+    address: eoa.address,
+    // The EOA's delegation is canonical — that's where the user's real
+    // holdings live, and the SA typically either self-delegates or is
+    // empty. If the EOA has no tokens we fall back to the SA's delegate
+    // so "delegated to self" still renders correctly for SA-only users.
+    delegate: eoa.tokenCount > 0 ? eoa.delegate : sa.delegate,
+    tokensHeld: [...eoa.tokensHeld, ...sa.tokensHeld],
+    tokenCount: eoa.tokenCount + sa.tokenCount,
+    tokens: [...eoaTokens, ...saTokens],
+    smartAccount: {
+      address: predictedSa,
+      tokenCount: sa.tokenCount,
+      tokensHeld: sa.tokensHeld,
+      delegate: sa.delegate,
+    },
   };
 }
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { Timer } from "lucide-react";
-import { useAccount } from "wagmi";
 import { useEffect, useState } from "react";
 import { Countdown } from "@/components/common/Countdown";
 import { ExecuteProposalButton } from "@/components/proposals/ExecuteProposalButton";
@@ -14,6 +13,7 @@ import { Card } from "@/components/ui/card";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
 import { useProposalEta } from "@/hooks/useProposalEta";
+import { useUserAddress } from "@/hooks/use-user-address";
 
 interface ProposalActionsProps {
   proposal: Proposal;
@@ -31,7 +31,7 @@ interface ProposalActionsProps {
  * - Buttons only enabled for qualified users
  */
 export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsProps) {
-  const { isConnected } = useAccount();
+  const { isConnected } = useUserAddress();
 
   // Check if user has voting power (at least 1 Gnar)
   // const { hasVotingPower, isLoading: votesLoading } = useVotes({

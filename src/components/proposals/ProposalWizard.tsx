@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
-import { useAccount } from "wagmi";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { TransactionBuilder } from "@/components/proposals/builder/TransactionBuilder";
 import { ProposalDetailsForm } from "@/components/proposals/ProposalDetailsForm";
 import { ProposalGatingBanner } from "@/components/proposals/ProposalGatingBanner";
@@ -52,7 +52,7 @@ export function ProposalWizard() {
     methods.setValue("description", template.description, { shouldDirty: false });
   }, [searchParams, methods]);
 
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useUserAddress();
   const eligibility = useProposalEligibility({
     chainId: CHAIN.id,
     collectionAddress: DAO_ADDRESSES.token,

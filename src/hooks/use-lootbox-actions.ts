@@ -2,15 +2,25 @@
 
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { Address, parseEther } from "viem";
-import { useAccount, usePublicClient, useSwitchChain, useWriteContract } from "wagmi";
-import { base } from "wagmi/chains";
+import { type Address, parseEther } from "viem";
+import {
+  getContract,
+  prepareContractCall,
+  sendTransaction,
+  type ThirdwebClient,
+  waitForReceipt,
+} from "thirdweb";
+import { base } from "thirdweb/chains";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import {
   getGnarlyRejectionMessage,
   isUserRejection,
   normalizeAddress,
   parseGnarsInput,
 } from "@/lib/lootbox";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { ensureOnChain } from "@/lib/thirdweb-tx";
 import erc20Abi from "@/utils/abis/erc20Abi";
 import erc721Abi from "@/utils/abis/erc721Abi";
 import gnarsLootboxV4Abi from "@/utils/abis/gnarsLootboxV4Abi";
@@ -34,30 +44,63 @@ export function useLootboxActions({
   setPendingHash,
   setPendingLabel,
 }: UseLootboxActionsOptions) {
-  const { address, isConnected, chain } = useAccount();
-  const { switchChainAsync } = useSwitchChain();
-  const { writeContractAsync } = useWriteContract();
-  const publicClient = usePublicClient({ chainId: base.id });
+  const { address, isConnected } = useUserAddress();
+  const writer = useWriteAccount();
 
-  const ensureBase = useCallback(async () => {
-    if (chain?.id === base.id) return true;
-    try {
-      toast.info("Switching to Base...");
-      await switchChainAsync({ chainId: base.id });
-      return true;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to switch network";
-      toast.error("Network switch failed", { description: message });
-      return false;
-    }
-  }, [chain?.id, switchChainAsync]);
+  /**
+   * Shared plumbing for every lootbox write. The caller provides a label
+   * shown while the tx is in flight and a prepareFn that builds the
+   * PreparedTransaction against the current client. Returns the tx hash
+   * on success, null on user rejection or any other failure (the helper
+   * has already shown a toast and cleared the pending label).
+   */
+  const runWrite = useCallback(
+    async (
+      label: string,
+      errorTitle: string,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      prepareFn: (client: ThirdwebClient) => any,
+    ): Promise<`0x${string}` | null> => {
+      if (!isConnected || !address || !writer) {
+        toast.error("Connect your wallet to continue.");
+        return null;
+      }
+      const client = getThirdwebClient();
+      if (!client) {
+        toast.error(errorTitle, {
+          description: "Thirdweb client not configured.",
+        });
+        return null;
+      }
+
+      setPendingLabel(label);
+      try {
+        await ensureOnChain(writer.wallet, base);
+        const tx = prepareFn(client);
+        const result = await sendTransaction({
+          account: writer.account,
+          transaction: tx,
+        });
+        setPendingHash(result.transactionHash as `0x${string}`);
+        return result.transactionHash as `0x${string}`;
+      } catch (err) {
+        if (isUserRejection(err)) {
+          const gnarlyMsg = getGnarlyRejectionMessage();
+          toast.error(gnarlyMsg.title, { description: gnarlyMsg.description });
+        } else {
+          const message = err instanceof Error ? err.message : "Transaction failed";
+          toast.error(errorTitle, { description: message });
+        }
+        setPendingLabel(null);
+        setPendingHash(undefined);
+        return null;
+      }
+    },
+    [address, isConnected, writer, setPendingHash, setPendingLabel],
+  );
 
   const handleOpenFlex = useCallback(
     async (flexEth: string) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to join Gnars DAO.");
-        return;
-      }
       let value: bigint;
       try {
         value = parseEther(flexEth || "0");
@@ -69,43 +112,29 @@ export function useLootboxActions({
         toast.error("Enter an amount above zero.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
 
-      try {
-        setPendingLabel("Joining Gnars");
-        const hash = await writeContractAsync({
+      const hash = await runWrite("Joining Gnars", "Transaction failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "openFlexBox",
-          value,
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "openFlexBox",
+          params: [],
+          value,
+        });
+      });
+
+      if (hash) {
         toast.success("Transaction submitted", {
           description: "Welcome to Gnars DAO! Getting your tokens...",
         });
-      } catch (err) {
-        if (isUserRejection(err)) {
-          const gnarlyMsg = getGnarlyRejectionMessage();
-          toast.error(gnarlyMsg.title, { description: gnarlyMsg.description });
-        } else {
-          const message = err instanceof Error ? err.message : "Transaction failed";
-          toast.error("Transaction failed", { description: message });
-        }
-        setPendingLabel(null);
-        setPendingHash(undefined);
       }
     },
-    [
-      address,
-      ensureBase,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [lootboxAddress, runWrite],
   );
 
   const handleDepositNFT = useCallback(
@@ -115,10 +144,6 @@ export function useLootboxActions({
       setNftContract: (v: string) => void,
       setNftTokenId: (v: string) => void,
     ) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to deposit NFTs.");
-        return;
-      }
       if (!nftContract || !nftTokenId) {
         toast.error("Enter NFT contract address and token ID.");
         return;
@@ -130,166 +155,140 @@ export function useLootboxActions({
         return;
       }
 
-      const onBase = await ensureBase();
-      if (!onBase) return;
-
-      try {
-        setPendingLabel("Approving NFT");
-        const approveHash = await writeContractAsync({
+      const approveHash = await runWrite("Approving NFT", "Approval failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: normalizedNftContract,
           abi: erc721Abi,
-          functionName: "approve",
-          args: [lootboxAddress, BigInt(nftTokenId)],
-          chainId: base.id,
         });
-        toast.info("Approval transaction submitted...");
-        if (publicClient) {
-          await publicClient.waitForTransactionReceipt({ hash: approveHash });
-        }
+        return prepareContractCall({
+          contract,
+          method: "approve",
+          params: [lootboxAddress, BigInt(nftTokenId)],
+        });
+      });
+      if (!approveHash) return;
 
-        setPendingLabel("Depositing NFT");
-        const hash = await writeContractAsync({
+      toast.info("Approval transaction submitted...");
+      const client = getThirdwebClient();
+      if (client) {
+        await waitForReceipt({ client, chain: base, transactionHash: approveHash });
+      }
+
+      const depositHash = await runWrite("Depositing NFT", "Deposit failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "depositFlexNft",
-          args: [normalizedNftContract, BigInt(nftTokenId)],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "depositFlexNft",
+          params: [normalizedNftContract, BigInt(nftTokenId)],
+        });
+      });
+
+      if (depositHash) {
         toast.success("NFT deposited successfully!");
         setNftContract("");
         setNftTokenId("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Deposit failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      isConnected,
-      lootboxAddress,
-      publicClient,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [lootboxAddress, runWrite],
   );
 
   const handleDepositGnars = useCallback(
     async (gnarsAmount: string, setGnarsAmount: (v: string) => void) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to deposit GNARS.");
-        return;
-      }
       if (!gnarsAmount || Number(gnarsAmount) <= 0) {
         toast.error("Enter a valid GNARS amount.");
         return;
       }
 
-      const onBase = await ensureBase();
-      if (!onBase) return;
+      const amount = parseGnarsInput(gnarsAmount, gnarsUnit ?? undefined);
+      if (walletGnarsBalance !== undefined && walletGnarsBalance < amount) {
+        toast.error("Insufficient GNARS balance.");
+        return;
+      }
+      const allowance = gnarsAllowance ?? 0n;
 
-      try {
-        const amount = parseGnarsInput(gnarsAmount, gnarsUnit ?? undefined);
-        if (walletGnarsBalance !== undefined && walletGnarsBalance < amount) {
-          toast.error("Insufficient GNARS balance.");
-          return;
+      if (allowance < amount) {
+        const approveHash = await runWrite(
+          "Approving GNARS",
+          "Approval failed",
+          (client) => {
+            const contract = getContract({
+              client,
+              chain: base,
+              address: gnarsTokenAddress,
+              abi: erc20Abi,
+            });
+            return prepareContractCall({
+              contract,
+              method: "approve",
+              params: [lootboxAddress, amount],
+            });
+          },
+        );
+        if (!approveHash) return;
+        toast.info("Approval transaction submitted...");
+        const client = getThirdwebClient();
+        if (client) {
+          await waitForReceipt({ client, chain: base, transactionHash: approveHash });
         }
-        const allowance = gnarsAllowance ?? 0n;
+      }
 
-        if (allowance < amount) {
-          setPendingLabel("Approving GNARS");
-          const approveHash = await writeContractAsync({
-            address: gnarsTokenAddress,
-            abi: erc20Abi,
-            functionName: "approve",
-            args: [lootboxAddress, amount],
-            chainId: base.id,
-          });
-          toast.info("Approval transaction submitted...");
-          if (publicClient) {
-            await publicClient.waitForTransactionReceipt({ hash: approveHash });
-          }
-        }
-
-        setPendingLabel("Depositing GNARS");
-        const hash = await writeContractAsync({
+      const depositHash = await runWrite("Depositing GNARS", "Deposit failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "depositGnars",
-          args: [amount],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "depositGnars",
+          params: [amount],
+        });
+      });
+
+      if (depositHash) {
         toast.success("GNARS deposited successfully!");
         setGnarsAmount("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Deposit failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      gnarsAllowance,
-      gnarsUnit,
-      isConnected,
-      gnarsTokenAddress,
-      lootboxAddress,
-      publicClient,
-      walletGnarsBalance,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [gnarsAllowance, gnarsTokenAddress, gnarsUnit, lootboxAddress, runWrite, walletGnarsBalance],
   );
 
   const handleApproveGnars = useCallback(
     async (approveGnarsAmount: string, gnarsAmount: string) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to approve GNARS.");
-        return;
-      }
       const amountInput = approveGnarsAmount || gnarsAmount;
       if (!amountInput) {
         toast.error("Enter a GNARS amount to approve.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
+      const amount = parseGnarsInput(amountInput, gnarsUnit ?? undefined);
 
-      try {
-        const amount = parseGnarsInput(amountInput, gnarsUnit ?? undefined);
-        setPendingLabel("Approving GNARS");
-        const hash = await writeContractAsync({
+      const hash = await runWrite("Approving GNARS", "Approve GNARS failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: gnarsTokenAddress,
           abi: erc20Abi,
-          functionName: "approve",
-          args: [lootboxAddress, amount],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "approve",
+          params: [lootboxAddress, amount],
+        });
+      });
+
+      if (hash) {
         toast.success("Approve GNARS submitted.");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Approve GNARS failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      gnarsTokenAddress,
-      gnarsUnit,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [gnarsTokenAddress, gnarsUnit, lootboxAddress, runWrite],
   );
 
   const handleSetAllowlist = useCallback(
@@ -298,10 +297,6 @@ export function useLootboxActions({
       allowlistEnabled: boolean,
       setAllowlistNft: (v: string) => void,
     ) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to update the allowlist.");
-        return;
-      }
       if (!allowlistNft) {
         toast.error("Enter an NFT contract address.");
         return;
@@ -311,121 +306,91 @@ export function useLootboxActions({
         toast.error("NFT address is invalid.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
 
-      try {
-        setPendingLabel(allowlistEnabled ? "Allowing NFT" : "Blocking NFT");
-        const hash = await writeContractAsync({
+      const label = allowlistEnabled ? "Allowing NFT" : "Blocking NFT";
+      const hash = await runWrite(label, "Allowlist update failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "setAllowedERC721",
-          args: [normalized, allowlistEnabled],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "setAllowedERC721",
+          params: [normalized, allowlistEnabled],
+        });
+      });
+
+      if (hash) {
         toast.success("Allowlist update submitted.");
         setAllowlistNft("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Allowlist update failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [lootboxAddress, runWrite],
   );
 
   const handleSetTreasury = useCallback(
     async (treasuryInput: string, setTreasuryInput: (v: string) => void) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to update the treasury.");
-        return;
-      }
       if (!treasuryInput) {
         toast.error("Enter a treasury address.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
 
-      try {
-        setPendingLabel("Updating Treasury");
-        const hash = await writeContractAsync({
+      const hash = await runWrite("Updating Treasury", "Treasury update failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "setTreasury",
-          args: [treasuryInput as Address],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "setTreasury",
+          params: [treasuryInput as Address],
+        });
+      });
+
+      if (hash) {
         toast.success("Treasury update submitted.");
         setTreasuryInput("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Treasury update failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [lootboxAddress, runWrite],
   );
 
   const handleSetSubscriptionId = useCallback(
     async (subscriptionIdInput: string, setSubscriptionIdInput: (v: string) => void) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to update the subscription.");
-        return;
-      }
       if (!subscriptionIdInput) {
         toast.error("Enter a subscription ID.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
+      const subId = BigInt(subscriptionIdInput);
 
-      try {
-        const subId = BigInt(subscriptionIdInput);
-        setPendingLabel("Updating Subscription");
-        const hash = await writeContractAsync({
-          address: lootboxAddress,
-          abi: gnarsLootboxV4Abi,
-          functionName: "setSubscriptionId",
-          args: [subId],
-          chainId: base.id,
-        });
-        setPendingHash(hash);
+      const hash = await runWrite(
+        "Updating Subscription",
+        "Subscription update failed",
+        (client) => {
+          const contract = getContract({
+            client,
+            chain: base,
+            address: lootboxAddress,
+            abi: gnarsLootboxV4Abi,
+          });
+          return prepareContractCall({
+            contract,
+            method: "setSubscriptionId",
+            params: [subId],
+          });
+        },
+      );
+
+      if (hash) {
         toast.success("Subscription update submitted.");
         setSubscriptionIdInput("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Subscription update failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [lootboxAddress, runWrite],
   );
 
   const handleSetVrfConfig = useCallback(
@@ -435,10 +400,6 @@ export function useLootboxActions({
       numWords: string;
       keyHash: string;
     }) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to update VRF config.");
-        return;
-      }
       const {
         callbackGasLimit,
         requestConfirmations,
@@ -449,131 +410,97 @@ export function useLootboxActions({
         toast.error("Fill in all VRF config fields.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
+      const gasLimitValue = Number.parseInt(callbackGasLimit, 10);
+      const confirmationsValue = Number.parseInt(requestConfirmations, 10);
+      const numWordsValue = Number.parseInt(numWords, 10);
+      if (
+        Number.isNaN(gasLimitValue) ||
+        Number.isNaN(confirmationsValue) ||
+        Number.isNaN(numWordsValue)
+      ) {
+        toast.error("VRF numeric fields must be valid numbers.");
+        return;
+      }
 
-      try {
-        const gasLimitValue = Number.parseInt(callbackGasLimit, 10);
-        const confirmationsValue = Number.parseInt(requestConfirmations, 10);
-        const numWordsValue = Number.parseInt(numWords, 10);
-        if (
-          Number.isNaN(gasLimitValue) ||
-          Number.isNaN(confirmationsValue) ||
-          Number.isNaN(numWordsValue)
-        ) {
-          throw new Error("VRF numeric fields must be valid numbers.");
-        }
-        setPendingLabel("Updating VRF Config");
-        const hash = await writeContractAsync({
+      const hash = await runWrite("Updating VRF Config", "VRF config update failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "setVrfConfig",
-          args: [gasLimitValue, confirmationsValue, numWordsValue, keyHashInput as `0x${string}`],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "setVrfConfig",
+          params: [gasLimitValue, confirmationsValue, numWordsValue, keyHashInput as `0x${string}`],
+        });
+      });
+
+      if (hash) {
         toast.success("VRF config update submitted.");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("VRF config update failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [lootboxAddress, runWrite],
   );
 
   const handleRetryOpen = useCallback(
     async (retryRequestId: string, setRetryRequestId: (v: string) => void) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to retry requests.");
-        return;
-      }
       if (!retryRequestId) {
         toast.error("Enter a request ID.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
+      const requestId = BigInt(retryRequestId);
 
-      try {
-        const requestId = BigInt(retryRequestId);
-        setPendingLabel("Retrying Open");
-        const hash = await writeContractAsync({
+      const hash = await runWrite("Retrying Open", "Retry failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "retryOpen",
-          args: [requestId],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "retryOpen",
+          params: [requestId],
+        });
+      });
+
+      if (hash) {
         toast.success("Retry submitted.");
         setRetryRequestId("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Retry failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [lootboxAddress, runWrite],
   );
 
   const handleCancelOpen = useCallback(
     async (cancelRequestId: string, setCancelRequestId: (v: string) => void) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to cancel requests.");
-        return;
-      }
       if (!cancelRequestId) {
         toast.error("Enter a request ID.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
+      const requestId = BigInt(cancelRequestId);
 
-      try {
-        const requestId = BigInt(cancelRequestId);
-        setPendingLabel("Cancelling Open");
-        const hash = await writeContractAsync({
+      const hash = await runWrite("Cancelling Open", "Cancel failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "cancelOpen",
-          args: [requestId],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "cancelOpen",
+          params: [requestId],
+        });
+      });
+
+      if (hash) {
         toast.success("Cancel submitted.");
         setCancelRequestId("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Cancel failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [lootboxAddress, runWrite],
   );
 
   const handleSetFlexConfig = useCallback(
@@ -586,10 +513,6 @@ export function useLootboxActions({
       flexGnarsBase: string;
       flexGnarsPerEth: string;
     }) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to update flex config.");
-        return;
-      }
       const {
         minFlexEth: minFlexEthInput,
         flexNothingBps: flexNothingBpsInput,
@@ -611,125 +534,90 @@ export function useLootboxActions({
         toast.error("Fill in all flex config fields.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
 
-      try {
-        const minFlexEthValue = parseEther(minFlexEthInput);
-        const flexNothingBpsValue = Number.parseInt(flexNothingBpsInput, 10);
-        const flexNftBpsMinValue = Number.parseInt(flexNftBpsMinInput, 10);
-        const flexNftBpsMaxValue = Number.parseInt(flexNftBpsMaxInput, 10);
-        const flexNftBpsPerEthValue = Number.parseInt(flexNftBpsPerEthInput, 10);
-        if (
-          Number.isNaN(flexNothingBpsValue) ||
-          Number.isNaN(flexNftBpsMinValue) ||
-          Number.isNaN(flexNftBpsMaxValue) ||
-          Number.isNaN(flexNftBpsPerEthValue)
-        ) {
-          throw new Error("Flex config numeric fields must be valid numbers.");
-        }
-        const flexGnarsBaseValue = parseGnarsInput(flexGnarsBaseInput, gnarsUnit ?? undefined);
-        const flexGnarsPerEthValue = parseGnarsInput(flexGnarsPerEthInput, gnarsUnit ?? undefined);
+      const minFlexEthValue = parseEther(minFlexEthInput);
+      const flexNothingBpsValue = Number.parseInt(flexNothingBpsInput, 10);
+      const flexNftBpsMinValue = Number.parseInt(flexNftBpsMinInput, 10);
+      const flexNftBpsMaxValue = Number.parseInt(flexNftBpsMaxInput, 10);
+      const flexNftBpsPerEthValue = Number.parseInt(flexNftBpsPerEthInput, 10);
+      if (
+        Number.isNaN(flexNothingBpsValue) ||
+        Number.isNaN(flexNftBpsMinValue) ||
+        Number.isNaN(flexNftBpsMaxValue) ||
+        Number.isNaN(flexNftBpsPerEthValue)
+      ) {
+        toast.error("Flex config numeric fields must be valid numbers.");
+        return;
+      }
+      const flexGnarsBaseValue = parseGnarsInput(flexGnarsBaseInput, gnarsUnit ?? undefined);
+      const flexGnarsPerEthValue = parseGnarsInput(flexGnarsPerEthInput, gnarsUnit ?? undefined);
 
-        setPendingLabel("Updating Flex Config");
-        const hash = await writeContractAsync({
-          address: lootboxAddress,
-          abi: gnarsLootboxV4Abi,
-          functionName: "setFlexConfig",
-          args: [
-            minFlexEthValue,
-            flexNothingBpsValue,
-            flexNftBpsMinValue,
-            flexNftBpsMaxValue,
-            flexNftBpsPerEthValue,
-            flexGnarsBaseValue,
-            flexGnarsPerEthValue,
-          ],
-          chainId: base.id,
-        });
-        setPendingHash(hash);
+      const hash = await runWrite(
+        "Updating Flex Config",
+        "Flex config update failed",
+        (client) => {
+          const contract = getContract({
+            client,
+            chain: base,
+            address: lootboxAddress,
+            abi: gnarsLootboxV4Abi,
+          });
+          return prepareContractCall({
+            contract,
+            method: "setFlexConfig",
+            params: [
+              minFlexEthValue,
+              flexNothingBpsValue,
+              flexNftBpsMinValue,
+              flexNftBpsMaxValue,
+              flexNftBpsPerEthValue,
+              flexGnarsBaseValue,
+              flexGnarsPerEthValue,
+            ],
+          });
+        },
+      );
+
+      if (hash) {
         toast.success("Flex config update submitted.");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Flex config update failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      gnarsUnit,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [gnarsUnit, lootboxAddress, runWrite],
   );
 
   const handlePause = useCallback(async () => {
-    if (!isConnected || !address) {
-      toast.error("Connect your wallet to pause the contract.");
-      return;
-    }
-    const onBase = await ensureBase();
-    if (!onBase) return;
-    try {
-      setPendingLabel("Pausing contract");
-      const hash = await writeContractAsync({
+    const hash = await runWrite("Pausing contract", "Pause failed", (client) => {
+      const contract = getContract({
+        client,
+        chain: base,
         address: lootboxAddress,
         abi: gnarsLootboxV4Abi,
-        functionName: "pause",
-        chainId: base.id,
       });
-      setPendingHash(hash);
-      toast.success("Pause submitted.");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Transaction failed";
-      toast.error("Pause failed", { description: message });
-      setPendingLabel(null);
-    }
-  }, [
-    address,
-    ensureBase,
-    isConnected,
-    lootboxAddress,
-    writeContractAsync,
-    setPendingHash,
-    setPendingLabel,
-  ]);
+      return prepareContractCall({
+        contract,
+        method: "pause",
+        params: [],
+      });
+    });
+    if (hash) toast.success("Pause submitted.");
+  }, [lootboxAddress, runWrite]);
 
   const handleUnpause = useCallback(async () => {
-    if (!isConnected || !address) {
-      toast.error("Connect your wallet to unpause the contract.");
-      return;
-    }
-    const onBase = await ensureBase();
-    if (!onBase) return;
-    try {
-      setPendingLabel("Unpausing contract");
-      const hash = await writeContractAsync({
+    const hash = await runWrite("Unpausing contract", "Unpause failed", (client) => {
+      const contract = getContract({
+        client,
+        chain: base,
         address: lootboxAddress,
         abi: gnarsLootboxV4Abi,
-        functionName: "unpause",
-        chainId: base.id,
       });
-      setPendingHash(hash);
-      toast.success("Unpause submitted.");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Transaction failed";
-      toast.error("Unpause failed", { description: message });
-      setPendingLabel(null);
-    }
-  }, [
-    address,
-    ensureBase,
-    isConnected,
-    lootboxAddress,
-    writeContractAsync,
-    setPendingHash,
-    setPendingLabel,
-  ]);
+      return prepareContractCall({
+        contract,
+        method: "unpause",
+        params: [],
+      });
+    });
+    if (hash) toast.success("Unpause submitted.");
+  }, [lootboxAddress, runWrite]);
 
   const handleWithdrawGnars = useCallback(
     async (
@@ -737,47 +625,37 @@ export function useLootboxActions({
       withdrawGnarsTo: string,
       setWithdrawGnarsAmount: (v: string) => void,
     ) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to withdraw GNARS.");
-        return;
-      }
       if (!withdrawGnarsAmount) {
         toast.error("Enter a GNARS amount.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
+      const amount = parseGnarsInput(withdrawGnarsAmount, gnarsUnit ?? undefined);
+      const to = (withdrawGnarsTo || address) as Address;
+      if (!to) {
+        toast.error("Recipient address missing.");
+        return;
+      }
 
-      try {
-        const amount = parseGnarsInput(withdrawGnarsAmount, gnarsUnit ?? undefined);
-        const to = (withdrawGnarsTo || address) as Address;
-        setPendingLabel("Withdrawing GNARS");
-        const hash = await writeContractAsync({
+      const hash = await runWrite("Withdrawing GNARS", "Withdraw GNARS failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "withdrawGnars",
-          args: [to, amount],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "withdrawGnars",
+          params: [to, amount],
+        });
+      });
+
+      if (hash) {
         toast.success("Withdraw GNARS submitted.");
         setWithdrawGnarsAmount("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Withdraw GNARS failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      gnarsUnit,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [address, gnarsUnit, lootboxAddress, runWrite],
   );
 
   const handleWithdrawToken = useCallback(
@@ -788,10 +666,6 @@ export function useLootboxActions({
       setWithdrawTokenAddress: (v: string) => void,
       setWithdrawTokenAmount: (v: string) => void,
     ) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to withdraw tokens.");
-        return;
-      }
       const tokenAddress = withdrawTokenAddress.trim();
       if (!tokenAddress || !withdrawTokenAmount) {
         toast.error("Enter token address and amount.");
@@ -801,40 +675,34 @@ export function useLootboxActions({
         toast.error("Use Withdraw GNARS for the GNARS token.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
+      const amount = BigInt(withdrawTokenAmount);
+      const to = (withdrawTokenTo || address) as Address;
+      if (!to) {
+        toast.error("Recipient address missing.");
+        return;
+      }
 
-      try {
-        const amount = BigInt(withdrawTokenAmount);
-        const to = (withdrawTokenTo || address) as Address;
-        setPendingLabel("Withdrawing token");
-        const hash = await writeContractAsync({
+      const hash = await runWrite("Withdrawing token", "Withdraw token failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "withdrawERC20",
-          args: [tokenAddress as Address, to, amount],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "withdrawERC20",
+          params: [tokenAddress as Address, to, amount],
+        });
+      });
+
+      if (hash) {
         toast.success("Withdraw token submitted.");
         setWithdrawTokenAddress("");
         setWithdrawTokenAmount("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Withdraw token failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      gnarsTokenAddress,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [address, gnarsTokenAddress, lootboxAddress, runWrite],
   );
 
   const handleWithdrawFlexNft = useCallback(
@@ -845,47 +713,42 @@ export function useLootboxActions({
       setWithdrawNftAddress: (v: string) => void,
       setWithdrawNftTokenId: (v: string) => void,
     ) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to withdraw NFTs.");
-        return;
-      }
       if (!withdrawNftAddress || !withdrawNftTokenId) {
         toast.error("Enter NFT address and token ID.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
+      const tokenId = BigInt(withdrawNftTokenId);
+      const to = (withdrawNftTo || address) as Address;
+      if (!to) {
+        toast.error("Recipient address missing.");
+        return;
+      }
 
-      try {
-        const tokenId = BigInt(withdrawNftTokenId);
-        const to = (withdrawNftTo || address) as Address;
-        setPendingLabel("Withdrawing flex NFT");
-        const hash = await writeContractAsync({
-          address: lootboxAddress,
-          abi: gnarsLootboxV4Abi,
-          functionName: "withdrawFlexNft",
-          args: [withdrawNftAddress as Address, tokenId, to],
-          chainId: base.id,
-        });
-        setPendingHash(hash);
+      const hash = await runWrite(
+        "Withdrawing flex NFT",
+        "Withdraw flex NFT failed",
+        (client) => {
+          const contract = getContract({
+            client,
+            chain: base,
+            address: lootboxAddress,
+            abi: gnarsLootboxV4Abi,
+          });
+          return prepareContractCall({
+            contract,
+            method: "withdrawFlexNft",
+            params: [withdrawNftAddress as Address, tokenId, to],
+          });
+        },
+      );
+
+      if (hash) {
         toast.success("Withdraw flex NFT submitted.");
         setWithdrawNftAddress("");
         setWithdrawNftTokenId("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Withdraw flex NFT failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [address, lootboxAddress, runWrite],
   );
 
   const handleWithdrawERC721 = useCallback(
@@ -896,47 +759,38 @@ export function useLootboxActions({
       setWithdrawNftAddress: (v: string) => void,
       setWithdrawNftTokenId: (v: string) => void,
     ) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to withdraw NFTs.");
-        return;
-      }
       if (!withdrawNftAddress || !withdrawNftTokenId) {
         toast.error("Enter NFT address and token ID.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
+      const tokenId = BigInt(withdrawNftTokenId);
+      const to = (withdrawNftTo || address) as Address;
+      if (!to) {
+        toast.error("Recipient address missing.");
+        return;
+      }
 
-      try {
-        const tokenId = BigInt(withdrawNftTokenId);
-        const to = (withdrawNftTo || address) as Address;
-        setPendingLabel("Withdrawing NFT");
-        const hash = await writeContractAsync({
+      const hash = await runWrite("Withdrawing NFT", "Withdraw NFT failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "withdrawERC721",
-          args: [withdrawNftAddress as Address, tokenId, to],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "withdrawERC721",
+          params: [withdrawNftAddress as Address, tokenId, to],
+        });
+      });
+
+      if (hash) {
         toast.success("Withdraw NFT submitted.");
         setWithdrawNftAddress("");
         setWithdrawNftTokenId("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Withdraw NFT failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [address, lootboxAddress, runWrite],
   );
 
   const handleWithdrawEth = useCallback(
@@ -945,46 +799,37 @@ export function useLootboxActions({
       withdrawEthTo: string,
       setWithdrawEthAmount: (v: string) => void,
     ) => {
-      if (!isConnected || !address) {
-        toast.error("Connect your wallet to withdraw ETH.");
-        return;
-      }
       if (!withdrawEthAmount) {
         toast.error("Enter an ETH amount.");
         return;
       }
-      const onBase = await ensureBase();
-      if (!onBase) return;
+      const amount = parseEther(withdrawEthAmount);
+      const to = (withdrawEthTo || address) as Address;
+      if (!to) {
+        toast.error("Recipient address missing.");
+        return;
+      }
 
-      try {
-        const amount = parseEther(withdrawEthAmount);
-        const to = (withdrawEthTo || address) as Address;
-        setPendingLabel("Withdrawing ETH");
-        const hash = await writeContractAsync({
+      const hash = await runWrite("Withdrawing ETH", "Withdraw ETH failed", (client) => {
+        const contract = getContract({
+          client,
+          chain: base,
           address: lootboxAddress,
           abi: gnarsLootboxV4Abi,
-          functionName: "withdrawETH",
-          args: [to, amount],
-          chainId: base.id,
         });
-        setPendingHash(hash);
+        return prepareContractCall({
+          contract,
+          method: "withdrawETH",
+          params: [to, amount],
+        });
+      });
+
+      if (hash) {
         toast.success("Withdraw ETH submitted.");
         setWithdrawEthAmount("");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Transaction failed";
-        toast.error("Withdraw ETH failed", { description: message });
-        setPendingLabel(null);
       }
     },
-    [
-      address,
-      ensureBase,
-      isConnected,
-      lootboxAddress,
-      writeContractAsync,
-      setPendingHash,
-      setPendingLabel,
-    ],
+    [address, lootboxAddress, runWrite],
   );
 
   return {

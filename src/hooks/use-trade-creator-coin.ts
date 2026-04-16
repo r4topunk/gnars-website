@@ -1,20 +1,23 @@
-import { useState } from "react";
-import { tradeCoin, setApiKey, type TradeParameters } from "@zoralabs/coins-sdk";
-import { parseEther } from "viem";
-import { useAccount, useWalletClient, usePublicClient } from "wagmi";
-import { toast } from "sonner";
+"use client";
 
-// Track API key configuration status
+import { useState } from "react";
+import { setApiKey, tradeCoin, type TradeParameters } from "@zoralabs/coins-sdk";
+import { parseEther, type PublicClient, type WalletClient } from "viem";
+import { toast } from "sonner";
+import { useActiveAccount, useActiveWallet } from "thirdweb/react";
+import { base } from "thirdweb/chains";
+import { viemAdapter } from "thirdweb/adapters/viem";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { normalizeTxError } from "@/lib/thirdweb-tx";
+
 let isApiKeyConfigured = false;
 
-// Initialize API key
 if (typeof window !== "undefined") {
   const apiKey = process.env.NEXT_PUBLIC_ZORA_API_KEY;
-
   if (!apiKey) {
-    const message =
-      "Missing NEXT_PUBLIC_ZORA_API_KEY environment variable - Zora creator coin trading will not work";
-    console.error(`[use-trade-creator-coin] ${message}`);
+    console.error(
+      "[use-trade-creator-coin] Missing NEXT_PUBLIC_ZORA_API_KEY environment variable - Zora creator coin trading will not work",
+    );
     isApiKeyConfigured = false;
   } else {
     setApiKey(apiKey);
@@ -24,17 +27,15 @@ if (typeof window !== "undefined") {
 
 interface TradeCreatorCoinParams {
   creatorCoinAddress: string;
-  amountInEth: string; // Amount of ETH to spend (e.g., "0.001")
+  amountInEth: string;
 }
 
 export function useTradeCreatorCoin() {
   const [isTrading, setIsTrading] = useState(false);
-  const { address } = useAccount();
-  const { data: walletClient } = useWalletClient();
-  const publicClient = usePublicClient();
+  const account = useActiveAccount();
+  const wallet = useActiveWallet();
 
   const buyCreatorCoin = async ({ creatorCoinAddress, amountInEth }: TradeCreatorCoinParams) => {
-    // Check API key configuration before proceeding
     if (!isApiKeyConfigured) {
       const errorMsg =
         "Zora API key not configured. Cannot process creator token trades. Please set NEXT_PUBLIC_ZORA_API_KEY.";
@@ -42,15 +43,34 @@ export function useTradeCreatorCoin() {
       throw new Error(errorMsg);
     }
 
-    if (!address || !walletClient || !publicClient) {
+    const client = getThirdwebClient();
+    if (!client) {
+      toast.error("Thirdweb client not configured");
+      throw new Error("Thirdweb client not configured");
+    }
+
+    if (!account || !wallet) {
       toast.error("Please connect your wallet");
       return;
     }
 
-    const toastId = toast.loading(`Buying creator token...`);
+    const toastId = toast.loading("Buying creator token...");
     setIsTrading(true);
 
     try {
+      // viemAdapter returns clients typed against thirdweb's bundled viem;
+      // cast via unknown so the Zora SDK (which consumes the project's viem
+      // types) accepts them. Structurally compatible at runtime.
+      const walletClient = viemAdapter.wallet.toViem({
+        wallet,
+        chain: base,
+        client,
+      }) as unknown as WalletClient;
+      const publicClient = viemAdapter.publicClient.toViem({
+        chain: base,
+        client,
+      }) as unknown as PublicClient;
+
       const tradeParameters: TradeParameters = {
         sell: { type: "eth" },
         buy: {
@@ -58,14 +78,14 @@ export function useTradeCreatorCoin() {
           address: creatorCoinAddress as `0x${string}`,
         },
         amountIn: parseEther(amountInEth),
-        slippage: 0.05, // 5% slippage tolerance
-        sender: address,
+        slippage: 0.05,
+        sender: account.address as `0x${string}`,
       };
 
       await tradeCoin({
         tradeParameters,
         walletClient,
-        account: walletClient.account,
+        account: walletClient.account!,
         publicClient,
       });
 
@@ -73,34 +93,22 @@ export function useTradeCreatorCoin() {
       return true;
     } catch (err) {
       console.error("Failed to buy creator token:", err);
-      
-      // Extract error message with gnarly treatment for user rejection
-      let errorMessage = "Failed to buy creator token";
-      
-      if (err instanceof Error) {
-        const errorStr = err.message.toLowerCase();
-        
-        // Check for user rejection
-        if (
-          errorStr.includes("user rejected") ||
-          errorStr.includes("user denied") ||
-          errorStr.includes("rejected the request") ||
-          errorStr.includes("denied transaction")
-        ) {
-          const gnarlyMessages = [
-            "User farted and cancelled the transaction 💨",
-            "Cold feet? Transaction cancelled by user 🥶",
-            "User said 'nah' and bounced 🏃‍♂️",
-            "Chickened out of the trade 🐔",
-            "User hit the eject button ⏏️",
-            "NGMI - User rejected the transaction 📉",
-          ];
-          errorMessage = gnarlyMessages[Math.floor(Math.random() * gnarlyMessages.length)];
-        } else {
-          errorMessage = err.message;
-        }
+
+      const { category, message } = normalizeTxError(err);
+      let errorMessage = message || "Failed to buy creator token";
+
+      if (category === "user-rejected") {
+        const gnarlyMessages = [
+          "User farted and cancelled the transaction 💨",
+          "Cold feet? Transaction cancelled by user 🥶",
+          "User said 'nah' and bounced 🏃‍♂️",
+          "Chickened out of the trade 🐔",
+          "User hit the eject button ⏏️",
+          "NGMI - User rejected the transaction 📉",
+        ];
+        errorMessage = gnarlyMessages[Math.floor(Math.random() * gnarlyMessages.length)];
       }
-      
+
       toast.error(errorMessage, { id: toastId });
       return false;
     } finally {

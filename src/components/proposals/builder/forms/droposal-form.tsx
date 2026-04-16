@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { AlertCircle, ChevronDown, ChevronUp, ExternalLink, Info } from "lucide-react";
 import { useFormContext } from "react-hook-form";
-import { useAccount } from "wagmi";
 import { type ProposalFormValues } from "@/components/proposals/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import {
   useDaoSettings,
   type StartTimeCalculation,
 } from "@/hooks/use-dao-settings";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { createDefaultSplitConfig } from "@/lib/splits-utils";
 import type { SplitRecipient } from "@/lib/splits-utils";
@@ -31,7 +31,7 @@ interface Props {
 }
 
 export function DroposalForm({ index }: Props) {
-  const { address } = useAccount();
+  const { address } = useUserAddress();
   const {
     register,
     setValue,
