@@ -67,17 +67,7 @@ export function usePropdates(proposalId: string) {
           throw new Error("Public client not available");
         }
 
-        // Simulate the transaction first
-        await publicClient.simulateContract({
-          address: EAS_CONTRACT_ADDRESS,
-          abi: easAbi,
-          functionName: "attest",
-          // @ts-expect-error - wagmi type inference issue with complex tuple args
-          args: [attestationRequest],
-          chainId: targetChainId,
-        });
-
-        // Execute the transaction
+        // Execute the transaction (wallet simulates internally)
         const txHash = (await writeContractAsync({
           address: EAS_CONTRACT_ADDRESS,
           abi: easAbi,
@@ -106,7 +96,12 @@ export function usePropdates(proposalId: string) {
         options?.onSuccess?.(txHash);
         return txHash;
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Propdate creation failed";
+        const raw = error instanceof Error ? error.message : "Propdate creation failed";
+        const message = raw.includes("Failed to fetch")
+          ? "Network error reaching Base RPC. Check connection or try a different wallet."
+          : raw.includes("User rejected") || raw.includes("User denied")
+            ? "Transaction rejected in wallet."
+            : raw.split("\n")[0];
         setCreateError(message);
         pendingProposalIdRef.current = null;
         setSubmissionPhase("idle");
