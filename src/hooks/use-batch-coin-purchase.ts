@@ -161,7 +161,7 @@ export function useBatchCoinPurchase({
       }) as unknown as PublicClient;
       try {
         await publicClient.call({
-          account: userAddress,
+          account: writer.account.address as Address,
           to: MULTICALL3,
           data: multicallData,
           value: totalEthValue,

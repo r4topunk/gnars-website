@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { getProfile, setApiKey } from "@zoralabs/coins-sdk";
 import { isAddress, type Address } from "viem";
@@ -62,8 +63,13 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
  * account patterns. Returns the resolved EOA address when successful,
  * `null` when the address is an EOA to begin with, and `undefined` when
  * none of the known patterns produce a usable admin.
+ *
+ * Result is cached for an hour per address. SA→admin relationships are
+ * effectively immutable for the typical user — admins are only added via
+ * explicit AccountPermissions writes — so a 1h TTL keeps profile pages
+ * cheap without going stale in practice.
  */
-async function resolveSmartAccountOwner(
+async function resolveSmartAccountOwnerUncached(
   address: Address,
 ): Promise<Address | null | undefined> {
   let code: `0x${string}` | undefined;
@@ -113,6 +119,12 @@ async function resolveSmartAccountOwner(
 
   return undefined;
 }
+
+const resolveSmartAccountOwner = unstable_cache(
+  resolveSmartAccountOwnerUncached,
+  ["members:resolve-sa-owner"],
+  { revalidate: 3600, tags: ["members:sa-owner"] },
+);
 
 interface MemberPageProps {
   params: Promise<{ address: string }>;

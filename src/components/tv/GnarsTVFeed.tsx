@@ -407,7 +407,13 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
       const buyToast = toast.loading(`Buying ${coinTitle}...`);
 
       try {
-        // Bridge the bridged thirdweb wallet into viem shape for the Zora SDK.
+        // Zora's `tradeCoin` SDK wants a viem WalletClient — it doesn't take
+        // a thirdweb account. We bridge via `viemAdapter` and sign from the
+        // active thirdweb wallet directly. This bypasses `useWriteAccount`,
+        // so view-mode toggles don't apply here (Zora SDK always signs from
+        // whatever thirdweb considers the active account). Revisit if the
+        // Zora path grows — migrate to `sendTransaction({ account })` once
+        // Zora exposes a lower-level call builder.
         const walletClient = viemAdapter.wallet.toViem({
           wallet,
           chain: base,
