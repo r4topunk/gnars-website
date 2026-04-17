@@ -127,8 +127,6 @@ ALCHEMY_API_KEY=""
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=""
 NEXT_PUBLIC_GOLDSKY_PROJECT_ID=""
 NEXT_PUBLIC_THIRDWEB_CLIENT_ID=""        # required — login + writes
-NEXT_PUBLIC_THIRDWEB_AA_ENABLED="false"   # optional — retained from spike
-NEXT_PUBLIC_THIRDWEB_AA_SPONSOR_GAS="true"
 ```
 
 ## Important Notes
