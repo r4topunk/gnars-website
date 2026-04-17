@@ -249,9 +249,7 @@ function decodeErc20Transfer(calldata: Hex): { to: Address; amount: bigint } | n
   }
 }
 
-// 4-byte selectors keep decoder routing cheap and quiet.
-const TRANSFER_FROM_SELECTOR = "0x23b872dd";
-const SAFE_TRANSFER_FROM_SELECTOR = "0x42842e0e";
+const SAFE_TRANSFER_FROM_SELECTOR = "0x42842e0e" as const;
 
 function decodeErc721Transfer(
   abi: typeof ERC721_TRANSFER_FROM_ABI | typeof ERC721_SAFE_TRANSFER_FROM_ABI,
