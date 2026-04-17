@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SubgraphSDK } from "@buildeross/sdk";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 300; // 5 minutes
 
 // In-memory cache to reduce subgraph queries

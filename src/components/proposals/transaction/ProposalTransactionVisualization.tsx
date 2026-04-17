@@ -249,10 +249,16 @@ function decodeErc20Transfer(calldata: Hex): { to: Address; amount: bigint } | n
   }
 }
 
+const SAFE_TRANSFER_FROM_SELECTOR = "0x42842e0e" as const;
+
 function decodeErc721Transfer(
   abi: typeof ERC721_TRANSFER_FROM_ABI | typeof ERC721_SAFE_TRANSFER_FROM_ABI,
   calldata: Hex,
 ): { from: Address; to: Address; tokenId: bigint } | null {
+  const selector = calldata.slice(0, 10).toLowerCase();
+  const isTransferFrom = abi === ERC721_TRANSFER_FROM_ABI;
+  const expected = isTransferFrom ? TRANSFER_FROM_SELECTOR : SAFE_TRANSFER_FROM_SELECTOR;
+  if (selector !== expected) return null;
   try {
     const { args } = decodeFunctionData({ abi, data: calldata });
     const [from, to, tokenId] = args as [Address, Address, bigint];
