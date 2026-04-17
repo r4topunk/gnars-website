@@ -50,7 +50,7 @@ Identify concrete, actionable opportunities to reduce bundle size, improve build
 - `moduleResolution: "bundler"` — correct for Next.js + Turbopack.
 - `isolatedModules: true` — correct, required for fast transpilation.
 - `skipLibCheck: true` — acceptable but hides type issues in vendored packages.
-- The `exclude` array at line 26 correctly excludes `references/**/*`, `mcp-subgraph/**/*`, `scripts/**/*`, `subgraphs/**/*`, which prevents accidental inclusion of dev/vendor trees in the main build.
+- The `exclude` array at line 26 correctly excludes `references/**/*`, `scripts/**/*`, `subgraphs/**/*`, which prevents accidental inclusion of dev/vendor trees in the main build. (`mcp-subgraph/**/*` was removed when that directory was extracted to the builder-dao-tools repo.)
 
 **No critical issues.** Changing `target` to `ES2022` is low-risk and marginally useful.
 
