@@ -11,8 +11,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PropdatesFeedSkeleton } from "@/components/propdates/PropdatesFeedSkeleton";
-import type { ProposalWithPropdates } from "@/services/propdates-enriched";
 import type { ProposalStatus } from "@/lib/schemas/proposals";
 
 // ---------------------------------------------------------------------------

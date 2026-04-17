@@ -46,17 +46,21 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
 
   const { ethPrice } = useEthPrice();
 
-  const filteredBounties = data?.bounties.filter((bounty) => {
-    const text = `${bounty.title} ${bounty.description}`.toLowerCase();
+  const filteredBounties = useMemo(() => {
+    return (
+      data?.bounties.filter((bounty) => {
+        const text = `${bounty.title} ${bounty.description}`.toLowerCase();
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.trim().toLowerCase();
-      if (!text.includes(query)) return false;
-    }
+        if (searchQuery.trim()) {
+          const query = searchQuery.trim().toLowerCase();
+          if (!text.includes(query)) return false;
+        }
 
-    if (categoryFilter === 'all') return true;
-    return CATEGORY_KEYWORDS[categoryFilter]?.some((keyword) => text.includes(keyword));
-  }) || [];
+        if (categoryFilter === 'all') return true;
+        return CATEGORY_KEYWORDS[categoryFilter]?.some((keyword) => text.includes(keyword));
+      }) || []
+    );
+  }, [data?.bounties, searchQuery, categoryFilter]);
 
   const totalValue = useMemo(() => {
     const totalWei = filteredBounties.reduce((sum, bounty) => {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ArrowRight, Coins, FileImage, Send } from "lucide-react";
+import { Coins, FileImage, Send } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { cn, getETHDisplayProps } from "@/lib/utils";

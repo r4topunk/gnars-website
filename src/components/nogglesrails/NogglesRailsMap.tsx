@@ -106,6 +106,7 @@ export function NogglesRailsMap() {
               position={rail.position as LatLngExpression}
               iconAnchor={[rail.iconSize[0] / 2, rail.iconSize[1] / 2]}
               icon={
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={rail.iconUrl}
                   alt={rail.label}

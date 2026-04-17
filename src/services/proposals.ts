@@ -10,6 +10,26 @@ import { CHAIN, DAO_ADDRESSES, SUBGRAPH } from "@/lib/config";
 import { serverPublicClient } from "@/lib/rpc";
 import { getProposalStatus } from "@/lib/schemas/proposals";
 
+/** Retry with exponential backoff on rate-limit / transient errors */
+async function withRetry<T>(fn: () => Promise<T>, label: string, maxAttempts = 5): Promise<T> {
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      const isRateLimit = /429|rate.?limit|too many requests/i.test(msg);
+      const isTransient = isRateLimit || /fetch failed|ETIMEDOUT|ECONNRESET|503|502/i.test(msg);
+      if (!isTransient || attempt === maxAttempts) throw err;
+      const delay = Math.min(8_000, 500 * 2 ** (attempt - 1)) + Math.random() * 250;
+      console.warn(`[${label}] attempt ${attempt} failed (${isRateLimit ? "429" : "transient"}); retry in ${Math.round(delay)}ms`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw lastErr;
+}
+
 /** Fetch vote timestamps from subgraph (the SDK fragment omits this field) */
 async function fetchVoteTimestamps(
   proposalId: string,
@@ -26,11 +46,15 @@ async function fetchVoteTimestamps(
     }
   }`;
   try {
-    const res = await fetch(SUBGRAPH.url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query }),
-    });
+    const res = await withRetry(async () => {
+      const r = await fetch(SUBGRAPH.url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      if (r.status === 429) throw new Error(`GraphQL Error (Code: 429)`);
+      return r;
+    }, "fetchVoteTimestamps");
     if (!res.ok) return {};
     const data = await res.json();
     const map: Record<string, number> = {};
@@ -137,11 +161,15 @@ function transformProposal(p: SdkProposal): Proposal {
 }
 
 export const listProposals = cache(async (limit = 200, page = 0): Promise<Proposal[]> => {
-  const data = await SubgraphSDK.connect(CHAIN.id).proposals({
-    where: { dao: DAO_ADDRESSES.token.toLowerCase() },
-    first: limit,
-    skip: page * limit,
-  });
+  const data = await withRetry(
+    () =>
+      SubgraphSDK.connect(CHAIN.id).proposals({
+        where: { dao: DAO_ADDRESSES.token.toLowerCase() },
+        first: limit,
+        skip: page * limit,
+      }),
+    "listProposals",
+  );
 
   const sdkProposals = data.proposals ?? [];
 
@@ -161,10 +189,10 @@ export const getProposalByIdOrNumber = cache(
           dao: DAO_ADDRESSES.token.toLowerCase(),
         };
 
-    const data = await SubgraphSDK.connect(CHAIN.id).proposals({
-      where,
-      first: 1,
-    });
+    const data = await withRetry(
+      () => SubgraphSDK.connect(CHAIN.id).proposals({ where, first: 1 }),
+      `getProposalByIdOrNumber(${idOrNumber})`,
+    );
 
     if (!data.proposals || data.proposals.length === 0) {
       return null; // Genuinely not found

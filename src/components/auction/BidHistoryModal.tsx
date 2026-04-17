@@ -49,7 +49,7 @@ function BidListContent({
 }) {
   const { bids, isLoading, error, newBidIds } = useAuctionBids(tokenId, enabled);
   const txHashes = useMemo(() => bids.map((b) => b.transactionHash), [bids]);
-  const { comments, isLoading: commentsLoading } = useBidComments(txHashes);
+  const { comments } = useBidComments(txHashes);
 
   if (isLoading) {
     return (
