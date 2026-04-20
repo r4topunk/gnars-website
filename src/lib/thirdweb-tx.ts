@@ -60,10 +60,22 @@ export function normalizeTxError(err: unknown): NormalizedTxError {
 /**
  * Ensures the active thirdweb wallet is on the requested chain before
  * signing. Noop if the wallet is absent or already on the right chain.
- * Any switch failure propagates so the caller can decide how to toast.
+ *
+ * Verifies the chain after `switchChain` because some wallets (notably
+ * Zerion) resolve `wallet_switchEthereumChain` without actually moving
+ * the provider — signing then happens on the stale chain. If the post
+ * check still reports the wrong chain we throw so callers can show a
+ * clear "switch network manually" toast instead of broadcasting to the
+ * wrong network.
  */
 export async function ensureOnChain(wallet: Wallet | undefined, chain: Chain): Promise<void> {
   if (!wallet) return;
   if (wallet.getChain()?.id === chain.id) return;
   await wallet.switchChain(chain);
+  const afterId = wallet.getChain()?.id;
+  if (afterId !== chain.id) {
+    throw new Error(
+      `Wallet did not switch to ${chain.name ?? chain.id} (still on chain ${afterId ?? "unknown"}). Switch network manually in your wallet and retry.`,
+    );
+  }
 }

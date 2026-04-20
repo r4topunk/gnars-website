@@ -1,19 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, MessageSquare, Wallet } from "lucide-react";
-import { concat, encodeFunctionData, formatEther, type Hex, parseEther, toHex } from "viem";
-import { base as wagmiBase } from "wagmi/chains";
-import { useBalance } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
+import { ChevronDown, MessageSquare, Wallet } from "lucide-react";
+import { toast } from "sonner";
 import { getContract, prepareContractCall, prepareTransaction, sendTransaction } from "thirdweb";
 import { base } from "thirdweb/chains";
-import {
-  useActiveWallet,
-  useActiveWalletChain,
-  useConnectModal,
-} from "thirdweb/react";
+import { useActiveWalletChain, useConnectModal } from "thirdweb/react";
+import { concat, encodeFunctionData, formatEther, parseEther, toHex, type Hex } from "viem";
+import { useBalance } from "wagmi";
+import { base as wagmiBase } from "wagmi/chains";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   InputGroup,
   InputGroupAddon,
@@ -21,16 +19,14 @@ import {
   InputGroupText,
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 import auctionAbi from "@/utils/abis/auctionAbi";
-import { toast } from "sonner";
-import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
-import { useUserAddress } from "@/hooks/use-user-address";
-import { useWriteAccount } from "@/hooks/use-write-account";
 
 interface AuctionBidFormProps {
   tokenId: bigint | undefined;
@@ -50,7 +46,6 @@ export function AuctionBidForm({
 }: AuctionBidFormProps) {
   const { address, isConnected } = useUserAddress();
   const activeChain = useActiveWalletChain();
-  const wallet = useActiveWallet();
   const writer = useWriteAccount();
   const { connect: openConnectModal } = useConnectModal();
   const queryClient = useQueryClient();
@@ -188,7 +183,7 @@ export function AuctionBidForm({
     pendingBidRef.current = { comment: trimmedComment, amount: bidAmount };
 
     await bidTx.execute(async () => {
-      await ensureOnChain(wallet, base);
+      await ensureOnChain(writer.wallet, base);
 
       if (trimmedComment.length > 0) {
         const baseCalldata = encodeFunctionData({
@@ -266,7 +261,7 @@ export function AuctionBidForm({
     }
     if (isWrongNetwork) {
       try {
-        await ensureOnChain(wallet, base);
+        await ensureOnChain(writer?.wallet, base);
         handleBid();
       } catch {
         // User rejected
@@ -352,7 +347,6 @@ export function AuctionBidForm({
           </div>
         </CollapsibleContent>
       </Collapsible>
-
     </>
   );
 }

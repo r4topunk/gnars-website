@@ -1,28 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { Wallet } from "lucide-react";
-import { useReadContract, useSimulateContract } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
+import { Wallet } from "lucide-react";
+import { toast } from "sonner";
 import { getContract, prepareContractCall, sendTransaction } from "thirdweb";
 import { base } from "thirdweb/chains";
-import {
-  useActiveWallet,
-  useActiveWalletChain,
-  useConnectModal,
-} from "thirdweb/react";
+import { useActiveWalletChain, useConnectModal } from "thirdweb/react";
+import { useReadContract, useSimulateContract } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 import auctionAbi from "@/utils/abis/auctionAbi";
-import { toast } from "sonner";
-import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
-import { useUserAddress } from "@/hooks/use-user-address";
-import { useWriteAccount } from "@/hooks/use-write-account";
 
 interface AuctionSettleButtonProps {
   /** Whether the connected wallet is the auction winner */
@@ -35,7 +31,6 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
 
   const { address: userAddress, isConnected } = useUserAddress();
   const activeChain = useActiveWalletChain();
-  const wallet = useActiveWallet();
   const writer = useWriteAccount();
   const { connect: openConnectModal } = useConnectModal();
   const queryClient = useQueryClient();
@@ -134,7 +129,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     const methodName = isPaused ? "settleAuction" : "settleCurrentAndCreateNewAuction";
 
     await settleTx.execute(async () => {
-      await ensureOnChain(wallet, base);
+      await ensureOnChain(writer.wallet, base);
 
       const contract = getContract({
         client,
@@ -215,7 +210,6 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
           </TooltipContent>
         )}
       </Tooltip>
-
     </>
   );
 }

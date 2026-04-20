@@ -1,13 +1,23 @@
 "use client";
 
-import { useActiveAccount, useActiveWallet } from "thirdweb/react";
+import { useActiveAccount, useActiveWallet, useAdminWallet } from "thirdweb/react";
 import type { Account, Wallet } from "thirdweb/wallets";
 import { useUserAddress } from "@/hooks/use-user-address";
 
 export interface WriteAccount {
   /** The account object to pass to thirdweb's `sendTransaction`. */
   account: Account;
-  /** The active thirdweb wallet — exposed for chain-ensure calls. */
+  /**
+   * The wallet that must be on the target chain before signing. For EOA
+   * signing this is the admin wallet (the external provider that actually
+   * broadcasts the tx); for SA signing it's the active wallet. Callers
+   * should pass this to `ensureOnChain`.
+   *
+   * Using the active wallet unconditionally hides chain mismatches because
+   * the SA wrapper is pinned to Base by `THIRDWEB_AA_CONFIG` — so the chain
+   * check always returned "already on Base" while the admin EOA stayed on
+   * mainnet and signed there. That caused propdate txs to land on Ethereum.
+   */
   wallet: Wallet;
   /**
    * True when the returned account is the admin EOA (i.e. the write will
@@ -37,6 +47,7 @@ export interface WriteAccount {
  * ```ts
  * const writer = useWriteAccount();
  * if (!writer) return;
+ * await ensureOnChain(writer.wallet, base);
  * const result = await sendTransaction({
  *   account: writer.account,
  *   transaction: tx,
@@ -50,14 +61,15 @@ export interface WriteAccount {
 export function useWriteAccount(): WriteAccount | undefined {
   const activeAccount = useActiveAccount();
   const wallet = useActiveWallet();
+  const adminWallet = useAdminWallet();
   const { viewMode, canSwitchView } = useUserAddress();
 
   if (!wallet || !activeAccount) return undefined;
 
   if (viewMode === "eoa" && canSwitchView) {
     const admin = wallet.getAdminAccount?.();
-    if (admin) {
-      return { account: admin, wallet, isEoaSigner: true };
+    if (admin && adminWallet) {
+      return { account: admin, wallet: adminWallet, isEoaSigner: true };
     }
   }
 

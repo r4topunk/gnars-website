@@ -2,15 +2,10 @@
 
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import {
-  getContract,
-  prepareContractCall,
-  sendTransaction,
-  waitForReceipt,
-} from "thirdweb";
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveWallet } from "thirdweb/react";
-import { type Address, type Hex, isAddress } from "viem";
+import { useActiveWallet, useAdminWallet } from "thirdweb/react";
+import { isAddress, type Address, type Hex } from "viem";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
@@ -41,6 +36,7 @@ interface UseEoaDelegateArgs {
  */
 export function useEoaDelegate({ onSubmitted, onSuccess }: UseEoaDelegateArgs = {}) {
   const wallet = useActiveWallet();
+  const adminWallet = useAdminWallet();
   const [isPending, setIsPending] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -100,10 +96,11 @@ export function useEoaDelegate({ onSubmitted, onSuccess }: UseEoaDelegateArgs = 
 
       try {
         // Switch the underlying wallet's chain explicitly. With AA on the
-        // active wallet is the smart wallet; switching its chain does not
-        // always propagate down to the EIP1193 provider that actually signs,
-        // so we call ensureOnChain on the same Wallet instance here.
-        await ensureOnChain(wallet, base);
+        // active wallet is the smart wallet (pinned to Base by the AA
+        // config), so switching its chain is a no-op and does NOT move the
+        // admin EOA provider that actually signs. Use the admin wallet
+        // directly so the Zerion / MetaMask chain actually changes.
+        await ensureOnChain(adminWallet ?? wallet, base);
 
         const contract = getContract({
           client,
@@ -160,7 +157,7 @@ export function useEoaDelegate({ onSubmitted, onSuccess }: UseEoaDelegateArgs = 
         toast.error("Delegation failed", { description: message });
       }
     },
-    [wallet, onSubmitted, onSuccess],
+    [wallet, adminWallet, onSubmitted, onSuccess],
   );
 
   return {

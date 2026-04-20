@@ -2,18 +2,15 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { encodeFunctionData, type Hex } from "viem";
-import { usePublicClient } from "wagmi";
 import { prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveWallet } from "thirdweb/react";
+import { encodeFunctionData, type Hex } from "viem";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { EAS_CONTRACT_ADDRESS, easAbi } from "@/lib/eas";
-import { CHAIN } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { createPropdate as encodePropdateRequest, listPropdates } from "@/services/propdates";
-import { useUserAddress } from "@/hooks/use-user-address";
-import { useWriteAccount } from "@/hooks/use-write-account";
 
 interface CreatePropdateInput {
   proposalId: string;
@@ -24,9 +21,7 @@ interface CreatePropdateInput {
 export function usePropdates(proposalId: string) {
   const queryClient = useQueryClient();
   const { address, isConnected } = useUserAddress();
-  const wallet = useActiveWallet();
   const writer = useWriteAccount();
-  const publicClient = usePublicClient({ chainId: CHAIN.id });
   const [submissionPhase, setSubmissionPhase] = useState<
     "idle" | "confirming-wallet" | "pending-tx" | "syncing"
   >("idle");
@@ -42,10 +37,7 @@ export function usePropdates(proposalId: string) {
   });
 
   const handleCreatePropdate = useCallback(
-    async (
-      input: CreatePropdateInput,
-      options?: { onSuccess?: (txHash: string) => void },
-    ) => {
+    async (input: CreatePropdateInput, options?: { onSuccess?: (txHash: string) => void }) => {
       setCreateError(null);
       setHasWriteError(false);
       try {
@@ -67,7 +59,7 @@ export function usePropdates(proposalId: string) {
           throw new Error("Thirdweb client not configured");
         }
 
-        await ensureOnChain(wallet, base);
+        await ensureOnChain(writer.wallet, base);
 
         pendingProposalIdRef.current = targetProposalId;
         setSubmissionPhase("confirming-wallet");
@@ -78,24 +70,9 @@ export function usePropdates(proposalId: string) {
           input.originalMessageId,
         );
 
-        if (!publicClient) {
-          throw new Error("Public client not available");
-        }
-
-        // Keep the simulation on wagmi's publicClient — simulateContract is a
-        // read (eth_call) and stays on the wagmi side of the migration split.
-        await publicClient.simulateContract({
-          address: EAS_CONTRACT_ADDRESS,
-          abi: easAbi,
-          functionName: "attest",
-          // @ts-expect-error - wagmi type inference issue with complex tuple args
-          args: [attestationRequest],
-          chainId: CHAIN.id,
-        });
-
-        // Encode the attest call ourselves and send via thirdweb's
-        // prepareTransaction so we don't have to wrestle with
-        // prepareContractCall's type inference on the complex tuple arg.
+        // Skip pre-simulate: browser eth_call fetch can be blocked (CORS,
+        // adblock, Farcaster miniapp sandbox) and the wallet simulates
+        // internally before signing. See c85d633.
         const attestCalldata = encodeFunctionData({
           abi: easAbi,
           functionName: "attest",
@@ -133,7 +110,12 @@ export function usePropdates(proposalId: string) {
         options?.onSuccess?.(txHash);
         return txHash;
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Propdate creation failed";
+        const raw = error instanceof Error ? error.message : "Propdate creation failed";
+        const message = raw.includes("Failed to fetch")
+          ? "Network error reaching Base RPC. Check connection or try a different wallet."
+          : raw.includes("User rejected") || raw.includes("User denied")
+            ? "Transaction rejected in wallet."
+            : raw.split("\n")[0];
         setCreateError(message);
         setHasWriteError(true);
         pendingProposalIdRef.current = null;
@@ -142,7 +124,7 @@ export function usePropdates(proposalId: string) {
         throw error;
       }
     },
-    [address, isConnected, proposalId, publicClient, queryClient, wallet, writer],
+    [address, isConnected, proposalId, queryClient, writer],
   );
 
   return {
