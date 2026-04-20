@@ -29,7 +29,7 @@ Defined in `src/components/layout/Providers.tsx`. Instances are module-level sin
 
 | File | Exports | Role |
 |------|---------|------|
-| `src/lib/thirdweb.ts` | `getThirdwebClient()`, `THIRDWEB_CHAIN`, `getAAConfig()` | Client singleton + env-driven AA config |
+| `src/lib/thirdweb.ts` | `getThirdwebClient()`, `THIRDWEB_CHAIN` | Client singleton |
 | `src/lib/thirdweb-wallets.ts` | `THIRDWEB_WALLETS`, `THIRDWEB_AA_CONFIG` | Wallet list (inAppWallet + MetaMask + Coinbase + Rainbow + WalletConnect) and AA options passed to every thirdweb hook entry point |
 | `src/lib/thirdweb-tx.ts` | `normalizeTxError()`, `ensureOnChain()` | Shared tx helpers (error normalization, chain switch before write) |
 | `src/hooks/use-user-address.ts` | `useUserAddress()` | **Single source of truth for the user's address.** Returns `{ address, saAddress, adminAddress, isConnected, isInAppWallet, viewMode, canSwitchView }`. `address` reflects the viewed account per view mode; `saAddress` / `adminAddress` are raw, always both sides. |
@@ -93,9 +93,8 @@ Continue using wagmi hooks. No change from pre-migration patterns, except **alwa
 | Var | Required | Purpose |
 |-----|----------|---------|
 | `NEXT_PUBLIC_THIRDWEB_CLIENT_ID` | **Yes** | Enables login + writes. Get one at https://thirdweb.com/dashboard. |
-| `NEXT_PUBLIC_THIRDWEB_AA_ENABLED` | No | Retained from spike; `THIRDWEB_AA_CONFIG` always applies AA via `useConnectModal`. |
-| `NEXT_PUBLIC_THIRDWEB_AA_SPONSOR_GAS` | No | Defaults to `true`. Set to `false` to make SA users pay their own gas. |
-| `NEXT_PUBLIC_THIRDWEB_AA_FACTORY_ADDRESS` | No | Custom factory override. Blank uses thirdweb's default. |
+
+AA is on by default for every wallet in the app via `THIRDWEB_AA_CONFIG` (`src/lib/thirdweb-wallets.ts`) — no env toggle.
 
 ## Related PRs
 

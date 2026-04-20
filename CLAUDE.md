@@ -1,197 +1,186 @@
 # CLAUDE.md
 
-Project guide for the Gnars DAO website.
+Project guide for the Gnars DAO website. Keep terse, keep current.
 
 ## Documentation Rules (Must Follow)
 
-- Treat `docs/INDEX.md` as the canonical documentation map.
-- All project docs live under `docs/` (except `README.md`, `CLAUDE.md`, and `AGENTS.md`).
-- Do not create or update documentation in `tasks/` or `src/**/README.md`.
-- When adding, moving, or removing docs, update `docs/INDEX.md` in the same change.
-- Docs must reflect the current code. If a doc is stale, update it or delete it.
-- **Do not create `.md` or `.sh` files in the repo root.** Only `README.md`, `CLAUDE.md`, and `AGENTS.md` belong there. Scripts go in `scripts/`, docs go in `docs/`.
+- `docs/INDEX.md` is the canonical documentation map. Update it in the same change when adding/moving/removing docs.
+- All project docs live under `docs/`. Root allows only `README.md`, `CLAUDE.md`, `AGENTS.md`.
+- No docs in `tasks/` or `src/**/README.md`. Scripts go in `scripts/`.
+- Docs must reflect current code. Stale doc → update or delete.
+- `AGENTS.md` covers subagent routing only; do not duplicate these rules there.
 
 ## Project Overview
 
-This is a Next.js 15.5+ application for the Gnars DAO website, built on Base chain. The site provides a complete DAO interface including auctions, treasury, governance, and member management. It uses the Nouns Builder architecture. Wallet layer is split: **thirdweb owns login + writes + account abstraction**, **wagmi stays as a reads transport only**.
+Next.js 15.5 App Router site for Gnars DAO on Base (chain ID 8453). Built on Nouns Builder architecture. Wallet layer is split:
+- **thirdweb v5** — login + writes + account abstraction (`sponsorGas: true`)
+- **wagmi v2 + viem** — reads transport only (connectors array empty)
 
-## Development Commands
+## Commands
 
 ```bash
-# Development server with Turbopack
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Start production server
-pnpm start
-
-# Lint code
-pnpm lint
+pnpm dev           # dev server (Turbopack)
+pnpm build         # prod build (do not run unless asked)
+pnpm start         # prod server
+pnpm lint          # eslint — run before PR
+pnpm format        # prettier write
+pnpm format:check  # prettier check
+pnpm exec playwright test  # e2e tests (tests/e2e/)
 ```
 
-## Architecture & Key Patterns
+No unit test runner; Playwright e2e only. `tests/e2e/propdates.spec.ts`, `tests/e2e/gnars-gov.spec.ts`.
 
-### Tech Stack
-
-- **Framework**: Next.js 15.5 with App Router
-- **Styling**: Tailwind CSS 4 with Shadcn/UI components
-- **Web3 writes + login**: thirdweb v5 with account abstraction (`accountAbstraction: { chain: base, sponsorGas: true }`)
-- **Web3 reads**: wagmi + viem (connectors empty — only transports configured)
-- **DAO data**: Builder DAO SDK (`@buildeross/hooks`, `@buildeross/sdk`) + Goldsky subgraph
-- **Chain**: Base (chain ID 8453)
-- **Package Manager**: pnpm
-
-### Project Structure
+## Source Layout
 
 ```
 src/
-├── app/                    # Next.js App Router pages
-│   ├── layout.tsx         # Root layout with providers
-│   └── page.tsx           # Homepage
-├── components/
-│   └── ui/                # Shadcn/UI components
-├── lib/
-│   ├── config.ts          # DAO addresses and chain config
-│   └── utils.ts           # Utility functions
-└── hooks/                 # Custom React hooks (if needed)
+├── app/              # App Router — 25+ routes incl. /auctions /proposals /propose /tv /members /treasury /lootbox /feed /propdates /droposals /installations /blogs /coin-proposal /community/bounties /map /mural
+│   ├── api/          # 18 route groups (alchemy, coins, ens, og, pinata, propdates, proposals, treasury, tv, …)
+│   └── md/           # markdown content-negotiation target (see middleware)
+├── components/       # 24 feature dirs + ui/ (shadcn)
+├── hooks/            # 40 hooks — see naming note below
+├── services/         # 16 data-layer modules (auctions, proposals, treasury, feed, members, farcaster, poidh, snapshot, …)
+├── lib/              # config.ts, thirdweb.ts, wagmi.ts, subgraph.ts, ipfs.ts, zora-*, proposal-*, og-*, schemas/, types/
+├── data/             # static JSON (installations.json)
+├── types/            # shared TS interfaces
+├── utils/abis/       # contract ABIs (gnarsLootboxV4Abi, erc20, …)
+├── workers/          # client-side search workers (blog, proposal)
+└── middleware.ts     # Accept: text/markdown → rewrite to /md/*
 ```
 
-### Key Configuration Files
+### Hook naming (drift to be aware of)
 
-- `components.json`: Shadcn/UI configuration (New York style, RSC enabled)
-- `tsconfig.json`: TypeScript config with path mapping (`@/*` -> `./src/*`)
-- `next.config.ts`: Next.js configuration
-- `tailwind.config.*`: Tailwind CSS v4 configuration
+31 files use `use-kebab-case.ts`, 9 use `useCamelCase.ts` (`useCastVote`, `useCreateCoin`, `useDelegate`, `useMintDroposal`, `usePoidhBounties`, `useVotes`, etc.). Prefer kebab-case for new hooks; don't rename existing ones speculatively.
 
-### DAO Configuration
+## Key Config Files
 
-The `src/lib/config.ts` file contains all Gnars DAO contract addresses on Base:
+- `src/lib/config.ts` — **single source of truth** for DAO addresses, chain, Zora creator allowlist, subgraph URLs, treasury token allowlist. Do not duplicate addresses elsewhere.
+- `components.json` — shadcn/ui (New York, RSC on)
+- `tsconfig.json` — path alias `@/* → src/*`
+- `next.config.ts`, `eslint.config.mjs`, `postcss.config.mjs`, `playwright.config.ts`
 
-- Token (NFT): `0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17`
-- Auction: `0x494eaa55ecf6310658b8fc004b0888dcb698097f`
-- Governor: `0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c`
-- Treasury: `0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88`
-- Metadata: `0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58`
-- Lootbox (V4): `DAO_ADDRESSES.lootbox` (update after each deploy)
+## Web3 Integration
 
-### Lootbox (V4 Only)
+- Chain hardcoded to Base (8453).
+- **Login** — thirdweb `useConnectModal` (social, email OTP, MetaMask, Coinbase, Rainbow, WalletConnect).
+- **Writes** — every onchain write goes through thirdweb `sendTransaction({ account, transaction })` dispatched via `useWriteAccount()`. Signer matches the user's view mode (EOA direct vs SA via userop).
+- **Reads** — wagmi `useReadContract`, `useReadContracts`, `useBalance`, `useWaitForTransactionReceipt`, `usePublicClient`. Works with no connectors.
+- **Address** — single source is `useUserAddress()` → `{ address, saAddress, adminAddress, isConnected, isInAppWallet, viewMode, canSwitchView }`. **Never call wagmi's `useAccount()`** — it's disconnected from thirdweb state.
+- **View-mode toggle** — external-wallet users can switch SA (sponsored) vs EOA (native prompt) via `WalletDrawer`; persisted to localStorage. In-app wallets pinned to SA.
+- **Governance pre-checks** — write hooks that gate on voting power must pre-read `getPastVotes` / `getVotes` and bail with a toast before prompting signatures.
+- Full provider tree + decision matrix: `docs/architecture/thirdweb-wallet-layer.md`.
 
-The lootbox UI at `src/app/lootbox/page.tsx` is **V4‑only**:
-- Uses `gnarsLootboxV4Abi`.
-- Includes admin controls for VRF config, allowlist, deposits, withdrawals, and recovery.
-- Shows wallet balances/allowances and listens for the `FlexOpened` event to show NFT win toasts.
+### Lootbox (V4 only)
 
-## Development Guidelines
+- UI at `src/app/lootbox/page.tsx`, ABI `src/utils/abis/gnarsLootboxV4Abi.ts`, hooks `use-lootbox-contract.ts` + `use-lootbox-actions.ts`.
+- Admin controls for VRF config, allowlist, deposits, withdrawals, recovery.
+- Listens for `FlexOpened` event (in `use-lootbox-contract.ts`) to surface NFT win toasts.
+- Address from `DAO_ADDRESSES.lootbox` in `config.ts` — update after each deploy.
 
-### Code Style
+## Data Fetching
 
-- Use TypeScript strictly
-- Follow Next.js App Router patterns (Server Components by default, Client Components when needed)
-- Use Shadcn/UI components for consistent styling
-- Import from path aliases: `@/components`, `@/lib`, etc.
+- Server Components for initial load (SEO, perf).
+- Client Components only for interactive features (bidding, voting, wizard forms).
+- Builder DAO subgraph (Goldsky) for historical data via `@buildeross/hooks` / `@buildeross/sdk`.
+- `src/services/*` is the canonical data-access layer — prefer it over inline fetches.
 
-### Web3 Integration
+## Styling
 
-- Chain is hardcoded to Base (chain ID 8453)
-- Contract addresses in `src/lib/config.ts`
-- **Login**: thirdweb `useConnectModal` (social, email OTP, MetaMask, Coinbase, Rainbow, WalletConnect)
-- **Writes**: every onchain write goes through thirdweb `sendTransaction({ account, transaction })` dispatched via `useWriteAccount()` — signer matches the user's view mode (EOA direct vs SA via userop)
-- **Reads**: use wagmi `useReadContract`, `useReadContracts`, `useBalance`, `useWaitForTransactionReceipt`, `usePublicClient` — these work without connectors
-- **Address**: single source of truth is `useUserAddress()` → `{ address, saAddress, adminAddress, isConnected, isInAppWallet, viewMode, canSwitchView }`. Never call wagmi's `useAccount()` — it's disconnected from thirdweb state
-- **View-mode toggle**: external-wallet users can switch between SA view (sponsored gas) and EOA view (native wallet prompt) via `WalletDrawer`. Persisted to localStorage. In-app-wallet users are pinned to SA view
-- **Governance pre-checks**: write hooks that gate on voting power pre-read `getPastVotes` / `getVotes` and bail with a toast before prompting signatures
-- See `docs/architecture/thirdweb-wallet-layer.md` for the full provider tree and decision matrix
-
-### Data Fetching
-
-- Server Components for initial data loading (SEO, performance)
-- Client Components only for interactive features (bidding, voting)
-- Utilize Builder DAO subgraph for historical data
-- wagmi/viem for real-time blockchain reads in client components
-
-### Responsive Design
-
-- Mobile-first approach with Tailwind breakpoints
-- Use Shadcn/UI responsive utilities
-- Ensure all DAO features work on mobile devices
+- Tailwind CSS v4, shadcn/ui components (New York).
+- Mobile-first; all DAO features must work on mobile.
+- Dark mode via `next-themes`.
 
 ## Environment Variables
 
-Required environment variables (see `.env.example`):
+Full list in `env.example`. Summary:
 
 ```
-NEXT_PUBLIC_BASE_RPC_URL="https://mainnet.base.org"
-ALCHEMY_API_KEY=""
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=""
-NEXT_PUBLIC_GOLDSKY_PROJECT_ID=""
-NEXT_PUBLIC_THIRDWEB_CLIENT_ID=""        # required — login + writes
-NEXT_PUBLIC_THIRDWEB_AA_ENABLED="false"   # optional — retained from spike
-NEXT_PUBLIC_THIRDWEB_AA_SPONSOR_GAS="true"
+# Site
+NEXT_PUBLIC_SITE_URL
+NEXT_PUBLIC_BASE_URL
+
+# RPC / chain
+ALCHEMY_API_KEY
+NEXT_PUBLIC_ALCHEMY_API_KEY
+NEXT_PUBLIC_BASE_RPC_URL
+BASE_RPC
+BASESCAN_API_KEY
+
+# Web3 auth (required for login + writes)
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
+
+# Subgraph / data
+NEXT_PUBLIC_GOLDSKY_PROJECT_ID
+NEXT_PUBLIC_ZORA_COINS_SUBGRAPH_URL
+
+# External APIs
+NEXT_PUBLIC_ZORA_API_KEY
+COINGECKO_API_KEY
+PINATA_JWT
+NEYNAR_API_KEY
+
+# Optional
+USDC_BASE
 ```
+
+Secrets never go in client code. `NEXT_PUBLIC_*` is public by definition.
+
+## Notable Dependencies
+
+- Web3: `thirdweb`, `wagmi`, `viem`, `@buildeross/hooks`, `@buildeross/sdk`, `@0xsplits/splits-sdk`
+- Creator coins: `@zoralabs/coins-sdk`
+- Social: `@farcaster/miniapp-sdk`
+- 3D / viz: `three`, `@react-three/fiber`, `@react-three/drei`, `react-globe.gl`, `ogl`, `gsap`, `recharts`
+- Maps: `leaflet`, `react-leaflet`, `leaflet-draw`, `leaflet.markercluster`
+- Forms: `react-hook-form`, `zod`
+- `@rainbow-me/rainbowkit` is in `package.json` but unused in `src/` — slated for removal.
 
 ## Important Notes
 
-- This is a single-DAO focused site (Gnars only), not a multi-DAO platform
-- Target deployment: Vercel with Next.js optimizations
-- Follow security best practices - no secrets in client code
-- Use Builder DAO's proven patterns and components where possible
-- Don't run `pnpm build` unless explicitly asked
+- Single-DAO site (Gnars only), not a multi-DAO platform.
+- Deploy target: Vercel.
+- Do not run `pnpm build` unless explicitly asked.
+- Before PR: `pnpm lint` + `pnpm format:check`.
 
 ## Pull Request Protocol
 
-**All medium and large tasks MUST be delivered via Pull Request.** Do not commit directly to `main`.
-
-### Task Size Classification
+All medium and large tasks MUST be delivered via Pull Request. Do not commit directly to `main`.
 
 | Size | Criteria | PR Required? |
 |------|----------|--------------|
-| **Small** | Single-file fix, typo, config tweak, < 20 lines changed | Optional (can commit to main) |
-| **Medium** | Multi-file change, new component, feature addition, 20-100 lines | **Yes** |
-| **Large** | Cross-cutting change, new feature area, refactor, 100+ lines | **Yes** |
+| **Small** | Single-file fix, typo, config tweak, <20 lines | Optional |
+| **Medium** | Multi-file, new component, 20–100 lines | **Yes** |
+| **Large** | Cross-cutting, refactor, 100+ lines | **Yes** |
 
-**When in doubt, create a PR.** It's always safer.
+When in doubt, create a PR.
 
-### PR Workflow
+### Workflow
 
-1. **Create a feature branch** from `main` (or from current branch if stacking):
-   - Format: `feat/short-description`, `fix/short-description`, `update/short-description`
-   - Use git worktrees for isolation when working on the main repo
-
-2. **Commit with clear messages** as you go — small, atomic commits are preferred
-
-3. **Create the PR** using `gh pr create`:
-   - Title: concise, under 70 chars
-   - Body: use the template below
-   - Always target `main` unless stacking PRs
-
-4. **Report the PR URL** to the user
+1. Branch from `main` (or stack from prior feature branch). Format: `feat/*`, `fix/*`, `update/*`. Use a git worktree when the main repo has unrelated work in progress.
+2. Small atomic commits with clear messages.
+3. `gh pr create` with title <70 chars and the body template below. Target `main` unless stacking.
+4. Report the PR URL to the user.
 
 ### PR Body Template
 
 ```markdown
 ## Summary
-- [1-3 bullet points describing what changed and why]
+- [1-3 bullets: what changed and why]
 
 ## Changes
-- [List of key files/areas modified]
+- [key files/areas modified]
 
 ## Test plan
-- [ ] [How to verify the changes work]
+- [ ] [how to verify]
 
 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-### When to Use Worktrees
+### Worktrees
 
-- When the current working directory has uncommitted changes on another branch
-- When implementing a plan that should be isolated from in-progress work
-- When the user explicitly asks for isolation
+Use when: current dir has uncommitted work on another branch; implementing a plan that needs isolation; user asks for isolation.
 
-### Stacking PRs
+### Stacking
 
-For large features broken into sequential steps:
-1. Create first PR targeting `main`
-2. Subsequent PRs target the previous feature branch
-3. Merge in order, rebasing as needed
+First PR → `main`. Subsequent PRs target the previous feature branch. Merge in order; rebase as needed.
