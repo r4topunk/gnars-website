@@ -4,7 +4,6 @@ import { useCallback, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { useActiveWallet } from "thirdweb/react";
 import { encodeFunctionData, type Hex } from "viem";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useWriteAccount } from "@/hooks/use-write-account";
@@ -22,7 +21,6 @@ interface CreatePropdateInput {
 export function usePropdates(proposalId: string) {
   const queryClient = useQueryClient();
   const { address, isConnected } = useUserAddress();
-  const wallet = useActiveWallet();
   const writer = useWriteAccount();
   const [submissionPhase, setSubmissionPhase] = useState<
     "idle" | "confirming-wallet" | "pending-tx" | "syncing"
@@ -61,7 +59,7 @@ export function usePropdates(proposalId: string) {
           throw new Error("Thirdweb client not configured");
         }
 
-        await ensureOnChain(wallet, base);
+        await ensureOnChain(writer.wallet, base);
 
         pendingProposalIdRef.current = targetProposalId;
         setSubmissionPhase("confirming-wallet");
@@ -126,7 +124,7 @@ export function usePropdates(proposalId: string) {
         throw error;
       }
     },
-    [address, isConnected, proposalId, queryClient, wallet, writer],
+    [address, isConnected, proposalId, queryClient, writer],
   );
 
   return {
