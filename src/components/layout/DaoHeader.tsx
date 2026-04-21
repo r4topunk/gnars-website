@@ -164,17 +164,6 @@ const navigationItems = [
         description: "Gnarly challenges from the action sports community",
         badge: "NEW!",
       },
-      {
-        title: "divider",
-        label: "Beta",
-      },
-      {
-        title: "Lootbox",
-        href: "/lootbox",
-        icon: Gift,
-        description: "Join Gnars DAO onboarding",
-        badge: "BETA",
-      },
     ],
   },
 ];
