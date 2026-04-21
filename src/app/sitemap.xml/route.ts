@@ -236,12 +236,6 @@ export async function GET(): Promise<Response> {
       priority: 0.7,
     },
     {
-      url: toUrl("/lootbox"),
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.6,
-    },
-    {
       url: toUrl("/map"),
       lastModified: now,
       changeFrequency: "monthly",
