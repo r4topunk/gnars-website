@@ -15,8 +15,6 @@ export const DAO_ADDRESSES = {
   treasury: (process.env.NEXT_PUBLIC_TREASURY_ADDRESS || "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88") as `0x${string}`,
   metadata: (process.env.NEXT_PUBLIC_METADATA_ADDRESS || "0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58") as `0x${string}`,
   gnarsErc20: "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b", // $GNARS ERC20 token
-  lootbox: "0xc934804520ccc172909a093bae5bb07188e77cb2", // Gnars Lootbox V4
-  lootboxTestNft: "0x6940100c44d214cd1570b394a1c42949c3eb820d", // HackerDAO Test NFT
 } as const;
 
 export const ZORA_CREATOR = {

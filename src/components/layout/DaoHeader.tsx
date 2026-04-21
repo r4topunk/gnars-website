@@ -164,17 +164,6 @@ const navigationItems = [
         description: "Gnarly challenges from the action sports community",
         badge: "NEW!",
       },
-      {
-        title: "divider",
-        label: "Beta",
-      },
-      {
-        title: "Lootbox",
-        href: "/lootbox",
-        icon: Gift,
-        description: "Join Gnars DAO onboarding",
-        badge: "BETA",
-      },
     ],
   },
 ];
@@ -250,21 +239,6 @@ function DesktopNav() {
                 <NavigationMenuContent>
                   <ul className="grid w-[400px] gap-2 p-2">
                     {item.items?.map((subItem) => {
-                      // Divider item
-                      if (subItem.title === "divider") {
-                        return (
-                          <li key={`divider-${subItem.label}`} className="px-3 py-2">
-                            <div className="flex items-center gap-2">
-                              <div className="h-px flex-1 bg-border" />
-                              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                {subItem.label}
-                              </span>
-                              <div className="h-px flex-1 bg-border" />
-                            </div>
-                          </li>
-                        );
-                      }
-
                       if (!subItem.icon) return null;
 
                       const SubIcon = subItem.icon;
@@ -419,21 +393,6 @@ function MobileNav() {
                     {item.title}
                   </div>
                   {item.items?.map((subItem) => {
-                    if (subItem.title === "divider") {
-                      return (
-                        <div key={subItem.title} className="relative my-2 mx-3">
-                          <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t" />
-                          </div>
-                          <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-background px-2 text-muted-foreground">
-                              {subItem.label}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    }
-
                     if (!subItem.icon) return null;
 
                     const SubIcon = subItem.icon;
