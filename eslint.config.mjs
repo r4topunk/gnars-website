@@ -7,13 +7,15 @@ const eslintConfig = [
   ...nextTypescript,
   {
     ignores: [
-      "node_modules/**",
-      ".next/**",
+      "**/node_modules/**",
+      "**/.next/**",
+      ".worktrees/**",
       "out/**",
       "build/**",
       "next-env.d.ts",
       "references/**",
       "subgraphs/**",
+      "scripts/**",
     ],
   },
   {
