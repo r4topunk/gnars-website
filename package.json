@@ -9,6 +9,9 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "proposal:funding:poc": "tsx scripts/proposal-funding-poc.ts"
   },
   "dependencies": {
@@ -100,6 +103,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19.1.9",
     "@types/three": "^0.182.0",
+    "@vitest/coverage-v8": "^4.1.5",
     "eslint": "^9",
     "eslint-config-next": "15.5.7",
     "eslint-config-prettier": "^10.1.8",
@@ -108,6 +112,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "tw-animate-css": "^1.3.7",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.5"
   }
 }
