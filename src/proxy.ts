@@ -8,7 +8,7 @@ function isMarkdownPath(pathname: string): boolean {
   return MARKDOWN_DYNAMIC_PATTERNS.some((pattern) => pattern.test(pathname));
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const accept = request.headers.get("accept") ?? "";
   if (!accept.includes("text/markdown")) return NextResponse.next();
 

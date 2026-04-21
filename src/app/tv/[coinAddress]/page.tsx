@@ -8,7 +8,7 @@ import { TV_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 export const revalidate = 120;
 
 type Props = {
-  params: { coinAddress: string };
+  params: Promise<{ coinAddress: string }>;
 };
 
 // Helper to fetch coin metadata for OG tags

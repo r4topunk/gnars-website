@@ -45,7 +45,7 @@ src/
 ├── types/            # shared TS interfaces
 ├── utils/abis/       # contract ABIs (gnarsLootboxV4Abi, erc20, …)
 ├── workers/          # client-side search workers (blog, proposal)
-└── middleware.ts     # Accept: text/markdown → rewrite to /md/*
+└── proxy.ts          # Accept: text/markdown → rewrite to /md/* (Next.js 16 proxy convention, formerly middleware.ts)
 ```
 
 ### Hook naming (drift to be aware of)
