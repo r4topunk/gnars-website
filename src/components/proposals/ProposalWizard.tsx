@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/incompatible-library -- react-hook-form watch()/useFormContext pattern is known-incompatible with React Compiler */
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";

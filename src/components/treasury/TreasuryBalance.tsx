@@ -7,18 +7,18 @@ interface TreasuryBalanceProps {
 }
 
 export async function TreasuryBalance({ treasuryAddress, metric = "total" }: TreasuryBalanceProps) {
+  let value: number | undefined;
+  let error: string | undefined;
   try {
     const snapshot = await loadTreasurySnapshot(treasuryAddress);
-    const value =
+    value =
       metric === "total"
         ? snapshot.usdTotal
         : metric === "eth"
           ? snapshot.ethBalance
           : snapshot.totalAuctionSales;
-
-    return <TreasuryBalanceClient metric={metric} value={value} />;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load treasury data";
-    return <TreasuryBalanceClient metric={metric} error={message} />;
+  } catch (err) {
+    error = err instanceof Error ? err.message : "Failed to load treasury data";
   }
+  return <TreasuryBalanceClient metric={metric} value={value} error={error} />;
 }

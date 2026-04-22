@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/purity -- OGL WebGL imperative API requires render-time allocation */
 
 import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
 import { useEffect, useRef, useMemo, useCallback } from "react";

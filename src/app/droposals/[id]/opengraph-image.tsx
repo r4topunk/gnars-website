@@ -107,29 +107,36 @@ async function fetchDroposal(id: string): Promise<{
 export default async function Image({ params }: Props) {
   const { id } = await params;
 
+  let fetched: Awaited<ReturnType<typeof fetchDroposal>>;
   try {
-    const { proposal, decoded } = await fetchDroposal(id);
+    fetched = await fetchDroposal(id);
+  } catch (error) {
+    console.error("[droposals OG] error:", error);
+    return renderFallback("Error generating image");
+  }
 
-    if (!proposal) {
-      return renderFallback("Droposal Not Found");
-    }
+  const { proposal, decoded } = fetched;
 
-    const title = decoded?.name || proposal.title || `Droposal #${proposal.proposalNumber}`;
-    const imageWidth = 520;
-    const imageHeight = 510;
-    const imageUrl = toOgImageUrl(decoded?.imageURI ?? null, {
-      width: imageWidth,
-      height: imageHeight,
-      fit: "cover",
-    });
-    const priceEth = decoded?.saleConfig?.publicSalePrice
-      ? formatEthDisplay(formatEther(decoded.saleConfig.publicSalePrice))
-      : "Free";
-    const editionSize = decoded?.editionSize || "Unlimited";
-    const description = decoded?.collectionDescription || proposal.description || "NFT Drop";
+  if (!proposal) {
+    return renderFallback("Droposal Not Found");
+  }
 
-    return new ImageResponse(
-      (
+  const title = decoded?.name || proposal.title || `Droposal #${proposal.proposalNumber}`;
+  const imageWidth = 520;
+  const imageHeight = 510;
+  const imageUrl = toOgImageUrl(decoded?.imageURI ?? null, {
+    width: imageWidth,
+    height: imageHeight,
+    fit: "cover",
+  });
+  const priceEth = decoded?.saleConfig?.publicSalePrice
+    ? formatEthDisplay(formatEther(decoded.saleConfig.publicSalePrice))
+    : "Free";
+  const editionSize = decoded?.editionSize || "Unlimited";
+  const description = decoded?.collectionDescription || proposal.description || "NFT Drop";
+
+  return new ImageResponse(
+    (
         <div
           style={{
             height: "100%",
@@ -276,13 +283,9 @@ export default async function Image({ params }: Props) {
             </div>
           </div>
         </div>
-      ),
-      { ...size }
-    );
-  } catch (error) {
-    console.error("[droposals OG] error:", error);
-    return renderFallback("Error generating image");
-  }
+    ),
+    { ...size }
+  );
 }
 
 function renderFallback(message: string) {

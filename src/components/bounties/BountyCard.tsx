@@ -37,6 +37,7 @@ const CHAIN_DOT_COLORS: Record<number, string> = {
 export function BountyCard({ bounty }: BountyCardProps) {
   const chainName = CHAIN_NAMES[bounty.chainId as keyof typeof CHAIN_NAMES] || "Unknown";
   const amountEth = formatEther(BigInt(bounty.amount));
+  // eslint-disable-next-line react-hooks/purity -- intentional render-time clock read for "Xd ago" label
   const daysAgo = Math.floor((Date.now() - bounty.createdAt * 1000) / (1000 * 60 * 60 * 24));
   const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "1d ago" : `${daysAgo}d ago`;
 

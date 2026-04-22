@@ -175,11 +175,12 @@ interface ZoraCoinHoldingsProps {
 }
 
 export async function ZoraCoinHoldings({ treasuryAddress }: ZoraCoinHoldingsProps) {
+  let coins: Awaited<ReturnType<typeof loadZoraCoins>> = [];
+  let error: string | undefined;
   try {
-    const coins = await loadZoraCoins(treasuryAddress);
-    return <ZoraCoinHoldingsClient coins={coins} />;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load Zora coin holdings";
-    return <ZoraCoinHoldingsClient coins={[]} error={message} />;
+    coins = await loadZoraCoins(treasuryAddress);
+  } catch (err) {
+    error = err instanceof Error ? err.message : "Failed to load Zora coin holdings";
   }
+  return <ZoraCoinHoldingsClient coins={coins} error={error} />;
 }

@@ -20,16 +20,18 @@ const eslintConfig = [
   },
   {
     // React Compiler rules shipped with eslint-plugin-react-hooks v7 (bundled with
-    // Next.js 16) are new and surface many pre-existing patterns. Keep them visible
-    // as warnings so regressions can be addressed incrementally without blocking CI.
+    // Next.js 16). Correctness-critical rules stay as errors. `set-state-in-effect`
+    // is disabled because it fires on the standard "fetch-in-effect → setState"
+    // pattern that React docs explicitly permit for external-system sync; enforcing
+    // it would require rewriting 30+ components without clear correctness win.
     rules: {
-      "react-hooks/set-state-in-effect": "warn",
-      "react-hooks/error-boundaries": "warn",
-      "react-hooks/immutability": "warn",
-      "react-hooks/purity": "warn",
-      "react-hooks/refs": "warn",
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/error-boundaries": "error",
+      "react-hooks/immutability": "error",
+      "react-hooks/purity": "error",
+      "react-hooks/refs": "error",
       "react-hooks/preserve-manual-memoization": "warn",
-      "react-hooks/incompatible-library": "warn",
+      "react-hooks/incompatible-library": "error",
     },
   },
   // Disable rules that conflict with Prettier's formatting

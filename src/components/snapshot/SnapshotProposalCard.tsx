@@ -24,6 +24,7 @@ export function SnapshotProposalCard({ proposal }: SnapshotProposalCardProps) {
   }, [proposal.state]);
 
   const timeAgo = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity -- render-time clock read inside memo for "N days ago" label
     const now = Date.now() / 1000;
     const diff = now - proposal.created;
     const days = Math.floor(diff / 86400);

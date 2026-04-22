@@ -47,6 +47,10 @@ export function ProposalMetrics({
 
   const isPending = status === ProposalStatus.PENDING;
   const dateToShow = isPending ? startDate ?? endDate : endDate;
+  // Intentional render-time read: the label reflects current clock on each render.
+  // Hydration mismatch is suppressed on the consuming nodes below.
+  // eslint-disable-next-line react-hooks/purity
+  const renderNow = Date.now();
 
   return (
     <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
@@ -105,7 +109,7 @@ export function ProposalMetrics({
             <CardTitle className="text-md font-semibold text-foreground/90">
               {isPending
                 ? "Starts"
-                : forNum + againstNum + abstainNum > 0 && dateToShow.getTime() < Date.now()
+                : forNum + againstNum + abstainNum > 0 && dateToShow.getTime() < renderNow
                   ? "Ended"
                   : "Ends"}
             </CardTitle>

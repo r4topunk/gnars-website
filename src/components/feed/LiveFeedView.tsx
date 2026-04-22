@@ -59,6 +59,7 @@ export function LiveFeedView({
 
   // Filter events based on current filters
   const filteredEvents = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity -- intentional clock read inside memo
     const now = Math.floor(Date.now() / 1000);
     const timeRangeSeconds = TIME_RANGE_SECONDS[filters.timeRange];
 
@@ -134,19 +135,17 @@ export function LiveFeedView({
         };
       });
 
-    let totalEvents = 0;
-    return sortedGroups.map((group) => {
-      const eventsWithSequence = group.events.map((event, idx) => ({
-        ...event,
-        sequenceNumber: totalEvents + idx + 1,
-      }));
-      totalEvents += group.events.length;
-
-      return {
-        ...group,
-        events: eventsWithSequence,
-      };
-    });
+    return sortedGroups.reduce<{ acc: typeof sortedGroups; total: number }>(
+      (state, group) => {
+        const eventsWithSequence = group.events.map((event, idx) => ({
+          ...event,
+          sequenceNumber: state.total + idx + 1,
+        }));
+        state.acc.push({ ...group, events: eventsWithSequence });
+        return { acc: state.acc, total: state.total + group.events.length };
+      },
+      { acc: [], total: 0 },
+    ).acc;
   }, [filteredEvents]);
 
   // Incremental rendering for performance

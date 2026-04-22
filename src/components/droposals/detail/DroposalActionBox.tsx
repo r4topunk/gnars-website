@@ -109,6 +109,7 @@ export function DroposalActionBox({
 
   // Countdown logic moved to client component
   const formatCountdown = (target: number) => {
+    // eslint-disable-next-line react-hooks/purity -- render-time clock read for countdown label
     const now = Date.now();
     const diff = Math.max(0, target - now);
     const d = Math.floor(diff / (1000 * 60 * 60 * 24));
