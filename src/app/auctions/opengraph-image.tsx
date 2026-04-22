@@ -52,29 +52,34 @@ async function fetchLatestAuction(): Promise<AuctionData | null> {
 }
 
 export default async function Image() {
+  let auction: AuctionData | null;
   try {
-    const auction = await fetchLatestAuction();
+    auction = await fetchLatestAuction();
+  } catch (error) {
+    console.error("[auctions OG] error:", error);
+    return renderFallback("Error generating image");
+  }
 
-    if (!auction) {
-      return renderFallback("No Auctions Found");
-    }
+  if (!auction) {
+    return renderFallback("No Auctions Found");
+  }
 
-    const tokenId = auction.token.tokenId;
-    const bidAmount = auction.highestBid?.amount ?? "0";
-    const bidEth = formatEthDisplay(formatEther(BigInt(bidAmount)));
-    const imageWidth = 520;
-    const imageHeight = 510;
-    const imageUrl = toOgImageUrl(auction.token.image, {
-      width: imageWidth,
-      height: imageHeight,
-      fit: "cover",
-    });
-    const isSettled = auction.settled;
-    const status = isSettled ? "Ended" : "Active";
-    const statusColor = isSettled ? OG_COLORS.muted : OG_COLORS.accent;
+  const tokenId = auction.token.tokenId;
+  const bidAmount = auction.highestBid?.amount ?? "0";
+  const bidEth = formatEthDisplay(formatEther(BigInt(bidAmount)));
+  const imageWidth = 520;
+  const imageHeight = 510;
+  const imageUrl = toOgImageUrl(auction.token.image, {
+    width: imageWidth,
+    height: imageHeight,
+    fit: "cover",
+  });
+  const isSettled = auction.settled;
+  const status = isSettled ? "Ended" : "Active";
+  const statusColor = isSettled ? OG_COLORS.muted : OG_COLORS.accent;
 
-    return new ImageResponse(
-      (
+  return new ImageResponse(
+    (
         <div
           style={{
             height: "100%",
@@ -227,13 +232,9 @@ export default async function Image() {
             </div>
           </div>
         </div>
-      ),
-      { ...size }
-    );
-  } catch (error) {
-    console.error("[auctions OG] error:", error);
-    return renderFallback("Error generating image");
-  }
+    ),
+    { ...size }
+  );
 }
 
 function renderFallback(message: string) {

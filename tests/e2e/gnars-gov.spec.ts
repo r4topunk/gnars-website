@@ -160,7 +160,6 @@ test.describe('Proposal Card Navigation', () => {
 
     test.skip(count === 0, 'No proposal cards to navigate from');
 
-    const href = await cards.first().getAttribute('href');
     await cards.first().click();
 
     await page.waitForURL(/\/proposals\/\d+$/, { timeout: 20000 });

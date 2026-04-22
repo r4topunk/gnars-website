@@ -158,11 +158,12 @@ interface TokenHoldingsProps {
 }
 
 export async function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
+  let tokens: Awaited<ReturnType<typeof loadTokenHoldings>> = [];
+  let error: string | undefined;
   try {
-    const tokens = await loadTokenHoldings(treasuryAddress);
-    return <TokenHoldingsClient tokens={tokens} />;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load token holdings";
-    return <TokenHoldingsClient tokens={[]} error={message} />;
+    tokens = await loadTokenHoldings(treasuryAddress);
+  } catch (err) {
+    error = err instanceof Error ? err.message : "Failed to load token holdings";
   }
+  return <TokenHoldingsClient tokens={tokens} error={error} />;
 }

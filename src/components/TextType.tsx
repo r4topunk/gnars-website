@@ -184,6 +184,7 @@ const TextType = ({
 
   return createElement(
     Component,
+    // eslint-disable-next-line react-hooks/refs -- React 19 allows ref-as-prop; compiler heuristic too strict for dynamic Component
     {
       ref: containerRef,
       className: `inline-block whitespace-pre-wrap tracking-tight ${className}`,

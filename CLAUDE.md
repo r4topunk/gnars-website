@@ -36,7 +36,7 @@ No unit test runner; Playwright e2e only. `tests/e2e/propdates.spec.ts`, `tests/
 src/
 ├── app/              # App Router — 25+ routes incl. /auctions /proposals /propose /tv /members /treasury /feed /propdates /droposals /installations /blogs /coin-proposal /community/bounties /map /mural
 │   ├── api/          # 18 route groups (alchemy, coins, ens, og, pinata, propdates, proposals, treasury, tv, …)
-│   └── md/           # markdown content-negotiation target (see middleware)
+│   └── md/           # markdown content-negotiation target (see proxy.ts)
 ├── components/       # 24 feature dirs + ui/ (shadcn)
 ├── hooks/            # 40 hooks — see naming note below
 ├── services/         # 16 data-layer modules (auctions, proposals, treasury, feed, members, farcaster, poidh, snapshot, …)
@@ -45,7 +45,7 @@ src/
 ├── types/            # shared TS interfaces
 ├── utils/abis/       # contract ABIs (erc20, …)
 ├── workers/          # client-side search workers (blog, proposal)
-└── middleware.ts     # Accept: text/markdown → rewrite to /md/*
+└── proxy.ts          # Accept: text/markdown → rewrite to /md/* (Next.js 16 proxy convention, formerly middleware.ts)
 ```
 
 ### Hook naming (drift to be aware of)

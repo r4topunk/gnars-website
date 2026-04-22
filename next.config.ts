@@ -60,11 +60,14 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   poweredByHeader: false,
+  reactCompiler: true,
   experimental: {
     // Increase body size limit for video thumbnail uploads (default is ~4-5MB)
     serverActions: {
       bodySizeLimit: "10mb",
     },
+    // Persist Turbopack compile artifacts across dev restarts (Next.js 16 beta).
+    turbopackFileSystemCacheForDev: true,
   },
   async redirects() {
     const blogRedirects = generateBlogRedirects();

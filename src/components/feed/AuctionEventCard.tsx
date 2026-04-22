@@ -30,7 +30,8 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
 
   const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
 
-  // Determine if auction is currently live
+  // Determine if auction is currently live — intentional render-time clock read.
+  // eslint-disable-next-line react-hooks/purity
   const now = Math.floor(Date.now() / 1000);
   const isLive = event.type === "AuctionCreated" && event.endTime > now;
 
@@ -111,6 +112,8 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
 // Subcomponents
 
 function AuctionCreatedContent({ event }: { event: Extract<FeedEvent, { type: "AuctionCreated" }> }) {
+  // Intentional render-time clock read for relative-time label (hydration suppressed).
+  // eslint-disable-next-line react-hooks/purity
   const now = Math.floor(Date.now() / 1000);
   const hasEnded = event.endTime <= now;
 

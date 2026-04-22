@@ -228,7 +228,8 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
   const createdAt = Number(p.timeCreated) * 1000;
   const isExecuted = Boolean(p.executedAt);
 
-  // Sale timing
+  // Sale timing — intentional render-time clock read for sale state badge.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const saleStart = decoded?.saleConfig?.publicSaleStart
     ? Number(decoded.saleConfig.publicSaleStart) * 1000

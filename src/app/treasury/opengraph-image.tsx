@@ -138,18 +138,23 @@ async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
 }
 
 export default async function Image() {
+  let treasuryData: Awaited<ReturnType<typeof fetchTreasurySnapshot>>;
   try {
-    const treasuryData = await fetchTreasurySnapshot();
+    treasuryData = await fetchTreasurySnapshot();
+  } catch (error) {
+    console.error("[treasury OG] error:", error);
+    return renderFallback("Error generating image");
+  }
 
-    if (!treasuryData) {
-      return renderFallback("Treasury Data Unavailable");
-    }
+  if (!treasuryData) {
+    return renderFallback("Treasury Data Unavailable");
+  }
 
-    const ethBalance = treasuryData.ethBalance;
-    const usdTotal = formatUsdDisplay(treasuryData.usdTotal);
+  const ethBalance = treasuryData.ethBalance;
+  const usdTotal = formatUsdDisplay(treasuryData.usdTotal);
 
-    return new ImageResponse(
-      (
+  return new ImageResponse(
+    (
         <div
           style={{
             height: "100%",
@@ -250,13 +255,9 @@ export default async function Image() {
             <div>gnars.com/treasury</div>
           </div>
         </div>
-      ),
-      { ...size }
-    );
-  } catch (error) {
-    console.error("[treasury OG] error:", error);
-    return renderFallback("Error generating image");
-  }
+    ),
+    { ...size }
+  );
 }
 
 function renderFallback(message: string) {
