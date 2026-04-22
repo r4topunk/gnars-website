@@ -371,8 +371,6 @@ async function fetchNftHolderCandidates(
     return [];
   }
 
-  console.log(`[farcaster-tv] NFT holder candidates from subgraph: ${holders.length}`);
-
   // Resolve wallets to Zora profiles
   const candidates: CandidateCreator[] = [];
 
@@ -406,10 +404,6 @@ async function fetchNftHolderCandidates(
       }
     },
     MAX_CONCURRENT_PROFILE_FETCHES,
-  );
-
-  console.log(
-    `[farcaster-tv] NFT holder candidates with Zora profiles: ${candidates.length}`,
   );
 
   return candidates;
@@ -462,10 +456,6 @@ async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
 
   const allCandidates = [...coinCandidates, ...nftCandidates];
 
-  console.log(
-    `[farcaster-tv] Candidates: ${coinCandidates.length} from coin holders, ${nftCandidates.length} from NFT holders`,
-  );
-
   // Resolve wallets for all candidates (coin candidates may already have wallets from prior step)
   const candidatesWithWallets = await fetchProfileWallets(allCandidates);
 
@@ -504,7 +494,6 @@ async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
   const allowlistMissing = GNARS_CREATOR_ALLOWLIST.filter((h) => !qualifiedHandles.has(h));
 
   if (allowlistMissing.length > 0) {
-    console.log(`[farcaster-tv] Adding ${allowlistMissing.length} allowlisted creators:`, allowlistMissing);
     for (const handle of allowlistMissing) {
       qualifiedCreators.push({
         handle,
@@ -514,16 +503,6 @@ async function fetchQualifiedCreators(): Promise<QualifiedCreator[]> {
         wallets: [],
       });
     }
-  }
-
-  console.log("[farcaster-tv][qualified-creators] Total:", qualifiedCreators.length);
-  for (const creator of qualifiedCreators) {
-    console.log("[farcaster-tv][qualified-creators] Creator:", {
-      handle: creator.handle,
-      wallets: creator.wallets,
-      coinBalance: creator.coinBalance,
-      nftBalance: creator.nftBalance,
-    });
   }
 
   return qualifiedCreators;
@@ -540,25 +519,9 @@ async function fetchFarcasterMatches(
   if (creators.length === 0) return [];
 
   const wallets = creators.flatMap((creator) => creator.wallets);
-  console.log("[farcaster-tv][farcaster-match-start] Qualified creators:", creators.length);
-  console.log("[farcaster-tv][farcaster-match-start] Wallets to Neynar:", wallets);
   const profilesByAddress = useCache
     ? await fetchFarcasterProfilesByAddress(wallets)
     : await fetchFarcasterProfilesByAddressUncached(wallets);
-
-  console.log("[farcaster-tv][farcaster-match-start] Neynar wallet->profile:", profilesByAddress);
-  console.log(
-    "[farcaster-tv] Farcaster wallet matches:",
-    wallets.map((wallet) => {
-      const profile = profilesByAddress[wallet.toLowerCase()];
-      return {
-        wallet,
-        fid: profile?.fid ?? null,
-        username: profile?.username ?? null,
-        followerCount: profile?.followerCount ?? null,
-      };
-    }),
-  );
 
   const matches: FarcasterCreatorMatch[] = [];
 
@@ -567,27 +530,11 @@ async function fetchFarcasterMatches(
       .map((wallet) => profilesByAddress[wallet.toLowerCase()])
       .filter((profile): profile is FarcasterProfile => Boolean(profile));
 
-    if (profiles.length === 0) {
-      console.log("[farcaster-tv] Skipping creator (no Farcaster match):", {
-        handle: creator.handle,
-        wallets: creator.wallets,
-      });
-      continue;
-    }
+    if (profiles.length === 0) continue;
 
     const bestProfile = profiles.sort((a, b) => b.followerCount - a.followerCount)[0];
-    matches.push({
-      profile: bestProfile,
-    });
+    matches.push({ profile: bestProfile });
   }
-
-  console.log(
-    "[farcaster-tv][farcaster-match-start] Final matches (fids):",
-    matches.map((match) => ({
-      fid: match.profile.fid,
-      username: match.profile.username,
-    })),
-  );
 
   return matches;
 }
@@ -753,23 +700,7 @@ async function fetchFarcasterHoldings(
   if (matches.length === 0) return { items: [], stats: { creators: 0, coins: 0, nfts: 0 } };
 
   const rankedAll = rankByFollowerCount(matches);
-  console.log(
-    "[farcaster-tv] Farcaster ranking (pre-limit):",
-    rankedAll.map((match, index) => ({
-      rank: index + 1,
-      fid: match.profile.fid,
-      username: match.profile.username,
-      followerCount: match.profile.followerCount,
-    })),
-  );
-
   const ranked = rankedAll.slice(0, MAX_FARCASTER_USERS);
-  if (ranked.length !== rankedAll.length) {
-    console.log("[farcaster-tv] Farcaster ranking truncated:", {
-      total: rankedAll.length,
-      limit: MAX_FARCASTER_USERS,
-    });
-  }
   const farcasterLoadedKeys = new Set<string>();
 
   const items: TVItemData[] = [];
@@ -840,45 +771,8 @@ async function fetchFarcasterHoldings(
         nftCount++;
       }
 
-      const creatorCoinItems = coinItems.filter(Boolean).length;
-      const creatorNftItems = nftItems.length;
-      if (creatorCoinItems === 0 && creatorNftItems === 0) {
-        console.log("[farcaster-tv] Skipping creator (no eligible items):", {
-          fid: match.profile.fid,
-          username: match.profile.username,
-          followerCount: match.profile.followerCount,
-          coinsFetched: coins.length,
-          nftsFetched: nfts.length,
-          coinsAfterFilter: topCoins.length,
-          nftsAfterFilter: topNfts.length,
-        });
-      } else {
-        console.log("[farcaster-tv] Creator included:", {
-          fid: match.profile.fid,
-          username: match.profile.username,
-          followerCount: match.profile.followerCount,
-          coinsFetched: coins.length,
-          nftsFetched: nfts.length,
-          coinsAfterFilter: topCoins.length,
-          nftsAfterFilter: topNfts.length,
-          coinItems: creatorCoinItems,
-          nftItems: creatorNftItems,
-        });
-      }
     },
     MAX_CONCURRENT_FARCASTER_FETCHES,
-  );
-
-  console.log(
-    "[farcaster-tv] Final items:",
-    items.map((item) => ({
-      id: item.id,
-      farcasterFid: item.farcasterFid ?? null,
-      farcasterUsername: item.farcasterUsername ?? null,
-      farcasterType: item.farcasterType ?? null,
-      creator: item.creator,
-      coinAddress: item.coinAddress ?? null,
-    })),
   );
 
   return { items, stats: { creators: ranked.length, coins: coinCount, nfts: nftCount } };
@@ -930,20 +824,10 @@ const getCachedFarcasterTVPayload = unstable_cache(
  * - unstable_cache provides cross-request caching with a 15-minute revalidation window.
  */
 export const getFarcasterTVData = reactCache(async (): Promise<FarcasterTVData> => {
-  const callStart = Date.now();
   const lruHit = farcasterTvLru.get(FARCASTER_TV_CACHE_KEY);
-
-  if (lruHit) {
-    const elapsed = Date.now() - callStart;
-    console.log(`[farcaster-tv] LRU hit in ${elapsed}ms`);
-    return { ...lruHit, cache: { source: "lru" } };
-  }
+  if (lruHit) return { ...lruHit, cache: { source: "lru" } };
 
   const payload = await getCachedFarcasterTVPayload();
   farcasterTvLru.set(FARCASTER_TV_CACHE_KEY, payload);
-
-  const elapsed = Date.now() - callStart;
-  console.log(`[farcaster-tv] Cached fetch in ${elapsed}ms (build ${payload.durationMs}ms)`);
-
   return { ...payload, cache: { source: "next" } };
 });
