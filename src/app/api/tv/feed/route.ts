@@ -10,9 +10,13 @@ import {
 } from "@/services/farcaster-tv-aggregator";
 import { GNARS_CREATOR_COIN, GNARS_ZORA_HANDLE } from "@/lib/config";
 
-// Let Next.js handle caching via ISR — serves stale response instantly while
-// revalidating in the background. No more synchronous cache rebuilds blocking requests.
-export const revalidate = 3600; // 1 hour
+// Dynamic route — never prerendered at build time. CDN handles caching via
+// the Cache-Control header on the response (see GET below). Keeps the build
+// free of external API calls (Zora, Neynar, subgraph) that can rate-limit.
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+const CACHE_CONTROL_HEADER = "public, s-maxage=3600, stale-while-revalidate=86400";
 
 // Gnars addresses (use centralized config)
 const GNARS_COIN_ADDRESS = GNARS_CREATOR_COIN;
@@ -246,8 +250,6 @@ async function fetchCreatorContent(
   creators: QualifiedCreator[],
   loadedAddresses: Set<string>,
 ): Promise<TVItemData[]> {
-  console.log(`[api/tv] Fetching content from ${creators.length} creators...`);
-
   const allItems: TVItemData[] = [];
 
   await runWithConcurrency(
@@ -278,14 +280,13 @@ async function fetchCreatorContent(
             allItems.push(item);
           }
         }
-      } catch (err) {
-        console.warn(`[api/tv] Failed to fetch content for ${creator.handle}:`, err);
+      } catch {
+        // Skip on error — single creator failure shouldn't break the feed
       }
     },
     MAX_CONCURRENT_COIN_FETCHES,
   );
 
-  console.log(`[api/tv] Fetched ${allItems.length} items from creators`);
   return allItems;
 }
 
@@ -293,17 +294,10 @@ async function fetchCreatorContent(
  * Fetch GNARS-paired coins from subgraph with concurrency limit
  */
 async function fetchPairedCoins(loadedAddresses: Set<string>): Promise<TVItemData[]> {
-  console.log("[api/tv] Fetching GNARS-paired coins...");
-
   try {
     const pairedCoins = await fetchGnarsPairedCoins({ first: 100 });
 
-    if (!pairedCoins.length) {
-      console.log("[api/tv] No paired coins in subgraph");
-      return [];
-    }
-
-    console.log(`[api/tv] Found ${pairedCoins.length} paired coins, fetching details...`);
+    if (!pairedCoins.length) return [];
 
     const items: TVItemData[] = [];
 
@@ -338,7 +332,6 @@ async function fetchPairedCoins(loadedAddresses: Set<string>): Promise<TVItemDat
       MAX_CONCURRENT_COIN_FETCHES,
     );
 
-    console.log(`[api/tv] Loaded ${items.length} GNARS-paired coins with media`);
     return items;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -351,8 +344,6 @@ async function fetchPairedCoins(loadedAddresses: Set<string>): Promise<TVItemDat
  * Fetch Gnars profile content
  */
 async function fetchGnarsProfileContent(loadedAddresses: Set<string>): Promise<TVItemData[]> {
-  console.log("[api/tv] Fetching Gnars profile content...");
-
   try {
     const response = await getProfileCoins({
       identifier: GNARS_PROFILE_HANDLE,
@@ -389,7 +380,6 @@ async function fetchGnarsProfileContent(loadedAddresses: Set<string>): Promise<T
       MAX_CONCURRENT_COIN_FETCHES,
     );
 
-    console.log(`[api/tv] Loaded ${items.length} from Gnars profile`);
     return items;
   } catch (err) {
     console.warn("[api/tv] Failed to fetch Gnars profile:", err);
@@ -435,8 +425,6 @@ async function mapDroposalToTVItem(droposal: {
 
 export async function GET() {
   const startTime = Date.now();
-  console.log("[api/tv] Starting feed fetch...");
-
   const loadedAddresses = new Set<string>();
 
   try {
@@ -505,35 +493,33 @@ export async function GET() {
     });
 
     const elapsed = Date.now() - startTime;
-    console.log(`[api/tv] Feed ready: ${allItems.length} items in ${elapsed}ms`);
-    console.log(
-      `[api/tv] Sources: ${pairedCoins.length} paired, ${creatorContent.length} creators, ${gnarsContent.length} gnars, ${farcasterItems.length} farcaster, ${droposalItems.length} droposals`,
-    );
-    console.log(`[api/tv] Farcaster cache: ${farcasterData.cache.source}`);
 
-    return NextResponse.json({
-      items: allItems,
-      creators: qualifiedCreators.map((c) => ({
-        handle: c.handle,
-        avatarUrl: c.avatarUrl,
-        coinBalance: c.coinBalance,
-        nftBalance: c.nftBalance,
-      })),
-      stats: {
-        total: allItems.length,
-        withVideo: allItems.filter((i) => i.videoUrl).length,
-        withImage: allItems.filter((i) => !i.videoUrl && i.imageUrl).length,
-        gnarsPaired: pairedCoins.length,
-        droposals: droposalItems.length,
-        creatorsCount: qualifiedCreators.length,
-        farcasterItems: farcasterItems.length,
-        farcasterCreators: farcasterData.stats.creators,
-        farcasterCoins: farcasterData.stats.coins,
-        farcasterNfts: farcasterData.stats.nfts,
+    return NextResponse.json(
+      {
+        items: allItems,
+        creators: qualifiedCreators.map((c) => ({
+          handle: c.handle,
+          avatarUrl: c.avatarUrl,
+          coinBalance: c.coinBalance,
+          nftBalance: c.nftBalance,
+        })),
+        stats: {
+          total: allItems.length,
+          withVideo: allItems.filter((i) => i.videoUrl).length,
+          withImage: allItems.filter((i) => !i.videoUrl && i.imageUrl).length,
+          gnarsPaired: pairedCoins.length,
+          droposals: droposalItems.length,
+          creatorsCount: qualifiedCreators.length,
+          farcasterItems: farcasterItems.length,
+          farcasterCreators: farcasterData.stats.creators,
+          farcasterCoins: farcasterData.stats.coins,
+          farcasterNfts: farcasterData.stats.nfts,
+        },
+        fetchedAt: new Date().toISOString(),
+        durationMs: elapsed,
       },
-      fetchedAt: new Date().toISOString(),
-      durationMs: elapsed,
-    });
+      { headers: { "Cache-Control": CACHE_CONTROL_HEADER } },
+    );
   } catch (error) {
     console.error("[api/tv] Feed fetch error:", error);
     return NextResponse.json({ error: "Failed to fetch TV feed" }, { status: 500 });
