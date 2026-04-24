@@ -3,6 +3,7 @@ import NogglesRailsHero from "@/components/nogglesrails/NogglesRailsHero";
 import { NogglesRailsMapTabs } from "@/components/nogglesrails/NogglesRailsMapTabs";
 import { NogglesRailsGrid } from "@/components/nogglesrails/NogglesRailsGrid";
 import { NogglesRailsManifesto } from "@/components/nogglesrails/NogglesRailsManifesto";
+import { NogglesRailsClosingBox } from "@/components/nogglesrails/NogglesRailsClosingBox";
 
 export const metadata: Metadata = {
   title: "NogglesRails — Community Skate Infrastructure Worldwide",
@@ -40,10 +41,9 @@ export default function NogglesRailsPage() {
     <div className="flex flex-col gap-10 pb-8">
       <NogglesRailsHero />
       <NogglesRailsMapTabs />
-      <div className="flex flex-col gap-10">
-        <NogglesRailsManifesto />
-        <NogglesRailsGrid />
-      </div>
+      <NogglesRailsManifesto />
+      <NogglesRailsGrid />
+      <NogglesRailsClosingBox />
     </div>
   );
 }
