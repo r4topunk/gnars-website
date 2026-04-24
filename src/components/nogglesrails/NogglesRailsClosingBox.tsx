@@ -1,3 +1,4 @@
+import { NounstacleDefinition } from "./NounstacleDefinition";
 import Image from "next/image";
 
 export function NogglesRailsClosingBox() {
@@ -46,6 +47,8 @@ export function NogglesRailsClosingBox() {
           This is an onchain-born project by Gnars DAO and it’s still alive bro, still rolling, and
           still being built.
         </p>
+
+        <NounstacleDefinition />
       </article>
     </section>
   );
