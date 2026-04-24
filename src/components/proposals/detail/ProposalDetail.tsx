@@ -60,6 +60,15 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   // Snapshot and Ethereum proposals are read-only (no voting)
   const isReadOnly = isSnapshot || isEthereum;
   
+  // Mount flag keeps the initial client render identical to the SSR tree.
+  // `address` (thirdweb, synchronous from storage) and `propdates` (async)
+  // are undefined on the server, so we must treat them as undefined during
+  // the first hydration pass too, then let post-mount updates reveal tabs.
+  // The <Tabs> shell is always rendered, so this only affects which
+  // <TabsTrigger>s appear — no structural mismatch either way.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const [userVote, setUserVote] = useState<"FOR" | "AGAINST" | "ABSTAIN" | null>(null);
   const [userVoteReason, setUserVoteReason] = useState<string | null>(null);
   const [hasRecentVoteConfirmation, setHasRecentVoteConfirmation] = useState(false);
@@ -189,10 +198,10 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
 
   // Show propdates tab if there's at least one propdate OR the connected user is the proposal owner
   const isProposalOwner =
-    address && proposal.proposer
+    mounted && address && proposal.proposer
       ? address.toLowerCase() === proposal.proposer.toLowerCase()
       : false;
-  const hasPropdates = (propdates?.length ?? 0) > 0;
+  const hasPropdates = mounted && (propdates?.length ?? 0) > 0;
   const shouldShowPropdatesTab = hasPropdates || isProposalOwner;
 
   // Show votes tab if there are any votes (for any status: Active, Executed, Defeated, etc.)
@@ -206,9 +215,11 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
     proposal.targets && 
     proposal.targets.length > 0;
 
-  // Count visible tabs to determine if we should show tabs at all
+  // Count visible tabs to decide whether to render the TabsList.
+  // The <Tabs> shell itself is always rendered so the SSR tree is stable
+  // and does not depend on client-only state (address, fetched propdates).
   const visibleTabsCount = 1 + (shouldShowVotesTab ? 1 : 0) + (shouldShowPropdatesTab ? 1 : 0);
-  const shouldShowTabs = visibleTabsCount > 1;
+  const shouldShowTabsList = visibleTabsCount > 1;
 
   // Show voting card for active proposals (connection check moved to VotingControls to avoid hydration issues)
   // Hide voting for read-only proposals (Snapshot and Ethereum)
@@ -277,8 +288,8 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       {isProposalSuccessful(proposal.status) && (
         <ProposalActions proposal={proposal} onActionSuccess={handleActionSuccess} />
       )}
-      {shouldShowTabs ? (
-        <Tabs defaultValue="details" className="w-full">
+      <Tabs defaultValue="details" className="w-full">
+        {shouldShowTabsList && (
           <div className="overflow-x-auto">
             <TabsList
               className={`grid w-full ${visibleTabsCount === 2 ? "grid-cols-2" : "grid-cols-3"} min-w-fit`}
@@ -288,52 +299,11 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
               {shouldShowPropdatesTab && <TabsTrigger value="propdates">Propdates</TabsTrigger>}
             </TabsList>
           </div>
-          <TabsContent value="details" className="space-y-6 mt-6">
-            <ProposalDescriptionCard description={proposal.description} />
-            {hasTransactionData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Proposed Transactions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProposalTransactionVisualization
-                    targets={proposal.targets}
-                    values={proposal.values}
-                    signatures={proposal.signatures}
-                    calldatas={proposal.calldatas}
-                    descriptions={(proposal as MultiChainProposal).txDescriptions}
-                  />
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-          {shouldShowVotesTab && (
-            <TabsContent value="votes" className="mt-6 space-y-6">
-              <ProposalVotesList
-                votes={votesList.map((v) => ({
-                  voter: v.voter,
-                  choice: v.choice,
-                  votes: v.votes,
-                  reason: (v as { reason?: string | null }).reason ?? null,
-                  timestamp: (v as { timestamp?: number }).timestamp,
-                }))}
-                proposalId={proposal.proposalId}
-                isActive={proposal.status === "Active"}
-              />
-            </TabsContent>
-          )}
-          {shouldShowPropdatesTab && (
-            <TabsContent value="propdates" className="mt-6">
-              <Propdates
-                proposalId={proposal.proposalId}
-                proposer={proposal.proposer}
-                targets={proposal.targets}
-              />
-            </TabsContent>
-          )}
-        </Tabs>
-      ) : (
-        <div className="space-y-6">
+        )}
+        <TabsContent
+          value="details"
+          className={`space-y-6 ${shouldShowTabsList ? "mt-6" : ""}`}
+        >
           <ProposalDescriptionCard description={proposal.description} />
           {hasTransactionData && (
             <Card>
@@ -346,12 +316,37 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
                   values={proposal.values}
                   signatures={proposal.signatures}
                   calldatas={proposal.calldatas}
+                  descriptions={(proposal as MultiChainProposal).txDescriptions}
                 />
               </CardContent>
             </Card>
           )}
-        </div>
-      )}
+        </TabsContent>
+        {shouldShowVotesTab && (
+          <TabsContent value="votes" className="mt-6 space-y-6">
+            <ProposalVotesList
+              votes={votesList.map((v) => ({
+                voter: v.voter,
+                choice: v.choice,
+                votes: v.votes,
+                reason: (v as { reason?: string | null }).reason ?? null,
+                timestamp: (v as { timestamp?: number }).timestamp,
+              }))}
+              proposalId={proposal.proposalId}
+              isActive={proposal.status === "Active"}
+            />
+          </TabsContent>
+        )}
+        {shouldShowPropdatesTab && (
+          <TabsContent value="propdates" className="mt-6">
+            <Propdates
+              proposalId={proposal.proposalId}
+              proposer={proposal.proposer}
+              targets={proposal.targets}
+            />
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }
