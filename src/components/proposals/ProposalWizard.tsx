@@ -1,14 +1,17 @@
 "use client";
 /* eslint-disable react-hooks/incompatible-library -- react-hook-form watch()/useFormContext pattern is known-incompatible with React Compiler */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { TransactionBuilder } from "@/components/proposals/builder/TransactionBuilder";
-import { ProposalDetailsForm } from "@/components/proposals/ProposalDetailsForm";
+import {
+  ProposalDetailsForm,
+  type ProposalDetailsFormHandle,
+} from "@/components/proposals/ProposalDetailsForm";
 import { ProposalGatingBanner } from "@/components/proposals/ProposalGatingBanner";
 import { ProposalPreview } from "@/components/proposals/ProposalPreview";
 import { Button } from "@/components/ui/button";
@@ -24,6 +27,8 @@ export function ProposalWizard() {
   const [currentTab, setCurrentTab] = useState("details");
   const [isEditingTransaction, setIsEditingTransaction] = useState(false);
   const searchParams = useSearchParams();
+  const templateSlug = searchParams.get("template");
+  const detailsFormRef = useRef<ProposalDetailsFormHandle | null>(null);
 
   const methods = useForm<ProposalFormValues>({
     resolver: zodResolver(proposalSchema),
@@ -36,22 +41,15 @@ export function ProposalWizard() {
     mode: "onChange",
   });
 
-  // Pre-fill form from ?template= query param
+  // Pre-fill title from template. Description is compiled inside TemplateDetailsForm.
   useEffect(() => {
-    const templateSlug = searchParams.get("template");
     if (!templateSlug) return;
-
     const template = getProposalTemplate(templateSlug);
     if (!template) return;
-
-    // Only pre-fill if the form is still empty (don't overwrite user edits)
     const currentTitle = methods.getValues("title");
-    const currentDesc = methods.getValues("description");
-    if (currentTitle || currentDesc) return;
-
+    if (currentTitle) return;
     methods.setValue("title", template.defaultTitle, { shouldDirty: false });
-    methods.setValue("description", template.description, { shouldDirty: false });
-  }, [searchParams, methods]);
+  }, [templateSlug, methods]);
 
   const { address, isConnected } = useUserAddress();
   const eligibility = useProposalEligibility({
@@ -71,7 +69,10 @@ export function ProposalWizard() {
   const canProceedToPreview = canProceedToTransactions && (watchedTransactions?.length ?? 0) > 0;
 
   const handleNextToTransactions = async () => {
-    const isValid = await trigger(["title", "description"]);
+    const handle = detailsFormRef.current;
+    const isValid = handle
+      ? await handle.validate()
+      : await trigger(["title", "description"]);
     if (isValid) {
       setCurrentTab("transactions");
     }
@@ -148,7 +149,7 @@ export function ProposalWizard() {
             <TabsContent value="details" className="space-y-4">
               <Card>
                 <CardContent className="p-6">
-                  <ProposalDetailsForm />
+                  <ProposalDetailsForm ref={detailsFormRef} templateSlug={templateSlug} />
                   <div className="flex justify-end mt-6">
                     <Button
                       onClick={handleNextToTransactions}

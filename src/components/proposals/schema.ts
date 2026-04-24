@@ -193,6 +193,11 @@ export const proposalSchema = z.object({
   description: z.string().min(1, "Description is required"),
   bannerImage: z.string().optional(),
   transactions: z.array(transactionSchema).min(1, "At least one transaction is required"),
+  /**
+   * Optional per-template structured field values. Not submitted onchain —
+   * TemplateDetailsForm mirrors these into `description` as compiled markdown.
+   */
+  templateFields: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Types
