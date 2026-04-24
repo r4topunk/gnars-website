@@ -5,6 +5,7 @@ import { NogglesRailsGrid } from "@/components/nogglesrails/NogglesRailsGrid";
 import { NogglesRailsManifesto } from "@/components/nogglesrails/NogglesRailsManifesto";
 import { NogglesRailsClosingBox } from "@/components/nogglesrails/NogglesRailsClosingBox";
 import { NounstacleDefinition } from "@/components/nogglesrails/NounstacleDefinition";
+import { NogglesRailsInterludeImage } from "@/components/nogglesrails/NogglesRailsInterludeImage";
 
 export const metadata: Metadata = {
   title: "NogglesRails — Community Skate Infrastructure Worldwide",
@@ -47,6 +48,7 @@ export default function NogglesRailsPage() {
       <div className="pt-2">
         <NogglesRailsClosingBox />
       </div>
+      <NogglesRailsInterludeImage />
       <NounstacleDefinition />
     </div>
   );
