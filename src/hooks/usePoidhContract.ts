@@ -302,13 +302,13 @@ export function usePoidhVoteClaim(bountyChainId: number) {
   const state = usePoidhWriteState();
 
   const vote = useCallback(
-    async (onChainBountyId: number, claimId: number, accept: boolean) => {
+    async (onChainBountyId: number, accept: boolean) => {
       const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = prepareContractCall({
         contract,
         method: "voteClaim",
-        params: [BigInt(onChainBountyId), BigInt(claimId), accept],
+        params: [BigInt(onChainBountyId), accept],
       });
       await sendAndConfirm(state, client, twChain, writer, tx);
     },
@@ -325,13 +325,13 @@ export function usePoidhResolveVote(bountyChainId: number) {
   const state = usePoidhWriteState();
 
   const resolve = useCallback(
-    async (onChainBountyId: number, claimId: number) => {
+    async (onChainBountyId: number) => {
       const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
       const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
       const tx = prepareContractCall({
         contract,
         method: "resolveVote",
-        params: [BigInt(onChainBountyId), BigInt(claimId)],
+        params: [BigInt(onChainBountyId)],
       });
       await sendAndConfirm(state, client, twChain, writer, tx);
     },
@@ -362,4 +362,73 @@ export function usePoidhAcceptClaim(bountyChainId: number) {
   );
 
   return { accept, ...buildPoidhReturn(state) };
+}
+
+// ─── Claim Refund from Cancelled Open Bounty (contributor pull-payment) ───────
+
+export function usePoidhClaimRefundFromCancelledBounty(bountyChainId: number) {
+  const ctx = usePoidhContext(bountyChainId);
+  const state = usePoidhWriteState();
+
+  const claimRefund = useCallback(
+    async (onChainBountyId: number) => {
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
+      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const tx = prepareContractCall({
+        contract,
+        method: "claimRefundFromCancelledOpenBounty",
+        params: [BigInt(onChainBountyId)],
+      });
+      await sendAndConfirm(state, client, twChain, writer, tx);
+    },
+    [ctx, bountyChainId, state],
+  );
+
+  return { claimRefund, ...buildPoidhReturn(state) };
+}
+
+// ─── Reset Voting Period (recovery after failed vote) ─────────────────────────
+
+export function usePoidhResetVotingPeriod(bountyChainId: number) {
+  const ctx = usePoidhContext(bountyChainId);
+  const state = usePoidhWriteState();
+
+  const resetVoting = useCallback(
+    async (onChainBountyId: number) => {
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
+      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const tx = prepareContractCall({
+        contract,
+        method: "resetVotingPeriod",
+        params: [BigInt(onChainBountyId)],
+      });
+      await sendAndConfirm(state, client, twChain, writer, tx);
+    },
+    [ctx, bountyChainId, state],
+  );
+
+  return { resetVoting, ...buildPoidhReturn(state) };
+}
+
+// ─── Withdraw pending balance (bounty winners, cancelled-bounty refunds) ──────
+
+export function usePoidhWithdraw(bountyChainId: number) {
+  const ctx = usePoidhContext(bountyChainId);
+  const state = usePoidhWriteState();
+
+  const withdraw = useCallback(
+    async () => {
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
+      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const tx = prepareContractCall({
+        contract,
+        method: "withdraw",
+        params: [],
+      });
+      await sendAndConfirm(state, client, twChain, writer, tx);
+    },
+    [ctx, bountyChainId, state],
+  );
+
+  return { withdraw, ...buildPoidhReturn(state) };
 }
