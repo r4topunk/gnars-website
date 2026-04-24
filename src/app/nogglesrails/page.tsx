@@ -40,8 +40,10 @@ export default function NogglesRailsPage() {
     <div className="flex flex-col gap-10 pb-8">
       <NogglesRailsHero />
       <NogglesRailsMapTabs />
-      <NogglesRailsManifesto />
-      <NogglesRailsGrid />
+      <div className="flex flex-col gap-10">
+        <NogglesRailsManifesto />
+        <NogglesRailsGrid />
+      </div>
     </div>
   );
 }
