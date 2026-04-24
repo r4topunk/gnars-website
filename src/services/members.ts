@@ -82,45 +82,61 @@ type TokensQuery = {
   }>;
 };
 
-const MEMBER_TOKENS_GQL = /* GraphQL */ `
-  query MemberTokens($dao: ID!, $owner: Bytes!) {
-    tokens(where: { dao: $dao, owner: $owner }, orderBy: tokenId, orderDirection: asc) {
-      tokenId
-      ownerInfo {
-        owner
-        delegate
+// Reusable token fragment so single-owner and joint (EOA + SA)
+// variants render identical row shapes without duplicating field lists.
+const MEMBER_TOKEN_FIELDS = /* GraphQL */ `
+  fragment MemberTokenFields on Token {
+    tokenId
+    ownerInfo {
+      owner
+      delegate
+    }
+    image
+    mintedAt
+    auction {
+      endTime
+      settled
+      highestBid {
+        amount
+        bidder
       }
-      image
-      mintedAt
-      auction {
-        endTime
-        settled
-        highestBid {
-          amount
-          bidder
-        }
-        winningBid {
-          amount
-          bidder
-        }
+      winningBid {
+        amount
+        bidder
       }
     }
   }
 `;
 
-export async function fetchMemberOverview(address: string): Promise<MemberOverview> {
-  const dao = DAO_ADDRESSES.token.toLowerCase();
+const MEMBER_TOKENS_GQL = /* GraphQL */ `
+  query MemberTokens($dao: ID!, $owner: Bytes!) {
+    tokens(where: { dao: $dao, owner: $owner }, orderBy: tokenId, orderDirection: asc) {
+      ...MemberTokenFields
+    }
+  }
+  ${MEMBER_TOKEN_FIELDS}
+`;
 
-  // Fetch tokens held by the member
-  const tokensData = await subgraphQuery<TokensQuery>(MEMBER_TOKENS_GQL, {
-    dao,
-    owner: address.toLowerCase(),
-  });
+// Single-request fetch for a joint profile (EOA + predicted smart
+// account). GraphQL aliases partition the two owners into separate
+// result buckets; the subgraph indexer still executes one query.
+const JOINT_MEMBER_TOKENS_GQL = /* GraphQL */ `
+  query JointMemberTokens($dao: ID!, $eoa: Bytes!, $sa: Bytes!) {
+    eoaTokens: tokens(where: { dao: $dao, owner: $eoa }, orderBy: tokenId, orderDirection: asc) {
+      ...MemberTokenFields
+    }
+    saTokens: tokens(where: { dao: $dao, owner: $sa }, orderBy: tokenId, orderDirection: asc) {
+      ...MemberTokenFields
+    }
+  }
+  ${MEMBER_TOKEN_FIELDS}
+`;
 
-  const tokenIds: number[] = (tokensData.tokens || []).map((t) => Number(t.tokenId));
-  // Derive delegate from the first token's ownerInfo if available; fall back to self
-  const delegate = tokensData.tokens?.[0]?.ownerInfo?.delegate ?? address;
-  const tokens = (tokensData.tokens || []).map((t) => ({
+// Shared row → MemberToken mapper (used by both single-owner and joint flows)
+type MemberTokenRow = TokensQuery["tokens"][number];
+
+function rowToToken(t: MemberTokenRow): MemberToken {
+  return {
     id: Number(t.tokenId),
     imageUrl: t.image ?? undefined,
     mintedAt: t.mintedAt ? Number(t.mintedAt) : undefined,
@@ -128,15 +144,28 @@ export async function fetchMemberOverview(address: string): Promise<MemberOvervi
     settled: t.auction?.settled ?? undefined,
     finalBidWei: t.auction?.winningBid?.amount ?? t.auction?.highestBid?.amount ?? undefined,
     winner: t.auction?.winningBid?.bidder ?? undefined,
-  }));
+  };
+}
 
+function buildOverview(address: string, rows: MemberTokenRow[]): MemberOverview {
+  const tokenIds = rows.map((t) => Number(t.tokenId));
+  const delegate = rows[0]?.ownerInfo?.delegate ?? address;
   return {
     address,
     delegate,
     tokensHeld: tokenIds,
     tokenCount: tokenIds.length,
-    tokens,
+    tokens: rows.map(rowToToken),
   };
+}
+
+export async function fetchMemberOverview(address: string): Promise<MemberOverview> {
+  const dao = DAO_ADDRESSES.token.toLowerCase();
+  const tokensData = await subgraphQuery<TokensQuery>(MEMBER_TOKENS_GQL, {
+    dao,
+    owner: address.toLowerCase(),
+  });
+  return buildOverview(address, tokensData.tokens || []);
 }
 
 /**
@@ -186,16 +215,35 @@ export async function fetchJointMemberOverview(address: string): Promise<MemberO
     return fetchMemberOverview(address);
   }
 
-  const [eoaOverview, saOverview] = await Promise.allSettled([
-    fetchMemberOverview(address),
-    fetchMemberOverview(predictedSa),
-  ]);
-
-  if (eoaOverview.status === "rejected") {
-    throw eoaOverview.reason;
+  // Single-request joint fetch — GraphQL aliases collapse EOA + SA into
+  // one round trip. If it fails we fall back to two sequential overviews
+  // so a subgraph hiccup still returns the EOA side.
+  let eoa: MemberOverview;
+  let sa: MemberOverview | null;
+  const dao = DAO_ADDRESSES.token.toLowerCase();
+  try {
+    const joint = await subgraphQuery<{
+      eoaTokens: MemberTokenRow[];
+      saTokens: MemberTokenRow[];
+    }>(JOINT_MEMBER_TOKENS_GQL, {
+      dao,
+      eoa: address.toLowerCase(),
+      sa: predictedSa.toLowerCase(),
+    });
+    eoa = buildOverview(address, joint.eoaTokens || []);
+    sa = buildOverview(predictedSa, joint.saTokens || []);
+  } catch (err) {
+    console.warn("[members] joint tokens query failed, falling back", err);
+    const [eoaOverview, saOverview] = await Promise.allSettled([
+      fetchMemberOverview(address),
+      fetchMemberOverview(predictedSa),
+    ]);
+    if (eoaOverview.status === "rejected") {
+      throw eoaOverview.reason;
+    }
+    eoa = eoaOverview.value;
+    sa = saOverview.status === "fulfilled" ? saOverview.value : null;
   }
-  const eoa = eoaOverview.value;
-  const sa = saOverview.status === "fulfilled" ? saOverview.value : null;
 
   if (!sa || sa.tokenCount === 0) {
     return {
@@ -737,23 +785,17 @@ const VOTERS_BY_ADDRESSES_GQL = /* GraphQL */ `
  * Fetch active members: voters who voted in at least `threshold` of the last `windowSize` non-canceled proposals.
  * Returns enriched list with address, votingPower (including delegated votes), and votesInWindow.
  */
-export async function fetchActiveMembers(
-  windowSize = 10,
-  threshold = 5,
-): Promise<ActiveMember[]> {
+export async function fetchActiveMembers(windowSize = 10, threshold = 5): Promise<ActiveMember[]> {
   const dao = DAO_ADDRESSES.token.toLowerCase();
 
   // Step 1: Fetch last N non-canceled proposals
-  const proposalsData = await subgraphQuery<NonCanceledProposalsQuery>(
-    NON_CANCELED_PROPOSALS_GQL,
-    {
-      dao,
-      first: windowSize,
-      skip: 0,
-    },
-  );
+  const proposalsData = await subgraphQuery<NonCanceledProposalsQuery>(NON_CANCELED_PROPOSALS_GQL, {
+    dao,
+    first: windowSize,
+    skip: 0,
+  });
   const proposals = proposalsData.proposals || [];
-  
+
   if (proposals.length === 0) {
     return [];
   }
@@ -777,7 +819,7 @@ export async function fetchActiveMembers(
     for (const vote of votes) {
       const voter = vote.voter.toLowerCase();
       const proposalId = vote.proposal.id;
-      
+
       if (!voterProposalMap.has(voter)) {
         voterProposalMap.set(voter, new Set());
       }
