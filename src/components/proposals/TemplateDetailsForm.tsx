@@ -106,6 +106,7 @@ export const TemplateDetailsForm = forwardRef<TemplateDetailsFormHandle, Templat
                       id={field.id}
                       rows={field.rows ?? 4}
                       className="resize-y"
+                      placeholder={field.placeholder}
                       {...templateForm.register(field.id)}
                     />
                   ) : (
