@@ -43,7 +43,9 @@ export default function NogglesRailsPage() {
       <NogglesRailsMapTabs />
       <NogglesRailsManifesto />
       <NogglesRailsGrid />
-      <NogglesRailsClosingBox />
+      <div className="pt-2">
+        <NogglesRailsClosingBox />
+      </div>
     </div>
   );
 }
