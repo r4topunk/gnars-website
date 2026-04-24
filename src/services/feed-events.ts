@@ -15,10 +15,13 @@ import type { FeedEvent } from "@/lib/types/feed-events";
 const CACHE_TTL = 15;
 const CACHE_TAG = "feed-events";
 
-// Cap at 100 per Builder subgraph convention; we over-fetch to cover
-// post-filter event drops (Updated/Clanker/Zora currently unmapped) and
-// derived status events.
-const DEFAULT_FETCH_LIMIT = 100;
+// Over-fetch so the client-side filter pass (zero-amount
+// AuctionSettled drops, skipped ClankerTokenCreated events) does not
+// starve other event types. Gnars has ~1 auction/day = ~60 auction
+// events per 30d (Created + Settled) before the no-bid filter; 250
+// leaves room for proposal votes, executions, propdates and drops
+// within the same window.
+const DEFAULT_FETCH_LIMIT = 250;
 
 const FEED_EVENTS_QUERY = `
   query GnarsFeedEvents($first: Int!, $where: FeedEvent_filter) {
@@ -82,6 +85,10 @@ const FEED_EVENTS_QUERY = `
           id
           startTime
           endTime
+          settled
+          winningBid {
+            amount
+          }
           token {
             tokenId
             image
@@ -114,6 +121,35 @@ const FEED_EVENTS_QUERY = `
           }
         }
         amount
+      }
+
+      ... on ProposalUpdatedEvent {
+        proposal {
+          proposalId
+          proposalNumber
+          title
+          proposer
+        }
+        update {
+          messageType
+          message
+          originalMessageId
+        }
+      }
+
+      ... on ZoraDropCreatedEvent {
+        zoraDrop {
+          id
+          creator
+          name
+          symbol
+          description
+          imageURI
+          editionSize
+          publicSalePrice
+          publicSaleStart
+          publicSaleEnd
+        }
       }
     }
   }
@@ -189,6 +225,8 @@ interface SubgraphAuctionCreated extends BaseSubgraphEvent {
     id: string;
     startTime: string;
     endTime: string;
+    settled: boolean;
+    winningBid?: { amount: string } | null;
     token: { tokenId: string; image?: string | null };
   };
 }
@@ -212,6 +250,33 @@ interface SubgraphAuctionSettled extends BaseSubgraphEvent {
   amount: string;
 }
 
+interface SubgraphProposalUpdated extends BaseSubgraphEvent {
+  __typename: "ProposalUpdatedEvent";
+  proposal: SubgraphProposalRef;
+  update: {
+    // Subgraph exposes this as a number (0 = original/update, 1 = reply).
+    messageType: number;
+    message: string;
+    originalMessageId: string | null;
+  };
+}
+
+interface SubgraphZoraDropCreated extends BaseSubgraphEvent {
+  __typename: "ZoraDropCreatedEvent";
+  zoraDrop: {
+    id: string;
+    creator: string;
+    name: string;
+    symbol: string;
+    description: string;
+    imageURI: string | null;
+    editionSize: string;
+    publicSalePrice: string;
+    publicSaleStart: string;
+    publicSaleEnd: string;
+  };
+}
+
 type SubgraphFeedEvent =
   | SubgraphProposalCreated
   | SubgraphProposalVoted
@@ -219,6 +284,8 @@ type SubgraphFeedEvent =
   | SubgraphAuctionCreated
   | SubgraphAuctionBidPlaced
   | SubgraphAuctionSettled
+  | SubgraphProposalUpdated
+  | SubgraphZoraDropCreated
   | (BaseSubgraphEvent & { __typename: string });
 
 function toHttpUrl(uri?: string | null): string | undefined {
@@ -363,6 +430,13 @@ function transformEvent(event: SubgraphFeedEvent): FeedEvent[] {
 
     case "AuctionCreatedEvent": {
       const e = event as SubgraphAuctionCreated;
+      // Dedupe: when an auction has already completed (settled), skip
+      // the "New Auction" card so the same auction isn't represented by
+      // both a Created and a Settled card. Settled + no-bid auctions
+      // emit no Settled card either (filtered below), so those settle
+      // silently — consistent with old behavior where non-events stayed
+      // out of the feed. Live/unsettled auctions still surface.
+      if (e.auction.settled) return [];
       return [
         {
           id: `auction-${e.auction.id}`,
@@ -428,25 +502,78 @@ function transformEvent(event: SubgraphFeedEvent): FeedEvent[] {
       ];
     }
 
-    // Unmapped Builder event types (ProposalUpdated, ClankerTokenCreated,
-    // ZoraCoinCreated, ZoraDropCreated). Skip until local FeedEvent union
-    // grows support.
+    case "ProposalUpdatedEvent": {
+      const e = event as SubgraphProposalUpdated;
+      return [
+        {
+          id: `proposal-updated-${e.id}`,
+          type: "ProposalUpdated",
+          category: "governance",
+          priority: "HIGH",
+          timestamp: ts,
+          blockNumber: block,
+          transactionHash: e.transactionHash,
+          proposalId: e.proposal.proposalId,
+          proposalNumber: e.proposal.proposalNumber,
+          proposalTitle: e.proposal.title || `Proposal #${e.proposal.proposalNumber}`,
+          proposer: e.actor,
+          messageType: Number(e.update.messageType),
+          message: e.update.message,
+          originalMessageId: e.update.originalMessageId,
+        },
+      ];
+    }
+
+    case "ZoraDropCreatedEvent": {
+      const e = event as SubgraphZoraDropCreated;
+      return [
+        {
+          id: `zora-drop-${e.id}`,
+          type: "ZoraDropCreated",
+          category: "token",
+          priority: "HIGH",
+          timestamp: ts,
+          blockNumber: block,
+          transactionHash: e.transactionHash,
+          dropAddress: e.zoraDrop.id,
+          dropCreator: e.zoraDrop.creator,
+          dropName: e.zoraDrop.name,
+          dropSymbol: e.zoraDrop.symbol,
+          dropDescription: e.zoraDrop.description,
+          dropImageURI: toHttpUrl(e.zoraDrop.imageURI),
+          editionSize: e.zoraDrop.editionSize,
+          publicSalePrice: e.zoraDrop.publicSalePrice,
+          publicSaleStart: Number(e.zoraDrop.publicSaleStart),
+          publicSaleEnd: Number(e.zoraDrop.publicSaleEnd),
+        },
+      ];
+    }
+
+    // Unmapped Builder event types (ClankerTokenCreated, ZoraCoinCreated).
+    // Gnars does not currently surface coin launches in the feed.
     default:
       return [];
   }
 }
 
-async function fetchFeedEventsUncached(hoursBack: number = 24): Promise<FeedEvent[]> {
-  const now = Math.floor(Date.now() / 1000);
-  const since = now - hoursBack * 3600;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function fetchFeedEventsUncached(_hoursBack: number = 24): Promise<FeedEvent[]> {
   const daoAddress = DAO_ADDRESSES.token.toLowerCase();
 
   try {
+    // No `timestamp_gt` filter — Gnars has extended quiet stretches
+    // (weeks with auctions only, no votes/proposals). Filtering by a
+    // 30-day wall-clock window silently starves the feed of governance
+    // activity that occurred just outside the window. Rely on the
+    // subgraph's descending sort + first:N cap to bound the query
+    // instead, then let the UI time-range filter (LiveFeedView) narrow
+    // the visible set. Users default to "30d" but can switch to "all"
+    // to see older votes/proposals. `_hoursBack` is kept in the
+    // signature for backwards compatibility with existing callers.
     const data = await subgraphQuery<{ feedEvents: SubgraphFeedEvent[] }>(FEED_EVENTS_QUERY, {
       first: DEFAULT_FETCH_LIMIT,
       where: {
         dao: daoAddress,
-        timestamp_gt: since.toString(),
       },
     });
 

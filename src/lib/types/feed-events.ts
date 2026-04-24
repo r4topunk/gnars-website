@@ -1,6 +1,6 @@
 /**
  * Live Feed Event Types
- * 
+ *
  * Comprehensive type definitions for all DAO events that appear in the live feed.
  * Events are categorized by contract source (Governor, Auction, Token, Treasury).
  */
@@ -9,13 +9,13 @@
 export type EventPriority = "HIGH" | "MEDIUM" | "LOW";
 
 // Event categories for filtering
-export type EventCategory = 
-  | "governance" 
-  | "auction" 
-  | "token" 
-  | "delegation" 
-  | "treasury" 
-  | "admin" 
+export type EventCategory =
+  | "governance"
+  | "auction"
+  | "token"
+  | "delegation"
+  | "treasury"
+  | "admin"
   | "settings";
 
 // Base event interface - all events extend this
@@ -87,6 +87,40 @@ export interface ProposalVetoedEvent extends BaseEvent {
   proposalId: string;
   proposalNumber: number;
   proposalTitle: string;
+}
+
+// Builder propdates — onchain post authored by a proposal's proposer or
+// executor. `messageType` mirrors the subgraph enum (0 = original/update,
+// 1 = reply). We surface these because Gnars uses them as the DAO's
+// primary update channel.
+export interface ProposalUpdatedEvent extends BaseEvent {
+  type: "ProposalUpdated";
+  category: "governance";
+  proposalId: string;
+  proposalNumber: number;
+  proposalTitle: string;
+  proposer: string;
+  messageType: number;
+  message: string;
+  originalMessageId?: string | null;
+}
+
+// Droposals — Zora ERC-721 edition deployed from a DAO proposal. Only a
+// handful historically on Gnars but the /droposals page treats them as
+// first-class so the feed should too.
+export interface ZoraDropCreatedEvent extends BaseEvent {
+  type: "ZoraDropCreated";
+  category: "token";
+  dropAddress: string;
+  dropCreator: string;
+  dropName: string;
+  dropSymbol: string;
+  dropDescription: string;
+  dropImageURI?: string;
+  editionSize: string;
+  publicSalePrice: string;
+  publicSaleStart: number;
+  publicSaleEnd: number;
 }
 
 // Auction Events
@@ -212,6 +246,7 @@ export type FeedEvent =
   | ProposalExecutedEvent
   | ProposalCanceledEvent
   | ProposalVetoedEvent
+  | ProposalUpdatedEvent
   | AuctionCreatedEvent
   | AuctionBidEvent
   | AuctionSettledEvent
@@ -223,7 +258,8 @@ export type FeedEvent =
   | OwnershipTransferredEvent
   | VotingOpenedEvent
   | VotingClosingSoonEvent
-  | AuctionEndingSoonEvent;
+  | AuctionEndingSoonEvent
+  | ZoraDropCreatedEvent;
 
 // Feed filter options
 export interface FeedFilters {
@@ -232,4 +268,3 @@ export interface FeedFilters {
   timeRange: "1h" | "24h" | "7d" | "30d" | "all";
   showOnlyWithComments: boolean;
 }
-
