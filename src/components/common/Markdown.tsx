@@ -9,6 +9,7 @@ import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeSlug from "rehype-slug";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
+import { classifyMediaUrl } from "@/lib/markdown-media";
 import { cn } from "@/lib/utils";
 
 interface MarkdownProps {
@@ -65,15 +66,48 @@ export function Markdown({ children, className }: MarkdownProps) {
           ],
         ]}
         components={((): Components => ({
-          a({ className, ...props }) {
+          a({ className, href, children, node: _node, ...props }) {
+            void _node;
+            const url = typeof href === "string" ? href : undefined;
+            const kind = classifyMediaUrl(url);
+            if (url && kind === "image") {
+              return (
+                <a href={url} target="_blank" rel="noopener noreferrer">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt={typeof children === "string" ? children : ""}
+                    loading="lazy"
+                    className="rounded-md border mx-auto my-2 max-h-[460px] w-auto max-w-full"
+                  />
+                </a>
+              );
+            }
+            if (url && kind === "video") {
+              return (
+                <video
+                  src={url}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="rounded-md border mx-auto my-2 max-h-[460px] w-full"
+                />
+              );
+            }
+            if (url && kind === "audio") {
+              return <audio src={url} controls preload="metadata" className="my-2 w-full" />;
+            }
             return (
               <a
+                href={url}
                 className={cn(
                   "text-amber-400 underline decoration-amber-400/50 hover:decoration-amber-400",
                   className,
                 )}
                 {...props}
-              />
+              >
+                {children}
+              </a>
             );
           },
           img({ src, alt, ...props }) {
