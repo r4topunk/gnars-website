@@ -98,9 +98,11 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
 
   const handleClose = (val: boolean) => {
     if (!val) {
-      setName("");
-      setDescription("");
-      setReward("");
+      if (active.isSuccess) {
+        setName("");
+        setDescription("");
+        setReward("");
+      }
       openBounty.reset();
       soloBounty.reset();
     }
@@ -148,6 +150,9 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
               <p className="font-semibold">Bounty created on {chainName}!</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Your bounty is live. Share it with the community to get submissions.
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                It may take a moment for the bounty to appear in the list.
               </p>
             </div>
             {hash && (
