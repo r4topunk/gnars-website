@@ -557,14 +557,21 @@ export async function fetchDelegatorsWithCounts(address: string): Promise<Delega
   return results;
 }
 
-type VotesCountBatchQuery = {
+type VoterActivityBatchQuery = {
   proposalVotes: Array<{
     voter: string;
+    support: "FOR" | "AGAINST" | "ABSTAIN";
+    proposal: { canceled: boolean };
   }>;
 };
 
-const VOTES_COUNT_BATCH_GQL = /* GraphQL */ `
-  query VotesCountBatch($dao: ID!, $voters: [Bytes!]!, $first: Int!, $skip: Int!) {
+// Merged payload for per-voter aggregation. Selecting `proposal.canceled`
+// alongside `voter` + `support` lets us derive both the raw vote count
+// (includes canceled proposals) and the canceled-excluded support tallies
+// in a single traversal. Prior code issued two near-identical paginated
+// sweeps differing only in the `proposal_: { canceled: false }` filter.
+const VOTER_ACTIVITY_BATCH_GQL = /* GraphQL */ `
+  query VoterActivityBatch($dao: ID!, $voters: [Bytes!]!, $first: Int!, $skip: Int!) {
     proposalVotes(
       where: { proposal_: { dao: $dao }, voter_in: $voters }
       orderBy: timestamp
@@ -573,6 +580,10 @@ const VOTES_COUNT_BATCH_GQL = /* GraphQL */ `
       skip: $skip
     ) {
       voter
+      support
+      proposal {
+        canceled
+      }
     }
   }
 `;
@@ -585,15 +596,26 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
   return chunks;
 }
 
+export type VoterActivity = {
+  /** Total votes cast per voter — includes votes on canceled proposals. */
+  counts: Record<string, number>;
+  /**
+   * Per-voter FOR / total counts restricted to non-canceled proposals.
+   * Matches the prior `fetchVoteSupportForVoters` contract so `likePct`
+   * continues to exclude canceled proposals.
+   */
+  support: Record<string, { total: number; forCount: number }>;
+};
+
 /**
- * Fetch number of proposals voted per voter address (batch, chunked).
+ * Per-voter vote counts + FOR/AGAINST breakdown in one paginated sweep.
+ * Chunks `addresses` into groups of 100 for `voter_in` compatibility.
  */
-export async function fetchVotesCountForVoters(
-  addresses: string[],
-): Promise<Record<string, number>> {
-  if (addresses.length === 0) return {};
+export async function fetchVoterActivity(addresses: string[]): Promise<VoterActivity> {
+  if (addresses.length === 0) return { counts: {}, support: {} };
   const dao = DAO_ADDRESSES.token.toLowerCase();
   const counts: Record<string, number> = {};
+  const support: Record<string, { total: number; forCount: number }> = {};
   const uniqueAddresses = Array.from(new Set(addresses.map((a) => a.toLowerCase())));
   const chunks = chunkArray(uniqueAddresses, 100);
 
@@ -601,7 +623,7 @@ export async function fetchVotesCountForVoters(
     const voters = chunks[i];
     let skip = 0;
     while (true) {
-      const data = await subgraphQuery<VotesCountBatchQuery>(VOTES_COUNT_BATCH_GQL, {
+      const data = await subgraphQuery<VoterActivityBatchQuery>(VOTER_ACTIVITY_BATCH_GQL, {
         dao,
         voters,
         first: 1000,
@@ -611,6 +633,11 @@ export async function fetchVotesCountForVoters(
       for (const v of votes) {
         const key = v.voter.toLowerCase();
         counts[key] = (counts[key] || 0) + 1;
+        if (!v.proposal.canceled) {
+          const entry = (support[key] ||= { total: 0, forCount: 0 });
+          entry.total += 1;
+          if (v.support === "FOR") entry.forCount += 1;
+        }
       }
       if (votes.length < 1000) break;
       skip += 1000;
@@ -619,68 +646,7 @@ export async function fetchVotesCountForVoters(
     if (i < chunks.length - 1) await delay(100);
   }
 
-  return counts;
-}
-
-type VotesSupportBatchQuery = {
-  proposalVotes: Array<{
-    voter: string;
-    support: "FOR" | "AGAINST" | "ABSTAIN";
-  }>;
-};
-
-const VOTES_SUPPORT_BATCH_GQL = /* GraphQL */ `
-  query VotesSupportBatch($dao: ID!, $voters: [Bytes!]!, $first: Int!, $skip: Int!) {
-    proposalVotes(
-      where: { proposal_: { dao: $dao, canceled: false }, voter_in: $voters }
-      orderBy: timestamp
-      orderDirection: desc
-      first: $first
-      skip: $skip
-    ) {
-      voter
-      support
-    }
-  }
-`;
-
-/**
- * Fetch per-voter support counts (FOR vs total) excluding canceled proposals.
- */
-export async function fetchVoteSupportForVoters(
-  addresses: string[],
-): Promise<Record<string, { total: number; forCount: number }>> {
-  if (addresses.length === 0) return {};
-  const dao = DAO_ADDRESSES.token.toLowerCase();
-  const supportMap: Record<string, { total: number; forCount: number }> = {};
-  const uniqueAddresses = Array.from(new Set(addresses.map((a) => a.toLowerCase())));
-  const chunks = chunkArray(uniqueAddresses, 100);
-
-  for (let i = 0; i < chunks.length; i++) {
-    const voters = chunks[i];
-    let skip = 0;
-    while (true) {
-      const data = await subgraphQuery<VotesSupportBatchQuery>(VOTES_SUPPORT_BATCH_GQL, {
-        dao,
-        voters,
-        first: 1000,
-        skip,
-      });
-      const votes = data.proposalVotes || [];
-      for (const v of votes) {
-        const key = v.voter.toLowerCase();
-        const entry = (supportMap[key] ||= { total: 0, forCount: 0 });
-        entry.total += 1;
-        if (v.support === "FOR") entry.forCount += 1;
-      }
-      if (votes.length < 1000) break;
-      skip += 1000;
-    }
-    // Small delay between chunks to avoid rate limits
-    if (i < chunks.length - 1) await delay(100);
-  }
-
-  return supportMap;
+  return { counts, support };
 }
 
 type NonCanceledProposalsQuery = {
