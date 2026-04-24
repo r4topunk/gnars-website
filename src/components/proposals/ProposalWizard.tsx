@@ -1,23 +1,23 @@
 "use client";
-/* eslint-disable react-hooks/incompatible-library -- react-hook-form watch()/useFormContext pattern is known-incompatible with React Compiler */
 
+/* eslint-disable react-hooks/incompatible-library -- react-hook-form watch()/useFormContext pattern is known-incompatible with React Compiler */
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
-import { useUserAddress } from "@/hooks/use-user-address";
 import { TransactionBuilder } from "@/components/proposals/builder/TransactionBuilder";
 import {
   ProposalDetailsForm,
   type ProposalDetailsFormHandle,
 } from "@/components/proposals/ProposalDetailsForm";
+import { ProposalEligibilityProvider } from "@/components/proposals/ProposalEligibilityContext";
 import { ProposalGatingBanner } from "@/components/proposals/ProposalGatingBanner";
 import { ProposalPreview } from "@/components/proposals/ProposalPreview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProposalEligibilityProvider } from "@/components/proposals/ProposalEligibilityContext";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { useProposalEligibility } from "@/hooks/useProposalEligibility";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { getProposalTemplate } from "@/lib/proposal-templates";
@@ -70,9 +70,7 @@ export function ProposalWizard() {
 
   const handleNextToTransactions = async () => {
     const handle = detailsFormRef.current;
-    const isValid = handle
-      ? await handle.validate()
-      : await trigger(["title", "description"]);
+    const isValid = handle ? await handle.validate() : await trigger(["title", "description"]);
     if (isValid) {
       setCurrentTab("transactions");
     }

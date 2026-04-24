@@ -90,7 +90,13 @@ describe("TEMPLATE_SCHEMAS", () => {
   });
 
   it("funding templates have a budget field (droposal uses revenue split instead)", () => {
-    const withBudget = ["athlete-sponsorship", "event-activation", "physical-installation", "content-media", "development"] as const;
+    const withBudget = [
+      "athlete-sponsorship",
+      "event-activation",
+      "physical-installation",
+      "content-media",
+      "development",
+    ] as const;
     for (const slug of withBudget) {
       const schema = TEMPLATE_SCHEMAS[slug];
       expect(schema.fields.some((f) => f.type === "budget")).toBe(true);

@@ -7,10 +7,10 @@ const addressSchema = z.string().refine((val) => isAddress(val), {
 });
 
 // Optional address that can be empty
-const optionalAddressSchema = z.string().optional().refine(
-  (val) => !val || isAddress(val),
-  { message: "Invalid Ethereum address" }
-);
+const optionalAddressSchema = z
+  .string()
+  .optional()
+  .refine((val) => !val || isAddress(val), { message: "Invalid Ethereum address" });
 
 // Reusable numeric string validation
 const numericString = <T extends z.ZodType<string | undefined>>(schema: T) => {
@@ -140,10 +140,14 @@ const droposalTransactionSchema = baseTransactionSchema.extend({
   coverType: z.string().optional(),
   // Revenue split configuration (optional)
   useSplit: z.boolean().optional(),
-  splitRecipients: z.array(z.object({
-    address: z.string(),
-    percentAllocation: z.number(),
-  })).optional(),
+  splitRecipients: z
+    .array(
+      z.object({
+        address: z.string(),
+        percentAllocation: z.number(),
+      }),
+    )
+    .optional(),
   splitDistributorFee: z.number().optional(),
   createdSplitAddress: z.string().optional(), // Stores the split address after creation
 });
@@ -161,9 +165,7 @@ const buyCoinTransactionSchema = baseTransactionSchema.extend({
   type: z.literal("buy-coin"),
   coinAddress: addressSchema,
   ethAmount: positiveNumericString(z.string().min(1, "ETH amount is required")),
-  slippage: nonNegativeNumericString(
-    z.string().min(1, "Slippage is required"),
-  ).refine(
+  slippage: nonNegativeNumericString(z.string().min(1, "Slippage is required")).refine(
     (val) => {
       if (!val) return true;
       return parseFloat(val) <= 100;

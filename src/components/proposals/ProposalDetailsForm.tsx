@@ -10,11 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getTemplateSchema } from "@/lib/proposal-template-schemas";
 import { ProposalDetailsHeader } from "./ProposalDetailsHeader";
-import {
-  TemplateDetailsForm,
-  type TemplateDetailsFormHandle,
-} from "./TemplateDetailsForm";
 import type { ProposalFormValues } from "./schema";
+import { TemplateDetailsForm, type TemplateDetailsFormHandle } from "./TemplateDetailsForm";
 
 export interface ProposalDetailsFormHandle {
   /** Validate the current details step. Branches on whether a template is active. */
@@ -25,42 +22,41 @@ export interface ProposalDetailsFormProps {
   templateSlug?: string | null;
 }
 
-export const ProposalDetailsForm = forwardRef<
-  ProposalDetailsFormHandle,
-  ProposalDetailsFormProps
->(function ProposalDetailsForm({ templateSlug }, ref) {
-  const { trigger } = useFormContext<ProposalFormValues>();
-  const templateHandleRef = useRef<TemplateDetailsFormHandle | null>(null);
-  const hasTemplate = Boolean(templateSlug && getTemplateSchema(templateSlug));
+export const ProposalDetailsForm = forwardRef<ProposalDetailsFormHandle, ProposalDetailsFormProps>(
+  function ProposalDetailsForm({ templateSlug }, ref) {
+    const { trigger } = useFormContext<ProposalFormValues>();
+    const templateHandleRef = useRef<TemplateDetailsFormHandle | null>(null);
+    const hasTemplate = Boolean(templateSlug && getTemplateSchema(templateSlug));
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      validate: async () => {
-        if (hasTemplate) {
-          const templateOk = await templateHandleRef.current?.validate();
-          if (!templateOk) return false;
-          return trigger(["title"]);
-        }
-        return trigger(["title", "description"]);
-      },
-    }),
-    [hasTemplate, trigger],
-  );
-
-  if (hasTemplate && templateSlug) {
-    return (
-      <TemplateDetailsForm
-        ref={(handle) => {
-          templateHandleRef.current = handle;
-        }}
-        slug={templateSlug}
-      />
+    useImperativeHandle(
+      ref,
+      () => ({
+        validate: async () => {
+          if (hasTemplate) {
+            const templateOk = await templateHandleRef.current?.validate();
+            if (!templateOk) return false;
+            return trigger(["title"]);
+          }
+          return trigger(["title", "description"]);
+        },
+      }),
+      [hasTemplate, trigger],
     );
-  }
 
-  return <MarkdownDetailsForm />;
-});
+    if (hasTemplate && templateSlug) {
+      return (
+        <TemplateDetailsForm
+          ref={(handle) => {
+            templateHandleRef.current = handle;
+          }}
+          slug={templateSlug}
+        />
+      );
+    }
+
+    return <MarkdownDetailsForm />;
+  },
+);
 
 function MarkdownDetailsForm() {
   const {

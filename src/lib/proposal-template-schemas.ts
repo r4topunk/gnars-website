@@ -126,8 +126,7 @@ export const TEMPLATE_SCHEMAS: Record<string, TemplateSchema> = {
         label: "Budget Breakdown",
         type: "budget",
         required: true,
-        helper:
-          "Venue, travel, equipment, content production, merch, marketing, contingency.",
+        helper: "Venue, travel, equipment, content production, merch, marketing, contingency.",
       },
       {
         id: "marketing",
@@ -401,9 +400,7 @@ function formatAmount(n: number): string {
 }
 
 function compileBudget(label: string, rows: BudgetRow[]): string {
-  const valid = rows.filter(
-    (r) => isBudgetRow(r) && r.label.trim().length > 0 && r.amount > 0,
-  );
+  const valid = rows.filter((r) => isBudgetRow(r) && r.label.trim().length > 0 && r.amount > 0);
   if (valid.length === 0) return "";
 
   const bullets = valid
@@ -449,9 +446,9 @@ const budgetRowSchema = z.object({
   currency: z.enum(["ETH", "USDC"]),
 });
 
-export function buildTemplateValidator(slug: string): ZodType {
+export function buildTemplateValidator(slug: string): ZodType<TemplateValues> {
   const schema = TEMPLATE_SCHEMAS[slug];
-  if (!schema) return z.record(z.string(), z.unknown());
+  if (!schema) return z.record(z.string(), z.unknown()) as unknown as ZodType<TemplateValues>;
 
   const shape: Record<string, ZodType> = {};
   for (const field of schema.fields) {
@@ -466,5 +463,5 @@ export function buildTemplateValidator(slug: string): ZodType {
         : arr.optional();
     }
   }
-  return z.object(shape).passthrough();
+  return z.object(shape).passthrough() as unknown as ZodType<TemplateValues>;
 }
