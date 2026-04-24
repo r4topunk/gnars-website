@@ -80,7 +80,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ members: filtered });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[api/members] failed:", error);
+    return NextResponse.json({ error: "Failed to fetch members" }, { status: 500 });
   }
 }

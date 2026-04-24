@@ -11,8 +11,7 @@ import { Settings, Crown, Send } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { cn } from "@/lib/utils";
-import { formatETH } from "@/lib/utils";
+import { cn, formatETH } from "@/lib/utils";
 import type { FeedEvent } from "@/lib/types/feed-events";
 
 export interface AdminEventCardProps {

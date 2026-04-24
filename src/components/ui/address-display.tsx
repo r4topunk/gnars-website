@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { useRouter } from "next/navigation";
 import { Copy, ExternalLink, User } from "lucide-react";
 import { toast } from "sonner";

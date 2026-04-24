@@ -3,6 +3,9 @@
 # worktrees
 .worktrees/
 
+# truecourse analyzer output
+.truecourse/
+
 # dependencies
 /node_modules
 /.pnp

@@ -2,10 +2,9 @@
 
 import { ArrowRight, AlertCircle } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { getETHDisplayProps } from "@/lib/utils";
+import { cn, getETHDisplayProps } from "@/lib/utils";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { type TransactionFormValues } from "../schema";
-import { cn } from "@/lib/utils";
 
 interface SendEthTransactionDetailsProps {
   transaction: TransactionFormValues;

@@ -174,35 +174,3 @@ export async function getEnrichedPropdatesFeed(): Promise<ProposalWithPropdates[
   }
 }
 
-/**
- * Returns every propdate paired with its proposal summary (or null if not
- * found). Replies are included here — callers decide whether to show them.
- *
- * This is the flat list variant of getEnrichedPropdatesFeed; use it when
- * you need per-propdate rendering rather than the grouped feed.
- */
-export async function getEnrichedPropdatesList(): Promise<EnrichedPropdate[]> {
-  const [allPropdates, baseProposals] = await Promise.all([
-    listDaoPropdates(),
-    listBaseProposals(1000),
-  ]);
-
-  const proposalMap = new Map<string, ProposalSummary>();
-  for (const p of baseProposals) {
-    proposalMap.set(p.proposalId.toLowerCase(), {
-      proposalId: p.proposalId,
-      proposalNumber: p.proposalNumber,
-      title: p.title,
-      status: p.status,
-      proposer: p.proposer,
-    });
-  }
-
-  // Sort newest first across all propdates
-  const sorted = [...allPropdates].sort((a, b) => b.timeCreated - a.timeCreated);
-
-  return sorted.map((pd) => ({
-    propdate: pd,
-    proposal: proposalMap.get(pd.proposalId.toLowerCase()) ?? null,
-  }));
-}
