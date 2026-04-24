@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Card, CardContent } from "@/components/ui/card";
+import { extractFirstMedia, stripMarkdown } from "@/lib/markdown-media";
 import type { FeedEvent } from "@/lib/types/feed-events";
 import { cn } from "@/lib/utils";
 
@@ -215,6 +216,8 @@ function ProposalUpdatedContent({
   // Builder propdate enum: 0 = original/update, 1 = reply. Anything else
   // falls back to "update" wording so future enum additions don't crash.
   const isReply = event.messageType === 1;
+  const media = extractFirstMedia(event.message);
+  const snippet = stripMarkdown(event.message ?? "", 160);
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -233,10 +236,30 @@ function ProposalUpdatedContent({
           Proposal #{event.proposalNumber}
         </Link>
       </div>
-      {event.message && (
-        <p className="text-xs italic text-muted-foreground border-l-2 border-muted pl-2 line-clamp-3">
-          {event.message}
-        </p>
+      {(media || snippet) && (
+        <div className="flex gap-2 border-l-2 border-muted pl-2">
+          {media?.kind === "image" && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={media.url}
+              alt=""
+              loading="lazy"
+              className="h-16 w-16 flex-shrink-0 rounded-md border object-cover"
+            />
+          )}
+          {media?.kind === "video" && (
+            <video
+              src={media.url}
+              muted
+              playsInline
+              preload="metadata"
+              className="h-16 w-16 flex-shrink-0 rounded-md border object-cover"
+            />
+          )}
+          {snippet && (
+            <p className="text-xs italic text-muted-foreground line-clamp-3">{snippet}</p>
+          )}
+        </div>
       )}
     </div>
   );
@@ -357,7 +380,7 @@ function getEventDisplay(event: Extract<FeedEvent, { category: "governance" }>) 
 
 function getEventLink(event: Extract<FeedEvent, { category: "governance" }>): string {
   if (event.type === "ProposalUpdated") {
-    return `/propdates#proposal-${event.proposalNumber}`;
+    return `/propdates/${event.transactionHash}`;
   }
   if ("proposalNumber" in event) {
     return `/proposals/${event.proposalNumber}`;
