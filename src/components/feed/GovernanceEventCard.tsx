@@ -1,6 +1,6 @@
 /**
  * GovernanceEventCard - Governance event display
- * 
+ *
  * Handles proposal and voting related events with appropriate icons,
  * colors, and actions based on event type.
  */
@@ -9,21 +9,22 @@
 
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { 
-  Target, 
-  ThumbsUp, 
-  ThumbsDown, 
-  MinusCircle,
-  Clock,
+import {
+  AlertCircle,
   CheckCircle,
-  XCircle,
+  Clock,
+  MessageSquare,
+  MinusCircle,
   ShieldX,
-  AlertCircle 
+  Target,
+  ThumbsDown,
+  ThumbsUp,
+  XCircle,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 import type { FeedEvent } from "@/lib/types/feed-events";
+import { cn } from "@/lib/utils";
 
 export interface GovernanceEventCardProps {
   event: Extract<FeedEvent, { category: "governance" }>;
@@ -33,15 +34,12 @@ export interface GovernanceEventCardProps {
 
 export function GovernanceEventCard({ event, compact, sequenceNumber }: GovernanceEventCardProps) {
   // Removed: timeAgo is redundant since we have day headers
-  
+
   // Event icon and color based on type
   const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
 
   return (
-    <Card className={cn(
-      "transition-shadow hover:shadow-md relative",
-      compact ? "py-3" : "py-4"
-    )}>
+    <Card className={cn("transition-shadow hover:shadow-md relative", compact ? "py-3" : "py-4")}>
       <CardContent className={cn(compact ? "px-4 py-2" : "px-4")}>
         {/* Sequence number badge */}
         {sequenceNumber !== undefined && (
@@ -49,13 +47,10 @@ export function GovernanceEventCard({ event, compact, sequenceNumber }: Governan
             {sequenceNumber}
           </div>
         )}
-        
+
         <div className="flex items-start gap-3">
           {/* Event icon */}
-          <div className={cn(
-            "flex-shrink-0 rounded-full p-2",
-            bgColor
-          )}>
+          <div className={cn("flex-shrink-0 rounded-full p-2", bgColor)}>
             <Icon className={cn("h-4 w-4", iconColor)} />
           </div>
 
@@ -67,7 +62,7 @@ export function GovernanceEventCard({ event, compact, sequenceNumber }: Governan
                 {event.type === "VoteCast" ? (
                   <p className="text-sm font-medium">
                     Vote on{" "}
-                    <Link 
+                    <Link
                       href={`/proposals/${event.proposalNumber}`}
                       className="underline hover:opacity-80"
                     >
@@ -81,26 +76,21 @@ export function GovernanceEventCard({ event, compact, sequenceNumber }: Governan
             </div>
 
             {/* Event-specific content */}
-            {event.type === "ProposalCreated" && (
-              <ProposalCreatedContent event={event} />
-            )}
-            {event.type === "VoteCast" && (
-              <VoteCastContent event={event} compact={compact} />
-            )}
-            {(event.type === "ProposalQueued" || 
-              event.type === "ProposalExecuted" || 
+            {event.type === "ProposalCreated" && <ProposalCreatedContent event={event} />}
+            {event.type === "VoteCast" && <VoteCastContent event={event} compact={compact} />}
+            {(event.type === "ProposalQueued" ||
+              event.type === "ProposalExecuted" ||
               event.type === "ProposalCanceled" ||
-              event.type === "ProposalVetoed") && (
-              <ProposalStatusContent event={event} />
-            )}
+              event.type === "ProposalVetoed") && <ProposalStatusContent event={event} />}
             {(event.type === "VotingOpened" || event.type === "VotingClosingSoon") && (
               <VotingAlertContent event={event} />
             )}
+            {event.type === "ProposalUpdated" && <ProposalUpdatedContent event={event} />}
 
             {/* Action button */}
             {actionText && (
               <div className="pt-1">
-                <Link 
+                <Link
                   href={getEventLink(event)}
                   className="text-xs text-primary hover:underline font-medium"
                 >
@@ -117,13 +107,17 @@ export function GovernanceEventCard({ event, compact, sequenceNumber }: Governan
 
 // Subcomponents for different event types
 
-function ProposalCreatedContent({ event }: { event: Extract<FeedEvent, { type: "ProposalCreated" }> }) {
+function ProposalCreatedContent({
+  event,
+}: {
+  event: Extract<FeedEvent, { type: "ProposalCreated" }>;
+}) {
   return (
     <div className="space-y-1.5">
       <p className="text-sm font-semibold line-clamp-2">{event.title}</p>
       <div className="flex items-center gap-1 text-xs text-muted-foreground">
         <span>by</span>
-        <AddressDisplay 
+        <AddressDisplay
           address={event.proposer}
           variant="compact"
           showAvatar={true}
@@ -140,8 +134,11 @@ function ProposalCreatedContent({ event }: { event: Extract<FeedEvent, { type: "
   );
 }
 
-function VoteCastContent({ event, compact }: { 
-  event: Extract<FeedEvent, { type: "VoteCast" }>; 
+function VoteCastContent({
+  event,
+  compact,
+}: {
+  event: Extract<FeedEvent, { type: "VoteCast" }>;
   compact?: boolean;
 }) {
   const supportConfig = {
@@ -149,14 +146,14 @@ function VoteCastContent({ event, compact }: {
     AGAINST: { icon: ThumbsDown, color: "text-red-600", bg: "bg-red-50 dark:bg-red-950" },
     ABSTAIN: { icon: MinusCircle, color: "text-gray-600", bg: "bg-gray-50 dark:bg-gray-950" },
   };
-  
+
   const config = supportConfig[event.support];
   const SupportIcon = config.icon;
-  
+
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2 flex-wrap">
-        <AddressDisplay 
+        <AddressDisplay
           address={event.voter}
           variant="compact"
           showAvatar={true}
@@ -166,13 +163,17 @@ function VoteCastContent({ event, compact }: {
           showExplorer={false}
         />
         <span className="text-xs text-muted-foreground">voted</span>
-        <span className={cn("flex items-center gap-1 text-xs font-medium", config.bg, "px-2 py-0.5 rounded-md")}>
+        <span
+          className={cn(
+            "flex items-center gap-1 text-xs font-medium",
+            config.bg,
+            "px-2 py-0.5 rounded-md",
+          )}
+        >
           <SupportIcon className={cn("h-3 w-3", config.color)} />
           {event.support}
         </span>
-        <span className="text-xs text-muted-foreground">
-          with {event.weight} votes
-        </span>
+        <span className="text-xs text-muted-foreground">with {event.weight} votes</span>
       </div>
       <p className="text-xs font-medium line-clamp-1">{event.proposalTitle}</p>
       {event.reason && !compact && (
@@ -184,8 +185,13 @@ function VoteCastContent({ event, compact }: {
   );
 }
 
-function ProposalStatusContent({ event }: { 
-  event: Extract<FeedEvent, { type: "ProposalQueued" | "ProposalExecuted" | "ProposalCanceled" | "ProposalVetoed" }> 
+function ProposalStatusContent({
+  event,
+}: {
+  event: Extract<
+    FeedEvent,
+    { type: "ProposalQueued" | "ProposalExecuted" | "ProposalCanceled" | "ProposalVetoed" }
+  >;
 }) {
   return (
     <div className="space-y-1">
@@ -201,8 +207,45 @@ function ProposalStatusContent({ event }: {
   );
 }
 
-function VotingAlertContent({ event }: { 
-  event: Extract<FeedEvent, { type: "VotingOpened" | "VotingClosingSoon" }> 
+function ProposalUpdatedContent({
+  event,
+}: {
+  event: Extract<FeedEvent, { type: "ProposalUpdated" }>;
+}) {
+  // Builder propdate enum: 0 = original/update, 1 = reply. Anything else
+  // falls back to "update" wording so future enum additions don't crash.
+  const isReply = event.messageType === 1;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+        <span>{isReply ? "reply from" : "update from"}</span>
+        <AddressDisplay
+          address={event.proposer}
+          variant="compact"
+          showAvatar={true}
+          avatarSize="xs"
+          showENS={true}
+          showCopy={false}
+          showExplorer={false}
+        />
+        <span>on</span>
+        <Link href={`/proposals/${event.proposalNumber}`} className="underline hover:opacity-80">
+          Proposal #{event.proposalNumber}
+        </Link>
+      </div>
+      {event.message && (
+        <p className="text-xs italic text-muted-foreground border-l-2 border-muted pl-2 line-clamp-3">
+          {event.message}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function VotingAlertContent({
+  event,
+}: {
+  event: Extract<FeedEvent, { type: "VotingOpened" | "VotingClosingSoon" }>;
 }) {
   return (
     <div className="space-y-1">
@@ -210,10 +253,9 @@ function VotingAlertContent({ event }: {
         Proposal #{event.proposalNumber}: {event.proposalTitle}
       </p>
       <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-        {event.type === "VotingOpened" 
+        {event.type === "VotingOpened"
           ? `Voting ends ${formatDistanceToNow(new Date(event.voteEnd * 1000), { addSuffix: true })}`
-          : `Only ${event.hoursLeft}h left to vote!`
-        }
+          : `Only ${event.hoursLeft}h left to vote!`}
       </p>
     </div>
   );
@@ -233,9 +275,24 @@ function getEventDisplay(event: Extract<FeedEvent, { category: "governance" }>) 
       };
     case "VoteCast":
       return {
-        icon: event.support === "FOR" ? ThumbsUp : event.support === "AGAINST" ? ThumbsDown : MinusCircle,
-        iconColor: event.support === "FOR" ? "text-green-600" : event.support === "AGAINST" ? "text-red-600" : "text-gray-600",
-        bgColor: event.support === "FOR" ? "bg-green-50 dark:bg-green-950" : event.support === "AGAINST" ? "bg-red-50 dark:bg-red-950" : "bg-gray-50 dark:bg-gray-950",
+        icon:
+          event.support === "FOR"
+            ? ThumbsUp
+            : event.support === "AGAINST"
+              ? ThumbsDown
+              : MinusCircle,
+        iconColor:
+          event.support === "FOR"
+            ? "text-green-600"
+            : event.support === "AGAINST"
+              ? "text-red-600"
+              : "text-gray-600",
+        bgColor:
+          event.support === "FOR"
+            ? "bg-green-50 dark:bg-green-950"
+            : event.support === "AGAINST"
+              ? "bg-red-50 dark:bg-red-950"
+              : "bg-gray-50 dark:bg-gray-950",
         title: `Vote on Proposal #${event.proposalNumber}`,
         actionText: "View Proposal",
       };
@@ -287,13 +344,23 @@ function getEventDisplay(event: Extract<FeedEvent, { category: "governance" }>) 
         title: "Voting Closing Soon",
         actionText: "Cast Vote",
       };
+    case "ProposalUpdated":
+      return {
+        icon: MessageSquare,
+        iconColor: "text-indigo-600",
+        bgColor: "bg-indigo-50 dark:bg-indigo-950",
+        title: `Propdate · Proposal #${event.proposalNumber}`,
+        actionText: "View Propdate",
+      };
   }
 }
 
 function getEventLink(event: Extract<FeedEvent, { category: "governance" }>): string {
+  if (event.type === "ProposalUpdated") {
+    return `/propdates#proposal-${event.proposalNumber}`;
+  }
   if ("proposalNumber" in event) {
     return `/proposals/${event.proposalNumber}`;
   }
   return "/proposals";
 }
-

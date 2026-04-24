@@ -26,7 +26,11 @@ export interface LiveFeedViewProps {
 export const DEFAULT_FILTERS: FeedFilters = {
   priorities: ["HIGH", "MEDIUM", "LOW"],
   categories: ["governance", "auction", "token", "delegation", "treasury", "admin", "settings"],
-  timeRange: "30d",
+  // Default to the full fetched window (subgraph caps at ~250 events).
+  // Gnars has quiet stretches where 30d contains auctions only; a wider
+  // default surfaces the most recent proposal/vote/propdate/droposal
+  // activity even when it sits just outside 30 days.
+  timeRange: "all",
   showOnlyWithComments: false,
 };
 
@@ -148,8 +152,12 @@ export function LiveFeedView({
     ).acc;
   }, [filteredEvents]);
 
-  // Incremental rendering for performance
-  const PAGE_SIZE = 20;
+  // Incremental rendering for performance. Bumped from 20 to 50 so the
+  // first page surfaces governance activity that would otherwise sit
+  // below a wall of daily auction events (Gnars emits 2 auction events
+  // per day, which alone would fill 20 slots before any vote/proposal
+  // showed up).
+  const PAGE_SIZE = 50;
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -393,7 +401,7 @@ function EmptyState({ filters }: { filters: FeedFilters }) {
   const hasActiveFilters =
     filters.priorities.length < 3 ||
     filters.categories.length < 7 ||
-    filters.timeRange !== "30d" ||
+    filters.timeRange !== "all" ||
     filters.showOnlyWithComments;
 
   return (
