@@ -29,6 +29,7 @@ This is the canonical entry point for project documentation. Everything below sh
 ## Specs
 
 - `docs/superpowers/specs/2026-03-16-vote-card-delegation-breakdown-design.md` — vote card own vs delegated breakdown
+- `docs/superpowers/specs/2026-04-24-proposal-template-fields-design.md` — structured input fields per proposal template (replaces markdown skeleton)
 
 ## Research
 
