@@ -1,12 +1,11 @@
-import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
+import { NextResponse } from "next/server";
 import { fetchFarcasterProfilesByAddress } from "@/services/farcaster";
 import {
   fetchActiveVotesForVoters,
   fetchAllMembers,
   fetchNonCanceledProposalsCount,
-  fetchVotesCountForVoters,
-  fetchVoteSupportForVoters,
+  fetchVoterActivity,
   type MemberListItem,
 } from "@/services/members";
 
@@ -19,24 +18,22 @@ const getCachedMembers = unstable_cache(
   async (): Promise<MemberListItem[]> => {
     const members = await fetchAllMembers();
     const owners = members.map((m) => m.owner);
-    const [
-      votesCountResult,
-      activeVotesResult,
-      nonCanceledResult,
-      voteSupportResult,
-      farcasterResult,
-    ] = await Promise.allSettled([
-      fetchVotesCountForVoters(owners),
-      fetchActiveVotesForVoters(owners),
-      fetchNonCanceledProposalsCount(),
-      fetchVoteSupportForVoters(owners),
-      fetchFarcasterProfilesByAddress(owners),
-    ]);
+    const [voterActivityResult, activeVotesResult, nonCanceledResult, farcasterResult] =
+      await Promise.allSettled([
+        fetchVoterActivity(owners),
+        fetchActiveVotesForVoters(owners),
+        fetchNonCanceledProposalsCount(),
+        fetchFarcasterProfilesByAddress(owners),
+      ]);
 
-    const votesCountMap = votesCountResult.status === "fulfilled" ? votesCountResult.value : {};
+    const voterActivity =
+      voterActivityResult.status === "fulfilled"
+        ? voterActivityResult.value
+        : { counts: {}, support: {} };
+    const votesCountMap = voterActivity.counts;
+    const voteSupportMap = voterActivity.support;
     const activeVotesMap = activeVotesResult.status === "fulfilled" ? activeVotesResult.value : {};
     const nonCanceledCount = nonCanceledResult.status === "fulfilled" ? nonCanceledResult.value : 0;
-    const voteSupportMap = voteSupportResult.status === "fulfilled" ? voteSupportResult.value : {};
     const farcasterProfiles = farcasterResult.status === "fulfilled" ? farcasterResult.value : {};
 
     return members.map((m) => {

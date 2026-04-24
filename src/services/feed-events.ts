@@ -1,8 +1,9 @@
 /**
  * Feed Events Service
- * 
- * Fetches and transforms blockchain events from The Graph subgraph.
- * Uses Next.js 15 caching for optimal performance on Vercel.
+ *
+ * Fetches DAO activity from The Graph via a single unified `feedEvents`
+ * query (Builder subgraph union interface). Replaces the previous 5-query
+ * parallel fetch-and-merge approach.
  */
 
 import { unstable_cache } from "next/cache";
@@ -11,288 +12,215 @@ import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 import type { FeedEvent } from "@/lib/types/feed-events";
 
-// Cache for 15 seconds with background revalidation
 const CACHE_TTL = 15;
 const CACHE_TAG = "feed-events";
 
-/**
- * Query for recent proposals with their votes
- */
-const PROPOSALS_QUERY = `
-  query GetRecentProposals($daoAddress: String!, $since: BigInt!) {
-    proposals(
-      where: { dao: $daoAddress, timeCreated_gt: $since }
-      orderBy: timeCreated
-      orderDirection: desc
-      first: 100
-    ) {
-      id
-      proposalId
-      proposalNumber
-      title
-      description
-      proposer
-      timeCreated
-      voteStart
-      voteEnd
-      quorumVotes
-      executed
-      canceled
-      vetoed
-      queued
-      snapshotBlockNumber
-      transactionHash
-    }
-  }
-`;
+// Cap at 100 per Builder subgraph convention; we over-fetch to cover
+// post-filter event drops (Updated/Clanker/Zora currently unmapped) and
+// derived status events.
+const DEFAULT_FETCH_LIMIT = 100;
 
-/**
- * Query for recent votes
- */
-const VOTES_QUERY = `
-  query GetRecentVotes($daoAddress: String!, $since: BigInt!) {
-    proposalVotes(
-      where: { 
-        proposal_: { dao: $daoAddress }
-        timestamp_gt: $since
-      }
+const FEED_EVENTS_QUERY = `
+  query GnarsFeedEvents($first: Int!, $where: FeedEvent_filter) {
+    feedEvents(
+      first: $first
+      where: $where
       orderBy: timestamp
       orderDirection: desc
-      first: 200
     ) {
+      __typename
       id
-      voter
-      support
-      weight
-      reason
+      type
       timestamp
+      blockNumber
       transactionHash
-      proposal {
-        proposalNumber
-        title
-      }
-    }
-  }
-`;
+      actor
 
-/**
- * Query for recent auctions
- */
-const AUCTIONS_QUERY = `
-  query GetRecentAuctions($daoAddress: String!, $since: BigInt!) {
-    auctions(
-      where: { dao: $daoAddress, startTime_gt: $since }
-      orderBy: startTime
-      orderDirection: desc
-      first: 50
-    ) {
-      id
-      startTime
-      endTime
-      settled
-      token {
-        tokenId
-        image
-      }
-    }
-  }
-`;
-
-/**
- * Query for recent auction bids
- */
-const BIDS_QUERY = `
-  query GetRecentBids($daoAddress: String!, $since: BigInt!) {
-    auctionBids(
-      where: { 
-        auction_: { dao: $daoAddress }
-        bidTime_gt: $since
-      }
-      orderBy: bidTime
-      orderDirection: desc
-      first: 200
-    ) {
-      id
-      bidder
-      amount
-      bidTime
-      transactionHash
-      auction {
-        token {
-          tokenId
-          image
+      ... on ProposalCreatedEvent {
+        proposal {
+          proposalId
+          proposalNumber
+          title
+          description
+          proposer
+          timeCreated
+          voteStart
+          voteEnd
+          quorumVotes
+          executed
+          queued
+          canceled
+          vetoed
+          snapshotBlockNumber
+          transactionHash
         }
-        endTime
+      }
+
+      ... on ProposalVotedEvent {
+        proposal {
+          proposalId
+          proposalNumber
+          title
+        }
+        vote {
+          support
+          weight
+          reason
+        }
+      }
+
+      ... on ProposalExecutedEvent {
+        proposal {
+          proposalId
+          proposalNumber
+          title
+        }
+      }
+
+      ... on AuctionCreatedEvent {
+        auction {
+          id
+          startTime
+          endTime
+          token {
+            tokenId
+            image
+          }
+        }
+      }
+
+      ... on AuctionBidPlacedEvent {
+        auction {
+          id
+          endTime
+          token {
+            tokenId
+            image
+          }
+        }
+        bid {
+          amount
+          bidder
+        }
+      }
+
+      ... on AuctionSettledEvent {
+        auction {
+          id
+          token {
+            tokenId
+            image
+            owner
+          }
+        }
+        amount
       }
     }
   }
 `;
 
-/**
- * Query for recent token mints/transfers
- */
-const TOKENS_QUERY = `
-  query GetRecentTokens($daoAddress: String!, $since: BigInt!) {
-    tokens(
-      where: { dao: $daoAddress, mintedAt_gt: $since }
-      orderBy: mintedAt
-      orderDirection: desc
-      first: 100
-    ) {
-      id
-      tokenId
-      owner
-      mintedAt
-    }
-  }
-`;
-
-/**
- * Query for delegate changes (not yet implemented)
- */
-// const DELEGATES_QUERY = `
-//   query GetRecentDelegates($daoAddress: String!, $since: BigInt!) {
-//     daoTokenOwners(
-//       where: { 
-//         dao: $daoAddress
-//         # Note: We'd need a timestamp field for filtering
-//       }
-//       orderBy: daoTokenCount
-//       orderDirection: desc
-//       first: 50
-//     ) {
-//       id
-//       owner
-//       delegate
-//       daoTokenCount
-//     }
-//   }
-// `;
-
-// Type definitions for subgraph responses
-interface SubgraphProposal {
+interface BaseSubgraphEvent {
+  __typename: string;
   id: string;
+  type: string;
+  timestamp: string;
+  blockNumber: string;
+  transactionHash: string;
+  actor: string;
+}
+
+interface SubgraphProposalRef {
   proposalId: string;
   proposalNumber: number;
   title: string | null;
-  description: string | null;
-  proposer: string;
-  timeCreated: string;
-  voteStart: string;
-  voteEnd: string;
-  quorumVotes: string;
-  executed: boolean;
-  canceled: boolean;
-  vetoed: boolean;
-  queued: boolean;
-  snapshotBlockNumber: string;
-  transactionHash: string;
+  description?: string | null;
+  proposer?: string;
+  timeCreated?: string;
+  voteStart?: string;
+  voteEnd?: string;
+  quorumVotes?: string;
+  executed?: boolean;
+  queued?: boolean;
+  canceled?: boolean;
+  vetoed?: boolean;
+  snapshotBlockNumber?: string;
+  transactionHash?: string;
 }
 
-interface SubgraphVote {
-  id: string;
-  voter: string;
-  support: string;
-  weight: string;
-  reason: string | null;
-  timestamp: string;
-  transactionHash: string;
+interface SubgraphProposalCreated extends BaseSubgraphEvent {
+  __typename: "ProposalCreatedEvent";
   proposal: {
+    proposalId: string;
     proposalNumber: number;
     title: string | null;
+    description: string | null;
+    proposer: string;
+    timeCreated: string;
+    voteStart: string;
+    voteEnd: string;
+    quorumVotes: string;
+    executed: boolean;
+    queued: boolean;
+    canceled: boolean;
+    vetoed: boolean;
+    snapshotBlockNumber: string;
+    transactionHash: string;
   };
 }
 
-interface SubgraphBid {
-  id: string;
-  bidder: string;
-  amount: string;
-  bidTime: string;
-  transactionHash: string;
+interface SubgraphProposalVoted extends BaseSubgraphEvent {
+  __typename: "ProposalVotedEvent";
+  proposal: SubgraphProposalRef;
+  vote: {
+    support: string;
+    weight: string;
+    reason: string | null;
+  };
+}
+
+interface SubgraphProposalExecuted extends BaseSubgraphEvent {
+  __typename: "ProposalExecutedEvent";
+  proposal: SubgraphProposalRef;
+}
+
+interface SubgraphAuctionCreated extends BaseSubgraphEvent {
+  __typename: "AuctionCreatedEvent";
   auction: {
-    token: {
-      tokenId: string;
-      image?: string | null;
-    };
+    id: string;
+    startTime: string;
     endTime: string;
+    token: { tokenId: string; image?: string | null };
   };
 }
 
-interface SubgraphToken {
-  id: string;
-  tokenId: string;
-  owner: string;
-  mintedAt: string;
+interface SubgraphAuctionBidPlaced extends BaseSubgraphEvent {
+  __typename: "AuctionBidPlacedEvent";
+  auction: {
+    id: string;
+    endTime: string;
+    token: { tokenId: string; image?: string | null };
+  };
+  bid: { amount: string; bidder: string };
 }
 
-interface SubgraphAuction {
-  id: string;
-  startTime: string;
-  endTime: string;
-  settled: boolean;
-  token: {
-    tokenId: string;
-    image?: string | null;
+interface SubgraphAuctionSettled extends BaseSubgraphEvent {
+  __typename: "AuctionSettledEvent";
+  auction: {
+    id: string;
+    token: { tokenId: string; image?: string | null; owner: string };
   };
+  amount: string;
 }
 
-/**
- * Transform subgraph proposal to feed event
- */
-function transformProposalToEvent(p: SubgraphProposal): FeedEvent {
-  return {
-    id: `proposal-${p.proposalId}`,
-    type: "ProposalCreated",
-    category: "governance",
-    priority: "HIGH",
-    timestamp: Number(p.timeCreated),
-    blockNumber: Number(p.snapshotBlockNumber),
-    transactionHash: p.transactionHash,
-    proposalId: p.proposalId,
-    proposalNumber: p.proposalNumber,
-    title: p.title || `Proposal #${p.proposalNumber}`,
-    description: p.description || "",
-    proposer: p.proposer,
-    voteStart: Number(p.voteStart),
-    voteEnd: Number(p.voteEnd),
-    quorumVotes: Number(p.quorumVotes),
-  };
-}
+type SubgraphFeedEvent =
+  | SubgraphProposalCreated
+  | SubgraphProposalVoted
+  | SubgraphProposalExecuted
+  | SubgraphAuctionCreated
+  | SubgraphAuctionBidPlaced
+  | SubgraphAuctionSettled
+  | (BaseSubgraphEvent & { __typename: string });
 
-/**
- * Transform subgraph vote to feed event
- */
-function transformVoteToEvent(v: SubgraphVote): FeedEvent {
-  const supportMap: Record<string, "FOR" | "AGAINST" | "ABSTAIN"> = {
-    "0": "AGAINST",
-    "1": "FOR",
-    "2": "ABSTAIN",
-    "AGAINST": "AGAINST",
-    "FOR": "FOR",
-    "ABSTAIN": "ABSTAIN",
-  };
-
-  return {
-    id: `vote-${v.id}`,
-    type: "VoteCast",
-    category: "governance",
-    priority: v.reason && v.reason.length > 0 ? "HIGH" : "MEDIUM",
-    timestamp: Number(v.timestamp),
-    blockNumber: 0, // Not available in vote data
-    transactionHash: v.transactionHash,
-    proposalId: "", // Not directly available
-    proposalNumber: v.proposal.proposalNumber,
-    proposalTitle: v.proposal.title || `Proposal #${v.proposal.proposalNumber}`,
-    voter: v.voter,
-    support: supportMap[v.support] || "ABSTAIN",
-    weight: Number(v.weight),
-    reason: v.reason || undefined,
-  };
-}
-
-/**
- * Convert IPFS URI to HTTP URL
- */
 function toHttpUrl(uri?: string | null): string | undefined {
   if (!uri) return undefined;
   if (uri.startsWith("ipfs://")) {
@@ -301,326 +229,246 @@ function toHttpUrl(uri?: string | null): string | undefined {
   return uri;
 }
 
-/**
- * Transform subgraph bid to feed event
- */
-function transformBidToEvent(b: SubgraphBid): FeedEvent {
-  return {
-    id: `bid-${b.id}`,
-    type: "AuctionBid",
-    category: "auction",
-    priority: "HIGH",
-    timestamp: Number(b.bidTime),
-    blockNumber: 0,
-    transactionHash: b.transactionHash,
-    tokenId: Number(b.auction.token.tokenId),
-    bidder: b.bidder,
-    amount: (Number(b.amount) / 1e18).toFixed(5), // Convert from wei to ETH (5 decimals)
-    extended: false, // Extended field not available in subgraph
-    endTime: Number(b.auction.endTime),
-    imageUrl: toHttpUrl(b.auction.token.image),
-  };
+const VOTE_SUPPORT: Record<string, "FOR" | "AGAINST" | "ABSTAIN"> = {
+  "0": "AGAINST",
+  "1": "FOR",
+  "2": "ABSTAIN",
+  AGAINST: "AGAINST",
+  FOR: "FOR",
+  ABSTAIN: "ABSTAIN",
+};
+
+function weiToEth(wei: string): string {
+  return (Number(wei) / 1e18).toFixed(5);
 }
 
-/**
- * Transform subgraph auction to feed event
- */
-function transformAuctionToEvent(a: SubgraphAuction): FeedEvent | null {
-  // Show all auctions (both new and settled)
-  return {
-    id: `auction-${a.id}`,
-    type: "AuctionCreated",
-    category: "auction",
-    priority: "HIGH",
-    timestamp: Number(a.startTime),
-    blockNumber: 0,
-    transactionHash: "",
-    tokenId: Number(a.token.tokenId),
-    startTime: Number(a.startTime),
-    endTime: Number(a.endTime),
-    imageUrl: toHttpUrl(a.token.image),
-  };
+function transformEvent(event: SubgraphFeedEvent): FeedEvent[] {
+  const ts = Number(event.timestamp);
+  const block = Number(event.blockNumber);
+
+  switch (event.__typename) {
+    case "ProposalCreatedEvent": {
+      const e = event as SubgraphProposalCreated;
+      const p = e.proposal;
+      const title = p.title || `Proposal #${p.proposalNumber}`;
+      const events: FeedEvent[] = [
+        {
+          id: `proposal-${p.proposalId}`,
+          type: "ProposalCreated",
+          category: "governance",
+          priority: "HIGH",
+          timestamp: Number(p.timeCreated),
+          blockNumber: Number(p.snapshotBlockNumber),
+          transactionHash: p.transactionHash,
+          proposalId: p.proposalId,
+          proposalNumber: p.proposalNumber,
+          title,
+          description: p.description || "",
+          proposer: p.proposer,
+          voteStart: Number(p.voteStart),
+          voteEnd: Number(p.voteEnd),
+          quorumVotes: Number(p.quorumVotes),
+        },
+      ];
+
+      // Builder subgraph emits ProposalExecutedEvent natively but NOT
+      // Queued/Canceled/Vetoed. Synthesize those from current proposal
+      // flags carried on the ProposalCreatedEvent relation.
+      if (p.queued) {
+        events.push({
+          id: `proposal-queued-${p.proposalId}`,
+          type: "ProposalQueued",
+          category: "governance",
+          priority: "HIGH",
+          timestamp: Number(p.voteEnd),
+          blockNumber: Number(p.snapshotBlockNumber),
+          transactionHash: p.transactionHash,
+          proposalId: p.proposalId,
+          proposalNumber: p.proposalNumber,
+          proposalTitle: title,
+          eta: Number(p.voteEnd) + 86400,
+        });
+      }
+      if (p.canceled) {
+        events.push({
+          id: `proposal-canceled-${p.proposalId}`,
+          type: "ProposalCanceled",
+          category: "governance",
+          priority: "MEDIUM",
+          timestamp: Number(p.timeCreated),
+          blockNumber: Number(p.snapshotBlockNumber),
+          transactionHash: p.transactionHash,
+          proposalId: p.proposalId,
+          proposalNumber: p.proposalNumber,
+          proposalTitle: title,
+        });
+      }
+      if (p.vetoed) {
+        events.push({
+          id: `proposal-vetoed-${p.proposalId}`,
+          type: "ProposalVetoed",
+          category: "governance",
+          priority: "HIGH",
+          timestamp: Number(p.timeCreated),
+          blockNumber: Number(p.snapshotBlockNumber),
+          transactionHash: p.transactionHash,
+          proposalId: p.proposalId,
+          proposalNumber: p.proposalNumber,
+          proposalTitle: title,
+        });
+      }
+      return events;
+    }
+
+    case "ProposalVotedEvent": {
+      const e = event as SubgraphProposalVoted;
+      const support = VOTE_SUPPORT[e.vote.support] || "ABSTAIN";
+      return [
+        {
+          id: `vote-${e.id}`,
+          type: "VoteCast",
+          category: "governance",
+          priority: e.vote.reason && e.vote.reason.length > 0 ? "HIGH" : "MEDIUM",
+          timestamp: ts,
+          blockNumber: block,
+          transactionHash: e.transactionHash,
+          proposalId: e.proposal.proposalId,
+          proposalNumber: e.proposal.proposalNumber,
+          proposalTitle: e.proposal.title || `Proposal #${e.proposal.proposalNumber}`,
+          voter: e.actor,
+          support,
+          weight: Number(e.vote.weight),
+          reason: e.vote.reason || undefined,
+        },
+      ];
+    }
+
+    case "ProposalExecutedEvent": {
+      const e = event as SubgraphProposalExecuted;
+      return [
+        {
+          id: `proposal-executed-${e.proposal.proposalId}`,
+          type: "ProposalExecuted",
+          category: "governance",
+          priority: "HIGH",
+          timestamp: ts,
+          blockNumber: block,
+          transactionHash: e.transactionHash,
+          proposalId: e.proposal.proposalId,
+          proposalNumber: e.proposal.proposalNumber,
+          proposalTitle: e.proposal.title || `Proposal #${e.proposal.proposalNumber}`,
+        },
+      ];
+    }
+
+    case "AuctionCreatedEvent": {
+      const e = event as SubgraphAuctionCreated;
+      return [
+        {
+          id: `auction-${e.auction.id}`,
+          type: "AuctionCreated",
+          category: "auction",
+          priority: "HIGH",
+          timestamp: Number(e.auction.startTime),
+          blockNumber: block,
+          transactionHash: e.transactionHash,
+          tokenId: Number(e.auction.token.tokenId),
+          startTime: Number(e.auction.startTime),
+          endTime: Number(e.auction.endTime),
+          imageUrl: toHttpUrl(e.auction.token.image),
+        },
+      ];
+    }
+
+    case "AuctionBidPlacedEvent": {
+      const e = event as SubgraphAuctionBidPlaced;
+      return [
+        {
+          id: `bid-${e.id}`,
+          type: "AuctionBid",
+          category: "auction",
+          priority: "HIGH",
+          timestamp: ts,
+          blockNumber: block,
+          transactionHash: e.transactionHash,
+          tokenId: Number(e.auction.token.tokenId),
+          bidder: e.bid.bidder,
+          amount: weiToEth(e.bid.amount),
+          extended: false,
+          endTime: Number(e.auction.endTime),
+          imageUrl: toHttpUrl(e.auction.token.image),
+        },
+      ];
+    }
+
+    case "AuctionSettledEvent": {
+      const e = event as SubgraphAuctionSettled;
+      return [
+        {
+          id: `auction-settled-${e.auction.id}`,
+          type: "AuctionSettled",
+          category: "auction",
+          priority: "HIGH",
+          timestamp: ts,
+          blockNumber: block,
+          transactionHash: e.transactionHash,
+          tokenId: Number(e.auction.token.tokenId),
+          winner: e.auction.token.owner,
+          amount: weiToEth(e.amount),
+          imageUrl: toHttpUrl(e.auction.token.image),
+        },
+      ];
+    }
+
+    // Unmapped Builder event types (ProposalUpdated, ClankerTokenCreated,
+    // ZoraCoinCreated, ZoraDropCreated). Skip until local FeedEvent union
+    // grows support.
+    default:
+      return [];
+  }
 }
 
-/**
- * Transform subgraph token to feed event
- */
-function transformTokenToEvent(t: SubgraphToken): FeedEvent {
-  return {
-    id: `token-${t.id}`,
-    type: "TokenMinted",
-    category: "token",
-    priority: "HIGH",
-    timestamp: Number(t.mintedAt),
-    blockNumber: 0,
-    transactionHash: "",
-    tokenId: Number(t.tokenId),
-    recipient: t.owner,
-    isFounder: false, // Would need to check mint schedule
-  };
-}
-
-/**
- * Fetch feed events from subgraph (uncached)
- */
 async function fetchFeedEventsUncached(hoursBack: number = 24): Promise<FeedEvent[]> {
   const now = Math.floor(Date.now() / 1000);
-  const since = now - (hoursBack * 3600);
+  const since = now - hoursBack * 3600;
   const daoAddress = DAO_ADDRESSES.token.toLowerCase();
 
-  const events: FeedEvent[] = [];
-
   try {
-    // Fetch all data in parallel
-    // Try with time filter first, then without if empty
-    const [proposalsData, votesData, bidsData, auctionsData, tokensData] = await Promise.all([
-      subgraphQuery<{ proposals: SubgraphProposal[] }>(PROPOSALS_QUERY, {
-        daoAddress,
-        since: since.toString(),
-      }).catch((e) => {
-        console.error("[feed-events] Proposals query error:", e);
-        return { proposals: [] };
-      }),
+    const data = await subgraphQuery<{ feedEvents: SubgraphFeedEvent[] }>(FEED_EVENTS_QUERY, {
+      first: DEFAULT_FETCH_LIMIT,
+      where: {
+        dao: daoAddress,
+        timestamp_gt: since.toString(),
+      },
+    });
 
-      subgraphQuery<{ proposalVotes: SubgraphVote[] }>(VOTES_QUERY, {
-        daoAddress,
-        since: since.toString(),
-      }).catch((e) => {
-        console.error("[feed-events] Votes query error:", e);
-        return { proposalVotes: [] };
-      }),
-
-      subgraphQuery<{ auctionBids: SubgraphBid[] }>(BIDS_QUERY, {
-        daoAddress,
-        since: since.toString(),
-      }).catch((e) => {
-        console.error("[feed-events] Bids query error:", e);
-        return { auctionBids: [] };
-      }),
-
-      subgraphQuery<{ auctions: SubgraphAuction[] }>(AUCTIONS_QUERY, {
-        daoAddress,
-        since: since.toString(),
-      }).catch((e) => {
-        console.error("[feed-events] Auctions query error:", e);
-        return { auctions: [] };
-      }),
-
-      subgraphQuery<{ tokens: SubgraphToken[] }>(TOKENS_QUERY, {
-        daoAddress,
-        since: since.toString(),
-      }).catch((e) => {
-        console.error("[feed-events] Tokens query error:", e);
-        return { tokens: [] };
-      }),
-    ]);
-
-    // If no data with time filter, try without it (get ALL recent data)
-    if (!proposalsData.proposals?.length && 
-        !votesData.proposalVotes?.length && 
-        !bidsData.auctionBids?.length) {
-      const allDataQuery = `
-        query GetAllRecentData($daoAddress: String!) {
-          proposals(
-            where: { dao: $daoAddress }
-            orderBy: timeCreated
-            orderDirection: desc
-            first: 50
-          ) {
-            id
-            proposalId
-            proposalNumber
-            title
-            description
-            proposer
-            timeCreated
-            voteStart
-            voteEnd
-            quorumVotes
-            executed
-            canceled
-            vetoed
-            queued
-            snapshotBlockNumber
-            transactionHash
-          }
-          proposalVotes(
-            where: { proposal_: { dao: $daoAddress } }
-            orderBy: timestamp
-            orderDirection: desc
-            first: 100
-          ) {
-            id
-            voter
-            support
-            weight
-            reason
-            timestamp
-            transactionHash
-            proposal {
-              proposalNumber
-              title
-            }
-          }
-        }
-      `;
-      
-      const allData = await subgraphQuery<{
-        proposals: SubgraphProposal[];
-        proposalVotes: SubgraphVote[];
-      }>(allDataQuery, {
-        daoAddress,
-      }).catch((e) => {
-        console.error("[feed-events] All data query error:", e);
-        return { proposals: [], proposalVotes: [] };
-      });
-      
-      if (allData.proposals) proposalsData.proposals = allData.proposals;
-      if (allData.proposalVotes) votesData.proposalVotes = allData.proposalVotes;
-    }
-
-    // Transform proposals
-    if (proposalsData.proposals && proposalsData.proposals.length > 0) {
-      events.push(...proposalsData.proposals.map(transformProposalToEvent));
-
-      // Add status events for executed/canceled/vetoed proposals
-      for (const p of proposalsData.proposals) {
-        if (p.executed) {
-          events.push({
-            id: `proposal-executed-${p.proposalId}`,
-            type: "ProposalExecuted",
-            category: "governance",
-            priority: "HIGH",
-            timestamp: Number(p.timeCreated), // Approximation
-            blockNumber: Number(p.snapshotBlockNumber),
-            transactionHash: p.transactionHash,
-            proposalId: p.proposalId,
-            proposalNumber: p.proposalNumber,
-            proposalTitle: p.title || `Proposal #${p.proposalNumber}`,
-          });
-        }
-
-        if (p.queued) {
-          events.push({
-            id: `proposal-queued-${p.proposalId}`,
-            type: "ProposalQueued",
-            category: "governance",
-            priority: "HIGH",
-            timestamp: Number(p.timeCreated),
-            blockNumber: Number(p.snapshotBlockNumber),
-            transactionHash: p.transactionHash,
-            proposalId: p.proposalId,
-            proposalNumber: p.proposalNumber,
-            proposalTitle: p.title || `Proposal #${p.proposalNumber}`,
-            eta: Number(p.voteEnd) + 86400, // Approximation
-          });
-        }
-
-        if (p.canceled) {
-          events.push({
-            id: `proposal-canceled-${p.proposalId}`,
-            type: "ProposalCanceled",
-            category: "governance",
-            priority: "MEDIUM",
-            timestamp: Number(p.timeCreated),
-            blockNumber: Number(p.snapshotBlockNumber),
-            transactionHash: p.transactionHash,
-            proposalId: p.proposalId,
-            proposalNumber: p.proposalNumber,
-            proposalTitle: p.title || `Proposal #${p.proposalNumber}`,
-          });
-        }
-
-        if (p.vetoed) {
-          events.push({
-            id: `proposal-vetoed-${p.proposalId}`,
-            type: "ProposalVetoed",
-            category: "governance",
-            priority: "HIGH",
-            timestamp: Number(p.timeCreated),
-            blockNumber: Number(p.snapshotBlockNumber),
-            transactionHash: p.transactionHash,
-            proposalId: p.proposalId,
-            proposalNumber: p.proposalNumber,
-            proposalTitle: p.title || `Proposal #${p.proposalNumber}`,
-          });
-        }
-      }
-    }
-
-    // Transform votes
-    if (votesData.proposalVotes) {
-      events.push(...votesData.proposalVotes.map(transformVoteToEvent));
-    }
-
-    // Transform bids
-    if (bidsData.auctionBids) {
-      events.push(...bidsData.auctionBids.map(transformBidToEvent));
-    }
-
-    // Transform auctions
-    if (auctionsData.auctions) {
-      const auctionEvents = auctionsData.auctions
-        .map(transformAuctionToEvent)
-        .filter((e): e is FeedEvent => e !== null);
-      events.push(...auctionEvents);
-    }
-
-    // Transform tokens (filter out TokenMinted events)
-    if (tokensData.tokens) {
-      const tokenEvents = tokensData.tokens.map(transformTokenToEvent);
-      
-      // Filter out all TokenMinted events from the feed
-      // Keep only token transfers and delegation events
-      const filteredTokenEvents = tokenEvents.filter(event => 
-        event.type !== "TokenMinted"
-      );
-      
-      events.push(...filteredTokenEvents);
-    }
-
-    // Sort by timestamp descending
+    const events = (data.feedEvents || []).flatMap(transformEvent);
     return events.sort((a, b) => b.timestamp - a.timestamp);
   } catch (error) {
-    console.error("[feed-events] Error fetching feed events:", error);
-    if (error instanceof Error) {
-      console.error("[feed-events] Error details:", {
-        message: error.message,
-        stack: error.stack,
-      });
-    }
+    console.error("[feed-events] feedEvents query error:", error);
     return [];
   }
 }
 
-/**
- * Fetch feed events with Next.js 15 caching
- * 
- * Uses unstable_cache for automatic revalidation on Vercel.
- * Cache is tagged for manual revalidation if needed.
- */
 const fetchFeedEvents = unstable_cache(
-  async (hoursBack: number = 24) => {
-    return await fetchFeedEventsUncached(hoursBack);
-  },
+  async (hoursBack: number = 24) => fetchFeedEventsUncached(hoursBack),
   ["feed-events"],
   {
     revalidate: CACHE_TTL,
     tags: [CACHE_TAG],
-  }
+  },
 );
 
 /**
- * Generate computed/time-based events
- * 
- * These events are derived from current data and time, not blockchain events.
+ * Derived time-based events (VotingOpened, VotingClosingSoon). Kept
+ * separate from the subgraph feedEvents query because these are computed
+ * against current wall-clock time, not emitted onchain events.
  */
 async function generateComputedEvents(): Promise<FeedEvent[]> {
   const events: FeedEvent[] = [];
   const now = Math.floor(Date.now() / 1000);
 
   try {
-    // Get recent proposals to check their timing
     const sdk = SubgraphSDK.connect(CHAIN.id);
     const { proposals } = await sdk.proposals({
       where: {
@@ -633,7 +481,6 @@ async function generateComputedEvents(): Promise<FeedEvent[]> {
       const voteStart = Number(p.voteStart || 0);
       const voteEnd = Number(p.voteEnd || 0);
 
-      // Voting opened (within last hour)
       if (voteStart <= now && voteStart > now - 3600) {
         events.push({
           id: `voting-open-${p.proposalId}`,
@@ -650,7 +497,6 @@ async function generateComputedEvents(): Promise<FeedEvent[]> {
         });
       }
 
-      // Voting closing soon (within next 6 hours)
       const hoursUntilEnd = (voteEnd - now) / 3600;
       if (hoursUntilEnd > 0 && hoursUntilEnd <= 6) {
         events.push({
@@ -670,22 +516,17 @@ async function generateComputedEvents(): Promise<FeedEvent[]> {
       }
     }
   } catch (error) {
-    console.error("Error generating computed events:", error);
+    console.error("[feed-events] Error generating computed events:", error);
   }
 
   return events;
 }
 
-/**
- * Get all feed events (cached blockchain + computed)
- */
 export async function getAllFeedEvents(hoursBack: number = 24): Promise<FeedEvent[]> {
   const [blockchainEvents, computedEvents] = await Promise.all([
     fetchFeedEvents(hoursBack),
     generateComputedEvents(),
   ]);
 
-  return [...blockchainEvents, ...computedEvents]
-    .sort((a, b) => b.timestamp - a.timestamp);
+  return [...blockchainEvents, ...computedEvents].sort((a, b) => b.timestamp - a.timestamp);
 }
-

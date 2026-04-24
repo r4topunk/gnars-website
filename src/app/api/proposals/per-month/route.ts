@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SubgraphSDK } from "@buildeross/sdk";
-import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
+import { subgraphQuery } from "@/lib/subgraph";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 300; // 5 minutes
@@ -8,6 +8,22 @@ export const revalidate = 300; // 5 minutes
 // In-memory cache to reduce subgraph queries
 let cache: { proposals: number[]; timestamp: number } | null = null;
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Minimal query: only `timeCreated` — previous SDK call pulled full
+// proposal payload (description, calldatas, votes) per entry just to
+// bucket by month.
+const PROPOSAL_TIMESTAMPS_QUERY = `
+  query ProposalTimestamps($dao: String!, $first: Int!) {
+    proposals(
+      where: { dao: $dao }
+      first: $first
+      orderBy: timeCreated
+      orderDirection: desc
+    ) {
+      timeCreated
+    }
+  }
+`;
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,14 +38,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Fetch from subgraph (no RPC calls)
-    const result = await SubgraphSDK.connect(CHAIN.id).proposals({
-      where: { dao: DAO_ADDRESSES.token.toLowerCase() },
+    const { proposals: rows } = await subgraphQuery<{
+      proposals: Array<{ timeCreated: string }>;
+    }>(PROPOSAL_TIMESTAMPS_QUERY, {
+      dao: DAO_ADDRESSES.token.toLowerCase(),
       first: 500,
-      skip: 0,
     });
 
-    const proposals = (result.proposals || []).map((p) => Number(p.timeCreated ?? 0));
+    const proposals = (rows || []).map((p) => Number(p.timeCreated ?? 0));
 
     // Update cache
     cache = { proposals, timestamp: now };
@@ -67,4 +83,3 @@ function groupByMonth(timestamps: number[], months: number) {
 
   return result;
 }
-

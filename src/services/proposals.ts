@@ -1,7 +1,7 @@
 import { cache } from "react";
 import {
-  SubgraphSDK,
   governorAbi,
+  SubgraphSDK,
   type Proposal_Filter,
   type Proposal as SdkProposal,
 } from "@buildeross/sdk";
@@ -23,7 +23,9 @@ async function withRetry<T>(fn: () => Promise<T>, label: string, maxAttempts = 5
       const isTransient = isRateLimit || /fetch failed|ETIMEDOUT|ECONNRESET|503|502/i.test(msg);
       if (!isTransient || attempt === maxAttempts) throw err;
       const delay = Math.min(8_000, 500 * 2 ** (attempt - 1)) + Math.random() * 250;
-      console.warn(`[${label}] attempt ${attempt} failed (${isRateLimit ? "429" : "transient"}); retry in ${Math.round(delay)}ms`);
+      console.warn(
+        `[${label}] attempt ${attempt} failed (${isRateLimit ? "429" : "transient"}); retry in ${Math.round(delay)}ms`,
+      );
       await new Promise((r) => setTimeout(r, delay));
     }
   }
@@ -31,9 +33,7 @@ async function withRetry<T>(fn: () => Promise<T>, label: string, maxAttempts = 5
 }
 
 /** Fetch vote timestamps from subgraph (the SDK fragment omits this field) */
-async function fetchVoteTimestamps(
-  proposalId: string,
-): Promise<Record<string, number>> {
+async function fetchVoteTimestamps(proposalId: string): Promise<Record<string, number>> {
   const query = `{
     proposalVotes(
       where: { proposal: "${proposalId.toLowerCase()}" }
@@ -71,10 +71,7 @@ async function fetchVoteTimestamps(
  * Fetch proposal state from the governor contract using our resilient RPC client.
  * Replaces the SDK's internal client which only uses mainnet.base.org.
  */
-async function fetchProposalState(
-  governorAddress: string,
-  proposalId: string,
-): Promise<number> {
+async function fetchProposalState(governorAddress: string, proposalId: string): Promise<number> {
   return serverPublicClient.readContract({
     address: governorAddress as `0x${string}`,
     abi: governorAbi,
@@ -173,9 +170,7 @@ export const listProposals = cache(async (limit = 200, page = 0): Promise<Propos
 
   const sdkProposals = data.proposals ?? [];
 
-  return Promise.all(
-    sdkProposals.map((raw) => formatWithState(raw).then(transformProposal)),
-  );
+  return Promise.all(sdkProposals.map((raw) => formatWithState(raw).then(transformProposal)));
 });
 
 export const getProposalByIdOrNumber = cache(
@@ -189,6 +184,16 @@ export const getProposalByIdOrNumber = cache(
           dao: DAO_ADDRESSES.token.toLowerCase(),
         };
 
+    // When we already have the canonical proposalId (hex path) we can
+    // fetch vote timestamps in parallel with the SDK proposal query,
+    // saving one round trip. For number-based lookups we do not know the
+    // id upfront so the timestamps query runs alongside formatWithState's
+    // RPC state() read instead — same parallel-waterfall trick, one
+    // level deeper.
+    const timestampsPromise = isHexId
+      ? fetchVoteTimestamps(idOrNumber)
+      : Promise.resolve<Record<string, number> | null>(null);
+
     const data = await withRetry(
       () => SubgraphSDK.connect(CHAIN.id).proposals({ where, first: 1 }),
       `getProposalByIdOrNumber(${idOrNumber})`,
@@ -200,15 +205,19 @@ export const getProposalByIdOrNumber = cache(
 
     // RPC errors will propagate (not swallowed) so callers can distinguish
     // "not found" (null) from "transient failure" (thrown error)
-    const sdkProposal = await formatWithState(data.proposals[0]);
+    const rawProposal = data.proposals[0];
+    const [sdkProposal, timestampMapResolved] = await Promise.all([
+      formatWithState(rawProposal),
+      timestampsPromise.then((m) => m ?? fetchVoteTimestamps(String(rawProposal.proposalId ?? ""))),
+    ]);
+
     const proposal = transformProposal(sdkProposal);
 
-    if (proposal.votes && proposal.votes.length > 0) {
-      const timestampMap = await fetchVoteTimestamps(proposal.proposalId);
+    if (proposal.votes && proposal.votes.length > 0 && timestampMapResolved) {
       proposal.votes = proposal.votes
         .map((v) => ({
           ...v,
-          timestamp: timestampMap[v.voter.toLowerCase()] ?? v.timestamp,
+          timestamp: timestampMapResolved[v.voter.toLowerCase()] ?? v.timestamp,
         }))
         .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
     }
