@@ -19,8 +19,7 @@ export async function GET(
     const delegators = await fetchDelegatorsWithCounts(address);
     return NextResponse.json(delegators);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Failed to fetch delegators:", error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch delegators" }, { status: 500 });
   }
 }

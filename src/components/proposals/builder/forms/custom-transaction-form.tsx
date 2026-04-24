@@ -1,4 +1,3 @@
-import React from "react";
 import { Info } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";

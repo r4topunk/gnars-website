@@ -42,8 +42,8 @@ export async function POST(req: NextRequest) {
       headers: { "content-type": "application/json" },
     });
   } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    console.error("[api/coins/create] failed:", err);
+    return new Response(JSON.stringify({ error: "Failed to create coin call data" }), {
       status: 500,
       headers: { "content-type": "application/json" },
     });
