@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormProvider, useForm, useFormContext, useWatch, type Resolver } from "react-hook-form";
 import { Label } from "@/components/ui/label";
@@ -42,8 +42,16 @@ export const TemplateDetailsForm = forwardRef<TemplateDetailsFormHandle, Templat
 
     const watchedValues = useWatch({ control: templateForm.control }) as TemplateValues;
 
+    // useWatch returns a fresh object reference on every render even when values
+    // are unchanged. Guard setValue with a serialized snapshot so the effect is a
+    // no-op until a field actually changes (otherwise parent.setValue re-renders
+    // us, we re-read useWatch, get a new ref, run the effect, loop forever).
+    const lastSerializedRef = useRef<string | null>(null);
     useEffect(() => {
       if (!schema) return;
+      const serialized = JSON.stringify(watchedValues);
+      if (serialized === lastSerializedRef.current) return;
+      lastSerializedRef.current = serialized;
       parent.setValue("templateFields", watchedValues, { shouldDirty: true });
       const compiled = compileTemplate(slug, watchedValues);
       parent.setValue("description", compiled, { shouldDirty: true, shouldValidate: false });
