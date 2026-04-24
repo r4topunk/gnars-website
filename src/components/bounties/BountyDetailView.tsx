@@ -32,7 +32,17 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ClaimBountyModal } from '@/components/bounties/ClaimBountyModal';
 import { MediaEmbed } from '@/components/bounties/MediaEmbed';
 import { AddressDisplay } from '@/components/ui/address-display';
-import { usePoidhCancelBounty, usePoidhJoinBounty, usePoidhWithdrawFromBounty, usePoidhAcceptClaim, usePoidhSubmitClaimForVote, usePoidhVoteClaim, usePoidhResolveVote } from '@/hooks/usePoidhContract';
+import {
+  usePoidhCancelBounty,
+  usePoidhJoinBounty,
+  usePoidhClaimRefundFromCancelledBounty,
+  usePoidhAcceptClaim,
+  usePoidhSubmitClaimForVote,
+  usePoidhVoteClaim,
+  usePoidhResolveVote,
+  usePoidhResetVotingPeriod,
+} from '@/hooks/usePoidhContract';
+import { VoteDashboard } from '@/components/bounties/VoteDashboard';
 import { POIDH_ABI } from '@/lib/poidh/abi';
 import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
 import { useUserAddress } from '@/hooks/use-user-address';
@@ -166,25 +176,17 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
 
   const cancelHook = usePoidhCancelBounty(chainId);
   const joinHook = usePoidhJoinBounty(chainId);
-  const withdrawHook = usePoidhWithdrawFromBounty(chainId);
+  const claimRefundHook = usePoidhClaimRefundFromCancelledBounty(chainId);
   const acceptClaimHook = usePoidhAcceptClaim(chainId);
   const submitForVoteHook = usePoidhSubmitClaimForVote(chainId);
   const voteClaimHook = usePoidhVoteClaim(chainId);
   const resolveVoteHook = usePoidhResolveVote(chainId);
+  const resetVotingHook = usePoidhResetVotingPeriod(chainId);
 
   const deadlineTimestamp = bounty?.deadline ?? null;
   const countdown = useCountdown(deadlineTimestamp);
 
-  // Read the authoritative on-chain isOpenBounty flag (overrides API field which can be null on V2)
-  const { data: onChainBountyData } = useReadContract({
-    address: POIDH_CONTRACTS[chainId],
-    abi: POIDH_ABI,
-    functionName: 'getBounty',
-    args: [BigInt(bounty?.onChainId ?? 0)],
-    chainId,
-    query: { enabled: !!(bounty?.onChainId) },
-  });
-  const isJoinable = onChainBountyData ? onChainBountyData.isOpenBounty : (bounty?.isOpenBounty || bounty?.isMultiplayer);
+  const isJoinable = bounty?.isOpenBounty || bounty?.isMultiplayer;
 
 
   const { data: participantsData } = useReadContract({
@@ -197,6 +199,15 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   });
   const participants = participantsData?.[0] as `0x${string}`[] | undefined;
   const participantAmounts = participantsData?.[1] as bigint[] | undefined;
+
+  const { data: hadExternalContributor } = useReadContract({
+    address: POIDH_CONTRACTS[chainId],
+    abi: POIDH_ABI,
+    functionName: 'everHadExternalContributor',
+    args: [BigInt(bounty?.onChainId ?? 0)],
+    chainId,
+    query: { enabled: !!(bounty?.onChainId) },
+  });
 
   if (!bounty) return null;
 
@@ -447,8 +458,8 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                           </>
                         )}
                       </div>
-                      {/* Accept button (creator only, if not already accepted) */}
-                      {isCreator && !claim.accepted && !bounty.isCanceled && (
+                      {/* Accept button (creator only, solo bounties or open bounties with no contributors) */}
+                      {isCreator && !claim.accepted && !bounty.isCanceled && !hadExternalContributor && (
                         <Button
                           size="sm"
                           variant="default"
@@ -464,6 +475,12 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                             'Accept Claim'
                           )}
                         </Button>
+                      )}
+                      {/* Guide issuer to use vote flow when open bounty had contributors */}
+                      {isCreator && !claim.accepted && !bounty.isCanceled && hadExternalContributor && !bounty.isVoting && (
+                        <p className="text-xs text-muted-foreground">
+                          Use <strong>Submit for Vote</strong> — contributors must vote to accept.
+                        </p>
                       )}
                     </div>
                     {/* Accept success message */}
@@ -519,7 +536,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                             variant="outline"
                             className="flex-1 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
                             disabled={voteClaimHook.isPending}
-                            onClick={() => voteClaimHook.vote(bounty.onChainId, claim.id, true)}
+                            onClick={() => voteClaimHook.vote(bounty.onChainId, true)}
                           >
                             {voteClaimHook.isPending ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
@@ -532,7 +549,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                             variant="outline"
                             className="flex-1 border-red-500/30 text-red-500 hover:bg-red-500/10"
                             disabled={voteClaimHook.isPending}
-                            onClick={() => voteClaimHook.vote(bounty.onChainId, claim.id, false)}
+                            onClick={() => voteClaimHook.vote(bounty.onChainId, false)}
                           >
                             {voteClaimHook.isPending ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
@@ -562,7 +579,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                           variant="outline"
                           className="w-full"
                           disabled={resolveVoteHook.isPending}
-                          onClick={() => resolveVoteHook.resolve(bounty.onChainId, claim.id)}
+                          onClick={() => resolveVoteHook.resolve(bounty.onChainId)}
                         >
                           {resolveVoteHook.isPending ? (
                             <><Loader2 className="w-3 h-3 mr-1 animate-spin" />{resolveVoteHook.hash ? 'Confirming…' : 'Confirm in wallet…'}</>
@@ -583,6 +600,34 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                             <CheckCircle2 className="w-3 h-3 shrink-0" />
                             <span>Vote resolved!</span>
                             <a href={getTxUrl(chainId, resolveVoteHook.hash)} target="_blank" rel="noopener noreferrer" className="ml-auto flex items-center gap-1 hover:underline">
+                              View tx <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        )}
+                        {/* Reset voting period — recovery if vote failed (contract reverts if vote would have passed) */}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="w-full text-xs text-muted-foreground"
+                          disabled={resetVotingHook.isPending}
+                          onClick={() => resetVotingHook.resetVoting(bounty.onChainId)}
+                        >
+                          {resetVotingHook.isPending
+                            ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Resetting…</>
+                            : 'Reset voting period (if vote failed)'
+                          }
+                        </Button>
+                        {resetVotingHook.error && (
+                          <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1.5 text-xs text-destructive">
+                            <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
+                            <span>{resetVotingHook.error.message.split('\n')[0]}</span>
+                          </div>
+                        )}
+                        {resetVotingHook.isSuccess && resetVotingHook.hash && (
+                          <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
+                            <CheckCircle2 className="w-3 h-3 shrink-0" />
+                            <span>Voting period reset.</span>
+                            <a href={getTxUrl(chainId, resetVotingHook.hash)} target="_blank" rel="noopener noreferrer" className="ml-auto flex items-center gap-1 hover:underline">
                               View tx <ExternalLink className="w-3 h-3" />
                             </a>
                           </div>
@@ -696,7 +741,7 @@ joinHook.join(bounty.onChainId, joinAmount);
             </Card>
           )}
 
-          {/* Withdraw from canceled bounty (participant) */}
+          {/* Withdraw from canceled bounty (contributor pull-payment) */}
           {bounty.isCanceled && isJoinable && !isCreator && (
             <Card className="border-border">
               <CardHeader className="pb-3">
@@ -704,26 +749,30 @@ joinHook.join(bounty.onChainId, joinAmount);
                 <CardDescription>This bounty was canceled. Recover your contribution.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {withdrawHook.isSuccess ? (
+                {claimRefundHook.isSuccess ? (
                   <div className="flex flex-col items-center gap-2 py-2 text-center">
                     <CheckCircle2 className="w-8 h-8 text-emerald-500" />
                     <p className="text-sm font-medium">Withdrawal confirmed!</p>
-                    {withdrawHook.hash && (
-                      <a href={getTxUrl(chainId, withdrawHook.hash)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                    {claimRefundHook.hash && (
+                      <a href={getTxUrl(chainId, claimRefundHook.hash)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
                         View tx <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
                   </div>
                 ) : (
                   <>
-                    {withdrawHook.error && (
+                    {claimRefundHook.error && (
                       <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
                         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <span>{withdrawHook.error.message.split('\n')[0]}</span>
+                        <span>{claimRefundHook.error.message.split('\n')[0]}</span>
                       </div>
                     )}
-                    <Button variant="outline" className="w-full" disabled={withdrawHook.isPending} onClick={() => withdrawHook.withdraw(bounty.onChainId)}>
-                      {withdrawHook.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{withdrawHook.hash ? 'Confirming…' : 'Confirm in wallet…'}</> : 'Withdraw Funds'}
+                    <Button variant="outline" className="w-full" disabled={claimRefundHook.isPending}
+                            onClick={() => claimRefundHook.claimRefund(bounty.onChainId)}>
+                      {claimRefundHook.isPending
+                        ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{claimRefundHook.hash ? 'Confirming…' : 'Confirm in wallet…'}</>
+                        : 'Withdraw Funds'
+                      }
                     </Button>
                   </>
                 )}
@@ -775,6 +824,11 @@ joinHook.join(bounty.onChainId, joinAmount);
             </Card>
           )}
 
+
+          {/* Vote Dashboard — live yes/no tallies and deadline */}
+          {bounty.isVoting && bounty.onChainId > 0 && (
+            <VoteDashboard chainId={chainId} onChainBountyId={bounty.onChainId} />
+          )}
 
           {/* Bounty Details */}
           <Card>
