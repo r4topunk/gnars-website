@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import Image from "next/image";
 import { AlertTriangle, CheckCircle, ExternalLink, Info, Loader2 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { getContract, prepareContractCall, readContract, sendTransaction, waitForReceipt } from "thirdweb";
-import { base } from "thirdweb/chains";
 import { toast } from "sonner";
-import { useUserAddress } from "@/hooks/use-user-address";
-import { useWriteAccount } from "@/hooks/use-write-account";
-import { getThirdwebClient } from "@/lib/thirdweb";
-import { ensureOnChain } from "@/lib/thirdweb-tx";
-import Image from "next/image";
+import {
+  getContract,
+  prepareContractCall,
+  readContract,
+  sendTransaction,
+  waitForReceipt,
+} from "thirdweb";
+import { base } from "thirdweb/chains";
+import { parseEventLogs } from "viem";
 import { TransactionsSummaryList } from "@/components/proposals/preview/TransactionsSummaryList";
 import { ProposalDebugPanel } from "@/components/proposals/ProposalDebugPanel";
 import { useProposalEligibilityContext } from "@/components/proposals/ProposalEligibilityContext";
@@ -18,9 +21,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { createProposalAction } from "@/app/propose/actions";
+import { useProposalIndexing } from "@/hooks/use-proposal-indexing";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { ipfsToGatewayUrl } from "@/lib/pinata";
 import { encodeTransactions } from "@/lib/proposal-utils";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { type ProposalFormValues } from "./schema";
 
 const governorAbi = [
@@ -43,6 +51,38 @@ const governorAbi = [
     inputs: [],
     outputs: [{ name: "", type: "uint256" }],
   },
+  {
+    name: "ProposalCreated",
+    type: "event",
+    anonymous: false,
+    inputs: [
+      { name: "proposalId", type: "bytes32", indexed: false },
+      { name: "targets", type: "address[]", indexed: false },
+      { name: "values", type: "uint256[]", indexed: false },
+      { name: "calldatas", type: "bytes[]", indexed: false },
+      { name: "description", type: "string", indexed: false },
+      { name: "descriptionHash", type: "bytes32", indexed: false },
+      {
+        name: "proposal",
+        type: "tuple",
+        indexed: false,
+        components: [
+          { name: "proposer", type: "address" },
+          { name: "timeCreated", type: "uint32" },
+          { name: "againstVotes", type: "uint32" },
+          { name: "forVotes", type: "uint32" },
+          { name: "abstainVotes", type: "uint32" },
+          { name: "voteStart", type: "uint32" },
+          { name: "voteEnd", type: "uint32" },
+          { name: "proposalThreshold", type: "uint32" },
+          { name: "quorumVotes", type: "uint32" },
+          { name: "executed", type: "bool" },
+          { name: "canceled", type: "bool" },
+          { name: "vetoed", type: "bool" },
+        ],
+      },
+    ],
+  },
 ] as const;
 
 // Minimal token ABI used only for the send-time voting-power pre-check.
@@ -60,21 +100,30 @@ const tokenGetVotesAbi = [
 
 export function ProposalPreview() {
   const eligibility = useProposalEligibilityContext();
-  const { getValues, handleSubmit, formState: { errors } } = useFormContext<ProposalFormValues>();
+  const {
+    getValues,
+    handleSubmit,
+    formState: { errors },
+  } = useFormContext<ProposalFormValues>();
   const [isActionPending, startTransition] = useTransition();
   const [preparedDescription, setPreparedDescription] = useState<string>("");
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [encodedTxData, setEncodedTxData] = useState<{
-    targets: `0x${string}`[];
-    values: bigint[];
-    calldatas: `0x${string}`[];
-  } | undefined>();
+  const [encodedTxData, setEncodedTxData] = useState<
+    | {
+        targets: `0x${string}`[];
+        values: bigint[];
+        calldatas: `0x${string}`[];
+      }
+    | undefined
+  >();
   const { address, isConnected } = useUserAddress();
   const writer = useWriteAccount();
   const [hash, setHash] = useState<`0x${string}` | undefined>(undefined);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isWalletPending, setIsWalletPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [onchainProposalId, setOnchainProposalId] = useState<`0x${string}` | undefined>(undefined);
+  const indexing = useProposalIndexing(onchainProposalId);
 
   // Watch form values for reactive preview
   const watchedData = useWatch<ProposalFormValues>();
@@ -88,7 +137,7 @@ export function ProposalPreview() {
       try {
         const result = await createProposalAction(data);
         setPreparedDescription(result.description);
-        
+
         // Also encode the transactions for preview
         if (data.transactions && data.transactions.length > 0) {
           const encoded = encodeTransactions(data.transactions);
@@ -110,6 +159,7 @@ export function ProposalPreview() {
     setHash(undefined);
     setIsConfirming(false);
     setIsSuccess(false);
+    setOnchainProposalId(undefined);
 
     startTransition(async () => {
       console.log("Inside startTransition");
@@ -198,8 +248,23 @@ export function ProposalPreview() {
         setIsWalletPending(false);
 
         setIsConfirming(true);
-        await waitForReceipt({ client, chain: base, transactionHash: txHash });
+        const receipt = await waitForReceipt({ client, chain: base, transactionHash: txHash });
         setIsConfirming(false);
+
+        try {
+          const events = parseEventLogs({
+            abi: governorAbi,
+            eventName: "ProposalCreated",
+            logs: receipt.logs,
+          });
+          const created = events[0];
+          if (created?.args?.proposalId) {
+            setOnchainProposalId(created.args.proposalId as `0x${string}`);
+          }
+        } catch (parseErr) {
+          console.warn("Could not decode ProposalCreated event:", parseErr);
+        }
+
         setIsSuccess(true);
       } catch (error) {
         console.error("Error submitting proposal:", error);
@@ -217,32 +282,45 @@ export function ProposalPreview() {
   const onValidationError = (errors: Record<string, unknown>) => {
     console.error("Form validation errors:", errors);
     console.log("Full errors object:", JSON.stringify(errors, null, 2));
-    
+
     // Collect all error messages
     const errorMessages: string[] = [];
-    
-    if (errors.title && typeof errors.title === 'object' && errors.title !== null && 'message' in errors.title) {
+
+    if (
+      errors.title &&
+      typeof errors.title === "object" &&
+      errors.title !== null &&
+      "message" in errors.title
+    ) {
       errorMessages.push(`Title: ${(errors.title as { message: string }).message}`);
     }
-    if (errors.description && typeof errors.description === 'object' && errors.description !== null && 'message' in errors.description) {
+    if (
+      errors.description &&
+      typeof errors.description === "object" &&
+      errors.description !== null &&
+      "message" in errors.description
+    ) {
       errorMessages.push(`Description: ${(errors.description as { message: string }).message}`);
     }
     if (errors.transactions && Array.isArray(errors.transactions)) {
       errors.transactions.forEach((txError: unknown, index: number) => {
-        if (txError && typeof txError === 'object' && txError !== null) {
+        if (txError && typeof txError === "object" && txError !== null) {
           Object.entries(txError).forEach(([field, error]: [string, unknown]) => {
-            if (error && typeof error === 'object' && error !== null && 'message' in error) {
-              errorMessages.push(`Transaction ${index + 1} - ${field}: ${(error as { message: string }).message}`);
+            if (error && typeof error === "object" && error !== null && "message" in error) {
+              errorMessages.push(
+                `Transaction ${index + 1} - ${field}: ${(error as { message: string }).message}`,
+              );
             }
           });
         }
       });
     }
-    
-    const errorMessage = errorMessages.length > 0 
-      ? errorMessages.join("; ") 
-      : "Please fix validation errors before submitting";
-    
+
+    const errorMessage =
+      errorMessages.length > 0
+        ? errorMessages.join("; ")
+        : "Please fix validation errors before submitting";
+
     console.log("Validation error message:", errorMessage);
     setValidationError(errorMessage);
     toast.error("Validation Failed", {
@@ -271,26 +349,60 @@ export function ProposalPreview() {
   }, [canSubmit, data.title, data.transactions, isActionPending, isWalletPending, isConfirming]);
 
   if (isSuccess) {
+    const isIndexed = indexing.status === "ready" && indexing.proposalNumber !== null;
+    const isPolling = indexing.status === "pending" && !!onchainProposalId;
+    const timedOut = indexing.status === "timeout" || indexing.status === "error";
+
     return (
       <Card>
         <CardContent className="p-8 text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h3 className="text-2xl font-bold mb-2">Proposal Submitted!</h3>
-          <p className="text-muted-foreground mb-4">
-            Your proposal has been successfully submitted to the Gnars DAO.
-          </p>
-          {hash && (
-            <Button variant="outline" asChild>
-              <a
-                href={`https://basescan.org/tx/${hash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center"
-              >
-                View Transaction <ExternalLink className="h-4 w-4 ml-1" />
-              </a>
-            </Button>
+
+          {isIndexed ? (
+            <p className="text-muted-foreground mb-4">
+              Proposal #{indexing.proposalNumber} is live on the Gnars DAO.
+            </p>
+          ) : isPolling ? (
+            <p className="text-muted-foreground mb-4 inline-flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Transaction confirmed. Waiting for the subgraph to index your proposal…
+            </p>
+          ) : timedOut ? (
+            <p className="text-muted-foreground mb-4">
+              Transaction confirmed. Indexing is taking longer than expected — refresh the proposals
+              page in a minute.
+            </p>
+          ) : (
+            <p className="text-muted-foreground mb-4">
+              Your proposal has been successfully submitted to the Gnars DAO.
+            </p>
           )}
+
+          <div className="flex flex-wrap gap-2 justify-center">
+            {isIndexed && indexing.proposalNumber !== null && (
+              <Button asChild>
+                <a
+                  href={`/proposals/base/${indexing.proposalNumber}`}
+                  className="inline-flex items-center"
+                >
+                  View Proposal <ExternalLink className="h-4 w-4 ml-1" />
+                </a>
+              </Button>
+            )}
+            {hash && (
+              <Button variant="outline" asChild>
+                <a
+                  href={`https://basescan.org/tx/${hash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center"
+                >
+                  View Transaction <ExternalLink className="h-4 w-4 ml-1" />
+                </a>
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
@@ -331,8 +443,8 @@ export function ProposalPreview() {
       <TransactionsSummaryList transactions={data.transactions ?? []} />
 
       {/* Debug Panel */}
-      <ProposalDebugPanel 
-        formData={data} 
+      <ProposalDebugPanel
+        formData={data}
         preparedDescription={preparedDescription}
         encodedTransactions={encodedTxData}
       />
@@ -370,7 +482,9 @@ export function ProposalPreview() {
           {!isConnected && (
             <Alert className="mb-4">
               <Info className="h-4 w-4" />
-              <AlertDescription>Connect your wallet to check eligibility and submit.</AlertDescription>
+              <AlertDescription>
+                Connect your wallet to check eligibility and submit.
+              </AlertDescription>
             </Alert>
           )}
 
@@ -393,8 +507,8 @@ export function ProposalPreview() {
                 {typeof eligibility.votes === "bigint" && (
                   <>
                     {" "}
-                    You currently have <span className="font-semibold">{eligibility.votes.toString()}</span>{" "}
-                    votes.
+                    You currently have{" "}
+                    <span className="font-semibold">{eligibility.votes.toString()}</span> votes.
                   </>
                 )}
                 {eligibility.isDelegating && eligibility.delegatedTo && address && (

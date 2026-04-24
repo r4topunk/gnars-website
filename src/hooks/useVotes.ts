@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Address } from "viem";
 import { useReadContract, useReadContracts } from "wagmi";
 
@@ -117,7 +118,20 @@ export const useVotes = ({
   });
 
   const effectiveSnapshot = snapshotTimestamp ?? snapshotBlock;
-  const usingSnapshotQuery = Boolean(effectiveSnapshot && !hasSubgraphVoteWeight);
+
+  // OZ Votes.getPastVotes reverts when the queried timepoint is not strictly
+  // in the past (e.g. during the voting-delay window before snapshot elapses).
+  // In that case skip the snapshot path and fall back to getVotes so the UI
+  // can preview the signer's current voting power instead of erroring.
+  // Frozen at mount — if the user sits through the snapshot crossing,
+  // a refresh will pick up the correct path.
+  const [mountTime] = useState<bigint>(() => BigInt(Math.floor(Date.now() / 1000)));
+  const snapshotInFuture = Boolean(
+    snapshotTimestamp !== undefined && snapshotTimestamp > mountTime,
+  );
+  const usingSnapshotQuery = Boolean(
+    effectiveSnapshot && !hasSubgraphVoteWeight && !snapshotInFuture,
+  );
 
   const { data, isLoading: contractsLoading, error } = useReadContracts({
     query: {
