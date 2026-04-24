@@ -61,12 +61,26 @@ const navigationMenuTriggerStyle = cva(
 function NavigationMenuTrigger({
   className,
   children,
+  onClick,
   ...props
 }: React.ComponentProps<typeof NavigationMenuPrimitive.Trigger>) {
   return (
     <NavigationMenuPrimitive.Trigger
       data-slot="navigation-menu-trigger"
       className={cn(navigationMenuTriggerStyle(), "group", className)}
+      onClick={(event) => {
+        // Mouse click on a hover-opened trigger would toggle it closed. Suppress
+        // click for mouse only; keyboard (Enter/Space) and touch still toggle.
+        const native = event.nativeEvent;
+        if (
+          typeof PointerEvent !== "undefined" &&
+          native instanceof PointerEvent &&
+          native.pointerType === "mouse"
+        ) {
+          event.preventDefault();
+        }
+        onClick?.(event);
+      }}
       {...props}
     >
       {children}{" "}
