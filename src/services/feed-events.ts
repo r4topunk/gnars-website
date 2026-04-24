@@ -403,6 +403,14 @@ function transformEvent(event: SubgraphFeedEvent): FeedEvent[] {
 
     case "AuctionSettledEvent": {
       const e = event as SubgraphAuctionSettled;
+      // Skip no-bid settlements (common on low-activity DAO days).
+      // The subgraph emits `amount: "0"` + zero-address owner when an
+      // auction ends with no bidder; surfacing those as "Auction Won"
+      // cards renders "Unknown won for 0.00e+0 ETH" — noisy and
+      // misleading. Old feed never emitted settled events at all, so
+      // filtering preserves the less-spammy baseline while still
+      // showing real settled auctions with actual winners.
+      if (!e.amount || e.amount === "0") return [];
       return [
         {
           id: `auction-settled-${e.auction.id}`,
