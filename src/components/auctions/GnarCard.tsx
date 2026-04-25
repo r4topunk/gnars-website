@@ -72,7 +72,8 @@ export function GnarCard({
                   <AddressDisplay
                     address={winnerAddress}
                     variant="compact"
-                    showAvatar={false}
+                    showAvatar={true}
+                    avatarSize="xs"
                     showCopy={false}
                     showExplorer={false}
                   />

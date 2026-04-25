@@ -321,11 +321,11 @@ export function MembersList({
                         <AddressDisplay
                           address={member.delegate}
                           variant="compact"
-                          showAvatar={false}
+                          showAvatar={true}
+                          avatarSize="xs"
                           showENS={true}
                           showCopy={false}
                           showExplorer={false}
-                          avatarSize="sm"
                           onAddressClick={() => {}}
                         />
                       </Link>

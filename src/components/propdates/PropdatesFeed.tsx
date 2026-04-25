@@ -67,7 +67,7 @@ function ProposalUpdateCard({ entry, index }: ProposalUpdateCardProps) {
       className="animate-in fade-in-0"
       style={{ animationDelay: `${index * 40}ms`, animationFillMode: "both" }}
     >
-      <Card className="overflow-hidden transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-md">
+      <Card className="overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md">
         {/* Card header — proposal context */}
         <CardContent className="p-4 pb-0">
           <div className="flex items-start justify-between gap-2">
@@ -89,7 +89,7 @@ function ProposalUpdateCard({ entry, index }: ProposalUpdateCardProps) {
             <AddressDisplay
               address={proposal.proposer}
               variant="compact"
-              showAvatar={false}
+              showAvatar={true}
               showCopy={false}
               showExplorer={false}
               avatarSize="xs"
