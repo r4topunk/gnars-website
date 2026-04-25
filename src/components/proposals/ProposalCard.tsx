@@ -156,7 +156,8 @@ export function ProposalCard({
                   <AddressDisplay
                     address={proposal.proposer}
                     variant="compact"
-                    showAvatar={false}
+                    showAvatar={true}
+                    avatarSize="xs"
                     showENS={true}
                     showCopy={false}
                     showExplorer={false}
