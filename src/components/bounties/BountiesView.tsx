@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatEther } from 'viem';
 import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
 import type { PoidhBounty } from '@/types/poidh';
+import { PendingWithdrawalBanner } from '@/components/bounties/PendingWithdrawalBanner';
 
 const CATEGORIES = [
   { key: 'all', label: 'All' },
@@ -76,6 +77,7 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="space-y-6">
+        <PendingWithdrawalBanner />
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>

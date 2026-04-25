@@ -1,0 +1,104 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useReadContract } from 'wagmi';
+import { formatEther } from 'viem';
+import { Clock } from 'lucide-react';
+import { POIDH_ABI } from '@/lib/poidh/abi';
+import { POIDH_CONTRACTS } from '@/lib/poidh/config';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+function useDeadlineCountdown(deadlineSeconds: number): string {
+  const calc = () => {
+    if (!deadlineSeconds) return '';
+    const diff = deadlineSeconds * 1000 - Date.now();
+    if (diff <= 0) return 'Expired';
+    const hours = Math.floor(diff / 3_600_000);
+    const minutes = Math.floor((diff % 3_600_000) / 60_000);
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
+
+  const [label, setLabel] = useState(calc);
+
+  useEffect(() => {
+    if (!deadlineSeconds) return;
+    const id = setInterval(() => setLabel(calc()), 30_000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deadlineSeconds]);
+
+  return label;
+}
+
+interface VoteDashboardProps {
+  chainId: number;
+  onChainBountyId: number;
+}
+
+export function VoteDashboard({ chainId, onChainBountyId }: VoteDashboardProps) {
+  const contractAddress = POIDH_CONTRACTS[chainId];
+
+  const { data: tracker } = useReadContract({
+    address: contractAddress,
+    abi: POIDH_ABI,
+    functionName: 'bountyVotingTracker',
+    args: [BigInt(onChainBountyId)],
+    chainId,
+    query: {
+      enabled: !!contractAddress && onChainBountyId > 0,
+      refetchInterval: 15_000,
+    },
+  });
+
+  const deadlineSec = tracker ? Number(tracker[2]) : 0;
+  const deadline = useDeadlineCountdown(deadlineSec);
+
+  if (!tracker || deadlineSec === 0) return null;
+
+  const yesWei = tracker[0];
+  const noWei  = tracker[1];
+  const yesEth = parseFloat(formatEther(yesWei));
+  const noEth  = parseFloat(formatEther(noWei));
+  const total  = yesEth + noEth;
+  const yesPercent = total > 0 ? Math.round((yesEth / total) * 100) : 50;
+  const isExpired  = deadlineSec * 1000 < Date.now();
+
+  return (
+    <Card className="border-yellow-500/20 bg-yellow-500/5">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base text-yellow-400">Live Vote</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Yes / No labels */}
+        <div className="flex justify-between text-xs font-medium">
+          <span className="text-emerald-400">{yesEth.toFixed(4)} ETH Yes</span>
+          <span className="text-red-400">{noEth.toFixed(4)} ETH No</span>
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-2 rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+            style={{ width: `${yesPercent}%` }}
+          />
+        </div>
+
+        {/* Vote weight note */}
+        <p className="text-xs text-muted-foreground">
+          Weighted by ETH contribution — {total.toFixed(4)} ETH total
+        </p>
+
+        {/* Deadline */}
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1 border-t border-border/50">
+          <Clock className="w-3 h-3 shrink-0" />
+          <span>
+            {isExpired
+              ? 'Vote period ended — resolve when ready'
+              : `Vote closes in ${deadline}`}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
