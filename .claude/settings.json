@@ -2,12 +2,22 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
-  "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
-  },
   "permissions": {
     "allow": [
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(python3 -c ' *)",
+      "Bash(npx tsx *)",
+      "Bash(gh pr create --title 'fix\\(poidh\\): complete V3 implementation — fix broken vote/resolve, add vote dashboard and withdrawal banner' --body ' *)",
+      "Bash(vercel link *)",
+      "Bash(vercel env *)",
+      "Bash(pnpm exec *)",
+      "Bash(gh pr *)",
+      "Bash(git fetch *)",
+      "Bash(git rebase *)",
+      "Bash(git stash *)"
     ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
   }
 }

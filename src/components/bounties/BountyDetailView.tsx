@@ -1,63 +1,76 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { formatEther } from 'viem';
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { useReadContract } from 'wagmi';
-import { useConnectModal } from 'thirdweb/react';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import {
-  ArrowLeft,
-  ExternalLink,
-  Clock,
-  User,
-  CheckCircle2,
-  XCircle,
-  Loader2,
   AlertCircle,
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  Loader2,
+  User,
   Users,
   Wallet,
-} from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
-import type { PoidhBounty } from '@/types/poidh';
-import { CHAIN_NAMES, getExplorerUrl, getTxUrl, POIDH_CONTRACTS } from '@/lib/poidh/config';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { ClaimBountyModal } from '@/components/bounties/ClaimBountyModal';
-import { MediaEmbed } from '@/components/bounties/MediaEmbed';
-import { AddressDisplay } from '@/components/ui/address-display';
+  XCircle,
+} from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import remarkGfm from "remark-gfm";
+import { useConnectModal } from "thirdweb/react";
+import { formatEther } from "viem";
+import { useReadContract } from "wagmi";
+import { ClaimBountyModal } from "@/components/bounties/ClaimBountyModal";
+import { MediaEmbed } from "@/components/bounties/MediaEmbed";
+import { VoteDashboard } from "@/components/bounties/VoteDashboard";
+import { AddressDisplay } from "@/components/ui/address-display";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { formatEthToUsd, useEthPrice } from "@/hooks/use-eth-price";
+import { useUserAddress } from "@/hooks/use-user-address";
 import {
-  usePoidhCancelBounty,
-  usePoidhJoinBounty,
-  usePoidhClaimRefundFromCancelledBounty,
   usePoidhAcceptClaim,
+  usePoidhCancelBounty,
+  usePoidhClaimRefundFromCancelledBounty,
+  usePoidhJoinBounty,
+  usePoidhResetVotingPeriod,
+  usePoidhResolveVote,
   usePoidhSubmitClaimForVote,
   usePoidhVoteClaim,
-  usePoidhResolveVote,
-  usePoidhResetVotingPeriod,
-} from '@/hooks/usePoidhContract';
-import { VoteDashboard } from '@/components/bounties/VoteDashboard';
-import { POIDH_ABI } from '@/lib/poidh/abi';
-import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
-import { useUserAddress } from '@/hooks/use-user-address';
-import { getThirdwebClient } from '@/lib/thirdweb';
-import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from '@/lib/thirdweb-wallets';
+} from "@/hooks/usePoidhContract";
+import { POIDH_ABI } from "@/lib/poidh/abi";
+import { CHAIN_NAMES, getExplorerUrl, getTxUrl, POIDH_CONTRACTS } from "@/lib/poidh/config";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
+import type { PoidhBounty } from "@/types/poidh";
 
 const VIDEO_EXTENSIONS = /\.(mov|mp4|webm|ogg|m4v)(\?.*)?$/i;
-const IPFS_GATEWAYS = ['ipfs.skatehive.app', 'ipfs.io', 'cloudflare-ipfs.com', 'gateway.pinata.cloud', 'dweb.link'];
+const IPFS_GATEWAYS = [
+  "ipfs.skatehive.app",
+  "ipfs.io",
+  "cloudflare-ipfs.com",
+  "gateway.pinata.cloud",
+  "dweb.link",
+];
 
-const ALLOWED_IFRAME_HOSTS = ['youtube.com', 'www.youtube.com', 'youtu.be', 'vimeo.com', 'player.vimeo.com', '3speak.tv'];
+const ALLOWED_IFRAME_HOSTS = [
+  "youtube.com",
+  "www.youtube.com",
+  "youtu.be",
+  "vimeo.com",
+  "player.vimeo.com",
+  "3speak.tv",
+];
 
 function isAllowedIframeSrc(src: string): boolean {
   try {
     const { hostname } = new URL(src);
-    return ALLOWED_IFRAME_HOSTS.some((host) => hostname === host || hostname.endsWith('.' + host));
+    return ALLOWED_IFRAME_HOSTS.some((host) => hostname === host || hostname.endsWith("." + host));
   } catch {
     return false;
   }
@@ -65,10 +78,10 @@ function isAllowedIframeSrc(src: string): boolean {
 
 const SANITIZE_SCHEMA = {
   ...defaultSchema,
-  tagNames: [...(defaultSchema.tagNames ?? []), 'iframe'],
+  tagNames: [...(defaultSchema.tagNames ?? []), "iframe"],
   attributes: {
     ...defaultSchema.attributes,
-    iframe: ['src', 'allowFullScreen', 'width', 'height', 'frameBorder'],
+    iframe: ["src", "allowFullScreen", "width", "height", "frameBorder"],
   },
 };
 
@@ -85,30 +98,32 @@ function isIpfsCid(url: string | undefined): boolean {
   try {
     const { hostname, pathname } = new URL(url);
     if (IPFS_GATEWAYS.some((gw) => hostname.includes(gw))) {
-      const segment = pathname.split('/').pop() || '';
-      return !segment.includes('.');
+      const segment = pathname.split("/").pop() || "";
+      return !segment.includes(".");
     }
-  } catch { /* invalid URL */ }
+  } catch {
+    /* invalid URL */
+  }
   return false;
 }
 
 const STATUS_STYLES = {
-  Canceled: 'bg-red-500/10 text-red-400 border-red-500/20',
-  Voting: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  Open: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  Canceled: "bg-red-500/10 text-red-400 border-red-500/20",
+  Voting: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+  Open: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
 } as const;
 
 function getStatus(bounty: PoidhBounty): keyof typeof STATUS_STYLES {
-  if (bounty.isCanceled) return 'Canceled';
-  if (bounty.isVoting) return 'Voting';
-  return 'Open';
+  if (bounty.isCanceled) return "Canceled";
+  if (bounty.isVoting) return "Voting";
+  return "Open";
 }
 
 function useCountdown(deadline: number | null): string {
   const getLabel = () => {
-    if (!deadline) return '';
+    if (!deadline) return "";
     const diff = deadline * 1000 - Date.now();
-    if (diff <= 0) return 'Expired';
+    if (diff <= 0) return "Expired";
     const days = Math.floor(diff / 86_400_000);
     const hours = Math.floor((diff % 86_400_000) / 3_600_000);
     const minutes = Math.floor((diff % 3_600_000) / 60_000);
@@ -116,7 +131,7 @@ function useCountdown(deadline: number | null): string {
     if (days > 0) parts.push(`${days}d`);
     if (hours > 0) parts.push(`${hours}h`);
     parts.push(`${minutes}m`);
-    return parts.join(' ');
+    return parts.join(" ");
   };
 
   const [label, setLabel] = useState(getLabel);
@@ -148,8 +163,8 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
         client,
         wallets: THIRDWEB_WALLETS,
         accountAbstraction: THIRDWEB_AA_CONFIG,
-        size: 'compact',
-        title: 'Connect to contribute',
+        size: "compact",
+        title: "Connect to contribute",
       });
       setShowConnectDialog(false);
     } catch {
@@ -157,10 +172,10 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
     }
   };
   const { data } = useQuery<{ bounty: PoidhBounty }>({
-    queryKey: ['poidh-bounty', chainId, bountyId],
+    queryKey: ["poidh-bounty", chainId, bountyId],
     queryFn: async () => {
       const res = await fetch(`/api/poidh/bounty/${chainId}/${bountyId}`);
-      if (!res.ok) throw new Error('Bounty not found');
+      if (!res.ok) throw new Error("Bounty not found");
       return res.json();
     },
     initialData: { bounty: initialBounty },
@@ -170,7 +185,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   const bounty = data?.bounty;
 
   const { ethPrice } = useEthPrice();
-  const [joinAmount, setJoinAmount] = useState('0.001');
+  const [joinAmount, setJoinAmount] = useState("0.001");
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [showConnectDialog, setShowConnectDialog] = useState(false);
 
@@ -188,11 +203,10 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
 
   const isJoinable = bounty?.isOpenBounty || bounty?.isMultiplayer;
 
-
   const { data: participantsData } = useReadContract({
     address: POIDH_CONTRACTS[chainId],
     abi: POIDH_ABI,
-    functionName: 'getParticipants',
+    functionName: "getParticipants",
     args: [BigInt(bounty?.onChainId ?? 0)],
     chainId,
     query: { enabled: !!(bounty && isJoinable) },
@@ -203,15 +217,15 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   const { data: hadExternalContributor } = useReadContract({
     address: POIDH_CONTRACTS[chainId],
     abi: POIDH_ABI,
-    functionName: 'everHadExternalContributor',
+    functionName: "everHadExternalContributor",
     args: [BigInt(bounty?.onChainId ?? 0)],
     chainId,
-    query: { enabled: !!(bounty?.onChainId) },
+    query: { enabled: !!bounty?.onChainId },
   });
 
   if (!bounty) return null;
 
-  const chainName = CHAIN_NAMES[chainId as keyof typeof CHAIN_NAMES] || 'Unknown';
+  const chainName = CHAIN_NAMES[chainId as keyof typeof CHAIN_NAMES] || "Unknown";
   const amountEth = formatEther(BigInt(bounty.amount));
   const ethAmount = parseFloat(amountEth);
   const usdValue = formatEthToUsd(ethAmount, ethPrice);
@@ -275,26 +289,51 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                   rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA]]}
                   components={{
                     img: ({ src, alt }) => {
-                      const url = typeof src === 'string' ? src : '';
+                      const url = typeof src === "string" ? src : "";
                       if (isEmbeddableVideo(url)) {
                         return (
-                          <video src={url} className="rounded-lg max-w-full h-auto my-2" controls muted playsInline>
+                          <video
+                            src={url}
+                            className="rounded-lg max-w-full h-auto my-2"
+                            controls
+                            muted
+                            playsInline
+                          >
                             <track kind="captions" />
                           </video>
                         );
                       }
                       if (isIpfsCid(url)) {
-                        return <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 my-2"><ExternalLink className="w-3 h-3" />View media</a>;
+                        return (
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline flex items-center gap-1 my-2"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            View media
+                          </a>
+                        );
                       }
                       return (
                         <Dialog>
                           <DialogTrigger asChild>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={url} alt={alt || ''} className="rounded-lg max-w-full h-auto my-2 cursor-pointer hover:opacity-90 transition-opacity" loading="lazy" />
+                            <img
+                              src={url}
+                              alt={alt || ""}
+                              className="rounded-lg max-w-full h-auto my-2 cursor-pointer hover:opacity-90 transition-opacity"
+                              loading="lazy"
+                            />
                           </DialogTrigger>
                           <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={url} alt={alt || ''} className="w-full h-auto max-h-[95vh] object-contain" />
+                            <img
+                              src={url}
+                              alt={alt || ""}
+                              className="w-full h-auto max-h-[95vh] object-contain"
+                            />
                           </DialogContent>
                         </Dialog>
                       );
@@ -302,16 +341,29 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                     a: ({ href, children }) => {
                       if (isEmbeddableVideo(href)) {
                         return (
-                          <video src={href} className="rounded-lg max-w-full h-auto my-2" controls muted playsInline>
+                          <video
+                            src={href}
+                            className="rounded-lg max-w-full h-auto my-2"
+                            controls
+                            muted
+                            playsInline
+                          >
                             <track kind="captions" />
                           </video>
                         );
                       }
-                      return <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{children}</a>;
+                      return (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {children}
+                        </a>
+                      );
                     },
-                    p: ({ children }) => (
-                      <p className="whitespace-pre-wrap mb-2">{children}</p>
-                    ),
+                    p: ({ children }) => <p className="whitespace-pre-wrap mb-2">{children}</p>,
                   }}
                 >
                   {bounty.description}
@@ -341,7 +393,9 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                   </p>
                 </div>
                 <ClaimBountyModal bounty={bounty}>
-                  <Button size="lg" className="mt-2">Make a Claim</Button>
+                  <Button size="lg" className="mt-2">
+                    Join
+                  </Button>
                 </ClaimBountyModal>
               </CardContent>
             </Card>
@@ -355,15 +409,14 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
               </CardHeader>
               <CardContent className="space-y-3">
                 {bounty.claims.map((claim) => (
-                  <div
-                    key={claim.id}
-                    className="rounded-md border border-border p-4 space-y-3"
-                  >
+                  <div key={claim.id} className="rounded-md border border-border p-4 space-y-3">
                     {/* Claim header: name + accepted badge */}
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-medium text-sm">{claim.name}</p>
                       {claim.accepted && (
-                        <Badge variant="default" className="shrink-0"><CheckCircle2 className="w-3 h-3" /> Accepted</Badge>
+                        <Badge variant="default" className="shrink-0">
+                          <CheckCircle2 className="w-3 h-3" /> Accepted
+                        </Badge>
                       )}
                     </div>
 
@@ -378,63 +431,103 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                     {(() => {
                       // Strip the media URL from description to avoid duplicate "View media" links
                       const desc = claim.url
-                        ? claim.description.replace(claim.url, '').trim()
+                        ? claim.description.replace(claim.url, "").trim()
                         : claim.description;
                       if (!desc) return null;
                       return (
-                    <div className="text-sm text-muted-foreground prose prose-invert prose-sm max-w-none">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA]]}
-                        components={{
-                          img: ({ src, alt }) => {
-                            const url = typeof src === 'string' ? src : '';
-                            if (isEmbeddableVideo(url)) {
-                              return (
-                                <video src={url} className="rounded-md max-w-full h-auto max-h-48 my-2" controls muted playsInline>
-                                  <track kind="captions" />
-                                </video>
-                              );
-                            }
-                            if (isIpfsCid(url)) {
-                              return <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 my-1"><ExternalLink className="w-3 h-3" />View media</a>;
-                            }
-                            return (
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={url} alt={alt || ''} className="rounded-md max-w-full h-auto max-h-48 cursor-pointer hover:opacity-90 transition-opacity my-2" loading="lazy" />
-                                </DialogTrigger>
-                                <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={url} alt={alt || ''} className="w-full h-auto max-h-[95vh] object-contain" />
-                                </DialogContent>
-                              </Dialog>
-                            );
-                          },
-                          a: ({ href, children }) => {
-                            if (isEmbeddableVideo(href)) {
-                              return (
-                                <video src={href} className="rounded-md max-w-full h-auto max-h-48 my-2" controls muted playsInline>
-                                  <track kind="captions" />
-                                </video>
-                              );
-                            }
-                            return <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">{children}</a>;
-                          },
-                          iframe: ({ src }) => {
-                            const url = typeof src === 'string' ? src : '';
-                            if (!url || !isAllowedIframeSrc(url)) return null;
-                            return <MediaEmbed url={url} />;
-                          },
-                          p: ({ children }) => (
-                            <p className="whitespace-pre-wrap mb-1">{children}</p>
-                          ),
-                        }}
-                      >
-                        {desc}
-                      </ReactMarkdown>
-                    </div>
+                        <div className="text-sm text-muted-foreground prose prose-invert prose-sm max-w-none">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA]]}
+                            components={{
+                              img: ({ src, alt }) => {
+                                const url = typeof src === "string" ? src : "";
+                                if (isEmbeddableVideo(url)) {
+                                  return (
+                                    <video
+                                      src={url}
+                                      className="rounded-md max-w-full h-auto max-h-48 my-2"
+                                      controls
+                                      muted
+                                      playsInline
+                                    >
+                                      <track kind="captions" />
+                                    </video>
+                                  );
+                                }
+                                if (isIpfsCid(url)) {
+                                  return (
+                                    <a
+                                      href={url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-primary hover:underline flex items-center gap-1 my-1"
+                                    >
+                                      <ExternalLink className="w-3 h-3" />
+                                      View media
+                                    </a>
+                                  );
+                                }
+                                return (
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img
+                                        src={url}
+                                        alt={alt || ""}
+                                        className="rounded-md max-w-full h-auto max-h-48 cursor-pointer hover:opacity-90 transition-opacity my-2"
+                                        loading="lazy"
+                                      />
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent">
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img
+                                        src={url}
+                                        alt={alt || ""}
+                                        className="w-full h-auto max-h-[95vh] object-contain"
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
+                                );
+                              },
+                              a: ({ href, children }) => {
+                                if (isEmbeddableVideo(href)) {
+                                  return (
+                                    <video
+                                      src={href}
+                                      className="rounded-md max-w-full h-auto max-h-48 my-2"
+                                      controls
+                                      muted
+                                      playsInline
+                                    >
+                                      <track kind="captions" />
+                                    </video>
+                                  );
+                                }
+                                return (
+                                  <a
+                                    href={href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline break-all"
+                                  >
+                                    {children}
+                                  </a>
+                                );
+                              },
+                              iframe: ({ src }) => {
+                                const url = typeof src === "string" ? src : "";
+                                if (!url || !isAllowedIframeSrc(url)) return null;
+                                return <MediaEmbed url={url} />;
+                              },
+                              p: ({ children }) => (
+                                <p className="whitespace-pre-wrap mb-1">{children}</p>
+                              ),
+                            }}
+                          >
+                            {desc}
+                          </ReactMarkdown>
+                        </div>
                       );
                     })()}
 
@@ -449,7 +542,13 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                           showExplorer={false}
                           avatarSize="xs"
                           customExplorerUrl={getExplorerUrl(chainId, claim.issuer)}
-                          onAddressClick={() => window.open(getExplorerUrl(chainId, claim.issuer), '_blank', 'noopener,noreferrer')}
+                          onAddressClick={() =>
+                            window.open(
+                              getExplorerUrl(chainId, claim.issuer),
+                              "_blank",
+                              "noopener,noreferrer",
+                            )
+                          }
                         />
                         {claim.createdAt > 0 && (
                           <>
@@ -459,29 +558,36 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         )}
                       </div>
                       {/* Accept button (creator only, solo bounties or open bounties with no contributors) */}
-                      {isCreator && !claim.accepted && !bounty.isCanceled && !hadExternalContributor && (
-                        <Button
-                          size="sm"
-                          variant="default"
-                          disabled={acceptClaimHook.isPending}
-                          onClick={() => acceptClaimHook.accept(bounty.onChainId, claim.id)}
-                        >
-                          {acceptClaimHook.isPending ? (
-                            <>
-                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                              Accepting...
-                            </>
-                          ) : (
-                            'Accept Claim'
-                          )}
-                        </Button>
-                      )}
+                      {isCreator &&
+                        !claim.accepted &&
+                        !bounty.isCanceled &&
+                        !hadExternalContributor && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            disabled={acceptClaimHook.isPending}
+                            onClick={() => acceptClaimHook.accept(bounty.onChainId, claim.id)}
+                          >
+                            {acceptClaimHook.isPending ? (
+                              <>
+                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                Accepting...
+                              </>
+                            ) : (
+                              "Accept Claim"
+                            )}
+                          </Button>
+                        )}
                       {/* Guide issuer to use vote flow when open bounty had contributors */}
-                      {isCreator && !claim.accepted && !bounty.isCanceled && hadExternalContributor && !bounty.isVoting && (
-                        <p className="text-xs text-muted-foreground">
-                          Use <strong>Submit for Vote</strong> — contributors must vote to accept.
-                        </p>
-                      )}
+                      {isCreator &&
+                        !claim.accepted &&
+                        !bounty.isCanceled &&
+                        hadExternalContributor &&
+                        !bounty.isVoting && (
+                          <p className="text-xs text-muted-foreground">
+                            Use <strong>Submit for Vote</strong> — contributors must vote to accept.
+                          </p>
+                        )}
                     </div>
                     {/* Accept success message */}
                     {acceptClaimHook.isSuccess && acceptClaimHook.hash && (
@@ -500,31 +606,41 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                     )}
 
                     {/* Submit for Vote — show for contributors/creator when bounty is not yet in voting */}
-                    {!bounty.isVoting && !bounty.isCanceled && isConnected && (isCreator || participants?.some((p) => p.toLowerCase() === address?.toLowerCase())) && (
-                      <div className="pt-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="w-full"
-                          disabled={submitForVoteHook.isPending}
-                          onClick={() => submitForVoteHook.submit(bounty.onChainId, claim.id)}
-                        >
-                          {submitForVoteHook.isPending ? (
-                            <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Submitting...</>
-                          ) : submitForVoteHook.isSuccess ? (
-                            <><CheckCircle2 className="w-3 h-3 mr-1" />Submitted</>
-                          ) : (
-                            'Submit for Vote'
+                    {!bounty.isVoting &&
+                      !bounty.isCanceled &&
+                      isConnected &&
+                      (isCreator ||
+                        participants?.some((p) => p.toLowerCase() === address?.toLowerCase())) && (
+                        <div className="pt-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full"
+                            disabled={submitForVoteHook.isPending}
+                            onClick={() => submitForVoteHook.submit(bounty.onChainId, claim.id)}
+                          >
+                            {submitForVoteHook.isPending ? (
+                              <>
+                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                Submitting...
+                              </>
+                            ) : submitForVoteHook.isSuccess ? (
+                              <>
+                                <CheckCircle2 className="w-3 h-3 mr-1" />
+                                Submitted
+                              </>
+                            ) : (
+                              "Submit for Vote"
+                            )}
+                          </Button>
+                          {submitForVoteHook.error && (
+                            <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1.5 text-xs text-destructive mt-1">
+                              <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
+                              <span>{submitForVoteHook.error.message.split("\n")[0]}</span>
+                            </div>
                           )}
-                        </Button>
-                        {submitForVoteHook.error && (
-                          <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1.5 text-xs text-destructive mt-1">
-                            <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                            <span>{submitForVoteHook.error.message.split('\n')[0]}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                        </div>
+                      )}
 
                     {/* Voting controls — Vote Yes/No and Resolve when bounty.isVoting */}
                     {bounty.isVoting && isConnected && (
@@ -541,7 +657,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                             {voteClaimHook.isPending ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
                             ) : (
-                              'Vote Yes'
+                              "Vote Yes"
                             )}
                           </Button>
                           <Button
@@ -554,21 +670,26 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                             {voteClaimHook.isPending ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
                             ) : (
-                              'Vote No'
+                              "Vote No"
                             )}
                           </Button>
                         </div>
                         {voteClaimHook.error && (
                           <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1.5 text-xs text-destructive">
                             <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                            <span>{voteClaimHook.error.message.split('\n')[0]}</span>
+                            <span>{voteClaimHook.error.message.split("\n")[0]}</span>
                           </div>
                         )}
                         {voteClaimHook.isSuccess && voteClaimHook.hash && (
                           <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
                             <CheckCircle2 className="w-3 h-3 shrink-0" />
                             <span>Vote cast!</span>
-                            <a href={getTxUrl(chainId, voteClaimHook.hash)} target="_blank" rel="noopener noreferrer" className="ml-auto flex items-center gap-1 hover:underline">
+                            <a
+                              href={getTxUrl(chainId, voteClaimHook.hash)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-auto flex items-center gap-1 hover:underline"
+                            >
                               View tx <ExternalLink className="w-3 h-3" />
                             </a>
                           </div>
@@ -582,24 +703,35 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                           onClick={() => resolveVoteHook.resolve(bounty.onChainId)}
                         >
                           {resolveVoteHook.isPending ? (
-                            <><Loader2 className="w-3 h-3 mr-1 animate-spin" />{resolveVoteHook.hash ? 'Confirming…' : 'Confirm in wallet…'}</>
+                            <>
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              {resolveVoteHook.hash ? "Confirming…" : "Confirm in wallet…"}
+                            </>
                           ) : resolveVoteHook.isSuccess ? (
-                            <><CheckCircle2 className="w-3 h-3 mr-1" />Resolved</>
+                            <>
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                              Resolved
+                            </>
                           ) : (
-                            'Resolve Vote'
+                            "Resolve Vote"
                           )}
                         </Button>
                         {resolveVoteHook.error && (
                           <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1.5 text-xs text-destructive">
                             <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                            <span>{resolveVoteHook.error.message.split('\n')[0]}</span>
+                            <span>{resolveVoteHook.error.message.split("\n")[0]}</span>
                           </div>
                         )}
                         {resolveVoteHook.isSuccess && resolveVoteHook.hash && (
                           <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
                             <CheckCircle2 className="w-3 h-3 shrink-0" />
                             <span>Vote resolved!</span>
-                            <a href={getTxUrl(chainId, resolveVoteHook.hash)} target="_blank" rel="noopener noreferrer" className="ml-auto flex items-center gap-1 hover:underline">
+                            <a
+                              href={getTxUrl(chainId, resolveVoteHook.hash)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-auto flex items-center gap-1 hover:underline"
+                            >
                               View tx <ExternalLink className="w-3 h-3" />
                             </a>
                           </div>
@@ -612,22 +744,31 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                           disabled={resetVotingHook.isPending}
                           onClick={() => resetVotingHook.resetVoting(bounty.onChainId)}
                         >
-                          {resetVotingHook.isPending
-                            ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Resetting…</>
-                            : 'Reset voting period (if vote failed)'
-                          }
+                          {resetVotingHook.isPending ? (
+                            <>
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              Resetting…
+                            </>
+                          ) : (
+                            "Reset voting period (if vote failed)"
+                          )}
                         </Button>
                         {resetVotingHook.error && (
                           <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1.5 text-xs text-destructive">
                             <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                            <span>{resetVotingHook.error.message.split('\n')[0]}</span>
+                            <span>{resetVotingHook.error.message.split("\n")[0]}</span>
                           </div>
                         )}
                         {resetVotingHook.isSuccess && resetVotingHook.hash && (
                           <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
                             <CheckCircle2 className="w-3 h-3 shrink-0" />
                             <span>Voting period reset.</span>
-                            <a href={getTxUrl(chainId, resetVotingHook.hash)} target="_blank" rel="noopener noreferrer" className="ml-auto flex items-center gap-1 hover:underline">
+                            <a
+                              href={getTxUrl(chainId, resetVotingHook.hash)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-auto flex items-center gap-1 hover:underline"
+                            >
                               View tx <ExternalLink className="w-3 h-3" />
                             </a>
                           </div>
@@ -643,7 +784,6 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
 
         {/* Sidebar — actions first, then info */}
         <div className="space-y-4">
-
           {/* Submit claim */}
           {isActive && (
             <Card className="border-primary/20 bg-primary/5">
@@ -655,7 +795,9 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
               </CardHeader>
               <CardContent>
                 <ClaimBountyModal bounty={bounty}>
-                  <Button size="lg" className="w-full">Make a Claim</Button>
+                  <Button size="lg" className="w-full">
+                    Join
+                  </Button>
                 </ClaimBountyModal>
               </CardContent>
             </Card>
@@ -676,11 +818,21 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                     <CheckCircle2 className="w-8 h-8 text-emerald-500" />
                     <p className="text-sm font-medium">Contribution confirmed!</p>
                     {joinHook.hash && (
-                      <a href={getTxUrl(chainId, joinHook.hash)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a
+                        href={getTxUrl(chainId, joinHook.hash)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
                         View tx <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
-                    <Button variant="outline" size="sm" className="mt-1" onClick={() => joinHook.reset()}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-1"
+                      onClick={() => joinHook.reset()}
+                    >
                       Contribute more
                     </Button>
                   </div>
@@ -696,12 +848,14 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         onChange={(e) => setJoinAmount(e.target.value)}
                         disabled={joinHook.isPending}
                       />
-                      <span className="flex items-center text-sm text-muted-foreground px-2">ETH</span>
+                      <span className="flex items-center text-sm text-muted-foreground px-2">
+                        ETH
+                      </span>
                     </div>
                     {joinHook.error && (
                       <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
                         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <span>{joinHook.error.message.split('\n')[0]}</span>
+                        <span>{joinHook.error.message.split("\n")[0]}</span>
                       </div>
                     )}
                     <Button
@@ -709,13 +863,19 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                       className="w-full"
                       disabled={joinHook.isPending || !joinAmount}
                       onClick={() => {
-                        if (!isConnected) { setShowConnectDialog(true); return; }
+                        if (!isConnected) {
+                          setShowConnectDialog(true);
+                          return;
+                        }
                         if (!(parseFloat(joinAmount) > 0)) return;
-joinHook.join(bounty.onChainId, joinAmount);
+                        joinHook.join(bounty.onChainId, joinAmount);
                       }}
                     >
                       {joinHook.isPending ? (
-                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{joinHook.hash ? 'Confirming…' : 'Confirm in wallet…'}</>
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          {joinHook.hash ? "Confirming…" : "Confirm in wallet…"}
+                        </>
                       ) : (
                         `Contribute ${joinAmount} ETH`
                       )}
@@ -727,7 +887,9 @@ joinHook.join(bounty.onChainId, joinAmount);
                             <Wallet className="w-5 h-5 text-primary" />
                             <h2 className="text-base font-semibold">Connect Wallet</h2>
                           </div>
-                          <p className="text-sm text-muted-foreground">Connect your wallet to contribute to this bounty.</p>
+                          <p className="text-sm text-muted-foreground">
+                            Connect your wallet to contribute to this bounty.
+                          </p>
                           <Button className="w-full" onClick={handleConnect}>
                             <Wallet className="w-4 h-4 mr-2" />
                             Connect
@@ -746,7 +908,9 @@ joinHook.join(bounty.onChainId, joinAmount);
             <Card className="border-border">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Withdraw Your Contribution</CardTitle>
-                <CardDescription>This bounty was canceled. Recover your contribution.</CardDescription>
+                <CardDescription>
+                  This bounty was canceled. Recover your contribution.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {claimRefundHook.isSuccess ? (
@@ -754,7 +918,12 @@ joinHook.join(bounty.onChainId, joinAmount);
                     <CheckCircle2 className="w-8 h-8 text-emerald-500" />
                     <p className="text-sm font-medium">Withdrawal confirmed!</p>
                     {claimRefundHook.hash && (
-                      <a href={getTxUrl(chainId, claimRefundHook.hash)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a
+                        href={getTxUrl(chainId, claimRefundHook.hash)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
                         View tx <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
@@ -764,15 +933,23 @@ joinHook.join(bounty.onChainId, joinAmount);
                     {claimRefundHook.error && (
                       <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
                         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <span>{claimRefundHook.error.message.split('\n')[0]}</span>
+                        <span>{claimRefundHook.error.message.split("\n")[0]}</span>
                       </div>
                     )}
-                    <Button variant="outline" className="w-full" disabled={claimRefundHook.isPending}
-                            onClick={() => claimRefundHook.claimRefund(bounty.onChainId)}>
-                      {claimRefundHook.isPending
-                        ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{claimRefundHook.hash ? 'Confirming…' : 'Confirm in wallet…'}</>
-                        : 'Withdraw Funds'
-                      }
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      disabled={claimRefundHook.isPending}
+                      onClick={() => claimRefundHook.claimRefund(bounty.onChainId)}
+                    >
+                      {claimRefundHook.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          {claimRefundHook.hash ? "Confirming…" : "Confirm in wallet…"}
+                        </>
+                      ) : (
+                        "Withdraw Funds"
+                      )}
                     </Button>
                   </>
                 )}
@@ -785,7 +962,9 @@ joinHook.join(bounty.onChainId, joinAmount);
             <Card className="border-destructive/20">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base text-destructive/80">Cancel Bounty</CardTitle>
-                <CardDescription>Cancel and recover your funds. This cannot be undone.</CardDescription>
+                <CardDescription>
+                  Cancel and recover your funds. This cannot be undone.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {cancelHook.isSuccess ? (
@@ -793,7 +972,12 @@ joinHook.join(bounty.onChainId, joinAmount);
                     <CheckCircle2 className="w-8 h-8 text-emerald-500" />
                     <p className="text-sm font-medium">Bounty canceled.</p>
                     {cancelHook.hash && (
-                      <a href={getTxUrl(chainId, cancelHook.hash)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a
+                        href={getTxUrl(chainId, cancelHook.hash)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
                         View tx <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
@@ -803,18 +987,41 @@ joinHook.join(bounty.onChainId, joinAmount);
                     {cancelHook.error && (
                       <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
                         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <span>{cancelHook.error.message.split('\n')[0]}</span>
+                        <span>{cancelHook.error.message.split("\n")[0]}</span>
                       </div>
                     )}
                     {!confirmCancel ? (
-                      <Button variant="outline" className="w-full border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => setConfirmCancel(true)}>
+                      <Button
+                        variant="outline"
+                        className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
+                        onClick={() => setConfirmCancel(true)}
+                      >
                         Cancel Bounty
                       </Button>
                     ) : (
                       <div className="flex gap-2">
-                        <Button variant="ghost" className="flex-1" onClick={() => setConfirmCancel(false)} disabled={cancelHook.isPending}>Keep it</Button>
-                        <Button variant="destructive" className="flex-1" disabled={cancelHook.isPending} onClick={() => cancelHook.cancel(bounty.onChainId, !!isJoinable)}>
-                          {cancelHook.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{cancelHook.hash ? 'Confirming…' : 'Confirm in wallet…'}</> : 'Yes, cancel'}
+                        <Button
+                          variant="ghost"
+                          className="flex-1"
+                          onClick={() => setConfirmCancel(false)}
+                          disabled={cancelHook.isPending}
+                        >
+                          Keep it
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          className="flex-1"
+                          disabled={cancelHook.isPending}
+                          onClick={() => cancelHook.cancel(bounty.onChainId, !!isJoinable)}
+                        >
+                          {cancelHook.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              {cancelHook.hash ? "Confirming…" : "Confirm in wallet…"}
+                            </>
+                          ) : (
+                            "Yes, cancel"
+                          )}
                         </Button>
                       </div>
                     )}
@@ -823,7 +1030,6 @@ joinHook.join(bounty.onChainId, joinAmount);
               </CardContent>
             </Card>
           )}
-
 
           {/* Vote Dashboard — live yes/no tallies and deadline */}
           {bounty.isVoting && bounty.onChainId > 0 && (
@@ -849,7 +1055,7 @@ joinHook.join(bounty.onChainId, joinAmount);
                   showExplorer={true}
                   avatarSize="xs"
                   customExplorerUrl={explorerUrl}
-                  onAddressClick={() => window.open(explorerUrl, '_blank', 'noopener,noreferrer')}
+                  onAddressClick={() => window.open(explorerUrl, "_blank", "noopener,noreferrer")}
                 />
               </div>
 
@@ -859,10 +1065,10 @@ joinHook.join(bounty.onChainId, joinAmount);
                   <span className="font-medium">Created</span>
                 </div>
                 <p className="text-xs">
-                  {createdDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
+                  {createdDate.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
                   })}
                 </p>
               </div>
@@ -874,15 +1080,15 @@ joinHook.join(bounty.onChainId, joinAmount);
                     <span className="font-medium">Deadline</span>
                   </div>
                   <p className="text-xs">
-                    {deadlineDate.toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
+                    {deadlineDate.toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
                     })}
                   </p>
                   {countdown && (
                     <p className="text-xs font-medium mt-0.5 text-amber-500 dark:text-amber-400">
-                      {countdown === 'Expired' ? 'Expired' : `${countdown} remaining`}
+                      {countdown === "Expired" ? "Expired" : `${countdown} remaining`}
                     </p>
                   )}
                 </div>
@@ -895,13 +1101,19 @@ joinHook.join(bounty.onChainId, joinAmount);
                 </div>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {bounty.hasClaims && (
-                    <Badge variant="secondary" className="text-xs">Has Claims</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      Has Claims
+                    </Badge>
                   )}
                   {bounty.hasParticipants && (
-                    <Badge variant="secondary" className="text-xs">Has Participants</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      Has Participants
+                    </Badge>
                   )}
                   {!bounty.hasClaims && !bounty.hasParticipants && (
-                    <Badge variant="outline" className="text-xs">No claims yet — be first!</Badge>
+                    <Badge variant="outline" className="text-xs">
+                      No claims yet — be first!
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -927,13 +1139,17 @@ joinHook.join(bounty.onChainId, joinAmount);
                             avatarSize="xs"
                           />
                           {eth && (
-                            <span className="text-xs text-muted-foreground shrink-0">{eth} ETH</span>
+                            <span className="text-xs text-muted-foreground shrink-0">
+                              {eth} ETH
+                            </span>
                           )}
                         </div>
                       );
                     })}
                     {participants.length > 5 && (
-                      <p className="text-xs text-muted-foreground">+{participants.length - 5} more</p>
+                      <p className="text-xs text-muted-foreground">
+                        +{participants.length - 5} more
+                      </p>
                     )}
                   </div>
                 </div>
