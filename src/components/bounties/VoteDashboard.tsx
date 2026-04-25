@@ -8,27 +8,26 @@ import { POIDH_ABI } from '@/lib/poidh/abi';
 import { POIDH_CONTRACTS } from '@/lib/poidh/config';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-function useDeadlineCountdown(deadlineSeconds: number): string {
+function useDeadlineCountdown(deadlineSeconds: number): { label: string; expired: boolean } {
   const calc = () => {
-    if (!deadlineSeconds) return '';
+    if (!deadlineSeconds) return { label: '', expired: false };
     const diff = deadlineSeconds * 1000 - Date.now();
-    if (diff <= 0) return 'Expired';
+    if (diff <= 0) return { label: 'Expired', expired: true };
     const hours = Math.floor(diff / 3_600_000);
     const minutes = Math.floor((diff % 3_600_000) / 60_000);
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
+    return { label: hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`, expired: false };
   };
 
-  const [label, setLabel] = useState(calc);
+  const [state, setState] = useState(calc);
 
   useEffect(() => {
     if (!deadlineSeconds) return;
-    const id = setInterval(() => setLabel(calc()), 30_000);
+    const id = setInterval(() => setState(calc()), 30_000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deadlineSeconds]);
 
-  return label;
+  return state;
 }
 
 interface VoteDashboardProps {
@@ -52,7 +51,7 @@ export function VoteDashboard({ chainId, onChainBountyId }: VoteDashboardProps) 
   });
 
   const deadlineSec = tracker ? Number(tracker[2]) : 0;
-  const deadline = useDeadlineCountdown(deadlineSec);
+  const { label: deadline, expired: isExpired } = useDeadlineCountdown(deadlineSec);
 
   if (!tracker || deadlineSec === 0) return null;
 
@@ -62,7 +61,6 @@ export function VoteDashboard({ chainId, onChainBountyId }: VoteDashboardProps) 
   const noEth  = parseFloat(formatEther(noWei));
   const total  = yesEth + noEth;
   const yesPercent = total > 0 ? Math.round((yesEth / total) * 100) : 50;
-  const isExpired  = deadlineSec * 1000 < Date.now();
 
   return (
     <Card className="border-yellow-500/20 bg-yellow-500/5">
