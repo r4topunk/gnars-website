@@ -1,5 +1,6 @@
 export interface PoidhClaim {
   id: number;
+  onChainId: number;
   bountyId: number;
   name: string;
   description: string;

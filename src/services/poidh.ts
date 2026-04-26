@@ -109,6 +109,7 @@ function mapClaims(rawClaims: unknown[]): PoidhClaim[] {
   return rawClaims.map((c: unknown) => {
     const claim = c as {
       id: number;
+      onChainId?: number;
       bountyId: number;
       title?: string;
       description?: string;
@@ -118,6 +119,7 @@ function mapClaims(rawClaims: unknown[]): PoidhClaim[] {
     };
     return {
       id: claim.id,
+      onChainId: claim.onChainId ?? claim.id,
       bountyId: claim.bountyId,
       name: claim.title || `Claim #${claim.id}`,
       description: claim.description || "",
