@@ -6,7 +6,7 @@ export function NogglesRailsInterludeImage() {
       <div className="overflow-hidden rounded-lg border bg-card">
         <div className="relative aspect-[16/9] w-full">
           <Image
-            src="https://img.paragraph.com/cdn-cgi/image/format=auto,width=750,quality=85/https://storage.googleapis.com/papyrus_images/d0cc673744a2b91f96f0795dbaf9c4d0bd222a788eb6938ac3fe944c3f4b8f13.jpg"
+            src="https://images.hive.blog/DQmSiGWQGT6aWc1jwDmZ3LvgjFdhvLxaD15Q7LwgH63xTjS/Captura%20de%20Tela%202026-04-27%20a%CC%80s%2011.06.39.png"
             alt="NogglesRails interlude"
             fill
             className="object-cover"
