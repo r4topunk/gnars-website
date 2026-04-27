@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowLeft,
@@ -183,6 +183,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   });
 
   const bounty = data?.bounty;
+  const queryClient = useQueryClient();
 
   const { ethPrice } = useEthPrice();
   const [joinAmount, setJoinAmount] = useState("0.001");
@@ -197,6 +198,27 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   const voteClaimHook = usePoidhVoteClaim(chainId);
   const resolveVoteHook = usePoidhResolveVote(chainId);
   const resetVotingHook = usePoidhResetVotingPeriod(chainId);
+
+  // Refresh bounty state after actions that change on-chain status
+  const bountyQueryKey = ["poidh-bounty", chainId, bountyId];
+  useEffect(() => {
+    if (submitForVoteHook.isSuccess) {
+      queryClient.invalidateQueries({ queryKey: bountyQueryKey });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submitForVoteHook.isSuccess]);
+  useEffect(() => {
+    if (resolveVoteHook.isSuccess) {
+      queryClient.invalidateQueries({ queryKey: bountyQueryKey });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolveVoteHook.isSuccess]);
+  useEffect(() => {
+    if (cancelHook.isSuccess) {
+      queryClient.invalidateQueries({ queryKey: bountyQueryKey });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cancelHook.isSuccess]);
 
   const deadlineTimestamp = bounty?.deadline ?? null;
   const countdown = useCountdown(deadlineTimestamp);
