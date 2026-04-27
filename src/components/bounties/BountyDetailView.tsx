@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowLeft,
@@ -47,7 +47,7 @@ import { POIDH_ABI } from "@/lib/poidh/abi";
 import { CHAIN_NAMES, getExplorerUrl, getTxUrl, POIDH_CONTRACTS } from "@/lib/poidh/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
-import type { PoidhBounty } from "@/types/poidh";
+import type { PoidhBounty, PoidhClaim } from "@/types/poidh";
 
 const VIDEO_EXTENSIONS = /\.(mov|mp4|webm|ogg|m4v)(\?.*)?$/i;
 const IPFS_GATEWAYS = [
@@ -183,6 +183,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   });
 
   const bounty = data?.bounty;
+  const queryClient = useQueryClient();
 
   const { ethPrice } = useEthPrice();
   const [joinAmount, setJoinAmount] = useState("0.001");
@@ -197,6 +198,89 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   const voteClaimHook = usePoidhVoteClaim(chainId);
   const resolveVoteHook = usePoidhResolveVote(chainId);
   const resetVotingHook = usePoidhResetVotingPeriod(chainId);
+
+  // Refresh bounty state after actions that change on-chain status
+  const bountyQueryKey = ["poidh-bounty", chainId, bountyId];
+
+  // Refresh bounty state after actions that change on-chain status
+  useEffect(() => {
+    if (submitForVoteHook.isSuccess) queryClient.invalidateQueries({ queryKey: bountyQueryKey });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submitForVoteHook.isSuccess]);
+  useEffect(() => {
+    if (resolveVoteHook.isSuccess) queryClient.invalidateQueries({ queryKey: bountyQueryKey });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolveVoteHook.isSuccess]);
+  useEffect(() => {
+    if (cancelHook.isSuccess) queryClient.invalidateQueries({ queryKey: bountyQueryKey });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cancelHook.isSuccess]);
+
+  // Optimistic claim helpers — persist across page refresh until indexer catches up
+  const pendingClaimKey = `poidh:pending-claim:${chainId}:${bountyId}`;
+
+  const injectOptimisticClaim = useCallback(
+    (pending: { name: string; description: string; url: string; issuer: string; savedAt: number }) => {
+      queryClient.setQueryData<{ bounty: PoidhBounty }>(["poidh-bounty", chainId, bountyId], (old) => {
+        if (!old) return old;
+        const already = old.bounty.claims?.some(
+          (c) => c.issuer.toLowerCase() === pending.issuer.toLowerCase() && c.name === pending.name && c.id < 2_000_000_000,
+        );
+        if (already) return old;
+        const tmpId = Date.now();
+        const optimistic: PoidhClaim = {
+          id: tmpId,
+          onChainId: tmpId,
+          bountyId: old.bounty.id,
+          name: pending.name,
+          description: pending.description,
+          url: pending.url || null,
+          issuer: pending.issuer,
+          createdAt: Math.floor(pending.savedAt / 1000),
+          accepted: false,
+        };
+        return { bounty: { ...old.bounty, claims: [...(old.bounty.claims ?? []), optimistic], hasClaims: true } };
+      });
+    },
+    [queryClient, chainId, bountyId],
+  );
+
+  // On mount: restore pending claim from localStorage if indexer hasn't caught up yet
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(pendingClaimKey);
+      if (!raw) return;
+      injectOptimisticClaim(JSON.parse(raw) as { name: string; description: string; url: string; issuer: string; savedAt: number });
+    } catch { /* ignore parse errors */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Clear localStorage once the real claim arrives from the API
+  useEffect(() => {
+    if (!bounty?.claims) return;
+    try {
+      const raw = localStorage.getItem(pendingClaimKey);
+      if (!raw) return;
+      const pending = JSON.parse(raw) as { name: string; issuer: string };
+      const arrived = bounty.claims.some(
+        (c) => c.issuer.toLowerCase() === pending.issuer.toLowerCase() && c.name === pending.name && c.id < 2_000_000_000,
+      );
+      if (arrived) localStorage.removeItem(pendingClaimKey);
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bounty?.claims]);
+
+  const handleClaimSuccess = useCallback(
+    ({ name, description, url }: { name: string; description: string; url: string }) => {
+      if (!address) return;
+      const pending = { name, description, url, issuer: address, savedAt: Date.now() };
+      try { localStorage.setItem(pendingClaimKey, JSON.stringify(pending)); } catch { /* quota */ }
+      injectOptimisticClaim(pending);
+      setTimeout(() => queryClient.invalidateQueries({ queryKey: bountyQueryKey }), 15_000);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [address, injectOptimisticClaim, queryClient],
+  );
 
   const deadlineTimestamp = bounty?.deadline ?? null;
   const countdown = useCountdown(deadlineTimestamp);
@@ -392,7 +476,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                     Be the first to complete this challenge. Film your proof and submit it on-chain.
                   </p>
                 </div>
-                <ClaimBountyModal bounty={bounty}>
+                <ClaimBountyModal bounty={bounty} onSuccess={handleClaimSuccess}>
                   <Button size="lg" className="mt-2">
                     Join
                   </Button>
@@ -794,7 +878,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ClaimBountyModal bounty={bounty}>
+                <ClaimBountyModal bounty={bounty} onSuccess={handleClaimSuccess}>
                   <Button size="lg" className="w-full">
                     Join
                   </Button>

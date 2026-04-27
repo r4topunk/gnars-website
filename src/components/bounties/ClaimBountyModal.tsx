@@ -25,9 +25,10 @@ import type { PoidhBounty } from "@/types/poidh";
 interface ClaimBountyModalProps {
   bounty: PoidhBounty;
   children: React.ReactNode;
+  onSuccess?: (claim: { name: string; description: string; url: string }) => void;
 }
 
-export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
+export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyModalProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -61,6 +62,7 @@ export function ClaimBountyModal({ bounty, children }: ClaimBountyModalProps) {
     if (!name.trim() || !description.trim()) return;
     try {
       await submit(bounty.onChainId, name.trim(), description.trim(), mediaUrl.trim());
+      onSuccess?.({ name: name.trim(), description: description.trim(), url: mediaUrl.trim() });
     } catch {
       // error captured in hook
     }
