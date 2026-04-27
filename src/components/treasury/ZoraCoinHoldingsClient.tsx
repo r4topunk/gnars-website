@@ -27,6 +27,7 @@ export interface ZoraCoin {
   image?: string;
   creatorAddress?: string;
   creatorName?: string;
+  externalUrl?: string;
 }
 
 interface ZoraCoinHoldingsClientProps {
@@ -163,7 +164,7 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
                   </TableCell>
                   <TableCell className="text-right">
                     <a
-                      href={`https://zora.co/collect/base:${coin.address}`}
+                      href={coin.externalUrl || `https://zora.co/collect/base:${coin.address}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"

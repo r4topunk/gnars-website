@@ -141,6 +141,12 @@ const loadZoraCoins = cache(async (treasuryAddress: string): Promise<ZoraCoin[]>
           }
         }
 
+        const normalizedAddress = (coin.address || "").toLowerCase();
+        const externalUrl =
+          normalizedAddress === "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+            ? "https://basescan.org/address/0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+            : `https://zora.co/collect/base:${coin.address || ""}`;
+
         const coinData = {
           id: coin.id || coin.address || "unknown",
           address: coin.address || "",
@@ -155,6 +161,7 @@ const loadZoraCoins = cache(async (treasuryAddress: string): Promise<ZoraCoin[]>
           image: imageUrl,
           creatorAddress: coin.creator?.address,
           creatorName: coin.creator?.displayName || coin.creator?.handle,
+          externalUrl,
         };
 
         return coinData;
