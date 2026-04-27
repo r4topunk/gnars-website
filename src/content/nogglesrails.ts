@@ -208,6 +208,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     continent: "Americas",
     type: "Rail",
     images: [
+      "/images/nogglesrails/minas-gerais.jpg",
       "https://images.hive.blog/DQmPXKkeMSPYtTVuEYfod2ua5gRcwtewA5u5d45zLdTQWr9/Captura%20de%20Tela%202026-03-20%20a%CC%80s%2017.22.21.png",
     ],
     iconUrl: "/nogglesRail3D.png",
