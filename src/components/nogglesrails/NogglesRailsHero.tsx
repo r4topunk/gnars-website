@@ -5,9 +5,28 @@ import { Environment, OrbitControls, PerspectiveCamera, useGLTF } from "@react-t
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { NOGGLES_RAILS } from "@/content/nogglesrails";
 
-const DEFAULT_FRAME_COLOR = "#D93F2A";
+const RAIL_COLOR_PRESETS = [
+  { name: "OG Nogglesrail", value: "#FF2D2D" },
+  { name: "Dark Gnars", value: "#0B0B0B" },
+  { name: "Pink Lil Nouns", value: "#FF6383" },
+  { name: "BASED", value: "#0066FF" },
+  { name: "HIGHER", value: "#2BFF00" },
+  { name: "Yellow Collective", value: "#FFD400" },
+  { name: "Storm", value: "#5A5F66" },
+  { name: "Gnarly Mud", value: "#5C3A21" },
+  { name: "Cloud", value: "#F2F2F0" },
+];
+
+const DEFAULT_FRAME_COLOR = RAIL_COLOR_PRESETS[0].value;
 
 // 3D NogglesRail Model Component
 function NogglesRailModel3D({ frameColor }: { frameColor: string }) {
@@ -128,16 +147,26 @@ export default function NogglesRailsHero() {
             >
               View All Rails
             </Button>
-            {/* Color picker */}
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="color"
-                value={frameColor}
-                onChange={(e) => setFrameColor(e.target.value)}
-                className="h-8 w-8 cursor-pointer rounded border border-border bg-transparent p-0"
-              />
-              <span className="text-sm text-muted-foreground">Frame Color</span>
-            </label>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Rail Color</span>
+              <Select value={frameColor} onValueChange={setFrameColor}>
+                <SelectTrigger className="w-[210px]">
+                  <SelectValue placeholder="Choose rail color" />
+                </SelectTrigger>
+                <SelectContent>
+                  {RAIL_COLOR_PRESETS.map(({ name, value }) => (
+                    <SelectItem key={value} value={value}>
+                      <span
+                        className="size-3 rounded-full border border-border"
+                        style={{ backgroundColor: value }}
+                        aria-hidden="true"
+                      />
+                      <span>{name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
