@@ -19,6 +19,7 @@ const RAIL_COLOR_PRESETS = [
   { name: "Dark Gnars", value: "#0B0B0B" },
   { name: "Pink Lil Nouns", value: "#FF6383" },
   { name: "BASED", value: "#0066FF" },
+  { name: "DEGEN", value: "#7B2DFF" },
   { name: "HIGHER", value: "#2BFF00" },
   { name: "Yellow Collective", value: "#FFD400" },
   { name: "Storm", value: "#5A5F66" },
