@@ -89,7 +89,7 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Challenges</h1>
             <p className="text-muted-foreground mt-1">
-              Gnarly challenges from the action sports community.{' '}
+              Gnars Bountie is a new lane for small onchain grants built to keep the wheels turning.{' '}
               <a
                 href="https://poidh.xyz"
                 target="_blank"
@@ -156,6 +156,26 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
             </div>
           </div>
         )}
+
+        <div className="rounded-3xl border border-border bg-muted/30 p-6 md:p-8">
+          <div className="max-w-4xl space-y-5">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Manifesto</div>
+            </div>
+            <div className="space-y-4 text-sm leading-7 text-muted-foreground md:text-base">
+              <p className="text-foreground">This doesn’t come out of nowhere. D.I.Y</p>
+              <p>
+                It carries some of the energy we lived through in That’s Gnarly and Prop House moments where the right amount of
+                support at the right time could unlock a clip, a project, a session, a spark, or a path forward.
+              </p>
+              <p>Gnars Bounties picks that up and pushes it into a more open, more direct format.</p>
+              <p>No dead process. No polished grant-speak. No waiting around for perfect conditions.</p>
+              <p className="text-foreground">
+                Just a place to put up an idea, back a mission, complete the work, and get paid onchain.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Filters */}
         <div className="flex flex-col gap-3">
