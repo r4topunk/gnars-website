@@ -28,6 +28,12 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
   weed: ['weed', 'cannabis', 'joint', 'blunt', '420', 'smoke', 'kush'],
 };
 
+const BANNER_IMAGES = [
+  'https://images.hive.blog/DQmZtLJgBNArPUScjdJzf4bn56wdn6BZ3Nwwd8rPoUFKc1f/Captura%20de%20Tela%202026-04-24%20a%CC%80s%2013.06.11.png',
+  'https://img.paragraph.com/cdn-cgi/image/format=auto,width=1080,quality=85/https://storage.googleapis.com/papyrus_images/44c796ba01b6ab07b5ad419da0dc4195.jpg',
+  'https://images.hive.blog/DQmRam7hFrAUvstnn4aodL58w7oqgEWLsZGK3Qh5DHrgqp1/Captura%20de%20Tela%202026-04-24%20a%CC%80s%2013.15.40.png',
+] as const;
+
 interface BountiesViewProps {
   initialBounties: PoidhBounty[];
 }
@@ -101,6 +107,23 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
               <span className="sm:hidden">Create</span>
             </Button>
           </CreateBountyModal>
+        </div>
+
+        <div className="overflow-hidden rounded-3xl border border-border bg-muted/30">
+          <div className="grid grid-cols-1 gap-px bg-border md:grid-cols-3">
+            {BANNER_IMAGES.map((src, index) => (
+              <div
+                key={src}
+                className="flex h-[180px] items-center justify-center bg-background/40 md:h-[210px]"
+              >
+                <img
+                  src={src}
+                  alt={`Gnars bounty banner image ${index + 1}`}
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Pool stats */}
