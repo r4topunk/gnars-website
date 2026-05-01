@@ -25,6 +25,7 @@ This is the canonical entry point for project documentation. Everything below sh
 
 - `docs/integrations/pinata.md` — IPFS upload integration
 - `docs/integrations/splits.md` — 0xSplits droposal revenue sharing
+- `docs/integrations/swap.md` — 0x Swap API v2 integration powering /swap, including affiliate-fee config
 
 ## Specs
 
