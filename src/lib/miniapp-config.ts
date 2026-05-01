@@ -1,4 +1,4 @@
-import { BASE_URL, DAO_DESCRIPTION, DAO_ADDRESSES } from "./config";
+import { BASE_URL, DAO_ADDRESSES, DAO_DESCRIPTION } from "./config";
 
 /**
  * Farcaster Mini App Configuration
@@ -17,9 +17,11 @@ export const MINIAPP_CONFIG = {
   // Account association - MUST be filled in after signing at base.dev/preview
   // Leave empty strings until you've signed the manifest
   accountAssociation: {
-    header: "eyJmaWQiOjUzODgzOSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDk3Yjc4ZDdCM2M2NmMyZmZiOTYxYWEwQURCNmNlNjcyQTM3MTZEOEMifQ",
+    header:
+      "eyJmaWQiOjUzODgzOSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDk3Yjc4ZDdCM2M2NmMyZmZiOTYxYWEwQURCNmNlNjcyQTM3MTZEOEMifQ",
     payload: "eyJkb21haW4iOiJnbmFycy5jb20ifQ",
-    signature: "qm+dqd4UcCOzjAYvNCDaoQOp1A4PoXAm9B6Qv6D4iJ9kzFZ4zjVpoL3s21y2UckqPC+QPO2/HkKuRzoU8GmV4xs=",
+    signature:
+      "qm+dqd4UcCOzjAYvNCDaoQOp1A4PoXAm9B6Qv6D4iJ9kzFZ4zjVpoL3s21y2UckqPC+QPO2/HkKuRzoU8GmV4xs=",
   },
 
   // Base builder configuration - add your Base account address
@@ -75,7 +77,6 @@ export const MINIAPP_EMBED_CONFIG = {
     },
   },
 };
-
 
 /**
  * TV Mini App Configuration
@@ -177,7 +178,6 @@ export const PROPOSALS_MINIAPP_EMBED_CONFIG = {
   },
 };
 
-
 /**
  * Members Embed metadata configuration for fc:miniapp meta tag
  */
@@ -269,8 +269,7 @@ export const MAP_MINIAPP_CONFIG = {
     heroImageUrl: `${BASE_URL}/map/opengraph-image`,
     tagline: "Global skate spots funded by Gnars DAO",
     ogTitle: "Gnars World Map",
-    ogDescription:
-      "Explore Gnars DAO funded skate spots, rails, and projects around the world.",
+    ogDescription: "Explore Gnars DAO funded skate spots, rails, and projects around the world.",
     ogImageUrl: `${BASE_URL}/map/opengraph-image`,
     noindex: false,
   },
@@ -288,6 +287,29 @@ export const MAP_MINIAPP_EMBED_CONFIG = {
       type: "launch_miniapp" as const,
       name: "Gnars World Map",
       url: `${BASE_URL}/map`,
+      splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
+      splashBackgroundColor: "#000000",
+    },
+  },
+};
+
+/**
+ * Swap Embed metadata configuration for fc:miniapp meta tag.
+ *
+ * Surfaces the /swap page as a launchable Farcaster mini app with a
+ * swap-specific cover image and CTA. The fee on Base swaps still routes
+ * to the DAO treasury via the 0x proxy, so opening the embed and trading
+ * directly funds the Collective.
+ */
+export const SWAP_MINIAPP_EMBED_CONFIG = {
+  version: "1",
+  imageUrl: `${BASE_URL}/swap/miniapp-image`,
+  button: {
+    title: "Swap on Gnars",
+    action: {
+      type: "launch_miniapp" as const,
+      name: "Gnars Swap",
+      url: `${BASE_URL}/swap`,
       splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
       splashBackgroundColor: "#000000",
     },
