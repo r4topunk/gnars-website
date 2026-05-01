@@ -24,6 +24,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ArrowLeftRight,
   BookOpen,
   Coins,
   Gavel,
@@ -41,9 +42,9 @@ import {
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
-import { base } from "wagmi/chains";
 import { base as thirdwebBase } from "thirdweb/chains";
 import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
+import { base } from "wagmi/chains";
 import { DelegationModal } from "@/components/layout/DelegationModal";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
@@ -111,9 +112,22 @@ const navigationItems = [
     ],
   },
   {
-    title: "Treasury",
-    href: "/treasury",
-    icon: Wallet,
+    title: "Money",
+    items: [
+      {
+        title: "Treasury",
+        href: "/treasury",
+        icon: Wallet,
+        description: "ETH, ERC-20s, NFTs, and onchain analytics for the DAO treasury",
+      },
+      {
+        title: "Swap",
+        href: "/swap",
+        icon: ArrowLeftRight,
+        description: "Trade tokens on Base via 0x — best price across 150+ DEXes",
+        badge: "NEW!",
+      },
+    ],
   },
   {
     title: "Community",

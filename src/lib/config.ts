@@ -9,11 +9,16 @@ export const CHAIN = {
 
 // Core Builder DAO addresses — override via env vars to deploy for a different DAO
 export const DAO_ADDRESSES = {
-  token: (process.env.NEXT_PUBLIC_TOKEN_ADDRESS || "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17") as `0x${string}`,
-  auction: (process.env.NEXT_PUBLIC_AUCTION_ADDRESS || "0x494eaa55ecf6310658b8fc004b0888dcb698097f") as `0x${string}`,
-  governor: (process.env.NEXT_PUBLIC_GOVERNOR_ADDRESS || "0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c") as `0x${string}`,
-  treasury: (process.env.NEXT_PUBLIC_TREASURY_ADDRESS || "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88") as `0x${string}`,
-  metadata: (process.env.NEXT_PUBLIC_METADATA_ADDRESS || "0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58") as `0x${string}`,
+  token: (process.env.NEXT_PUBLIC_TOKEN_ADDRESS ||
+    "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17") as `0x${string}`,
+  auction: (process.env.NEXT_PUBLIC_AUCTION_ADDRESS ||
+    "0x494eaa55ecf6310658b8fc004b0888dcb698097f") as `0x${string}`,
+  governor: (process.env.NEXT_PUBLIC_GOVERNOR_ADDRESS ||
+    "0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c") as `0x${string}`,
+  treasury: (process.env.NEXT_PUBLIC_TREASURY_ADDRESS ||
+    "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88") as `0x${string}`,
+  metadata: (process.env.NEXT_PUBLIC_METADATA_ADDRESS ||
+    "0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58") as `0x${string}`,
   gnarsErc20: "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b", // $GNARS ERC20 token
 } as const;
 
@@ -33,7 +38,7 @@ export const GNARS_ZORA_HANDLE = "gnars" as const;
 // Use for known community members whose wallets are fragmented across profiles.
 export const GNARS_CREATOR_ALLOWLIST: readonly string[] = [
   "skatehacker", // vlad — NFTs on skateboard/maconhinha.base.eth wallets
-  "nogenta",     // nogenta — 9 NFTs, may fall outside top-200 subgraph scan
+  "nogenta", // nogenta — 9 NFTs, may fall outside top-200 subgraph scan
 ] as const;
 
 // Zora Factory contract on Base
@@ -50,15 +55,19 @@ export const DROPOSAL_TARGET = {
 // Default mint limit per address for droposals (effectively unlimited)
 export const DROPOSAL_DEFAULT_MINT_LIMIT = 1000000 as const;
 
+// /swap (0x Swap API) — affiliate fee paid to the DAO treasury when the user
+// keeps the "Support Gnars treasury" checkbox checked. Fee is taken on the
+// bought token. The recipient is always `DAO_ADDRESSES.treasury`; this just
+// controls the rate.
+export const SWAP_FEE_BPS = 50 as const; // 0.5%
 
 export const SUBGRAPH = {
   // Official Nouns Builder Subgraph URL for Gnars on Base (Goldsky public)
   url: `https://api.goldsky.com/api/public/${process.env.NEXT_PUBLIC_GOLDSKY_PROJECT_ID || "project_cm33ek8kjx6pz010i2c3w8z25"}/subgraphs/nouns-builder-base-mainnet/latest/gn`,
-  
+
   // Legacy Gnars subgraph on Ethereum mainnet (The Graph Studio)
   ethMainnet: "https://api.studio.thegraph.com/query/84885/gnars-mainnet/v1.0.0",
 } as const;
-
 
 export const GNARS_ADDRESSES_ETH = {
   token: "0x558bfff0d583416f7c4e380625c7865821b8e95c",
@@ -66,8 +75,7 @@ export const GNARS_ADDRESSES_ETH = {
   treasury: "0x4d3a210f40f83286dc5e4d3fe285dcfef30cce52",
 } as const;
 
-export const DAO_DESCRIPTION =
-  "Nounish Open Source Action Sports Brand experiment";
+export const DAO_DESCRIPTION = "Nounish Open Source Action Sports Brand experiment";
 
 export const HOMEPAGE_DESCRIPTIONS = [
   "Nounish Open Source Action Sports Brand experiment",
@@ -75,7 +83,7 @@ export const HOMEPAGE_DESCRIPTIONS = [
   "Building the future of shredding",
   "Empowering athletes through collective governance",
   "Has funded 15 skatable sculptures around the world",
-  "é foda pra caralho!"
+  "é foda pra caralho!",
 ] as const;
 
 // Token contracts we care about for treasury display
