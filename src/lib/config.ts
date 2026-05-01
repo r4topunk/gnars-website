@@ -55,11 +55,19 @@ export const DROPOSAL_TARGET = {
 // Default mint limit per address for droposals (effectively unlimited)
 export const DROPOSAL_DEFAULT_MINT_LIMIT = 1000000 as const;
 
-// /swap (0x Swap API) — affiliate fee paid to the DAO treasury when the user
-// keeps the "Support Gnars treasury" checkbox checked. Fee is taken on the
-// bought token. The recipient is always `DAO_ADDRESSES.treasury`; this just
-// controls the rate.
+// /swap (0x Swap API) — affiliate fee taken on the bought token when the
+// user keeps the "Support Gnars treasury" checkbox checked.
+// Recipient depends on chain: Base swaps land in the on-chain DAO treasury;
+// other chains route to a multichain custody address that the DAO bridges
+// back periodically.
 export const SWAP_FEE_BPS = 50 as const; // 0.5%
+
+export const SWAP_FEE_RECIPIENT_MULTICHAIN =
+  "0xa642b91ff941fb68919d1877e9937f3e369dfd68" as `0x${string}`;
+
+export function getSwapFeeRecipient(chainId: number): `0x${string}` {
+  return chainId === CHAIN.id ? DAO_ADDRESSES.treasury : SWAP_FEE_RECIPIENT_MULTICHAIN;
+}
 
 export const SUBGRAPH = {
   // Official Nouns Builder Subgraph URL for Gnars on Base (Goldsky public)

@@ -4,10 +4,8 @@ import * as React from "react";
 import { ArrowRight, Check, ChevronDown, Info, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { prepareContractCall, prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
-import { base as thirdwebBase } from "thirdweb/chains";
 import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
 import { formatUnits, maxUint256, parseUnits, type Address, type Hex } from "viem";
-import { base } from "wagmi/chains";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -22,13 +20,11 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useWriteAccount } from "@/hooks/use-write-account";
-import { DAO_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
 import { cn } from "@/lib/utils";
-
-// 0x convention for the native asset slot.
-const NATIVE_TOKEN = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" as const;
+import { getDefaultPair, NATIVE_TOKEN, type SwapToken } from "./chains";
+import { useSwapChain } from "./SwapChainContext";
 
 const erc20ApproveAbi = [
   {
@@ -42,62 +38,6 @@ const erc20ApproveAbi = [
     outputs: [{ type: "bool" }],
   },
 ] as const;
-
-interface TokenInfo {
-  symbol: string;
-  name: string;
-  address: `0x${string}` | typeof NATIVE_TOKEN;
-  decimals: number;
-  logo?: string;
-}
-
-const TOKENS: readonly TokenInfo[] = [
-  {
-    symbol: "ETH",
-    name: "Ethereum",
-    address: NATIVE_TOKEN,
-    decimals: 18,
-    logo: "https://assets.relay.link/icons/1/light.png",
-  },
-  {
-    symbol: "WETH",
-    name: "Wrapped Ether",
-    address: TREASURY_TOKEN_ALLOWLIST.WETH as `0x${string}`,
-    decimals: 18,
-    logo: "https://assets.relay.link/icons/1/light.png",
-  },
-  {
-    symbol: "USDC",
-    name: "USD Coin",
-    address: TREASURY_TOKEN_ALLOWLIST.USDC as `0x${string}`,
-    decimals: 6,
-    logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913/logo.png",
-  },
-  {
-    symbol: "GNARS",
-    name: "Gnars",
-    address: DAO_ADDRESSES.gnarsErc20 as `0x${string}`,
-    decimals: 18,
-    logo: "/gnars.webp",
-  },
-  {
-    symbol: "DEGEN",
-    name: "Degen",
-    address: "0x4ed4e862860bed51a9570b96d89af5e1b0efefed",
-    decimals: 18,
-  },
-  {
-    symbol: "HIGHER",
-    name: "Higher",
-    address: "0x0578d8a44db98b23bf096a382e016e29a5ce0ffe",
-    decimals: 18,
-  },
-] as const;
-
-const POPULAR_SYMBOLS = ["ETH", "USDC", "GNARS", "DEGEN"] as const;
-
-const DEFAULT_SELL = TOKENS.find((t) => t.symbol === "ETH")!;
-const DEFAULT_BUY = TOKENS.find((t) => t.symbol === "GNARS")!;
 
 interface ZeroExPriceResponse {
   liquidityAvailable?: boolean;
@@ -136,12 +76,12 @@ function formatTokenAmount(raw: string | undefined, decimals: number): string {
   }
 }
 
-function TokenLogo({ token, size = 24 }: { token: TokenInfo; size?: number }) {
+function TokenLogo({ token, size = 24 }: { token: SwapToken; size?: number }) {
   const dim = `${size}px`;
   if (token.logo) {
     return (
       <span
-        className="relative inline-flex shrink-0 overflow-hidden rounded-full bg-muted"
+        className="relative inline-flex shrink-0 items-center justify-center"
         style={{ width: dim, height: dim }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -150,7 +90,7 @@ function TokenLogo({ token, size = 24 }: { token: TokenInfo; size?: number }) {
           alt=""
           width={size}
           height={size}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
         />
       </span>
     );
@@ -166,34 +106,33 @@ function TokenLogo({ token, size = 24 }: { token: TokenInfo; size?: number }) {
 }
 
 interface TokenPickerProps {
-  value: TokenInfo;
+  value: SwapToken;
+  tokens: readonly SwapToken[];
   exclude?: `0x${string}` | typeof NATIVE_TOKEN;
-  onSelect: (token: TokenInfo) => void;
+  onSelect: (token: SwapToken) => void;
   label: string;
 }
 
-function TokenPicker({ value, exclude, onSelect, label }: TokenPickerProps) {
+function TokenPicker({ value, tokens, exclude, onSelect, label }: TokenPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
 
-  const popular = React.useMemo(
-    () =>
-      TOKENS.filter((t) => POPULAR_SYMBOLS.includes(t.symbol as (typeof POPULAR_SYMBOLS)[number])),
-    [],
-  );
+  // Show the first 4 tokens of the chain as the "popular" row — chain
+  // registries are ordered to put the staples first.
+  const popular = React.useMemo(() => tokens.slice(0, 4), [tokens]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return TOKENS;
-    return TOKENS.filter(
+    if (!q) return tokens;
+    return tokens.filter(
       (t) =>
         t.symbol.toLowerCase().includes(q) ||
         t.name.toLowerCase().includes(q) ||
         t.address.toLowerCase().includes(q),
     );
-  }, [query]);
+  }, [query, tokens]);
 
-  const choose = (token: TokenInfo) => {
+  const choose = (token: SwapToken) => {
     if (token.address === exclude) return;
     onSelect(token);
     setQuery("");
@@ -304,14 +243,18 @@ function TokenPicker({ value, exclude, onSelect, label }: TokenPickerProps) {
 }
 
 export function SwapWidget() {
+  const { chain } = useSwapChain();
   const { address, isConnected } = useUserAddress();
   const writer = useWriteAccount();
   const activeWallet = useActiveWallet();
   const activeChain = useActiveWalletChain();
-  const isWrongNetwork = isConnected && activeChain?.id !== base.id;
+  const isWrongNetwork = isConnected && activeChain?.id !== chain.id;
 
-  const [sellToken, setSellToken] = React.useState<TokenInfo>(DEFAULT_SELL);
-  const [buyToken, setBuyToken] = React.useState<TokenInfo>(DEFAULT_BUY);
+  // Default sell/buy come from the selected chain's registry. When the chain
+  // changes, the effect below resets them to that chain's defaults.
+  const initialPair = React.useMemo(() => getDefaultPair(chain), [chain]);
+  const [sellToken, setSellToken] = React.useState<SwapToken>(initialPair.sell);
+  const [buyToken, setBuyToken] = React.useState<SwapToken>(initialPair.buy);
   const [sellAmount, setSellAmount] = React.useState("");
   const [supportFee, setSupportFee] = React.useState(true);
 
@@ -323,6 +266,19 @@ export function SwapWidget() {
   const [isApproving, setIsApproving] = React.useState(false);
   const [isSwapping, setIsSwapping] = React.useState(false);
   const [isSwitchingChain, setIsSwitchingChain] = React.useState(false);
+
+  // When the user switches chain, reset everything to that chain's defaults.
+  // Tokens from a previous chain are nonsense to 0x for the new chainId.
+  React.useEffect(() => {
+    const pair = getDefaultPair(chain);
+    setSellToken(pair.sell);
+    setBuyToken(pair.buy);
+    setSellAmount("");
+    setPrice(null);
+    setNeedsApproval(false);
+    setApprovalTarget(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chain.id]);
 
   // Debounced indicative price fetch.
   // 0x requires a `taker` for every price call. When the user hasn't connected
@@ -351,7 +307,7 @@ export function SwapWidget() {
         setIsFetching(true);
         const rawAmount = parseUnits(sellAmount, sellToken.decimals).toString();
         const params = new URLSearchParams({
-          chainId: String(base.id),
+          chainId: String(chain.id),
           sellToken: sellToken.address,
           buyToken: buyToken.address,
           sellAmount: rawAmount,
@@ -386,7 +342,7 @@ export function SwapWidget() {
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [sellAmount, sellToken, buyToken, address, supportFee]);
+  }, [sellAmount, sellToken, buyToken, address, supportFee, chain.id]);
 
   const flip = () => {
     setSellToken(buyToken);
@@ -401,8 +357,8 @@ export function SwapWidget() {
     if (!activeWallet || isSwitchingChain) return;
     setIsSwitchingChain(true);
     try {
-      await activeWallet.switchChain(thirdwebBase);
-      toast.success("Switched to Base");
+      await activeWallet.switchChain(chain.thirdwebChain);
+      toast.success(`Switched to ${chain.name}`);
     } catch (err) {
       const { message } = normalizeTxError(err);
       toast.error("Failed to switch network", { description: message });
@@ -414,16 +370,16 @@ export function SwapWidget() {
   const handleApprove = async () => {
     const client = getThirdwebClient();
     if (!client || !writer || !approvalTarget) {
-      toast.error("Cannot approve", { description: "Connect a wallet on Base." });
+      toast.error("Cannot approve", { description: `Connect a wallet on ${chain.name}.` });
       return;
     }
     setIsApproving(true);
     try {
-      await ensureOnChain(writer.wallet, thirdwebBase);
+      await ensureOnChain(writer.wallet, chain.thirdwebChain);
       const tx = prepareContractCall({
         contract: {
           client,
-          chain: thirdwebBase,
+          chain: chain.thirdwebChain,
           address: sellToken.address as Address,
           abi: erc20ApproveAbi,
         },
@@ -435,7 +391,7 @@ export function SwapWidget() {
       toast.success(`Approval submitted`, {
         description: `${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
       });
-      await waitForReceipt({ client, chain: thirdwebBase, transactionHash: txHash });
+      await waitForReceipt({ client, chain: chain.thirdwebChain, transactionHash: txHash });
       setNeedsApproval(false);
       setApprovalTarget(null);
       toast.success(`${sellToken.symbol} approved`);
@@ -464,11 +420,11 @@ export function SwapWidget() {
 
     setIsSwapping(true);
     try {
-      await ensureOnChain(writer.wallet, thirdwebBase);
+      await ensureOnChain(writer.wallet, chain.thirdwebChain);
 
       const rawAmount = parseUnits(sellAmount, sellToken.decimals).toString();
       const params = new URLSearchParams({
-        chainId: String(base.id),
+        chainId: String(chain.id),
         sellToken: sellToken.address,
         buyToken: buyToken.address,
         sellAmount: rawAmount,
@@ -487,7 +443,7 @@ export function SwapWidget() {
       }
 
       const tx = prepareTransaction({
-        chain: thirdwebBase,
+        chain: chain.thirdwebChain,
         client,
         to: quote.transaction.to as Address,
         data: quote.transaction.data as Hex,
@@ -501,7 +457,7 @@ export function SwapWidget() {
         description: `${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
       });
 
-      await waitForReceipt({ client, chain: thirdwebBase, transactionHash: txHash });
+      await waitForReceipt({ client, chain: chain.thirdwebChain, transactionHash: txHash });
       toast.success("Swap confirmed", {
         description: `Received ~${formatTokenAmount(quote.buyAmount, buyToken.decimals)} ${buyToken.symbol}`,
       });
@@ -572,7 +528,7 @@ export function SwapWidget() {
         : "Enter an amount above";
 
   return (
-    <div className="overflow-hidden rounded-2xl border bg-transparent">
+    <div className="overflow-hidden bg-transparent">
       <div className="space-y-7 p-6 md:px-9 md:py-8">
         {/* Editorial strip: FROM | arrow | TO */}
         <div className="grid grid-cols-1 items-end gap-y-7 md:grid-cols-[1fr_auto_1fr] md:gap-y-0">
@@ -581,6 +537,7 @@ export function SwapWidget() {
             <div className="mb-2.5">
               <TokenPicker
                 value={sellToken}
+                tokens={chain.tokens}
                 exclude={buyToken.address}
                 onSelect={(t) => {
                   setSellToken(t);
@@ -633,6 +590,7 @@ export function SwapWidget() {
             <div className="mb-2.5">
               <TokenPicker
                 value={buyToken}
+                tokens={chain.tokens}
                 exclude={sellToken.address}
                 onSelect={(t) => {
                   setBuyToken(t);
@@ -688,7 +646,7 @@ export function SwapWidget() {
                 disabled={isSwitchingChain}
                 className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide md:w-auto"
               >
-                {isSwitchingChain ? "Switching…" : "Switch to Base"}
+                {isSwitchingChain ? "Switching…" : `Switch to ${chain.name}`}
               </Button>
             ) : needsApproval ? (
               <Button
