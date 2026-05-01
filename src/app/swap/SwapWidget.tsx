@@ -569,18 +569,25 @@ export function SwapWidget() {
                 }}
                 label="Sell token"
               />
-              {isConnected && sellBalance.data && sellBalance.data.value > 0n && (
+              {isConnected && (
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <span className="text-muted-foreground/60">Balance:</span>
                   <span className="font-mono">
-                    {formatBalanceDisplay(sellBalance.data.displayValue)}
+                    {sellBalance.isLoading
+                      ? "…"
+                      : sellBalance.data
+                        ? formatBalanceDisplay(sellBalance.data.displayValue)
+                        : "—"}
                   </span>
-                  <button
-                    type="button"
-                    onClick={handleUseMax}
-                    className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-blue-700 transition-colors hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-900/30"
-                  >
-                    MAX
-                  </button>
+                  {sellBalance.data && sellBalance.data.value > 0n && (
+                    <button
+                      type="button"
+                      onClick={handleUseMax}
+                      className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-blue-700 transition-colors hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                    >
+                      MAX
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -636,10 +643,17 @@ export function SwapWidget() {
                 }}
                 label="Buy token"
               />
-              {isConnected && buyBalance.data && buyBalance.data.value > 0n && (
-                <span className="font-mono text-[11px] text-muted-foreground">
-                  {formatBalanceDisplay(buyBalance.data.displayValue)}
-                </span>
+              {isConnected && (
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <span className="text-muted-foreground/60">Balance:</span>
+                  <span className="font-mono">
+                    {buyBalance.isLoading
+                      ? "…"
+                      : buyBalance.data
+                        ? formatBalanceDisplay(buyBalance.data.displayValue)
+                        : "—"}
+                  </span>
+                </div>
               )}
             </div>
             <div className="flex items-baseline gap-3 border-b border-border pb-2.5">
