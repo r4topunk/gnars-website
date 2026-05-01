@@ -25,6 +25,7 @@ import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
 import { cn } from "@/lib/utils";
 import { getDefaultPair, NATIVE_TOKEN, type SwapToken } from "./chains";
 import { useSwapChain } from "./SwapChainContext";
+import { formatBalanceDisplay, useTokenBalance } from "./useTokenBalance";
 
 const erc20ApproveAbi = [
   {
@@ -267,6 +268,27 @@ export function SwapWidget() {
   const [isSwapping, setIsSwapping] = React.useState(false);
   const [isSwitchingChain, setIsSwitchingChain] = React.useState(false);
 
+  // Live balances for the currently-picked sell/buy tokens on the selected
+  // chain. Both honor `useUserAddress`'s SA-vs-EOA view mode automatically
+  // because we pass `address` straight through.
+  const sellBalance = useTokenBalance({
+    chain,
+    userAddress: address as Address | undefined,
+    token: sellToken,
+  });
+  const buyBalance = useTokenBalance({
+    chain,
+    userAddress: address as Address | undefined,
+    token: buyToken,
+  });
+
+  /** "Use max" — fills the sell input with the full token balance. */
+  const handleUseMax = () => {
+    const bal = sellBalance.data;
+    if (!bal || bal.value === 0n) return;
+    setSellAmount(bal.displayValue);
+  };
+
   // When the user switches chain, reset everything to that chain's defaults.
   // Tokens from a previous chain are nonsense to 0x for the new chainId.
   React.useEffect(() => {
@@ -347,7 +369,8 @@ export function SwapWidget() {
   const flip = () => {
     setSellToken(buyToken);
     setBuyToken(sellToken);
-    setSellAmount("");
+    // Preserve the typed amount across flips — the value is now interpreted
+    // as the new sell token; the debounced price effect will refetch.
     setPrice(null);
     setNeedsApproval(false);
     setApprovalTarget(null);
@@ -534,7 +557,7 @@ export function SwapWidget() {
         <div className="grid grid-cols-1 items-end gap-y-7 md:grid-cols-[1fr_auto_1fr] md:gap-y-0">
           {/* FROM */}
           <div className="md:border-r md:border-border md:pr-7">
-            <div className="mb-2.5">
+            <div className="mb-2.5 flex items-center justify-between gap-2">
               <TokenPicker
                 value={sellToken}
                 tokens={chain.tokens}
@@ -546,6 +569,20 @@ export function SwapWidget() {
                 }}
                 label="Sell token"
               />
+              {isConnected && sellBalance.data && sellBalance.data.value > 0n && (
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <span className="font-mono">
+                    {formatBalanceDisplay(sellBalance.data.displayValue)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleUseMax}
+                    className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-blue-700 transition-colors hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                  >
+                    MAX
+                  </button>
+                </div>
+              )}
             </div>
             <div className="flex items-baseline gap-3 border-b border-border pb-2.5 transition-colors focus-within:border-foreground/40">
               <Input
@@ -587,7 +624,7 @@ export function SwapWidget() {
 
           {/* TO */}
           <div className="md:pl-7">
-            <div className="mb-2.5">
+            <div className="mb-2.5 flex items-center justify-between gap-2">
               <TokenPicker
                 value={buyToken}
                 tokens={chain.tokens}
@@ -599,6 +636,11 @@ export function SwapWidget() {
                 }}
                 label="Buy token"
               />
+              {isConnected && buyBalance.data && buyBalance.data.value > 0n && (
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  {formatBalanceDisplay(buyBalance.data.displayValue)}
+                </span>
+              )}
             </div>
             <div className="flex items-baseline gap-3 border-b border-border pb-2.5">
               <span className="flex-1 truncate text-[44px] font-thin leading-none tracking-[-2px] text-foreground/90 md:text-[56px] md:tracking-[-3px]">
