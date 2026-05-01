@@ -511,7 +511,10 @@ export function SwapWidget() {
 
   const isLoading = isFetching || isApproving || isSwapping;
   const hasAmount = sellAmount.length > 0 && Number(sellAmount) > 0;
-  const insufficientBalance = Boolean(price?.issues?.balance);
+  // Only trust 0x's balance signal when we have a real taker. The sentinel
+  // address used pre-connection holds zero of everything, so 0x would
+  // always flag "insufficient" — misleading when no wallet is connected.
+  const insufficientBalance = isConnected && Boolean(price?.issues?.balance);
   const canSwap =
     isConnected &&
     !isWrongNetwork &&
@@ -595,6 +598,7 @@ export function SwapWidget() {
               <Input
                 type="number"
                 inputMode="decimal"
+                step="any"
                 placeholder="0"
                 value={sellAmount}
                 onChange={(e) => setSellAmount(e.target.value)}
