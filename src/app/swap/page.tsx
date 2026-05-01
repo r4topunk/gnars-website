@@ -37,6 +37,21 @@ export default function SwapPage() {
         </div>
 
         <SwapWidget />
+
+        {/* Editorial copy — frames the swap as a contribution, not just a trade. */}
+        <div className="mx-auto max-w-2xl space-y-3 border-t pt-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Every swap is a small bet on shredding
+          </p>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            With the <span className="font-medium text-foreground">Support Gnars treasury</span> box
+            ticked, 0.5% of every trade routes straight to the Gnars Collective Treasury — already
+            behind <span className="font-medium text-foreground">15 skatable sculptures</span>{" "}
+            around the world, athlete sponsorships, and infrastructure for a network of shredders
+            from across the planet. You&apos;re not just swapping tokens; you&apos;re backing the
+            culture and funding the next concrete pour, the next contest, the next session.
+          </p>
+        </div>
       </div>
     </div>
   );
