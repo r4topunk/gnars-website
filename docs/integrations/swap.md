@@ -34,32 +34,32 @@ parameters can be injected without exposing the recipient address in the client 
 5. Wrong-network state shows a "Switch to Base" CTA that calls
    `wallet.switchChain(thirdwebBase)`.
 
-## Required environment variables
+## Configuration
 
-| Var                   | Where       | Notes                                                                                         |
-| --------------------- | ----------- | --------------------------------------------------------------------------------------------- |
-| `ZEROX_API_KEY`       | server-only | 0x API key. Required — proxy returns `500` without it.                                        |
-| `GNARS_FEE_RECIPIENT` | server-only | Address that receives affiliate fees. **Optional** — leave blank to disable the fee entirely. |
-| `GNARS_FEE_BPS`       | server-only | Fee in basis points (default `50` = 0.5%).                                                    |
+| Setting         | Source                                | Notes                                                                                                                                       |
+| --------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ZEROX_API_KEY` | env (server-only)                     | 0x API key. Required — proxy returns `500` without it.                                                                                      |
+| Fee recipient   | `DAO_ADDRESSES.treasury`              | Hardcoded to the canonical Gnars treasury in `src/lib/config.ts`. Override via `NEXT_PUBLIC_TREASURY_ADDRESS` like every other DAO address. |
+| Fee rate        | `SWAP_FEE_BPS` in `src/lib/config.ts` | Defaults to `50` (0.5%). Edit the constant to change.                                                                                       |
 
-All three live in `env.example` under the **External APIs** section. They are _not_
-prefixed with `NEXT_PUBLIC_` — the proxy routes are the only consumers.
+Only `ZEROX_API_KEY` is read from the environment. Everything else ships with the
+code so the fee destination and rate are auditable in git rather than hidden in
+deploy-time secrets.
 
 ## Affiliate fee behaviour
 
-The fee is **opt-in per request**: the client appends `&fee=1` to its proxy call, the
-proxy sees this flag and (if `GNARS_FEE_RECIPIENT` is set) injects three params before
-forwarding to 0x:
+The fee is **opt-in per request**: the client appends `&fee=1` to its proxy call,
+the proxy sees this flag and injects three params before forwarding to 0x:
 
 ```
-swapFeeRecipient = GNARS_FEE_RECIPIENT
-swapFeeBps       = GNARS_FEE_BPS  (default 50)
-swapFeeToken     = <buyToken>     (fee is taken on the asset the user receives)
+swapFeeRecipient = DAO_ADDRESSES.treasury
+swapFeeBps       = SWAP_FEE_BPS  (default 50)
+swapFeeToken     = <buyToken>    (fee is taken on the asset the user receives)
 ```
 
-Both `/api/0x/price` and `/api/0x/quote` apply identical logic so the indicative price
-matches the executed quote. The "Support Gnars treasury (0.5% fee)" checkbox in
-`SwapWidget` defaults to **checked** — users can untick it to skip the fee.
+Both `/api/0x/price` and `/api/0x/quote` apply identical logic so the indicative
+price matches the executed quote. The "Support Gnars treasury (0.5% fee)" checkbox
+in `SwapWidget` defaults to **checked** — users can untick it to skip the fee.
 
 ## Notes & deviations from the SkateHive reference
 

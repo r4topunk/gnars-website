@@ -1,9 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { DAO_ADDRESSES, SWAP_FEE_BPS } from "@/lib/config";
 
-// Server-only env vars: never leaked to the client bundle.
+// Server-only API key — never leaked to the client bundle.
 const ZEROX_API_KEY = process.env.ZEROX_API_KEY ?? "";
-const FEE_RECIPIENT = process.env.GNARS_FEE_RECIPIENT ?? "";
-const FEE_BPS = process.env.GNARS_FEE_BPS ?? "50";
+
+// Fee recipient + rate live in src/lib/config.ts; the recipient is the DAO
+// treasury (overridable via NEXT_PUBLIC_TREASURY_ADDRESS).
+const FEE_RECIPIENT = DAO_ADDRESSES.treasury;
+const FEE_BPS = String(SWAP_FEE_BPS);
 
 const ZEROX_HEADERS: HeadersInit = {
   "0x-api-key": ZEROX_API_KEY,
@@ -30,7 +34,7 @@ export async function GET(request: NextRequest) {
   const wantsFee = params.get("fee") === "1";
   params.delete("fee");
 
-  if (wantsFee && FEE_RECIPIENT) {
+  if (wantsFee) {
     const buyToken = params.get("buyToken") ?? "";
     if (buyToken) {
       params.set("swapFeeRecipient", FEE_RECIPIENT);
