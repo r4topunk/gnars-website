@@ -8,7 +8,6 @@ import { base as thirdwebBase } from "thirdweb/chains";
 import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
 import { formatUnits, maxUint256, parseUnits, type Address, type Hex } from "viem";
 import { base } from "wagmi/chains";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -573,25 +572,8 @@ export function SwapWidget() {
         : "Enter an amount above";
 
   return (
-    <div className="overflow-hidden rounded-2xl border bg-card text-card-foreground">
+    <div className="overflow-hidden rounded-2xl border bg-transparent">
       <div className="space-y-7 p-6 md:px-9 md:py-8">
-        {/* Eyebrow */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            <span>Swap</span>
-            <span className="text-muted-foreground/40">·</span>
-            <Badge
-              variant="secondary"
-              className="h-4 rounded-sm border-transparent bg-blue-100 px-1.5 text-[10px] font-semibold tracking-wide text-blue-800 dark:bg-blue-900/30 dark:text-blue-200"
-            >
-              Base
-            </Badge>
-          </div>
-          <span className="text-[11px] tracking-[0.04em] text-muted-foreground">
-            0x · 150+ DEXes
-          </span>
-        </div>
-
         {/* Editorial strip: FROM | arrow | TO */}
         <div className="grid grid-cols-1 items-end gap-y-7 md:grid-cols-[1fr_auto_1fr] md:gap-y-0">
           {/* FROM */}
