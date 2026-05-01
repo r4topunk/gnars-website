@@ -1,13 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { DAO_ADDRESSES, SWAP_FEE_BPS } from "@/lib/config";
+import { getSwapFeeRecipient, SWAP_FEE_BPS } from "@/lib/config";
 
 // Server-only API key — never leaked to the client bundle.
 const ZEROX_API_KEY = process.env.ZEROX_API_KEY ?? "";
 
-// Fee recipient + rate live in src/lib/config.ts so they ship with the code
-// (the DAO treasury is canonical and overridable via NEXT_PUBLIC_TREASURY_ADDRESS
-// alongside every other DAO address).
-const FEE_RECIPIENT = DAO_ADDRESSES.treasury;
+// Fee recipient is chain-aware: Base → DAO treasury, others → multichain
+// custody address. See `getSwapFeeRecipient` in src/lib/config.ts.
 const FEE_BPS = String(SWAP_FEE_BPS);
 
 const ZEROX_HEADERS: HeadersInit = {
@@ -41,8 +39,9 @@ export async function GET(request: NextRequest) {
 
   if (wantsFee) {
     const buyToken = params.get("buyToken") ?? "";
-    if (buyToken) {
-      params.set("swapFeeRecipient", FEE_RECIPIENT);
+    const chainId = Number(params.get("chainId") ?? "0");
+    if (buyToken && Number.isFinite(chainId) && chainId > 0) {
+      params.set("swapFeeRecipient", getSwapFeeRecipient(chainId));
       params.set("swapFeeBps", FEE_BPS);
       params.set("swapFeeToken", buyToken);
     }

@@ -1,20 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { ArrowDownUp, Check, ChevronDown, Info, Loader2, Search } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Info, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { prepareContractCall, prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
-import { base as thirdwebBase } from "thirdweb/chains";
 import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
 import { formatUnits, maxUint256, parseUnits, type Address, type Hex } from "viem";
-import { base } from "wagmi/chains";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -23,13 +20,11 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useWriteAccount } from "@/hooks/use-write-account";
-import { DAO_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
 import { cn } from "@/lib/utils";
-
-// 0x convention for the native asset slot.
-const NATIVE_TOKEN = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" as const;
+import { getDefaultPair, NATIVE_TOKEN, type SwapToken } from "./chains";
+import { useSwapChain } from "./SwapChainContext";
 
 const erc20ApproveAbi = [
   {
@@ -43,62 +38,6 @@ const erc20ApproveAbi = [
     outputs: [{ type: "bool" }],
   },
 ] as const;
-
-interface TokenInfo {
-  symbol: string;
-  name: string;
-  address: `0x${string}` | typeof NATIVE_TOKEN;
-  decimals: number;
-  logo?: string;
-}
-
-const TOKENS: readonly TokenInfo[] = [
-  {
-    symbol: "ETH",
-    name: "Ethereum",
-    address: NATIVE_TOKEN,
-    decimals: 18,
-    logo: "https://assets.relay.link/icons/1/light.png",
-  },
-  {
-    symbol: "WETH",
-    name: "Wrapped Ether",
-    address: TREASURY_TOKEN_ALLOWLIST.WETH as `0x${string}`,
-    decimals: 18,
-    logo: "https://assets.relay.link/icons/1/light.png",
-  },
-  {
-    symbol: "USDC",
-    name: "USD Coin",
-    address: TREASURY_TOKEN_ALLOWLIST.USDC as `0x${string}`,
-    decimals: 6,
-    logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913/logo.png",
-  },
-  {
-    symbol: "GNARS",
-    name: "Gnars",
-    address: DAO_ADDRESSES.gnarsErc20 as `0x${string}`,
-    decimals: 18,
-    logo: "/gnars.webp",
-  },
-  {
-    symbol: "DEGEN",
-    name: "Degen",
-    address: "0x4ed4e862860bed51a9570b96d89af5e1b0efefed",
-    decimals: 18,
-  },
-  {
-    symbol: "HIGHER",
-    name: "Higher",
-    address: "0x0578d8a44db98b23bf096a382e016e29a5ce0ffe",
-    decimals: 18,
-  },
-] as const;
-
-const POPULAR_SYMBOLS = ["ETH", "USDC", "GNARS", "DEGEN"] as const;
-
-const DEFAULT_SELL = TOKENS.find((t) => t.symbol === "ETH")!;
-const DEFAULT_BUY = TOKENS.find((t) => t.symbol === "GNARS")!;
 
 interface ZeroExPriceResponse {
   liquidityAvailable?: boolean;
@@ -137,12 +76,12 @@ function formatTokenAmount(raw: string | undefined, decimals: number): string {
   }
 }
 
-function TokenLogo({ token, size = 24 }: { token: TokenInfo; size?: number }) {
+function TokenLogo({ token, size = 24 }: { token: SwapToken; size?: number }) {
   const dim = `${size}px`;
   if (token.logo) {
     return (
       <span
-        className="relative inline-flex shrink-0 overflow-hidden rounded-full bg-muted"
+        className="relative inline-flex shrink-0 items-center justify-center"
         style={{ width: dim, height: dim }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -151,7 +90,7 @@ function TokenLogo({ token, size = 24 }: { token: TokenInfo; size?: number }) {
           alt=""
           width={size}
           height={size}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
         />
       </span>
     );
@@ -167,34 +106,33 @@ function TokenLogo({ token, size = 24 }: { token: TokenInfo; size?: number }) {
 }
 
 interface TokenPickerProps {
-  value: TokenInfo;
+  value: SwapToken;
+  tokens: readonly SwapToken[];
   exclude?: `0x${string}` | typeof NATIVE_TOKEN;
-  onSelect: (token: TokenInfo) => void;
+  onSelect: (token: SwapToken) => void;
   label: string;
 }
 
-function TokenPicker({ value, exclude, onSelect, label }: TokenPickerProps) {
+function TokenPicker({ value, tokens, exclude, onSelect, label }: TokenPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
 
-  const popular = React.useMemo(
-    () =>
-      TOKENS.filter((t) => POPULAR_SYMBOLS.includes(t.symbol as (typeof POPULAR_SYMBOLS)[number])),
-    [],
-  );
+  // Show the first 4 tokens of the chain as the "popular" row — chain
+  // registries are ordered to put the staples first.
+  const popular = React.useMemo(() => tokens.slice(0, 4), [tokens]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return TOKENS;
-    return TOKENS.filter(
+    if (!q) return tokens;
+    return tokens.filter(
       (t) =>
         t.symbol.toLowerCase().includes(q) ||
         t.name.toLowerCase().includes(q) ||
         t.address.toLowerCase().includes(q),
     );
-  }, [query]);
+  }, [query, tokens]);
 
-  const choose = (token: TokenInfo) => {
+  const choose = (token: SwapToken) => {
     if (token.address === exclude) return;
     onSelect(token);
     setQuery("");
@@ -204,20 +142,24 @@ function TokenPicker({ value, exclude, onSelect, label }: TokenPickerProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 gap-2 px-2 font-semibold"
+        <button
+          type="button"
           aria-label={label}
+          className="group inline-flex items-center gap-2 bg-transparent text-left transition-colors"
         >
-          <TokenLogo token={value} size={20} />
-          {value.symbol}
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-        </Button>
+          <TokenLogo token={value} size={16} />
+          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground transition-colors group-hover:text-foreground">
+            {value.name}
+          </span>
+          <ChevronDown className="h-3 w-3 text-muted-foreground/60 transition-colors group-hover:text-foreground" />
+        </button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Select a token</DialogTitle>
+          <DialogDescription className="sr-only">
+            Search by symbol, name, or paste a token contract address.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="relative">
@@ -301,14 +243,18 @@ function TokenPicker({ value, exclude, onSelect, label }: TokenPickerProps) {
 }
 
 export function SwapWidget() {
+  const { chain } = useSwapChain();
   const { address, isConnected } = useUserAddress();
   const writer = useWriteAccount();
   const activeWallet = useActiveWallet();
   const activeChain = useActiveWalletChain();
-  const isWrongNetwork = isConnected && activeChain?.id !== base.id;
+  const isWrongNetwork = isConnected && activeChain?.id !== chain.id;
 
-  const [sellToken, setSellToken] = React.useState<TokenInfo>(DEFAULT_SELL);
-  const [buyToken, setBuyToken] = React.useState<TokenInfo>(DEFAULT_BUY);
+  // Default sell/buy come from the selected chain's registry. When the chain
+  // changes, the effect below resets them to that chain's defaults.
+  const initialPair = React.useMemo(() => getDefaultPair(chain), [chain]);
+  const [sellToken, setSellToken] = React.useState<SwapToken>(initialPair.sell);
+  const [buyToken, setBuyToken] = React.useState<SwapToken>(initialPair.buy);
   const [sellAmount, setSellAmount] = React.useState("");
   const [supportFee, setSupportFee] = React.useState(true);
 
@@ -321,15 +267,39 @@ export function SwapWidget() {
   const [isSwapping, setIsSwapping] = React.useState(false);
   const [isSwitchingChain, setIsSwitchingChain] = React.useState(false);
 
+  // When the user switches chain, reset everything to that chain's defaults.
+  // Tokens from a previous chain are nonsense to 0x for the new chainId.
+  React.useEffect(() => {
+    const pair = getDefaultPair(chain);
+    setSellToken(pair.sell);
+    setBuyToken(pair.buy);
+    setSellAmount("");
+    setPrice(null);
+    setNeedsApproval(false);
+    setApprovalTarget(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chain.id]);
+
   // Debounced indicative price fetch.
+  // 0x requires a `taker` for every price call. When the user hasn't connected
+  // yet, fall back to a sentinel address so we can still show an indicative
+  // quote — the issues.allowance / issues.balance fields will be meaningless
+  // until they connect, and the effect re-runs once `address` populates.
   React.useEffect(() => {
     const numeric = Number(sellAmount);
-    if (!sellAmount || Number.isNaN(numeric) || numeric <= 0 || !address) {
+    if (!sellAmount || Number.isNaN(numeric) || numeric <= 0) {
       setPrice(null);
       setNeedsApproval(false);
       setApprovalTarget(null);
       return;
     }
+
+    // 0x rejects takers numerically below 0xffff, so the canonical "0x..dEaD"
+    // burn address fails validation. Use a clearly-synthetic sentinel that
+    // sits well above the threshold for indicative quotes.
+    const PREVIEW_TAKER = "0xdEAD000000000000000042069420694206942069" as Address;
+    const taker = (address ?? PREVIEW_TAKER) as Address;
+    const isPreviewOnly = !address;
 
     let cancelled = false;
     const timeout = setTimeout(async () => {
@@ -337,11 +307,11 @@ export function SwapWidget() {
         setIsFetching(true);
         const rawAmount = parseUnits(sellAmount, sellToken.decimals).toString();
         const params = new URLSearchParams({
-          chainId: String(base.id),
+          chainId: String(chain.id),
           sellToken: sellToken.address,
           buyToken: buyToken.address,
           sellAmount: rawAmount,
-          taker: address,
+          taker,
         });
         if (supportFee) params.set("fee", "1");
 
@@ -350,8 +320,10 @@ export function SwapWidget() {
         if (cancelled) return;
 
         setPrice(data);
+        // Only trust allowance/balance signals when we have the real taker.
         const spender = data?.issues?.allowance?.spender as Address | undefined;
         const requiresApproval =
+          !isPreviewOnly &&
           sellToken.address !== NATIVE_TOKEN &&
           Boolean(data?.issues?.allowance) &&
           Boolean(spender);
@@ -370,7 +342,7 @@ export function SwapWidget() {
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [sellAmount, sellToken, buyToken, address, supportFee]);
+  }, [sellAmount, sellToken, buyToken, address, supportFee, chain.id]);
 
   const flip = () => {
     setSellToken(buyToken);
@@ -385,8 +357,8 @@ export function SwapWidget() {
     if (!activeWallet || isSwitchingChain) return;
     setIsSwitchingChain(true);
     try {
-      await activeWallet.switchChain(thirdwebBase);
-      toast.success("Switched to Base");
+      await activeWallet.switchChain(chain.thirdwebChain);
+      toast.success(`Switched to ${chain.name}`);
     } catch (err) {
       const { message } = normalizeTxError(err);
       toast.error("Failed to switch network", { description: message });
@@ -398,16 +370,16 @@ export function SwapWidget() {
   const handleApprove = async () => {
     const client = getThirdwebClient();
     if (!client || !writer || !approvalTarget) {
-      toast.error("Cannot approve", { description: "Connect a wallet on Base." });
+      toast.error("Cannot approve", { description: `Connect a wallet on ${chain.name}.` });
       return;
     }
     setIsApproving(true);
     try {
-      await ensureOnChain(writer.wallet, thirdwebBase);
+      await ensureOnChain(writer.wallet, chain.thirdwebChain);
       const tx = prepareContractCall({
         contract: {
           client,
-          chain: thirdwebBase,
+          chain: chain.thirdwebChain,
           address: sellToken.address as Address,
           abi: erc20ApproveAbi,
         },
@@ -419,7 +391,7 @@ export function SwapWidget() {
       toast.success(`Approval submitted`, {
         description: `${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
       });
-      await waitForReceipt({ client, chain: thirdwebBase, transactionHash: txHash });
+      await waitForReceipt({ client, chain: chain.thirdwebChain, transactionHash: txHash });
       setNeedsApproval(false);
       setApprovalTarget(null);
       toast.success(`${sellToken.symbol} approved`);
@@ -448,11 +420,11 @@ export function SwapWidget() {
 
     setIsSwapping(true);
     try {
-      await ensureOnChain(writer.wallet, thirdwebBase);
+      await ensureOnChain(writer.wallet, chain.thirdwebChain);
 
       const rawAmount = parseUnits(sellAmount, sellToken.decimals).toString();
       const params = new URLSearchParams({
-        chainId: String(base.id),
+        chainId: String(chain.id),
         sellToken: sellToken.address,
         buyToken: buyToken.address,
         sellAmount: rawAmount,
@@ -471,7 +443,7 @@ export function SwapWidget() {
       }
 
       const tx = prepareTransaction({
-        chain: thirdwebBase,
+        chain: chain.thirdwebChain,
         client,
         to: quote.transaction.to as Address,
         data: quote.transaction.data as Hex,
@@ -485,7 +457,7 @@ export function SwapWidget() {
         description: `${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
       });
 
-      await waitForReceipt({ client, chain: thirdwebBase, transactionHash: txHash });
+      await waitForReceipt({ client, chain: chain.thirdwebChain, transactionHash: txHash });
       toast.success("Swap confirmed", {
         description: `Received ~${formatTokenAmount(quote.buyAmount, buyToken.decimals)} ${buyToken.symbol}`,
       });
@@ -526,163 +498,221 @@ export function SwapWidget() {
     Boolean(price?.liquidityAvailable) &&
     !isLoading;
 
+  // Inline rate string (e.g. "1 ETH ≈ 2,845.20 USDC") — only when liquidity is available.
+  const rateLine = React.useMemo(() => {
+    if (!price?.liquidityAvailable || !price.buyAmount || !price.sellAmount) return null;
+    try {
+      const sellNum = parseFloat(formatUnits(BigInt(price.sellAmount), sellToken.decimals));
+      const buyNum = parseFloat(formatUnits(BigInt(price.buyAmount), buyToken.decimals));
+      if (sellNum <= 0) return null;
+      const ratio = buyNum / sellNum;
+      const formatted =
+        ratio < 0.0001
+          ? ratio.toExponential(3)
+          : ratio < 1
+            ? ratio.toFixed(6)
+            : ratio.toLocaleString(undefined, { maximumFractionDigits: 4 });
+      return `1 ${sellToken.symbol} ≈ ${formatted} ${buyToken.symbol}`;
+    } catch {
+      return null;
+    }
+  }, [price, sellToken, buyToken]);
+
+  // Sell-side caption: prefer error states, otherwise show the network fee.
+  const sellCaption = insufficientBalance
+    ? `Insufficient ${sellToken.symbol} balance`
+    : price?.liquidityAvailable === false
+      ? "No liquidity for this pair"
+      : networkFeeEth && price?.liquidityAvailable
+        ? `~${networkFeeEth} ETH network fee`
+        : "Enter an amount above";
+
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="space-y-4 p-4">
-        {/* Sell */}
-        <div className="rounded-lg border bg-muted/40 p-3">
-          <p className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">You pay</p>
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              inputMode="decimal"
-              placeholder="0"
-              value={sellAmount}
-              onChange={(e) => setSellAmount(e.target.value)}
-              className="h-12 border-0 bg-transparent px-0 text-2xl font-bold shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
-            <TokenPicker
-              value={sellToken}
-              exclude={buyToken.address}
-              onSelect={(t) => {
-                setSellToken(t);
-                setSellAmount("");
-                setPrice(null);
-              }}
-              label="Sell token"
-            />
-          </div>
-        </div>
-
-        {/* Flip */}
-        <div className="-my-2 flex justify-center">
-          <Button
-            type="button"
-            size="icon"
-            variant="outline"
-            className="h-8 w-8 rounded-full border-2"
-            onClick={flip}
-            aria-label="Flip tokens"
-          >
-            <ArrowDownUp className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-
-        {/* Buy */}
-        <div className="rounded-lg border bg-muted/40 p-3">
-          <p className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">You receive</p>
-          <div className="flex items-center gap-2">
-            <div className="flex h-12 flex-1 items-center text-2xl font-bold text-foreground">
-              {isFetching ? (
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              ) : (
-                buyDisplay
-              )}
+    <div className="overflow-hidden bg-transparent">
+      <div className="space-y-7 p-6 md:px-9 md:py-8">
+        {/* Editorial strip: FROM | arrow | TO */}
+        <div className="grid grid-cols-1 items-end gap-y-7 md:grid-cols-[1fr_auto_1fr] md:gap-y-0">
+          {/* FROM */}
+          <div className="md:border-r md:border-border md:pr-7">
+            <div className="mb-2.5">
+              <TokenPicker
+                value={sellToken}
+                tokens={chain.tokens}
+                exclude={buyToken.address}
+                onSelect={(t) => {
+                  setSellToken(t);
+                  setSellAmount("");
+                  setPrice(null);
+                }}
+                label="Sell token"
+              />
             </div>
-            <TokenPicker
-              value={buyToken}
-              exclude={sellToken.address}
-              onSelect={(t) => {
-                setBuyToken(t);
-                setSellAmount("");
-                setPrice(null);
-              }}
-              label="Buy token"
+            <div className="flex items-baseline gap-3 border-b border-border pb-2.5 transition-colors focus-within:border-foreground/40">
+              <Input
+                type="number"
+                inputMode="decimal"
+                placeholder="0"
+                value={sellAmount}
+                onChange={(e) => setSellAmount(e.target.value)}
+                aria-label="Sell amount"
+                className="h-auto flex-1 border-0 bg-transparent p-0 text-[44px] font-thin leading-none tracking-[-2px] text-foreground shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 md:text-[56px] md:tracking-[-3px] dark:bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <span className="shrink-0 text-xl font-light tracking-tight text-muted-foreground/60 md:text-2xl">
+                {sellToken.symbol}
+              </span>
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground/70">
+              {isFetching ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Fetching price…
+                </span>
+              ) : (
+                sellCaption
+              )}
+            </p>
+          </div>
+
+          {/* CENTER — flip arrow with springy easing */}
+          <div className="flex justify-center px-0 py-2 md:px-7 md:py-0">
+            <button
+              type="button"
+              onClick={flip}
+              aria-label="Flip tokens"
+              className="group rounded-full p-2 text-muted-foreground transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:rotate-180 hover:scale-110 hover:text-foreground motion-reduce:transition-none motion-reduce:hover:rotate-0 motion-reduce:hover:scale-100"
+            >
+              <ArrowRight className="hidden h-5 w-5 md:block" />
+              <ArrowRight className="h-5 w-5 rotate-90 md:hidden" />
+            </button>
+          </div>
+
+          {/* TO */}
+          <div className="md:pl-7">
+            <div className="mb-2.5">
+              <TokenPicker
+                value={buyToken}
+                tokens={chain.tokens}
+                exclude={sellToken.address}
+                onSelect={(t) => {
+                  setBuyToken(t);
+                  setSellAmount("");
+                  setPrice(null);
+                }}
+                label="Buy token"
+              />
+            </div>
+            <div className="flex items-baseline gap-3 border-b border-border pb-2.5">
+              <span className="flex-1 truncate text-[44px] font-thin leading-none tracking-[-2px] text-foreground/90 md:text-[56px] md:tracking-[-3px]">
+                {isFetching ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/40" />
+                ) : (
+                  <span
+                    className={
+                      price?.liquidityAvailable ? "text-foreground" : "text-muted-foreground/30"
+                    }
+                  >
+                    {buyDisplay}
+                  </span>
+                )}
+              </span>
+              <span className="shrink-0 text-xl font-light tracking-tight text-muted-foreground/60 md:text-2xl">
+                {buyToken.symbol}
+              </span>
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground/70">
+              {rateLine ?? <span className="text-muted-foreground/40">Best across 150+ DEXes</span>}
+            </p>
+          </div>
+        </div>
+
+        {/* Hairline divider */}
+        <div className="h-px bg-border" />
+
+        {/* CTA + footer */}
+        <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-center">
+          <div className="md:flex-shrink-0">
+            {!isConnected ? (
+              <Button
+                variant="outline"
+                size="lg"
+                disabled
+                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide md:w-auto"
+              >
+                Connect wallet to swap
+              </Button>
+            ) : isWrongNetwork ? (
+              <Button
+                size="lg"
+                onClick={handleSwitchChain}
+                disabled={isSwitchingChain}
+                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide md:w-auto"
+              >
+                {isSwitchingChain ? "Switching…" : `Switch to ${chain.name}`}
+              </Button>
+            ) : needsApproval ? (
+              <Button
+                size="lg"
+                onClick={handleApprove}
+                disabled={isApproving}
+                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide md:w-auto"
+              >
+                {isApproving ? (
+                  <>
+                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                    Approving {sellToken.symbol}…
+                  </>
+                ) : (
+                  `Approve ${sellToken.symbol}`
+                )}
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                onClick={handleSwap}
+                disabled={!canSwap}
+                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide md:w-auto"
+              >
+                {isSwapping ? (
+                  <>
+                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                    Swapping…
+                  </>
+                ) : !hasAmount ? (
+                  "Enter an amount"
+                ) : (
+                  `Swap ${sellToken.symbol} → ${buyToken.symbol}`
+                )}
+              </Button>
+            )}
+          </div>
+
+          <div className="hidden h-px flex-1 bg-border md:block" />
+
+          {/* Fee opt-in */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="support-treasury-fee"
+              checked={supportFee}
+              onCheckedChange={(v) => setSupportFee(v === true)}
+              className="h-3.5 w-3.5"
             />
+            <label
+              htmlFor="support-treasury-fee"
+              className="flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground"
+            >
+              Support Gnars treasury (0.5%)
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3 w-3" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  A 0.5% fee on the bought token routes to the Gnars DAO treasury. Helps fund
+                  proposals, bounties, and skate infrastructure. Untick to skip.
+                </TooltipContent>
+              </Tooltip>
+            </label>
           </div>
         </div>
-
-        {/* Quote info */}
-        {price && !isFetching && (
-          <div className="space-y-1 rounded-lg border px-3 py-2 text-xs">
-            {networkFeeEth && price.liquidityAvailable && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Estimated network fee</span>
-                <span className="font-mono">{networkFeeEth} ETH</span>
-              </div>
-            )}
-            {insufficientBalance && (
-              <p className="text-destructive">Insufficient {sellToken.symbol} balance</p>
-            )}
-            {price.liquidityAvailable === false && (
-              <p className="text-destructive">No liquidity available for this pair</p>
-            )}
-          </div>
-        )}
-
-        {/* CTA */}
-        {!isConnected ? (
-          <div className="rounded-lg border border-dashed py-6 text-center text-sm text-muted-foreground">
-            Connect your wallet to swap
-          </div>
-        ) : isWrongNetwork ? (
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={handleSwitchChain}
-            disabled={isSwitchingChain}
-          >
-            {isSwitchingChain ? "Switching…" : "Switch to Base"}
-          </Button>
-        ) : needsApproval ? (
-          <Button className="w-full" size="lg" onClick={handleApprove} disabled={isApproving}>
-            {isApproving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Approving {sellToken.symbol}…
-              </>
-            ) : (
-              `Approve ${sellToken.symbol}`
-            )}
-          </Button>
-        ) : (
-          <Button className="w-full" size="lg" onClick={handleSwap} disabled={!canSwap}>
-            {isSwapping ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Swapping…
-              </>
-            ) : !hasAmount ? (
-              "Enter an amount"
-            ) : isFetching ? (
-              "Fetching price…"
-            ) : (
-              `Swap ${sellToken.symbol} → ${buyToken.symbol}`
-            )}
-          </Button>
-        )}
-
-        {/* Fee opt-in */}
-        <div className="flex items-center justify-center gap-2 pt-1">
-          <Checkbox
-            id="support-treasury-fee"
-            checked={supportFee}
-            onCheckedChange={(v) => setSupportFee(v === true)}
-          />
-          <label
-            htmlFor="support-treasury-fee"
-            className="flex cursor-pointer items-center gap-1 text-xs text-muted-foreground"
-          >
-            Support Gnars treasury (0.5% fee)
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="h-3 w-3" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                A 0.5% fee on the bought token routes to the Gnars DAO treasury. Helps fund
-                proposals, bounties, and skate infrastructure. Untick to skip.
-              </TooltipContent>
-            </Tooltip>
-          </label>
-        </div>
-
-        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-          <span>Powered by 0x · Best price across 150+ DEXes</span>
-          <Badge variant="secondary" className="text-[10px]">
-            Base
-          </Badge>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
