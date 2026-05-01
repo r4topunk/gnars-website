@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
+import { BASE_URL } from "@/lib/config";
+import { SWAP_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import { ChainSelector } from "./ChainSelector";
 import { SwapChainProvider } from "./SwapChainContext";
 import { SwapWidget } from "./SwapWidget";
 
 const description =
   "Swap tokens across Base, Ethereum, Optimism, and Arbitrum with best execution across 150+ DEXes via the 0x Protocol.";
+
+const miniappImage = `${BASE_URL}/swap/miniapp-image`;
 
 export const metadata: Metadata = {
   title: "Swap — Gnars DAO",
@@ -15,11 +19,21 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Swap — Gnars DAO",
     description,
+    images: [miniappImage],
+    url: `${BASE_URL}/swap`,
+    type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Swap — Gnars DAO",
     description,
+    images: [miniappImage],
+  },
+  // Farcaster mini app embed metadata. Overrides the root layout's
+  // `fc:miniapp` tag so casts that link to /swap render the swap-specific
+  // cover and CTA instead of the generic Gnars DAO embed.
+  other: {
+    "fc:miniapp": JSON.stringify(SWAP_MINIAPP_EMBED_CONFIG),
   },
 };
 
