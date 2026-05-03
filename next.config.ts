@@ -48,6 +48,16 @@ const nextConfig: NextConfig = {
   env: {
     BASE_URL: "https://nouns.build",
   },
+  ...(process.env.NODE_ENV === "development"
+    ? {
+        allowedDevOrigins: [
+          "192.168.0.0/16",
+          "10.0.0.0/8",
+          "172.16.0.0/12",
+          "*.local",
+        ],
+      }
+    : {}),
   images: {
     remotePatterns: [
       {

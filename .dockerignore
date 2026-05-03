@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+.vscode
+.idea
+.DS_Store
+coverage
+playwright-report
+tests/e2e/test-results
+*.log
+Dockerfile*
+docker-compose*.yml
