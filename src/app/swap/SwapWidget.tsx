@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { ArrowRight, Check, ChevronDown, Info, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { prepareContractCall, prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
@@ -33,6 +35,35 @@ import {
   type TokenBalance,
 } from "./useTokenBalance";
 import type { SwapChain } from "./chains";
+
+// Lazily fetches a Zora creator coin's image when no standard logo is available.
+// Only runs on Base (chain 8453) since creator coins are Base-only.
+// Results are cached for 24 h — logos don't change.
+function useZoraLogo(address: string, chainId: number, skip: boolean): string | null {
+  return (
+    useQuery({
+      queryKey: ["zora-logo", address],
+      enabled: !skip && chainId === 8453 && address !== NATIVE_TOKEN,
+      staleTime: 24 * 60 * 60 * 1000,
+      retry: false,
+      queryFn: async () => {
+        const key = process.env.NEXT_PUBLIC_ZORA_API_KEY;
+        if (key) setApiKey(key);
+        const res = await getCoin({ address, chain: 8453 });
+        const coin = res?.data?.zora20Token;
+        const preview = coin?.mediaContent?.previewImage;
+        const raw = typeof preview === "object"
+          ? (preview as Record<string, string>)?.medium ?? (preview as Record<string, string>)?.small
+          : (preview as string | undefined);
+        if (!raw) return null;
+        // Convert IPFS URIs to an HTTP gateway URL.
+        return raw.startsWith("ipfs://")
+          ? raw.replace("ipfs://", "https://dweb.link/ipfs/")
+          : raw;
+      },
+    }).data ?? null
+  );
+}
 
 const erc20ApproveAbi = [
   {
@@ -84,13 +115,24 @@ function formatTokenAmount(raw: string | undefined, decimals: number): string {
   }
 }
 
-function TokenLogo({ token, size = 24 }: { token: SwapToken; size?: number }) {
+function TokenLogo({
+  token,
+  size = 24,
+  chainId = 8453,
+}: {
+  token: SwapToken;
+  size?: number;
+  chainId?: number;
+}) {
   const [logoError, setLogoError] = React.useState(false);
-  // Reset when the logo URL changes (same component instance, different token).
   React.useEffect(() => setLogoError(false), [token.logo]);
 
+  const needsFallback = !token.logo || logoError;
+  const zoraLogo = useZoraLogo(token.address, chainId, !needsFallback);
+  const effectiveLogo = needsFallback ? (zoraLogo ?? undefined) : token.logo;
+
   const dim = `${size}px`;
-  if (token.logo && !logoError) {
+  if (effectiveLogo) {
     return (
       <span
         className="relative inline-flex shrink-0 items-center justify-center"
@@ -98,7 +140,7 @@ function TokenLogo({ token, size = 24 }: { token: SwapToken; size?: number }) {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={token.logo}
+          src={effectiveLogo}
           alt=""
           width={size}
           height={size}
@@ -200,7 +242,7 @@ function TokenPicker({
           aria-label={label}
           className="group inline-flex items-center gap-2 bg-transparent text-left transition-colors"
         >
-          <TokenLogo token={value} size={16} />
+          <TokenLogo token={value} size={16} chainId={chain.id} />
           <span className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground transition-colors group-hover:text-foreground">
             {value.name}
           </span>
@@ -243,7 +285,7 @@ function TokenPicker({
                       onClick={() => choose(t)}
                       disabled={isExcluded}
                     >
-                      <TokenLogo token={t} size={16} />
+                      <TokenLogo token={t} size={16} chainId={chain.id} />
                       <span className="text-xs">{t.symbol}</span>
                     </Button>
                   );
@@ -272,7 +314,7 @@ function TokenPicker({
                       isSelected && "bg-accent/60",
                     )}
                   >
-                    <TokenLogo token={t} size={32} />
+                    <TokenLogo token={t} size={32} chainId={chain.id} />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline gap-2">
                         <span className="text-sm font-semibold">{t.symbol}</span>

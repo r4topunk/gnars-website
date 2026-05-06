@@ -153,7 +153,14 @@ export async function GET(req: NextRequest) {
         usdValue,
       };
     })
-    .filter((t): t is WalletToken => t !== null)
+    .filter((t): t is WalletToken => {
+      if (!t) return false;
+      // Drop dust/spam: tokens with a known USD value below $0.50.
+      // Tokens with no CoinGecko price (usdValue === null) are kept —
+      // they may be legitimate tokens not yet listed.
+      if (t.usdValue !== null && t.usdValue < 0.5) return false;
+      return true;
+    })
     // Sort by USD value desc; fall back to normalised balance for unlisted tokens.
     .sort((a, b) => {
       if (a.usdValue !== null && b.usdValue !== null) return b.usdValue - a.usdValue;
