@@ -75,12 +75,14 @@ export const SWAP_CHAINS: readonly SwapChain[] = [
         name: "Degen",
         address: "0x4ed4e862860bed51a9570b96d89af5e1b0efefed",
         decimals: 18,
+        logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed/logo.png",
       },
       {
         symbol: "HIGHER",
         name: "Higher",
         address: "0x0578d8a44db98b23bf096a382e016e29a5ce0ffe",
         decimals: 18,
+        logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x0578d8A44db98B23BF096A382e016e29a5Ce0ffe/logo.png",
       },
     ],
   },
@@ -183,6 +185,21 @@ export const SWAP_CHAINS: readonly SwapChain[] = [
 ] as const;
 
 export const DEFAULT_SWAP_CHAIN = SWAP_CHAINS[0]; // Base
+
+/** Shape returned by /api/wallet/tokens — one entry per ERC-20 the user holds. */
+export interface WalletToken {
+  address: string;
+  symbol: string;
+  name: string;
+  decimals: number;
+  /** Raw balance as a decimal string (BigInt-safe). */
+  balance: string;
+  /** Human-readable balance string (e.g. "1.2345"). */
+  displayBalance: string;
+  logoUrl: string | null;
+  /** USD value of the holding. Null when the token has no CoinGecko price. */
+  usdValue: number | null;
+}
 
 export function getSwapChain(id: number): SwapChain {
   return SWAP_CHAINS.find((c) => c.id === id) ?? DEFAULT_SWAP_CHAIN;
