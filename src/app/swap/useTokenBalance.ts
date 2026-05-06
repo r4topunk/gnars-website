@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { getWalletBalance } from "thirdweb/wallets";
 import type { Address } from "viem";
 import { getThirdwebClient } from "@/lib/thirdweb";
@@ -68,6 +68,54 @@ export function useTokenBalance({
       };
     },
   });
+}
+
+/**
+ * Fetches balances for every token in the list simultaneously. Shares the
+ * same React Query cache keys as `useTokenBalance` so the results are
+ * de-duped — opening the picker doesn't fire extra requests if the widget
+ * already fetched those balances.
+ *
+ * Returns a `Map<tokenAddress, TokenBalance | null>`. Entries are `null`
+ * while loading or when no wallet is connected.
+ */
+export function useAllTokenBalances({
+  chain,
+  userAddress,
+  tokens,
+}: {
+  chain: SwapChain;
+  userAddress: Address | undefined;
+  tokens: readonly SwapToken[];
+}): Map<string, TokenBalance | null> {
+  const client = getThirdwebClient();
+  const enabled = Boolean(client) && Boolean(userAddress);
+
+  const results = useQueries({
+    queries: tokens.map((token) => ({
+      queryKey: ["swap-token-balance", chain.id, userAddress, token.address] as const,
+      enabled,
+      staleTime: 15_000,
+      refetchInterval: 30_000,
+      queryFn: async (): Promise<TokenBalance | null> => {
+        if (!client || !userAddress) return null;
+        const balance = await getWalletBalance({
+          client,
+          chain: chain.thirdwebChain,
+          address: userAddress,
+          tokenAddress: token.address === NATIVE_TOKEN ? undefined : (token.address as Address),
+        });
+        return {
+          value: balance.value,
+          displayValue: balance.displayValue,
+          decimals: balance.decimals,
+          symbol: balance.symbol,
+        };
+      },
+    })),
+  });
+
+  return new Map(tokens.map((token, i) => [token.address, results[i].data ?? null]));
 }
 
 /**

@@ -25,7 +25,14 @@ import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
 import { cn } from "@/lib/utils";
 import { getDefaultPair, NATIVE_TOKEN, type SwapToken } from "./chains";
 import { useSwapChain } from "./SwapChainContext";
-import { formatBalanceDisplay, useTokenBalance } from "./useTokenBalance";
+import { useWalletTokens } from "./useWalletTokens";
+import {
+  formatBalanceDisplay,
+  useAllTokenBalances,
+  useTokenBalance,
+  type TokenBalance,
+} from "./useTokenBalance";
+import type { SwapChain } from "./chains";
 
 const erc20ApproveAbi = [
   {
@@ -78,8 +85,12 @@ function formatTokenAmount(raw: string | undefined, decimals: number): string {
 }
 
 function TokenLogo({ token, size = 24 }: { token: SwapToken; size?: number }) {
+  const [logoError, setLogoError] = React.useState(false);
+  // Reset when the logo URL changes (same component instance, different token).
+  React.useEffect(() => setLogoError(false), [token.logo]);
+
   const dim = `${size}px`;
-  if (token.logo) {
+  if (token.logo && !logoError) {
     return (
       <span
         className="relative inline-flex shrink-0 items-center justify-center"
@@ -92,6 +103,7 @@ function TokenLogo({ token, size = 24 }: { token: SwapToken; size?: number }) {
           width={size}
           height={size}
           className="h-full w-full object-contain"
+          onError={() => setLogoError(true)}
         />
       </span>
     );
@@ -112,11 +124,31 @@ interface TokenPickerProps {
   exclude?: `0x${string}` | typeof NATIVE_TOKEN;
   onSelect: (token: SwapToken) => void;
   label: string;
+  chain: SwapChain;
+  userAddress: Address | undefined;
+  isConnected: boolean;
+  usdValues?: Map<string, number>;
 }
 
-function TokenPicker({ value, tokens, exclude, onSelect, label }: TokenPickerProps) {
+function TokenPicker({
+  value,
+  tokens,
+  exclude,
+  onSelect,
+  label,
+  chain,
+  userAddress,
+  isConnected,
+  usdValues,
+}: TokenPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
+
+  const balances = useAllTokenBalances({
+    chain,
+    userAddress: isConnected ? userAddress : undefined,
+    tokens,
+  });
 
   // Show the first 4 tokens of the chain as the "popular" row — chain
   // registries are ordered to put the staples first.
@@ -124,14 +156,34 @@ function TokenPicker({ value, tokens, exclude, onSelect, label }: TokenPickerPro
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return tokens;
-    return tokens.filter(
-      (t) =>
-        t.symbol.toLowerCase().includes(q) ||
-        t.name.toLowerCase().includes(q) ||
-        t.address.toLowerCase().includes(q),
-    );
-  }, [query, tokens]);
+    const base = !q
+      ? tokens
+      : tokens.filter(
+          (t) =>
+            t.symbol.toLowerCase().includes(q) ||
+            t.name.toLowerCase().includes(q) ||
+            t.address.toLowerCase().includes(q),
+        );
+
+    // When not searching, sort by USD value so the user's most valuable
+    // holdings float to the top. Fall back to normalised token amount for
+    // tokens without a CoinGecko price.
+    if (!q && isConnected) {
+      return [...base].sort((a, b) => {
+        const usdA = usdValues?.get(a.address.toLowerCase()) ?? null;
+        const usdB = usdValues?.get(b.address.toLowerCase()) ?? null;
+        if (usdA !== null && usdB !== null) return usdB - usdA;
+        if (usdA !== null) return -1;
+        if (usdB !== null) return 1;
+        const ba = balances.get(a.address);
+        const bb = balances.get(b.address);
+        const numA = ba ? parseFloat(formatUnits(ba.value, ba.decimals)) : 0;
+        const numB = bb ? parseFloat(formatUnits(bb.value, bb.decimals)) : 0;
+        return numB - numA;
+      });
+    }
+    return base;
+  }, [query, tokens, isConnected, balances, usdValues]);
 
   const choose = (token: SwapToken) => {
     if (token.address === exclude) return;
@@ -207,6 +259,7 @@ function TokenPicker({ value, tokens, exclude, onSelect, label }: TokenPickerPro
               filtered.map((t) => {
                 const isSelected = t.address === value.address;
                 const isExcluded = t.address === exclude;
+                const bal: TokenBalance | null = balances.get(t.address) ?? null;
                 return (
                   <button
                     key={t.address}
@@ -231,6 +284,11 @@ function TokenPicker({ value, tokens, exclude, onSelect, label }: TokenPickerPro
                           : `${t.address.slice(0, 6)}…${t.address.slice(-4)}`}
                       </p>
                     </div>
+                    {isConnected && (
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                        {bal ? formatBalanceDisplay(bal.displayValue) : "…"}
+                      </span>
+                    )}
                     {isSelected && <Check className="h-4 w-4 text-primary" />}
                   </button>
                 );
@@ -267,6 +325,13 @@ export function SwapWidget() {
   const [isApproving, setIsApproving] = React.useState(false);
   const [isSwapping, setIsSwapping] = React.useState(false);
   const [isSwitchingChain, setIsSwitchingChain] = React.useState(false);
+
+  // Discover all ERC-20 tokens the user holds on this chain, merged with the
+  // curated hardcoded list. Falls back to the hardcoded list when disconnected.
+  const { tokens: availableTokens, usdValues } = useWalletTokens({
+    chain,
+    userAddress: isConnected ? (address as Address | undefined) : undefined,
+  });
 
   // Live balances for the currently-picked sell/buy tokens on the selected
   // chain. Both honor `useUserAddress`'s SA-vs-EOA view mode automatically
@@ -563,7 +628,7 @@ export function SwapWidget() {
             <div className="mb-2.5 flex items-center justify-between gap-2">
               <TokenPicker
                 value={sellToken}
-                tokens={chain.tokens}
+                tokens={availableTokens}
                 exclude={buyToken.address}
                 onSelect={(t) => {
                   setSellToken(t);
@@ -571,6 +636,10 @@ export function SwapWidget() {
                   setPrice(null);
                 }}
                 label="Sell token"
+                chain={chain}
+                userAddress={address as Address | undefined}
+                isConnected={isConnected}
+                usdValues={usdValues}
               />
               {isConnected && (
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -638,14 +707,17 @@ export function SwapWidget() {
             <div className="mb-2.5 flex items-center justify-between gap-2">
               <TokenPicker
                 value={buyToken}
-                tokens={chain.tokens}
+                tokens={availableTokens}
                 exclude={sellToken.address}
                 onSelect={(t) => {
                   setBuyToken(t);
-                  setSellAmount("");
                   setPrice(null);
                 }}
                 label="Buy token"
+                chain={chain}
+                userAddress={address as Address | undefined}
+                isConnected={isConnected}
+                usdValues={usdValues}
               />
               {isConnected && (
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
