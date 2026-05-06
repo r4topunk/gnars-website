@@ -69,6 +69,44 @@ function buildPoidhReturn(state: PoidhWriteState) {
   };
 }
 
+const POIDH_ERROR_MESSAGES: Record<string, string> = {
+  AlreadyVoted:                  "You have already voted on this claim.",
+  ClaimNotFound:                 "Claim not found on-chain. Make sure you're on the right network.",
+  BountyNotFound:                "Bounty not found on-chain.",
+  VotingOngoing:                 "Voting is still in progress — wait for the deadline to resolve.",
+  VotingEnded:                   "The voting period has ended.",
+  NoVotingPeriodSet:             "No voting period is active for this bounty.",
+  BountyClaimed:                 "This bounty has already been claimed.",
+  BountyClosed:                  "This bounty is closed.",
+  WrongCaller:                   "You are not allowed to perform this action.",
+  IssuerCannotClaim:             "The bounty creator cannot submit a claim.",
+  IssuerCannotWithdraw:          "The bounty creator cannot withdraw as a contributor.",
+  NotActiveParticipant:          "You are not a participant in this bounty.",
+  NotOpenBounty:                 "This action is only available for open bounties.",
+  NotSoloBounty:                 "This action is only available for solo bounties.",
+  ClaimAlreadyAccepted:          "This claim has already been accepted.",
+  NothingToWithdraw:             "Nothing to withdraw.",
+  MaxParticipantsReached:        "This bounty has reached its maximum number of participants.",
+  NotCancelledOpenBounty:        "This bounty has not been cancelled.",
+  VoteWouldPass:                 "Cannot reset — the vote would pass. Resolve it instead.",
+  MinimumBountyNotMet:           "Amount is below the minimum required to create a bounty.",
+  MinimumContributionNotMet:     "Amount is below the minimum required to contribute.",
+  NoEther:                       "No ETH sent.",
+  ContractsCannotCreateBounties: "Smart contracts cannot create bounties directly.",
+  TransferFailed:                "ETH transfer failed.",
+  InsufficientBalance:           "Insufficient balance.",
+};
+
+function decodePoidhError(err: unknown): Error {
+  if (!(err instanceof Error)) return new Error(String(err));
+  const msg = err.message;
+  for (const [name, friendly] of Object.entries(POIDH_ERROR_MESSAGES)) {
+    if (msg.includes(name)) return new Error(friendly);
+  }
+  // Fallback: trim the noisy viem stack to the first line
+  return new Error(msg.split("\n")[0]);
+}
+
 async function assertPoidhReady(ctx: ReturnType<typeof usePoidhContext>, chainId: number) {
   if (!ctx.isConnected) throw new Error("Connect your wallet first");
   if (!ctx.contractAddress) throw new Error(`Unsupported chain: ${chainId}`);
@@ -113,7 +151,7 @@ async function sendAndConfirm(
     state.setIsSuccess(true);
     return txHash;
   } catch (err) {
-    state.setError(err instanceof Error ? err : new Error(String(err)));
+    state.setError(decodePoidhError(err));
     throw err;
   } finally {
     state.setIsPending(false);
