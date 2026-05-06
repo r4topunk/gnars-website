@@ -1,19 +1,26 @@
 /**
  * export-creator-liquidity.ts
  *
- * Snapshot every Gnars DAO member's Zora-created coins + pool TVL so we can
- * plan a liquidity migration to the new Gnars token on Clanker.
+ * Snapshot Gnars DAO members' Zora-created coins + the full set of coins
+ * "backed by Gnars" (paired with GNARS or with a member's creator coin) so we
+ * can plan a liquidity migration to the new Gnars token on Clanker via
+ * upgrader.co.
  *
- * Outputs two CSVs in `output/`:
- *   - creators-YYYYMMDD-HHMMSS.csv (one row per creator who has >=1 coin)
- *   - coins-YYYYMMDD-HHMMSS.csv    (one row per created coin)
+ * Outputs three CSVs in `output/`:
+ *   - creators-YYYYMMDD-HHMMSS.csv  (one row per member who created >=1 coin)
+ *   - coins-YYYYMMDD-HHMMSS.csv     (one row per member-created coin)
+ *   - migration-candidates-YYYYMMDD-HHMMSS.csv (ranked deposit list for upgrader)
  *
  * Stages (each cached on disk under output/cache so reruns skip done work):
- *   1. Members      — paginated Goldsky subgraph query
- *   2. ProfileCoins — Zora SDK getProfileCoins per member (paginated)
- *   3. CoinPools    — GeckoTerminal pool data per unique coin (rate-limited)
- *   4. Creators     — Neynar bulk-by-address + ENS reverse lookup via mainnet
- *   5. Output       — aggregate, sort, write CSVs
+ *   1. Members        — paginated Goldsky subgraph query (+ ownerCount sanity check)
+ *   2. ProfileCoins   — Zora SDK getProfileCoins per member (paginated)
+ *   3. CoinPools      — GeckoTerminal best-pool per member-created coin (rate-limited)
+ *   4. BackedPools    — GeckoTerminal /tokens/{seed}/pools for GNARS + each member
+ *                       creator coin → finds content coins paired with them
+ *   5. ContentCoins   — Zora getCoin metadata for downstream coins discovered
+ *                       in stage 4 that we don't already know about
+ *   6. Enrichment     — Neynar bulk-by-address + ENS reverse lookup via mainnet
+ *   7. Output         — aggregate, sort, write CSVs (incl. migration ranking)
  *
  * Run:
  *   pnpm tsx scripts/export-creator-liquidity.ts
@@ -29,7 +36,12 @@
  * Optional:
  *   NEYNAR_API_KEY                  — Farcaster enrichment (creator_farcaster, twitter via verified accounts)
  *   GECKOTERMINAL_API_KEY           — paid tier (raises rate limits beyond 30/min)
- *   NEXT_PUBLIC_TOKEN_ADDRESS       — DAO token address override (default: Gnars)
+ *   NEXT_PUBLIC_TOKEN_ADDRESS       — DAO governance token address override (default: Gnars).
+ *                                     NOTE: this var is also used by the Next app for *its* DAO.
+ *                                     If `.env.local` points it elsewhere you'll snapshot the
+ *                                     wrong DAO — pass it inline when running this script:
+ *                                     NEXT_PUBLIC_TOKEN_ADDRESS=0x880fb3… pnpm tsx scripts/...
+ *   GNARS_ZORA_TOKEN                — GNARS Zora ERC20 override (default: 0x0cf0…b23b)
  */
 
 import { promises as fs } from "node:fs";
@@ -37,7 +49,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { getProfileCoins, setApiKey } from "@zoralabs/coins-sdk";
+import { getCoin, getProfileCoins, setApiKey } from "@zoralabs/coins-sdk";
 import { createPublicClient, http, isAddress, type Address } from "viem";
 import { mainnet } from "viem/chains";
 
@@ -85,14 +97,31 @@ const CACHE_DIR = path.join(OUTPUT_DIR, "cache");
 const CACHE_MEMBERS = path.join(CACHE_DIR, "members.json");
 const CACHE_PROFILE_COINS = path.join(CACHE_DIR, "profile-coins");
 const CACHE_GECKO = path.join(CACHE_DIR, "gecko-pools");
+const CACHE_GECKO_BACKED = path.join(CACHE_DIR, "gecko-backed-pools");
+const CACHE_ZORA_COINS = path.join(CACHE_DIR, "zora-coins");
 const CACHE_FARCASTER = path.join(CACHE_DIR, "farcaster.json");
 const CACHE_ENS = path.join(CACHE_DIR, "ens.json");
 
-// Default: Gnars on Base
+// DAO governance token (NFT, ERC721) — used to enumerate members via subgraph
 const DAO_TOKEN_ADDRESS = (
   process.env.NEXT_PUBLIC_TOKEN_ADDRESS || "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17"
 ).toLowerCase();
-const GNARS_CREATOR_COIN = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
+// GNARS Zora ERC20 — the actual token being migrated to Clanker
+const GNARS_ZORA_TOKEN = (
+  process.env.GNARS_ZORA_TOKEN || "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
+).toLowerCase();
+// Backwards-compat alias retained for any external callers; new code uses GNARS_ZORA_TOKEN.
+const GNARS_CREATOR_COIN = GNARS_ZORA_TOKEN;
+// Pool root tokens we never want to surface as migration "downstream" coins.
+const ZORA_TOKEN_BASE = "0x1111111111166b7fe7bd91427724b487980afc69";
+const USDC_BASE = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
+const WETH_BASE = "0x4200000000000000000000000000000000000006";
+const ROOT_TOKENS = new Set<string>([
+  ZORA_TOKEN_BASE,
+  USDC_BASE,
+  WETH_BASE,
+  "0x0000000000000000000000000000000000000000",
+]);
 const GOLDSKY_PROJECT_ID =
   process.env.NEXT_PUBLIC_GOLDSKY_PROJECT_ID || "project_cm33ek8kjx6pz010i2c3w8z25";
 const SUBGRAPH_URL = `https://api.goldsky.com/api/public/${GOLDSKY_PROJECT_ID}/subgraphs/nouns-builder-base-mainnet/latest/gn`;
@@ -175,6 +204,13 @@ interface CreatorAggregate {
   gnarsPairedTvlUsd: number;
   topCoinSymbol: string | null;
   topCoinTvlUsd: number;
+  // Sum of `uniqueHolders` reported by Zora across all of this creator's coins.
+  // Useful for sizing an airdrop if we migrate their coins too.
+  totalHoldersAcrossCoins: number;
+  // The member's "creator coin" address (paired with a root currency), if known.
+  creatorCoinAddress: string | null;
+  creatorCoinSymbol: string | null;
+  creatorCoinTvlUsd: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -312,14 +348,49 @@ async function subgraphQuery<T>(query: string, variables: Record<string, unknown
   return json.data as T;
 }
 
+async function fetchDaoOwnerCount(): Promise<number | null> {
+  try {
+    const data = await withRetry("dao ownerCount", () =>
+      subgraphQuery<{ dao: { ownerCount: number } | null }>(
+        `query Dao($dao: ID!) { dao(id: $dao) { ownerCount } }`,
+        { dao: DAO_TOKEN_ADDRESS },
+      ),
+    );
+    return data.dao?.ownerCount ?? null;
+  } catch (err) {
+    warn("dao ownerCount lookup failed", err);
+    return null;
+  }
+}
+
 async function fetchAllMembers(): Promise<MemberRow[]> {
+  const expectedCount = await fetchDaoOwnerCount();
   const cached = await readJson<MemberRow[]>(CACHE_MEMBERS);
+
+  // Sanity-check the cache: if it's clearly truncated (e.g. an earlier broken
+  // run that only got the first 14 holders for a 1k-holder DAO) we discard it
+  // and refetch instead of silently emitting bad CSVs.
   if (cached && cached.length > 0) {
-    log(`members: loaded ${cached.length} from cache`);
-    return cached;
+    const cacheLooksTruncated =
+      expectedCount !== null && cached.length < Math.floor(expectedCount * 0.5);
+    if (cacheLooksTruncated) {
+      warn(
+        `members cache looks truncated (${cached.length}/${expectedCount}) — discarding and refetching`,
+      );
+    } else {
+      log(`members: loaded ${cached.length} from cache`);
+      if (expectedCount !== null && cached.length < expectedCount) {
+        warn(
+          `members cache count (${cached.length}) < dao.ownerCount (${expectedCount}); rerun with empty cache to refresh`,
+        );
+      }
+      return cached;
+    }
   }
 
-  log("members: fetching from Goldsky…");
+  log(
+    `members: fetching from Goldsky${expectedCount !== null ? ` (expecting ~${expectedCount})` : ""}…`,
+  );
   const PAGE_SIZE = 1000;
   const all: MemberRow[] = [];
   let skip = 0;
@@ -360,6 +431,12 @@ async function fetchAllMembers(): Promise<MemberRow[]> {
     if (rows.length < PAGE_SIZE) break;
     skip += PAGE_SIZE;
     log(`members: fetched ${all.length}, continuing…`);
+  }
+
+  if (expectedCount !== null && all.length < expectedCount) {
+    warn(
+      `members fetch returned ${all.length} but dao.ownerCount=${expectedCount}; subgraph may be lagging`,
+    );
   }
 
   await writeJson(CACHE_MEMBERS, all);
@@ -691,6 +768,181 @@ async function fetchAllPools(coins: string[]): Promise<Map<string, GeckoPool | n
 }
 
 // ---------------------------------------------------------------------------
+// Stage 3b: All pools for a seed token (used to walk Gnars-backed graph)
+// ---------------------------------------------------------------------------
+
+interface BackedPoolEntry {
+  poolAddress: string;
+  poolUrl: string;
+  reserveInUsd: number;
+  volume24h?: number;
+  feeBps?: number;
+  dex?: string;
+  baseTokenAddress: string;
+  quoteTokenAddress: string;
+  baseSymbol?: string;
+  quoteSymbol?: string;
+  // The "other side" of the pool from the perspective of the seed.
+  otherTokenAddress: string;
+  otherSymbol?: string;
+}
+
+function mapPoolToBackedEntry(
+  raw: NonNullable<GeckoTokenPoolsResponse["data"]>[number],
+  included: GeckoTokenPoolsResponse["included"],
+  seed: string,
+): BackedPoolEntry | null {
+  const a = raw.attributes ?? {};
+  const baseId = raw.relationships?.base_token?.data?.id ?? "";
+  const quoteId = raw.relationships?.quote_token?.data?.id ?? "";
+  const dexId = raw.relationships?.dex?.data?.id ?? a.dex_id ?? "";
+  const lookupAddress = (id: string): string | undefined =>
+    included?.find((i) => i.id === id)?.attributes?.address?.toLowerCase();
+  const lookupSymbol = (id: string): string | undefined =>
+    included?.find((i) => i.id === id)?.attributes?.symbol;
+
+  const baseAddr = lookupAddress(baseId) ?? "";
+  const quoteAddr = lookupAddress(quoteId) ?? "";
+  if (!baseAddr || !quoteAddr) return null;
+
+  const seedLower = seed.toLowerCase();
+  const otherAddr = baseAddr === seedLower ? quoteAddr : baseAddr;
+  const otherSym = baseAddr === seedLower ? lookupSymbol(quoteId) : lookupSymbol(baseId);
+
+  return {
+    poolAddress: a.address?.toLowerCase() ?? raw.id,
+    poolUrl: `https://www.geckoterminal.com/base/pools/${a.address?.toLowerCase() ?? raw.id}`,
+    reserveInUsd: parseFloat(a.reserve_in_usd ?? "0") || 0,
+    volume24h: a.volume_usd?.h24 ? parseFloat(a.volume_usd.h24) : undefined,
+    feeBps: typeof a.pool_fee_bps === "number" ? a.pool_fee_bps : undefined,
+    dex: dexId,
+    baseTokenAddress: baseAddr,
+    quoteTokenAddress: quoteAddr,
+    baseSymbol: lookupSymbol(baseId),
+    quoteSymbol: lookupSymbol(quoteId),
+    otherTokenAddress: otherAddr,
+    otherSymbol: otherSym,
+  };
+}
+
+async function fetchPoolsForSeed(seed: string): Promise<BackedPoolEntry[]> {
+  const seedLower = seed.toLowerCase();
+  const cacheFile = path.join(CACHE_GECKO_BACKED, `${seedLower}.json`);
+  const cached = await readJson<{ pools: BackedPoolEntry[]; failed?: boolean }>(cacheFile);
+  if (cached && !cached.failed) return cached.pools;
+
+  const collected: BackedPoolEntry[] = [];
+  let failed = false;
+  // GeckoTerminal returns at most 100 pools across paginated responses for
+  // /networks/{network}/tokens/{addr}/pools. Free tier docs cap at 10 pages.
+  for (let page = 1; page <= 10; page++) {
+    const url = `${GECKO_BASE}/networks/base/tokens/${seedLower}/pools?page=${page}&include=base_token,quote_token,dex`;
+    try {
+      const json = await withRetry(`gecko-pools-page ${seedLower}#${page}`, () =>
+        geckoFetch<GeckoTokenPoolsResponse>(url),
+      );
+      const pageRows = json.data ?? [];
+      if (pageRows.length === 0) break;
+      for (const raw of pageRows) {
+        const entry = mapPoolToBackedEntry(raw, json.included, seedLower);
+        if (entry) collected.push(entry);
+      }
+      // Most tokens have a single page; bail when underflow.
+      if (pageRows.length < 20) break;
+    } catch (err) {
+      const status = (err as { status?: number })?.status;
+      if (status === 404) break;
+      failed = true;
+      warn(`gecko-pools ${seedLower}#${page}`, err);
+      break;
+    }
+    await sleep(GECKO_RATE_DELAY_MS);
+  }
+
+  // Dedupe by pool address (paginated responses can overlap).
+  const dedup = new Map<string, BackedPoolEntry>();
+  for (const p of collected) dedup.set(p.poolAddress, p);
+  const pools = [...dedup.values()];
+
+  await writeJson(cacheFile, failed ? { pools: [], failed: true } : { pools });
+  return pools;
+}
+
+async function fetchAllBackedPools(seeds: string[]): Promise<Map<string, BackedPoolEntry[]>> {
+  await ensureDir(CACHE_GECKO_BACKED);
+  const map = new Map<string, BackedPoolEntry[]>();
+  let done = 0;
+  for (const seed of seeds) {
+    try {
+      const pools = await fetchPoolsForSeed(seed);
+      map.set(seed.toLowerCase(), pools);
+    } catch (err) {
+      warn(`backed-pools ${seed}`, err);
+      map.set(seed.toLowerCase(), []);
+    }
+    done++;
+    if (done % 5 === 0 || done === seeds.length) {
+      log(`backedPools: ${done}/${seeds.length}`);
+    }
+    await sleep(GECKO_RATE_DELAY_MS);
+  }
+  return map;
+}
+
+// ---------------------------------------------------------------------------
+// Stage 3c: Zora metadata for downstream content coins
+// ---------------------------------------------------------------------------
+
+async function fetchContentCoinMetadata(
+  coinAddresses: string[],
+): Promise<Map<string, ProfileCoin>> {
+  await ensureDir(CACHE_ZORA_COINS);
+  const map = new Map<string, ProfileCoin>();
+  let done = 0;
+  let hits = 0;
+
+  for (const addr of coinAddresses) {
+    const lower = addr.toLowerCase();
+    const cacheFile = path.join(CACHE_ZORA_COINS, `${lower}.json`);
+    const cached = await readJson<ProfileCoin | { notFound: true }>(cacheFile);
+    if (cached) {
+      if ("notFound" in cached) {
+        // skip
+      } else {
+        map.set(lower, cached);
+        hits++;
+      }
+      done++;
+      continue;
+    }
+
+    try {
+      const response = await withRetry(`zora getCoin ${lower}`, () =>
+        getCoin({ address: lower, chain: 8453 }),
+      );
+      const node = (response?.data as { zora20Token?: unknown } | undefined)?.zora20Token;
+      const mapped = mapCoinNode(node);
+      if (mapped) {
+        map.set(lower, mapped);
+        await writeJson(cacheFile, mapped);
+        hits++;
+      } else {
+        await writeJson(cacheFile, { notFound: true });
+      }
+    } catch (err) {
+      warn(`zora getCoin ${lower}`, err);
+      // Don't cache failures — let next run retry.
+    }
+    done++;
+    if (done % 25 === 0 || done === coinAddresses.length) {
+      log(`contentCoins: ${done}/${coinAddresses.length} (hits: ${hits})`);
+    }
+  }
+
+  return map;
+}
+
+// ---------------------------------------------------------------------------
 // Stage 4a: Farcaster (Neynar bulk-by-address)
 // ---------------------------------------------------------------------------
 
@@ -852,6 +1104,42 @@ interface CoinRow {
   zoraUrl: string;
 }
 
+type BackingTier =
+  | "tier_1_gnars" // is GNARS itself
+  | "tier_2_member_creator_coin" // is a Gnars member's creator coin
+  | "tier_3_paired_with_gnars" // content coin paired with GNARS directly
+  | "tier_4_paired_with_member_creator" // content coin paired with a member creator coin
+  | "skip";
+
+interface MigrationCandidate {
+  coinAddress: string;
+  symbol: string;
+  name: string;
+  createdAt: string | null;
+  creatorAddress: string | null;
+  creatorIsMember: boolean;
+  creatorEns: string | null;
+  creatorFarcaster: string | null;
+  creatorTwitter: string | null;
+  backingTier: BackingTier;
+  backingTokenAddress: string;
+  backingTokenSymbol: string | null;
+  bestPoolAddress: string;
+  bestPoolUrl: string;
+  bestPoolTvlUsd: number;
+  totalTvlUsdAllPools: number;
+  poolCount: number;
+  volume24hUsd: number;
+  marketCapUsd: number | null;
+  holdersCount: number | null;
+  zoraUrl: string;
+  recommendedAction: "must_include" | "should_include" | "consider" | "skip";
+}
+
+function isRootToken(addr: string): boolean {
+  return ROOT_TOKENS.has(addr.toLowerCase());
+}
+
 function buildCoinRows(
   members: MemberRow[],
   profileMap: Map<string, ProfileCoinsForMember>,
@@ -938,10 +1226,25 @@ function buildCreatorAggregates(
       .filter((c) => c.isGnarsPaired)
       .reduce((s, c) => s + (c.pool?.reserveInUsd ?? 0), 0);
     const withLiquidity = coins.filter((c) => c.hasLiquidity).length;
+    const totalHolders = coins.reduce((s, c) => s + (c.coin.uniqueHolders ?? 0), 0);
 
     const top = [...coins].sort(
       (a, b) => (b.pool?.reserveInUsd ?? 0) - (a.pool?.reserveInUsd ?? 0),
     )[0];
+
+    // A member's "creator coin" is paired with a root currency (ZORA/USDC/WETH).
+    // Content coins they made are paired with their own creator coin.
+    const creatorCoinRow = coins.find((c) => {
+      const pool = c.pool;
+      const currencyAddr = c.coin.poolCurrencyAddress?.toLowerCase();
+      const baseAddr = pool?.baseTokenAddress?.toLowerCase();
+      const quoteAddr = pool?.quoteTokenAddress?.toLowerCase();
+      return (
+        (currencyAddr && isRootToken(currencyAddr)) ||
+        (baseAddr && isRootToken(baseAddr)) ||
+        (quoteAddr && isRootToken(quoteAddr))
+      );
+    });
 
     const twitter =
       profile?.socials.twitter ?? fc?.twitter ?? coins[0]?.coin.zoraTwitter ?? null;
@@ -961,6 +1264,10 @@ function buildCreatorAggregates(
       gnarsPairedTvlUsd: gnarsTvl,
       topCoinSymbol: top?.coin.symbol ?? null,
       topCoinTvlUsd: top?.pool?.reserveInUsd ?? 0,
+      totalHoldersAcrossCoins: totalHolders,
+      creatorCoinAddress: creatorCoinRow?.coin.address ?? null,
+      creatorCoinSymbol: creatorCoinRow?.coin.symbol ?? null,
+      creatorCoinTvlUsd: creatorCoinRow?.pool?.reserveInUsd ?? 0,
     });
   }
 
@@ -972,14 +1279,229 @@ function buildCreatorAggregates(
   return creators;
 }
 
+/**
+ * Walk the Gnars-backed pool graph (1 hop from GNARS, 1 hop from each member
+ * creator coin) and produce a ranked migration deposit list for upgrader.co.
+ *
+ * Tiers:
+ *  tier_1_gnars                     — GNARS itself (must include)
+ *  tier_2_member_creator_coin       — a member's creator coin paired with a
+ *                                     root currency or with GNARS
+ *  tier_3_paired_with_gnars         — content coin whose pool is GNARS<>X
+ *  tier_4_paired_with_member_creator— content coin paired with a member creator
+ */
+function buildMigrationCandidates(
+  members: MemberRow[],
+  profileMap: Map<string, ProfileCoinsForMember>,
+  creators: CreatorAggregate[],
+  poolMap: Map<string, GeckoPool | null>,
+  backedPoolsMap: Map<string, BackedPoolEntry[]>,
+  contentCoinMeta: Map<string, ProfileCoin>,
+  ensMap: Map<string, string | null>,
+  fcMap: Map<string, FarcasterRecord>,
+): MigrationCandidate[] {
+  // Helpers ----------------------------------------------------------------
+  const memberOwners = new Set(members.map((m) => m.owner));
+  const creatorCoinByCreator = new Map<string, string>(); // creator -> creator-coin addr
+  for (const c of creators) {
+    if (c.creatorCoinAddress) {
+      creatorCoinByCreator.set(c.address, c.creatorCoinAddress.toLowerCase());
+    }
+  }
+  const memberCreatorCoinSet = new Set<string>(creatorCoinByCreator.values());
+
+  // Index Zora coin metadata we already know about, for quick lookup.
+  const knownCoins = new Map<string, ProfileCoin>();
+  for (const [, p] of profileMap.entries()) {
+    for (const coin of p.coins) knownCoins.set(coin.address.toLowerCase(), coin);
+  }
+  for (const [addr, coin] of contentCoinMeta.entries()) {
+    if (!knownCoins.has(addr)) knownCoins.set(addr, coin);
+  }
+
+  // Backing relationships: for every coin we encounter, which seeds (GNARS or
+  // member creator coins) is it paired with, and via which pools?
+  interface PoolRecord {
+    seed: string;
+    pool: BackedPoolEntry;
+  }
+  const poolsByCoin = new Map<string, PoolRecord[]>();
+  for (const [seed, pools] of backedPoolsMap.entries()) {
+    for (const pool of pools) {
+      const list = poolsByCoin.get(pool.otherTokenAddress) ?? [];
+      list.push({ seed, pool });
+      poolsByCoin.set(pool.otherTokenAddress, list);
+    }
+  }
+
+  function tierFromBacking(coinAddr: string): {
+    tier: BackingTier;
+    backingTokenAddress: string;
+    backingTokenSymbol: string | null;
+    pools: PoolRecord[];
+  } {
+    const lower = coinAddr.toLowerCase();
+    if (lower === GNARS_ZORA_TOKEN) {
+      return {
+        tier: "tier_1_gnars",
+        backingTokenAddress: GNARS_ZORA_TOKEN,
+        backingTokenSymbol: "GNARS",
+        pools: poolsByCoin.get(lower) ?? [],
+      };
+    }
+    if (memberCreatorCoinSet.has(lower)) {
+      const meta = knownCoins.get(lower);
+      return {
+        tier: "tier_2_member_creator_coin",
+        backingTokenAddress: meta?.poolCurrencyAddress ?? "",
+        backingTokenSymbol: meta?.poolCurrencyName ?? null,
+        pools: poolsByCoin.get(lower) ?? [],
+      };
+    }
+    const records = poolsByCoin.get(lower) ?? [];
+    // Prefer pairing with GNARS over member-creator pairing for tagging.
+    const gnarsPool = records.find((r) => r.seed === GNARS_ZORA_TOKEN);
+    if (gnarsPool) {
+      return {
+        tier: "tier_3_paired_with_gnars",
+        backingTokenAddress: GNARS_ZORA_TOKEN,
+        backingTokenSymbol: "GNARS",
+        pools: records,
+      };
+    }
+    const memberCreatorPool = records.find((r) => memberCreatorCoinSet.has(r.seed));
+    if (memberCreatorPool) {
+      return {
+        tier: "tier_4_paired_with_member_creator",
+        backingTokenAddress: memberCreatorPool.seed,
+        backingTokenSymbol:
+          knownCoins.get(memberCreatorPool.seed)?.symbol ??
+          memberCreatorPool.pool.baseSymbol ??
+          memberCreatorPool.pool.quoteSymbol ??
+          null,
+        pools: records,
+      };
+    }
+    return {
+      tier: "skip",
+      backingTokenAddress: "",
+      backingTokenSymbol: null,
+      pools: records,
+    };
+  }
+
+  function recommendation(
+    tier: BackingTier,
+    bestPoolTvl: number,
+    holders: number | null,
+  ): MigrationCandidate["recommendedAction"] {
+    if (tier === "tier_1_gnars" || tier === "tier_2_member_creator_coin") return "must_include";
+    if (tier === "skip") return "skip";
+    // Content coin thresholds — keep loose; we'll let humans cull.
+    if (bestPoolTvl >= 1_000) return "should_include";
+    if (bestPoolTvl >= 100 || (holders ?? 0) >= 25) return "consider";
+    return "skip";
+  }
+
+  // Walk every coin we have a backing relationship for, plus GNARS and
+  // every member creator coin (which may not appear in any seed's pool list).
+  const allCandidateAddrs = new Set<string>([
+    GNARS_ZORA_TOKEN,
+    ...memberCreatorCoinSet,
+    ...poolsByCoin.keys(),
+  ]);
+
+  const candidates: MigrationCandidate[] = [];
+  for (const addr of allCandidateAddrs) {
+    if (isRootToken(addr)) continue;
+    const meta = knownCoins.get(addr);
+    const { tier, backingTokenAddress, backingTokenSymbol, pools } = tierFromBacking(addr);
+    if (tier === "skip" && !meta) continue; // skip unknown root-token noise
+
+    const sortedPools = [...pools].sort((a, b) => b.pool.reserveInUsd - a.pool.reserveInUsd);
+    const bestPool = sortedPools[0]?.pool;
+    const totalTvl = sortedPools.reduce((s, r) => s + r.pool.reserveInUsd, 0);
+    const v24 = sortedPools.reduce((s, r) => s + (r.pool.volume24h ?? 0), 0);
+
+    const creatorAddr = meta?.creatorAddress ?? null;
+    const creatorIsMember = !!creatorAddr && memberOwners.has(creatorAddr);
+    const fc = creatorAddr ? fcMap.get(creatorAddr) ?? null : null;
+
+    // Fall back to single-pool data from `poolMap` (member-created coins) when
+    // we don't have a backed-pool record (e.g. tier_1 GNARS itself).
+    const fallbackPool = poolMap.get(addr) ?? null;
+    const finalPoolAddr = bestPool?.poolAddress ?? fallbackPool?.poolAddress ?? "";
+    const finalPoolUrl =
+      bestPool?.poolUrl ??
+      (fallbackPool?.poolAddress
+        ? `https://www.geckoterminal.com/base/pools/${fallbackPool.poolAddress}`
+        : "");
+    const finalBestTvl = bestPool?.reserveInUsd ?? fallbackPool?.reserveInUsd ?? 0;
+    const finalTotalTvl = totalTvl > 0 ? totalTvl : finalBestTvl;
+    const finalVolume24 = v24 || fallbackPool?.volume24h || 0;
+    const marketCap = fallbackPool?.marketCap ?? null;
+
+    const holders = meta?.uniqueHolders ?? null;
+    const symbol = meta?.symbol || (addr === GNARS_ZORA_TOKEN ? "GNARS" : "");
+    const name = meta?.name || (addr === GNARS_ZORA_TOKEN ? "Gnars" : "");
+
+    candidates.push({
+      coinAddress: addr,
+      symbol,
+      name,
+      createdAt: meta?.createdAt ?? null,
+      creatorAddress: creatorAddr,
+      creatorIsMember,
+      creatorEns: creatorAddr ? ensMap.get(creatorAddr) ?? null : null,
+      creatorFarcaster: fc?.username ?? null,
+      creatorTwitter: fc?.twitter ?? meta?.zoraTwitter ?? null,
+      backingTier: tier,
+      backingTokenAddress,
+      backingTokenSymbol,
+      bestPoolAddress: finalPoolAddr,
+      bestPoolUrl: finalPoolUrl,
+      bestPoolTvlUsd: finalBestTvl,
+      totalTvlUsdAllPools: finalTotalTvl,
+      poolCount: sortedPools.length || (fallbackPool ? 1 : 0),
+      volume24hUsd: finalVolume24,
+      marketCapUsd: marketCap,
+      holdersCount: holders,
+      zoraUrl: `https://zora.co/coin/base:${addr}`,
+      recommendedAction: recommendation(tier, finalBestTvl, holders),
+    });
+  }
+
+  // Order: tier asc, then TVL desc, then holders desc, then symbol asc.
+  const tierOrder: Record<BackingTier, number> = {
+    tier_1_gnars: 0,
+    tier_2_member_creator_coin: 1,
+    tier_3_paired_with_gnars: 2,
+    tier_4_paired_with_member_creator: 3,
+    skip: 9,
+  };
+  candidates.sort((a, b) => {
+    const at = tierOrder[a.backingTier];
+    const bt = tierOrder[b.backingTier];
+    if (at !== bt) return at - bt;
+    if (a.bestPoolTvlUsd !== b.bestPoolTvlUsd) return b.bestPoolTvlUsd - a.bestPoolTvlUsd;
+    if ((a.holdersCount ?? 0) !== (b.holdersCount ?? 0))
+      return (b.holdersCount ?? 0) - (a.holdersCount ?? 0);
+    return a.symbol.localeCompare(b.symbol);
+  });
+
+  return candidates;
+}
+
 async function writeCsvs(
   coinRows: CoinRow[],
   creators: CreatorAggregate[],
-): Promise<{ creatorsFile: string; coinsFile: string }> {
+  migration: MigrationCandidate[],
+): Promise<{ creatorsFile: string; coinsFile: string; migrationFile: string }> {
   await ensureDir(OUTPUT_DIR);
   const stamp = timestampSuffix();
   const creatorsFile = path.join(OUTPUT_DIR, `creators-${stamp}.csv`);
   const coinsFile = path.join(OUTPUT_DIR, `coins-${stamp}.csv`);
+  const migrationFile = path.join(OUTPUT_DIR, `migration-candidates-${stamp}.csv`);
 
   await writeCsv(
     creatorsFile,
@@ -997,6 +1519,10 @@ async function writeCsvs(
       "gnars_paired_tvl_usd",
       "top_coin_symbol",
       "top_coin_tvl_usd",
+      "creator_coin_address",
+      "creator_coin_symbol",
+      "creator_coin_tvl_usd",
+      "total_holders_across_coins",
       "migration_priority_tier",
     ],
     creators.map((c) => [
@@ -1013,6 +1539,10 @@ async function writeCsvs(
       c.gnarsPairedTvlUsd.toFixed(2),
       c.topCoinSymbol ?? "",
       c.topCoinTvlUsd.toFixed(2),
+      c.creatorCoinAddress ?? "",
+      c.creatorCoinSymbol ?? "",
+      c.creatorCoinTvlUsd.toFixed(2),
+      c.totalHoldersAcrossCoins,
       tierFor(c.totalTvlUsd),
     ]),
   );
@@ -1073,7 +1603,61 @@ async function writeCsvs(
     ]),
   );
 
-  return { creatorsFile, coinsFile };
+  await writeCsv(
+    migrationFile,
+    [
+      "rank",
+      "backing_tier",
+      "recommended_action",
+      "coin_address",
+      "coin_symbol",
+      "coin_name",
+      "creator_address",
+      "creator_is_member",
+      "creator_ens",
+      "creator_farcaster",
+      "creator_twitter",
+      "backing_token_address",
+      "backing_token_symbol",
+      "best_pool_address",
+      "best_pool_url",
+      "best_pool_tvl_usd",
+      "total_tvl_all_pools_usd",
+      "pool_count",
+      "volume_24h_usd",
+      "market_cap_usd",
+      "holders_count",
+      "created_at",
+      "zora_url",
+    ],
+    migration.map((m, i) => [
+      i + 1,
+      m.backingTier,
+      m.recommendedAction,
+      m.coinAddress,
+      m.symbol,
+      m.name,
+      m.creatorAddress ?? "",
+      m.creatorIsMember ? "true" : "false",
+      m.creatorEns ?? "",
+      m.creatorFarcaster ?? "",
+      m.creatorTwitter ?? "",
+      m.backingTokenAddress,
+      m.backingTokenSymbol ?? "",
+      m.bestPoolAddress,
+      m.bestPoolUrl,
+      m.bestPoolTvlUsd.toFixed(2),
+      m.totalTvlUsdAllPools.toFixed(2),
+      m.poolCount,
+      m.volume24hUsd.toFixed(2),
+      m.marketCapUsd != null ? m.marketCapUsd.toFixed(2) : "",
+      m.holdersCount ?? "",
+      m.createdAt ?? "",
+      m.zoraUrl,
+    ]),
+  );
+
+  return { creatorsFile, coinsFile, migrationFile };
 }
 
 // ---------------------------------------------------------------------------
@@ -1117,27 +1701,86 @@ async function main(): Promise<void> {
   }
   log(`profileCoins: ${creatorsWithCoins} creators, ${allCoinAddresses.size} unique coins`);
 
-  // 3. GeckoTerminal pools
+  // 3. GeckoTerminal pools (best pool per member-created coin)
   const coinList = [...allCoinAddresses];
   const poolMap = await fetchAllPools(coinList);
 
-  // 4. ENS + Farcaster (only for creators with coins to keep the CSVs focused)
-  const creatorAddrs = members
-    .filter((m) => (profileMap.get(m.owner)?.coins?.length ?? 0) > 0)
-    .map((m) => m.owner);
+  // 4. Backed-pool walk: for GNARS + every member-created coin, enumerate ALL
+  //    pools containing them. The "other side" of those pools is the set of
+  //    downstream content coins we care about for migration.
+  const seedSet = new Set<string>([GNARS_ZORA_TOKEN, ...allCoinAddresses]);
+  const seedList = [...seedSet];
+  log(`backedPools: walking ${seedList.length} seeds (gnars + member-created coins)`);
+  const backedPoolsMap = await fetchAllBackedPools(seedList);
+
+  // Collect downstream coin addresses (the "other side" of every backed pool).
+  const downstreamAddrs = new Set<string>();
+  for (const [, pools] of backedPoolsMap.entries()) {
+    for (const p of pools) {
+      const other = p.otherTokenAddress.toLowerCase();
+      if (!isRootToken(other) && !allCoinAddresses.has(other) && other !== GNARS_ZORA_TOKEN) {
+        downstreamAddrs.add(other);
+      }
+    }
+  }
+  log(`backedPools: ${downstreamAddrs.size} new downstream coins to enrich`);
+
+  // 5. Zora metadata for downstream coins (so we know symbol/creator/holders)
+  const contentCoinMeta = await fetchContentCoinMetadata([...downstreamAddrs]);
+
+  // 6. ENS + Farcaster — include member creators AND downstream coin creators.
+  const enrichmentAddrs = new Set<string>(
+    members
+      .filter((m) => (profileMap.get(m.owner)?.coins?.length ?? 0) > 0)
+      .map((m) => m.owner),
+  );
+  for (const meta of contentCoinMeta.values()) {
+    if (meta.creatorAddress) enrichmentAddrs.add(meta.creatorAddress.toLowerCase());
+  }
   const [ensMap, fcMap] = await Promise.all([
-    fetchEnsNames(creatorAddrs),
-    fetchFarcasterByAddress(creatorAddrs),
+    fetchEnsNames([...enrichmentAddrs]),
+    fetchFarcasterByAddress([...enrichmentAddrs]),
   ]);
 
-  // 5. Aggregate + write
+  // 7. Aggregate + write
   const coinRows = buildCoinRows(members, profileMap, poolMap, ensMap, fcMap);
   const creators = buildCreatorAggregates(members, profileMap, coinRows, ensMap, fcMap);
-  const { creatorsFile, coinsFile } = await writeCsvs(coinRows, creators);
+  const migration = buildMigrationCandidates(
+    members,
+    profileMap,
+    creators,
+    poolMap,
+    backedPoolsMap,
+    contentCoinMeta,
+    ensMap,
+    fcMap,
+  );
+  const { creatorsFile, coinsFile, migrationFile } = await writeCsvs(
+    coinRows,
+    creators,
+    migration,
+  );
 
   const totalTvl = creators.reduce((s, c) => s + c.totalTvlUsd, 0);
   const gnarsTvl = creators.reduce((s, c) => s + c.gnarsPairedTvlUsd, 0);
   const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+
+  const tierCounts = migration.reduce<Record<BackingTier, number>>(
+    (acc, m) => {
+      acc[m.backingTier] = (acc[m.backingTier] ?? 0) + 1;
+      return acc;
+    },
+    {
+      tier_1_gnars: 0,
+      tier_2_member_creator_coin: 0,
+      tier_3_paired_with_gnars: 0,
+      tier_4_paired_with_member_creator: 0,
+      skip: 0,
+    },
+  );
+  const mustInclude = migration.filter((m) => m.recommendedAction === "must_include").length;
+  const shouldInclude = migration.filter((m) => m.recommendedAction === "should_include").length;
+  const consider = migration.filter((m) => m.recommendedAction === "consider").length;
 
   log("=".repeat(60));
   log(`done in ${elapsed}s`);
@@ -1145,8 +1788,13 @@ async function main(): Promise<void> {
   log(`coin rows: ${coinRows.length}`);
   log(`total TVL across all coins: $${totalTvl.toFixed(2)}`);
   log(`gnars-paired TVL: $${gnarsTvl.toFixed(2)}`);
+  log(
+    `migration candidates by tier: t1=${tierCounts.tier_1_gnars} t2=${tierCounts.tier_2_member_creator_coin} t3=${tierCounts.tier_3_paired_with_gnars} t4=${tierCounts.tier_4_paired_with_member_creator}`,
+  );
+  log(`migration recs: must=${mustInclude} should=${shouldInclude} consider=${consider}`);
   log(`creators CSV: ${path.relative(ROOT, creatorsFile)}`);
   log(`coins CSV:    ${path.relative(ROOT, coinsFile)}`);
+  log(`migration CSV: ${path.relative(ROOT, migrationFile)}`);
 }
 
 // Persist partial output on Ctrl+C: nothing fancy needed because every stage
