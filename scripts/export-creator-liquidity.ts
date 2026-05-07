@@ -1094,9 +1094,17 @@ async function fetchEnsNames(addresses: string[]): Promise<Map<string, string | 
 // ---------------------------------------------------------------------------
 
 interface CoinRow {
+  // The DAO member whose Zora profile surfaced this coin. We trust Zora's
+  // profile attribution: `getProfileCoins(member)` returns coins under that
+  // member's Zora profile, even when the on-chain deployer wallet differs
+  // (Zora links wallets via payout/owner relations).
   creatorAddress: string;
   creatorEns: string | null;
   creatorFarcaster: string | null;
+  // Actual on-chain deployer wallet from the Zora coin record. Often differs
+  // from `creatorAddress` (e.g. gami: DAO holder 0x387a... but coins deployed
+  // from 0x347c...).
+  deployerAddress: string | null;
   coin: ProfileCoin;
   pool: GeckoPool | null;
   isGnarsPaired: boolean;
@@ -1155,13 +1163,18 @@ function buildCoinRows(
     if (!profile || profile.coins.length === 0) continue;
 
     for (const coin of profile.coins) {
-      // Only include coins where the member is the actual creator (Zora may surface coins
-      // they hold/contributed to). When creatorAddress is missing, fall back to membership.
-      const creatorAddr =
+      // Trust Zora's profile attribution. `profile.createdCoins` is whatever
+      // Zora attributes to this member's profile, which Zora resolves via
+      // account linking — payout recipient, owner, primary wallet, etc.
+      // The on-chain deployer wallet (`coin.creatorAddress`) often differs
+      // from the DAO holder address (e.g. gami's DAO wallet 0x387a... vs
+      // Zora deployer 0x347c...). The previous strict equality filter
+      // dropped 30+ members whose DAO wallet ≠ Zora deployer wallet.
+      const creatorAddr = m.owner;
+      const deployerAddr =
         coin.creatorAddress && isAddress(coin.creatorAddress as Address)
           ? coin.creatorAddress.toLowerCase()
-          : m.owner;
-      if (creatorAddr !== m.owner) continue;
+          : null;
 
       const dedupeKey = `${creatorAddr}:${coin.address}`;
       if (seenCoins.has(dedupeKey)) continue;
@@ -1169,15 +1182,16 @@ function buildCoinRows(
 
       const pool = poolMap.get(coin.address.toLowerCase()) ?? null;
       const isGnarsPaired =
-        coin.poolCurrencyAddress?.toLowerCase() === GNARS_CREATOR_COIN ||
-        pool?.baseTokenAddress === GNARS_CREATOR_COIN ||
-        pool?.quoteTokenAddress === GNARS_CREATOR_COIN ||
+        coin.poolCurrencyAddress?.toLowerCase() === GNARS_ZORA_TOKEN ||
+        pool?.baseTokenAddress === GNARS_ZORA_TOKEN ||
+        pool?.quoteTokenAddress === GNARS_ZORA_TOKEN ||
         false;
 
       rows.push({
         creatorAddress: creatorAddr,
         creatorEns: ensMap.get(creatorAddr) ?? null,
         creatorFarcaster: fcMap.get(creatorAddr)?.username ?? null,
+        deployerAddress: deployerAddr,
         coin,
         pool,
         isGnarsPaired,
@@ -1310,6 +1324,17 @@ function buildMigrationCandidates(
   }
   const memberCreatorCoinSet = new Set<string>(creatorCoinByCreator.values());
 
+  // Reverse map: coin -> member whose Zora profile surfaced it. Used to
+  // recognize coins as "member-owned" even when the on-chain deployer wallet
+  // differs from the DAO holder address (e.g. gami's case).
+  const memberByCoin = new Map<string, string>();
+  for (const [memberAddr, p] of profileMap.entries()) {
+    for (const coin of p.coins) {
+      const lower = coin.address.toLowerCase();
+      if (!memberByCoin.has(lower)) memberByCoin.set(lower, memberAddr);
+    }
+  }
+
   // Index Zora coin metadata we already know about, for quick lookup.
   const knownCoins = new Map<string, ProfileCoin>();
   for (const [, p] of profileMap.entries()) {
@@ -1423,8 +1448,13 @@ function buildMigrationCandidates(
     const totalTvl = sortedPools.reduce((s, r) => s + r.pool.reserveInUsd, 0);
     const v24 = sortedPools.reduce((s, r) => s + (r.pool.volume24h ?? 0), 0);
 
-    const creatorAddr = meta?.creatorAddress ?? null;
-    const creatorIsMember = !!creatorAddr && memberOwners.has(creatorAddr);
+    // Prefer attribution via member profile (handles wallet-linked Zora
+    // accounts like gami), fall back to on-chain deployer address.
+    const profileMember = memberByCoin.get(addr) ?? null;
+    const deployerAddr = meta?.creatorAddress ?? null;
+    const creatorAddr = profileMember ?? deployerAddr;
+    const creatorIsMember =
+      !!profileMember || (!!deployerAddr && memberOwners.has(deployerAddr));
     const fc = creatorAddr ? fcMap.get(creatorAddr) ?? null : null;
 
     // Fall back to single-pool data from `poolMap` (member-created coins) when
@@ -1553,6 +1583,7 @@ async function writeCsvs(
       "creator_address",
       "creator_ens",
       "creator_farcaster",
+      "deployer_address",
       "coin_address",
       "coin_name",
       "coin_symbol",
@@ -1579,6 +1610,7 @@ async function writeCsvs(
       r.creatorAddress,
       r.creatorEns ?? "",
       r.creatorFarcaster ?? "",
+      r.deployerAddress ?? "",
       r.coin.address,
       r.coin.name,
       r.coin.symbol,
