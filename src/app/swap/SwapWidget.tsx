@@ -7,7 +7,7 @@ import { ArrowRight, Check, ChevronDown, Info, Loader2, Search } from "lucide-re
 import { toast } from "sonner";
 import { prepareContractCall, prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
 import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
-import { formatUnits, maxUint256, parseUnits, type Address, type Hex } from "viem";
+import { formatUnits, isAddress, maxUint256, parseUnits, type Address, type Hex } from "viem";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -27,7 +27,7 @@ import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
 import { cn } from "@/lib/utils";
 import { getDefaultPair, NATIVE_TOKEN, type SwapToken } from "./chains";
 import { useSwapChain } from "./SwapChainContext";
-import { useWalletTokens } from "./useWalletTokens";
+import { useTokenLookup, useWalletTokens } from "./useWalletTokens";
 import {
   formatBalanceDisplay,
   useAllTokenBalances,
@@ -192,6 +192,11 @@ function TokenPicker({
     tokens,
   });
 
+  // When the query looks like a contract address and nothing in the list
+  // matches, resolve it via Alchemy metadata + Zora (on Base).
+  const queryTrimmed = query.trim();
+  const lookup = useTokenLookup({ address: queryTrimmed, chainId: chain.id });
+
   // Show the first 4 tokens of the chain as the "popular" row — chain
   // registries are ordered to put the staples first.
   const popular = React.useMemo(() => tokens.slice(0, 4), [tokens]);
@@ -295,9 +300,7 @@ function TokenPicker({
           )}
 
           <div className="-mx-6 max-h-80 overflow-y-auto border-t">
-            {filtered.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">No tokens found</p>
-            ) : (
+            {filtered.length > 0 ? (
               filtered.map((t) => {
                 const isSelected = t.address === value.address;
                 const isExcluded = t.address === exclude;
@@ -335,6 +338,43 @@ function TokenPicker({
                   </button>
                 );
               })
+            ) : isAddress(queryTrimmed) ? (
+              // Address pasted but not in token list — resolve it on-the-fly.
+              lookup.isLoading ? (
+                <p className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Resolving token…
+                </p>
+              ) : lookup.data ? (
+                <button
+                  type="button"
+                  disabled={lookup.data.address === exclude}
+                  onClick={() => choose(lookup.data!)}
+                  className={cn(
+                    "flex w-full items-center gap-3 px-6 py-2.5 text-left transition-colors",
+                    lookup.data.address === exclude
+                      ? "cursor-not-allowed opacity-40"
+                      : "hover:bg-accent",
+                  )}
+                >
+                  <TokenLogo token={lookup.data} size={32} chainId={chain.id} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-sm font-semibold">{lookup.data.symbol}</span>
+                      <span className="truncate text-xs text-muted-foreground">{lookup.data.name}</span>
+                    </div>
+                    <p className="truncate font-mono text-[10px] text-muted-foreground">
+                      {`${lookup.data.address.slice(0, 6)}…${lookup.data.address.slice(-4)}`}
+                    </p>
+                  </div>
+                </button>
+              ) : (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  No ERC-20 token found at this address
+                </p>
+              )
+            ) : (
+              <p className="py-8 text-center text-sm text-muted-foreground">No tokens found</p>
             )}
           </div>
         </div>
