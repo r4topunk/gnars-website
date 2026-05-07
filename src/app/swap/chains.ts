@@ -47,7 +47,29 @@ export const SWAP_CHAINS: readonly SwapChain[] = [
     shortName: "Base",
     thirdwebChain: thirdwebBase,
     defaults: { sell: "ETH", buy: "GNARS" },
+    // First 4 tokens appear in the "Popular" chip row of the token picker.
     tokens: [
+      {
+        symbol: "GNARS",
+        name: "Gnars",
+        address: DAO_ADDRESSES.gnarsErc20 as `0x${string}`,
+        decimals: 18,
+        logo: "/gnars.webp",
+      },
+      {
+        symbol: "HIGHER",
+        name: "Higher",
+        address: "0x0578d8a44db98b23bf096a382e016e29a5ce0ffe",
+        decimals: 18,
+        logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x0578d8A44db98B23BF096A382e016e29a5Ce0ffe/logo.png",
+      },
+      {
+        symbol: "VVV",
+        name: "Venice Token",
+        address: "0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf",
+        decimals: 18,
+        logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf/logo.png",
+      },
       ETH_NATIVE,
       {
         symbol: "WETH",
@@ -64,25 +86,11 @@ export const SWAP_CHAINS: readonly SwapChain[] = [
         logo: USDC_LOGO,
       },
       {
-        symbol: "GNARS",
-        name: "Gnars",
-        address: DAO_ADDRESSES.gnarsErc20 as `0x${string}`,
-        decimals: 18,
-        logo: "/gnars.webp",
-      },
-      {
         symbol: "DEGEN",
         name: "Degen",
         address: "0x4ed4e862860bed51a9570b96d89af5e1b0efefed",
         decimals: 18,
         logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed/logo.png",
-      },
-      {
-        symbol: "HIGHER",
-        name: "Higher",
-        address: "0x0578d8a44db98b23bf096a382e016e29a5ce0ffe",
-        decimals: 18,
-        logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x0578d8A44db98B23BF096A382e016e29a5Ce0ffe/logo.png",
       },
     ],
   },
