@@ -162,6 +162,7 @@ export const fetchPoidhBounty = cache(
     return {
       ...bounty,
       isOpenBounty: bounty.isOpenBounty ?? bounty.isMultiplayer,
+      isCompleted: bounty.isCompleted ?? claims.some((c) => c.accepted),
       claims,
     };
   },

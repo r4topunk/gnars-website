@@ -9,6 +9,13 @@ const ALLOWED_HOSTNAMES = new Set([
   'nftstorage.link',
 ]);
 
+const ALLOWED_HOST_SUFFIXES = ['.mypinata.cloud'];
+
+function isAllowedHost(hostname: string): boolean {
+  if (ALLOWED_HOSTNAMES.has(hostname)) return true;
+  return ALLOWED_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix));
+}
+
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get('url');
   if (!url) return NextResponse.json({ error: 'Missing url' }, { status: 400 });
@@ -20,7 +27,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid url' }, { status: 400 });
   }
 
-  if (!ALLOWED_HOSTNAMES.has(hostname)) {
+  if (!isAllowedHost(hostname)) {
     return NextResponse.json({ error: 'URL hostname not allowed' }, { status: 400 });
   }
 
