@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { type Address } from "viem";
+import { isAddress, type Address } from "viem";
 import { type SwapChain, type SwapToken, type WalletToken, NATIVE_TOKEN } from "./chains";
 
 /**
@@ -90,4 +90,41 @@ export function useWalletTokens({
   }, [query.data]);
 
   return { tokens: mergedTokens, usdValues, isLoading: query.isLoading };
+}
+
+/**
+ * Resolves an arbitrary ERC-20 address to a SwapToken by calling
+ * /api/wallet/token-lookup (Alchemy metadata + Zora image on Base).
+ *
+ * Only fires when `address` is a valid 0x address. Results are cached
+ * for 24 h — token metadata is stable.
+ */
+export function useTokenLookup({
+  address,
+  chainId,
+}: {
+  address: string;
+  chainId: number;
+}) {
+  return useQuery<SwapToken | null>({
+    queryKey: ["token-lookup", chainId, address.toLowerCase()],
+    enabled: isAddress(address),
+    staleTime: 24 * 60 * 60 * 1000,
+    retry: false,
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/wallet/token-lookup?address=${address}&chainId=${chainId}`,
+      );
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!data?.symbol) return null;
+      return {
+        address: data.address as `0x${string}`,
+        symbol: data.symbol,
+        name: data.name,
+        decimals: data.decimals,
+        logo: data.logoUrl ?? undefined,
+      };
+    },
+  });
 }
