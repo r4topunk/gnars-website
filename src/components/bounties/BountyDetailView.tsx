@@ -110,12 +110,14 @@ function isIpfsCid(url: string | undefined): boolean {
 const STATUS_STYLES = {
   Canceled: "bg-red-500/10 text-red-400 border-red-500/20",
   Voting: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+  Completed: "bg-sky-500/10 text-sky-400 border-sky-500/20",
   Open: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
 } as const;
 
 function getStatus(bounty: PoidhBounty): keyof typeof STATUS_STYLES {
   if (bounty.isCanceled) return "Canceled";
   if (bounty.isVoting) return "Voting";
+  if (bounty.isCompleted) return "Completed";
   return "Open";
 }
 
@@ -318,7 +320,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   const deadlineDate = bounty.deadline ? new Date(bounty.deadline * 1000) : null;
   const status = getStatus(bounty);
   const isCreator = address?.toLowerCase() === bounty.issuer.toLowerCase();
-  const isActive = !bounty.isCanceled && !bounty.isVoting;
+  const isActive = !bounty.isCanceled && !bounty.isVoting && !bounty.isCompleted;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -888,7 +890,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
           )}
 
           {/* Join open bounty (add funds) */}
-          {isJoinable && !bounty.isCanceled && !bounty.isVoting && (
+          {isJoinable && isActive && (
             <Card className="border-border">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Add to the Prize Pool</CardTitle>
