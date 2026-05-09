@@ -132,7 +132,9 @@
     @apply !bg-transparent !border-none;
     @apply !bg-transparent !border-none;
   }
-  .leaflet-popup-content-wrapper, .leaflet-popup-content, .leaflet-popup-content p {
+  .leaflet-popup-content-wrapper,
+  .leaflet-popup-content,
+  .leaflet-popup-content p {
     @apply ![all:unset];
     @apply ![all:unset];
   }
@@ -144,7 +146,8 @@
     @apply ring-offset-background focus:ring-ring bg-secondary rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:outline-hidden;
     @apply ring-offset-background focus:ring-ring bg-secondary rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:outline-hidden;
   }
-  .leaflet-tooltip, .leaflet-draw-tooltip {
+  .leaflet-tooltip,
+  .leaflet-draw-tooltip {
     @apply !bg-foreground !text-background !animate-none !rounded-md !border-none !p-0 !px-3 !py-1.5 !shadow-none;
     @apply !bg-foreground !text-background !animate-none !rounded-md !border-none !p-0 !px-3 !py-1.5 !shadow-none;
   }
@@ -164,7 +167,11 @@
     @apply !text-background;
     @apply !text-background;
   }
-  .leaflet-popup-tip-container, .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before {
+  .leaflet-popup-tip-container,
+  .leaflet-tooltip-top:before,
+  .leaflet-tooltip-bottom:before,
+  .leaflet-tooltip-left:before,
+  .leaflet-tooltip-right:before {
     @apply hidden;
     @apply hidden;
   }
@@ -213,4 +220,18 @@
   aspect-ratio: 16 / 9;
   border-radius: 0.375rem;
   margin: 0.75rem 0;
+}
+
+/* WCAG 2.3.3 — honor user's reduced-motion preference for CSS animations
+   and transitions. JS-driven motion (Framer Motion, GSAP, Three.js) should
+   additionally consult `useReducedMotion()` or `matchMedia` when needed. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
