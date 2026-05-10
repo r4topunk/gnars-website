@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { X, Maximize2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ExternalLink } from "lucide-react";
 import { useTVFeed } from "./useTVFeed";
 
 const Gnar3DTVScene = dynamic(() => import("./Gnar3DTVScene").then((mod) => mod.Gnar3DTVScene), {
@@ -15,10 +16,15 @@ interface Gnar3DTVProps {
   className?: string;
 }
 
+// Pointer movement above this many pixels between down/up is treated as a
+// drag (rotate) instead of a click (navigate).
+const DRAG_THRESHOLD_PX = 6;
+
 export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Fetch TV feed data
   const { items, creatorCoinImages } = useTVFeed({});
@@ -35,25 +41,10 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Handle ESC key to exit fullscreen
+  // Prefetch /tv so navigation feels instant
   useEffect(() => {
-    if (!isFullscreen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setIsFullscreen(false);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    // Prevent body scroll when fullscreen
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [isFullscreen]);
+    router.prefetch("/tv");
+  }, [router]);
 
   // Handle auto-advance to next video
   const handleNextVideo = useCallback(() => {
@@ -61,52 +52,48 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
     setCurrentIndex((prev) => (prev + 1) % videoItems.length);
   }, [videoItems.length]);
 
-  // Handle click - toggle fullscreen
-  const handleTVClick = useCallback(() => {
-    setIsFullscreen(true);
+  const navigateToTV = useCallback(() => {
+    router.push("/tv");
+  }, [router]);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    pointerStartRef.current = { x: e.clientX, y: e.clientY };
   }, []);
 
-  // Handle close fullscreen
-  const handleClose = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsFullscreen(false);
-  }, []);
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const start = pointerStartRef.current;
+      pointerStartRef.current = null;
+      if (!start) return;
+      const dx = e.clientX - start.x;
+      const dy = e.clientY - start.y;
+      // Treat as click only when pointer barely moved — drags are reserved for OrbitControls rotation.
+      if (Math.hypot(dx, dy) <= DRAG_THRESHOLD_PX) {
+        navigateToTV();
+      }
+    },
+    [navigateToTV],
+  );
 
-  // Fullscreen overlay
-  if (isFullscreen) {
-    return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm animate-in fade-in duration-300 pt-16"
-        onClick={handleClose}
-      >
-        {/* Close button */}
-        <button
-          onClick={handleClose}
-          className="absolute right-4 top-20 z-50 rounded-lg bg-black/60 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
-          aria-label="Close fullscreen"
-        >
-          <X className="h-6 w-6" />
-        </button>
-
-        {/* TV container - full viewport */}
-        <div
-          className="h-full w-full max-h-screen max-w-screen cursor-grab active:cursor-grabbing"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Gnar3DTVScene
-            videoUrl={currentVideo?.videoUrl}
-            autoRotate={true}
-            onNextVideo={handleNextVideo}
-            creatorCoinImages={creatorCoinImages}
-          />
-        </div>
-      </div>
-    );
-  }
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        navigateToTV();
+      }
+    },
+    [navigateToTV],
+  );
 
   return (
     <div
-      className={`group relative w-full cursor-grab transition-all duration-700 ease-out active:cursor-grabbing ${className} ${
+      role="link"
+      tabIndex={0}
+      aria-label="Open Gnars TV"
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onKeyDown={handleKeyDown}
+      className={`group relative w-full cursor-pointer transition-all duration-700 ease-out active:cursor-grabbing ${className} ${
         isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
       }`}
     >
@@ -119,14 +106,13 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
         />
       </div>
 
-      {/* Fullscreen button - appears on hover */}
-      <button
-        onClick={handleTVClick}
-        className="absolute right-3 top-3 z-10 rounded-lg bg-black/60 p-2 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-black/80 group-hover:opacity-100"
-        aria-label="Enter fullscreen"
+      {/* Affordance: corner icon hints that the TV is clickable. Decorative only — wrapper handles navigation. */}
+      <div
+        className="pointer-events-none absolute right-3 top-3 z-10 rounded-lg bg-black/60 p-2 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100"
+        aria-hidden="true"
       >
-        <Maximize2 className="h-5 w-5" />
-      </button>
+        <ExternalLink className="h-5 w-5" />
+      </div>
     </div>
   );
 }
