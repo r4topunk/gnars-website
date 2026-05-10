@@ -70,7 +70,7 @@ function fallbackCopyTextToClipboard(text: string): boolean {
   }
 }
 
-export function HomeFooter({ className }: { className?: string }) {
+export function FooterBar({ className }: { className?: string }) {
   const year = new Date().getFullYear();
 
   const onCopyNoggles = React.useCallback(async () => {

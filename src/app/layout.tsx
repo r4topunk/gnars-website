@@ -6,8 +6,8 @@ import { AAOnboarding } from "@/components/layout/AAOnboarding";
 import { DaoHeader } from "@/components/layout/DaoHeader";
 // import { MuralBackground } from "@/components/layout/MuralBackground";
 import Providers from "@/components/layout/Providers";
+import { FooterBar } from "@/components/layout/FooterBar";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
-import { SiteFooter } from "@/components/layout/SiteFooter";
 import { MiniAppReady } from "@/components/miniapp/MiniAppReady";
 import { MiniTV } from "@/components/tv/MiniTV";
 import { MiniTVVisibilityProvider } from "@/components/tv/MiniTVVisibilityContext";
@@ -85,7 +85,7 @@ export default function RootLayout({
                 <DaoHeader />
                 <AAOnboarding />
                 <main className="max-w-6xl mx-auto px-4">{children}</main>
-                <SiteFooter />
+                <FooterBar />
                 <Toaster />
                 <MiniTV />
               </MiniTVVisibilityProvider>
