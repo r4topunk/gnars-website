@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { MuralBackground } from "@/components/layout/MuralBackground";
 
 export const metadata: Metadata = {
@@ -22,10 +23,14 @@ export const metadata: Metadata = {
  * Mural page
  * Displays the interactive mural with real Gnars NFTs in a draggable grid.
  */
-export default function MuralPage() {
+export default async function MuralPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "mural" });
+
   return (
     <>
-      <h1 className="sr-only">Gnars community mural</h1>
+      <h1 className="sr-only">{t("srHeading")}</h1>
       <MuralBackground />
     </>
   );

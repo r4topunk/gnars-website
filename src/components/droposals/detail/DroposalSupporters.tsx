@@ -5,6 +5,7 @@
  * Renders a grid of supporters (wallets) who minted the edition.
  * Expects the NFT contract `tokenAddress` and optional `totalSupply` to optimize fetching.
  */
+import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { AddressDisplay, AddressDisplaySkeleton } from "@/components/ui/address-display";
@@ -19,6 +20,7 @@ export interface DroposalSupportersProps {
 }
 
 export function DroposalSupporters({ tokenAddress, totalSupply }: DroposalSupportersProps) {
+  const t = useTranslations("droposals");
   const { refreshKey } = useDroposalMint();
   const totalSupplyBigInt = totalSupply ? BigInt(totalSupply) : null;
   const { visibleSupporters, isLoading, error, refresh, cached } = useSupporters({
@@ -33,14 +35,17 @@ export function DroposalSupporters({ tokenAddress, totalSupply }: DroposalSuppor
   return (
     <Card>
       <div className="flex items-center justify-between">
-        <SectionHeader title="Supporters" description="Collectors who minted this drop" />
+        <SectionHeader
+          title={t("detail.supportersTitle")}
+          description={t("detail.supportersDescription")}
+        />
         <Button
           variant="ghost"
           size="sm"
           onClick={refresh}
           disabled={isLoading}
           className="mr-4"
-          title={cached ? "Cached data - click to refresh" : "Refresh supporters"}
+          title={cached ? t("detail.refreshCached") : t("detail.refresh")}
         >
           <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
         </Button>
@@ -60,7 +65,7 @@ export function DroposalSupporters({ tokenAddress, totalSupply }: DroposalSuppor
         {!isLoading && error && <div className="text-sm text-destructive">{error}</div>}
 
         {!isLoading && !error && visibleSupporters.length === 0 && (
-          <div className="text-muted-foreground">No supporters found.</div>
+          <div className="text-muted-foreground">{t("detail.noSupporters")}</div>
         )}
 
         {!isLoading && !error && visibleSupporters.length > 0 && (

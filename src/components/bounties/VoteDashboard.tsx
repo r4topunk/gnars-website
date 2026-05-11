@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Clock } from "lucide-react";
 import { formatEther } from "viem";
 import { useReadContract } from "wagmi";
@@ -36,6 +37,7 @@ interface VoteDashboardProps {
 }
 
 export function VoteDashboard({ chainId, onChainBountyId }: VoteDashboardProps) {
+  const t = useTranslations("bounties");
   const contractAddress = POIDH_CONTRACTS[chainId];
 
   const { data: tracker } = useReadContract({
@@ -65,7 +67,7 @@ export function VoteDashboard({ chainId, onChainBountyId }: VoteDashboardProps) 
   return (
     <Card className="border-yellow-500/20 bg-yellow-500/5">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base text-yellow-400">Live Vote</CardTitle>
+        <CardTitle className="text-base text-yellow-400">{t("voteDashboard.liveVote")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Yes / No labels */}
@@ -84,14 +86,16 @@ export function VoteDashboard({ chainId, onChainBountyId }: VoteDashboardProps) 
 
         {/* Vote weight note */}
         <p className="text-xs text-muted-foreground">
-          Weighted by ETH contribution — {total.toFixed(4)} ETH total
+          {t("voteDashboard.weightedNote", { total: total.toFixed(4) })}
         </p>
 
         {/* Deadline */}
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1 border-t border-border/50">
           <Clock className="w-3 h-3 shrink-0" />
           <span>
-            {isExpired ? "Vote period ended — resolve when ready" : `Vote closes in ${deadline}`}
+            {isExpired
+              ? t("voteDashboard.votePeriodEnded")
+              : t("voteDashboard.voteClosesIn", { deadline })}
           </span>
         </div>
       </CardContent>

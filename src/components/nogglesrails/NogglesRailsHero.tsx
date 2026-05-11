@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Environment, OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
@@ -132,17 +133,18 @@ function NogglesCanvas({ frameColor }: { frameColor: string }) {
 }
 
 export default function NogglesRailsHero() {
+  const t = useTranslations("installations.nogglesrails");
   const [frameColor, setFrameColor] = useState(DEFAULT_FRAME_COLOR);
 
   const stats = useMemo(() => {
     const countries = new Set(NOGGLES_RAILS.map((r) => r.country));
     const continents = new Set(NOGGLES_RAILS.map((r) => r.continent));
     return [
-      { value: NOGGLES_RAILS.length, label: "Installations" },
-      { value: countries.size, label: "Countries" },
-      { value: continents.size, label: "Continents" },
+      { value: NOGGLES_RAILS.length, label: t("stats.installations") },
+      { value: countries.size, label: t("stats.countries") },
+      { value: continents.size, label: t("stats.continents") },
     ];
-  }, []);
+  }, [t]);
 
   return (
     <section className="relative overflow-hidden py-8 md:py-10 lg:py-12">
@@ -158,10 +160,7 @@ export default function NogglesRailsHero() {
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
               NogglesRails
             </h1>
-            <p className="text-lg text-muted-foreground md:text-xl">
-              Community-funded skate rails installed in spots around the world. Open, CC0, owned by
-              no one and everyone.
-            </p>
+            <p className="text-lg text-muted-foreground md:text-xl">{t("heroDescription")}</p>
           </div>
 
           {/* Stats */}
@@ -179,7 +178,7 @@ export default function NogglesRailsHero() {
             <Button
               onClick={() => document.getElementById("map")?.scrollIntoView({ behavior: "smooth" })}
             >
-              Explore Map
+              {t("actions.exploreMap")}
             </Button>
             <Button
               variant="outline"
@@ -187,13 +186,13 @@ export default function NogglesRailsHero() {
                 document.getElementById("rails")?.scrollIntoView({ behavior: "smooth" })
               }
             >
-              View All Rails
+              {t("actions.viewAllRails")}
             </Button>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Rail Color</span>
+              <span className="text-sm text-muted-foreground">{t("actions.railColor")}</span>
               <Select value={frameColor} onValueChange={setFrameColor}>
                 <SelectTrigger className="w-[210px]">
-                  <SelectValue placeholder="Choose rail color" />
+                  <SelectValue placeholder={t("actions.chooseColor")} />
                 </SelectTrigger>
                 <SelectContent>
                   {RAIL_COLOR_PRESETS.map(({ name, value }) => (

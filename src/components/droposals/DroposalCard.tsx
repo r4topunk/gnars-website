@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
@@ -10,6 +11,7 @@ interface DroposalCardProps {
 }
 
 export function DroposalCard({ item }: DroposalCardProps) {
+  const t = useTranslations("droposals");
   const href = `/droposals/${item.proposalNumber}`;
   return (
     <Link href={href} className="group block">
@@ -36,7 +38,7 @@ export function DroposalCard({ item }: DroposalCardProps) {
             </span>
             {item.priceEth && (
               <span className="font-medium text-foreground">
-                {Number(item.priceEth) === 0 ? "Free" : `${item.priceEth} ETH`}
+                {Number(item.priceEth) === 0 ? t("card.free") : `${item.priceEth} ETH`}
               </span>
             )}
           </div>

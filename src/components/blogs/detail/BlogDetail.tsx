@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Markdown } from "@/components/common/Markdown";
 import { extractFirstUrl, normalizeImageUrl } from "@/components/proposals/utils";
@@ -43,6 +44,7 @@ export function BlogDetailSkeleton() {
 }
 
 export function BlogDetail({ blog }: BlogDetailProps) {
+  const t = useTranslations("blogs");
   // Use imageUrl from blog object if available, otherwise fallback to extracting from markdown
   const bannerUrl = blog.imageUrl || normalizeImageUrl(extractFirstUrl(blog.markdown));
   const currentBannerSrc = bannerUrl ?? "/logo-banner.jpg";
@@ -92,13 +94,13 @@ export function BlogDetail({ blog }: BlogDetailProps) {
         {blog.subtitle && <p className="text-xl text-muted-foreground">{blog.subtitle}</p>}
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>By {blog.publication.name}</span>
+          <span>{t("post.by", { author: blog.publication.name })}</span>
           <span>•</span>
-          <span>Published {publishedDate}</span>
+          <span>{t("post.publishedOn", { date: publishedDate })}</span>
           {blog.coinId && (
             <>
               <span>•</span>
-              <Badge variant="secondary">Coined</Badge>
+              <Badge variant="secondary">{t("post.coined")}</Badge>
             </>
           )}
         </div>
@@ -128,7 +130,9 @@ export function BlogDetail({ blog }: BlogDetailProps) {
       <Card>
         <CardHeader>
           <div className="text-sm text-muted-foreground">
-            Last updated {formatSafeDistanceToNow(blog.updatedAt, "Unknown")}
+            {t("post.lastUpdated", {
+              date: formatSafeDistanceToNow(blog.updatedAt, "Unknown"),
+            })}
           </div>
         </CardHeader>
         <CardContent>

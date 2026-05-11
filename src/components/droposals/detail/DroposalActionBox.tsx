@@ -5,6 +5,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { AlertTriangle, Check, Loader2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +37,7 @@ export function DroposalActionBox({
   hasDecoded,
   tokenAddress,
 }: DroposalActionBoxProps) {
+  const t = useTranslations("droposals");
   const [quantity, setQuantity] = useState(1);
   const [comment, setComment] = useState("");
   const { triggerRefresh } = useDroposalMint();
@@ -75,7 +77,7 @@ export function DroposalActionBox({
       return (
         <>
           <Wallet className="mr-2 h-4 w-4" />
-          Connect Wallet
+          {t("detail.connectWallet")}
         </>
       );
     }
@@ -85,25 +87,25 @@ export function DroposalActionBox({
         return (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Confirm in wallet...
+            {t("detail.confirmInWallet")}
           </>
         );
       case "pending-tx":
         return (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Minting...
+            {t("detail.minting")}
           </>
         );
       case "success":
         return (
           <>
             <Check className="mr-2 h-4 w-4" />
-            Minted!
+            {t("detail.minted")}
           </>
         );
       default:
-        return `Collect for ${totalPrice} ETH`;
+        return t("detail.collectFor", { price: totalPrice });
     }
   };
 
@@ -121,22 +123,27 @@ export function DroposalActionBox({
     <Card>
       <CardContent className="space-y-4">
         <div>
-          <div className="text-xs text-muted-foreground">Price</div>
+          <div className="text-xs text-muted-foreground">{t("detail.price")}</div>
           <div className="text-lg font-semibold">
-            {Number(priceEth) === 0 ? "Free" : `${priceEth} ETH`}
+            {Number(priceEth) === 0 ? t("detail.free") : `${priceEth} ETH`}
           </div>
         </div>
         <div className="text-sm text-muted-foreground">
           {saleNotStarted && saleStart ? (
             <span>
-              Starts {new Date(saleStart).toLocaleString()} · {formatCountdown(saleStart)}
+              {t("detail.saleStarts", {
+                date: new Date(saleStart).toLocaleString(),
+                countdown: formatCountdown(saleStart),
+              })}
             </span>
           ) : null}
-          {saleEnded && saleEnd ? <span>Ended {new Date(saleEnd).toLocaleString()}</span> : null}
+          {saleEnded && saleEnd ? (
+            <span>{t("detail.saleEnded", { date: new Date(saleEnd).toLocaleString() })}</span>
+          ) : null}
           {!hasDecoded && (
             <span className="inline-flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
-              No sale configuration
+              {t("detail.noSaleConfig")}
             </span>
           )}
         </div>
@@ -144,7 +151,7 @@ export function DroposalActionBox({
           <div className="space-y-4">
             {/* Quantity Selector */}
             <div className="space-y-2">
-              <Label htmlFor="quantity">Quantity</Label>
+              <Label htmlFor="quantity">{t("detail.quantity")}</Label>
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
@@ -170,10 +177,10 @@ export function DroposalActionBox({
 
             {/* Comment Input */}
             <div className="space-y-2">
-              <Label htmlFor="comment">Comment (optional)</Label>
+              <Label htmlFor="comment">{t("detail.comment")}</Label>
               <Textarea
                 id="comment"
-                placeholder="Add a comment to your mint..."
+                placeholder={t("detail.commentPlaceholder")}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={2}
@@ -191,7 +198,7 @@ export function DroposalActionBox({
           </div>
         ) : (
           <Button disabled={!saleActive} className="w-full">
-            {saleActive ? "Mint" : "Mint is not available yet"}
+            {saleActive ? t("detail.mint") : t("detail.mintUnavailable")}
           </Button>
         )}
       </CardContent>

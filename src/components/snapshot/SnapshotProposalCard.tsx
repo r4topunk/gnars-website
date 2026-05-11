@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { SnapshotProposal } from "@/types/snapshot";
@@ -10,6 +11,8 @@ interface SnapshotProposalCardProps {
 }
 
 export function SnapshotProposalCard({ proposal }: SnapshotProposalCardProps) {
+  const t = useTranslations("feed.snapshot");
+
   const statusColor = useMemo(() => {
     switch (proposal.state) {
       case "active":
@@ -32,8 +35,8 @@ export function SnapshotProposalCard({ proposal }: SnapshotProposalCardProps) {
 
     if (days > 0) return `${days} day${days !== 1 ? "s" : ""} ago`;
     if (hours > 0) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
-    return "recently";
-  }, [proposal.created]);
+    return t("recently");
+  }, [proposal.created, t]);
 
   const winningChoice = useMemo(() => {
     if (!proposal.scores || proposal.scores.length === 0) return null;
@@ -61,15 +64,15 @@ export function SnapshotProposalCard({ proposal }: SnapshotProposalCardProps) {
           <h3 className="text-lg font-semibold leading-tight">{proposal.title}</h3>
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>
-              {proposal.votes} voter{proposal.votes !== 1 && "s"}
-            </span>
+            <span>{t("voters", { count: proposal.votes })}</span>
             <span>·</span>
-            <span>{proposal.scores_total.toFixed(0)} votes</span>
+            <span>{t("votes", { count: Math.round(proposal.scores_total) })}</span>
             {winningChoice && (
               <>
                 <span>·</span>
-                <span className="font-medium text-foreground">Leading: {winningChoice}</span>
+                <span className="font-medium text-foreground">
+                  {t("leading", { choice: winningChoice })}
+                </span>
               </>
             )}
           </div>
@@ -82,7 +85,7 @@ export function SnapshotProposalCard({ proposal }: SnapshotProposalCardProps) {
         </div>
 
         <div className="text-right text-sm">
-          <div className="font-medium">Snapshot</div>
+          <div className="font-medium">{t("label")}</div>
           <div className="text-muted-foreground">#{proposal.snapshot}</div>
         </div>
       </div>

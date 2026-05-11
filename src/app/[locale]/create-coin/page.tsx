@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Coins, ImageIcon, Info, Loader2, Upload, Video } from "lucide-react";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ interface CreatedCoinData {
 }
 
 export default function CreateCoinPage() {
+  const t = useTranslations("createCoin");
   const router = useRouter();
   const { address, isConnected } = useUserAddress();
   const {
@@ -171,7 +173,7 @@ export default function CreateCoinPage() {
         creator: address || "",
         useUserCreatorCoin: useUserCreatorCoin,
       });
-      toast.success("Coin created successfully!");
+      toast.success(t("toasts.coinCreated"));
     }
   }, [
     txSuccess,
@@ -183,20 +185,21 @@ export default function CreateCoinPage() {
     description,
     mediaFile,
     useUserCreatorCoin,
+    t,
   ]);
 
   // Dismiss loading toast when wallet interaction starts
   React.useEffect(() => {
     if (!isPreparingTransaction && isPending) {
       toast.dismiss("create-coin-loading");
-      toast.loading("Please confirm the transaction in your wallet...", {
+      toast.loading(t("toasts.confirmTransaction"), {
         id: "wallet-confirm-loading",
       });
     }
     if (txSuccess) {
       toast.dismiss("wallet-confirm-loading");
     }
-  }, [isPreparingTransaction, isPending, txSuccess]);
+  }, [isPreparingTransaction, isPending, txSuccess, t]);
 
   // Handle file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,8 +211,8 @@ export default function CreateCoinPage() {
     const isVideo = file.type.startsWith("video/");
 
     if (!isImage && !isVideo) {
-      setMediaError("Please upload an image or video file");
-      toast.error("Please upload an image or video file");
+      setMediaError(t("errors.invalidFile"));
+      toast.error(t("toasts.invalidFileType"));
       return;
     }
 
@@ -218,22 +221,22 @@ export default function CreateCoinPage() {
     const isSupportedVideo = SUPPORTED_VIDEO_TYPES.includes(file.type);
 
     if (isImage && !isSupportedImage) {
-      setMediaError("Image type not supported. Please use: JPEG, PNG, GIF, WebP, or SVG");
-      toast.error("Image type not supported. Please use: JPEG, PNG, GIF, WebP, or SVG");
+      setMediaError(t("errors.unsupportedImage"));
+      toast.error(t("toasts.invalidImageType"));
       return;
     }
 
     if (isVideo && !isSupportedVideo) {
-      setMediaError("Video type not supported. Please use: MP4, WebM, or MOV");
-      toast.error("Video type not supported. Please use: MP4, WebM, or MOV");
+      setMediaError(t("errors.unsupportedVideo"));
+      toast.error(t("toasts.invalidVideoType"));
       return;
     }
 
     // Check file size (max 420MB for better upload performance)
     const maxSize = 420 * 1024 * 1024;
     if (file.size > maxSize) {
-      setMediaError("File size must be less than 420MB");
-      toast.error("File size must be less than 420MB");
+      setMediaError(t("errors.fileTooLarge"));
+      toast.error(t("toasts.fileTooLarge"));
       return;
     }
 
@@ -263,41 +266,41 @@ export default function CreateCoinPage() {
     e.preventDefault();
 
     if (!isConnected) {
-      toast.error("Please connect your wallet first");
+      toast.error(t("toasts.connectWallet"));
       return;
     }
 
     // Validate form
     if (!name.trim()) {
-      toast.error("Please enter a coin name");
+      toast.error(t("toasts.enterName"));
       return;
     }
 
     if (!symbol.trim()) {
-      toast.error("Please enter a coin symbol");
+      toast.error(t("toasts.enterSymbol"));
       return;
     }
 
     if (symbol.length > 10) {
-      toast.error("Symbol must be 10 characters or less");
+      toast.error(t("toasts.symbolTooLong"));
       return;
     }
 
     if (!mediaFile) {
-      setMediaError("Please upload an image or video");
-      toast.error("Please upload an image or video");
+      setMediaError(t("errors.noMedia"));
+      toast.error(t("toasts.uploadMedia"));
       return;
     }
 
     // For videos, ensure thumbnail has been selected
     if (mediaFile.type.startsWith("video/") && !customThumbnail) {
-      toast.error("Please select a thumbnail for your video");
+      toast.error(t("toasts.selectThumbnail"));
       return;
     }
 
     try {
       // Show immediate feedback
-      toast.loading("Uploading media and preparing transaction...", {
+      toast.loading(t("toasts.uploadingMedia"), {
         id: "create-coin-loading",
       });
 
@@ -314,7 +317,7 @@ export default function CreateCoinPage() {
       toast.dismiss("create-coin-loading");
     } catch (error) {
       toast.dismiss("create-coin-loading");
-      toast.error(error instanceof Error ? error.message : "Failed to create coin");
+      toast.error(error instanceof Error ? error.message : t("errors.failedToCreate"));
     }
   };
 
@@ -323,7 +326,7 @@ export default function CreateCoinPage() {
   const handleThumbnailSelected = (thumbnailFile: File) => {
     setCustomThumbnail(thumbnailFile);
     setShowThumbnailSelector(false);
-    toast.success("Custom thumbnail selected!");
+    toast.success(t("toasts.thumbnailSelected"));
   };
 
   const handleThumbnailCancel = () => {
@@ -366,17 +369,17 @@ export default function CreateCoinPage() {
               <div>
                 <p className="font-medium text-blue-900 dark:text-blue-100">
                   {transactionHash
-                    ? "Confirming transaction..."
+                    ? t("pending.confirmingTitle")
                     : mediaType === "video"
-                      ? "Processing video and generating thumbnail..."
-                      : "Uploading to IPFS and preparing transaction..."}
+                      ? t("pending.processingVideoTitle")
+                      : t("pending.uploadingTitle")}
                 </p>
                 <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
                   {transactionHash
-                    ? "Waiting for blockchain confirmation"
+                    ? t("pending.confirmingBody")
                     : mediaType === "video"
-                      ? "Generating thumbnail from video frame, then uploading to IPFS"
-                      : "Please sign the transaction in your wallet"}
+                      ? t("pending.processingVideoBody")
+                      : t("pending.uploadingBody")}
                 </p>
               </div>
             </div>
@@ -398,10 +401,8 @@ export default function CreateCoinPage() {
           /* Success Preview */
           <>
             <div className="min-w-0">
-              <h1 className="text-3xl font-bold tracking-tight mb-2">Coin Created Successfully!</h1>
-              <p className="text-muted-foreground">
-                Your coin has been deployed on Base. Here is the summary:
-              </p>
+              <h1 className="text-3xl font-bold tracking-tight mb-2">{t("success.title")}</h1>
+              <p className="text-muted-foreground">{t("success.description")}</p>
             </div>
 
             <Card>
@@ -435,7 +436,7 @@ export default function CreateCoinPage() {
 
                   {createdCoinData.description && (
                     <div>
-                      <Label>Description</Label>
+                      <Label>{t("form.description")}</Label>
                       <p className="text-sm text-muted-foreground mt-1">
                         {createdCoinData.description}
                       </p>
@@ -444,46 +445,50 @@ export default function CreateCoinPage() {
 
                   {/* Deployment Info */}
                   <div className="bg-muted rounded-lg p-4 space-y-3 text-sm">
-                    <h4 className="font-semibold">Deployment Information</h4>
+                    <h4 className="font-semibold">{t("success.deploymentInfo")}</h4>
 
                     {createdCoinData.coinAddress && (
                       <div>
-                        <Label className="text-xs">Coin Address</Label>
+                        <Label className="text-xs">{t("success.coinAddress")}</Label>
                         <p className="font-mono text-xs break-all">{createdCoinData.coinAddress}</p>
                       </div>
                     )}
 
                     <div>
-                      <Label className="text-xs">Creator Address</Label>
+                      <Label className="text-xs">{t("success.creatorAddress")}</Label>
                       <p className="font-mono text-xs break-all">{createdCoinData.creator}</p>
                     </div>
 
                     <div>
-                      <Label className="text-xs">Backing Currency</Label>
+                      <Label className="text-xs">{t("success.backingCurrency")}</Label>
                       {createdCoinData.useUserCreatorCoin ? (
                         <>
                           <p className="font-mono text-xs">{createdCoinData.creator}</p>
                           <p className="text-xs text-muted-foreground">
-                            Your Creator Coin (resolved from wallet address)
+                            {t("success.userCreatorCoinDesc")}
                           </p>
                         </>
                       ) : (
                         <>
                           <p className="font-mono text-xs">{GNARS_CREATOR_COIN}</p>
-                          <p className="text-xs text-muted-foreground">$GNARS Creator Coin</p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("success.gnarsCoinDesc")}
+                          </p>
                         </>
                       )}
                     </div>
 
                     <div>
-                      <Label className="text-xs">Platform Referrer</Label>
+                      <Label className="text-xs">{t("success.platformReferrer")}</Label>
                       <p className="font-mono text-xs">{PLATFORM_REFERRER}</p>
-                      <p className="text-xs text-muted-foreground">Gnars DAO referrer address</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("success.platformReferrerDesc")}
+                      </p>
                     </div>
 
                     {createdCoinData.transactionHash && (
                       <div>
-                        <Label className="text-xs">Transaction Hash</Label>
+                        <Label className="text-xs">{t("success.transactionHash")}</Label>
                         <p className="font-mono text-xs break-all">
                           {createdCoinData.transactionHash}
                         </p>
@@ -491,8 +496,8 @@ export default function CreateCoinPage() {
                     )}
 
                     <div>
-                      <Label className="text-xs">Network</Label>
-                      <p className="text-xs">Base (Chain ID: 8453)</p>
+                      <Label className="text-xs">{t("success.network")}</Label>
+                      <p className="text-xs">{t("success.networkValue")}</p>
                     </div>
                   </div>
                 </div>
@@ -500,10 +505,10 @@ export default function CreateCoinPage() {
                 {/* Actions */}
                 <div className="flex gap-3">
                   <Button variant="outline" onClick={handleCreateAnother} className="flex-1">
-                    Create Another Coin
+                    {t("success.createAnother")}
                   </Button>
                   <Button onClick={() => router.push("/")} className="flex-1">
-                    Go to Dashboard
+                    {t("success.dashboard")}
                   </Button>
                 </div>
               </CardContent>
@@ -513,11 +518,8 @@ export default function CreateCoinPage() {
           /* Creation Form */
           <>
             <div className="min-w-0">
-              <h1 className="text-3xl font-bold tracking-tight mb-2">Create a Zora Coin</h1>
-              <p className="text-muted-foreground">
-                Create a new coin on Zora. Add a name, symbol, and media (image or video) for your
-                coin.
-              </p>
+              <h1 className="text-3xl font-bold tracking-tight mb-2">{t("title")}</h1>
+              <p className="text-muted-foreground">{t("description")}</p>
             </div>
 
             <Card>
@@ -526,27 +528,29 @@ export default function CreateCoinPage() {
                   {/* Name */}
                   <div className="space-y-2">
                     <Label htmlFor="name">
-                      Coin Name <span className="text-destructive">*</span>
+                      {t("form.coinName")} <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       id="name"
-                      placeholder="e.g., Gnars Community Coin"
+                      placeholder={t("form.coinNamePlaceholder")}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       maxLength={50}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">{name.length}/50 characters</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("form.coinNameCharCount", { count: name.length })}
+                    </p>
                   </div>
 
                   {/* Symbol */}
                   <div className="space-y-2">
                     <Label htmlFor="symbol">
-                      Symbol <span className="text-destructive">*</span>
+                      {t("form.symbol")} <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       id="symbol"
-                      placeholder="e.g., GNARS"
+                      placeholder={t("form.symbolPlaceholder")}
                       value={symbol}
                       onChange={(e) => setSymbol(e.target.value.toUpperCase())}
                       maxLength={10}
@@ -554,33 +558,33 @@ export default function CreateCoinPage() {
                       className="uppercase"
                     />
                     <p className="text-xs text-muted-foreground">
-                      {symbol.length}/10 characters (will be uppercase)
+                      {t("form.symbolCharCount", { count: symbol.length })}
                     </p>
                   </div>
 
                   {/* Description */}
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description (Optional)</Label>
+                    <Label htmlFor="description">{t("form.description")}</Label>
                     <Textarea
                       id="description"
-                      placeholder="Describe your coin..."
+                      placeholder={t("form.descriptionPlaceholder")}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       maxLength={500}
                       rows={4}
                     />
                     <p className="text-xs text-muted-foreground">
-                      {description.length}/500 characters
+                      {t("form.descriptionCharCount", { count: description.length })}
                     </p>
                   </div>
 
                   {/* Currency Selection */}
                   <div className="space-y-3">
-                    <Label>Backing Currency</Label>
+                    <Label>{t("form.backingCurrency")}</Label>
                     {isCheckingCreatorCoin ? (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Checking for creator coin...
+                        {t("form.checkingCreatorCoin")}
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -601,12 +605,10 @@ export default function CreateCoinPage() {
                               className="text-sm font-medium cursor-pointer flex items-center gap-2"
                             >
                               <Image src="/gnars.webp" alt="GNARS" width={24} height={24} />
-                              $GNARS Creator Coin (Default)
+                              {t("form.gnarsCoinLabel")}
                             </label>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Backed by Gnars DAO token. Provides established liquidity and
-                              community support. Every token buy will buy $GNARS first then the
-                              coin. Making $GNARS stronger!
+                              {t("form.gnarsCoinDesc")}
                             </p>
                           </div>
                         </div>
@@ -640,11 +642,12 @@ export default function CreateCoinPage() {
                                     {creatorCoinName?.charAt(0) || "C"}
                                   </div>
                                 )}
-                                My Creator Coin {creatorCoinName && `(${creatorCoinName})`}
+                                {creatorCoinName
+                                  ? t("form.myCreatorCoinWithName", { name: creatorCoinName })
+                                  : t("form.myCreatorCoin")}
                               </label>
                               <p className="text-xs text-muted-foreground mt-1">
-                                Backed by your personal creator coin. Creates a coin family within
-                                your ecosystem. Gnars treasure will get $ZORA rewards too!
+                                {t("form.myCreatorCoinDesc")}
                               </p>
                             </div>
                           </div>
@@ -654,8 +657,7 @@ export default function CreateCoinPage() {
                           <Alert>
                             <Info className="h-4 w-4" />
                             <AlertDescription className="text-xs">
-                              You don&apos;t have a creator coin yet. Only $GNARS backing is
-                              available. To use your own creator coin, deploy one first.
+                              {t("form.noCreatorCoin")}
                             </AlertDescription>
                           </Alert>
                         )}
@@ -664,10 +666,10 @@ export default function CreateCoinPage() {
                           <Alert>
                             <Info className="h-4 w-4" />
                             <AlertDescription className="text-xs">
-                              <strong>Your wallet address:</strong>{" "}
+                              <strong>{t("form.yourWalletAddress")}</strong>{" "}
                               <span className="font-mono">{address}</span>
                               <br />
-                              The SDK will resolve this to your creator coin address automatically.
+                              {t("form.sdkResolveNote")}
                             </AlertDescription>
                           </Alert>
                         )}
@@ -678,7 +680,7 @@ export default function CreateCoinPage() {
                   {/* Media Upload */}
                   <div className="space-y-2">
                     <Label>
-                      Media <span className="text-destructive">*</span>
+                      {t("form.media")} <span className="text-destructive">*</span>
                     </Label>
                     <div className="space-y-3">
                       {mediaType === "none" ? (
@@ -690,18 +692,22 @@ export default function CreateCoinPage() {
                           onClick={() => fileInputRef.current?.click()}
                           role="button"
                           tabIndex={0}
-                          aria-label="Upload media file"
+                          aria-label={t("form.uploadAriaLabel")}
                         >
                           <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                          <p className="text-sm font-medium mb-1">Upload Image or Video</p>
+                          <p className="text-sm font-medium mb-1">{t("form.uploadLabel")}</p>
                           <p className="text-xs text-muted-foreground">
-                            Images: JPEG, PNG, GIF, WebP, SVG
-                            <br />
-                            Videos: MP4 (recommended), WebM, MOV • Max: 420MB (but please keep it
-                            small!)
+                            {t("form.uploadFormats")
+                              .split("\n")
+                              .map((line, i) => (
+                                <React.Fragment key={i}>
+                                  {i > 0 && <br />}
+                                  {line}
+                                </React.Fragment>
+                              ))}
                             <br />
                             <span className="text-blue-600 dark:text-blue-400">
-                              📸 Choose custom thumbnail for videos
+                              {t("form.uploadThumbnailNote")}
                             </span>
                           </p>
                           <input
@@ -717,7 +723,9 @@ export default function CreateCoinPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {/* Video/Image Preview */}
                           <div>
-                            <Label className="text-sm font-medium mb-2 block">Media</Label>
+                            <Label className="text-sm font-medium mb-2 block">
+                              {t("form.mediaPreviewLabel")}
+                            </Label>
                             <div className="relative border rounded-lg overflow-hidden">
                               {mediaType === "image" && mediaUrl && (
                                 <Image
@@ -751,7 +759,7 @@ export default function CreateCoinPage() {
                                     size="sm"
                                     onClick={() => setShowThumbnailSelector(true)}
                                   >
-                                    Select Thumbnail
+                                    {t("form.selectThumbnail")}
                                   </Button>
                                 )}
                                 <Button
@@ -760,7 +768,7 @@ export default function CreateCoinPage() {
                                   size="sm"
                                   onClick={handleRemoveMedia}
                                 >
-                                  Remove
+                                  {t("form.remove")}
                                 </Button>
                               </div>
                             </div>
@@ -770,7 +778,7 @@ export default function CreateCoinPage() {
                           {mediaType === "video" && (
                             <div>
                               <Label className="text-sm font-medium mb-2 block">
-                                Selected Thumbnail
+                                {t("form.selectedThumbnail")}
                               </Label>
                               {customThumbnail && thumbnailUrl ? (
                                 <div className="relative border rounded-lg overflow-hidden">
@@ -788,16 +796,21 @@ export default function CreateCoinPage() {
                                       size="sm"
                                       onClick={() => setShowThumbnailSelector(true)}
                                     >
-                                      Change
+                                      {t("form.changeThumbnail")}
                                     </Button>
                                   </div>
                                 </div>
                               ) : (
                                 <div className="border rounded-lg aspect-video bg-muted flex items-center justify-center">
                                   <p className="text-sm text-muted-foreground text-center px-4">
-                                    No thumbnail selected.
-                                    <br />
-                                    Click &quot;Select Thumbnail&quot; to choose one.
+                                    {t("form.noThumbnail")
+                                      .split("\n")
+                                      .map((line, i) => (
+                                        <React.Fragment key={i}>
+                                          {i > 0 && <br />}
+                                          {line}
+                                        </React.Fragment>
+                                      ))}
                                   </p>
                                 </div>
                               )}
@@ -812,12 +825,12 @@ export default function CreateCoinPage() {
 
                   {/* Info Box */}
                   <div className="bg-muted rounded-lg p-4 space-y-2 text-sm">
-                    <p className="font-medium">What happens next:</p>
+                    <p className="font-medium">{t("form.whatHappensNext")}</p>
                     <ul className="space-y-1 text-muted-foreground list-disc list-inside">
-                      <li>Your media will be uploaded to Zora IPFS network</li>
-                      <li>Metadata will be validated and stored on IPFS</li>
-                      <li>Your wallet will open to confirm the transaction</li>
-                      <li>The coin will be deployed on Base network</li>
+                      <li>{t("form.step1")}</li>
+                      <li>{t("form.step2")}</li>
+                      <li>{t("form.step3")}</li>
+                      <li>{t("form.step4")}</li>
                     </ul>
                   </div>
 
@@ -830,7 +843,7 @@ export default function CreateCoinPage() {
                       className="flex-1"
                       disabled={isPending || isPreparingTransaction}
                     >
-                      Cancel
+                      {t("form.cancel")}
                     </Button>
                     <Button
                       type="submit"
@@ -840,17 +853,17 @@ export default function CreateCoinPage() {
                       {isPreparingTransaction ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Preparing transaction...
+                          {t("form.preparingTransaction")}
                         </>
                       ) : isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
+                          {t("form.creating")}
                         </>
                       ) : (
                         <>
                           <Coins className="mr-2 h-4 w-4" />
-                          Create Coin
+                          {t("form.createCoin")}
                         </>
                       )}
                     </Button>
@@ -858,7 +871,7 @@ export default function CreateCoinPage() {
 
                   {!isConnected && (
                     <p className="text-sm text-center text-muted-foreground">
-                      Connect your wallet to create a coin
+                      {t("form.connectToCreate")}
                     </p>
                   )}
                 </form>

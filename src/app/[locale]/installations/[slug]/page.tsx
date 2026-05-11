@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
   InstallationDetail,
   InstallationDetailSkeleton,
@@ -19,7 +20,7 @@ async function fetchInstallationData(slug: string): Promise<Installation | null>
 }
 
 interface InstallationPageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: InstallationPageProps): Promise<Metadata> {
@@ -75,16 +76,16 @@ export async function generateMetadata({ params }: InstallationPageProps): Promi
 }
 
 export default async function InstallationPage({ params }: InstallationPageProps) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "installations" });
   const installation = await fetchInstallationData(slug);
 
   if (!installation) {
     return (
       <div className="py-8 text-center">
-        <h2 className="text-2xl font-bold text-muted-foreground">Installation Not Found</h2>
-        <p className="text-muted-foreground mt-2">
-          The installation you&apos;re looking for doesn&apos;t exist.
-        </p>
+        <h2 className="text-2xl font-bold text-muted-foreground">{t("notFound.title")}</h2>
+        <p className="text-muted-foreground mt-2">{t("notFound.description")}</p>
       </div>
     );
   }

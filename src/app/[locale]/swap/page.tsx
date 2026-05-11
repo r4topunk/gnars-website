@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BASE_URL } from "@/lib/config";
 import { SWAP_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import { ChainSelector } from "./ChainSelector";
@@ -37,19 +38,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SwapPage() {
+export default async function SwapPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("swap");
+
   return (
     <div className="py-12">
       <div className="mx-auto max-w-3xl space-y-8">
         <SwapChainProvider>
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight">Swap</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
               <ChainSelector />
             </div>
-            <p className="text-sm text-muted-foreground">
-              Trade tokens with best execution across 150+ DEXes.
-            </p>
+            <p className="text-sm text-muted-foreground">{t("description")}</p>
           </div>
 
           <SwapWidget />
@@ -58,15 +61,12 @@ export default function SwapPage() {
         {/* Editorial copy — frames the swap as a contribution, not just a trade. */}
         <div className="mx-auto max-w-2xl space-y-3 border-t pt-8">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Every swap is a small bet on shredding
+            {t("editorial.tagline")}
           </p>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            With the <span className="font-medium text-foreground">Support Gnars treasury</span> box
-            ticked, 0.5% of every trade routes straight to the Gnars Collective Treasury — already
-            behind <span className="font-medium text-foreground">15 skatable sculptures</span>{" "}
-            around the world, ambassador sponsorships, and infrastructure for a network of shredders
-            from across the planet. You&apos;re not just swapping tokens; you&apos;re backing the
-            culture and funding the next concrete pour, the next contest, the next session.
+            {t.rich("editorial.body", {
+              highlight: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+            })}
           </p>
         </div>
       </div>

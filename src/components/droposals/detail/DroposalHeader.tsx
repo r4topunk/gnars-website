@@ -11,6 +11,7 @@
  * - priceEth: formatted ETH price string
  * - editionSize: string or "Open"
  */
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 
@@ -24,7 +25,8 @@ export interface DroposalHeaderProps {
   editionSize: string;
 }
 
-export function DroposalHeader(props: DroposalHeaderProps) {
+export async function DroposalHeader(props: DroposalHeaderProps) {
+  const t = await getTranslations("droposals");
   const { proposalNumber, title, fallbackName } = props;
 
   return (
@@ -36,7 +38,7 @@ export function DroposalHeader(props: DroposalHeaderProps) {
       </div>
       <div className="hidden lg:flex items-center gap-2">
         <Button asChild variant="outline" size="sm">
-          <Link href="/droposals">Back to Drops</Link>
+          <Link href="/droposals">{t("detail.backToDrops")}</Link>
         </Button>
       </div>
     </div>

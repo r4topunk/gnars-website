@@ -1,1 +1,47 @@
-{}
+{
+  "title": "Gnars Drops",
+  "description": "Drops are Gnarly Highquality videos or assets created and approved by the community. In order to create a Drop you need to create a droposal.",
+  "linkDescription": "Droposals are community proposals that green-light new drops and skate media. See {fundingLink} or learn {aboutLink}.",
+  "fundingDecisions": "funding decisions",
+  "howGnarsWorks": "how Gnars works",
+  "empty": "No droposals found.",
+  "card": {
+    "free": "Free"
+  },
+  "notFound": {
+    "title": "Droposal not found",
+    "description": "We couldn't find this droposal."
+  },
+  "detail": {
+    "backToDrops": "Back to Drops",
+    "addressesTitle": "Addresses",
+    "fundsRecipient": "Funds Recipient",
+    "admin": "Admin",
+    "tokenContract": "Token Contract",
+    "detailsTitle": "Details",
+    "name": "Name",
+    "description": "Description",
+    "metadataTitle": "Metadata",
+    "noSaleData": "No sale data.",
+    "supportersTitle": "Supporters",
+    "supportersDescription": "Collectors who minted this drop",
+    "noSupporters": "No supporters found.",
+    "refreshCached": "Cached data - click to refresh",
+    "refresh": "Refresh supporters",
+    "price": "Price",
+    "free": "Free",
+    "quantity": "Quantity",
+    "comment": "Comment (optional)",
+    "commentPlaceholder": "Add a comment to your mint...",
+    "saleStarts": "Starts {date} · {countdown}",
+    "saleEnded": "Ended {date}",
+    "noSaleConfig": "No sale configuration",
+    "collectFor": "Collect for {price} ETH",
+    "connectWallet": "Connect Wallet",
+    "confirmInWallet": "Confirm in wallet...",
+    "minting": "Minting...",
+    "minted": "Minted!",
+    "mint": "Mint",
+    "mintUnavailable": "Mint is not available yet"
+  }
+}

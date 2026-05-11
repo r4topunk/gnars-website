@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
@@ -155,6 +156,7 @@ interface BountyDetailViewProps {
 }
 
 export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDetailViewProps) {
+  const t = useTranslations("bounties");
   const { address, isConnected } = useUserAddress();
   const { connect: openConnectModal } = useConnectModal();
   const handleConnect = async () => {
@@ -166,7 +168,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
         wallets: THIRDWEB_WALLETS,
         accountAbstraction: THIRDWEB_AA_CONFIG,
         size: "compact",
-        title: "Connect to contribute",
+        title: t("detail.connectWallet"),
       });
       setShowConnectDialog(false);
     } catch {
@@ -365,7 +367,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
       <Button asChild variant="ghost" size="sm" className="mb-6">
         <Link href="/community/bounties">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Bounties
+          {t("detail.backToBounties")}
         </Link>
       </Button>
 
@@ -378,8 +380,8 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
           >
             {status}
           </span>
-          {bounty.isOpenBounty && <Badge variant="secondary">Open Bounty</Badge>}
-          {bounty.isMultiplayer && <Badge variant="secondary">Multiplayer</Badge>}
+          {bounty.isOpenBounty && <Badge variant="secondary">{t("detail.openBounty")}</Badge>}
+          {bounty.isMultiplayer && <Badge variant="secondary">{t("card.multiplayer")}</Badge>}
         </div>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
@@ -403,7 +405,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
           {/* Description */}
           <Card>
             <CardHeader>
-              <CardTitle>Objective</CardTitle>
+              <CardTitle>{t("detail.objective")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-muted-foreground leading-relaxed prose prose-invert prose-sm max-w-none">
@@ -435,7 +437,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                             className="text-primary hover:underline flex items-center gap-1 my-2"
                           >
                             <ExternalLink className="w-3 h-3" />
-                            View media
+                            {t("detail.viewMedia")}
                           </a>
                         );
                       }
@@ -499,7 +501,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
             <Card className="border-destructive/20 bg-destructive/5">
               <CardContent className="py-4 flex items-center gap-3 text-sm text-muted-foreground">
                 <XCircle className="w-5 h-5 text-destructive shrink-0" />
-                This bounty has been canceled.
+                {t("detail.canceledNotice")}
               </CardContent>
             </Card>
           )}
@@ -510,14 +512,14 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
               <CardContent className="py-10 flex flex-col items-center text-center gap-3">
                 <div className="text-4xl">🎬</div>
                 <div>
-                  <p className="font-semibold text-base">No claims yet</p>
+                  <p className="font-semibold text-base">{t("detail.noClaims")}</p>
                   <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                    Be the first to complete this challenge. Film your proof and submit it on-chain.
+                    {t("detail.noClaimsDescription")}
                   </p>
                 </div>
                 <ClaimBountyModal bounty={bounty} onSuccess={handleClaimSuccess}>
                   <Button size="lg" className="mt-2">
-                    Join
+                    {t("cta.join")}
                   </Button>
                 </ClaimBountyModal>
               </CardContent>
@@ -528,7 +530,9 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
           {bounty.claims && bounty.claims.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Submitted Claims ({bounty.claims.length})</CardTitle>
+                <CardTitle>
+                  {t("detail.submittedClaims", { count: bounty.claims.length })}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {bounty.claims.map((claim) => (
@@ -538,7 +542,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                       <p className="font-medium text-sm">{claim.name}</p>
                       {claim.accepted && (
                         <Badge variant="default" className="shrink-0">
-                          <CheckCircle2 className="w-3 h-3" /> Accepted
+                          <CheckCircle2 className="w-3 h-3" /> {t("detail.claimAccepted")}
                         </Badge>
                       )}
                     </div>
@@ -587,7 +591,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                                       className="text-primary hover:underline flex items-center gap-1 my-1"
                                     >
                                       <ExternalLink className="w-3 h-3" />
-                                      View media
+                                      {t("detail.viewMedia")}
                                     </a>
                                   );
                                 }
@@ -696,10 +700,10 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                             {acceptClaimHook.isPending ? (
                               <>
                                 <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                Accepting...
+                                {t("detail.accepting")}
                               </>
                             ) : (
-                              "Accept Claim"
+                              t("detail.acceptClaim")
                             )}
                           </Button>
                         )}
@@ -710,7 +714,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         hadExternalContributor &&
                         !bounty.isVoting && (
                           <p className="text-xs text-muted-foreground">
-                            Use <strong>Submit for Vote</strong> — contributors must vote to accept.
+                            {t("detail.useSubmitForVote")}
                           </p>
                         )}
                     </div>
@@ -718,14 +722,14 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                     {acceptClaimHook.isSuccess && acceptClaimHook.hash && (
                       <div className="flex items-center gap-2 py-2 px-3 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
                         <CheckCircle2 className="w-4 h-4 shrink-0" />
-                        <span>Claim accepted!</span>
+                        <span>{t("detail.claimAcceptedSuccess")}</span>
                         <a
                           href={getTxUrl(chainId, acceptClaimHook.hash)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="ml-auto flex items-center gap-1 hover:underline"
                         >
-                          View tx <ExternalLink className="w-3 h-3" />
+                          {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
                     )}
@@ -749,15 +753,15 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                             {submitForVoteHook.isPending ? (
                               <>
                                 <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                Submitting...
+                                {t("detail.submitting")}
                               </>
                             ) : submitForVoteHook.isSuccess ? (
                               <>
                                 <CheckCircle2 className="w-3 h-3 mr-1" />
-                                Submitted
+                                {t("detail.submitted")}
                               </>
                             ) : (
-                              "Submit for Vote"
+                              t("detail.submitForVote")
                             )}
                           </Button>
                           {submitForVoteHook.error && (
@@ -784,7 +788,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                             {voteClaimHook.isPending ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
                             ) : (
-                              "Vote Yes"
+                              t("detail.voteYes")
                             )}
                           </Button>
                           <Button
@@ -797,7 +801,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                             {voteClaimHook.isPending ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
                             ) : (
-                              "Vote No"
+                              t("detail.voteNo")
                             )}
                           </Button>
                         </div>
@@ -810,14 +814,14 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         {voteClaimHook.isSuccess && voteClaimHook.hash && (
                           <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
                             <CheckCircle2 className="w-3 h-3 shrink-0" />
-                            <span>Vote cast!</span>
+                            <span>{t("detail.voteCast")}</span>
                             <a
                               href={getTxUrl(chainId, voteClaimHook.hash)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="ml-auto flex items-center gap-1 hover:underline"
                             >
-                              View tx <ExternalLink className="w-3 h-3" />
+                              {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
                             </a>
                           </div>
                         )}
@@ -832,15 +836,17 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                           {resolveVoteHook.isPending ? (
                             <>
                               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                              {resolveVoteHook.hash ? "Confirming…" : "Confirm in wallet…"}
+                              {resolveVoteHook.hash
+                                ? t("detail.confirming")
+                                : t("detail.confirmingWallet")}
                             </>
                           ) : resolveVoteHook.isSuccess ? (
                             <>
                               <CheckCircle2 className="w-3 h-3 mr-1" />
-                              Resolved
+                              {t("detail.resolved")}
                             </>
                           ) : (
-                            "Resolve Vote"
+                            t("detail.resolveVote")
                           )}
                         </Button>
                         {resolveVoteHook.error && (
@@ -852,14 +858,14 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         {resolveVoteHook.isSuccess && resolveVoteHook.hash && (
                           <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
                             <CheckCircle2 className="w-3 h-3 shrink-0" />
-                            <span>Vote resolved!</span>
+                            <span>{t("detail.voteResolved")}</span>
                             <a
                               href={getTxUrl(chainId, resolveVoteHook.hash)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="ml-auto flex items-center gap-1 hover:underline"
                             >
-                              View tx <ExternalLink className="w-3 h-3" />
+                              {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
                             </a>
                           </div>
                         )}
@@ -874,10 +880,10 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                           {resetVotingHook.isPending ? (
                             <>
                               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                              Resetting…
+                              {t("detail.resetting")}
                             </>
                           ) : (
-                            "Reset voting period (if vote failed)"
+                            t("detail.resetVotingPeriod")
                           )}
                         </Button>
                         {resetVotingHook.error && (
@@ -889,14 +895,14 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         {resetVotingHook.isSuccess && resetVotingHook.hash && (
                           <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
                             <CheckCircle2 className="w-3 h-3 shrink-0" />
-                            <span>Voting period reset.</span>
+                            <span>{t("detail.votePeriodReset")}</span>
                             <a
                               href={getTxUrl(chainId, resetVotingHook.hash)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="ml-auto flex items-center gap-1 hover:underline"
                             >
-                              View tx <ExternalLink className="w-3 h-3" />
+                              {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
                             </a>
                           </div>
                         )}
@@ -915,15 +921,13 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
           {isActive && (
             <Card className="border-primary/20 bg-primary/5">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Submit Your Proof</CardTitle>
-                <CardDescription>
-                  Have proof of completion? Submit a claim directly on-chain.
-                </CardDescription>
+                <CardTitle className="text-base">{t("detail.submitYourProof")}</CardTitle>
+                <CardDescription>{t("detail.proofDescription")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ClaimBountyModal bounty={bounty} onSuccess={handleClaimSuccess}>
                   <Button size="lg" className="w-full">
-                    Join
+                    {t("cta.join")}
                   </Button>
                 </ClaimBountyModal>
               </CardContent>
@@ -934,16 +938,14 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
           {isJoinable && isActive && (
             <Card className="border-border">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Add to the Prize Pool</CardTitle>
-                <CardDescription>
-                  Contribute ETH to increase the reward for this bounty.
-                </CardDescription>
+                <CardTitle className="text-base">{t("detail.addToPrizePool")}</CardTitle>
+                <CardDescription>{t("detail.addFundsDescription")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {joinHook.isSuccess ? (
                   <div className="flex flex-col items-center gap-2 py-2 text-center">
                     <CheckCircle2 className="w-8 h-8 text-emerald-500" />
-                    <p className="text-sm font-medium">Contribution confirmed!</p>
+                    <p className="text-sm font-medium">{t("detail.contributionConfirmed")}</p>
                     {joinHook.hash && (
                       <a
                         href={getTxUrl(chainId, joinHook.hash)}
@@ -951,7 +953,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-xs text-primary hover:underline"
                       >
-                        View tx <ExternalLink className="w-3 h-3" />
+                        {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
                     <Button
@@ -960,7 +962,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                       className="mt-1"
                       onClick={() => joinHook.reset()}
                     >
-                      Contribute more
+                      {t("cta.contributeMore")}
                     </Button>
                   </div>
                 ) : (
@@ -1001,10 +1003,10 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                       {joinHook.isPending ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          {joinHook.hash ? "Confirming…" : "Confirm in wallet…"}
+                          {joinHook.hash ? t("detail.confirming") : t("detail.confirmingWallet")}
                         </>
                       ) : (
-                        `Contribute ${joinAmount} ETH`
+                        t("detail.contribute", { amount: joinAmount })
                       )}
                     </Button>
                     <Dialog open={showConnectDialog} onOpenChange={setShowConnectDialog}>
@@ -1012,14 +1014,14 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         <div className="flex flex-col gap-4">
                           <div className="flex items-center gap-2">
                             <Wallet className="w-5 h-5 text-primary" />
-                            <h2 className="text-base font-semibold">Connect Wallet</h2>
+                            <h2 className="text-base font-semibold">{t("detail.connectWallet")}</h2>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Connect your wallet to contribute to this bounty.
+                            {t("detail.connectToContribute")}
                           </p>
                           <Button className="w-full" onClick={handleConnect}>
                             <Wallet className="w-4 h-4 mr-2" />
-                            Connect
+                            {t("cta.contribute")}
                           </Button>
                         </div>
                       </DialogContent>
@@ -1034,16 +1036,14 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
           {bounty.isCanceled && isJoinable && !isCreator && (
             <Card className="border-border">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Withdraw Your Contribution</CardTitle>
-                <CardDescription>
-                  This bounty was canceled. Recover your contribution.
-                </CardDescription>
+                <CardTitle className="text-base">{t("detail.withdrawContribution")}</CardTitle>
+                <CardDescription>{t("detail.withdrawDescription")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {claimRefundHook.isSuccess ? (
                   <div className="flex flex-col items-center gap-2 py-2 text-center">
                     <CheckCircle2 className="w-8 h-8 text-emerald-500" />
-                    <p className="text-sm font-medium">Withdrawal confirmed!</p>
+                    <p className="text-sm font-medium">{t("detail.withdrawalConfirmed")}</p>
                     {claimRefundHook.hash && (
                       <a
                         href={getTxUrl(chainId, claimRefundHook.hash)}
@@ -1051,7 +1051,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-xs text-primary hover:underline"
                       >
-                        View tx <ExternalLink className="w-3 h-3" />
+                        {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
                   </div>
@@ -1072,10 +1072,12 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                       {claimRefundHook.isPending ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          {claimRefundHook.hash ? "Confirming…" : "Confirm in wallet…"}
+                          {claimRefundHook.hash
+                            ? t("detail.confirming")
+                            : t("detail.confirmingWallet")}
                         </>
                       ) : (
-                        "Withdraw Funds"
+                        t("cta.withdrawFunds")
                       )}
                     </Button>
                   </>
@@ -1088,16 +1090,16 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
           {isCreator && !bounty.isCanceled && (
             <Card className="border-destructive/20">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base text-destructive/80">Cancel Bounty</CardTitle>
-                <CardDescription>
-                  Cancel and recover your funds. This cannot be undone.
-                </CardDescription>
+                <CardTitle className="text-base text-destructive/80">
+                  {t("detail.cancelBounty")}
+                </CardTitle>
+                <CardDescription>{t("detail.cancelDescription")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {cancelHook.isSuccess ? (
                   <div className="flex flex-col items-center gap-2 py-2 text-center">
                     <CheckCircle2 className="w-8 h-8 text-emerald-500" />
-                    <p className="text-sm font-medium">Bounty canceled.</p>
+                    <p className="text-sm font-medium">{t("detail.bountyCanceled")}</p>
                     {cancelHook.hash && (
                       <a
                         href={getTxUrl(chainId, cancelHook.hash)}
@@ -1105,7 +1107,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-xs text-primary hover:underline"
                       >
-                        View tx <ExternalLink className="w-3 h-3" />
+                        {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
                   </div>
@@ -1123,7 +1125,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
                         onClick={() => setConfirmCancel(true)}
                       >
-                        Cancel Bounty
+                        {t("detail.cancelBounty")}
                       </Button>
                     ) : (
                       <div className="flex gap-2">
@@ -1133,7 +1135,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                           onClick={() => setConfirmCancel(false)}
                           disabled={cancelHook.isPending}
                         >
-                          Keep it
+                          {t("cta.keepIt")}
                         </Button>
                         <Button
                           variant="destructive"
@@ -1144,10 +1146,12 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                           {cancelHook.isPending ? (
                             <>
                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              {cancelHook.hash ? "Confirming…" : "Confirm in wallet…"}
+                              {cancelHook.hash
+                                ? t("detail.confirming")
+                                : t("detail.confirmingWallet")}
                             </>
                           ) : (
-                            "Yes, cancel"
+                            t("cta.yesCancel")
                           )}
                         </Button>
                       </div>
@@ -1166,13 +1170,13 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
           {/* Bounty Details */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Bounty Details</CardTitle>
+              <CardTitle className="text-base">{t("detail.bountyDetails")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
               <div>
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <User className="w-4 h-4" />
-                  <span className="font-medium">Issuer</span>
+                  <span className="font-medium">{t("detail.issuer")}</span>
                 </div>
                 <AddressDisplay
                   address={bounty.issuer as `0x${string}`}
@@ -1189,7 +1193,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
               <div>
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <Clock className="w-4 h-4" />
-                  <span className="font-medium">Created</span>
+                  <span className="font-medium">{t("detail.created")}</span>
                 </div>
                 <p className="text-xs">
                   {createdDate.toLocaleDateString("en-US", {
@@ -1204,7 +1208,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                 <div>
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Clock className="w-4 h-4" />
-                    <span className="font-medium">Deadline</span>
+                    <span className="font-medium">{t("detail.deadline")}</span>
                   </div>
                   <p className="text-xs">
                     {deadlineDate.toLocaleDateString("en-US", {
@@ -1215,7 +1219,9 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                   </p>
                   {countdown && (
                     <p className="text-xs font-medium mt-0.5 text-amber-500 dark:text-amber-400">
-                      {countdown === "Expired" ? "Expired" : `${countdown} remaining`}
+                      {countdown === "Expired"
+                        ? t("detail.expired")
+                        : t("detail.remaining", { countdown })}
                     </p>
                   )}
                 </div>
@@ -1224,22 +1230,22 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
               <div>
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span className="font-medium">Activity</span>
+                  <span className="font-medium">{t("detail.activity")}</span>
                 </div>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {bounty.hasClaims && (
                     <Badge variant="secondary" className="text-xs">
-                      Has Claims
+                      {t("detail.hasClaims")}
                     </Badge>
                   )}
                   {bounty.hasParticipants && (
                     <Badge variant="secondary" className="text-xs">
-                      Has Participants
+                      {t("detail.hasParticipants")}
                     </Badge>
                   )}
                   {!bounty.hasClaims && !bounty.hasParticipants && (
                     <Badge variant="outline" className="text-xs">
-                      No claims yet — be first!
+                      {t("detail.noClaimsFirst")}
                     </Badge>
                   )}
                 </div>
@@ -1249,7 +1255,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                 <div>
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Users className="w-4 h-4" />
-                    <span className="font-medium">Contributors</span>
+                    <span className="font-medium">{t("detail.contributors")}</span>
                   </div>
                   <div className="space-y-2 mt-2">
                     {participants.slice(0, 5).map((addr, i) => {
@@ -1275,7 +1281,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                     })}
                     {participants.length > 5 && (
                       <p className="text-xs text-muted-foreground">
-                        +{participants.length - 5} more
+                        {t("detail.moreContributors", { count: participants.length - 5 })}
                       </p>
                     )}
                   </div>
@@ -1286,13 +1292,10 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
 
           <Card className="bg-muted/50">
             <CardHeader>
-              <CardTitle className="text-base">About POIDH</CardTitle>
+              <CardTitle className="text-base">{t("detail.aboutPoidh")}</CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-2">
-              <p>
-                POIDH (Pics Or It Didn&apos;t Happen) is a decentralized bounty platform where
-                anyone can create challenges and reward proof with ETH.
-              </p>
+              <p>{t("detail.poidhDescription")}</p>
               <div className="pt-2 space-y-1">
                 <a
                   href="https://poidh.xyz"
@@ -1300,7 +1303,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                   rel="noopener noreferrer"
                   className="text-primary hover:underline text-xs flex items-center gap-1"
                 >
-                  Visit POIDH.xyz <ExternalLink className="w-3 h-3" />
+                  {t("detail.visitPoidh")} <ExternalLink className="w-3 h-3" />
                 </a>
                 <a
                   href="https://docs.poidh.xyz"
@@ -1308,7 +1311,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                   rel="noopener noreferrer"
                   className="text-primary hover:underline text-xs flex items-center gap-1"
                 >
-                  Read Documentation <ExternalLink className="w-3 h-3" />
+                  {t("detail.readDocs")} <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
             </CardContent>

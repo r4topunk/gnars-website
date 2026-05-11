@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { PlusCircle, Search, X } from "lucide-react";
 import { formatEther } from "viem";
 import { BountyGrid } from "@/components/bounties/BountyGrid";
@@ -12,14 +13,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatEthToUsd, useEthPrice } from "@/hooks/use-eth-price";
 import { usePoidhBounties } from "@/hooks/usePoidhBounties";
 import type { PoidhBounty } from "@/types/poidh";
-
-const CATEGORIES = [
-  { key: "all", label: "All" },
-  { key: "skate", label: "Skate" },
-  { key: "surf", label: "Surf" },
-  { key: "parkour", label: "Parkour" },
-  { key: "weed", label: "Weed" },
-] as const;
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   skate: ["skate", "skateboard", "kickflip", "grind", "ollie", "flip", "trick"],
@@ -48,10 +41,19 @@ interface BountiesViewProps {
 }
 
 export function BountiesView({ initialBounties }: BountiesViewProps) {
+  const t = useTranslations("bounties");
   const [status, setStatus] = useState<"open" | "closed" | "voting" | "all">("open");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterGnarly] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("skate");
+
+  const CATEGORIES = [
+    { key: "all", label: t("filters.all") },
+    { key: "skate", label: t("filters.skate") },
+    { key: "surf", label: t("filters.surf") },
+    { key: "parkour", label: t("filters.parkour") },
+    { key: "weed", label: t("filters.weed") },
+  ] as const;
 
   const { data, isLoading, error } = usePoidhBounties({
     status,
@@ -88,7 +90,19 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
     return { eth: totalEth.toFixed(4), usd: totalUsd, count: filteredBounties.length };
   }, [filteredBounties, ethPrice]);
 
-  const statusLabel = status !== "all" ? status : "";
+  const poolLabel = (() => {
+    if (status === "open") return t("stats.openPool");
+    if (status === "closed") return t("stats.closedPool");
+    if (status === "voting") return t("stats.votingPool");
+    return t("stats.totalPool");
+  })();
+
+  const bountiesLabel = (() => {
+    if (status === "open") return t("stats.openBounties");
+    if (status === "closed") return t("stats.closedBounties");
+    if (status === "voting") return t("stats.votingBounties");
+    return t("stats.bounties");
+  })();
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -97,24 +111,24 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Challenges</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
             <p className="text-muted-foreground mt-1">
-              Gnars Bountie is a new lane for small onchain grants built to keep the wheels turning.{" "}
+              {t("description")}{" "}
               <a
                 href="https://poidh.xyz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-foreground underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground transition-colors"
               >
-                Powered by POIDH
+                {t("poweredBy")}
               </a>
             </p>
           </div>
           <CreateBountyModal>
             <Button className="shrink-0">
               <PlusCircle className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Create Bounty</span>
-              <span className="sm:hidden">Create</span>
+              <span className="hidden sm:inline">{t("cta.createBounty")}</span>
+              <span className="sm:hidden">{t("cta.create")}</span>
             </Button>
           </CreateBountyModal>
         </div>
@@ -144,29 +158,21 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
                 {totalValue.eth}
                 <span className="text-base font-semibold text-muted-foreground ml-1.5">ETH</span>
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5">
-                {statusLabel
-                  ? `${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)} pool`
-                  : "Total pool"}
-              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">{poolLabel}</div>
             </div>
             {ethPrice > 0 && (
               <div>
                 <div className="text-2xl font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400">
                   {totalValue.usd}
                 </div>
-                <div className="text-xs text-muted-foreground mt-0.5">USD value</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{t("stats.usdValue")}</div>
               </div>
             )}
             <div>
               <div className="text-2xl font-bold tabular-nums tracking-tight">
                 {totalValue.count}
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5">
-                {statusLabel
-                  ? `${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)} bounties`
-                  : "Bounties"}
-              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">{bountiesLabel}</div>
             </div>
           </div>
         )}
@@ -179,7 +185,7 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search bounties..."
+              placeholder={t("filters.search")}
               className="pl-9"
             />
             {searchQuery && (
@@ -196,10 +202,10 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
           <div className="flex items-center gap-3 flex-wrap">
             <Tabs value={status} onValueChange={(v) => setStatus(v as typeof status)}>
               <TabsList>
-                <TabsTrigger value="open">Open</TabsTrigger>
-                <TabsTrigger value="voting">Voting</TabsTrigger>
-                <TabsTrigger value="closed">Closed</TabsTrigger>
-                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="open">{t("filters.open")}</TabsTrigger>
+                <TabsTrigger value="voting">{t("filters.voting")}</TabsTrigger>
+                <TabsTrigger value="closed">{t("filters.closed")}</TabsTrigger>
+                <TabsTrigger value="all">{t("filters.all")}</TabsTrigger>
               </TabsList>
             </Tabs>
             <div className="h-5 w-px bg-border hidden sm:block" />
@@ -222,22 +228,14 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
           <div className="max-w-4xl space-y-5">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Manifesto
+                {t("manifesto.sectionLabel")}
               </div>
             </div>
             <div className="space-y-4 text-sm leading-7 text-muted-foreground md:text-base">
-              <p>
-                Gnars Bounties builds on prior community-driven moments by enabling direct,
-                permissionless execution. It removes friction from traditional grant systems,
-                allowing ideas to be posted, funded, completed, and rewarded onchain in a simple,
-                open flow.
-              </p>
+              <p>{t("manifesto.p1")}</p>
               <div className="space-y-2">
-                <p className="text-foreground">How It Works:</p>
-                <p>
-                  Create or select a bounty → fund or support a mission → execute and submit work →
-                  get verified → receive onchain payment
-                </p>
+                <p className="text-foreground">{t("manifesto.howItWorksLabel")}</p>
+                <p>{t("manifesto.howItWorksBody")}</p>
               </div>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { DroposalCard } from "@/components/droposals/DroposalCard";
 import { DroposalListItem } from "@/services/droposals";
 
@@ -5,9 +6,11 @@ interface DroposalsGridProps {
   items: DroposalListItem[];
 }
 
-export function DroposalsGrid({ items }: DroposalsGridProps) {
+export async function DroposalsGrid({ items }: DroposalsGridProps) {
+  const t = await getTranslations("droposals");
+
   if (items.length === 0) {
-    return <div className="text-center text-muted-foreground py-12">No droposals found.</div>;
+    return <div className="text-center text-muted-foreground py-12">{t("empty")}</div>;
   }
 
   return (

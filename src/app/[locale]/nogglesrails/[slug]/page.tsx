@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { DroposalEmbed } from "@/components/nogglesrails/DroposalEmbed";
@@ -8,7 +9,7 @@ import { getRailBySlug, NOGGLES_RAILS } from "@/content/nogglesrails";
 import { Link } from "@/i18n/navigation";
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 export function generateStaticParams() {
@@ -17,6 +18,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+
   const rail = getRailBySlug(slug);
   if (!rail) return { title: "Rail Not Found" };
   return {
@@ -70,7 +72,9 @@ function MediaItem({ src, alt, className = "" }: { src: string; alt: string; cla
 }
 
 export default async function NogglesRailDetailPage({ params }: PageProps) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "installations" });
   const rail = getRailBySlug(slug);
   if (!rail) notFound();
 
@@ -91,7 +95,7 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" />
-        All Rails
+        {t("nogglesrails.detail.allRails")}
       </Link>
 
       {/* Header */}
@@ -121,14 +125,14 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
 
           {/* Description */}
           <div>
-            <h2 className="mb-2 text-lg font-semibold">About</h2>
+            <h2 className="mb-2 text-lg font-semibold">{t("nogglesrails.detail.about")}</h2>
             <p className="leading-relaxed text-muted-foreground">{rail.description}</p>
           </div>
 
           {/* Gallery */}
           {gallery.length > 0 && (
             <div>
-              <h2 className="mb-3 text-lg font-semibold">Gallery</h2>
+              <h2 className="mb-3 text-lg font-semibold">{t("nogglesrails.detail.gallery")}</h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {gallery.map((src, i) => (
                   <div
@@ -145,7 +149,7 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
           {/* Video */}
           {rail.video && (
             <div>
-              <h2 className="mb-3 text-lg font-semibold">Video</h2>
+              <h2 className="mb-3 text-lg font-semibold">{t("nogglesrails.detail.video")}</h2>
               <div className="relative aspect-video overflow-hidden rounded-lg border bg-muted">
                 <iframe
                   src={rail.video}
@@ -163,13 +167,13 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
         <div className="space-y-4">
           {/* Location */}
           <div className="rounded-lg border p-4">
-            <h3 className="mb-3 text-sm font-semibold">Location</h3>
+            <h3 className="mb-3 text-sm font-semibold">{t("nogglesrails.detail.location")}</h3>
             <dl className="space-y-2 text-sm">
               {[
-                ["City", rail.city],
-                ["Country", rail.country],
-                ["Continent", rail.continent],
-                ["Type", rail.type],
+                [t("nogglesrails.detail.city"), rail.city],
+                [t("nogglesrails.detail.country"), rail.country],
+                [t("nogglesrails.detail.continent"), rail.continent],
+                [t("nogglesrails.detail.type"), rail.type],
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between">
                   <dt className="text-muted-foreground">{label}</dt>
@@ -178,7 +182,7 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
               ))}
               <div className="border-t pt-2">
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Coordinates</dt>
+                  <dt className="text-muted-foreground">{t("nogglesrails.detail.coordinates")}</dt>
                   <dd className="font-mono text-xs text-muted-foreground">
                     {rail.position[0].toFixed(4)}, {rail.position[1].toFixed(4)}
                   </dd>
@@ -189,27 +193,27 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
 
           {/* Proposal */}
           <div className="rounded-lg border p-4">
-            <h3 className="mb-2 text-sm font-semibold">Funding</h3>
+            <h3 className="mb-2 text-sm font-semibold">{t("nogglesrails.detail.funding")}</h3>
             <p className="text-sm text-muted-foreground">{rail.proposal.name}</p>
             {proposalUrl ? (
               <Button asChild size="sm" className="mt-3 w-full">
                 <a href={proposalUrl} target="_blank" rel="noopener noreferrer">
-                  View Proposal
+                  {t("nogglesrails.detail.viewProposal")}
                   <ExternalLink className="ml-1.5 size-3.5" />
                 </a>
               </Button>
             ) : (
               <p className="mt-2 text-xs italic text-muted-foreground">
-                Organic proliferation — no formal proposal.
+                {t("nogglesrails.detail.organicProliferation")}
               </p>
             )}
           </div>
 
           {/* CTA */}
           <div className="rounded-lg border border-dashed p-4">
-            <p className="text-sm text-muted-foreground">Want a NogglesRail in your city?</p>
+            <p className="text-sm text-muted-foreground">{t("nogglesrails.detail.wantRailCta")}</p>
             <Button asChild variant="outline" size="sm" className="mt-3 w-full">
-              <Link href="/propose">Submit a Proposal</Link>
+              <Link href="/propose">{t("nogglesrails.detail.submitProposal")}</Link>
             </Button>
           </div>
         </div>

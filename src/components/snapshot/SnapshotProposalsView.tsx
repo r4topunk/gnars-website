@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ interface SnapshotProposalsViewProps {
 type ProposalState = "pending" | "active" | "closed";
 
 export function SnapshotProposalsView({ proposals: allProposals }: SnapshotProposalsViewProps) {
+  const t = useTranslations("feed.snapshot");
   const ALL_STATES: ProposalState[] = ["active", "closed", "pending"];
 
   const [activeStates, setActiveStates] = useState<Set<ProposalState>>(
@@ -35,7 +37,7 @@ export function SnapshotProposalsView({ proposals: allProposals }: SnapshotPropo
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">
-          {filteredProposals.length} proposal{filteredProposals.length !== 1 && "s"} found
+          {t("proposalsFound", { count: filteredProposals.length })}
         </p>
         <StateFilter
           allStates={ALL_STATES}
@@ -60,7 +62,7 @@ export function SnapshotProposalsView({ proposals: allProposals }: SnapshotPropo
         ))}
       </div>
       {filteredProposals.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">No proposals found</div>
+        <div className="text-center py-12 text-muted-foreground">{t("empty")}</div>
       )}
     </div>
   );
@@ -83,19 +85,15 @@ function StateFilter({
   onClearAll: () => void;
   onSelectDefault: () => void;
 }) {
-  const stateLabels: Record<ProposalState, string> = {
-    active: "Active",
-    closed: "Closed",
-    pending: "Pending",
-  };
+  const t = useTranslations("feed.snapshot");
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline">Filter state</Button>
+        <Button variant="outline">{t("filterState")}</Button>
       </PopoverTrigger>
       <PopoverContent align="end" sideOffset={8} className="w-56 p-2">
-        <div className="px-2 pb-2 text-sm font-medium">State</div>
+        <div className="px-2 pb-2 text-sm font-medium">{t("stateLabel")}</div>
         <div className="max-h-[60vh] overflow-auto pr-1">
           <div className="flex flex-col gap-1">
             {allStates
@@ -114,7 +112,7 @@ function StateFilter({
                       onCheckedChange={() => onToggleState(state)}
                     />
                     <Label htmlFor={id} className="text-sm font-normal leading-none">
-                      {stateLabels[state]}
+                      {t(`states.${state}`)}
                     </Label>
                   </label>
                 );
@@ -123,13 +121,13 @@ function StateFilter({
         </div>
         <div className="mt-2 flex px-2 w-full justify-center gap-2">
           <Button variant="ghost" size="sm" onClick={onSelectDefault}>
-            Default
+            {t("default")}
           </Button>
           <Button variant="ghost" size="sm" onClick={onSelectAll}>
-            All
+            {t("all")}
           </Button>
           <Button variant="ghost" size="sm" onClick={onClearAll}>
-            None
+            {t("none")}
           </Button>
         </div>
       </PopoverContent>

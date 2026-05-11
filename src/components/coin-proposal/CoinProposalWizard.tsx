@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createTradeCall, setApiKey, type TradeParameters } from "@zoralabs/coins-sdk";
 import { AlertTriangle, Loader2 } from "lucide-react";
@@ -26,6 +27,7 @@ interface CoinPurchaseData {
 }
 
 export function CoinProposalWizard() {
+  const t = useTranslations("coinProposal");
   const [currentTab, setCurrentTab] = useState<"purchase" | "preview">("purchase");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -153,7 +155,7 @@ The trade will be executed through the Uniswap v4 / Zora swap router with proper
       <Card className="max-w-2xl mx-auto">
         <CardContent className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin mr-2" />
-          <span>Checking proposal eligibility...</span>
+          <span>{t("wizard.loadingEligibility")}</span>
         </CardContent>
       </Card>
     );
@@ -163,19 +165,22 @@ The trade will be executed through the Uniswap v4 / Zora swap router with proper
     return (
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>Insufficient Voting Power</CardTitle>
+          <CardTitle>{t("wizard.insufficientPower")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              You need at least {proposalVotesRequired?.toString() || "N/A"} votes to create a
-              proposal.
+              {t("wizard.insufficientPowerDesc", {
+                required: proposalVotesRequired?.toString() || "N/A",
+              })}
               {votes !== undefined && (
                 <>
                   {" "}
-                  You currently have {votes.toString()} votes.
-                  {isDelegating && delegatedTo && <> Your votes are delegated to {delegatedTo}.</>}
+                  {t("wizard.currentVotes", { count: votes.toString() })}
+                  {isDelegating && delegatedTo && (
+                    <> {t("wizard.delegatedTo", { address: delegatedTo })}</>
+                  )}
                 </>
               )}
             </AlertDescription>
@@ -194,7 +199,7 @@ The trade will be executed through the Uniswap v4 / Zora swap router with proper
               <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
                 1
               </span>
-              Coin Purchase
+              {t("wizard.tab1")}
             </TabsTrigger>
             <TabsTrigger
               value="preview"
@@ -210,7 +215,7 @@ The trade will be executed through the Uniswap v4 / Zora swap router with proper
               >
                 2
               </span>
-              Review & Submit
+              {t("wizard.tab2")}
             </TabsTrigger>
           </TabsList>
 
@@ -239,7 +244,7 @@ The trade will be executed through the Uniswap v4 / Zora swap router with proper
                     onClick={() => setCurrentTab("purchase")}
                     className="w-full sm:w-auto"
                   >
-                    Back: Edit Purchase
+                    {t("wizard.backEdit")}
                   </Button>
                 </div>
               </CardContent>

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { Link } from "@/i18n/navigation";
@@ -54,8 +55,14 @@ export async function generateMetadata({
   };
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function BlogPostPage({
+  params,
+}: {
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "blogs" });
   const post = getPostBySlug("blog", slug);
 
   if (!post) {
@@ -74,8 +81,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {isHistorical && (
         <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
           <p className="text-sm text-yellow-800 dark:text-yellow-200">
-            <strong>📚 Historical Content:</strong> This article is from {postYear}. Some
-            information may be outdated.
+            {t("legacy.historicalNotice", { year: postYear })}
           </p>
         </div>
       )}
@@ -92,7 +98,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             })}
           </time>
           <span>·</span>
-          <span>by {metadata.author}</span>
+          <span>{t("legacy.author", { author: metadata.author })}</span>
         </div>
         {metadata.tags && metadata.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
@@ -148,7 +154,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
         <div className="flex justify-between items-center">
           <Link href="/" className="text-sm text-gray-600 dark:text-gray-400 hover:underline">
-            ← Back to Home
+            {t("legacy.backToHome")}
           </Link>
         </div>
       </footer>

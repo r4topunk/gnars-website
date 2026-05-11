@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PoidhBounty } from "@/types/poidh";
@@ -34,6 +37,8 @@ function SkeletonCard() {
 }
 
 export function BountyGrid({ bounties, isLoading, error }: BountyGridProps) {
+  const t = useTranslations("bounties");
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -47,18 +52,14 @@ export function BountyGrid({ bounties, isLoading, error }: BountyGridProps) {
   if (error) {
     return (
       <div className="text-center py-16">
-        <p className="text-destructive font-medium mb-1">Failed to load bounties</p>
+        <p className="text-destructive font-medium mb-1">{t("grid.error")}</p>
         <p className="text-sm text-muted-foreground">{error.message}</p>
       </div>
     );
   }
 
   if (bounties.length === 0) {
-    return (
-      <div className="text-center py-16 text-muted-foreground">
-        No bounties found matching your filters.
-      </div>
-    );
+    return <div className="text-center py-16 text-muted-foreground">{t("grid.empty")}</div>;
   }
 
   return (

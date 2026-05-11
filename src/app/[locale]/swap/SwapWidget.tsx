@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { ArrowRight, Check, ChevronDown, Info, Loader2, Search } from "lucide-react";
@@ -183,6 +184,7 @@ function TokenPicker({
   isConnected,
   usdValues,
 }: TokenPickerProps) {
+  const t = useTranslations("swap");
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
 
@@ -256,9 +258,9 @@ function TokenPicker({
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Select a token</DialogTitle>
+          <DialogTitle>{t("tokenPicker.dialogTitle")}</DialogTitle>
           <DialogDescription className="sr-only">
-            Search by symbol, name, or paste a token contract address.
+            {t("tokenPicker.dialogDescription")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -268,30 +270,32 @@ function TokenPicker({
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search name or paste address"
+              placeholder={t("tokenPicker.searchPlaceholder")}
               className="pl-9"
             />
           </div>
 
           {!query && popular.length > 0 && (
             <div>
-              <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Popular</p>
+              <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
+                {t("tokenPicker.popular")}
+              </p>
               <div className="flex flex-wrap gap-2">
-                {popular.map((t) => {
-                  const isSelected = t.address === value.address;
-                  const isExcluded = t.address === exclude;
+                {popular.map((tok) => {
+                  const isSelected = tok.address === value.address;
+                  const isExcluded = tok.address === exclude;
                   return (
                     <Button
-                      key={t.address}
+                      key={tok.address}
                       type="button"
                       variant={isSelected ? "default" : "outline"}
                       size="sm"
                       className={cn("h-8 gap-1.5 rounded-full px-3", isExcluded && "opacity-40")}
-                      onClick={() => choose(t)}
+                      onClick={() => choose(tok)}
                       disabled={isExcluded}
                     >
-                      <TokenLogo token={t} size={16} chainId={chain.id} />
-                      <span className="text-xs">{t.symbol}</span>
+                      <TokenLogo token={tok} size={16} chainId={chain.id} />
+                      <span className="text-xs">{tok.symbol}</span>
                     </Button>
                   );
                 })}
@@ -301,32 +305,32 @@ function TokenPicker({
 
           <div className="-mx-6 max-h-80 overflow-y-auto border-t">
             {filtered.length > 0 ? (
-              filtered.map((t) => {
-                const isSelected = t.address === value.address;
-                const isExcluded = t.address === exclude;
-                const bal: TokenBalance | null = balances.get(t.address) ?? null;
+              filtered.map((tok) => {
+                const isSelected = tok.address === value.address;
+                const isExcluded = tok.address === exclude;
+                const bal: TokenBalance | null = balances.get(tok.address) ?? null;
                 return (
                   <button
-                    key={t.address}
+                    key={tok.address}
                     type="button"
                     disabled={isExcluded}
-                    onClick={() => choose(t)}
+                    onClick={() => choose(tok)}
                     className={cn(
                       "flex w-full items-center gap-3 px-6 py-2.5 text-left transition-colors",
                       isExcluded ? "cursor-not-allowed opacity-40" : "hover:bg-accent",
                       isSelected && "bg-accent/60",
                     )}
                   >
-                    <TokenLogo token={t} size={32} chainId={chain.id} />
+                    <TokenLogo token={tok} size={32} chainId={chain.id} />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-semibold">{t.symbol}</span>
-                        <span className="truncate text-xs text-muted-foreground">{t.name}</span>
+                        <span className="text-sm font-semibold">{tok.symbol}</span>
+                        <span className="truncate text-xs text-muted-foreground">{tok.name}</span>
                       </div>
                       <p className="truncate font-mono text-[10px] text-muted-foreground">
-                        {t.address === NATIVE_TOKEN
-                          ? "Native asset"
-                          : `${t.address.slice(0, 6)}…${t.address.slice(-4)}`}
+                        {tok.address === NATIVE_TOKEN
+                          ? t("tokenPicker.nativeAsset")
+                          : `${tok.address.slice(0, 6)}…${tok.address.slice(-4)}`}
                       </p>
                     </div>
                     {isConnected && (
@@ -343,7 +347,7 @@ function TokenPicker({
               lookup.isLoading ? (
                 <p className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Resolving token…
+                  {t("tokenPicker.resolvingToken")}
                 </p>
               ) : lookup.data ? (
                 <button
@@ -372,11 +376,13 @@ function TokenPicker({
                 </button>
               ) : (
                 <p className="py-8 text-center text-sm text-muted-foreground">
-                  No ERC-20 token found at this address
+                  {t("tokenPicker.noErc20Found")}
                 </p>
               )
             ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">No tokens found</p>
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                {t("tokenPicker.noTokensFound")}
+              </p>
             )}
           </div>
         </div>
@@ -386,6 +392,7 @@ function TokenPicker({
 }
 
 export function SwapWidget() {
+  const t = useTranslations("swap");
   const { chain } = useSwapChain();
   const { address, isConnected } = useUserAddress();
   const writer = useWriteAccount();
@@ -530,10 +537,10 @@ export function SwapWidget() {
     setIsSwitchingChain(true);
     try {
       await activeWallet.switchChain(chain.thirdwebChain);
-      toast.success(`Switched to ${chain.name}`);
+      toast.success(t("toasts.switchedTo", { name: chain.name }));
     } catch (err) {
       const { message } = normalizeTxError(err);
-      toast.error("Failed to switch network", { description: message });
+      toast.error(t("toasts.switchFailed"), { description: message });
     } finally {
       setIsSwitchingChain(false);
     }
@@ -542,7 +549,9 @@ export function SwapWidget() {
   const handleApprove = async () => {
     const client = getThirdwebClient();
     if (!client || !writer || !approvalTarget) {
-      toast.error("Cannot approve", { description: `Connect a wallet on ${chain.name}.` });
+      toast.error(t("toasts.cannotApprove"), {
+        description: t("toasts.connectOnChain", { name: chain.name }),
+      });
       return;
     }
     setIsApproving(true);
@@ -560,19 +569,19 @@ export function SwapWidget() {
       });
       const result = await sendTransaction({ account: writer.account, transaction: tx });
       const txHash = result.transactionHash as Hex;
-      toast.success(`Approval submitted`, {
+      toast.success(t("toasts.approvalSubmitted"), {
         description: `${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
       });
       await waitForReceipt({ client, chain: chain.thirdwebChain, transactionHash: txHash });
       setNeedsApproval(false);
       setApprovalTarget(null);
-      toast.success(`${sellToken.symbol} approved`);
+      toast.success(t("toasts.tokenApproved", { symbol: sellToken.symbol }));
     } catch (err) {
       const { category, message } = normalizeTxError(err);
       if (category === "user-rejected") {
-        toast.error("Approval cancelled");
+        toast.error(t("toasts.approvalCancelled"));
       } else {
-        toast.error("Approval failed", { description: message });
+        toast.error(t("toasts.approvalFailed"), { description: message });
       }
     } finally {
       setIsApproving(false);
@@ -582,11 +591,11 @@ export function SwapWidget() {
   const handleSwap = async () => {
     const client = getThirdwebClient();
     if (!client || !writer || !address) {
-      toast.error("Connect a wallet first");
+      toast.error(t("toasts.connectFirst"));
       return;
     }
     if (!price?.liquidityAvailable) {
-      toast.error("No liquidity for this pair");
+      toast.error(t("toasts.noLiquidity"));
       return;
     }
 
@@ -608,8 +617,8 @@ export function SwapWidget() {
       const quote: ZeroExQuoteResponse = await res.json();
 
       if (!quote?.transaction) {
-        toast.error("Quote unavailable", {
-          description: quote?.reason ?? "0x returned no transaction",
+        toast.error(t("toasts.quoteUnavailable"), {
+          description: quote?.reason ?? t("toasts.quoteUnavailableFallback"),
         });
         return;
       }
@@ -625,13 +634,16 @@ export function SwapWidget() {
 
       const result = await sendTransaction({ account: writer.account, transaction: tx });
       const txHash = result.transactionHash as Hex;
-      toast.success("Swap submitted", {
+      toast.success(t("toasts.swapSubmitted"), {
         description: `${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
       });
 
       await waitForReceipt({ client, chain: chain.thirdwebChain, transactionHash: txHash });
-      toast.success("Swap confirmed", {
-        description: `Received ~${formatTokenAmount(quote.buyAmount, buyToken.decimals)} ${buyToken.symbol}`,
+      toast.success(t("toasts.swapConfirmed"), {
+        description: t("toasts.swapConfirmedDesc", {
+          amount: formatTokenAmount(quote.buyAmount, buyToken.decimals),
+          symbol: buyToken.symbol,
+        }),
       });
 
       setSellAmount("");
@@ -639,9 +651,9 @@ export function SwapWidget() {
     } catch (err) {
       const { category, message } = normalizeTxError(err);
       if (category === "user-rejected") {
-        toast.error("Swap cancelled");
+        toast.error(t("toasts.swapCancelled"));
       } else {
-        toast.error("Swap failed", { description: message });
+        toast.error(t("toasts.swapFailed"), { description: message });
       }
     } finally {
       setIsSwapping(false);
@@ -695,12 +707,12 @@ export function SwapWidget() {
 
   // Sell-side caption: prefer error states, otherwise show the network fee.
   const sellCaption = insufficientBalance
-    ? `Insufficient ${sellToken.symbol} balance`
+    ? t("captions.insufficientBalance", { symbol: sellToken.symbol })
     : price?.liquidityAvailable === false
-      ? "No liquidity for this pair"
+      ? t("captions.noLiquidity")
       : networkFeeEth && price?.liquidityAvailable
-        ? `~${networkFeeEth} ETH network fee`
-        : "Enter an amount above";
+        ? t("captions.networkFee", { amount: networkFeeEth })
+        : t("captions.enterAmount");
 
   return (
     <div className="overflow-hidden bg-transparent">
@@ -714,12 +726,12 @@ export function SwapWidget() {
                 value={sellToken}
                 tokens={availableTokens}
                 exclude={buyToken.address}
-                onSelect={(t) => {
-                  setSellToken(t);
+                onSelect={(tok) => {
+                  setSellToken(tok);
                   setSellAmount("");
                   setPrice(null);
                 }}
-                label="Sell token"
+                label={t("from.sellToken")}
                 chain={chain}
                 userAddress={address as Address | undefined}
                 isConnected={isConnected}
@@ -727,7 +739,7 @@ export function SwapWidget() {
               />
               {isConnected && (
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <span className="text-muted-foreground/60">Balance:</span>
+                  <span className="text-muted-foreground/60">{t("from.balance")}</span>
                   <span className="font-mono">
                     {sellBalance.isLoading
                       ? "…"
@@ -741,7 +753,7 @@ export function SwapWidget() {
                       onClick={handleUseMax}
                       className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-blue-700 transition-colors hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-900/30"
                     >
-                      MAX
+                      {t("from.max")}
                     </button>
                   )}
                 </div>
@@ -755,7 +767,7 @@ export function SwapWidget() {
                 placeholder="0"
                 value={sellAmount}
                 onChange={(e) => setSellAmount(e.target.value)}
-                aria-label="Sell amount"
+                aria-label={t("from.sellAmount")}
                 className="h-auto flex-1 border-0 bg-transparent p-0 text-[44px] font-thin leading-none tracking-[-2px] text-foreground shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 md:text-[56px] md:tracking-[-3px] dark:bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none"
               />
               <span className="shrink-0 text-xl font-light tracking-tight text-muted-foreground/60 md:text-2xl">
@@ -765,7 +777,7 @@ export function SwapWidget() {
             <p className="mt-2 text-[11px] text-muted-foreground/70">
               {isFetching ? (
                 <span className="inline-flex items-center gap-1.5">
-                  <Loader2 className="h-3 w-3 animate-spin" /> Fetching price…
+                  <Loader2 className="h-3 w-3 animate-spin" /> {t("from.fetchingPrice")}
                 </span>
               ) : (
                 sellCaption
@@ -778,7 +790,7 @@ export function SwapWidget() {
             <button
               type="button"
               onClick={flip}
-              aria-label="Flip tokens"
+              aria-label={t("flipTokens")}
               className="group rounded-full p-2 text-muted-foreground transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:rotate-180 hover:scale-110 hover:text-foreground motion-reduce:transition-none motion-reduce:hover:rotate-0 motion-reduce:hover:scale-100"
             >
               <ArrowRight className="hidden h-5 w-5 md:block" />
@@ -793,11 +805,11 @@ export function SwapWidget() {
                 value={buyToken}
                 tokens={availableTokens}
                 exclude={sellToken.address}
-                onSelect={(t) => {
-                  setBuyToken(t);
+                onSelect={(tok) => {
+                  setBuyToken(tok);
                   setPrice(null);
                 }}
-                label="Buy token"
+                label={t("to.buyToken")}
                 chain={chain}
                 userAddress={address as Address | undefined}
                 isConnected={isConnected}
@@ -805,7 +817,7 @@ export function SwapWidget() {
               />
               {isConnected && (
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <span className="text-muted-foreground/60">Balance:</span>
+                  <span className="text-muted-foreground/60">{t("to.balance")}</span>
                   <span className="font-mono">
                     {buyBalance.isLoading
                       ? "…"
@@ -835,7 +847,9 @@ export function SwapWidget() {
               </span>
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground/70">
-              {rateLine ?? <span className="text-muted-foreground/40">Best across 150+ DEXes</span>}
+              {rateLine ?? (
+                <span className="text-muted-foreground/40">{t("to.bestExecution")}</span>
+              )}
             </p>
           </div>
         </div>
@@ -853,7 +867,7 @@ export function SwapWidget() {
                 disabled
                 className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide md:w-auto"
               >
-                Connect wallet to swap
+                {t("buttons.connectToSwap")}
               </Button>
             ) : isWrongNetwork ? (
               <Button
@@ -862,7 +876,9 @@ export function SwapWidget() {
                 disabled={isSwitchingChain}
                 className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide md:w-auto"
               >
-                {isSwitchingChain ? "Switching…" : `Switch to ${chain.name}`}
+                {isSwitchingChain
+                  ? t("chain.switching")
+                  : t("chain.switchTo", { name: chain.name })}
               </Button>
             ) : needsApproval ? (
               <Button
@@ -874,10 +890,10 @@ export function SwapWidget() {
                 {isApproving ? (
                   <>
                     <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                    Approving {sellToken.symbol}…
+                    {t("buttons.approving", { symbol: sellToken.symbol })}
                   </>
                 ) : (
-                  `Approve ${sellToken.symbol}`
+                  t("buttons.approve", { symbol: sellToken.symbol })
                 )}
               </Button>
             ) : (
@@ -890,12 +906,12 @@ export function SwapWidget() {
                 {isSwapping ? (
                   <>
                     <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                    Swapping…
+                    {t("buttons.swapping")}
                   </>
                 ) : !hasAmount ? (
-                  "Enter an amount"
+                  t("buttons.enterAmount")
                 ) : (
-                  `Swap ${sellToken.symbol} → ${buyToken.symbol}`
+                  t("buttons.swap", { sell: sellToken.symbol, buy: buyToken.symbol })
                 )}
               </Button>
             )}
@@ -915,15 +931,12 @@ export function SwapWidget() {
               htmlFor="support-treasury-fee"
               className="flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground"
             >
-              Support Gnars treasury (0.5%)
+              {t("fee.label")}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="h-3 w-3" />
                 </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  A 0.5% fee on the bought token routes to the Gnars DAO treasury. Helps fund
-                  proposals, bounties, and skate infrastructure. Untick to skip.
-                </TooltipContent>
+                <TooltipContent className="max-w-xs">{t("fee.tooltip")}</TooltipContent>
               </Tooltip>
             </label>
           </div>

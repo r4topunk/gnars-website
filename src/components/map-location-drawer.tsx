@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { ChevronLeftIcon, ChevronRightIcon, ExternalLinkIcon, MapPinIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ interface MapLocationDrawerProps {
 }
 
 export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationDrawerProps) {
+  const t = useTranslations("map");
   const [isMobile, setIsMobile] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
@@ -120,10 +122,13 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
           {location.images.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold">Photos</h3>
+                <h3 className="text-sm font-semibold">{t("drawer.photos")}</h3>
                 {location.images.length > 1 && (
                   <span className="text-muted-foreground text-xs">
-                    {currentImageIndex + 1} / {location.images.length}
+                    {t("drawer.imageCounter", {
+                      current: currentImageIndex + 1,
+                      total: location.images.length,
+                    })}
                   </span>
                 )}
               </div>
@@ -150,14 +155,14 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
                     <button
                       onClick={prevImage}
                       className="bg-background/80 hover:bg-background absolute left-2 top-1/2 -translate-y-1/2 rounded-full p-2 backdrop-blur-sm transition-colors"
-                      aria-label="Previous image"
+                      aria-label={t("drawer.prevImage")}
                     >
                       <ChevronLeftIcon className="size-5" />
                     </button>
                     <button
                       onClick={nextImage}
                       className="bg-background/80 hover:bg-background absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 backdrop-blur-sm transition-colors"
-                      aria-label="Next image"
+                      aria-label={t("drawer.nextImage")}
                     >
                       <ChevronRightIcon className="size-5" />
                     </button>
@@ -176,7 +181,7 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
                             ? "bg-primary w-6"
                             : "bg-background/60 hover:bg-background/80"
                         }`}
-                        aria-label={`Go to image ${idx + 1}`}
+                        aria-label={t("drawer.goToImage", { index: idx + 1 })}
                       />
                     ))}
                   </div>
@@ -188,7 +193,7 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
           {/* Description (if available) */}
           {location.description && (
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold">About</h3>
+              <h3 className="text-sm font-semibold">{t("drawer.about")}</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 {location.description}
               </p>
@@ -198,10 +203,10 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
           {/* Installation Details Link */}
           {location.slug && (
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold">Installation Details</h3>
+              <h3 className="text-sm font-semibold">{t("drawer.installationDetails")}</h3>
               <Button asChild variant="default" className="w-full">
                 <Link href={`/installations/${location.slug}`}>
-                  View Full Installation
+                  {t("drawer.viewFullInstallation")}
                   <ExternalLinkIcon className="ml-2 size-4" />
                 </Link>
               </Button>
@@ -211,12 +216,12 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
           {/* Proposal Link */}
           {location.proposal.link && (
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold">Funding Proposal</h3>
+              <h3 className="text-sm font-semibold">{t("drawer.fundingProposal")}</h3>
               <div className="bg-muted/50 rounded-lg border p-4">
                 <p className="text-muted-foreground mb-3 text-sm">{location.proposal.name}</p>
                 <Button asChild variant="secondary" className="w-full">
                   <Link href={proposalUrl} target="_blank" rel="noopener noreferrer">
-                    View Proposal
+                    {t("drawer.viewProposal")}
                     <ExternalLinkIcon className="ml-2 size-4" />
                   </Link>
                 </Button>
@@ -226,14 +231,14 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
 
           {/* Coordinates */}
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold">Coordinates</h3>
+            <h3 className="text-sm font-semibold">{t("drawer.coordinates")}</h3>
             <div className="bg-muted/50 font-mono rounded-lg border p-3 text-sm">
               <div className="text-muted-foreground flex justify-between">
-                <span>Latitude:</span>
+                <span>{t("drawer.latitude")}</span>
                 <span className="text-foreground">{location.position[0].toFixed(6)}</span>
               </div>
               <div className="text-muted-foreground mt-1 flex justify-between">
-                <span>Longitude:</span>
+                <span>{t("drawer.longitude")}</span>
                 <span className="text-foreground">{location.position[1].toFixed(6)}</span>
               </div>
             </div>

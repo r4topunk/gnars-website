@@ -7,6 +7,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import { Clock, DollarSign, Palette, Radio, Trophy } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
@@ -25,9 +26,8 @@ export interface AuctionEventCardProps {
 }
 
 export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEventCardProps) {
-  // Removed: timeAgo is redundant since we have day headers
-
-  const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
+  const t = useTranslations("feed");
+  const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event, t);
 
   // Determine if auction is currently live — intentional render-time clock read.
   // eslint-disable-next-line react-hooks/purity
@@ -69,7 +69,7 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
                   )}
                 >
                   <Radio className="h-3 w-3 text-green-600" />
-                  <span className="text-green-600">LIVE</span>
+                  <span className="text-green-600">{t("events.auction.live")}</span>
                 </span>
               )}
             </div>
@@ -105,6 +105,7 @@ function AuctionCreatedContent({
 }: {
   event: Extract<FeedEvent, { type: "AuctionCreated" }>;
 }) {
+  const t = useTranslations("feed");
   // Intentional render-time clock read for relative-time label (hydration suppressed).
   // eslint-disable-next-line react-hooks/purity
   const now = Math.floor(Date.now() / 1000);
@@ -115,8 +116,12 @@ function AuctionCreatedContent({
       <p className="text-sm font-semibold">#{event.tokenId}</p>
       <p className="text-xs text-muted-foreground" suppressHydrationWarning>
         {hasEnded
-          ? `Ended ${formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}`
-          : `Ends ${formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}`}
+          ? t("events.auction.ended", {
+              time: formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true }),
+            })
+          : t("events.auction.ends", {
+              time: formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true }),
+            })}
       </p>
       {event.imageUrl && <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />}
     </div>
@@ -130,6 +135,7 @@ function AuctionBidContent({
   event: Extract<FeedEvent, { type: "AuctionBid" }>;
   compact?: boolean;
 }) {
+  const t = useTranslations("feed");
   const increase = event.previousBid
     ? (
         ((parseFloat(event.amount) - parseFloat(event.previousBid)) /
@@ -155,7 +161,7 @@ function AuctionBidContent({
           showCopy={false}
           showExplorer={false}
         />
-        <span className="text-xs text-muted-foreground">bid</span>
+        <span className="text-xs text-muted-foreground">{t("events.auction.bid")}</span>
         <span className="text-sm font-bold text-green-600">{formatETH(event.amount)}</span>
         {increase && <span className="text-xs text-muted-foreground">(+{increase}%)</span>}
       </div>
@@ -164,7 +170,7 @@ function AuctionBidContent({
       )}
       {event.extended && !compact && (
         <Badge variant="secondary" className="text-xs">
-          Auction Extended
+          {t("events.auction.auctionExtended")}
         </Badge>
       )}
       {event.imageUrl && <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />}
@@ -177,6 +183,7 @@ function AuctionSettledContent({
 }: {
   event: Extract<FeedEvent, { type: "AuctionSettled" }>;
 }) {
+  const t = useTranslations("feed");
   const isZeroAddress =
     !event.winner ||
     event.winner === "0x0000000000000000000000000000000000000000" ||
@@ -186,9 +193,9 @@ function AuctionSettledContent({
     <div className="space-y-2">
       <p className="text-sm font-semibold">#{event.tokenId}</p>
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-muted-foreground">won by</span>
+        <span className="text-xs text-muted-foreground">{t("events.auction.wonBy")}</span>
         {isZeroAddress ? (
-          <span className="text-xs text-muted-foreground">Unknown</span>
+          <span className="text-xs text-muted-foreground">{t("events.auction.unknown")}</span>
         ) : (
           <AddressDisplay
             address={event.winner}
@@ -200,7 +207,7 @@ function AuctionSettledContent({
             showExplorer={false}
           />
         )}
-        <span className="text-xs text-muted-foreground">for</span>
+        <span className="text-xs text-muted-foreground">{t("events.auction.for")}</span>
         <span className="text-sm font-bold text-green-600">{formatETH(event.amount)}</span>
       </div>
       {event.imageUrl && <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />}
@@ -213,15 +220,16 @@ function AuctionEndingSoonContent({
 }: {
   event: Extract<FeedEvent, { type: "AuctionEndingSoon" }>;
 }) {
+  const t = useTranslations("feed");
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold">#{event.tokenId}</p>
       <div className="flex items-center gap-1.5">
         <Badge variant="destructive" className="text-xs">
-          {event.minutesLeft}m left!
+          {t("events.auction.minutesLeft", { count: event.minutesLeft })}
         </Badge>
         <span className="text-xs text-muted-foreground">
-          Current: {formatETH(event.currentBid)}
+          {t("events.auction.current", { amount: formatETH(event.currentBid) })}
         </span>
       </div>
       {event.imageUrl && <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />}
@@ -231,39 +239,41 @@ function AuctionEndingSoonContent({
 
 // Helper functions
 
-function getEventDisplay(event: Extract<FeedEvent, { category: "auction" }>) {
+type TFunc = ReturnType<typeof useTranslations<"feed">>;
+
+function getEventDisplay(event: Extract<FeedEvent, { category: "auction" }>, t: TFunc) {
   switch (event.type) {
     case "AuctionCreated":
       return {
         icon: Palette,
         iconColor: "text-purple-600",
         bgColor: "bg-purple-50 dark:bg-purple-950",
-        title: "Auction",
-        actionText: "View Auction",
+        title: t("events.auction.auction"),
+        actionText: t("events.auction.viewAuction"),
       };
     case "AuctionBid":
       return {
         icon: DollarSign,
         iconColor: "text-green-600",
         bgColor: "bg-green-50 dark:bg-green-950",
-        title: "Bid",
-        actionText: "View Auction",
+        title: t("events.auction.bid"),
+        actionText: t("events.auction.viewAuction"),
       };
     case "AuctionSettled":
       return {
         icon: Trophy,
         iconColor: "text-amber-600",
         bgColor: "bg-amber-50 dark:bg-amber-950",
-        title: "Auction Won",
-        actionText: "View Token",
+        title: t("events.auction.auctionWon"),
+        actionText: t("events.auction.viewToken"),
       };
     case "AuctionEndingSoon":
       return {
         icon: Clock,
         iconColor: "text-red-600",
         bgColor: "bg-red-50 dark:bg-red-950",
-        title: "Auction Ending Soon",
-        actionText: "Place Bid",
+        title: t("events.auction.auctionEndingSoon"),
+        actionText: t("events.auction.placeBid"),
       };
   }
 }

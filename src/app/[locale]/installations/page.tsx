@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { MapPin } from "lucide-react";
 import { Link } from "@/i18n/navigation";
@@ -22,7 +23,14 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600;
 
-export default async function InstallationsPage() {
+export default async function InstallationsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "installations" });
   const installations = await getAllInstallations();
 
   return (
@@ -30,12 +38,8 @@ export default async function InstallationsPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Gnars Installations</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl">
-            A global network of skateable art installations built through onchain coordination. From
-            DIY handrails to delta ramps, each installation reflects local culture while staying
-            connected through shared Nounish aesthetics and Gnars values.
-          </p>
+          <h1 className="text-4xl font-bold mb-4">{t("title")}</h1>
+          <p className="text-xl text-muted-foreground max-w-3xl">{t("description")}</p>
         </div>
 
         {/* Installation Grid */}
@@ -80,17 +84,17 @@ export default async function InstallationsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             <div>
               <div className="text-3xl font-bold">{installations.length}</div>
-              <div className="text-sm text-muted-foreground">Installations</div>
+              <div className="text-sm text-muted-foreground">{t("stats.installations")}</div>
             </div>
             <div>
               <div className="text-3xl font-bold">
                 {new Set(installations.map((i) => i.location.country)).size}
               </div>
-              <div className="text-sm text-muted-foreground">Countries</div>
+              <div className="text-sm text-muted-foreground">{t("stats.countries")}</div>
             </div>
             <div>
               <div className="text-3xl font-bold">100%</div>
-              <div className="text-sm text-muted-foreground">Onchain Coordinated</div>
+              <div className="text-sm text-muted-foreground">{t("stats.onchainCoordinated")}</div>
             </div>
           </div>
         </div>

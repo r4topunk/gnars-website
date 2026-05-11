@@ -6,6 +6,7 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Crown, Send, Settings } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
@@ -21,9 +22,8 @@ export interface AdminEventCardProps {
 }
 
 export function AdminEventCard({ event, compact, sequenceNumber }: AdminEventCardProps) {
-  // Removed: timeAgo is redundant since we have day headers
-
-  const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
+  const t = useTranslations("feed");
+  const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event, t);
 
   return (
     <Card className={cn("transition-shadow hover:shadow-md relative", compact ? "py-3" : "py-4")}>
@@ -50,7 +50,7 @@ export function AdminEventCard({ event, compact, sequenceNumber }: AdminEventCar
               </div>
               {event.priority === "MEDIUM" && event.category === "admin" && (
                 <Badge variant="secondary" className="text-xs">
-                  Admin
+                  {t("events.admin.admin")}
                 </Badge>
               )}
             </div>
@@ -85,12 +85,13 @@ function TreasuryTransactionContent({
 }: {
   event: Extract<FeedEvent, { type: "TreasuryTransaction" }>;
 }) {
+  const t = useTranslations("feed");
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-xs text-muted-foreground">Sent</span>
+        <span className="text-xs text-muted-foreground">{t("events.admin.sent")}</span>
         <span className="text-sm font-bold text-green-600">{formatETH(event.amount)}</span>
-        <span className="text-xs text-muted-foreground">to</span>
+        <span className="text-xs text-muted-foreground">{t("events.admin.to")}</span>
         <AddressDisplay
           address={event.recipient}
           variant="compact"
@@ -101,7 +102,9 @@ function TreasuryTransactionContent({
           showExplorer={false}
         />
       </div>
-      <p className="text-xs text-muted-foreground">Proposal #{event.proposalNumber}</p>
+      <p className="text-xs text-muted-foreground">
+        {t("events.admin.proposal", { number: event.proposalNumber })}
+      </p>
     </div>
   );
 }
@@ -111,11 +114,12 @@ function SettingsUpdatedContent({
 }: {
   event: Extract<FeedEvent, { type: "SettingsUpdated" }>;
 }) {
+  const t = useTranslations("feed");
   return (
     <div className="space-y-1">
       <p className="text-sm font-medium">{event.setting}</p>
       <p className="text-xs text-muted-foreground">
-        Updated: {event.oldValue} → {event.newValue}
+        {t("events.admin.updated", { old: event.oldValue, new: event.newValue })}
       </p>
     </div>
   );
@@ -156,8 +160,11 @@ function OwnershipTransferredContent({
 
 // Helper functions
 
+type TFunc = ReturnType<typeof useTranslations<"feed">>;
+
 function getEventDisplay(
   event: Extract<FeedEvent, { category: "treasury" | "admin" | "settings" }>,
+  t: TFunc,
 ) {
   switch (event.type) {
     case "TreasuryTransaction":
@@ -165,15 +172,15 @@ function getEventDisplay(
         icon: Send,
         iconColor: "text-green-600",
         bgColor: "bg-green-50 dark:bg-green-950",
-        title: "Treasury Transaction",
-        actionText: "View Transaction",
+        title: t("events.admin.treasuryTransaction"),
+        actionText: t("events.admin.viewTransaction"),
       };
     case "SettingsUpdated":
       return {
         icon: Settings,
         iconColor: "text-gray-600",
         bgColor: "bg-gray-50 dark:bg-gray-950",
-        title: "Settings Updated",
+        title: t("events.admin.settingsUpdated"),
         actionText: null,
       };
     case "OwnershipTransferred":
@@ -181,8 +188,8 @@ function getEventDisplay(
         icon: Crown,
         iconColor: "text-amber-600",
         bgColor: "bg-amber-50 dark:bg-amber-950",
-        title: "Ownership Transferred",
-        actionText: "View Details",
+        title: t("events.admin.ownershipTransferred"),
+        actionText: t("events.admin.viewDetails"),
       };
   }
 }

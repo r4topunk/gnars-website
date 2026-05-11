@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { LatLngExpression } from "leaflet";
 import { MapLocationDrawer, type LocationData } from "@/components/map-location-drawer";
 import { Map, MapMarker, MapTileLayer } from "@/components/ui/map";
@@ -194,6 +195,7 @@ export const locations: LocationData[] = [
 ];
 
 export default function GnarsMap() {
+  const t = useTranslations("map");
   const CENTER_COORDINATES = [0, 0] satisfies LatLngExpression;
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -205,7 +207,7 @@ export default function GnarsMap() {
 
   return (
     <div className="fixed inset-0 h-screen w-screen">
-      <h1 className="sr-only">Gnars skateboarding community map</h1>
+      <h1 className="sr-only">{t("srHeading")}</h1>
       <Map center={CENTER_COORDINATES} zoom={2} className="h-full w-full">
         <MapTileLayer />
         {locations.map((location, index) => (

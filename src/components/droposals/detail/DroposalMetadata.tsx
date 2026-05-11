@@ -5,6 +5,7 @@
  * Props:
  * - rows: array of { parameter, value }
  */
+import { getTranslations } from "next-intl/server";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { ipfsToHttp } from "@/lib/ipfs";
@@ -18,10 +19,11 @@ export interface DroposalMetadataProps {
   rows: MetadataRow[] | null;
 }
 
-export function DroposalMetadata({ rows }: DroposalMetadataProps) {
+export async function DroposalMetadata({ rows }: DroposalMetadataProps) {
+  const t = await getTranslations("droposals");
   return (
     <Card>
-      <SectionHeader title="Metadata" />
+      <SectionHeader title={t("detail.metadataTitle")} />
       <CardContent>
         {rows && rows.length > 0 ? (
           <dl className="grid grid-cols-1 gap-2">
@@ -58,7 +60,7 @@ export function DroposalMetadata({ rows }: DroposalMetadataProps) {
             })}
           </dl>
         ) : (
-          <div className="text-muted-foreground">No sale data.</div>
+          <div className="text-muted-foreground">{t("detail.noSaleData")}</div>
         )}
       </CardContent>
     </Card>

@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { BlogCard } from "@/components/blogs/BlogCard";
 import { BlogCardSkeleton } from "@/components/blogs/BlogCardSkeleton";
 import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 import type { BlogSummary } from "@/lib/schemas/blogs";
 
 export function BlogsGrid({ blogs }: { blogs: BlogSummary[] }) {
+  const t = useTranslations("blogs");
   const PAGE_SIZE = 6;
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -39,7 +41,7 @@ export function BlogsGrid({ blogs }: { blogs: BlogSummary[] }) {
   }, [blogs.length]);
 
   if (blogs.length === 0) {
-    return <div className="text-center py-12 text-muted-foreground">No blog posts available</div>;
+    return <div className="text-center py-12 text-muted-foreground">{t("empty")}</div>;
   }
 
   return (

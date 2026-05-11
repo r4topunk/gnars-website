@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createPublicClient, formatEther, http } from "viem";
 import { base } from "viem/chains";
 import { DroposalActionBox } from "@/components/droposals/detail/DroposalActionBox";
@@ -187,8 +188,15 @@ export async function generateMetadata({
   };
 }
 
-export default async function DroposalDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function DroposalDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string; locale: string }>;
+}) {
+  const { id, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("droposals");
+
   const { proposal: p, decoded } = await fetchDroposal(id);
 
   if (!p) {
@@ -196,9 +204,9 @@ export default async function DroposalDetailPage({ params }: { params: Promise<{
       <div className="py-8">
         <Card>
           <CardHeader>
-            <CardTitle>Droposal not found</CardTitle>
+            <CardTitle>{t("notFound.title")}</CardTitle>
           </CardHeader>
-          <CardContent>We couldn&apos;t find this droposal.</CardContent>
+          <CardContent>{t("notFound.description")}</CardContent>
         </Card>
       </div>
     );

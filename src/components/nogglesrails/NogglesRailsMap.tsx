@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { LatLngExpression } from "leaflet";
 import { MapLocationDrawer, type LocationData } from "@/components/map-location-drawer";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ const CONTINENTS = getActiveContents();
 const TYPES = getActiveTypes();
 
 export function NogglesRailsMap() {
+  const t = useTranslations("installations.nogglesrails");
   const [continent, setContinent] = useState<Continent | null>(null);
   const [type, setType] = useState<RailType | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -54,7 +56,7 @@ export function NogglesRailsMap() {
   return (
     <section id="map" className="space-y-4">
       <div className="flex items-end justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Map</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t("map.heading")}</h2>
         <span className="text-sm text-muted-foreground">
           {filtered.length} of {NOGGLES_RAILS.length}
         </span>
@@ -63,7 +65,7 @@ export function NogglesRailsMap() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
         <FilterPill active={continent === null} onClick={() => setContinent(null)}>
-          All
+          {t("map.filterAll")}
         </FilterPill>
         {CONTINENTS.map((c) => (
           <FilterPill

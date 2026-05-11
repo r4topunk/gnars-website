@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { Button } from "@/components/ui/button";
@@ -19,15 +20,16 @@ export function ActivityFeed({
   responsive = false,
   singleColumn = false,
 }: ActivityFeedProps) {
+  const t = useTranslations("feed");
   return (
     <Card className={responsive ? "h-full flex flex-col" : ""}>
       <SectionHeader
-        title="Live Feed"
-        description="Real-time activity from the Gnars DAO"
+        title={t("title")}
+        description={t("description")}
         action={
           <Button variant="outline" size="sm" asChild>
             <Link href="/feed">
-              View All Activity
+              {t("viewAll")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Check, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
@@ -11,13 +12,14 @@ import { SWAP_CHAINS } from "./chains";
 import { useSwapChain } from "./SwapChainContext";
 
 export function ChainSelector() {
+  const t = useTranslations("swap");
   const { chain, setChainId } = useSwapChain();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-2 py-1 text-xs font-semibold tracking-wide text-blue-800 transition-colors hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 dark:bg-blue-900/30 dark:text-blue-200 dark:hover:bg-blue-900/50"
-        aria-label="Select chain"
+        aria-label={t("chain.selectLabel")}
       >
         {chain.shortName}
         <ChevronDown className="h-3 w-3" />

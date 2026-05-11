@@ -7,6 +7,7 @@
 
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { LiveFeedView } from "@/components/feed/LiveFeedView";
 import { getAllFeedEvents } from "@/services/feed-events";
 
@@ -60,15 +61,19 @@ async function getFeedEvents() {
   }
 }
 
-export default async function LiveFeedPage() {
+export default async function LiveFeedPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("feed");
+
   const events = await getFeedEvents();
 
   return (
     <div className="py-8 max-w-4xl mx-auto">
       {/* Page header */}
       <div className="space-y-2 mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Live Feed</h1>
-        <p className="text-muted-foreground mt-1">Real-time activity from the Gnars DAO</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground mt-1">{t("description")}</p>
       </div>
 
       {/* Feed content */}
@@ -78,10 +83,7 @@ export default async function LiveFeedPage() {
 
       {/* Info banner */}
       <div className="mt-8 p-4 rounded-lg border bg-muted/50">
-        <p className="text-sm text-muted-foreground">
-          Live events from the Gnars DAO on Base (last 30 days). Data refreshes automatically every
-          60 seconds.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("infoPanel")}</p>
       </div>
     </div>
   );

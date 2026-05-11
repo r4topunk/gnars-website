@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BlogDetail, BlogDetailSkeleton } from "@/components/blogs/detail/BlogDetail";
 import { Blog } from "@/lib/schemas/blogs";
 import { getBlogBySlug } from "@/services/blogs";
@@ -32,7 +33,7 @@ async function fetchBlogData(slug: string): Promise<Blog | null> {
 }
 
 interface BlogPageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
@@ -77,7 +78,9 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
 }
 
 export default async function BlogPage({ params }: BlogPageProps) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "blogs" });
   const normalizedSlug = normalizeRouteSlug(slug);
 
   const blog = await fetchBlogData(normalizedSlug);
@@ -85,10 +88,8 @@ export default async function BlogPage({ params }: BlogPageProps) {
   if (!blog) {
     return (
       <div className="py-8 text-center">
-        <h2 className="text-2xl font-bold text-muted-foreground">Blog Post Not Found</h2>
-        <p className="text-muted-foreground mt-2">
-          The blog post you&apos;re looking for doesn&apos;t exist or has been removed.
-        </p>
+        <h2 className="text-2xl font-bold text-muted-foreground">{t("notFound.title")}</h2>
+        <p className="text-muted-foreground mt-2">{t("notFound.description")}</p>
       </div>
     );
   }

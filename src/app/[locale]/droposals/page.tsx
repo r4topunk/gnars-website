@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DroposalsGrid } from "@/components/droposals/DroposalsGrid";
 import { Link } from "@/i18n/navigation";
 import { fetchDroposals } from "@/services/droposals";
@@ -19,27 +20,31 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function DroposalsPage() {
+export default async function DroposalsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("droposals");
+
   const items = await fetchDroposals(24);
 
   return (
     <div className="py-8 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Gnars Drops</h1>
-        <p className="text-muted-foreground mt-1">
-          Drops are Gnarly Highquality videos or assets created and approved by the community. In
-          order to create a Drop you need to create a droposal.
-        </p>
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
+        <p className="text-muted-foreground mt-1">{t("description")}</p>
         <p className="text-muted-foreground mt-2">
-          Droposals are community proposals that green‑light new drops and skate media. See{" "}
-          <Link href="/proposals" className="text-foreground underline underline-offset-4">
-            funding decisions
-          </Link>{" "}
-          or learn{" "}
-          <Link href="/about" className="text-foreground underline underline-offset-4">
-            how Gnars works
-          </Link>
-          .
+          {t.rich("linkDescription", {
+            fundingLink: (chunks) => (
+              <Link href="/proposals" className="text-foreground underline underline-offset-4">
+                {chunks}
+              </Link>
+            ),
+            aboutLink: (chunks) => (
+              <Link href="/about" className="text-foreground underline underline-offset-4">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       </div>
       <DroposalsGrid items={items} />

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { formatEther } from "viem";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,11 +39,17 @@ const CHAIN_DOT_COLORS: Record<number, string> = {
 };
 
 export function BountyCard({ bounty }: BountyCardProps) {
+  const t = useTranslations("bounties");
   const chainName = CHAIN_NAMES[bounty.chainId as keyof typeof CHAIN_NAMES] || "Unknown";
   const amountEth = formatEther(BigInt(bounty.amount));
   // eslint-disable-next-line react-hooks/purity -- intentional render-time clock read for "Xd ago" label
   const daysAgo = Math.floor((Date.now() - bounty.createdAt * 1000) / (1000 * 60 * 60 * 24));
-  const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "1d ago" : `${daysAgo}d ago`;
+  const timeLabel =
+    daysAgo === 0
+      ? t("card.today")
+      : daysAgo === 1
+        ? t("card.oneDayAgo")
+        : t("card.daysAgo", { count: daysAgo });
 
   const getStatus = (): keyof typeof STATUS_STYLES => {
     if (bounty.isCanceled) return "Canceled";
@@ -60,6 +67,13 @@ export function BountyCard({ bounty }: BountyCardProps) {
   const ethAmount = parseFloat(amountEth);
   const usdValue = formatEthToUsd(ethAmount, ethPrice);
 
+  const statusLabel = (() => {
+    if (status === "Canceled") return t("status.canceled");
+    if (status === "Voting") return t("status.voting");
+    if (status === "Closed") return t("status.closed");
+    return t("status.open");
+  })();
+
   return (
     <Card className="group hover:border-primary/50 overflow-hidden py-0">
       <CardContent className="flex flex-col flex-1 px-5 pt-5 pb-0 gap-4">
@@ -70,7 +84,7 @@ export function BountyCard({ bounty }: BountyCardProps) {
             <span className="text-xs font-medium text-muted-foreground truncate">{chainName}</span>
           </div>
           <Badge variant="outline" className={STATUS_STYLES[status]}>
-            {status}
+            {statusLabel}
           </Badge>
         </div>
 
@@ -100,7 +114,7 @@ export function BountyCard({ bounty }: BountyCardProps) {
         {/* Reward */}
         <div className="rounded-lg bg-muted/40 px-4 py-3 border border-border/50">
           <span className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-            Reward
+            {t("card.reward")}
           </span>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-2xl font-bold text-primary">{ethAmount.toFixed(4)}</span>
@@ -119,19 +133,19 @@ export function BountyCard({ bounty }: BountyCardProps) {
           {bounty.isMultiplayer && (
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground/40">·</span>
-              <span>Multiplayer</span>
+              <span>{t("card.multiplayer")}</span>
             </div>
           )}
           {bounty.hasClaims && (
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground/40">·</span>
-              <span>Has claims</span>
+              <span>{t("card.hasClaims")}</span>
             </div>
           )}
           {bounty.isOpenBounty && (
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground/40">·</span>
-              <span>Video required</span>
+              <span>{t("card.videoRequired")}</span>
             </div>
           )}
         </div>
@@ -141,7 +155,7 @@ export function BountyCard({ bounty }: BountyCardProps) {
       <CardFooter className="px-5 pb-5 pt-4">
         <Link href={detailHref} className="block w-full">
           <Button className="w-full text-sm font-semibold bg-primary hover:bg-primary/90 text-primary-foreground">
-            View
+            {t("cta.view")}
           </Button>
         </Link>
       </CardFooter>
