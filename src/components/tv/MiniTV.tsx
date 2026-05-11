@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { X } from "lucide-react";
 import { usePathname } from "@/i18n/navigation";
@@ -13,6 +14,7 @@ const Gnar3DTVScene = dynamic(() => import("./Gnar3DTVScene").then((mod) => mod.
 });
 
 export function MiniTV() {
+  const t = useTranslations("wallet");
   const [isHovered, setIsHovered] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -77,7 +79,7 @@ export function MiniTV() {
         <button
           onClick={handleClose}
           className="absolute right-4 top-20 z-[61] rounded-lg bg-black/60 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
-          aria-label="Close fullscreen"
+          aria-label={t("tv.closeFullscreen")}
         >
           <X className="h-6 w-6" />
         </button>
@@ -103,7 +105,7 @@ export function MiniTV() {
     <div
       role="button"
       tabIndex={0}
-      aria-label="Open Gnars TV fullscreen"
+      aria-label={t("tv.openFullscreen")}
       className={`fixed bottom-4 left-4 z-40 h-[120px] w-[120px] cursor-pointer transition-opacity duration-700 ease-in-out ${
         isLoaded && !heroTVVisible && !isOnTVPage ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { FAQ } from "@/components/common/FAQ";
 import { ContractsList } from "@/components/contracts-list";
 import { AuctionSpotlight } from "@/components/hero/AuctionSpotlight";
@@ -28,7 +29,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const t = await getTranslations("home");
+
   return (
     <div className="flex flex-1 flex-col">
       {/* Hero Section - Static content renders immediately */}
@@ -41,11 +47,9 @@ export default function Home() {
                 <div className="space-y-4">
                   <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
                     <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                      Gnars DAO
+                      {t("hero.title")}
                     </span>
-                    <span className="sr-only">
-                      Gnars is a community-owned skateboarding DAO funding skate culture worldwide.
-                    </span>
+                    <span className="sr-only">{t("hero.srOnly")}</span>
                   </h1>
                   <AnimatedDescription />
                 </div>
@@ -71,20 +75,13 @@ export default function Home() {
       <div className="flex flex-1 flex-col gap-6 py-8">
         {/* SEO-only context */}
         <section className="sr-only">
-          <h2>What is Gnars?</h2>
+          <h2>{t("seo.whatIsGnars")}</h2>
+          <p>{t("seo.body1")}</p>
+          <p>{t("seo.body2")}</p>
           <p>
-            Gnars is a skateboarding collective and community-owned skate brand. We support skaters,
-            filmmakers, designers, and DIY projects by voting on proposals and funding them with
-            community resources.
-          </p>
-          <p>
-            If you care about skateboarding culture and want it funded by the people who live it,
-            you&apos;re in the right place.
-          </p>
-          <p>
-            Learn more about <Link href="/about">the Gnars skateboarding collective</Link>, explore{" "}
-            <Link href="/proposals">skateboarding grants</Link>, or view{" "}
-            <Link href="/auctions">skateboarding auctions</Link>.
+            Learn more about <Link href="/about">{t("seo.linkAbout")}</Link>, explore{" "}
+            <Link href="/proposals">{t("seo.linkProposals")}</Link>, or view{" "}
+            <Link href="/auctions">{t("seo.linkAuctions")}</Link>.
           </p>
         </section>
 

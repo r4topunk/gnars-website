@@ -17,6 +17,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Copy, ExternalLink, Loader2, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Address, Hex } from "viem";
@@ -49,6 +50,7 @@ export function DelegationModal({
   onOpenChange,
   initialDelegateAddress,
 }: DelegationModalProps) {
+  const t = useTranslations("wallet");
   const { address, isConnected } = useUserAddress();
   // `useDelegate` now respects `viewMode` via `useWriteAccount`, so when
   // the user is in eoa view the delegate tx is signed directly by the
@@ -94,8 +96,8 @@ export function DelegationModal({
   });
 
   const onDelegateSuccess = (_txHash: Hex, delegatee: Address) => {
-    toast.success("Delegation updated!", {
-      description: `Successfully delegated to ${formatAddress(delegatee)}`,
+    toast.success(t("modal.toastSuccess"), {
+      description: t("modal.toastSuccessDescription", { address: formatAddress(delegatee) }),
     });
     setIsChanging(false);
     // Keep modal open to show confirmation
@@ -133,10 +135,13 @@ export function DelegationModal({
     }
   }, [open]);
 
-  const handleCopyAddress = React.useCallback((addr: string) => {
-    navigator.clipboard.writeText(addr);
-    toast.success("Address copied to clipboard");
-  }, []);
+  const handleCopyAddress = React.useCallback(
+    (addr: string) => {
+      navigator.clipboard.writeText(addr);
+      toast.success(t("modal.toastSuccess"));
+    },
+    [t],
+  );
 
   const handleDelegate = React.useCallback(async () => {
     console.log("[DelegationModal] handleDelegate called:", {
@@ -149,7 +154,9 @@ export function DelegationModal({
 
     if (!delegateAddress || delegateAddress.length !== 42) {
       console.warn("[DelegationModal] Invalid address format");
-      toast.error("Invalid address", { description: "Please enter a valid Ethereum address" });
+      toast.error(t("modal.toastInvalidAddress"), {
+        description: t("modal.toastInvalidAddressDescription"),
+      });
       return;
     }
 
@@ -159,8 +166,8 @@ export function DelegationModal({
         tokenBalance: tokenBalance.toString(),
         votingPower: votingPower?.toString(),
       });
-      toast.error("No tokens to delegate", {
-        description: "You don't own any Gnars NFTs. Delegation requires owning at least one token.",
+      toast.error(t("modal.toastNoTokens"), {
+        description: t("modal.toastNoTokensDescription"),
       });
       return;
     }
@@ -168,34 +175,36 @@ export function DelegationModal({
     // Check if already delegated to this address
     if (delegateAddress.toLowerCase() === currentDelegate?.toLowerCase()) {
       console.log("[DelegationModal] Already delegated to this address");
-      toast.info("Already delegated", {
-        description: "You are already delegated to this address.",
+      toast.info(t("modal.toastAlreadyDelegated"), {
+        description: t("modal.toastAlreadyDelegatedDescription"),
       });
       return;
     }
 
     console.log("[DelegationModal] Calling delegate function...");
     await delegate(delegateAddress);
-  }, [delegateAddress, currentDelegate, delegate, tokenBalance, votingPower]);
+  }, [delegateAddress, currentDelegate, delegate, tokenBalance, votingPower, t]);
 
   const handleCancelDelegation = React.useCallback(async () => {
     if (!address) {
-      toast.error("Unable to cancel delegation", { description: "Wallet address not found" });
+      toast.error(t("modal.toastCancelError"), {
+        description: t("modal.toastCancelErrorDescription"),
+      });
       return;
     }
 
     // Warn if no tokens owned
     if (tokenBalance === 0n) {
       console.warn("[DelegationModal] User has no Gnars tokens");
-      toast.error("No tokens to delegate", {
-        description: "You don't own any Gnars NFTs. Delegation requires owning at least one token.",
+      toast.error(t("modal.toastNoTokens"), {
+        description: t("modal.toastNoTokensDescription"),
       });
       return;
     }
 
     console.log("[DelegationModal] Canceling delegation - delegating back to self:", address);
     await delegate(address);
-  }, [address, delegate, tokenBalance]);
+  }, [address, delegate, tokenBalance, t]);
 
   const formatAddress = (addr: string) => {
     if (!addr) return "";
@@ -207,16 +216,14 @@ export function DelegationModal({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Delegation</DialogTitle>
-            <DialogDescription>
-              Connect your wallet to view and manage your voting delegation.
-            </DialogDescription>
+            <DialogTitle>{t("modal.titleNotConnected")}</DialogTitle>
+            <DialogDescription>{t("modal.descriptionNotConnected")}</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center justify-center py-8 gap-4">
             <div className="rounded-full bg-muted p-4">
               <UserCheck className="size-8 text-muted-foreground" />
             </div>
-            <p className="text-sm text-muted-foreground text-center">Wallet connection required</p>
+            <p className="text-sm text-muted-foreground text-center">{t("modal.walletRequired")}</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -227,11 +234,8 @@ export function DelegationModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Voting Delegation</DialogTitle>
-          <DialogDescription>
-            Delegating allows someone else to vote with your NFTs while you retain ownership. This
-            doesn&apos;t transfer your tokens.
-          </DialogDescription>
+          <DialogTitle>{t("modal.title")}</DialogTitle>
+          <DialogDescription>{t("modal.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-6 py-4">
@@ -239,10 +243,11 @@ export function DelegationModal({
           <div className="flex items-center justify-between rounded-lg border border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950/20 p-4">
             <div className="flex flex-col gap-1">
               <span className="text-xs font-medium text-purple-700 dark:text-purple-300">
-                Gnars NFTs Owned
+                {t("modal.gnarsOwned")}
               </span>
               <span className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-                {tokenBalance.toString()} {tokenBalance === 1n ? "NFT" : "NFTs"}
+                {tokenBalance.toString()}{" "}
+                {tokenBalance === 1n ? t("modal.nftSingular") : t("modal.nftPlural")}
               </span>
             </div>
           </div>
@@ -252,10 +257,11 @@ export function DelegationModal({
             <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20 p-4">
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                  Your Voting Power
+                  {t("modal.votingPower")}
                 </span>
                 <span className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                  {votingPower.toString()} {votingPower === 1n ? "vote" : "votes"}
+                  {votingPower.toString()}{" "}
+                  {votingPower === 1n ? t("modal.voteSingular") : t("modal.votePlural")}
                 </span>
               </div>
             </div>
@@ -263,7 +269,7 @@ export function DelegationModal({
 
           {/* Current Delegation Status */}
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-medium">Current Delegate</Label>
+            <Label className="text-sm font-medium">{t("modal.currentDelegate")}</Label>
             <div
               className={cn(
                 "flex items-center justify-between rounded-lg border p-4",
@@ -276,16 +282,14 @@ export function DelegationModal({
                   {isSelfDelegated && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-300">
                       <UserCheck className="size-3" />
-                      Self
+                      {t("modal.selfDelegated")}
                     </span>
                   )}
                 </div>
                 {isSelfDelegated ? (
-                  <p className="text-xs text-muted-foreground">You are voting with your own NFTs</p>
+                  <p className="text-xs text-muted-foreground">{t("modal.selfDelegatedNote")}</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Your votes are delegated to another address
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t("modal.delegatedNote")}</p>
                 )}
               </div>
               <Button
@@ -295,7 +299,7 @@ export function DelegationModal({
                 disabled={!currentDelegate}
               >
                 <Copy className="size-4" />
-                <span className="sr-only">Copy address</span>
+                <span className="sr-only">{t("modal.copyAddress")}</span>
               </Button>
             </div>
           </div>
@@ -304,19 +308,17 @@ export function DelegationModal({
           {isChanging ? (
             <div className="flex flex-col gap-3">
               <Label htmlFor="delegate-address" className="text-sm font-medium">
-                New Delegate Address
+                {t("modal.newDelegateAddress")}
               </Label>
               <Input
                 id="delegate-address"
-                placeholder="0x..."
+                placeholder={t("modal.newDelegatePlaceholder")}
                 value={delegateAddress}
                 onChange={(e) => setDelegateAddress(e.target.value)}
                 className="font-mono text-sm"
                 disabled={isPending || isConfirming}
               />
-              <p className="text-xs text-muted-foreground">
-                Enter the Ethereum address you want to delegate your voting power to
-              </p>
+              <p className="text-xs text-muted-foreground">{t("modal.newDelegateHint")}</p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
@@ -330,10 +332,10 @@ export function DelegationModal({
                   {isPending || isConfirming ? (
                     <>
                       <Loader2 className="size-4 mr-2 animate-spin" />
-                      Canceling...
+                      {t("modal.canceling")}
                     </>
                   ) : (
-                    "Cancel Delegation"
+                    t("modal.cancelDelegation")
                   )}
                 </Button>
               )}
@@ -343,7 +345,7 @@ export function DelegationModal({
                 onClick={() => setIsChanging(true)}
                 disabled={isPending || isConfirming}
               >
-                Change Delegate
+                {t("modal.changeDelegation")}
               </Button>
             </div>
           )}
@@ -355,13 +357,13 @@ export function DelegationModal({
                 <>
                   <Loader2 className="size-4 animate-spin text-amber-600 dark:text-amber-400" />
                   <span className="text-amber-900 dark:text-amber-100">
-                    Confirming transaction...
+                    {t("modal.txConfirming")}
                   </span>
                 </>
               ) : isConfirmed ? (
-                <span className="text-green-900 dark:text-green-100">✓ Transaction confirmed!</span>
+                <span className="text-green-900 dark:text-green-100">{t("modal.txConfirmed")}</span>
               ) : (
-                <span className="text-amber-900 dark:text-amber-100">Transaction submitted</span>
+                <span className="text-amber-900 dark:text-amber-100">{t("modal.txSubmitted")}</span>
               )}
             </div>
           )}
@@ -374,7 +376,7 @@ export function DelegationModal({
               onClick={() => setIsChanging(false)}
               disabled={isPending || isConfirming}
             >
-              Cancel
+              {t("modal.cancel")}
             </Button>
             <Button
               onClick={handleDelegate}
@@ -385,10 +387,10 @@ export function DelegationModal({
               {isPending || isConfirming ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
-                  {isConfirming ? "Confirming..." : "Submitting..."}
+                  {isConfirming ? t("modal.confirming") : t("modal.submitting")}
                 </>
               ) : (
-                "Update Delegation"
+                t("modal.updateDelegation")
               )}
             </Button>
           </DialogFooter>
@@ -404,7 +406,7 @@ export function DelegationModal({
               className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
             >
               <ExternalLink className="size-3" />
-              View transaction on Basescan
+              {t("modal.viewOnBasescan")}
             </a>
           )}
           <a
@@ -414,7 +416,7 @@ export function DelegationModal({
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             <ExternalLink className="size-3" />
-            Learn more about delegation
+            {t("modal.learnDelegation")}
           </a>
         </div>
       </DialogContent>

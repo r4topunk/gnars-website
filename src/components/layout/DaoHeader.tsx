@@ -20,6 +20,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import {
   ArrowLeftRight,
@@ -70,117 +71,121 @@ import { useUserAddress } from "@/hooks/use-user-address";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-// Navigation structure
-const navigationItems = [
-  {
-    title: "TV",
-    href: "/tv",
-    icon: Tv,
-  },
-  {
-    title: "Dashboard",
-    href: "/",
-    icon: Home,
-  },
-  {
-    title: "Governance",
-    items: [
-      {
-        title: "Proposals",
-        href: "/proposals",
-        icon: Vote,
-        description: "View and vote on DAO proposals",
-      },
-      {
-        title: "Delegation",
-        href: "#delegation",
-        icon: UserCheck,
-        description: "Manage your voting delegation",
-      },
-      {
-        title: "Create Proposal",
-        href: "/propose",
-        icon: PlusCircle,
-        description: "Submit a new proposal to the DAO",
-      },
-      {
-        title: "Auctions",
-        href: "/auctions",
-        icon: Gavel,
-        description: "Bid on Gnars NFTs in active auctions",
-      },
-    ],
-  },
-  {
-    title: "Money",
-    items: [
-      {
-        title: "Treasury",
-        href: "/treasury",
-        icon: Wallet,
-        description: "ETH, ERC-20s, NFTs, and onchain analytics for the DAO treasury",
-      },
-      {
-        title: "Swap",
-        href: "/swap",
-        icon: ArrowLeftRight,
-        description: "Trade tokens on Base via 0x — best price across 150+ DEXes",
-        badge: "NEW!",
-      },
-    ],
-  },
-  {
-    title: "Community",
-    items: [
-      {
-        title: "Members",
-        href: "/members",
-        icon: Users,
-        description: "Browse all DAO members and holders",
-      },
-      {
-        title: "NogglesRails",
-        href: "/nogglesrails",
-        icon: Map,
-        description: "Global network of community skate infrastructure",
-        badge: "NEW!",
-      },
-      {
-        title: "Blogs",
-        href: "/blogs",
-        icon: BookOpen,
-        description: "Read community blog posts and updates",
-      },
-      {
-        title: "Propdates",
-        href: "/propdates",
-        icon: Newspaper,
-        description: "Follow proposal progress updates",
-      },
-      {
-        title: "Droposals",
-        href: "/droposals",
-        icon: Video,
-        description: "Video proposals from the community",
-        badge: "NEW!",
-      },
-      {
-        title: "Create Coin",
-        href: "/create-coin",
-        icon: Coins,
-        description: "Create a new coin on Zora",
-        badge: "NEW!",
-      },
-      {
-        title: "Bounties",
-        href: "/community/bounties",
-        icon: Gift,
-        description: "Gnarly challenges from the action sports community",
-        badge: "NEW!",
-      },
-    ],
-  },
-];
+type NavTranslations = ReturnType<typeof useTranslations<"nav">>;
+
+// Navigation structure — built as a function so titles/descriptions come from t()
+function buildNavigationItems(t: NavTranslations) {
+  return [
+    {
+      title: t("items.tv"),
+      href: "/tv",
+      icon: Tv,
+    },
+    {
+      title: t("items.dashboard"),
+      href: "/",
+      icon: Home,
+    },
+    {
+      title: t("items.governance.label"),
+      items: [
+        {
+          title: t("items.governance.proposals.title"),
+          href: "/proposals",
+          icon: Vote,
+          description: t("items.governance.proposals.description"),
+        },
+        {
+          title: t("items.governance.delegation.title"),
+          href: "#delegation",
+          icon: UserCheck,
+          description: t("items.governance.delegation.description"),
+        },
+        {
+          title: t("items.governance.createProposal.title"),
+          href: "/propose",
+          icon: PlusCircle,
+          description: t("items.governance.createProposal.description"),
+        },
+        {
+          title: t("items.governance.auctions.title"),
+          href: "/auctions",
+          icon: Gavel,
+          description: t("items.governance.auctions.description"),
+        },
+      ],
+    },
+    {
+      title: t("items.money.label"),
+      items: [
+        {
+          title: t("items.money.treasury.title"),
+          href: "/treasury",
+          icon: Wallet,
+          description: t("items.money.treasury.description"),
+        },
+        {
+          title: t("items.money.swap.title"),
+          href: "/swap",
+          icon: ArrowLeftRight,
+          description: t("items.money.swap.description"),
+          badge: "NEW!",
+        },
+      ],
+    },
+    {
+      title: t("items.community.label"),
+      items: [
+        {
+          title: t("items.community.members.title"),
+          href: "/members",
+          icon: Users,
+          description: t("items.community.members.description"),
+        },
+        {
+          title: t("items.community.nogglesRails.title"),
+          href: "/nogglesrails",
+          icon: Map,
+          description: t("items.community.nogglesRails.description"),
+          badge: "NEW!",
+        },
+        {
+          title: t("items.community.blogs.title"),
+          href: "/blogs",
+          icon: BookOpen,
+          description: t("items.community.blogs.description"),
+        },
+        {
+          title: t("items.community.propdates.title"),
+          href: "/propdates",
+          icon: Newspaper,
+          description: t("items.community.propdates.description"),
+        },
+        {
+          title: t("items.community.droposals.title"),
+          href: "/droposals",
+          icon: Video,
+          description: t("items.community.droposals.description"),
+          badge: "NEW!",
+        },
+        {
+          title: t("items.community.createCoin.title"),
+          href: "/create-coin",
+          icon: Coins,
+          description: t("items.community.createCoin.description"),
+          badge: "NEW!",
+        },
+        {
+          title: t("items.community.bounties.title"),
+          href: "/community/bounties",
+          icon: Gift,
+          description: t("items.community.bounties.description"),
+          badge: "NEW!",
+        },
+      ],
+    },
+  ] as const;
+}
 
 function DaoLogo() {
   return (
@@ -208,8 +213,10 @@ function DaoLogo() {
 }
 
 function DesktopNav() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const [delegationModalOpen, setDelegationModalOpen] = React.useState(false);
+  const navigationItems = buildNavigationItems(t);
 
   const isRouteActive = React.useCallback(
     (url: string) => {
@@ -246,77 +253,83 @@ function DesktopNav() {
             return (
               <NavigationMenuItem key={item.title}>
                 <NavigationMenuTrigger
-                  className={cn(isRouteActive(item.items?.[0]?.href || "") && "bg-accent/50")}
+                  className={cn(
+                    "items" in item &&
+                      item.items?.[0]?.href &&
+                      isRouteActive(item.items[0].href) &&
+                      "bg-accent/50",
+                  )}
                 >
                   {item.title}
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid w-[400px] gap-2 p-2">
-                    {item.items?.map((subItem) => {
-                      if (!subItem.icon) return null;
+                    {"items" in item &&
+                      item.items?.map((subItem) => {
+                        if (!subItem.icon) return null;
 
-                      const SubIcon = subItem.icon;
-                      const isDelegation = subItem.href === "#delegation";
+                        const SubIcon = subItem.icon;
+                        const isDelegation = subItem.href === "#delegation";
 
-                      if (isDelegation) {
+                        if (isDelegation) {
+                          return (
+                            <li key={subItem.title}>
+                              <NavigationMenuLink asChild>
+                                <button
+                                  onClick={() => setDelegationModalOpen(true)}
+                                  className="flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors w-full text-left"
+                                >
+                                  <SubIcon className="size-5 mt-0.5 text-muted-foreground" />
+                                  <div className="flex flex-col gap-1">
+                                    <div className="text-sm font-medium leading-none">
+                                      {subItem.title}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground line-clamp-2 leading-snug">
+                                      {subItem.description}
+                                    </p>
+                                  </div>
+                                </button>
+                              </NavigationMenuLink>
+                            </li>
+                          );
+                        }
+
                         return (
                           <li key={subItem.title}>
                             <NavigationMenuLink asChild>
-                              <button
-                                onClick={() => setDelegationModalOpen(true)}
-                                className="flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors w-full text-left"
+                              <Link
+                                href={subItem.href!}
+                                className={cn(
+                                  "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
+                                  isRouteActive(subItem.href!) && "bg-accent/50",
+                                )}
                               >
                                 <SubIcon className="size-5 mt-0.5 text-muted-foreground" />
                                 <div className="flex flex-col gap-1">
-                                  <div className="text-sm font-medium leading-none">
+                                  <div className="flex items-center gap-2 text-sm font-medium leading-none">
                                     {subItem.title}
+                                    {"badge" in subItem && subItem.badge && (
+                                      <Badge
+                                        variant="secondary"
+                                        className={`h-4 px-1.5 text-[10px] ${
+                                          (subItem.badge as string) === "BETA"
+                                            ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
+                                            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                                        }`}
+                                      >
+                                        {subItem.badge as string}
+                                      </Badge>
+                                    )}
                                   </div>
                                   <p className="text-sm text-muted-foreground line-clamp-2 leading-snug">
                                     {subItem.description}
                                   </p>
                                 </div>
-                              </button>
+                              </Link>
                             </NavigationMenuLink>
                           </li>
                         );
-                      }
-
-                      return (
-                        <li key={subItem.title}>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href={subItem.href!}
-                              className={cn(
-                                "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
-                                isRouteActive(subItem.href!) && "bg-accent/50",
-                              )}
-                            >
-                              <SubIcon className="size-5 mt-0.5 text-muted-foreground" />
-                              <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-2 text-sm font-medium leading-none">
-                                  {subItem.title}
-                                  {"badge" in subItem && subItem.badge && (
-                                    <Badge
-                                      variant="secondary"
-                                      className={`h-4 px-1.5 text-[10px] ${
-                                        (subItem.badge as string) === "BETA"
-                                          ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
-                                          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
-                                      }`}
-                                    >
-                                      {subItem.badge as string}
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-sm text-muted-foreground line-clamp-2 leading-snug">
-                                  {subItem.description}
-                                </p>
-                              </div>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      );
-                    })}
+                      })}
                   </ul>
                 </NavigationMenuContent>
               </NavigationMenuItem>
@@ -329,6 +342,7 @@ function DesktopNav() {
 }
 
 function MobileNav() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
@@ -338,6 +352,7 @@ function MobileNav() {
   const activeWallet = useActiveWallet();
   const [isPending, setIsPending] = React.useState(false);
   const isWrongNetwork = isConnected && activeChain?.id !== base.id;
+  const navigationItems = buildNavigationItems(t);
 
   React.useEffect(() => {
     setMounted(true);
@@ -358,14 +373,14 @@ function MobileNav() {
     setIsPending(true);
     try {
       await activeWallet.switchChain(thirdwebBase);
-      toast.success("Successfully switched to Base");
+      toast.success(t("switchNetwork.label"));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       toast.error(`Failed to switch network: ${message}`);
     } finally {
       setIsPending(false);
     }
-  }, [activeWallet, isPending]);
+  }, [activeWallet, isPending, t]);
 
   return (
     <>
@@ -374,12 +389,12 @@ function MobileNav() {
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="md:hidden">
             <Menu className="size-5" />
-            <span className="sr-only">Toggle menu</span>
+            <span className="sr-only">{t("mobileMenu.toggleLabel")}</span>
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-[300px] sm:w-[400px]">
           <SheetHeader>
-            <SheetTitle className="text-left">Navigation</SheetTitle>
+            <SheetTitle className="text-left">{t("mobileMenu.sheetTitle")}</SheetTitle>
           </SheetHeader>
           <nav className="flex flex-col gap-4 mt-8 flex-1 overflow-y-auto">
             {navigationItems.map((item) => {
@@ -406,55 +421,56 @@ function MobileNav() {
                   <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">
                     {item.title}
                   </div>
-                  {item.items?.map((subItem) => {
-                    if (!subItem.icon) return null;
+                  {"items" in item &&
+                    item.items?.map((subItem) => {
+                      if (!subItem.icon) return null;
 
-                    const SubIcon = subItem.icon;
-                    const isDelegation = subItem.href === "#delegation";
+                      const SubIcon = subItem.icon;
+                      const isDelegation = subItem.href === "#delegation";
 
-                    if (isDelegation) {
+                      if (isDelegation) {
+                        return (
+                          <button
+                            key={subItem.title}
+                            onClick={() => {
+                              setOpen(false);
+                              setDelegationModalOpen(true);
+                            }}
+                            className="flex items-center gap-3 rounded-md p-3 pl-6 text-sm transition-colors hover:bg-accent w-full text-left"
+                          >
+                            <SubIcon className="size-4" />
+                            {subItem.title}
+                          </button>
+                        );
+                      }
+
                       return (
-                        <button
+                        <Link
                           key={subItem.title}
-                          onClick={() => {
-                            setOpen(false);
-                            setDelegationModalOpen(true);
-                          }}
-                          className="flex items-center gap-3 rounded-md p-3 pl-6 text-sm transition-colors hover:bg-accent w-full text-left"
+                          href={subItem.href!}
+                          onClick={() => setOpen(false)}
+                          className={cn(
+                            "flex items-center gap-3 rounded-md p-3 pl-6 text-sm transition-colors hover:bg-accent",
+                            isRouteActive(subItem.href!) && "bg-accent text-accent-foreground",
+                          )}
                         >
                           <SubIcon className="size-4" />
-                          {subItem.title}
-                        </button>
+                          <span className="flex-1">{subItem.title}</span>
+                          {"badge" in subItem && subItem.badge && (
+                            <Badge
+                              variant="secondary"
+                              className={`h-4 px-1.5 text-[10px] ${
+                                (subItem.badge as string) === "BETA"
+                                  ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
+                                  : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                              }`}
+                            >
+                              {subItem.badge as string}
+                            </Badge>
+                          )}
+                        </Link>
                       );
-                    }
-
-                    return (
-                      <Link
-                        key={subItem.title}
-                        href={subItem.href!}
-                        onClick={() => setOpen(false)}
-                        className={cn(
-                          "flex items-center gap-3 rounded-md p-3 pl-6 text-sm transition-colors hover:bg-accent",
-                          isRouteActive(subItem.href!) && "bg-accent text-accent-foreground",
-                        )}
-                      >
-                        <SubIcon className="size-4" />
-                        <span className="flex-1">{subItem.title}</span>
-                        {"badge" in subItem && subItem.badge && (
-                          <Badge
-                            variant="secondary"
-                            className={`h-4 px-1.5 text-[10px] ${
-                              (subItem.badge as string) === "BETA"
-                                ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
-                                : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
-                            }`}
-                          >
-                            {subItem.badge as string}
-                          </Badge>
-                        )}
-                      </Link>
-                    );
-                  })}
+                    })}
                 </div>
               );
             })}
@@ -466,7 +482,7 @@ function MobileNav() {
                 className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors w-full justify-center"
                 onClick={handleSwitchNetwork}
               >
-                {isPending ? "Switching..." : "Switch to Base"}
+                {isPending ? t("switchNetwork.switching") : t("switchNetwork.label")}
               </Badge>
             )}
             <div className="flex items-center justify-between w-full">
@@ -481,6 +497,7 @@ function MobileNav() {
 }
 
 function HeaderActions() {
+  const t = useTranslations("nav");
   const { isConnected } = useUserAddress();
   const activeChain = useActiveWalletChain();
   const activeWallet = useActiveWallet();
@@ -493,14 +510,14 @@ function HeaderActions() {
     setIsPending(true);
     try {
       await activeWallet.switchChain(thirdwebBase);
-      toast.success("Successfully switched to Base");
+      toast.success(t("switchNetwork.label"));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       toast.error(`Failed to switch network: ${message}`);
     } finally {
       setIsPending(false);
     }
-  }, [activeWallet, isPending]);
+  }, [activeWallet, isPending, t]);
 
   return (
     <div className="flex items-center gap-2">
@@ -510,7 +527,7 @@ function HeaderActions() {
           className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors hidden sm:flex"
           onClick={handleSwitchNetwork}
         >
-          {isPending ? "Switching..." : "Switch to Base"}
+          {isPending ? t("switchNetwork.switching") : t("switchNetwork.label")}
         </Badge>
       )}
       <ThemeToggle />

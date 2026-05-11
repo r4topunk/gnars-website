@@ -1,1 +1,105 @@
-{}
+{
+  "drawer": {
+    "title": "Connected wallet",
+    "description": "Wallet details, voting status, and account actions"
+  },
+  "labels": {
+    "admin": "Admin",
+    "wallet": "Wallet",
+    "gnars": "Gnars",
+    "voting": "Voting",
+    "gasless": "gasless",
+    "viewing": "viewing"
+  },
+  "copy": {
+    "adminAddress": "Admin address",
+    "walletAddress": "Wallet address",
+    "success": "{label} copied",
+    "error": "Copy failed"
+  },
+  "voting": {
+    "delegated": "Delegated",
+    "actionNeeded": "Action needed",
+    "self": "Self"
+  },
+  "delegation": {
+    "alertTitle": "Action needed",
+    "alertDescription": "Delegate the voting power of your {balance} {noun} so you can vote through your smart account.",
+    "nounSingular": "Gnar",
+    "nounPlural": "Gnars",
+    "inFlight": "Delegating…",
+    "cta": "Delegate voting power",
+    "successToast": "Voting power delegated to your smart account"
+  },
+  "actions": {
+    "switchToWallet": "Switch to wallet",
+    "switchToAdmin": "Switch to admin",
+    "profile": "Profile",
+    "manageAccount": "Manage account",
+    "disconnect": "Disconnect",
+    "disconnected": "Disconnected",
+    "disconnectError": "Disconnect failed",
+    "thirdwebNotConfigured": "Thirdweb client not configured"
+  },
+  "modal": {
+    "title": "Voting Delegation",
+    "description": "Delegating allows someone else to vote with your NFTs while you retain ownership. This doesn't transfer your tokens.",
+    "titleNotConnected": "Delegation",
+    "descriptionNotConnected": "Connect your wallet to view and manage your voting delegation.",
+    "walletRequired": "Wallet connection required",
+    "gnarsOwned": "Gnars NFTs Owned",
+    "votingPower": "Your Voting Power",
+    "voteSingular": "vote",
+    "votePlural": "votes",
+    "nftSingular": "NFT",
+    "nftPlural": "NFTs",
+    "currentDelegate": "Current Delegate",
+    "selfDelegated": "Self",
+    "selfDelegatedNote": "You are voting with your own NFTs",
+    "delegatedNote": "Your votes are delegated to another address",
+    "copyAddress": "Copy address",
+    "newDelegateAddress": "New Delegate Address",
+    "newDelegatePlaceholder": "0x...",
+    "newDelegateHint": "Enter the Ethereum address you want to delegate your voting power to",
+    "cancelDelegation": "Cancel Delegation",
+    "canceling": "Canceling...",
+    "changeDelegation": "Change Delegate",
+    "cancel": "Cancel",
+    "updateDelegation": "Update Delegation",
+    "confirming": "Confirming...",
+    "submitting": "Submitting...",
+    "txConfirming": "Confirming transaction...",
+    "txConfirmed": "✓ Transaction confirmed!",
+    "txSubmitted": "Transaction submitted",
+    "viewOnBasescan": "View transaction on Basescan",
+    "learnDelegation": "Learn more about delegation",
+    "toastSuccess": "Delegation updated!",
+    "toastSuccessDescription": "Successfully delegated to {address}",
+    "toastInvalidAddress": "Invalid address",
+    "toastInvalidAddressDescription": "Please enter a valid Ethereum address",
+    "toastNoTokens": "No tokens to delegate",
+    "toastNoTokensDescription": "You don't own any Gnars NFTs. Delegation requires owning at least one token.",
+    "toastAlreadyDelegated": "Already delegated",
+    "toastAlreadyDelegatedDescription": "You are already delegated to this address.",
+    "toastCancelError": "Unable to cancel delegation",
+    "toastCancelErrorDescription": "Wallet address not found"
+  },
+  "onboarding": {
+    "title": "Vote without paying gas",
+    "alertTitle": "One-time setup",
+    "alertDescription": "Delegate the voting power of your {noun} to your smart account so you can vote through the new flow. You can always do this later from the wallet menu.",
+    "maybeLater": "Maybe later",
+    "delegate": "Delegate voting power",
+    "delegating": "Delegating…"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "tv": {
+    "openFullscreen": "Open Gnars TV fullscreen",
+    "closeFullscreen": "Close fullscreen"
+  }
+}

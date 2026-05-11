@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { zeroAddress } from "viem";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Progress } from "@/components/ui/progress";
@@ -82,6 +83,7 @@ export function AuctionLiveStatus({
 
   const timeString = `${timeLeft.hours.toString().padStart(2, "0")}:${timeLeft.minutes.toString().padStart(2, "0")}:${timeLeft.seconds.toString().padStart(2, "0")}`;
 
+  const t = useTranslations("auctions");
   const hasBidder = highestBidder && highestBidder !== zeroAddress;
 
   return (
@@ -121,7 +123,7 @@ export function AuctionLiveStatus({
         </div>
       ) : (
         <div className="text-center py-2 text-muted-foreground text-sm">
-          No bids yet — be the first!
+          {t("status.noBidsYet")}
         </div>
       )}
 
@@ -137,7 +139,11 @@ export function AuctionLiveStatus({
           }`}
         />
         <span className="shrink-0">
-          {isLive ? (isEndingSoon ? `Ending soon · ${timeString}` : `${timeString} left`) : "Ended"}
+          {isLive
+            ? isEndingSoon
+              ? t("status.endingSoon", { time: timeString })
+              : t("status.timeLeft", { time: timeString })
+            : t("status.ended")}
         </span>
         <Progress value={progressPercentage} className={`h-1 flex-1 ${progressColor}`} />
         {bidCount > 0 && (
@@ -146,7 +152,7 @@ export function AuctionLiveStatus({
             onClick={onBidHistoryOpen}
             className="shrink-0 hover:text-foreground transition-colors"
           >
-            {bidCount} {bidCount === 1 ? "bid" : "bids"} →
+            {t("status.bidCount", { count: bidCount })} →
           </button>
         )}
       </div>

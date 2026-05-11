@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { TrendingUp, Trophy, Users } from "lucide-react";
 import { CountUp } from "@/components/ui/count-up";
 import { DAO_ADDRESSES } from "@/lib/config";
@@ -15,6 +16,8 @@ function formatLargeNumber(value: number): string {
 }
 
 export async function HeroStatsValues() {
+  const t = await getTranslations("home.hero.stats");
+
   const [daoStats, snapshot] = await Promise.all([
     fetchDaoStats().catch(() => ({ totalSupply: 0, ownerCount: 0 })),
     loadTreasurySnapshot(DAO_ADDRESSES.treasury).catch(() => ({
@@ -36,7 +39,7 @@ export async function HeroStatsValues() {
           <div className="font-semibold">
             <CountUp value={daoStats.totalSupply} durationMs={800} />
           </div>
-          <div className="text-xs text-muted-foreground">Total Gnars</div>
+          <div className="text-xs text-muted-foreground">{t("totalGnars")}</div>
         </div>
       </div>
       <div className="flex items-center gap-2 text-sm">
@@ -47,7 +50,7 @@ export async function HeroStatsValues() {
           <div className="font-semibold">
             <CountUp value={daoStats.ownerCount} durationMs={800} />
           </div>
-          <div className="text-xs text-muted-foreground">Members</div>
+          <div className="text-xs text-muted-foreground">{t("members")}</div>
         </div>
       </div>
       <div className="flex items-center gap-2 text-sm">
@@ -56,7 +59,7 @@ export async function HeroStatsValues() {
         </div>
         <div>
           <div className="font-semibold">${formattedTreasury}</div>
-          <div className="text-xs text-muted-foreground">Treasury</div>
+          <div className="text-xs text-muted-foreground">{t("treasury")}</div>
         </div>
       </div>
     </div>

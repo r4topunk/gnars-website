@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,6 +25,7 @@ export function GnarCard({
   winnerAddress,
   showPlaceholders = false,
 }: GnarCardProps) {
+  const t = useTranslations("auctions");
   return (
     <Card className={cn("overflow-hidden hover:shadow-md transition-shadow", className)}>
       <CardContent className="space-y-4 px-4">
@@ -41,7 +43,7 @@ export function GnarCard({
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">
               <div className="text-center">
                 <div className={cn("font-bold mb-1 text-4xl")}>#{String(tokenId)}</div>
-                <div className={cn("text-muted-foreground text-sm")}>Gnar NFT</div>
+                <div className={cn("text-muted-foreground text-sm")}>{t("card.fallbackLabel")}</div>
               </div>
             </div>
           )}
@@ -57,7 +59,7 @@ export function GnarCard({
 
           {(finalBidEth != null || showPlaceholders) && (
             <div>
-              <div className="text-sm text-muted-foreground">Final bid</div>
+              <div className="text-sm text-muted-foreground">{t("card.finalBid")}</div>
               <div className="font-bold text-lg">
                 {finalBidEth != null ? `${finalBidEth} ETH` : "-"}
               </div>
@@ -66,7 +68,7 @@ export function GnarCard({
 
           {(finalBidEth != null || showPlaceholders) && (
             <div>
-              <div className="text-sm text-muted-foreground">Winner</div>
+              <div className="text-sm text-muted-foreground">{t("card.winner")}</div>
               <div className="font-mono text-sm">
                 {winnerAddress != null && finalBidEth != null ? (
                   <AddressDisplay

@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ function useIsMobile(breakpoint = 768) {
 }
 
 function BidListContent({ tokenId, enabled }: { tokenId: string | undefined; enabled: boolean }) {
+  const t = useTranslations("auctions");
   const { bids, isLoading, error, newBidIds } = useAuctionBids(tokenId, enabled);
   const txHashes = useMemo(() => bids.map((b) => b.transactionHash), [bids]);
   const { comments } = useBidComments(txHashes);
@@ -56,11 +58,13 @@ function BidListContent({ tokenId, enabled }: { tokenId: string | undefined; ena
   }
 
   if (error) {
-    return <p className="py-8 text-center text-sm text-muted-foreground">Failed to load bids</p>;
+    return (
+      <p className="py-8 text-center text-sm text-muted-foreground">{t("history.loadError")}</p>
+    );
   }
 
   if (bids.length === 0) {
-    return <p className="py-8 text-center text-sm text-muted-foreground">No bids yet</p>;
+    return <p className="py-8 text-center text-sm text-muted-foreground">{t("history.empty")}</p>;
   }
 
   return (
@@ -80,12 +84,13 @@ function BidListContent({ tokenId, enabled }: { tokenId: string | undefined; ena
 }
 
 export function BidHistoryModal({ tokenId, tokenName, open, onOpenChange }: BidHistoryModalProps) {
+  const t = useTranslations("auctions");
   const isMobile = useIsMobile();
   const title = tokenName
-    ? `Bids for ${tokenName.replace("Gnars", "Gnar")}`
+    ? t("history.titleForName", { tokenName: tokenName.replace("Gnars", "Gnar") })
     : tokenId
-      ? `Bids for Gnar #${tokenId}`
-      : "Bid History";
+      ? t("history.titleForToken", { tokenId })
+      : t("history.title");
 
   const content = (
     <ScrollArea className="max-h-[60vh] pr-2">
@@ -99,9 +104,7 @@ export function BidHistoryModal({ tokenId, tokenName, open, onOpenChange }: BidH
         <SheetContent side="bottom" className="max-h-[85vh] rounded-t-xl">
           <SheetHeader>
             <SheetTitle>{title}</SheetTitle>
-            <SheetDescription className="sr-only">
-              List of bids for the current auction
-            </SheetDescription>
+            <SheetDescription className="sr-only">{t("history.srDescription")}</SheetDescription>
           </SheetHeader>
           {content}
         </SheetContent>
@@ -114,9 +117,7 @@ export function BidHistoryModal({ tokenId, tokenName, open, onOpenChange }: BidH
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription className="sr-only">
-            List of bids for the current auction
-          </DialogDescription>
+          <DialogDescription className="sr-only">{t("history.srDescription")}</DialogDescription>
         </DialogHeader>
         {content}
       </DialogContent>

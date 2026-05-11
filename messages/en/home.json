@@ -1,1 +1,76 @@
-{}
+{
+  "hero": {
+    "title": "Gnars DAO",
+    "srOnly": "Gnars is a community-owned skateboarding DAO funding skate culture worldwide.",
+    "descriptions": [
+      "Nounish Open Source Action Sports Brand experiment",
+      "Funding extreme sports athletes and creators worldwide",
+      "Building the future of shredding",
+      "Empowering athletes through collective governance",
+      "Has funded 15 skatable sculptures around the world",
+      "é foda pra caralho!"
+    ],
+    "stats": {
+      "totalGnars": "Total Gnars",
+      "members": "Members",
+      "treasury": "Treasury"
+    },
+    "latestAuction": "Latest Auction"
+  },
+  "seo": {
+    "whatIsGnars": "What is Gnars?",
+    "body1": "Gnars is a skateboarding collective and community-owned skate brand. We support skaters, filmmakers, designers, and DIY projects by voting on proposals and funding them with community resources.",
+    "body2": "If you care about skateboarding culture and want it funded by the people who live it, you're in the right place.",
+    "linkAbout": "the Gnars skateboarding collective",
+    "linkProposals": "skateboarding grants",
+    "linkAuctions": "skateboarding auctions"
+  },
+  "auction": {
+    "outbidTitle": "You've been outbid!",
+    "outbidDescription": "Current bid: {amount} ETH",
+    "bidAgain": "Bid Again"
+  },
+  "faq": {
+    "title": "F.A.Q.",
+    "descriptionPrefix": "For deeper dive visit",
+    "descriptionLink": "gnars.center",
+    "items": [
+      {
+        "question": "What is Gnars DAO?",
+        "answer": "Gnars is a community-owned action-sports brand. Instead of an individual or small marketing team deciding what gets funded behind a closed budget, decisions are made collectively and in public. Gnars also explores innovative ways to fund athletes and sustain its community by applying cutting-edge blockchain technology to the action-sports world—now on Base."
+      },
+      {
+        "question": "How do auctions work?",
+        "answer": "New Gnars are auctioned continuously onchain. Anyone can bid; the winner mints the Gnar and funds flow to the DAO treasury to back proposals."
+      },
+      {
+        "question": "Are Gnars artwork free to use?",
+        "answer": "Yes. CC0—use, remix, commercialize, no permission needed."
+      },
+      {
+        "question": "What kinds of projects does Gnars Dao funds?",
+        "answer": "Community infrastructure, creative media, tooling creation, sales partnerships, education initiatives and others"
+      },
+      {
+        "question": "What happened to the old Ethereum (L1) Gnars?",
+        "answer": "Nothing, they are fucking dope and still exist!"
+      },
+      {
+        "question": "Where do I get $GNARS?",
+        "answer": "On Zora under the @gnars profile, Uniswap or Gnars website."
+      },
+      {
+        "question": "What is $GNARS vs a Gnar?",
+        "answer": "$GNARS (Zora creator coin) is a liquid social token for the Gnars profile; a Gnar NFT gives DAO voting power. Different purposes—many hold both."
+      },
+      {
+        "question": "How do I propose something for funding?",
+        "answer": "Hold 12 Gnars and submit a proposal through governance; the DAO votes and, if approved, funds it."
+      },
+      {
+        "question": "How do I participate in Gnar TV?",
+        "answer": "Use /create-coin page to create a creator coin on Zora, then mint a video and hold 300k $Gnars in your wallet"
+      }
+    ]
+  }
+}

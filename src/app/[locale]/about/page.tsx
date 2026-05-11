@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
 export const metadata: Metadata = {
@@ -21,40 +22,34 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AboutPage() {
+export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const t = await getTranslations("about");
+
   return (
     <div className="py-10">
       <div className="mx-auto max-w-3xl space-y-6">
-        <h1 className="text-4xl font-bold tracking-tight">About Gnars</h1>
+        <h1 className="text-4xl font-bold tracking-tight">{t("title")}</h1>
 
-        <p className="text-muted-foreground">
-          Gnars is a skateboarding collective and community owned skate brand. We&apos;re built by
-          skaters, artists, and builders who want to fund skate culture without corporate
-          gatekeeping. The DAO is just the tool we use to make the decisions together.
-        </p>
+        <p className="text-muted-foreground">{t("intro")}</p>
 
-        <h2 className="text-2xl font-semibold">Community ownership in practice</h2>
-        <p className="text-muted-foreground">
-          Members propose ideas, vote, and fund projects that push skateboarding forward—video
-          parts, events, public installations, and the people making them happen. It&apos;s a
-          community owned skate brand that stays accountable to the culture.
-        </p>
+        <h2 className="text-2xl font-semibold">{t("ownership.title")}</h2>
+        <p className="text-muted-foreground">{t("ownership.body")}</p>
 
-        <h2 className="text-2xl font-semibold">How it works</h2>
-        <p className="text-muted-foreground">
-          Proposals are the way we decide what to support. Auctions help fund the treasury, and the
-          community directs those resources to skateboarding grants and creative projects.
-        </p>
+        <h2 className="text-2xl font-semibold">{t("howItWorks.title")}</h2>
+        <p className="text-muted-foreground">{t("howItWorks.body")}</p>
 
         <div className="flex flex-wrap gap-4">
           <Link href="/" className="text-foreground underline underline-offset-4">
-            Home
+            {t("links.home")}
           </Link>
           <Link href="/proposals" className="text-foreground underline underline-offset-4">
-            Proposals & grants
+            {t("links.proposals")}
           </Link>
           <Link href="/auctions" className="text-foreground underline underline-offset-4">
-            Auctions supporting skate culture
+            {t("links.auctions")}
           </Link>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useDaoAuction } from "@buildeross/hooks";
 import { toast } from "sonner";
 import { formatEther } from "viem";
@@ -19,6 +20,7 @@ import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import auctionAbi from "@/utils/abis/auctionAbi";
 
 export function AuctionSpotlight() {
+  const t = useTranslations("home");
   const { address } = useUserAddress();
   const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
 
@@ -113,10 +115,10 @@ export function AuctionSpotlight() {
   const { wasOutbid, latestBid, clearOutbid } = auctionLive;
   useEffect(() => {
     if (wasOutbid && latestBid) {
-      toast.warning("You've been outbid!", {
-        description: `Current bid: ${latestBid.amountEth} ETH`,
+      toast.warning(t("auction.outbidTitle"), {
+        description: t("auction.outbidDescription", { amount: latestBid.amountEth }),
         action: {
-          label: "Bid Again",
+          label: t("auction.bidAgain"),
           onClick: () => {
             const input = document.querySelector<HTMLInputElement>('input[type="number"]');
             input?.focus();
@@ -126,7 +128,7 @@ export function AuctionSpotlight() {
       });
       clearOutbid();
     }
-  }, [wasOutbid, latestBid, clearOutbid]);
+  }, [wasOutbid, latestBid, clearOutbid, t]);
 
   const handleBidConfirmed = useCallback(
     (comment: string, bidAmount: string) => {
@@ -141,7 +143,7 @@ export function AuctionSpotlight() {
       <CardContent className="py-2">
         <div className="space-y-4">
           <div className="text-xl font-semibold">
-            {tokenName || (tokenId ? `#${tokenId.toString()}` : "Latest Auction")}
+            {tokenName || (tokenId ? `#${tokenId.toString()}` : t("hero.latestAuction"))}
           </div>
 
           <GnarImageTile tokenId={Number(tokenId || 0)} imageUrl={imageUrl} />

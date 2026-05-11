@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { AuctionCard } from "@/components/auctions/past/AuctionCard";
 import { SectionHeader } from "@/components/common/SectionHeader";
@@ -35,11 +36,14 @@ export function PastAuctions({
   loading,
   hasMore,
   onLoadMore,
-  title = "Recent Auctions",
-  description = "Latest completed auctions from the community",
+  title,
+  description,
   showViewAllButton = true,
   gridOnly = false,
 }: PastAuctionsProps) {
+  const t = useTranslations("auctions");
+  const resolvedTitle = title ?? t("past.sectionTitle");
+  const resolvedDescription = description ?? t("past.sectionDescription");
   const PAGE_SIZE = 20;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -99,7 +103,7 @@ export function PastAuctions({
           </>
         ) : (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">No past auctions found.</p>
+            <p className="text-muted-foreground">{t("past.empty")}</p>
           </div>
         )}
       </>
@@ -109,13 +113,13 @@ export function PastAuctions({
   return (
     <Card>
       <SectionHeader
-        title={title}
-        description={description}
+        title={resolvedTitle}
+        description={resolvedDescription}
         action={
           showViewAllButton ? (
             <Button variant="outline" size="sm" asChild>
               <Link href="/auctions">
-                View all auctions
+                {t("past.viewAll")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -142,7 +146,7 @@ export function PastAuctions({
           </>
         ) : (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">No past auctions found.</p>
+            <p className="text-muted-foreground">{t("past.empty")}</p>
           </div>
         )}
       </CardContent>

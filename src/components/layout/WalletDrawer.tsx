@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ArrowLeftRight, Check, Copy, LogOut, Settings, User } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -51,6 +52,7 @@ function shortAddress(addr: string | undefined) {
  * mounts after first effect so SSR HTML matches the initial client render.
  */
 export function WalletDrawer() {
+  const t = useTranslations("wallet");
   const { address, isConnected } = useUserAddress();
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [mounted, setMounted] = useState(false);
@@ -94,10 +96,8 @@ export function WalletDrawer() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="sm:max-w-sm gap-0 p-0">
             <DialogHeader className="sr-only">
-              <DialogTitle>Connected wallet</DialogTitle>
-              <DialogDescription>
-                Wallet details, voting status, and account actions
-              </DialogDescription>
+              <DialogTitle>{t("drawer.title")}</DialogTitle>
+              <DialogDescription>{t("drawer.description")}</DialogDescription>
             </DialogHeader>
             <WalletPanelBody address={address} closePanel={() => setOpen(false)} />
           </DialogContent>
@@ -106,10 +106,8 @@ export function WalletDrawer() {
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerContent>
             <DrawerHeader className="sr-only">
-              <DrawerTitle>Connected wallet</DrawerTitle>
-              <DrawerDescription>
-                Wallet details, voting status, and account actions
-              </DrawerDescription>
+              <DrawerTitle>{t("drawer.title")}</DrawerTitle>
+              <DrawerDescription>{t("drawer.description")}</DrawerDescription>
             </DrawerHeader>
             <WalletPanelBody address={address} closePanel={() => setOpen(false)} />
           </DrawerContent>
@@ -125,6 +123,7 @@ interface WalletPanelBodyProps {
 }
 
 function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
+  const t = useTranslations("wallet");
   const router = useRouter();
   const { saAddress, adminAddress, isInAppWallet, viewMode, canSwitchView } = useUserAddress();
   const { toggleViewMode, clearViewMode } = useViewAccount();
@@ -136,7 +135,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
 
   const eoaDelegate = useEoaDelegate({
     onSuccess: () => {
-      toast.success("Voting power delegated to your smart account");
+      toast.success(t("delegation.successToast"));
       closePanel();
     },
   });
@@ -145,7 +144,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
   const showAdmin = Boolean(adminAddress);
   const viewingEoa = viewMode === "eoa" && canSwitchView;
   const otherAddress = viewingEoa ? saAddress : adminAddress;
-  const switchLabel = viewingEoa ? "Switch to wallet" : "Switch to admin";
+  const switchLabel = viewingEoa ? t("actions.switchToWallet") : t("actions.switchToAdmin");
 
   const totalGnars =
     showAdmin && status.smartAccountTokenBalance !== undefined
@@ -155,9 +154,9 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
   const handleCopyAddress = async (addr: string, label: string) => {
     try {
       await navigator.clipboard.writeText(addr);
-      toast.success(`${label} copied`);
+      toast.success(t("copy.success", { label }));
     } catch {
-      toast.error("Copy failed");
+      toast.error(t("copy.error"));
     }
   };
 
@@ -174,7 +173,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
   const handleManageAccount = () => {
     const client = getThirdwebClient();
     if (!client) {
-      toast.error("Thirdweb client not configured");
+      toast.error(t("actions.thirdwebNotConfigured"));
       return;
     }
     // Close our WalletDrawer first, then wait for the Radix close
@@ -236,13 +235,13 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
       // the default and display the wrong address on reconnect.
       clearViewMode();
       closePanel();
-      toast("Disconnected");
+      toast(t("actions.disconnected"));
     } catch (err: unknown) {
       const message =
         err && typeof err === "object" && "message" in err
           ? String((err as { message?: string }).message ?? "Failed to disconnect")
           : "Failed to disconnect";
-      toast.error("Disconnect failed", { description: message });
+      toast.error(t("actions.disconnectError"), { description: message });
     }
   };
 
@@ -272,15 +271,15 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
         <Row
           label={
             <span className="flex items-center gap-1.5">
-              {viewingEoa ? "Admin" : "Wallet"}
+              {viewingEoa ? t("labels.admin") : t("labels.wallet")}
               {showAdmin && !viewingEoa ? (
                 <Badge variant="secondary" className="h-4 px-1.5 text-[10px] font-normal">
-                  gasless
+                  {t("labels.gasless")}
                 </Badge>
               ) : null}
               {viewingEoa ? (
                 <Badge variant="outline" className="h-4 px-1.5 text-[10px] font-normal">
-                  viewing
+                  {t("labels.viewing")}
                 </Badge>
               ) : null}
             </span>
@@ -289,7 +288,10 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
             <CopyValue
               addr={address}
               onCopy={() =>
-                handleCopyAddress(address, viewingEoa ? "Admin address" : "Wallet address")
+                handleCopyAddress(
+                  address,
+                  viewingEoa ? t("copy.adminAddress") : t("copy.walletAddress"),
+                )
               }
             />
           }
@@ -299,10 +301,10 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
           <Row
             label={
               <span className="flex items-center gap-1.5">
-                {viewingEoa ? "Wallet" : "Admin"}
+                {viewingEoa ? t("labels.wallet") : t("labels.admin")}
                 {viewingEoa ? (
                   <Badge variant="secondary" className="h-4 px-1.5 text-[10px] font-normal">
-                    gasless
+                    {t("labels.gasless")}
                   </Badge>
                 ) : null}
               </span>
@@ -311,7 +313,10 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
               <CopyValue
                 addr={otherAddress}
                 onCopy={() =>
-                  handleCopyAddress(otherAddress, viewingEoa ? "Wallet address" : "Admin address")
+                  handleCopyAddress(
+                    otherAddress,
+                    viewingEoa ? t("copy.walletAddress") : t("copy.adminAddress"),
+                  )
                 }
               />
             }
@@ -319,7 +324,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
         ) : null}
 
         <Row
-          label="Gnars"
+          label={t("labels.gnars")}
           value={
             <span className="font-medium tabular-nums">
               {totalGnars !== undefined ? totalGnars.toString() : "—"}
@@ -336,17 +341,17 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
         />
 
         <Row
-          label="Voting"
+          label={t("labels.voting")}
           value={
             status.isDelegatedToSmartAccount ? (
               <span className="inline-flex items-center gap-1.5 font-medium">
                 <Check className="size-3.5" />
-                Delegated
+                {t("voting.delegated")}
               </span>
             ) : status.needsSmartAccountDelegation ? (
-              <Badge variant="outline">Action needed</Badge>
+              <Badge variant="outline">{t("voting.actionNeeded")}</Badge>
             ) : status.isDelegatedToSelf ? (
-              <span className="text-muted-foreground">Self</span>
+              <span className="text-muted-foreground">{t("voting.self")}</span>
             ) : status.currentDelegate ? (
               <span className="text-muted-foreground">{shortAddress(status.currentDelegate)}</span>
             ) : (
@@ -361,15 +366,16 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
           <Separator />
           <div className="px-6 py-4">
             <Alert>
-              <AlertTitle>Action needed</AlertTitle>
+              <AlertTitle>{t("delegation.alertTitle")}</AlertTitle>
               <AlertDescription>
                 <p>
-                  Delegate the voting power of your{" "}
-                  <span className="font-medium text-foreground">
-                    {status.eoaTokenBalance?.toString() ?? "0"}{" "}
-                    {status.eoaTokenBalance === 1n ? "Gnar" : "Gnars"}
-                  </span>{" "}
-                  so you can vote through your smart account.
+                  {t("delegation.alertDescription", {
+                    balance: status.eoaTokenBalance?.toString() ?? "0",
+                    noun:
+                      status.eoaTokenBalance === 1n
+                        ? t("delegation.nounSingular")
+                        : t("delegation.nounPlural"),
+                  })}
                 </p>
                 <Button
                   size="sm"
@@ -377,7 +383,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
                   onClick={handleDelegateToSmart}
                   disabled={isDelegationInFlight || !status.smartAccountAddress}
                 >
-                  {isDelegationInFlight ? "Delegating…" : "Delegate voting power"}
+                  {isDelegationInFlight ? t("delegation.inFlight") : t("delegation.cta")}
                 </Button>
               </AlertDescription>
             </Alert>
@@ -396,17 +402,17 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
         ) : null}
         <Button variant="outline" onClick={handleProfile}>
           <User />
-          Profile
+          {t("actions.profile")}
         </Button>
         {isInAppWallet ? (
           <Button variant="outline" onClick={handleManageAccount}>
             <Settings />
-            Manage account
+            {t("actions.manageAccount")}
           </Button>
         ) : null}
         <Button variant="destructive" onClick={handleDisconnect} disabled={!wallet}>
           <LogOut />
-          Disconnect
+          {t("actions.disconnect")}
         </Button>
       </div>
     </div>

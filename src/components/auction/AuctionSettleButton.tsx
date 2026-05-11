@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { Wallet } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +27,7 @@ interface AuctionSettleButtonProps {
 }
 
 export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
+  const t = useTranslations("auctions");
   const resetTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(resetTimerRef.current), []);
 
@@ -81,14 +83,14 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
 
   const settleTx = useAuctionTransaction({
     onConfirmed: () => {
-      toast.success("Settlement confirmed!", {
-        description: "Loading new auction...",
+      toast.success(t("settle.confirmed"), {
+        description: t("settle.confirmedDescription"),
       });
       invalidateAuctionData();
       resetTimerRef.current = setTimeout(() => settleTx.reset(), 1500);
     },
     onError: (error) => {
-      toast.error("Settlement failed", { description: error.message });
+      toast.error(t("settle.failed"), { description: error.message });
     },
   });
 
@@ -96,7 +98,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     if (!isConnected) {
       const client = getThirdwebClient();
       if (!client) {
-        toast.error("Connect failed", { description: "Thirdweb client not configured." });
+        toast.error(t("settle.connectFailed"), { description: t("settle.clientNotConfigured") });
         return;
       }
       try {
@@ -105,7 +107,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
           wallets: THIRDWEB_WALLETS,
           accountAbstraction: THIRDWEB_AA_CONFIG,
           size: "compact",
-          title: "Connect to settle",
+          title: t("settle.connectModalTitle"),
         });
       } catch {
         // User dismissed the modal
@@ -114,13 +116,13 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
     }
 
     if (!writer) {
-      toast.error("Connect wallet first");
+      toast.error(t("settle.connectWalletFirst"));
       return;
     }
 
     const client = getThirdwebClient();
     if (!client) {
-      toast.error("Settlement failed", { description: "Thirdweb client not configured." });
+      toast.error(t("settle.failed"), { description: t("settle.clientNotConfigured") });
       return;
     }
 
@@ -157,7 +159,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
       return (
         <>
           <Spinner />
-          {settleTx.buttonLabel("Settle Auction")}
+          {settleTx.buttonLabel(t("settle.settleAuction"))}
         </>
       );
     }
@@ -165,25 +167,25 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
       return (
         <>
           <Wallet className="h-4 w-4" />
-          Connect Wallet to Settle
+          {t("settle.connectToSettle")}
         </>
       );
     }
     if (isWrongNetwork) {
-      return "Switch to Base";
+      return t("settle.switchToBase");
     }
     if (isSimulating) {
       return (
         <>
           <Spinner />
-          Preparing...
+          {t("settle.preparing")}
         </>
       );
     }
     if (isWinner) {
-      return "Claim Your Gnar & Start Next Auction";
+      return t("settle.claimGnar");
     }
-    return "Settle Auction";
+    return t("settle.settleAuction");
   };
 
   const isDisabled =
@@ -205,9 +207,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
           </span>
         </TooltipTrigger>
         {isConnected && !isWrongNetwork && settleError && (
-          <TooltipContent side="bottom">
-            Settlement not available yet. Try again shortly.
-          </TooltipContent>
+          <TooltipContent side="bottom">{t("settle.notAvailable")}</TooltipContent>
         )}
       </Tooltip>
     </>
