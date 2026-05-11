@@ -1,1 +1,76 @@
-{ "languageSwitcherLabel": "Mudar idioma" }
+{
+  "languageSwitcherLabel": "Mudar idioma",
+  "mobileMenu": {
+    "toggleLabel": "Alternar menu",
+    "sheetTitle": "Navegação"
+  },
+  "switchNetwork": {
+    "label": "Mudar para Base",
+    "switching": "Mudando..."
+  },
+  "items": {
+    "tv": "TV",
+    "dashboard": "Dashboard",
+    "governance": {
+      "label": "Governance",
+      "proposals": {
+        "title": "Proposals",
+        "description": "Veja e vote em proposals da DAO"
+      },
+      "delegation": {
+        "title": "Delegation",
+        "description": "Gerencie sua delegation de voto"
+      },
+      "createProposal": {
+        "title": "Criar Proposal",
+        "description": "Envie um novo proposal para a DAO"
+      },
+      "auctions": {
+        "title": "Auctions",
+        "description": "Dê bid em Gnars NFTs em auctions ativas"
+      }
+    },
+    "money": {
+      "label": "Dinheiro",
+      "treasury": {
+        "title": "Treasury",
+        "description": "ETH, ERC-20s, NFTs e analytics onchain do treasury da DAO"
+      },
+      "swap": {
+        "title": "Swap",
+        "description": "Troque tokens na Base via 0x — melhor preço em mais de 150 DEXes"
+      }
+    },
+    "community": {
+      "label": "Comunidade",
+      "members": {
+        "title": "Membros",
+        "description": "Explore todos os membros e holders da DAO"
+      },
+      "nogglesRails": {
+        "title": "NogglesRails",
+        "description": "Rede global de infraestrutura skate comunitária"
+      },
+      "blogs": {
+        "title": "Blogs",
+        "description": "Leia posts e atualizações do blog da comunidade"
+      },
+      "propdates": {
+        "title": "Propdates",
+        "description": "Acompanhe atualizações de progresso de proposals"
+      },
+      "droposals": {
+        "title": "Droposals",
+        "description": "Proposals em vídeo da comunidade"
+      },
+      "createCoin": {
+        "title": "Criar Coin",
+        "description": "Crie um novo coin na Zora"
+      },
+      "bounties": {
+        "title": "Bounties",
+        "description": "Desafios gnarly da comunidade de esportes radicais"
+      }
+    }
+  }
+}

@@ -1,1 +1,21 @@
-{}
+{
+  "title": "Sobre a Gnars",
+  "intro": "A Gnars é um coletivo de skate e uma marca skater de propriedade da comunidade. Somos construídos por skatistas, artistas e builders que querem bancar a cultura skate sem gatekeeping corporativo. A DAO é só a ferramenta que usamos pra tomar as decisões juntos.",
+  "ownership": {
+    "title": "Propriedade comunitária na prática",
+    "body": "Membros propõem ideias, votam e financiam projetos que empurram o skate pra frente — video parts, eventos, instalações públicas e as pessoas que fazem tudo isso acontecer. É uma marca skater de propriedade comunitária que se mantém fiel à cultura."
+  },
+  "howItWorks": {
+    "title": "Como funciona",
+    "body": "Proposals são a forma como decidimos o que apoiar. Auctions ajudam a financiar o treasury, e a comunidade direciona esses recursos pra grants de skate e projetos criativos."
+  },
+  "links": {
+    "home": "Início",
+    "proposals": "Proposals e grants",
+    "auctions": "Auctions que apoiam a cultura skate"
+  },
+  "og": {
+    "heading": "Sobre a Gnars",
+    "subheading": "Nounish Open Source Action Sports Brand"
+  }
+}

@@ -1,1 +1,39 @@
-{}
+{
+  "copyright": "© {year} Gnars DAO · Construído na Base",
+  "madeWith": "feito com",
+  "noggles": {
+    "copyAriaLabel": "Copiar \"⌐◨-◨\"",
+    "copyTitle": "Copiar \"⌐◨-◨\"",
+    "copySuccess": "Copiado",
+    "copyError": "Falha ao copiar"
+  },
+  "social": {
+    "xAriaLabel": "Gnars no X",
+    "xTitle": "Gnars no X",
+    "snapshotAriaLabel": "Espaço Snapshot da Gnars",
+    "snapshotTitle": "Espaço Snapshot da Gnars"
+  },
+  "nav": {
+    "governance": {
+      "title": "Governance",
+      "proposals": "Proposals",
+      "createProposal": "Criar Proposal",
+      "auctions": "Auctions",
+      "treasury": "Treasury"
+    },
+    "community": {
+      "title": "Comunidade",
+      "members": "Membros",
+      "blogs": "Blogs",
+      "propdates": "Propdates",
+      "bounties": "Bounties"
+    },
+    "explore": {
+      "title": "Explorar",
+      "tv": "TV",
+      "droposals": "Droposals",
+      "nogglesRails": "NogglesRails",
+      "swap": "Swap"
+    }
+  }
+}

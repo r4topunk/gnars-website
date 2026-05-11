@@ -1,1 +1,40 @@
-{}
+{
+  "page": {
+    "title": "Coin Purchase Proposal",
+    "description": "Crie uma proposal da DAO para comprar content ou creator coins usando o Zora Coins SDK"
+  },
+  "wizard": {
+    "loadingEligibility": "Verificando elegibilidade da proposal...",
+    "insufficientPower": "Poder de Voto Insuficiente",
+    "insufficientPowerDesc": "Você precisa de pelo menos {required} votos para criar uma proposal.",
+    "currentVotes": "Você tem {count} votos no momento.",
+    "delegatedTo": "Seus votos estão delegados a {address}.",
+    "tab1": "Compra de Coin",
+    "tab2": "Revisar e Enviar",
+    "backEdit": "Voltar: Editar Compra"
+  },
+  "form": {
+    "infoTitle": "Coin Purchase Proposal Integrada",
+    "infoBody": "Esse wizard vai gerar uma proposal completa da DAO para comprar um content ou creator coin usando o Zora Coins SDK. O trade executa pelo router do Uniswap v4 com proteção de slippage adequada.",
+    "coinAddress": "Endereço do Coin *",
+    "coinAddressHelp": "O endereço ERC-20 do content ou creator coin a ser comprado",
+    "coinName": "Nome do Coin (Opcional)",
+    "coinNameHelp": "Nome de exibição para o coin (usado no título da proposal)",
+    "ethAmount": "Quantia em ETH *",
+    "ethAmountHelp": "Quantia de ETH que o treasury da DAO vai gastar",
+    "slippage": "Tolerância de Slippage (%) *",
+    "slippageHelp": "Slippage máximo aceitável (recomendado: 5%)",
+    "generate": "Gerar Proposal",
+    "generating": "Gerando Proposal..."
+  },
+  "preview": {
+    "summaryTitle": "Resumo da Compra de Coin",
+    "summaryBody": "Essa proposal vai comprar {name} usando {amount} ETH do treasury com slippage máximo de {slippage}%.",
+    "tradeDetails": "Detalhes do Trade",
+    "coinAddress": "Endereço do Coin:",
+    "ethToSpend": "ETH a Gastar:",
+    "maxSlippage": "Slippage Máximo:",
+    "senderTreasury": "Remetente (Treasury):",
+    "recipientTreasury": "Destinatário (Treasury):"
+  }
+}

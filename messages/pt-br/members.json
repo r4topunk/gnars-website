@@ -1,1 +1,125 @@
-{}
+{
+  "page": {
+    "title": "Membros",
+    "description": "Explore os membros da Gnars DAO e seus delegates de voto"
+  },
+  "list": {
+    "loading": "Carregando membros...",
+    "empty": "Nenhum membro encontrado.",
+    "emptySearch": "Nenhum membro encontrado para sua busca.",
+    "showingCount": "Mostrando {visible} de {total} membros",
+    "searchPlaceholder": "Buscar por endereço ou ENS...",
+    "table": {
+      "addressEns": "Endereço/ENS",
+      "delegate": "Delegate",
+      "gnarsHeld": "Gnars Detidos",
+      "activeVotes": "Votos Ativos",
+      "attendance": "Presença %",
+      "social": "Social",
+      "action": "Ação"
+    },
+    "treasuryLabel": "Treasury da Gnars",
+    "farcasterFollowers": "{username} · {count} seguidores no Farcaster",
+    "delegateButton": "Delegate"
+  },
+  "detail": {
+    "tabs": {
+      "proposals": "Proposals",
+      "votes": "Votos",
+      "tokens": "Tokens",
+      "coins": "Coins Criados",
+      "delegates": "Delegates"
+    },
+    "farcaster": {
+      "title": "Farcaster",
+      "loading": "Carregando Farcaster...",
+      "notLinked": "Farcaster: Não vinculado",
+      "followersFollowing": "{followers} seguidores / {following} seguindo"
+    },
+    "zora": {
+      "title": "Zora",
+      "loading": "Carregando Zora...",
+      "notLinked": "Zora: Não vinculado",
+      "noCreatorCoin": "Sem creator coin",
+      "buyCoin": "Comprar Creator Coin",
+      "mcap": "mcap"
+    },
+    "gnarsHeld": {
+      "label": "Gnars Detidos",
+      "breakdown": "{eoa} na wallet · {sa} no smart account"
+    },
+    "delegation": {
+      "title": "Delegation",
+      "delegatesTo": "Delega para",
+      "delegatedBy": "Delegado por",
+      "self": "Auto",
+      "smartAccount": "Smart account"
+    },
+    "activity": {
+      "title": "Atividade",
+      "proposals": "Proposals",
+      "votes": "Votos"
+    },
+    "smartAccount": {
+      "title": "Smart account",
+      "description": "Uma conta onchain que assina transações Gnars em nome da wallet. O gas é patrocinado pela DAO.",
+      "badge": "gasless",
+      "eoaWallet": "Gnars na wallet",
+      "saWallet": "Gnars no smart account",
+      "copyAddress": "Copiar endereço do smart account",
+      "delegated": "Poder de voto delegado para seu smart account",
+      "actionRecommended": "Ação recomendada",
+      "actionDescription": "Delegate o poder de voto dos seus {count} {count, plural, one {Gnar} other {Gnars}} para seu smart account pra você poder votar pelo novo fluxo.",
+      "delegateBtn": "Delegate o poder de voto",
+      "delegating": "Delegando…",
+      "notEnabled": "Votação via smart account ainda não está habilitada."
+    }
+  },
+  "proposals": {
+    "title": "Proposals Feitos",
+    "empty": "Nenhum proposal desse membro."
+  },
+  "votes": {
+    "title": "Votos e Comentários",
+    "empty": "Nenhum voto desse membro.",
+    "table": {
+      "proposal": "Proposal",
+      "vote": "Voto",
+      "weight": "Peso"
+    }
+  },
+  "tokens": {
+    "title": "Gnars Detidos",
+    "empty": "Nenhum token detido."
+  },
+  "delegators": {
+    "title": "Delegators",
+    "empty": "Ninguém delegou para esse membro.",
+    "table": {
+      "addressEns": "Endereço/ENS",
+      "gnarsDelegated": "Gnars Delegados"
+    }
+  },
+  "coins": {
+    "empty": "Nenhum coin criado ainda",
+    "card": {
+      "flipLabel": "Virar card de {name}",
+      "marketCap": "Market Cap",
+      "change24h": "Variação 24h",
+      "holders": "Holders",
+      "buy": "Comprar",
+      "buying": "Comprando...",
+      "cancel": "Cancelar",
+      "modal": {
+        "title": "Comprar Creator Token",
+        "description": "Compre o token de {name} com ETH",
+        "marketCap": "Market Cap: {value}"
+      }
+    }
+  },
+  "error": {
+    "title": "Algo deu errado",
+    "fallback": "Ocorreu um erro inesperado ao carregar os membros.",
+    "retry": "Tentar de novo"
+  }
+}

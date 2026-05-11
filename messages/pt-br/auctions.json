@@ -1,1 +1,67 @@
-{}
+{
+  "page": {
+    "title": "Auctions",
+    "description": "Essas auctions de skate ajudam a financiar a cultura skate, arte skater financiada pela comunidade e projetos apoiados pelo coletivo Gnars.",
+    "browseCta": "Quer ver o que está sendo financiado? Explore <grantsLink>grants de skate</grantsLink> ou descubra <aboutLink>como o coletivo funciona</aboutLink>."
+  },
+  "past": {
+    "sectionTitle": "Auctions recentes",
+    "sectionDescription": "Últimas auctions concluídas pela comunidade",
+    "viewAll": "Ver todas as auctions",
+    "empty": "Nenhuma auction passada encontrada."
+  },
+  "card": {
+    "fallbackLabel": "Gnar NFT",
+    "imageFallbackLabel": "NFT",
+    "finalBid": "Bid final",
+    "winner": "Vencedor"
+  },
+  "bid": {
+    "placeBid": "Dar Bid",
+    "connectToBid": "Conectar Wallet para Dar Bid",
+    "switchToBase": "Mudar para Base",
+    "minLabel": "Mín:",
+    "balLabel": "Saldo:",
+    "insufficient": "Insuficiente",
+    "wrongNetwork": "Rede errada",
+    "comment": "Comentário",
+    "commentPlaceholder": "Comentário onchain (registrado permanentemente)…",
+    "connectModalTitle": "Conecte pra dar bid",
+    "confirmed": "Bid confirmado!",
+    "confirmedDescription": "Dados da auction atualizados.",
+    "failed": "Bid falhou",
+    "connectFailed": "Conexão falhou",
+    "clientNotConfigured": "Cliente Thirdweb não configurado.",
+    "connectWalletFirst": "Conecte a wallet primeiro"
+  },
+  "settle": {
+    "settleAuction": "Encerrar Auction",
+    "connectToSettle": "Conectar Wallet para Encerrar",
+    "switchToBase": "Mudar para Base",
+    "preparing": "Preparando...",
+    "claimGnar": "Claim do seu Gnar e Iniciar Próxima Auction",
+    "confirmed": "Encerramento confirmado!",
+    "confirmedDescription": "Carregando nova auction...",
+    "failed": "Encerramento falhou",
+    "connectFailed": "Conexão falhou",
+    "clientNotConfigured": "Cliente Thirdweb não configurado.",
+    "connectWalletFirst": "Conecte a wallet primeiro",
+    "notAvailable": "Encerramento ainda não disponível. Tente de novo em instantes.",
+    "connectModalTitle": "Conecte pra encerrar"
+  },
+  "status": {
+    "noBidsYet": "Nenhum bid ainda — seja o primeiro!",
+    "endingSoon": "Acabando · {time}",
+    "timeLeft": "{time} restantes",
+    "ended": "Encerrada",
+    "bidCount": "{count, plural, =0 {0 bids} one {# bid} other {# bids}}"
+  },
+  "history": {
+    "title": "Histórico de Bids",
+    "titleForToken": "Bids para Gnar #{tokenId}",
+    "titleForName": "Bids para {tokenName}",
+    "srDescription": "Lista de bids para a auction atual",
+    "loadError": "Falha ao carregar bids",
+    "empty": "Nenhum bid ainda"
+  }
+}

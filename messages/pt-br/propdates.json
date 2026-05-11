@@ -1,1 +1,55 @@
-{}
+{
+  "page": {
+    "title": "Propdates",
+    "description": "Atualizações de progresso de proposals bancados. Veja como a comunidade está cumprindo seus compromissos.",
+    "viewProposals": "Ver proposals"
+  },
+  "feed": {
+    "latestUpdate": "Última Atualização",
+    "loadingAriaLabel": "Carregando feed de propdates",
+    "errorTitle": "Erro",
+    "errorDesc": "Falha ao carregar o feed de propdates. Por favor, tente de novo mais tarde.",
+    "noPropdatesYet": "Nenhum propdate ainda",
+    "noPropdatesDesc": "Proponentes podem postar atualizações de progresso depois que seus proposals passarem",
+    "showingOf": "Mostrando {visible} de {total}",
+    "viewAll": "Ver tudo →",
+    "update": "{count} atualização",
+    "updates": "{count} atualizações"
+  },
+  "card": {
+    "milestone": "Marco {number}",
+    "reply": "Responder",
+    "cancelReply": "Cancelar Resposta"
+  },
+  "detail": {
+    "backToPropdates": "Voltar para Propdates"
+  },
+  "section": {
+    "title": "Propdates",
+    "loadingAriaLabel": "Carregando propdates",
+    "createPropdate": "Criar Propdate",
+    "cancel": "Cancelar",
+    "errorTitle": "Erro",
+    "errorDesc": "Falha ao carregar propdates. Por favor, tente de novo mais tarde.",
+    "noUpdatesYet": "Nenhuma atualização nesse proposal ainda!",
+    "noUpdatesDesc": "O proponente pode postar atualizações de progresso aqui"
+  },
+  "form": {
+    "createTitle": "Criar um Propdate",
+    "replyTitle": "Responder ao Propdate",
+    "cancel": "Cancelar",
+    "replyingTo": "Respondendo a",
+    "writeTab": "Escrever",
+    "previewTab": "Preview",
+    "writePlaceholder": "Compartilhe uma atualização sobre esse proposal...",
+    "replyPlaceholder": "Escreva sua resposta...",
+    "nothingToPreview": "Nada para mostrar",
+    "attachFile": "Anexar arquivo",
+    "uploading": "Subindo... {progress}%",
+    "submit": "Enviar",
+    "submitReply": "Enviar Resposta",
+    "confirmingWallet": "Confirme na wallet...",
+    "pendingTx": "Aguardando confirmação...",
+    "syncing": "Sincronizando..."
+  }
+}
