@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { formatUnits, getAddress, isAddress } from "viem";
-import type { WalletToken } from "@/app/swap/chains";
+import type { WalletToken } from "@/app/[locale]/swap/chains";
 
 const ALCHEMY_RPC_BASES: Record<string, string> = {
   "8453": "https://base-mainnet.g.alchemy.com/v2",

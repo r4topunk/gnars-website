@@ -21,7 +21,7 @@ import { useProposalEligibilityContext } from "@/components/proposals/ProposalEl
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { createProposalAction } from "@/app/propose/actions";
+import { createProposalAction } from "@/app/[locale]/propose/actions";
 import { useProposalIndexing } from "@/hooks/use-proposal-indexing";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useWriteAccount } from "@/hooks/use-write-account";
@@ -361,7 +361,7 @@ export function ProposalPreview() {
 
           {isIndexed ? (
             <p className="text-muted-foreground mb-4">
-              {t("preview.proposalLive", { number: indexing.proposalNumber })}
+              {t("preview.proposalLive", { number: indexing.proposalNumber ?? 0 })}
             </p>
           ) : isPolling ? (
             <p className="text-muted-foreground mb-4 inline-flex items-center justify-center gap-2">

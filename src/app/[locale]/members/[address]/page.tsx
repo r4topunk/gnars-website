@@ -278,7 +278,7 @@ export async function generateMetadata({ params }: MemberPageProps): Promise<Met
 }
 
 export default async function MemberPage({ params, searchParams }: MemberPageProps) {
-  const [{ address }, sp] = await Promise.all([params, searchParams]);
+  const [{ address, locale }, sp] = await Promise.all([params, searchParams]);
   if (!isAddress(address)) {
     // Treat as ENS name and try to resolve
     if (address && address.includes(".")) {
@@ -295,7 +295,10 @@ export default async function MemberPage({ params, searchParams }: MemberPagePro
           }
         }
         const suffix = qs.toString();
-        redirect(suffix ? `/members/${resolved}?${suffix}` : `/members/${resolved}`);
+        redirect({
+          href: suffix ? `/members/${resolved}?${suffix}` : `/members/${resolved}`,
+          locale,
+        });
       }
       notFound();
     }
@@ -316,7 +319,10 @@ export default async function MemberPage({ params, searchParams }: MemberPagePro
       }
     }
     const suffix = qs.toString();
-    redirect(suffix ? `/members/${owner}?${suffix}` : `/members/${owner}`);
+    redirect({
+      href: suffix ? `/members/${owner}?${suffix}` : `/members/${owner}`,
+      locale,
+    });
   }
 
   return (
