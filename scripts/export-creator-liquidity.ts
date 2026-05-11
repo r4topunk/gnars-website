@@ -36,6 +36,10 @@
  * Optional:
  *   NEYNAR_API_KEY                  — Farcaster enrichment (creator_farcaster, twitter via verified accounts)
  *   GECKOTERMINAL_API_KEY           — paid tier (raises rate limits beyond 30/min)
+ *   EXTRA_MEMBERS                   — comma/whitespace-separated wallet list to
+ *                                     treat as honorary members (linked wallets,
+ *                                     ex-holders, contributors). Example:
+ *                                       EXTRA_MEMBERS="0x41cb…,0xdf42…"
  *   NEXT_PUBLIC_TOKEN_ADDRESS       — DAO governance token address override (default: Gnars).
  *                                     NOTE: this var is also used by the Next app for *its* DAO.
  *                                     If `.env.local` points it elsewhere you'll snapshot the
@@ -1707,11 +1711,31 @@ async function main(): Promise<void> {
   log(`Alchemy key: ${ALCHEMY_API_KEY ? "yes" : "no (skip ENS)"}`);
   log(`Gecko key: ${GECKO_API_KEY ? "paid" : "free tier (~30 req/min)"}`);
 
-  // 1. Members
+  // 1. Members (DAO holders) + optional EXTRA_MEMBERS allow-list
   let members = await fetchAllMembers();
   if (members.length === 0) {
     log("no members found, aborting");
     return;
+  }
+
+  // Allow extra wallets that aren't DAO holders but should be treated as members
+  // for migration purposes (e.g. linked wallets of known creators, ex-holders,
+  // governance contributors). Comma- or whitespace-separated address list.
+  const extraRaw = process.env.EXTRA_MEMBERS ?? "";
+  const extraAddrs = extraRaw
+    .split(/[,\s]+/)
+    .map((a) => a.trim().toLowerCase())
+    .filter((a) => a.length === 42 && a.startsWith("0x"));
+  if (extraAddrs.length > 0) {
+    const known = new Set(members.map((m) => m.owner));
+    let added = 0;
+    for (const addr of extraAddrs) {
+      if (known.has(addr)) continue;
+      members.push({ owner: addr, delegate: addr, daoTokenCount: 0 });
+      known.add(addr);
+      added++;
+    }
+    log(`EXTRA_MEMBERS: added ${added} address(es) (${extraAddrs.length - added} already in DAO)`);
   }
 
   const limit = Number(process.env.LIMIT ?? 0);
