@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ProposalsGridSkeleton } from "@/components/proposals/ProposalsGrid";
 import { ProposalsView } from "@/components/proposals/ProposalsView";
 import { listMultiChainProposals } from "@/services/multi-chain-proposals";
@@ -13,6 +13,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "metadata.proposals" });
   const path = "/proposals";
   const canonical = locale === "en" ? path : `/pt-br${path}`;

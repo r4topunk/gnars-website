@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { NogglesRailsClosingBox } from "@/components/nogglesrails/NogglesRailsClosingBox";
 import { NogglesRailsGrid } from "@/components/nogglesrails/NogglesRailsGrid";
 import NogglesRailsHero from "@/components/nogglesrails/NogglesRailsHero";
@@ -17,6 +17,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "metadata.nogglesrails" });
   const path = "/nogglesrails";
   const canonical = locale === "en" ? path : `/pt-br${path}`;

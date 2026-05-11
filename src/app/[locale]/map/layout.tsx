@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { MAP_MINIAPP_CONFIG, MAP_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 
 const mapConfig = MAP_MINIAPP_CONFIG.miniapp;
@@ -10,6 +10,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "metadata.map" });
   const path = "/map";
   const canonical = locale === "en" ? path : `/pt-br${path}`;

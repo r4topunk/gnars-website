@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BlogsPageSkeleton } from "@/components/blogs/BlogsPageSkeleton";
 import { BlogsView } from "@/components/blogs/BlogsView";
 import { getAllBlogSummaries } from "@/services/blogs";
@@ -11,6 +11,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "metadata.blogs" });
   const path = "/blogs";
   const canonical = locale === "en" ? path : `/pt-br${path}`;

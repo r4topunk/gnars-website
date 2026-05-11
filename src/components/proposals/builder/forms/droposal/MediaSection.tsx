@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Link, Upload, X } from "lucide-react";
 import { useFormContext } from "react-hook-form";
@@ -39,6 +40,7 @@ interface MediaSectionProps {
 }
 
 export function MediaSection({ index }: MediaSectionProps) {
+  const t = useTranslations("propose.droposalBuilder.media");
   const { setValue, watch } = useFormContext<ProposalFormValues>();
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
@@ -89,7 +91,7 @@ export function MediaSection({ index }: MediaSectionProps) {
         }
 
         // Show loading toast
-        toast.loading("Uploading media to IPFS...", { id: "media-upload" });
+        toast.loading(t("uploadingToIpfs"), { id: "media-upload" });
 
         // Upload to Pinata
         const result = await uploadToPinata(file, `droposal-media-${Date.now()}`);
@@ -103,12 +105,12 @@ export function MediaSection({ index }: MediaSectionProps) {
         setValue(`transactions.${index}.imageUri` as const, result.data.ipfsUrl);
         setValue(`transactions.${index}.mediaType` as const, file.type);
 
-        toast.success("Media uploaded successfully!", { id: "media-upload" });
+        toast.success(t("uploadSuccess"), { id: "media-upload" });
       } else {
         // Cover image upload
         setCoverPreview(previewUrl);
 
-        toast.loading("Uploading cover to IPFS...", { id: "cover-upload" });
+        toast.loading(t("uploadingToIpfs"), { id: "cover-upload" });
 
         const result = await uploadToPinata(file, `droposal-cover-${Date.now()}`);
 
@@ -119,7 +121,7 @@ export function MediaSection({ index }: MediaSectionProps) {
         setValue(`transactions.${index}.imageUri` as const, result.data.ipfsUrl);
         setValue(`transactions.${index}.coverType` as const, file.type);
 
-        toast.success("Cover uploaded successfully!", { id: "cover-upload" });
+        toast.success(t("uploadSuccess"), { id: "cover-upload" });
       }
     } catch (error) {
       console.error("Upload error:", error);
@@ -137,7 +139,7 @@ export function MediaSection({ index }: MediaSectionProps) {
         setValue(`transactions.${index}.imageUri` as const, "");
       }
 
-      toast.error(`Failed to upload ${uploadType}`, {
+      toast.error(t("uploadError", { kind: uploadType }), {
         id: toastId,
         description: error instanceof Error ? error.message : "Please try again",
       });
@@ -154,7 +156,7 @@ export function MediaSection({ index }: MediaSectionProps) {
 
     try {
       // Upload video file
-      toast.loading("Uploading video to IPFS...", { id: "video-upload" });
+      toast.loading(t("uploadingToIpfs"), { id: "video-upload" });
 
       const videoResult = await uploadToPinata(pendingVideoFile, `droposal-video-${Date.now()}`);
 
@@ -165,10 +167,10 @@ export function MediaSection({ index }: MediaSectionProps) {
       setValue(`transactions.${index}.animationUri` as const, videoResult.data.ipfsUrl);
       setValue(`transactions.${index}.mediaType` as const, pendingVideoFile.type);
 
-      toast.success("Video uploaded!", { id: "video-upload" });
+      toast.success(t("uploadSuccess"), { id: "video-upload" });
 
       // Upload thumbnail as cover
-      toast.loading("Uploading thumbnail to IPFS...", { id: "thumbnail-upload" });
+      toast.loading(t("uploadingToIpfs"), { id: "thumbnail-upload" });
 
       const thumbnailResult = await uploadToPinata(
         thumbnailFile,
@@ -183,7 +185,7 @@ export function MediaSection({ index }: MediaSectionProps) {
       setValue(`transactions.${index}.coverType` as const, thumbnailFile.type);
       setCoverPreview(URL.createObjectURL(thumbnailFile));
 
-      toast.success("Thumbnail uploaded!", { id: "thumbnail-upload" });
+      toast.success(t("uploadSuccess"), { id: "thumbnail-upload" });
 
       // Reset state
       setShowThumbnailSelector(false);
@@ -191,7 +193,7 @@ export function MediaSection({ index }: MediaSectionProps) {
       setIsUploadingMedia(false);
       setIsUploadingCover(false);
 
-      toast.success("Video and thumbnail uploaded successfully!");
+      toast.success(t("uploadSuccess"));
     } catch (error) {
       console.error("Upload error:", error);
 
@@ -203,7 +205,7 @@ export function MediaSection({ index }: MediaSectionProps) {
       setValue(`transactions.${index}.animationUri` as const, "");
       setValue(`transactions.${index}.imageUri` as const, "");
 
-      toast.error("Failed to upload video/thumbnail", {
+      toast.error(t("uploadError", { kind: "video" }), {
         description: error instanceof Error ? error.message : "Please try again",
       });
 
@@ -235,8 +237,8 @@ export function MediaSection({ index }: MediaSectionProps) {
       const isAudio = file.type.startsWith("audio/");
 
       if (!isImage && !isVideo && !isAudio) {
-        setMediaError("Please upload an image, video, or audio file");
-        toast.error("Please upload an image, video, or audio file");
+        setMediaError(t("supportedTypes"));
+        toast.error(t("supportedTypes"));
         return;
       }
 
@@ -246,8 +248,8 @@ export function MediaSection({ index }: MediaSectionProps) {
       const isSupportedAudio = SUPPORTED_AUDIO_TYPES.includes(file.type);
 
       if (isImage && !isSupportedImage) {
-        setMediaError("Image type not supported. Please use: JPEG, PNG, GIF, WebP, or SVG");
-        toast.error("Image type not supported. Please use: JPEG, PNG, GIF, WebP, or SVG");
+        setMediaError(t("imageTypeUnsupported"));
+        toast.error(t("imageTypeUnsupported"));
         return;
       }
 
@@ -404,53 +406,44 @@ export function MediaSection({ index }: MediaSectionProps) {
       setIsManualInputOpen(false);
       setManualMediaUrl("");
       setManualCoverUrl("");
-      toast.success("IPFS URLs set successfully!");
+      toast.success(t("ipfsUrlsSet"));
     }
   };
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-base">Media</CardTitle>
+        <CardTitle className="text-base">{t("title")}</CardTitle>
         <Dialog open={isManualInputOpen} onOpenChange={setIsManualInputOpen}>
           <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0"
-              title="Manually input IPFS CIDs"
-            >
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title={t("manualInputTitle")}>
               <Link className="h-4 w-4" />
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Manual IPFS Input</DialogTitle>
+              <DialogTitle>{t("manualInputDialog")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="manual-media-url">Media IPFS URL</Label>
+                <Label htmlFor="manual-media-url">{t("mediaUrlLabel")}</Label>
                 <Input
                   id="manual-media-url"
                   placeholder="ipfs://QmExample..."
                   value={manualMediaUrl}
                   onChange={(e) => setManualMediaUrl(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Enter the IPFS URL for your media file
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">{t("mediaUrlHelper")}</p>
               </div>
               <div>
-                <Label htmlFor="manual-cover-url">Cover IPFS URL (optional)</Label>
+                <Label htmlFor="manual-cover-url">{t("coverUrlLabel")}</Label>
                 <Input
                   id="manual-cover-url"
                   placeholder="ipfs://QmExample..."
                   value={manualCoverUrl}
                   onChange={(e) => setManualCoverUrl(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Enter the IPFS URL for your cover image
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">{t("coverUrlHelper")}</p>
               </div>
               <div className="flex gap-2 justify-end">
                 <Button
@@ -461,9 +454,9 @@ export function MediaSection({ index }: MediaSectionProps) {
                     setManualCoverUrl("");
                   }}
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
-                <Button onClick={handleManualUrlSubmit}>Set URLs</Button>
+                <Button onClick={handleManualUrlSubmit}>{t("setUrls")}</Button>
               </div>
             </div>
           </DialogContent>
@@ -477,7 +470,7 @@ export function MediaSection({ index }: MediaSectionProps) {
           }
         >
           <div>
-            <Label>Media File *</Label>
+            <Label>{t("mediaFileLabel")}</Label>
             <div className="mt-2 space-y-2">
               {displayMediaUrl ? (
                 <>
@@ -485,7 +478,7 @@ export function MediaSection({ index }: MediaSectionProps) {
                     {watchedMediaType?.startsWith("image") ? (
                       <Image
                         src={displayMediaUrl}
-                        alt="Media preview"
+                        alt={t("alt.mediaPreview")}
                         width={400}
                         height={225}
                         className="w-full aspect-video object-contain bg-gray-100 rounded-lg border"
@@ -500,7 +493,7 @@ export function MediaSection({ index }: MediaSectionProps) {
                       <div className="w-full aspect-video bg-muted rounded-lg border flex flex-col items-center justify-center space-y-4">
                         <div className="text-center">
                           <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">Audio File</p>
+                          <p className="text-sm text-muted-foreground">{t("audioFile")}</p>
                         </div>
                         <audio controls className="w-3/4">
                           <source src={displayMediaUrl} type={watchedMediaType} />
@@ -509,7 +502,7 @@ export function MediaSection({ index }: MediaSectionProps) {
                       </div>
                     ) : (
                       <div className="w-full h-48 bg-muted rounded-lg border flex items-center justify-center">
-                        <p className="text-muted-foreground">Media uploaded</p>
+                        <p className="text-muted-foreground">{t("mediaUploadedBadge")}</p>
                       </div>
                     )}
                   </div>
@@ -569,13 +562,13 @@ export function MediaSection({ index }: MediaSectionProps) {
 
           {showCover && (
             <div>
-              <Label>Cover Image</Label>
+              <Label>{t("coverImageLabel")}</Label>
               <div className="mt-2">
                 {displayCoverUrl ? (
                   <div className="relative">
                     <Image
                       src={displayCoverUrl}
-                      alt="Cover preview"
+                      alt={t("alt.coverPreview")}
                       width={400}
                       height={225}
                       className="w-full aspect-video object-cover rounded-lg border"
@@ -595,7 +588,7 @@ export function MediaSection({ index }: MediaSectionProps) {
                     onClick={() => coverInputRef.current?.click()}
                   >
                     <Upload className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
-                    <p className="text-xs text-muted-foreground">Upload cover image</p>
+                    <p className="text-xs text-muted-foreground">{t("uploadCoverPrompt")}</p>
                   </div>
                 )}
                 <input

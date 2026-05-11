@@ -103,7 +103,12 @@ export function ProposalDetailsHeader() {
               className="relative rounded-lg border overflow-hidden"
               style={{ aspectRatio: "16 / 9" }}
             >
-              <Image src={displayImageUrl} alt="Banner preview" fill className="object-cover" />
+              <Image
+                src={displayImageUrl}
+                alt={t("alt.bannerPreview")}
+                fill
+                className="object-cover"
+              />
               <Button
                 size="sm"
                 variant="destructive"

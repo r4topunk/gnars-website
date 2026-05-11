@@ -224,6 +224,46 @@
     "connectWalletToSubmit": "Conecte a wallet para enviar um proposal",
     "pleaseFixErrors": "Por favor, corrija os erros de validação antes de enviar"
   },
+  "droposalBuilder": {
+    "media": {
+      "title": "Mídia",
+      "uploadingToIpfs": "Enviando mídia ao IPFS...",
+      "uploadSuccess": "Mídia enviada com sucesso!",
+      "uploadError": "Falha ao enviar {kind}",
+      "supportedTypes": "Envie um arquivo de imagem, vídeo ou áudio",
+      "imageTypeUnsupported": "Tipo de imagem não suportado. Use: JPEG, PNG, GIF, WebP ou SVG",
+      "ipfsUrlsSet": "URLs do IPFS configuradas com sucesso!",
+      "manualInputDialog": "Inserir IPFS manualmente",
+      "mediaUrlLabel": "URL IPFS da mídia",
+      "mediaUrlHelper": "Informe a URL IPFS do seu arquivo de mídia",
+      "coverUrlLabel": "URL IPFS da capa (opcional)",
+      "coverUrlHelper": "Informe a URL IPFS da sua imagem de capa",
+      "cancel": "Cancelar",
+      "setUrls": "Salvar URLs",
+      "mediaFileLabel": "Arquivo de mídia *",
+      "audioFile": "Arquivo de áudio",
+      "mediaUploadedBadge": "Mídia enviada",
+      "coverImageLabel": "Imagem de capa",
+      "uploadCoverPrompt": "Enviar imagem de capa",
+      "manualInputTitle": "Inserir CIDs IPFS manualmente",
+      "alt": {
+        "mediaPreview": "Pré-visualização da mídia",
+        "coverPreview": "Pré-visualização da capa"
+      }
+    },
+    "splits": {
+      "totalAllocated": "Total alocado:",
+      "remaining": "Restante: {amount}%",
+      "addressOrEns": "Endereço ou ENS",
+      "addressPlaceholder": "0x... ou name.eth",
+      "allocationPercent": "Alocação %",
+      "addRecipient": "Adicionar destinatário",
+      "distributeEvenly": "Distribuir igualmente"
+    }
+  },
+  "alt": {
+    "bannerPreview": "Pré-visualização do banner"
+  },
   "templates": {
     "pageTitle": "Templates de Proposal",
     "pageDescription": "Comece a partir de uma estrutura comprovada. Cada template é baseado nos 77 proposals que a Gnars DAO já bancou — escolha o que se encaixa com sua ideia.",

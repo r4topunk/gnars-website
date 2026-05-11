@@ -93,7 +93,6 @@
     },
     "auction": {
       "auction": "Auction",
-      "bid": "Bid",
       "auctionWon": "Auction Vencida",
       "auctionEndingSoon": "Auction Acabando em Breve",
       "viewAuction": "Ver Auction",

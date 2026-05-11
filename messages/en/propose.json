@@ -224,6 +224,46 @@
     "connectWalletToSubmit": "Connect wallet to submit a proposal",
     "pleaseFixErrors": "Please fix validation errors before submitting"
   },
+  "droposalBuilder": {
+    "media": {
+      "title": "Media",
+      "uploadingToIpfs": "Uploading media to IPFS...",
+      "uploadSuccess": "Media uploaded successfully!",
+      "uploadError": "Failed to upload {kind}",
+      "supportedTypes": "Please upload an image, video, or audio file",
+      "imageTypeUnsupported": "Image type not supported. Please use: JPEG, PNG, GIF, WebP, or SVG",
+      "ipfsUrlsSet": "IPFS URLs set successfully!",
+      "manualInputDialog": "Manual IPFS Input",
+      "mediaUrlLabel": "Media IPFS URL",
+      "mediaUrlHelper": "Enter the IPFS URL for your media file",
+      "coverUrlLabel": "Cover IPFS URL (optional)",
+      "coverUrlHelper": "Enter the IPFS URL for your cover image",
+      "cancel": "Cancel",
+      "setUrls": "Set URLs",
+      "mediaFileLabel": "Media File *",
+      "audioFile": "Audio File",
+      "mediaUploadedBadge": "Media uploaded",
+      "coverImageLabel": "Cover Image",
+      "uploadCoverPrompt": "Upload cover image",
+      "manualInputTitle": "Manually input IPFS CIDs",
+      "alt": {
+        "mediaPreview": "Media preview",
+        "coverPreview": "Cover preview"
+      }
+    },
+    "splits": {
+      "totalAllocated": "Total Allocated:",
+      "remaining": "Remaining: {amount}%",
+      "addressOrEns": "Address or ENS",
+      "addressPlaceholder": "0x... or name.eth",
+      "allocationPercent": "Allocation %",
+      "addRecipient": "Add Recipient",
+      "distributeEvenly": "Distribute Evenly"
+    }
+  },
+  "alt": {
+    "bannerPreview": "Banner preview"
+  },
   "templates": {
     "pageTitle": "Proposal Templates",
     "pageDescription": "Start from a proven structure. Each template is based on the 77 proposals that Gnars DAO has already funded — pick the one that fits your idea.",

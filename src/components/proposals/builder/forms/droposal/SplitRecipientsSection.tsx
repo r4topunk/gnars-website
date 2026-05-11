@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { AlertCircle, Plus, Trash2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ export function SplitRecipientsSection({
   distributorFee,
   onChange,
 }: SplitRecipientsSectionProps) {
+  const t = useTranslations("propose.droposalBuilder.splits");
   const [errors, setErrors] = useState<string[]>([]);
 
   const validateAndUpdate = (newRecipients: SplitRecipient[], newFee?: number) => {
@@ -100,7 +102,7 @@ export function SplitRecipientsSection({
       {/* Total Allocation Display */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Total Allocated:</span>
+          <span className="text-muted-foreground">{t("totalAllocated")}</span>
           <span
             className={`font-semibold ${
               Math.abs(totalPercent - 100) < 0.0001
@@ -126,7 +128,9 @@ export function SplitRecipientsSection({
           />
         </div>
         {remaining > 0.01 && (
-          <p className="text-xs text-muted-foreground">Remaining: {remaining.toFixed(2)}%</p>
+          <p className="text-xs text-muted-foreground">
+            {t("remaining", { amount: remaining.toFixed(2) })}
+          </p>
         )}
       </div>
 
@@ -139,11 +143,11 @@ export function SplitRecipientsSection({
                 htmlFor={`recipient-address-${index}`}
                 className="text-xs text-muted-foreground"
               >
-                Address or ENS
+                {t("addressOrEns")}
               </Label>
               <Input
                 id={`recipient-address-${index}`}
-                placeholder="0x... or name.eth"
+                placeholder={t("addressPlaceholder")}
                 value={recipient.address}
                 onChange={(e) => updateRecipientAddress(index, e.target.value)}
                 className="font-mono text-sm mt-1.5"
@@ -155,7 +159,7 @@ export function SplitRecipientsSection({
                 htmlFor={`recipient-percent-${index}`}
                 className="text-xs text-muted-foreground"
               >
-                Allocation %
+                {t("allocationPercent")}
               </Label>
               <Input
                 id={`recipient-percent-${index}`}
@@ -192,10 +196,10 @@ export function SplitRecipientsSection({
           disabled={recipients.length >= 100}
         >
           <Plus className="h-4 w-4 mr-1" />
-          Add Recipient
+          {t("addRecipient")}
         </Button>
         <Button variant="outline" size="sm" onClick={distributeEvenly}>
-          Distribute Evenly
+          {t("distributeEvenly")}
         </Button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Vote } from "lucide-react";
 import { toast } from "sonner";
@@ -10,40 +11,6 @@ import { DAO_DESCRIPTION } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
 const NOGGLES_ASCII = "⌐◨-◨";
-
-const NAV_COLUMNS: ReadonlyArray<{
-  title: string;
-  links: ReadonlyArray<{ label: string; href: string; external?: boolean }>;
-}> = [
-  {
-    title: "Governance",
-    links: [
-      { label: "Proposals", href: "/proposals" },
-      { label: "Create Proposal", href: "/propose" },
-      { label: "Auctions", href: "/auctions" },
-      { label: "Treasury", href: "/treasury" },
-    ],
-  },
-  {
-    title: "Community",
-    links: [
-      { label: "Members", href: "/members" },
-      { label: "Blogs", href: "/blogs" },
-      { label: "Propdates", href: "/propdates" },
-      { label: "Bounties", href: "/community/bounties" },
-    ],
-  },
-  {
-    title: "Explore",
-    links: [
-      { label: "TV", href: "/tv" },
-      { label: "Droposals", href: "/droposals" },
-      { label: "NogglesRails", href: "/nogglesrails" },
-      { label: "Swap", href: "/swap" },
-      { label: "Boards", href: "https://boards.wtf/", external: true },
-    ],
-  },
-];
 
 function XIcon({ className }: { className?: string }) {
   return (
@@ -72,7 +39,46 @@ function fallbackCopyTextToClipboard(text: string): boolean {
 }
 
 export function FooterBar({ className }: { className?: string }) {
+  const t = useTranslations("footer");
   const year = new Date().getFullYear();
+
+  const NAV_COLUMNS: ReadonlyArray<{
+    key: string;
+    title: string;
+    links: ReadonlyArray<{ label: string; href: string; external?: boolean }>;
+  }> = [
+    {
+      key: "governance",
+      title: t("nav.governance.title"),
+      links: [
+        { label: t("nav.governance.proposals"), href: "/proposals" },
+        { label: t("nav.governance.createProposal"), href: "/propose" },
+        { label: t("nav.governance.auctions"), href: "/auctions" },
+        { label: t("nav.governance.treasury"), href: "/treasury" },
+      ],
+    },
+    {
+      key: "community",
+      title: t("nav.community.title"),
+      links: [
+        { label: t("nav.community.members"), href: "/members" },
+        { label: t("nav.community.blogs"), href: "/blogs" },
+        { label: t("nav.community.propdates"), href: "/propdates" },
+        { label: t("nav.community.bounties"), href: "/community/bounties" },
+      ],
+    },
+    {
+      key: "explore",
+      title: t("nav.explore.title"),
+      links: [
+        { label: t("nav.explore.tv"), href: "/tv" },
+        { label: t("nav.explore.droposals"), href: "/droposals" },
+        { label: t("nav.explore.nogglesRails"), href: "/nogglesrails" },
+        { label: t("nav.explore.swap"), href: "/swap" },
+        { label: t("nav.explore.boards"), href: "https://boards.wtf/", external: true },
+      ],
+    },
+  ];
 
   const onCopyNoggles = React.useCallback(async () => {
     try {
@@ -82,11 +88,11 @@ export function FooterBar({ className }: { className?: string }) {
         const ok = fallbackCopyTextToClipboard(NOGGLES_ASCII);
         if (!ok) throw new Error("copy failed");
       }
-      toast.success("Copied");
+      toast.success(t("noggles.copySuccess"));
     } catch {
-      toast.error("Failed to copy");
+      toast.error(t("noggles.copyError"));
     }
-  }, []);
+  }, [t]);
 
   return (
     <footer
@@ -127,8 +133,8 @@ export function FooterBar({ className }: { className?: string }) {
                 href="https://x.com/gnars_dao"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Gnars on X"
-                title="Gnars on X"
+                aria-label={t("social.xAriaLabel")}
+                title={t("social.xTitle")}
                 className="flex size-9 items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               >
                 <XIcon className="size-4" />
@@ -137,8 +143,8 @@ export function FooterBar({ className }: { className?: string }) {
                 href="https://snapshot.box/#/s:gnars.eth"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Gnars Snapshot space"
-                title="Gnars Snapshot space"
+                aria-label={t("social.snapshotAriaLabel")}
+                title={t("social.snapshotTitle")}
                 className="flex size-9 items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               >
                 <Vote className="size-4" />
@@ -148,7 +154,7 @@ export function FooterBar({ className }: { className?: string }) {
 
           {/* Nav columns */}
           {NAV_COLUMNS.map((column) => (
-            <div key={column.title} className="flex flex-col gap-3">
+            <div key={column.key} className="flex flex-col gap-3">
               <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {column.title}
               </div>
@@ -180,9 +186,9 @@ export function FooterBar({ className }: { className?: string }) {
         </div>
 
         <div className="mt-10 flex flex-col-reverse items-center justify-between gap-4 border-t pt-6 sm:flex-row">
-          <p className="text-xs text-muted-foreground">© {year} Gnars DAO · Built on Base</p>
+          <p className="text-xs text-muted-foreground">{t("copyright", { year })}</p>
           <p className="font-sans text-sm text-muted-foreground">
-            made with{" "}
+            {t("madeWith")}{" "}
             <a
               href="#"
               onClick={(event) => {
@@ -190,8 +196,8 @@ export function FooterBar({ className }: { className?: string }) {
                 void onCopyNoggles();
               }}
               className="hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-              aria-label='Copy "⌐◨-◨"'
-              title='Copy "⌐◨-◨"'
+              aria-label={t("noggles.copyAriaLabel")}
+              title={t("noggles.copyTitle")}
             >
               {NOGGLES_ASCII}
             </a>
