@@ -5,20 +5,39 @@ import { PropdatesFeed } from "@/components/propdates/PropdatesFeed";
 import { PropdatesFeedSkeleton } from "@/components/propdates/PropdatesFeedSkeleton";
 import { Link } from "@/i18n/navigation";
 
-export const metadata: Metadata = {
-  title: "Propdates — Gnars DAO",
-  description: "Progress updates and reports on funded Gnars DAO proposals.",
-  alternates: { canonical: "/propdates" },
-  openGraph: {
-    title: "Propdates — Gnars DAO",
-    description: "Progress updates and reports on funded Gnars DAO proposals.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Propdates — Gnars DAO",
-    description: "Progress updates and reports on funded Gnars DAO proposals.",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.propdates" });
+  const path = "/propdates";
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
+  };
+}
 
 export const revalidate = 60;
 

@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { ImageResponse } from "next/og";
 import { OG_COLORS, OG_FONTS, OG_SIZE } from "@/lib/og-utils";
 
@@ -5,7 +6,11 @@ export const alt = "About Gnars DAO";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default function Image() {
+export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.about" });
+  const heading = locale === "pt-br" ? "Sobre o Gnars" : "About Gnars";
+
   return new ImageResponse(
     (
       <div
@@ -29,7 +34,7 @@ export default function Image() {
             letterSpacing: "-0.02em",
           }}
         >
-          About Gnars
+          {heading}
         </div>
         <div
           style={{
@@ -39,7 +44,7 @@ export default function Image() {
             textAlign: "center",
           }}
         >
-          Nounish Open Source Action Sports Brand
+          {t("description").slice(0, 55)}
         </div>
         <div
           style={{

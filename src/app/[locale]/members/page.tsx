@@ -4,25 +4,39 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { MembersList } from "@/components/members/MembersList";
 import { MembersTableSkeleton } from "@/components/skeletons/members-table-skeleton";
 
-export const metadata: Metadata = {
-  title: "Members — Gnars DAO",
-  description:
-    "Browse all Gnars DAO members and their voting delegates. See who holds Gnars NFTs and how governance power is distributed across the community.",
-  alternates: {
-    canonical: "/members",
-  },
-  openGraph: {
-    title: "Members — Gnars DAO",
-    description:
-      "Browse all Gnars DAO members and their voting delegates. See who holds Gnars NFTs and how governance power is distributed across the community.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Members — Gnars DAO",
-    description:
-      "Browse all Gnars DAO members and their voting delegates. See who holds Gnars NFTs and how governance power is distributed across the community.",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.members" });
+  const path = "/members";
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
+  };
+}
 
 export const revalidate = 3600; // ISR with 1 hour revalidation
 

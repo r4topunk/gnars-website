@@ -37,7 +37,7 @@ interface BlogPageProps {
 }
 
 export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const normalizedSlug = normalizeRouteSlug(slug);
   const blog = await fetchBlogData(normalizedSlug);
 
@@ -50,13 +50,19 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
 
   const description = blog.subtitle || blog.markdown?.slice(0, 160) || "";
   const imageUrl = blog.imageUrl || "https://gnars.com/logo-banner.jpg";
-  const canonicalUrl = `https://gnars.com/blogs/${normalizedSlug}`;
+  const path = `/blogs/${normalizedSlug}`;
+  const canonicalUrl = locale === "en" ? path : `/pt-br${path}`;
 
   return {
     title: `${blog.title} | Gnars Blog`,
     description,
     alternates: {
       canonical: canonicalUrl,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
     },
     openGraph: {
       title: blog.title,
@@ -65,8 +71,9 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
       type: "article",
       publishedTime: blog.publishedAt,
       modifiedTime: blog.updatedAt,
-      url: canonicalUrl,
+      url: `https://gnars.com${canonicalUrl}`,
       siteName: "Gnars",
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
     },
     twitter: {
       card: "summary_large_image",

@@ -124,9 +124,9 @@ async function fetchDroposal(id: string): Promise<{
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { id, locale } = await params;
   const { proposal, decoded } = await fetchDroposal(id);
 
   // Default metadata if droposal not found
@@ -163,11 +163,18 @@ export async function generateMetadata({
     },
   };
 
+  const path = `/droposals/${id}`;
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
   return {
     title: `${title} | Gnars Droposals`,
     description,
     alternates: {
-      canonical: `/droposals/${id}`,
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
     },
     openGraph: {
       title: `${title} | Gnars Droposals`,
@@ -175,6 +182,7 @@ export async function generateMetadata({
       images: [imageUrl],
       type: "website",
       url: droposalUrl,
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
     },
     twitter: {
       card: "summary_large_image",

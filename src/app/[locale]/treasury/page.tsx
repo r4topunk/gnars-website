@@ -14,25 +14,39 @@ import { ZoraCoinHoldings } from "@/components/treasury/ZoraCoinHoldings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DAO_ADDRESSES } from "@/lib/config";
 
-export const metadata: Metadata = {
-  title: "Treasury — Gnars DAO",
-  description:
-    "Explore the Gnars DAO treasury: ETH holdings, ERC-20 tokens, NFT assets, and on-chain analytics. Full transparency into community-owned funds on Base.",
-  alternates: {
-    canonical: "/treasury",
-  },
-  openGraph: {
-    title: "Treasury — Gnars DAO",
-    description:
-      "Explore the Gnars DAO treasury: ETH holdings, ERC-20 tokens, NFT assets, and on-chain analytics. Full transparency into community-owned funds on Base.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Treasury — Gnars DAO",
-    description:
-      "Explore the Gnars DAO treasury: ETH holdings, ERC-20 tokens, NFT assets, and on-chain analytics. Full transparency into community-owned funds on Base.",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.treasury" });
+  const path = "/treasury";
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
+  };
+}
 
 export const revalidate = 300;
 

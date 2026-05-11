@@ -1,25 +1,44 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { MapPin } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { getAllInstallations } from "@/services/installations";
 
-export const metadata: Metadata = {
-  title: "Installations | Gnars",
-  description:
-    "Explore Gnars DAO's global network of skateable art installations - from Rio to Rome, onchain DIY culture made physical.",
-  alternates: {
-    canonical: "https://gnars.com/installations",
-  },
-  openGraph: {
-    title: "Gnars Installations",
-    description: "Explore Gnars DAO's global network of skateable art installations",
-    url: "https://gnars.com/installations",
-    siteName: "Gnars",
-    type: "website",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.installations" });
+  const path = "/installations";
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      siteName: "Gnars",
+      type: "website",
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
+  };
+}
 
 export const revalidate = 3600;
 

@@ -5,7 +5,12 @@ export const alt = "Gnars Live Feed";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default function Image() {
+export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const heading = locale === "pt-br" ? "Feed ao Vivo" : "Live Feed";
+  const subheading =
+    locale === "pt-br" ? "Atividade da DAO em Tempo Real" : "Real-Time DAO Activity";
+
   return new ImageResponse(
     (
       <div
@@ -29,7 +34,7 @@ export default function Image() {
             letterSpacing: "-0.02em",
           }}
         >
-          Live Feed
+          {heading}
         </div>
         <div
           style={{
@@ -39,7 +44,7 @@ export default function Image() {
             textAlign: "center",
           }}
         >
-          Real-Time DAO Activity
+          {subheading}
         </div>
         <div
           style={{

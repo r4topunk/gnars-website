@@ -2,25 +2,39 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
-export const metadata: Metadata = {
-  title: "About Gnars — Community-Owned Skateboarding Collective",
-  description:
-    "Gnars is a community-owned skateboarding collective and DAO that funds skate culture, skaters, and independent projects worldwide.",
-  alternates: {
-    canonical: "/about",
-  },
-  openGraph: {
-    title: "About Gnars — Community-Owned Skateboarding Collective",
-    description:
-      "Gnars is a community-owned skateboarding collective and DAO that funds skate culture, skaters, and independent projects worldwide.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "About Gnars — Community-Owned Skateboarding Collective",
-    description:
-      "Gnars is a community-owned skateboarding collective and DAO that funds skate culture, skaters, and independent projects worldwide.",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.about" });
+  const path = "/about";
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
+  };
+}
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

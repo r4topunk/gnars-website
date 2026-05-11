@@ -5,7 +5,11 @@ export const alt = "Gnars Members";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default function Image() {
+export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const heading = locale === "pt-br" ? "Membros Gnars" : "Gnars Members";
+  const subheading = locale === "pt-br" ? "Membros e Delegates da DAO" : "DAO Members & Delegates";
+
   return new ImageResponse(
     (
       <div
@@ -29,7 +33,7 @@ export default function Image() {
             letterSpacing: "-0.02em",
           }}
         >
-          Gnars Members
+          {heading}
         </div>
         <div
           style={{
@@ -39,7 +43,7 @@ export default function Image() {
             textAlign: "center",
           }}
         >
-          DAO Members & Delegates
+          {subheading}
         </div>
         <div
           style={{

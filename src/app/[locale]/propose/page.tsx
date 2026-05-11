@@ -5,22 +5,39 @@ import { LayoutTemplate } from "lucide-react";
 import { ProposalWizard } from "@/components/proposals/ProposalWizard";
 import { Link } from "@/i18n/navigation";
 
-export const metadata: Metadata = {
-  title: "Create Proposal — Gnars DAO",
-  description: "Submit a new proposal to Gnars DAO for community voting and funding.",
-  alternates: {
-    canonical: "/propose",
-  },
-  openGraph: {
-    title: "Create Proposal — Gnars DAO",
-    description: "Submit a new proposal to Gnars DAO for community voting and funding.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Create Proposal — Gnars DAO",
-    description: "Submit a new proposal to Gnars DAO for community voting and funding.",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.propose" });
+  const path = "/propose";
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
+  };
+}
 
 interface ProposePageProps {
   params: Promise<{ locale: string }>;

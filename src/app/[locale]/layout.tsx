@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getMessages, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
@@ -30,40 +30,49 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.gnars.com"),
-  title: "Gnars DAO",
-  description: "Nounish Open Source Action Sports Brand experiment",
-  verification: {
-    google: "1CaAKNV0z6Oeq0cV7COlSbEk9ejpucay2WH_X2AtkLI",
-  },
-  // Open Graph metadata for social sharing
-  openGraph: {
-    title: "Gnars DAO",
-    description: "Nounish Open Source Action Sports Brand experiment",
-    type: "website",
-    images: [
-      {
-        url: "/logo-banner.jpg",
-        width: 2880,
-        height: 1880,
-        alt: "Gnars DAO",
-      },
-    ],
-  },
-  // Twitter card metadata
-  twitter: {
-    card: "summary_large_image",
-    title: "Gnars DAO",
-    description: "Nounish Open Source Action Sports Brand experiment",
-    images: ["/logo-banner.jpg"],
-  },
-  // Farcaster mini app embed metadata
-  other: {
-    "fc:miniapp": JSON.stringify(MINIAPP_EMBED_CONFIG),
-    "base:app_id": "6920c9d87fdd1c48120364b3",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.home" });
+  return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.gnars.com"),
+    title: t("title"),
+    description: t("description"),
+    verification: {
+      google: "1CaAKNV0z6Oeq0cV7COlSbEk9ejpucay2WH_X2AtkLI",
+    },
+    // Open Graph metadata for social sharing
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      type: "website",
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+      images: [
+        {
+          url: "/logo-banner.jpg",
+          width: 2880,
+          height: 1880,
+          alt: "Gnars DAO",
+        },
+      ],
+    },
+    // Twitter card metadata
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+      images: ["/logo-banner.jpg"],
+    },
+    // Farcaster mini app embed metadata
+    other: {
+      "fc:miniapp": JSON.stringify(MINIAPP_EMBED_CONFIG),
+      "base:app_id": "6920c9d87fdd1c48120364b3",
+    },
+  };
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

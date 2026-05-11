@@ -5,7 +5,12 @@ export const alt = "Gnars Create Proposal";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default function Image() {
+export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const heading = locale === "pt-br" ? "Criar Proposal" : "Create Proposal";
+  const subheading =
+    locale === "pt-br" ? "Envie Ideias para o Gnars DAO" : "Submit Ideas to Gnars DAO";
+
   return new ImageResponse(
     (
       <div
@@ -29,7 +34,7 @@ export default function Image() {
             letterSpacing: "-0.02em",
           }}
         >
-          Create Proposal
+          {heading}
         </div>
         <div
           style={{
@@ -39,7 +44,7 @@ export default function Image() {
             textAlign: "center",
           }}
         >
-          Submit Ideas to Gnars DAO
+          {subheading}
         </div>
         <div
           style={{

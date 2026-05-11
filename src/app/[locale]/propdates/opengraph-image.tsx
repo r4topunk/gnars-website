@@ -5,7 +5,11 @@ export const alt = "Gnars Propdates";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default function Image() {
+export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const subheading =
+    locale === "pt-br" ? "Atualizações de Progresso de Proposals" : "Proposal Progress Updates";
+
   return new ImageResponse(
     (
       <div
@@ -39,7 +43,7 @@ export default function Image() {
             textAlign: "center",
           }}
         >
-          Proposal Progress Updates
+          {subheading}
         </div>
         <div
           style={{

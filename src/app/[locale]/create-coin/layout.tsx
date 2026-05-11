@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { getTranslations, setRequestLocale } from "next-intl/server";
-import { MuralBackground } from "@/components/layout/MuralBackground";
+import { getTranslations } from "next-intl/server";
 
 export async function generateMetadata({
   params,
@@ -8,8 +7,8 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "metadata.mural" });
-  const path = "/mural";
+  const t = await getTranslations({ locale, namespace: "metadata.createCoin" });
+  const path = "/create-coin";
   const canonical = locale === "en" ? path : `/pt-br${path}`;
   return {
     title: t("title"),
@@ -36,19 +35,6 @@ export async function generateMetadata({
   };
 }
 
-/**
- * Mural page
- * Displays the interactive mural with real Gnars NFTs in a draggable grid.
- */
-export default async function MuralPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
-  setRequestLocale(locale);
-  const t = await getTranslations({ locale, namespace: "mural" });
-
-  return (
-    <>
-      <h1 className="sr-only">{t("srHeading")}</h1>
-      <MuralBackground />
-    </>
-  );
+export default function CreateCoinLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

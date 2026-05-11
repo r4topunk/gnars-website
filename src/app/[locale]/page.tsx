@@ -20,14 +20,38 @@ import { Link } from "@/i18n/navigation";
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: "Gnars — Community-Owned Skateboarding DAO",
-  description:
-    "Gnars is a community-owned skateboarding DAO funding skate culture worldwide through auctions, proposals, and grants.",
-  alternates: {
-    canonical: "/",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.home" });
+  const canonical = locale === "en" ? "/" : "/pt-br";
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: {
+      canonical,
+      languages: {
+        en: "/",
+        "pt-br": "/pt-br",
+        "x-default": "/",
+      },
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
+  };
+}
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

@@ -128,7 +128,7 @@ const resolveSmartAccountOwner = unstable_cache(
 );
 
 interface MemberPageProps {
-  params: Promise<{ address: string }>;
+  params: Promise<{ address: string; locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
@@ -190,7 +190,7 @@ async function getMemberMetadata(address: string) {
 }
 
 export async function generateMetadata({ params }: MemberPageProps): Promise<Metadata> {
-  const { address } = await params;
+  const { address, locale } = await params;
 
   // Check if it's a valid address
   if (!isAddress(address)) {
@@ -199,6 +199,8 @@ export async function generateMetadata({ params }: MemberPageProps): Promise<Met
       description: "The member profile you're looking for doesn't exist.",
     };
   }
+
+  const path = `/members/${address}`;
 
   const metadata = await getMemberMetadata(address);
 
@@ -243,15 +245,25 @@ export async function generateMetadata({ params }: MemberPageProps): Promise<Met
     },
   };
 
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
   return {
     title: `${displayName} | Gnars DAO`,
     description,
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
     openGraph: {
       title: displayName,
       description,
       images: [ogImageUrl],
       type: "profile",
       url: memberUrl,
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
     },
     twitter: {
       card: "summary_large_image",

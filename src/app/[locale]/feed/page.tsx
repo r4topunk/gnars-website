@@ -11,25 +11,39 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { LiveFeedView } from "@/components/feed/LiveFeedView";
 import { getAllFeedEvents } from "@/services/feed-events";
 
-export const metadata: Metadata = {
-  title: "Live Feed — Gnars DAO",
-  description:
-    "Real-time activity feed showing governance votes, auction bids, and token events from Gnars DAO.",
-  alternates: {
-    canonical: "/feed",
-  },
-  openGraph: {
-    title: "Live Feed — Gnars DAO",
-    description:
-      "Real-time activity feed showing governance votes, auction bids, and token events from Gnars DAO.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Live Feed — Gnars DAO",
-    description:
-      "Real-time activity feed showing governance votes, auction bids, and token events from Gnars DAO.",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.feed" });
+  const path = "/feed";
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
+  };
+}
 
 // Revalidate every 60 seconds for fresh data
 export const revalidate = 60;

@@ -5,7 +5,12 @@ export const alt = "Gnars Blog";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default function Image() {
+export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const heading = locale === "pt-br" ? "Blog Gnars" : "Gnars Blog";
+  const subheading =
+    locale === "pt-br" ? "Histórias e Atualizações da Comunidade" : "Community Stories & Updates";
+
   return new ImageResponse(
     (
       <div
@@ -29,7 +34,7 @@ export default function Image() {
             letterSpacing: "-0.02em",
           }}
         >
-          Gnars Blog
+          {heading}
         </div>
         <div
           style={{
@@ -39,7 +44,7 @@ export default function Image() {
             textAlign: "center",
           }}
         >
-          Community Stories & Updates
+          {subheading}
         </div>
         <div
           style={{

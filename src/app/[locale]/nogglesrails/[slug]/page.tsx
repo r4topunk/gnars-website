@@ -17,13 +17,30 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
 
   const rail = getRailBySlug(slug);
   if (!rail) return { title: "Rail Not Found" };
+
+  const path = `/nogglesrails/${slug}`;
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
   return {
     title: `${rail.label} — NogglesRails`,
     description: rail.description,
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
+    openGraph: {
+      title: `${rail.label} — NogglesRails`,
+      description: rail.description,
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+      type: "website",
+    },
   };
 }
 

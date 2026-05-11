@@ -51,14 +51,23 @@ async function getCoinMetadata(coinAddress: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { coinAddress } = await params;
+  const { coinAddress, locale } = await params;
 
   const metadata = await getCoinMetadata(coinAddress);
+
+  const path = `/tv/${coinAddress}`;
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
+  const hreflang = {
+    en: path,
+    "pt-br": `/pt-br${path}`,
+    "x-default": path,
+  };
 
   if (!metadata) {
     return {
       title: "Gnars TV",
       description: "Watch Gnars content on Gnars TV",
+      alternates: { canonical, languages: hreflang },
     };
   }
 
@@ -82,11 +91,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${metadata.name} | Gnars TV`,
     description: metadata.description,
+    alternates: {
+      canonical,
+      languages: hreflang,
+    },
     openGraph: {
       title: `${metadata.name} | Gnars TV`,
       description: metadata.description,
       images: imageUrl ? [{ url: imageUrl }] : [],
       type: "video.other",
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
     },
     twitter: {
       card: "summary_large_image",

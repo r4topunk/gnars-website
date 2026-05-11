@@ -6,19 +6,39 @@ import { fetchDroposals } from "@/services/droposals";
 
 export const revalidate = 1800; // 30 minutes
 
-export const metadata: Metadata = {
-  title: "Gnars Drops — Community Art & Skate Media",
-  description: "Community-approved drops and skate media created by Gnars DAO members.",
-  openGraph: {
-    title: "Gnars Drops — Community Art & Skate Media",
-    description: "Community-approved drops and skate media created by Gnars DAO members.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Gnars Drops — Community Art & Skate Media",
-    description: "Community-approved drops and skate media created by Gnars DAO members.",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.droposals" });
+  const path = "/droposals";
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
+  };
+}
 
 export default async function DroposalsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

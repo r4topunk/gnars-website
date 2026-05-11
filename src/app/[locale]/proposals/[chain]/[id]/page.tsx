@@ -43,11 +43,11 @@ async function fetchProposalData(chain: string, id: string): Promise<MultiChainP
 }
 
 interface ProposalPageProps {
-  params: Promise<{ chain: string; id: string }>;
+  params: Promise<{ chain: string; id: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: ProposalPageProps): Promise<Metadata> {
-  const { chain, id } = await params;
+  const { chain, id, locale } = await params;
   const proposal = await fetchProposalData(chain, id);
 
   if (!proposal) {
@@ -56,6 +56,7 @@ export async function generateMetadata({ params }: ProposalPageProps): Promise<M
       description: "The proposal you're looking for doesn't exist.",
     };
   }
+  const path = `/proposals/${chain}/${id}`;
 
   // Extract image from proposal description (markdown images or URLs)
   const proposalImageUrl = normalizeImageUrl(extractFirstUrl(proposal.description));
@@ -125,11 +126,17 @@ export async function generateMetadata({ params }: ProposalPageProps): Promise<M
   const chainLabel = chain.charAt(0).toUpperCase() + chain.slice(1);
   const proposalUrl = `${BASE_URL}/proposals/${chain}/${id}`;
 
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
   return {
     title: `Proposal #${proposal.proposalNumber}: ${proposal.title} | Gnars DAO`,
     description,
     alternates: {
-      canonical: `/proposals/${chain}/${id}`,
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
     },
     openGraph: {
       title: `[${chainLabel}] Proposal #${proposal.proposalNumber}: ${proposal.title}`,
@@ -137,6 +144,7 @@ export async function generateMetadata({ params }: ProposalPageProps): Promise<M
       images: [imageUrl],
       type: "article",
       url: proposalUrl,
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
     },
     twitter: {
       card: "summary_large_image",

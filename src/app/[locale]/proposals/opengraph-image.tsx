@@ -5,7 +5,11 @@ export const alt = "Gnars DAO Proposals";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default function Image() {
+export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const subheading =
+    locale === "pt-br" ? "Grants e Financiamento de Skate" : "Skateboarding Grants & Funding";
+
   return new ImageResponse(
     (
       <div
@@ -39,7 +43,7 @@ export default function Image() {
             textAlign: "center",
           }}
         >
-          Skateboarding Grants & Funding
+          {subheading}
         </div>
         <div
           style={{

@@ -6,37 +6,50 @@ import { ChainSelector } from "./ChainSelector";
 import { SwapChainProvider } from "./SwapChainContext";
 import { SwapWidget } from "./SwapWidget";
 
-const description =
-  "Swap tokens across Base, Ethereum, Optimism, and Arbitrum with best execution across 150+ DEXes via the 0x Protocol.";
-
 const miniappImage = `${BASE_URL}/swap/miniapp-image`;
 
-export const metadata: Metadata = {
-  title: "Swap — Gnars DAO",
-  description,
-  alternates: {
-    canonical: "/swap",
-  },
-  openGraph: {
-    title: "Swap — Gnars DAO",
-    description,
-    images: [miniappImage],
-    url: `${BASE_URL}/swap`,
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Swap — Gnars DAO",
-    description,
-    images: [miniappImage],
-  },
-  // Farcaster mini app embed metadata. Overrides the root layout's
-  // `fc:miniapp` tag so casts that link to /swap render the swap-specific
-  // cover and CTA instead of the generic Gnars DAO embed.
-  other: {
-    "fc:miniapp": JSON.stringify(SWAP_MINIAPP_EMBED_CONFIG),
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata.swap" });
+  const path = "/swap";
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      images: [miniappImage],
+      url: `${BASE_URL}/swap`,
+      type: "website",
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+      images: [miniappImage],
+    },
+    // Farcaster mini app embed metadata. Overrides the root layout's
+    // `fc:miniapp` tag so casts that link to /swap render the swap-specific
+    // cover and CTA instead of the generic Gnars DAO embed.
+    other: {
+      "fc:miniapp": JSON.stringify(SWAP_MINIAPP_EMBED_CONFIG),
+    },
+  };
+}
 
 export default async function SwapPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

@@ -3,13 +3,11 @@ import { PROPOSALS_MINIAPP_CONFIG, PROPOSALS_MINIAPP_EMBED_CONFIG } from "@/lib/
 
 const proposalsConfig = PROPOSALS_MINIAPP_CONFIG.miniapp;
 
+// Layout-level metadata carries Farcaster miniapp embed config.
+// The page-level generateMetadata provides locale-aware title/description/alternates.
 export const metadata: Metadata = {
-  title: "Gnars DAO Proposals",
-  description: proposalsConfig.description,
   // Open Graph metadata for social sharing
   openGraph: {
-    title: proposalsConfig.ogTitle,
-    description: proposalsConfig.ogDescription,
     images: [proposalsConfig.ogImageUrl],
     type: "website",
     url: proposalsConfig.homeUrl,
@@ -17,8 +15,6 @@ export const metadata: Metadata = {
   // Twitter card metadata
   twitter: {
     card: "summary_large_image",
-    title: proposalsConfig.ogTitle,
-    description: proposalsConfig.ogDescription,
     images: [proposalsConfig.ogImageUrl],
   },
   // Farcaster mini app embed metadata

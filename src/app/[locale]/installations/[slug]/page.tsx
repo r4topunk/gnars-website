@@ -24,7 +24,7 @@ interface InstallationPageProps {
 }
 
 export async function generateMetadata({ params }: InstallationPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const installation = await fetchInstallationData(slug);
 
   if (!installation) {
@@ -38,21 +38,28 @@ export async function generateMetadata({ params }: InstallationPageProps): Promi
     installation.description ||
     `${installation.obstacleDesign} in ${installation.location.city}, ${installation.location.country}`;
   const imageUrl = installation.coverImage || "https://gnars.com/logo-banner.jpg";
-  const canonicalUrl = `https://gnars.com/installations/${slug}`;
+  const path = `/installations/${slug}`;
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
 
   return {
     title: `${installation.title} - ${installation.location.city} | Gnars Installations`,
     description,
     alternates: {
-      canonical: canonicalUrl,
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
     },
     openGraph: {
       title: `${installation.title} - ${installation.location.city}`,
       description,
       images: [imageUrl],
       type: "article",
-      url: canonicalUrl,
+      url: `https://gnars.com${canonical}`,
       siteName: "Gnars",
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
     },
     twitter: {
       card: "summary_large_image",

@@ -5,7 +5,12 @@ export const alt = "Gnars Mural";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default function Image() {
+export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const heading = locale === "pt-br" ? "Mural Gnars" : "Gnars Mural";
+  const subheading =
+    locale === "pt-br" ? "Galeria de Arte NFT Interativa" : "Interactive NFT Art Gallery";
+
   return new ImageResponse(
     (
       <div
@@ -29,7 +34,7 @@ export default function Image() {
             letterSpacing: "-0.02em",
           }}
         >
-          Gnars Mural
+          {heading}
         </div>
         <div
           style={{
@@ -39,7 +44,7 @@ export default function Image() {
             textAlign: "center",
           }}
         >
-          Interactive NFT Art Gallery
+          {subheading}
         </div>
         <div
           style={{

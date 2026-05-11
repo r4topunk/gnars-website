@@ -15,9 +15,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const post = getPostBySlug("blog", slug);
 
   if (!post) {
@@ -26,6 +26,8 @@ export async function generateMetadata({
     };
   }
 
+  const path = `/${slug}`;
+  const canonical = locale === "en" ? path : `/pt-br${path}`;
   return {
     title: `${post.metadata.title} | Gnars`,
     description: post.metadata.description,
@@ -33,10 +35,19 @@ export async function generateMetadata({
       index: true,
       follow: true,
     },
+    alternates: {
+      canonical,
+      languages: {
+        en: path,
+        "pt-br": `/pt-br${path}`,
+        "x-default": path,
+      },
+    },
     openGraph: {
       title: `${post.metadata.title} | Gnars`,
       description: post.metadata.description,
       type: "article",
+      locale: locale === "pt-br" ? "pt_BR" : "en_US",
       images: [
         {
           url: "/logo-banner.jpg",
