@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Maximize, Minimize, Share2, Volume2, VolumeX } from "lucide-react";
 import { BuyAllModal } from "./BuyAllModal";
 import { TVInfiniteMenu } from "./TVInfiniteMenu";
@@ -48,6 +49,8 @@ export function TVControls({
   onBuyAllModalChange,
   sharedStrategy,
 }: TVControlsProps) {
+  const t = useTranslations("tv");
+
   // Uncontrolled fallback for backward compatibility
   const [localModalState, setLocalModalState] = useState(false);
   const isControlled = showBuyAllModal !== undefined;
@@ -74,12 +77,15 @@ export function TVControls({
       >
         <ControlButton
           onClick={onToggleFullscreen}
-          ariaLabel={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          ariaLabel={isFullscreen ? t("controls.exitFullscreen") : t("controls.enterFullscreen")}
         >
           {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
         </ControlButton>
 
-        <ControlButton onClick={onTogglePlayPause} ariaLabel={isPaused ? "Play" : "Pause"}>
+        <ControlButton
+          onClick={onTogglePlayPause}
+          ariaLabel={isPaused ? t("controls.play") : t("controls.pause")}
+        >
           {isPaused ? (
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
@@ -91,11 +97,14 @@ export function TVControls({
           )}
         </ControlButton>
 
-        <ControlButton onClick={onToggleMute} ariaLabel={isMuted ? "Unmute" : "Mute"}>
+        <ControlButton
+          onClick={onToggleMute}
+          ariaLabel={isMuted ? t("controls.unmute") : t("controls.mute")}
+        >
           {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
         </ControlButton>
 
-        <ControlButton onClick={onShare} ariaLabel="Share">
+        <ControlButton onClick={onShare} ariaLabel={t("controls.share")}>
           <Share2 className="w-4 h-4" />
         </ControlButton>
 
@@ -112,7 +121,7 @@ export function TVControls({
         <button
           onClick={() => handleModalChange(true)}
           className="pointer-events-auto w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-black/60 hover:scale-105 active:scale-95 transition-all text-white"
-          aria-label="Buy all content"
+          aria-label={t("controls.buyAll")}
         >
           <svg
             className="w-4 h-4"

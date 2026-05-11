@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { zeroHash } from "viem";
 import { PropdateCardSkeleton } from "@/components/propdates/PropdatesFeedSkeleton";
@@ -22,6 +23,7 @@ interface PropdatesProps {
 }
 
 export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
+  const t = useTranslations("propdates");
   const { propdates, isLoading, isError, refetch } = usePropdates(proposalId);
   const { data: daoMembers } = useDaoMembers();
   const { address } = useUserAddress();
@@ -84,9 +86,9 @@ export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
 
   if (isLoading) {
     return (
-      <Card aria-busy="true" aria-label="Loading propdates">
+      <Card aria-busy="true" aria-label={t("section.loadingAriaLabel")}>
         <CardHeader>
-          <CardTitle>Propdates</CardTitle>
+          <CardTitle>{t("section.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -106,8 +108,8 @@ export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
   if (isError) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>Failed to load propdates. Please try again later.</AlertDescription>
+        <AlertTitle>{t("section.errorTitle")}</AlertTitle>
+        <AlertDescription>{t("section.errorDesc")}</AlertDescription>
       </Alert>
     );
   }
@@ -115,7 +117,7 @@ export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle>Propdates</CardTitle>
+        <CardTitle>{t("section.title")}</CardTitle>
         {canCreatePropdate && (
           <Button
             onClick={handleNewPropdate}
@@ -123,11 +125,11 @@ export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
             size="sm"
           >
             {showForm && !replyingTo ? (
-              "Cancel"
+              t("section.cancel")
             ) : (
               <>
                 <Plus className="mr-1 h-4 w-4" />
-                Create Propdate
+                {t("section.createPropdate")}
               </>
             )}
           </Button>
@@ -185,10 +187,8 @@ export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-muted-foreground">No updates on this proposal yet!</p>
-            <p className="text-sm text-muted-foreground/70 mt-1">
-              The proposer can post progress updates here
-            </p>
+            <p className="text-muted-foreground">{t("section.noUpdatesYet")}</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">{t("section.noUpdatesDesc")}</p>
           </div>
         )}
       </CardContent>

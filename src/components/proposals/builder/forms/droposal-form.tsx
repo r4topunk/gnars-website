@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AlertCircle, ChevronDown, ChevronUp, ExternalLink, Info } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { type ProposalFormValues } from "@/components/proposals/schema";
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export function DroposalForm({ index }: Props) {
+  const t = useTranslations("propose");
   const { address } = useUserAddress();
   const {
     register,
@@ -173,7 +175,7 @@ export function DroposalForm({ index }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-2">Droposal Details</h3>
+        <h3 className="text-lg font-semibold mb-2">{t("droposal.title")}</h3>
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
@@ -184,7 +186,7 @@ export function DroposalForm({ index }: Props) {
               rel="noopener noreferrer"
               className="inline-flex items-center hover:underline"
             >
-              Learn more <ExternalLink className="h-3 w-3 ml-1" />
+              {t("droposal.learnMore")} <ExternalLink className="h-3 w-3 ml-1" />
             </a>
           </AlertDescription>
         </Alert>
@@ -193,14 +195,14 @@ export function DroposalForm({ index }: Props) {
       {/* Basic Information */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Basic Information</CardTitle>
+          <CardTitle className="text-base">{t("droposal.basicInfo")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="name">Collection Name *</Label>
+            <Label htmlFor="name">{t("droposal.collectionNameLabel")}</Label>
             <Input
               id="name"
-              placeholder="Gnars Special Edition"
+              placeholder={t("droposal.collectionNamePlaceholder")}
               {...register(`transactions.${index}.name` as const)}
             />
             {getErrorMessage("name") && (
@@ -209,10 +211,10 @@ export function DroposalForm({ index }: Props) {
           </div>
 
           <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="symbol">Collection Symbol *</Label>
+            <Label htmlFor="symbol">{t("droposal.collectionSymbolLabel")}</Label>
             <Input
               id="symbol"
-              placeholder="GNARSSE"
+              placeholder={t("droposal.collectionSymbolPlaceholder")}
               {...register(`transactions.${index}.symbol` as const)}
             />
             {getErrorMessage("symbol") && (
@@ -221,10 +223,10 @@ export function DroposalForm({ index }: Props) {
           </div>
 
           <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="collectionDescription">Collection Description *</Label>
+            <Label htmlFor="collectionDescription">{t("droposal.collectionDescLabel")}</Label>
             <Textarea
               id="collectionDescription"
-              placeholder="A special edition drop for the Gnars community..."
+              placeholder={t("droposal.collectionDescPlaceholder")}
               {...register(`transactions.${index}.collectionDescription` as const)}
               rows={3}
             />
@@ -243,30 +245,30 @@ export function DroposalForm({ index }: Props) {
       {/* Pricing & Supply */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Pricing & Supply</CardTitle>
+          <CardTitle className="text-base">{t("droposal.pricingSupply")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid w-full max-w-sm items-center gap-2">
-            <Label htmlFor="price">Price per NFT (ETH) *</Label>
+            <Label htmlFor="price">{t("droposal.priceLabel")}</Label>
             <Input
               id="price"
               type="number"
               step="0.001"
-              placeholder="0.01"
+              placeholder={t("droposal.pricePlaceholder")}
               {...register(`transactions.${index}.price` as const)}
             />
             {getErrorMessage("price") && (
               <p className="text-xs text-red-500">{String(getErrorMessage("price"))}</p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
-              Zora charges 0.000777 ETH per mint as a protocol fee.{" "}
+              {t("droposal.priceHelper")}{" "}
               <a
                 href="https://support.zora.co/en/articles/4981037-zora-mint-collect-fees"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline"
               >
-                Learn more
+                {t("droposal.learnMore")}
               </a>
             </p>
           </div>
@@ -274,11 +276,9 @@ export function DroposalForm({ index }: Props) {
           <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
             <div className="space-y-1">
               <Label htmlFor="use-split" className="text-sm font-semibold cursor-pointer">
-                Use Revenue Split
+                {t("droposal.useRevenueSplit")}
               </Label>
-              <p className="text-xs text-muted-foreground">
-                Create a split contract to share NFT sales revenue among multiple recipients
-              </p>
+              <p className="text-xs text-muted-foreground">{t("droposal.useRevenueSplitDesc")}</p>
             </div>
             <Switch id="use-split" checked={useSplit} onCheckedChange={handleUseSplitChange} />
           </div>
@@ -287,7 +287,7 @@ export function DroposalForm({ index }: Props) {
             // Direct payout address (original behavior)
             <>
               <div className="grid w-full max-w-sm items-center gap-2">
-                <Label htmlFor="payoutAddress">Payout Address</Label>
+                <Label htmlFor="payoutAddress">{t("droposal.payoutAddressLabel")}</Label>
                 <Input
                   id="payoutAddress"
                   placeholder={`0x... or ENS name (defaults to ${DAO_ADDRESSES.treasury.slice(0, 6)}...)`}
@@ -296,9 +296,7 @@ export function DroposalForm({ index }: Props) {
                 {getErrorMessage("payoutAddress") && (
                   <p className="text-xs text-red-500">{String(getErrorMessage("payoutAddress"))}</p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Address that receives mint proceeds and royalties (defaults to DAO treasury)
-                </p>
+                <p className="text-xs text-muted-foreground">{t("droposal.payoutAddressHelper")}</p>
               </div>
             </>
           ) : (
@@ -324,13 +322,13 @@ export function DroposalForm({ index }: Props) {
                   <AlertDescription>
                     <div className="space-y-2">
                       <strong className="text-green-900 dark:text-green-100">
-                        ✅ Split Contract Created
+                        {t("droposal.splitCreated")}
                       </strong>
                       <code className="block bg-white dark:bg-gray-900 px-2 py-1 rounded text-xs border font-mono">
                         {createdSplitAddress}
                       </code>
                       <p className="text-xs text-green-900 dark:text-green-100">
-                        This address will receive NFT sales and be included in the proposal.
+                        {t("droposal.splitCreatedDesc")}
                       </p>
                       <a
                         href={`https://app.splits.org/accounts/${createdSplitAddress}/?chainId=8453`}
@@ -338,7 +336,7 @@ export function DroposalForm({ index }: Props) {
                         rel="noopener noreferrer"
                         className="inline-flex items-center text-xs text-green-700 dark:text-green-300 hover:underline"
                       >
-                        View on Splits.org →
+                        {t("droposal.viewOnSplits")}
                       </a>
                     </div>
                   </AlertDescription>
@@ -358,7 +356,7 @@ export function DroposalForm({ index }: Props) {
             className="w-full flex items-center justify-between hover:bg-muted"
             onClick={() => setShowAdvanced(!showAdvanced)}
           >
-            <CardTitle className="text-base">Advanced Options</CardTitle>
+            <CardTitle className="text-base">{t("droposal.advancedOptions")}</CardTitle>
             {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </CardHeader>
@@ -367,9 +365,9 @@ export function DroposalForm({ index }: Props) {
           <CardContent className="space-y-6">
             {/* Sale Timing */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm">Sale Timing</h4>
+              <h4 className="font-semibold text-sm">{t("droposal.saleTiming")}</h4>
               <div className="grid w-full max-w-sm items-center gap-2">
-                <Label htmlFor="startTime">Sale Start Time</Label>
+                <Label htmlFor="startTime">{t("droposal.saleStartLabel")}</Label>
                 <Input
                   id="startTime"
                   type="datetime-local"
@@ -378,14 +376,11 @@ export function DroposalForm({ index }: Props) {
                 {getErrorMessage("startTime") && (
                   <p className="text-xs text-red-500">{String(getErrorMessage("startTime"))}</p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Auto-calculated based on proposal timeline: voting delay + voting period +
-                  timelock delay + 1 day buffer.
-                </p>
+                <p className="text-xs text-muted-foreground">{t("droposal.saleStartHelper")}</p>
               </div>
 
               <div className="grid w-full max-w-sm items-center gap-2">
-                <Label htmlFor="endTime">Sale End Time</Label>
+                <Label htmlFor="endTime">{t("droposal.saleEndLabel")}</Label>
                 <Input
                   id="endTime"
                   type="datetime-local"
@@ -394,17 +389,15 @@ export function DroposalForm({ index }: Props) {
                 {getErrorMessage("endTime") && (
                   <p className="text-xs text-red-500">{String(getErrorMessage("endTime"))}</p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Leave empty for no end time (indefinite sale).
-                </p>
+                <p className="text-xs text-muted-foreground">{t("droposal.saleEndHelper")}</p>
               </div>
             </div>
 
             {/* Edition Settings */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm">Edition Settings</h4>
+              <h4 className="font-semibold text-sm">{t("droposal.editionSettings")}</h4>
               <div>
-                <Label>Edition Type</Label>
+                <Label>{t("droposal.editionTypeLabel")}</Label>
                 <RadioGroup
                   value={editionType}
                   onValueChange={handleEditionTypeChange}
@@ -412,25 +405,25 @@ export function DroposalForm({ index }: Props) {
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="open" id="open" />
-                    <Label htmlFor="open">Open Edition (Unlimited)</Label>
+                    <Label htmlFor="open">{t("droposal.openEdition")}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="fixed" id="fixed" />
-                    <Label htmlFor="fixed">Fixed Edition (Limited Supply)</Label>
+                    <Label htmlFor="fixed">{t("droposal.fixedEdition")}</Label>
                   </div>
                 </RadioGroup>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Open edition allows unlimited mints. Fixed edition has a maximum supply.
+                  {t("droposal.editionTypeHelper")}
                 </p>
               </div>
 
               {editionType === "fixed" && (
                 <div className="grid w-full max-w-sm items-center gap-2">
-                  <Label htmlFor="editionSize">Edition Size *</Label>
+                  <Label htmlFor="editionSize">{t("droposal.editionSizeLabel")}</Label>
                   <Input
                     id="editionSize"
                     type="number"
-                    placeholder="100"
+                    placeholder={t("droposal.editionSizePlaceholder")}
                     {...register(`transactions.${index}.editionSize` as const)}
                   />
                   {getErrorMessage("editionSize") && (
@@ -442,15 +435,15 @@ export function DroposalForm({ index }: Props) {
 
             {/* Royalty Settings */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm">Royalty Settings</h4>
+              <h4 className="font-semibold text-sm">{t("droposal.royaltySettings")}</h4>
               <div className="grid w-full max-w-sm items-center gap-2">
-                <Label htmlFor="royaltyPercentage">Royalty (Basis Points)</Label>
+                <Label htmlFor="royaltyPercentage">{t("droposal.royaltyLabel")}</Label>
                 <Input
                   id="royaltyPercentage"
                   type="number"
                   min="0"
                   max="10000"
-                  placeholder="5000"
+                  placeholder={t("droposal.royaltyPlaceholder")}
                   {...register(`transactions.${index}.royaltyPercentage` as const)}
                 />
                 {getErrorMessage("royaltyPercentage") && (
@@ -458,29 +451,25 @@ export function DroposalForm({ index }: Props) {
                     {String(getErrorMessage("royaltyPercentage"))}
                   </p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Default: 5000 (50%). Percentage of secondary sales. 10000 = 100%.
-                </p>
+                <p className="text-xs text-muted-foreground">{t("droposal.royaltyHelper")}</p>
               </div>
             </div>
 
             {/* Addresses */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm">Address Configuration</h4>
+              <h4 className="font-semibold text-sm">{t("droposal.addressConfig")}</h4>
 
               <div className="grid w-full max-w-sm items-center gap-2">
-                <Label htmlFor="defaultAdmin">Admin Address</Label>
+                <Label htmlFor="defaultAdmin">{t("droposal.adminLabel")}</Label>
                 <Input
                   id="defaultAdmin"
-                  placeholder="0x... or ENS name"
+                  placeholder={t("droposal.adminPlaceholder")}
                   {...register(`transactions.${index}.defaultAdmin` as const)}
                 />
                 {getErrorMessage("defaultAdmin") && (
                   <p className="text-xs text-red-500">{String(getErrorMessage("defaultAdmin"))}</p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Address that can manage the collection (defaults to connected wallet)
-                </p>
+                <p className="text-xs text-muted-foreground">{t("droposal.adminHelper")}</p>
               </div>
             </div>
           </CardContent>

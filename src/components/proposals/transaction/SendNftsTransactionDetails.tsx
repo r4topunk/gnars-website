@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { AlertCircle, ArrowRight } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
@@ -10,6 +11,7 @@ interface SendNftsTransactionDetailsProps {
 }
 
 export function SendNftsTransactionDetails({ transaction }: SendNftsTransactionDetailsProps) {
+  const t = useTranslations("proposals.txDetails");
   if (transaction.type !== "send-nfts") return null;
 
   const { nftImage, tokenId, from, to } = transaction;
@@ -30,7 +32,7 @@ export function SendNftsTransactionDetails({ transaction }: SendNftsTransactionD
           </div>
           <div>
             <p className="text-sm font-semibold">Gnar #{tokenId}</p>
-            <p className="text-xs text-muted-foreground">Gnars NFT Collection</p>
+            <p className="text-xs text-muted-foreground">{t("gnarsNftCollection")}</p>
           </div>
         </div>
       )}
@@ -38,10 +40,10 @@ export function SendNftsTransactionDetails({ transaction }: SendNftsTransactionD
       {/* Transfer Flow */}
       <div className="flex flex-col md:flex-row md:items-center gap-3">
         <div className="flex-1">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">From</p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{t("from")}</p>
           <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
             <div>
-              <p className="text-sm font-medium">DAO Treasury</p>
+              <p className="text-sm font-medium">{t("daoTreasury")}</p>
               <p className="text-xs text-muted-foreground font-mono">
                 {from ? `${from.slice(0, 6)}...${from.slice(-4)}` : ""}
               </p>
@@ -51,11 +53,11 @@ export function SendNftsTransactionDetails({ transaction }: SendNftsTransactionD
 
         <div className="flex flex-col items-center">
           <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 md:rotate-0" />
-          <div className="text-xs text-muted-foreground mt-1">NFT</div>
+          <div className="text-xs text-muted-foreground mt-1">{t("nft")}</div>
         </div>
 
         <div className="flex-1">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">To</p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{t("to")}</p>
           {to ? (
             <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
               <AddressDisplay
@@ -74,7 +76,7 @@ export function SendNftsTransactionDetails({ transaction }: SendNftsTransactionD
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-3 w-3 text-amber-600 dark:text-amber-400" />
                 <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                  Not set
+                  {t("notSet")}
                 </span>
               </div>
             </div>

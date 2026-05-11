@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { usePerformanceTracking } from "./useVideoPreloader";
 
@@ -47,6 +48,7 @@ export function TVVideoPlayer({
   onLoadedData,
   index,
 }: TVVideoPlayerProps) {
+  const t = useTranslations("tv");
   const videoRef = useRef<HTMLVideoElement>(null);
   const [loadState, setLoadState] = useState<LoadState>("idle");
 
@@ -267,7 +269,7 @@ export function TVVideoPlayer({
           <div className="relative w-16 h-16">
             <Image
               src="/loading.gif"
-              alt="Loading"
+              alt={t("player.loading")}
               width={64}
               height={64}
               className="object-contain"
@@ -285,7 +287,7 @@ export function TVVideoPlayer({
                 />
               </div>
               <p className="text-white/50 text-xs text-center mt-1">
-                {loadState === "waiting" ? "Buffering..." : `${loadProgress}%`}
+                {loadState === "waiting" ? t("player.buffering") : `${loadProgress}%`}
               </p>
             </div>
           )}
@@ -322,7 +324,7 @@ export function TVVideoPlayer({
       {loadState === "error" && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/80">
           <div className="text-center text-white/60">
-            <p className="text-sm">Unable to load video</p>
+            <p className="text-sm">{t("player.errorUnable")}</p>
             <button
               onClick={() => {
                 setLoadState("idle");
@@ -330,7 +332,7 @@ export function TVVideoPlayer({
               }}
               className="mt-2 px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-xs transition-colors"
             >
-              Tap to retry
+              {t("player.tapToRetry")}
             </button>
           </div>
         </div>

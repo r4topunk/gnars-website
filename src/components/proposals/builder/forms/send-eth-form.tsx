@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +12,7 @@ interface Props {
 }
 
 export function SendEthForm({ index }: Props) {
+  const t = useTranslations("propose");
   const {
     register,
     formState: { errors },
@@ -23,10 +27,10 @@ export function SendEthForm({ index }: Props) {
   return (
     <div className="space-y-4">
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="target">Recipient Address *</Label>
+        <Label htmlFor="target">{t("sendEth.recipientLabel")}</Label>
         <Input
           id="target"
-          placeholder="0x... or ENS name"
+          placeholder={t("sendEth.recipientPlaceholder")}
           {...register(`transactions.${index}.target` as const)}
         />
         {getErrorMessage("target") && (
@@ -35,12 +39,12 @@ export function SendEthForm({ index }: Props) {
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="value">Amount (ETH) *</Label>
+        <Label htmlFor="value">{t("sendEth.amountLabel")}</Label>
         <Input
           id="value"
           type="number"
           step="0.001"
-          placeholder="0.0"
+          placeholder={t("sendEth.amountPlaceholder")}
           {...register(`transactions.${index}.value` as const)}
         />
         {getErrorMessage("value") && (
@@ -49,10 +53,10 @@ export function SendEthForm({ index }: Props) {
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">{t("sendEth.descriptionLabel")}</Label>
         <Textarea
           id="description"
-          placeholder="Describe the purpose of this payment..."
+          placeholder={t("sendEth.descriptionPlaceholder")}
           {...register(`transactions.${index}.description` as const)}
         />
       </div>

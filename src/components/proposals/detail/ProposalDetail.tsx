@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { VotingControls } from "@/components/common/VotingControls";
 import { Propdates } from "@/components/proposals/detail/Propdates";
 import { ProposalActions } from "@/components/proposals/detail/ProposalActions";
@@ -52,6 +53,7 @@ export function ProposalDetailSkeleton() {
 export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const router = useRouter();
   const { address } = useUserAddress();
+  const t = useTranslations("proposals");
 
   // Detect proposal source for conditional rendering
   const proposalSource = (proposal as MultiChainProposal).source || "base";
@@ -246,10 +248,10 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       {isReadOnly && (
         <div className="flex items-center gap-2 rounded-lg border border-muted bg-muted/40 px-4 py-2.5 text-sm text-muted-foreground">
           <span className="font-medium text-foreground">
-            {isSnapshot ? "Snapshot" : "Ethereum"}
+            {isSnapshot ? t("detail.readOnly.snapshot") : t("detail.readOnly.ethereum")}
           </span>
           <span className="text-muted-foreground/40">|</span>
-          Historical proposal — governance now happens on Base L2
+          {t("detail.historicalProposal")}
         </div>
       )}
       <ProposalMetrics
@@ -266,7 +268,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
         <Card id="voting-section">
           <CardHeader>
             <CardTitle suppressHydrationWarning>
-              {currentVote ? "Your Vote" : "Cast Your Vote"}
+              {currentVote ? t("detail.yourVote") : t("detail.castYourVote")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -294,9 +296,11 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
             <TabsList
               className={`grid w-full ${visibleTabsCount === 2 ? "grid-cols-2" : "grid-cols-3"} min-w-fit`}
             >
-              <TabsTrigger value="details">Details</TabsTrigger>
-              {shouldShowVotesTab && <TabsTrigger value="votes">Votes</TabsTrigger>}
-              {shouldShowPropdatesTab && <TabsTrigger value="propdates">Propdates</TabsTrigger>}
+              <TabsTrigger value="details">{t("detail.details")}</TabsTrigger>
+              {shouldShowVotesTab && <TabsTrigger value="votes">{t("detail.votes")}</TabsTrigger>}
+              {shouldShowPropdatesTab && (
+                <TabsTrigger value="propdates">{t("detail.propdatesTab")}</TabsTrigger>
+              )}
             </TabsList>
           </div>
         )}
@@ -305,7 +309,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
           {hasTransactionData && (
             <Card>
               <CardHeader>
-                <CardTitle>Proposed Transactions</CardTitle>
+                <CardTitle>{t("detail.proposedTransactions")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ProposalTransactionVisualization

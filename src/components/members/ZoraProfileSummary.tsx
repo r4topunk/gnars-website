@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ExternalLink, Minus, Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { FaEthereum } from "react-icons/fa";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -57,6 +58,7 @@ export function ZoraProfileSummary({
   loading = false,
   className,
 }: ZoraProfileSummaryProps) {
+  const t = useTranslations("members");
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [ethAmount, setEthAmount] = useState(0.001);
   const { buyCreatorCoin, isTrading } = useTradeCreatorCoin();
@@ -87,11 +89,19 @@ export function ZoraProfileSummary({
   };
 
   if (loading) {
-    return <div className={cn("text-xs text-muted-foreground", className)}>Loading Zora...</div>;
+    return (
+      <div className={cn("text-xs text-muted-foreground", className)}>
+        {t("detail.zora.loading")}
+      </div>
+    );
   }
 
   if (!profile) {
-    return <div className={cn("text-xs text-muted-foreground", className)}>Zora: Not linked</div>;
+    return (
+      <div className={cn("text-xs text-muted-foreground", className)}>
+        {t("detail.zora.notLinked")}
+      </div>
+    );
   }
 
   const displayName = profile.displayName || profile.handle;
@@ -128,7 +138,7 @@ export function ZoraProfileSummary({
                 className="cursor-pointer bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
                 onClick={() => setShowBuyModal(true)}
               >
-                Buy Creator Coin
+                {t("detail.zora.buyCoin")}
                 <ExternalLink className="ml-1 h-3 w-3" />
               </Badge>
             )}
@@ -137,7 +147,7 @@ export function ZoraProfileSummary({
             <div className={cn("mt-1", styles.meta)}>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <span>{marketCapFormatted}</span>
-                <span>mcap</span>
+                <span>{t("detail.zora.mcap")}</span>
                 {deltaInfo && (
                   <span
                     className={cn(
@@ -156,7 +166,9 @@ export function ZoraProfileSummary({
               </div>
             </div>
           ) : (
-            <div className={cn("mt-1 text-muted-foreground", styles.meta)}>No creator coin</div>
+            <div className={cn("mt-1 text-muted-foreground", styles.meta)}>
+              {t("detail.zora.noCreatorCoin")}
+            </div>
           )}
         </div>
       </div>
@@ -164,10 +176,11 @@ export function ZoraProfileSummary({
       <Dialog open={showBuyModal} onOpenChange={setShowBuyModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Buy Creator Coin</DialogTitle>
+            <DialogTitle>{t("coins.card.modal.title")}</DialogTitle>
             <DialogDescription>
-              Purchase {profile.displayName || profile.handle || "this creator"}&apos;s token with
-              ETH
+              {t("coins.card.modal.description", {
+                name: profile.displayName || profile.handle || "this creator",
+              })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
@@ -218,18 +231,18 @@ export function ZoraProfileSummary({
               ))}
             </div>
             <p className="text-xs text-muted-foreground text-center">
-              Market Cap: {marketCapFormatted}
+              {t("coins.card.modal.marketCap", { value: marketCapFormatted })}
             </p>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setShowBuyModal(false)} className="flex-1">
-                Cancel
+                {t("coins.card.cancel")}
               </Button>
               <Button
                 onClick={handleBuy}
                 disabled={isTrading || ethAmount <= 0}
                 className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
               >
-                {isTrading ? "Buying..." : "Buy"}
+                {isTrading ? t("coins.card.buying") : t("coins.card.buy")}
               </Button>
             </div>
           </div>

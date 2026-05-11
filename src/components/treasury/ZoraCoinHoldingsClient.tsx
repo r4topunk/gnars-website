@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -64,6 +65,7 @@ function formatCompactNumber(value: number): string {
 }
 
 export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientProps) {
+  const t = useTranslations("treasury");
   const totalValue = coins.reduce((sum, coin) => sum + coin.usdValue, 0);
 
   // Log coin images for debugging
@@ -76,8 +78,8 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Zora Coins</CardTitle>
-          <CardDescription>Zora coins held in the treasury</CardDescription>
+          <CardTitle>{t("zoraCoin.title")}</CardTitle>
+          <CardDescription>{t("zoraCoin.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Alert variant="destructive">
@@ -92,11 +94,11 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Zora Coins</CardTitle>
-          <CardDescription>Zora coins held in the treasury</CardDescription>
+          <CardTitle>{t("zoraCoin.title")}</CardTitle>
+          <CardDescription>{t("zoraCoin.description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No Zora coins found in treasury</p>
+          <p className="text-sm text-muted-foreground">{t("zoraCoin.empty")}</p>
         </CardContent>
       </Card>
     );
@@ -105,10 +107,9 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Zora Coins</CardTitle>
+        <CardTitle>{t("zoraCoin.title")}</CardTitle>
         <CardDescription>
-          {coins.length} {coins.length === 1 ? "coin" : "coins"} · Total value:{" "}
-          {formatUSD(totalValue)}
+          {t("zoraCoin.coinCount", { count: coins.length, value: formatUSD(totalValue) })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -116,13 +117,13 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Coin</TableHead>
-                <TableHead className="text-right">Balance</TableHead>
-                <TableHead className="text-right">Value (USD)</TableHead>
-                <TableHead className="text-right">Market Cap</TableHead>
-                <TableHead className="text-right">24h Volume</TableHead>
-                <TableHead className="text-right">Creator</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("zoraCoin.table.coin")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.balance")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.valueUsd")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.marketCap")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.volume24h")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.creator")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -176,7 +177,7 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
                     >
-                      View
+                      {t("zoraCoin.view")}
                       <ExternalLink className="h-3 w-3" />
                     </a>
                   </TableCell>

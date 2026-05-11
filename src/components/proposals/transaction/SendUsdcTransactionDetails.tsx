@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { AlertCircle, ArrowRight } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { DAO_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
@@ -10,6 +11,7 @@ interface SendUsdcTransactionDetailsProps {
 }
 
 export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionDetailsProps) {
+  const t = useTranslations("proposals.txDetails");
   if (transaction.type !== "send-usdc") return null;
 
   const { recipient, amount } = transaction;
@@ -20,10 +22,10 @@ export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionD
       {/* Transfer Flow Visualization */}
       <div className="flex flex-col md:flex-row md:items-center gap-3">
         <div className="flex-1">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">From</p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{t("from")}</p>
           <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
             <div>
-              <p className="text-sm font-medium">DAO Treasury</p>
+              <p className="text-sm font-medium">{t("daoTreasury")}</p>
               <p className="text-xs text-muted-foreground font-mono">
                 {DAO_ADDRESSES.treasury.slice(0, 6)}...{DAO_ADDRESSES.treasury.slice(-4)}
               </p>
@@ -39,7 +41,7 @@ export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionD
         </div>
 
         <div className="flex-1">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">To</p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{t("to")}</p>
           {recipient ? (
             <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
               <AddressDisplay
@@ -58,7 +60,7 @@ export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionD
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-3 w-3 text-amber-600 dark:text-amber-400" />
                 <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                  Not set
+                  {t("notSet")}
                 </span>
               </div>
             </div>
@@ -68,7 +70,7 @@ export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionD
 
       <div className="px-3 py-2 rounded-lg bg-muted/50">
         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
-          Token Contract
+          {t("tokenContract")}
         </p>
         <AddressDisplay
           address={tokenAddress}

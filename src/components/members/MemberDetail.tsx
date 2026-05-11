@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
@@ -57,6 +58,7 @@ interface MemberDetailProps {
 }
 
 export function MemberDetail({ address }: MemberDetailProps) {
+  const t = useTranslations("members");
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -264,7 +266,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Farcaster</CardTitle>
+            <CardTitle className="text-base">{t("detail.farcaster.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <FarcasterProfileSummary
@@ -278,7 +280,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Zora</CardTitle>
+            <CardTitle className="text-base">{t("detail.zora.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ZoraProfileSummary profile={zoraProfile} size="md" />
@@ -298,11 +300,11 @@ export function MemberDetail({ address }: MemberDetailProps) {
       {/* Tabs for detail lists */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="proposals">Proposals</TabsTrigger>
-          <TabsTrigger value="votes">Votes</TabsTrigger>
-          <TabsTrigger value="tokens">Tokens</TabsTrigger>
-          <TabsTrigger value="coins">Created Coins</TabsTrigger>
-          <TabsTrigger value="delegates">Delegates</TabsTrigger>
+          <TabsTrigger value="proposals">{t("detail.tabs.proposals")}</TabsTrigger>
+          <TabsTrigger value="votes">{t("detail.tabs.votes")}</TabsTrigger>
+          <TabsTrigger value="tokens">{t("detail.tabs.tokens")}</TabsTrigger>
+          <TabsTrigger value="coins">{t("detail.tabs.coins")}</TabsTrigger>
+          <TabsTrigger value="delegates">{t("detail.tabs.delegates")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="proposals" className="mt-6">

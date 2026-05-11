@@ -1,6 +1,7 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ProposalsGrid } from "@/components/proposals/ProposalsGrid";
 import { Proposal } from "@/components/proposals/types";
@@ -82,6 +83,7 @@ const SOURCE_CONFIG: Record<
 const ALL_SOURCES: ProposalSource[] = ["base", "ethereum", "snapshot"];
 
 export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
+  const t = useTranslations("proposals");
   const ALL_STATUSES = useMemo(() => Object.values(ProposalStatus) as ProposalStatus[], []);
 
   const [activeStatuses, setActiveStatuses] = useState<Set<ProposalStatus>>(
@@ -288,14 +290,14 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Proposals</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("page.title")}</h1>
         <p className="text-muted-foreground mt-1">
-          How the community funds skateboarding projects, media, and public work.{" "}
+          {t("page.description")}{" "}
           <Link
             href="/about"
             className="text-foreground underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground transition-colors"
           >
-            Learn more
+            {t("page.learnMore")}
           </Link>
         </p>
       </div>
@@ -308,7 +310,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
-              placeholder="Search proposals..."
+              placeholder={t("filters.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={initSearchWorker}
@@ -350,7 +352,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
         {/* Row 2: Chain toggle pills */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider mr-0.5">
-            Chain
+            {t("filters.chain")}
           </span>
           {ALL_SOURCES.map((source) => {
             const config = SOURCE_CONFIG[source];
@@ -391,7 +393,10 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
 
           {filteredProposals.length !== mergedProposals.length && (
             <span className="text-xs text-muted-foreground ml-auto tabular-nums">
-              {filteredProposals.length} of {mergedProposals.length}
+              {t("filters.showing", {
+                visible: filteredProposals.length,
+                total: mergedProposals.length,
+              })}
             </span>
           )}
         </div>
@@ -421,6 +426,7 @@ function StatusFilter({
   onClearAll: () => void;
   onSelectDefault: () => void;
 }) {
+  const t = useTranslations("proposals");
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -430,7 +436,7 @@ function StatusFilter({
           className={cn("gap-1.5 shrink-0", isFiltered && "border-foreground/20")}
         >
           <SlidersHorizontal className="size-3.5" />
-          Status
+          {t("filters.status")}
           {isFiltered && (
             <Badge
               variant="secondary"
@@ -460,7 +466,7 @@ function StatusFilter({
                       onCheckedChange={() => onToggleStatus(status)}
                     />
                     <Label htmlFor={id} className="text-sm font-normal leading-none cursor-pointer">
-                      {status}
+                      {t(`status.${status}` as `status.${ProposalStatus}`)}
                     </Label>
                   </label>
                 );
@@ -474,13 +480,13 @@ function StatusFilter({
             className="flex-1 h-7 text-xs"
             onClick={onSelectDefault}
           >
-            Default
+            {t("filters.default")}
           </Button>
           <Button variant="ghost" size="sm" className="flex-1 h-7 text-xs" onClick={onSelectAll}>
-            All
+            {t("filters.all")}
           </Button>
           <Button variant="ghost" size="sm" className="flex-1 h-7 text-xs" onClick={onClearAll}>
-            None
+            {t("filters.none")}
           </Button>
         </div>
       </PopoverContent>

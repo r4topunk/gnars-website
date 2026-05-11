@@ -7,6 +7,7 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -26,18 +27,19 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function MemberActivityChart() {
+  const t = useTranslations("treasury");
   const { data: proposalBars = [], isLoading, error } = useMemberActivity(12);
 
   if (error) {
     return (
       <Card className="flex flex-col">
         <CardHeader>
-          <CardTitle>Member Activity</CardTitle>
-          <CardDescription>Unable to load member activity data</CardDescription>
+          <CardTitle>{t("charts.memberActivity.title")}</CardTitle>
+          <CardDescription>{t("charts.memberActivity.errorDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
           <div className="flex h-[200px] items-center justify-center text-muted-foreground">
-            Failed to load data
+            {t("charts.memberActivity.loadFailed")}
           </div>
         </CardContent>
       </Card>
@@ -49,8 +51,8 @@ export function MemberActivityChart() {
       <Card className="flex flex-col">
         <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
           <div className="grid flex-1 gap-1 text-center sm:text-left">
-            <CardTitle>Member Activity</CardTitle>
-            <CardDescription>Voters per recent proposals (excluding cancelled)</CardDescription>
+            <CardTitle>{t("charts.memberActivity.title")}</CardTitle>
+            <CardDescription>{t("charts.memberActivity.description")}</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
@@ -64,8 +66,8 @@ export function MemberActivityChart() {
     <Card className="flex flex-col overflow-hidden">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Member Activity</CardTitle>
-          <CardDescription>Voters per recent proposals (excluding cancelled)</CardDescription>
+          <CardTitle>{t("charts.memberActivity.title")}</CardTitle>
+          <CardDescription>{t("charts.memberActivity.description")}</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0 overflow-hidden">

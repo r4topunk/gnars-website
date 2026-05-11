@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { FarcasterProfile } from "@/services/farcaster";
@@ -38,15 +39,21 @@ export function FarcasterProfileSummary({
   loading = false,
   className,
 }: FarcasterProfileSummaryProps) {
+  const t = useTranslations("members");
+
   if (loading) {
     return (
-      <div className={cn("text-xs text-muted-foreground", className)}>Loading Farcaster...</div>
+      <div className={cn("text-xs text-muted-foreground", className)}>
+        {t("detail.farcaster.loading")}
+      </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className={cn("text-xs text-muted-foreground", className)}>Farcaster: Not linked</div>
+      <div className={cn("text-xs text-muted-foreground", className)}>
+        {t("detail.farcaster.notLinked")}
+      </div>
     );
   }
 
@@ -72,8 +79,10 @@ export function FarcasterProfileSummary({
           ) : null}
         </div>
         <div className={cn("text-muted-foreground", styles.meta)}>
-          {formatCount(profile.followerCount)} followers / {formatCount(profile.followingCount)}{" "}
-          following
+          {t("detail.farcaster.followersFollowing", {
+            followers: formatCount(profile.followerCount),
+            following: formatCount(profile.followingCount),
+          })}
         </div>
         {profile.bio ? (
           <div className={cn("mt-1 text-muted-foreground", styles.meta, bioClass)}>

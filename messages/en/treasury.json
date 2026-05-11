@@ -1,1 +1,70 @@
-{}
+{
+  "page": {
+    "title": "Treasury",
+    "description": "Overview of the Gnars DAO treasury holdings and financial position",
+    "kpis": {
+      "totalValue": "Total Treasury Value",
+      "ethBalance": "ETH Balance",
+      "totalAuctions": "Total Auction Sales"
+    },
+    "nftSection": {
+      "title": "NFT Holdings",
+      "description": "Non-fungible tokens held in the treasury"
+    }
+  },
+  "tokens": {
+    "title": "Token Holdings",
+    "description": "ERC-20 tokens held in the treasury",
+    "table": {
+      "token": "Token",
+      "amount": "Amount",
+      "valueUsd": "Value (USD)"
+    },
+    "empty": "No tokens found",
+    "emptyDescription": "The treasury currently holds no ERC-20 tokens",
+    "errorLoading": "Error loading token holdings: {error}"
+  },
+  "zoraCoin": {
+    "title": "Zora Coins",
+    "description": "Zora coins held in the treasury",
+    "coinCount": "{count, plural, one {# coin} other {# coins}} · Total value: {value}",
+    "table": {
+      "coin": "Coin",
+      "balance": "Balance",
+      "valueUsd": "Value (USD)",
+      "marketCap": "Market Cap",
+      "volume24h": "24h Volume",
+      "creator": "Creator",
+      "actions": "Actions"
+    },
+    "empty": "No Zora coins found in treasury",
+    "view": "View"
+  },
+  "nfts": {
+    "title": "Gnars in Treasury",
+    "count": "{count, plural, one {# Gnar found} other {# Gnars found}}",
+    "empty": "No NFTs found",
+    "emptyDescription": "The treasury currently holds no Gnars",
+    "errorLoading": "Error loading NFT holdings: {error}"
+  },
+  "charts": {
+    "auctionRevenue": {
+      "title": "Auction Revenue",
+      "description": "ETH earned from auctions per month",
+      "errorDescription": "Unable to load auction data",
+      "loadFailed": "Failed to load data"
+    },
+    "proposalActivity": {
+      "title": "Proposal Activity",
+      "description": "Proposals per month over the last 12 months",
+      "errorDescription": "Unable to load proposal data",
+      "loadFailed": "Failed to load data"
+    },
+    "memberActivity": {
+      "title": "Member Activity",
+      "description": "Voters per recent proposals (excluding cancelled)",
+      "errorDescription": "Unable to load member activity data",
+      "loadFailed": "Failed to load data"
+    }
+  }
+}

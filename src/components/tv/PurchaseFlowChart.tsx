@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { FaEthereum } from "react-icons/fa";
 import { GNARS_CREATOR_COIN } from "@/lib/config";
 import type { TVItem } from "./types";
@@ -76,12 +77,13 @@ function CoinNode({ item, x, y, index }: { item: TVItem; x: number; y: number; i
 }
 
 export function PurchaseFlowChart({ items, ethPerCoin, totalEth }: PurchaseFlowChartProps) {
+  const t = useTranslations("tv");
   const validItems = useMemo(() => items.filter((item) => item.coinAddress), [items]);
 
   if (validItems.length === 0) {
     return (
       <div className="flex items-center justify-center h-[400px] text-muted-foreground text-sm">
-        No coins selected for purchase
+        {t("flowChart.noCoins")}
       </div>
     );
   }
@@ -186,7 +188,7 @@ export function PurchaseFlowChart({ items, ethPerCoin, totalEth }: PurchaseFlowC
             textAnchor="middle"
             className="text-[9px] fill-muted-foreground"
           >
-            Your Wallet
+            {t("flowChart.yourWallet")}
           </text>
         </g>
 
@@ -252,18 +254,18 @@ export function PurchaseFlowChart({ items, ethPerCoin, totalEth }: PurchaseFlowC
       <div className="absolute bottom-2 right-2 flex items-center gap-3 text-[10px]">
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded-full bg-[#FBBF23]" />
-          <span className="text-muted-foreground">Content Coin</span>
+          <span className="text-muted-foreground">{t("flowChart.contentCoin")}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded-full bg-green-500" />
-          <span className="text-muted-foreground">Gnars Paired</span>
+          <span className="text-muted-foreground">{t("flowChart.gnarsPaired")}</span>
         </div>
       </div>
 
       {/* Total at bottom left */}
       <div className="absolute bottom-2 left-2 flex items-center gap-1 text-xs font-semibold text-[#FBBF23]">
         <FaEthereum className="w-3 h-3" />
-        {(ethPerCoin * validItems.length).toFixed(6)} ETH total
+        {t("flowChart.ethTotal", { amount: (ethPerCoin * validItems.length).toFixed(6) })}
       </div>
     </div>
   );

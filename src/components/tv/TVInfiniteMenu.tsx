@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Earth, Play, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import ReactBitsInfiniteMenu, { type MenuItem } from "./ReactBitsInfiniteMenu";
@@ -17,6 +18,7 @@ interface TVInfiniteMenuProps {
  * Drag to rotate the sphere, click on any video to navigate
  */
 export function TVInfiniteMenu({ items, currentIndex, onItemClick }: TVInfiniteMenuProps) {
+  const t = useTranslations("tv");
   const [isOpen, setIsOpen] = useState(false);
   const [activeItemIndex, setActiveItemIndex] = useState(currentIndex);
   const [mounted, setMounted] = useState(false);
@@ -119,7 +121,7 @@ export function TVInfiniteMenu({ items, currentIndex, onItemClick }: TVInfiniteM
       <button
         onClick={handleOpen}
         className="pointer-events-auto w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/60 hover:scale-105 active:scale-95 transition-all"
-        aria-label="Open 3D menu"
+        aria-label={t("controls.openMenu")}
       >
         <Earth className="w-4 h-4" />
       </button>
@@ -141,7 +143,7 @@ export function TVInfiniteMenu({ items, currentIndex, onItemClick }: TVInfiniteM
             <button
               onClick={handleClose}
               className="absolute top-6 right-6 z-[60] w-12 h-12 rounded-full bg-[#FBBF23] hover:bg-[#F59E0B] flex items-center justify-center text-black font-bold transition-all shadow-lg"
-              aria-label="Close menu"
+              aria-label={t("controls.closeMenu")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -166,7 +168,7 @@ export function TVInfiniteMenu({ items, currentIndex, onItemClick }: TVInfiniteM
 
             {/* Instructions */}
             <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 text-center text-white/60 text-xs md:text-sm pointer-events-none z-10 px-4">
-              <p className="font-medium">Drag to explore • Click play to watch video</p>
+              <p className="font-medium">{t("menu.dragToExplore")}</p>
               <p className="text-[10px] md:text-xs mt-1 truncate max-w-[90vw]">
                 {items[activeItemIndex]?.title || "Video"}
               </p>

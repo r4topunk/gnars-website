@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
   ArrowRight,
   Camera,
@@ -95,83 +96,90 @@ const TEMPLATES = [
   },
 ] as const;
 
-export default function TemplatesPage() {
+interface TemplatesPageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function TemplatesPage({ params }: TemplatesPageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "propose" });
+
   return (
     <div className="py-8">
       {/* Header */}
       <div className="mb-10">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
           <Link href="/propose" className="hover:text-foreground transition-colors">
-            Create Proposal
+            {t("templates.breadcrumbCreate")}
           </Link>
           <span>/</span>
-          <span className="text-foreground">Templates</span>
+          <span className="text-foreground">{t("templates.breadcrumbTemplates")}</span>
         </div>
 
-        <h1 className="text-3xl font-bold tracking-tight">Proposal Templates</h1>
-        <p className="text-muted-foreground mt-2 max-w-2xl">
-          Start from a proven structure. Each template is based on the 77 proposals that Gnars DAO
-          has already funded — pick the one that fits your idea.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("templates.pageTitle")}</h1>
+        <p className="text-muted-foreground mt-2 max-w-2xl">{t("templates.pageDescription")}</p>
       </div>
 
       {/* How It Works */}
       <div className="mb-8 rounded-xl border bg-card p-6">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-          How it works
+          {t("templates.howItWorks")}
         </h2>
         <div className="grid gap-6 sm:grid-cols-3">
           <Step
             number={1}
-            title="Pick a template"
-            description="Choose the category that matches your proposal. Each has tailored sections and guidance."
+            title={t("templates.steps.pick.title")}
+            description={t("templates.steps.pick.description")}
           />
           <Step
             number={2}
-            title="Fill in the sections"
-            description="Replace the placeholder text with your project details. The structure keeps you on track."
+            title={t("templates.steps.fill.title")}
+            description={t("templates.steps.fill.description")}
           />
           <Step
             number={3}
-            title="Add transactions & submit"
-            description="Configure funding requests, then preview and submit your proposal on-chain."
+            title={t("templates.steps.submit.title")}
+            description={t("templates.steps.submit.description")}
           />
         </div>
       </div>
 
       {/* Template Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {TEMPLATES.map((t) => {
-          const Icon = t.icon;
+        {TEMPLATES.map((tmpl) => {
+          const Icon = tmpl.icon;
           return (
-            <Link key={t.slug} href={`/propose?template=${t.slug}`}>
+            <Link key={tmpl.slug} href={`/propose?template=${tmpl.slug}`}>
               <Card
-                className={`group relative h-full cursor-pointer border transition-all duration-200 hover:shadow-lg ${t.borderAccent}`}
+                className={`group relative h-full cursor-pointer border transition-all duration-200 hover:shadow-lg ${tmpl.borderAccent}`}
               >
                 <CardContent className="flex flex-col gap-4 p-5">
                   {/* Icon + Badge row */}
                   <div className="flex items-start justify-between">
                     <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${t.bgAccent}`}
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${tmpl.bgAccent}`}
                     >
-                      <Icon className={`h-5 w-5 ${t.color}`} />
+                      <Icon className={`h-5 w-5 ${tmpl.color}`} />
                     </div>
                     <Badge variant="secondary" className="text-[10px] font-semibold tabular-nums">
-                      {t.sections} sections
+                      {t("templates.sections", { count: tmpl.sections })}
                     </Badge>
                   </div>
 
                   {/* Title + Description */}
                   <div className="flex-1">
                     <h3 className="font-semibold leading-tight mb-1.5 group-hover:text-foreground">
-                      {t.title}
+                      {tmpl.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{t.description}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {tmpl.description}
+                    </p>
                   </div>
 
                   {/* Footer */}
                   <div className="flex items-center justify-between pt-1 border-t border-border/50">
-                    <span className="text-xs text-muted-foreground">{t.stats}</span>
+                    <span className="text-xs text-muted-foreground">{tmpl.stats}</span>
                     <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
                   </div>
                 </CardContent>
@@ -190,10 +198,10 @@ export default function TemplatesPage() {
                 <FileText className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold leading-tight mb-0.5">Blank Proposal</h3>
-                <p className="text-sm text-muted-foreground">
-                  Start from scratch — no template, full creative freedom.
-                </p>
+                <h3 className="font-semibold leading-tight mb-0.5">
+                  {t("templates.blankProposal")}
+                </h3>
+                <p className="text-sm text-muted-foreground">{t("templates.blankProposalDesc")}</p>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
             </CardContent>
@@ -203,9 +211,9 @@ export default function TemplatesPage() {
 
       {/* Tips */}
       <div className="mt-6 flex flex-wrap gap-3">
-        <Tip icon={Sparkles} text="Be specific about deliverables and timelines" />
-        <Tip icon={Sparkles} text="Request milestones over lump-sum payments" />
-        <Tip icon={Sparkles} text="Include links to past work or references" />
+        <Tip icon={Sparkles} text={t("templates.tips.deliverables")} />
+        <Tip icon={Sparkles} text={t("templates.tips.milestones")} />
+        <Tip icon={Sparkles} text={t("templates.tips.links")} />
       </div>
     </div>
   );

@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +13,7 @@ interface Props {
 }
 
 export function SendUsdcForm({ index }: Props) {
+  const t = useTranslations("propose");
   const {
     register,
     formState: { errors },
@@ -24,15 +28,15 @@ export function SendUsdcForm({ index }: Props) {
   return (
     <div className="space-y-4">
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="tokenAddress">Token (fixed)</Label>
+        <Label htmlFor="tokenAddress">{t("sendUsdc.tokenLabel")}</Label>
         <Input id="tokenAddress" value={TREASURY_TOKEN_ALLOWLIST.USDC} disabled />
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="recipient">Recipient Address *</Label>
+        <Label htmlFor="recipient">{t("sendUsdc.recipientLabel")}</Label>
         <Input
           id="recipient"
-          placeholder="0x... or ENS name"
+          placeholder={t("sendUsdc.recipientPlaceholder")}
           {...register(`transactions.${index}.recipient` as const)}
         />
         {getErrorMessage("recipient") && (
@@ -41,12 +45,12 @@ export function SendUsdcForm({ index }: Props) {
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="amount">Amount (USDC) *</Label>
+        <Label htmlFor="amount">{t("sendUsdc.amountLabel")}</Label>
         <Input
           id="amount"
           type="number"
           step="0.01"
-          placeholder="0.00"
+          placeholder={t("sendUsdc.amountPlaceholder")}
           {...register(`transactions.${index}.amount` as const)}
         />
         {getErrorMessage("amount") && (
@@ -55,10 +59,10 @@ export function SendUsdcForm({ index }: Props) {
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">{t("sendUsdc.descriptionLabel")}</Label>
         <Textarea
           id="description"
-          placeholder="Describe the purpose of this USDC transfer..."
+          placeholder={t("sendUsdc.descriptionPlaceholder")}
           {...register(`transactions.${index}.description` as const)}
         />
       </div>

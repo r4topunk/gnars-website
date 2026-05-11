@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import { Markdown } from "@/components/common/Markdown";
 import { AddressDisplay } from "@/components/ui/address-display";
@@ -28,6 +29,7 @@ export function PropdateCard({
   isReplying = false,
   onReplyClick,
 }: PropdateCardProps) {
+  const t = useTranslations("propdates");
   const timeCreated = formatDistanceToNow(new Date(propdate.timeCreated * 1000), {
     addSuffix: true,
   });
@@ -48,7 +50,7 @@ export function PropdateCard({
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {propdate.milestoneId != null && propdate.milestoneId >= 0 && (
               <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-xs">
-                Milestone {propdate.milestoneId + 1}
+                {t("card.milestone", { number: propdate.milestoneId + 1 })}
               </Badge>
             )}
             <span>· {timeCreated}</span>
@@ -87,7 +89,7 @@ export function PropdateCard({
             size="sm"
             onClick={() => onReplyClick(propdate)}
           >
-            {isReplying ? "Cancel Reply" : "Reply"}
+            {isReplying ? t("card.cancelReply") : t("card.reply")}
           </Button>
         </CardFooter>
       )}

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import dynamic from "next/dynamic";
 import {
   MetricSkeleton,
@@ -57,23 +58,25 @@ const MemberActivityChart = dynamic(
   { loading: () => <div className="h-[300px] rounded-xl bg-muted animate-pulse" /> },
 );
 
-export default function TreasuryPage() {
+export default async function TreasuryPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("treasury");
+
   return (
     <div className="py-8">
       <div className="space-y-8">
         {/* Page Header */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Treasury</h1>
-          <p className="text-muted-foreground">
-            Overview of the Gnars DAO treasury holdings and financial position
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("page.title")}</h1>
+          <p className="text-muted-foreground">{t("page.description")}</p>
         </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <Card className="gap-2">
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Total Treasury Value</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("page.kpis.totalValue")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Suspense fallback={<MetricSkeleton />}>
@@ -84,7 +87,7 @@ export default function TreasuryPage() {
 
           <Card className="gap-2">
             <CardHeader>
-              <CardTitle className="text-sm font-medium">ETH Balance</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("page.kpis.ethBalance")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Suspense fallback={<MetricSkeleton />}>
@@ -95,7 +98,7 @@ export default function TreasuryPage() {
 
           <Card className="gap-2">
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Total Auction Sales</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("page.kpis.totalAuctions")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Suspense fallback={<MetricSkeleton />}>
@@ -131,10 +134,8 @@ export default function TreasuryPage() {
         {/* NFT Holdings Grid */}
         <div className="space-y-4">
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold">NFT Holdings</h2>
-            <p className="text-sm text-muted-foreground">
-              Non-fungible tokens held in the treasury
-            </p>
+            <h2 className="text-xl font-semibold">{t("page.nftSection.title")}</h2>
+            <p className="text-sm text-muted-foreground">{t("page.nftSection.description")}</p>
           </div>
           <Suspense fallback={<NftGridSkeleton />}>
             <NftHoldings treasuryAddress={DAO_ADDRESSES.treasury} />

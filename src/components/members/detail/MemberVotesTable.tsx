@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -26,21 +27,23 @@ interface MemberVotesTableProps {
 }
 
 export function MemberVotesTable({ votes }: MemberVotesTableProps) {
+  const t = useTranslations("members");
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Votes & Comments</CardTitle>
+        <CardTitle>{t("votes.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {votes.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">No votes from this member.</div>
+          <div className="text-center py-8 text-muted-foreground">{t("votes.empty")}</div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Proposal</TableHead>
-                <TableHead className="text-center">Vote</TableHead>
-                <TableHead className="text-right">Weight</TableHead>
+                <TableHead>{t("votes.table.proposal")}</TableHead>
+                <TableHead className="text-center">{t("votes.table.vote")}</TableHead>
+                <TableHead className="text-right">{t("votes.table.weight")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

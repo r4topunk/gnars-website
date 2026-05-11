@@ -2,6 +2,7 @@
 
 /* eslint-disable react-hooks/incompatible-library -- react-hook-form watch()/useFormContext pattern is known-incompatible with React Compiler */
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -85,12 +86,14 @@ export function ProposalWizard() {
 
   // Child builder handles add/update/remove via useFieldArray
 
+  const t = useTranslations("propose");
+
   if (isConnected && eligibility.isLoading) {
     return (
       <Card className="max-w-2xl mx-auto">
         <CardContent className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin mr-2" />
-          <span>Checking proposal eligibility...</span>
+          <span>{t("wizard.checkingEligibility")}</span>
         </CardContent>
       </Card>
     );
@@ -108,7 +111,7 @@ export function ProposalWizard() {
                 <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
                   1
                 </span>
-                Details
+                {t("wizard.steps.details")}
               </TabsTrigger>
               <TabsTrigger
                 value="transactions"
@@ -124,7 +127,7 @@ export function ProposalWizard() {
                 >
                   2
                 </span>
-                Transactions
+                {t("wizard.steps.transactions")}
               </TabsTrigger>
               <TabsTrigger
                 value="preview"
@@ -140,7 +143,7 @@ export function ProposalWizard() {
                 >
                   3
                 </span>
-                Preview
+                {t("wizard.steps.preview")}
               </TabsTrigger>
             </TabsList>
 
@@ -154,7 +157,7 @@ export function ProposalWizard() {
                       disabled={!canProceedToTransactions}
                       className="w-full sm:w-auto"
                     >
-                      Next: Add Transactions
+                      {t("wizard.nextAddTransactions")}
                     </Button>
                   </div>
                 </CardContent>
@@ -172,14 +175,14 @@ export function ProposalWizard() {
                         onClick={() => setCurrentTab("details")}
                         className="w-full sm:w-auto"
                       >
-                        Back: Edit Details
+                        {t("wizard.backEditDetails")}
                       </Button>
                       <Button
                         onClick={handleNextToPreview}
                         disabled={!canProceedToPreview}
                         className="w-full sm:w-auto"
                       >
-                        Next: Preview & Submit
+                        {t("wizard.nextPreviewSubmit")}
                       </Button>
                     </div>
                   )}
@@ -197,7 +200,7 @@ export function ProposalWizard() {
                       onClick={() => setCurrentTab("transactions")}
                       className="w-full sm:w-auto"
                     >
-                      Back: Edit Transactions
+                      {t("wizard.backEditTransactions")}
                     </Button>
                     {/* Submit button will be in ProposalPreview component */}
                   </div>

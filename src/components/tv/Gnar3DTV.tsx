@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { ExternalLink } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
@@ -21,6 +22,7 @@ interface Gnar3DTVProps {
 const DRAG_THRESHOLD_PX = 6;
 
 export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
+  const t = useTranslations("tv");
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -89,7 +91,7 @@ export function Gnar3DTV({ autoRotate = true, className = "" }: Gnar3DTVProps) {
     <div
       role="link"
       tabIndex={0}
-      aria-label="Open Gnars TV"
+      aria-label={t("gnar3dTV.ariaLabel")}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onKeyDown={handleKeyDown}

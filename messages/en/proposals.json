@@ -1,1 +1,172 @@
-{}
+{
+  "page": {
+    "title": "Proposals",
+    "description": "How the community funds skateboarding projects, media, and public work.",
+    "learnMore": "Learn more"
+  },
+  "card": {
+    "propNumber": "Prop #{number}",
+    "by": "by",
+    "votingProgress": "Voting Progress",
+    "notStarted": "not started",
+    "noVotesYet": "no votes yet",
+    "votes": "{count} votes",
+    "requested": "Requested",
+    "noDirectTransfer": "No direct ETH/USDC transfer",
+    "bannerAlt": "Proposal banner"
+  },
+  "status": {
+    "Pending": "Pending",
+    "Active": "Active",
+    "Succeeded": "Succeeded",
+    "Defeated": "Defeated",
+    "Queued": "Queued",
+    "Executed": "Executed",
+    "Vetoed": "Vetoed",
+    "Expired": "Expired",
+    "Canceled": "Canceled"
+  },
+  "filters": {
+    "searchPlaceholder": "Search proposals...",
+    "status": "Status",
+    "chain": "Chain",
+    "default": "Default",
+    "all": "All",
+    "none": "None",
+    "showing": "Showing {visible} of {total}"
+  },
+  "detail": {
+    "proposal": "Proposal {number}",
+    "openInExplorer": "Open in explorer",
+    "by": "By",
+    "historicalProposal": "Historical proposal — governance now happens on Base L2",
+    "description": "Description",
+    "proposedTransactions": "Proposed Transactions",
+    "votingSection": "voting-section",
+    "yourVote": "Your Vote",
+    "castYourVote": "Cast Your Vote",
+    "details": "Details",
+    "votes": "Votes",
+    "propdatesTab": "Propdates",
+    "readOnly": {
+      "snapshot": "Snapshot",
+      "ethereum": "Ethereum"
+    }
+  },
+  "metrics": {
+    "for": "For",
+    "against": "Against",
+    "abstain": "Abstain",
+    "threshold": "Threshold",
+    "currentThreshold": "Current threshold",
+    "votes": "{count} votes",
+    "starts": "Starts",
+    "ends": "Ends",
+    "ended": "Ended",
+    "snapshot": "Snapshot",
+    "takenAtBlock": "Taken at block"
+  },
+  "actions": {
+    "queueBeforeExpires": "Queue this proposal before it expires",
+    "queueProposal": "Queue Proposal",
+    "executionTimelock": "Execution Timelock",
+    "waitingSecurityDelay": "Waiting for security delay",
+    "timeLeftToExecute": "There's <time/> left to execute this proposal before it expires",
+    "executeProposal": "Execute this proposal",
+    "executeProposalButton": "Execute Proposal"
+  },
+  "gating": {
+    "walletNotConnected": "Wallet not connected.",
+    "walletNotConnectedDesc": "You can explore the form — connect when you're ready to submit.",
+    "noGnarFound": "No Gnars NFT found.",
+    "noGnarFoundDesc": "Holding a Gnar lets you submit proposals.",
+    "getOneAtAuction": "Get one at the auction"
+  },
+  "votesList": {
+    "defaultTitle": "Individual Votes",
+    "voted": "voted",
+    "with": "with",
+    "vote": "vote",
+    "votes": "votes",
+    "noVotesCast": "No votes have been cast yet",
+    "loadingMembers": "Loading members who haven't voted...",
+    "haventVotedYet": "{count} active member{plural} haven't voted yet",
+    "loading": "Loading...",
+    "recentVote": "recent vote",
+    "recentVotes": "recent votes"
+  },
+  "delegation": {
+    "ownVotes": "{count} own",
+    "delegated": "{count} delegated",
+    "delegatedFrom": "Delegated from"
+  },
+  "recent": {
+    "title": "Recent Proposals",
+    "description": "Governance proposals and their voting status",
+    "viewAll": "View All Proposals",
+    "noRecentTitle": "No Recent Proposals",
+    "noRecentDesc": "Check back later for new governance proposals."
+  },
+  "error": {
+    "somethingWentWrong": "Something went wrong",
+    "unexpectedError": "An unexpected error occurred while loading proposals.",
+    "tryAgain": "Try again"
+  },
+  "queue": {
+    "dialogTitle": "Queue Proposal",
+    "dialogDesc": "This will queue the proposal for execution after the timelock delay. This action is irreversible.",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "queueing": "Queueing...",
+    "submitting": "Submitting queue transaction...",
+    "waitingConfirmation": "Waiting for confirmation...",
+    "success": "Proposal queued successfully!",
+    "connectError": "Connect wallet to queue proposal",
+    "failedError": "Failed to queue proposal: {message}",
+    "cancelled": "Transaction cancelled"
+  },
+  "execute": {
+    "dialogTitle": "Execute Proposal",
+    "dialogDesc": "This will execute the proposal and perform all proposed transactions. This action is irreversible.",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "executing": "Executing...",
+    "submitting": "Submitting execute transaction...",
+    "waitingConfirmation": "Waiting for confirmation...",
+    "success": "Proposal executed successfully!",
+    "connectError": "Connect wallet to execute proposal",
+    "failedError": "Failed to execute proposal: {message}",
+    "cancelled": "Transaction cancelled"
+  },
+  "grid": {
+    "noMatch": "No proposals match the selected filters",
+    "adjustFilters": "Try adjusting the chain or status filters"
+  },
+  "txDetails": {
+    "from": "From",
+    "to": "To",
+    "daoTreasury": "DAO Treasury",
+    "notSet": "Not set",
+    "tokenContract": "Token Contract",
+    "tokenNotSpecified": "Token not specified",
+    "targetContract": "Target Contract",
+    "targetNotSpecified": "Target not specified",
+    "value": "Value",
+    "calldata": "Calldata",
+    "advancedInteraction": "Advanced contract interaction",
+    "buyCoinLabel": "Buy Coin",
+    "maxSlippage": "Max Slippage",
+    "recipient": "Recipient",
+    "txDataPending": "Transaction Data Pending",
+    "txDataPendingDesc": "Router calldata will be generated from Zora SDK when you save this transaction",
+    "readyToExecute": "Ready to Execute",
+    "readyToExecuteDesc": "Router transaction generated via Zora Coins SDK",
+    "routerAddress": "Router Address:",
+    "gnarsNftCollection": "Gnars NFT Collection",
+    "nft": "NFT",
+    "transferTo": "Transfer to",
+    "fromLabel": "from",
+    "gnarsNfts": "{count} Gnars NFT{plural}",
+    "tokens": "{amount} tokens"
+  }
+}

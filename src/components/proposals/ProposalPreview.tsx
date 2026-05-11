@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { AlertTriangle, CheckCircle, ExternalLink, Info, Loader2 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -99,6 +100,7 @@ const tokenGetVotesAbi = [
 ] as const;
 
 export function ProposalPreview() {
+  const t = useTranslations("propose");
   const eligibility = useProposalEligibilityContext();
   const {
     getValues,
@@ -166,11 +168,11 @@ export function ProposalPreview() {
       try {
         const client = getThirdwebClient();
         if (!client) {
-          throw new Error("Thirdweb client not configured");
+          throw new Error(t("preview.thirdwebNotConfigured"));
         }
 
         if (!writer) {
-          throw new Error("Connect wallet to submit a proposal");
+          throw new Error(t("preview.connectWalletToSubmit"));
         }
 
         console.log("Ensuring Base network...");
@@ -211,7 +213,7 @@ export function ProposalPreview() {
           setIsWalletPending(false);
           const detail = `You need more than ${threshold.toString()} votes to create a proposal. Your current signer has ${signerVotes.toString()}. Switch view or adjust delegation.`;
           setValidationError(detail);
-          toast.error("Insufficient voting power", { description: detail });
+          toast.error(t("preview.insufficientVotingPower"), { description: detail });
           return;
         }
 
@@ -272,7 +274,7 @@ export function ProposalPreview() {
         setIsConfirming(false);
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
         setValidationError(errorMessage);
-        toast.error("Failed to submit proposal", {
+        toast.error(t("preview.failedToSubmit"), {
           description: errorMessage,
         });
       }
@@ -317,13 +319,11 @@ export function ProposalPreview() {
     }
 
     const errorMessage =
-      errorMessages.length > 0
-        ? errorMessages.join("; ")
-        : "Please fix validation errors before submitting";
+      errorMessages.length > 0 ? errorMessages.join("; ") : t("preview.pleaseFixErrors");
 
     console.log("Validation error message:", errorMessage);
     setValidationError(errorMessage);
-    toast.error("Validation Failed", {
+    toast.error(t("preview.validationFailed"), {
       description: errorMessage,
     });
   };
@@ -357,26 +357,21 @@ export function ProposalPreview() {
       <Card>
         <CardContent className="p-8 text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold mb-2">Proposal Submitted!</h3>
+          <h3 className="text-2xl font-bold mb-2">{t("preview.submitted")}</h3>
 
           {isIndexed ? (
             <p className="text-muted-foreground mb-4">
-              Proposal #{indexing.proposalNumber} is live on the Gnars DAO.
+              {t("preview.proposalLive", { number: indexing.proposalNumber })}
             </p>
           ) : isPolling ? (
             <p className="text-muted-foreground mb-4 inline-flex items-center justify-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Transaction confirmed. Waiting for the subgraph to index your proposal…
+              {t("preview.waitingIndex")}
             </p>
           ) : timedOut ? (
-            <p className="text-muted-foreground mb-4">
-              Transaction confirmed. Indexing is taking longer than expected — refresh the proposals
-              page in a minute.
-            </p>
+            <p className="text-muted-foreground mb-4">{t("preview.indexingTimeout")}</p>
           ) : (
-            <p className="text-muted-foreground mb-4">
-              Your proposal has been successfully submitted to the Gnars DAO.
-            </p>
+            <p className="text-muted-foreground mb-4">{t("preview.proposalSubmitted")}</p>
           )}
 
           <div className="flex flex-wrap gap-2 justify-center">
@@ -386,7 +381,7 @@ export function ProposalPreview() {
                   href={`/proposals/base/${indexing.proposalNumber}`}
                   className="inline-flex items-center"
                 >
-                  View Proposal <ExternalLink className="h-4 w-4 ml-1" />
+                  {t("preview.viewProposal")} <ExternalLink className="h-4 w-4 ml-1" />
                 </a>
               </Button>
             )}
@@ -398,7 +393,7 @@ export function ProposalPreview() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center"
                 >
-                  View Transaction <ExternalLink className="h-4 w-4 ml-1" />
+                  {t("preview.viewTransaction")} <ExternalLink className="h-4 w-4 ml-1" />
                 </a>
               </Button>
             )}
@@ -411,8 +406,8 @@ export function ProposalPreview() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Proposal Preview</h2>
-        <p className="text-muted-foreground">Review your proposal before submitting to the DAO</p>
+        <h2 className="text-2xl font-bold mb-2">{t("preview.title")}</h2>
+        <p className="text-muted-foreground">{t("preview.description")}</p>
       </div>
 
       {/* Proposal Header */}
@@ -422,7 +417,7 @@ export function ProposalPreview() {
             <div className="w-full h-48 bg-muted rounded-lg mb-4 overflow-hidden relative">
               <Image
                 src={ipfsToGatewayUrl(data.bannerImage)}
-                alt="Proposal banner"
+                alt={t("preview.bannerAlt")}
                 fill
                 className="object-cover"
               />
@@ -455,13 +450,13 @@ export function ProposalPreview() {
           <div className="flex items-start space-x-3 mb-4">
             <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
             <div>
-              <h3 className="font-semibold mb-2">Before You Submit</h3>
+              <h3 className="font-semibold mb-2">{t("preview.beforeSubmitTitle")}</h3>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Ensure all transaction details are correct</li>
-                <li>• Your proposal metadata will be uploaded to IPFS</li>
-                <li>• The proposal will be submitted to the Governor contract</li>
-                <li>• Once submitted, the proposal cannot be modified</li>
-                <li>• Voting will begin after a short delay period</li>
+                <li>• {t("preview.checklist.transactionDetails")}</li>
+                <li>• {t("preview.checklist.ipfsUpload")}</li>
+                <li>• {t("preview.checklist.governorSubmit")}</li>
+                <li>• {t("preview.checklist.cannotModify")}</li>
+                <li>• {t("preview.checklist.votingDelay")}</li>
               </ul>
             </div>
           </div>
@@ -470,11 +465,9 @@ export function ProposalPreview() {
             <Alert className="mb-4 border-blue-200/60 bg-blue-50/60 dark:border-blue-800/40 dark:bg-blue-950/20">
               <Info className="h-4 w-4 text-blue-700 dark:text-blue-300" />
               <AlertDescription className="text-blue-900/90 dark:text-blue-100/90">
-                Minimum to create a proposal:{" "}
-                <span className="font-semibold">
-                  {eligibility.proposalVotesRequired.toString()} votes
-                </span>
-                . This comes from the Governor contract proposal threshold.
+                {t("preview.minimumVotes", {
+                  count: eligibility.proposalVotesRequired.toString(),
+                })}
               </AlertDescription>
             </Alert>
           )}
@@ -482,16 +475,14 @@ export function ProposalPreview() {
           {!isConnected && (
             <Alert className="mb-4">
               <Info className="h-4 w-4" />
-              <AlertDescription>
-                Connect your wallet to check eligibility and submit.
-              </AlertDescription>
+              <AlertDescription>{t("preview.connectToCheck")}</AlertDescription>
             </Alert>
           )}
 
           {isConnected && eligibility.isLoading && (
             <Alert className="mb-4">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <AlertDescription>Checking voting power...</AlertDescription>
+              <AlertDescription>{t("preview.checkingVotingPower")}</AlertDescription>
             </Alert>
           )}
 
@@ -499,20 +490,14 @@ export function ProposalPreview() {
             <Alert variant="destructive" className="mb-4">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                You need at least{" "}
-                <span className="font-semibold">
-                  {eligibility.proposalVotesRequired?.toString() ?? "N/A"}
-                </span>{" "}
-                votes to create a proposal.
+                {t("preview.insufficientVotes", {
+                  required: eligibility.proposalVotesRequired?.toString() ?? "N/A",
+                })}
                 {typeof eligibility.votes === "bigint" && (
-                  <>
-                    {" "}
-                    You currently have{" "}
-                    <span className="font-semibold">{eligibility.votes.toString()}</span> votes.
-                  </>
+                  <> {t("preview.yourCurrentVotes", { votes: eligibility.votes.toString() })}</>
                 )}
                 {eligibility.isDelegating && eligibility.delegatedTo && address && (
-                  <> Your votes are delegated to {eligibility.delegatedTo}.</>
+                  <> {t("preview.votesAreDelegated", { address: eligibility.delegatedTo })}</>
                 )}
               </AlertDescription>
             </Alert>
@@ -521,7 +506,7 @@ export function ProposalPreview() {
           {isActionPending && (
             <Alert className="mb-4">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <AlertDescription>Preparing proposal...</AlertDescription>
+              <AlertDescription>{t("preview.preparingProposal")}</AlertDescription>
             </Alert>
           )}
 
@@ -535,16 +520,14 @@ export function ProposalPreview() {
           {isWalletPending && (
             <Alert className="mb-4">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <AlertDescription>
-                Transaction pending... Please confirm in your wallet.
-              </AlertDescription>
+              <AlertDescription>{t("preview.walletPending")}</AlertDescription>
             </Alert>
           )}
 
           {isConfirming && (
             <Alert className="mb-4">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <AlertDescription>Waiting for transaction confirmation...</AlertDescription>
+              <AlertDescription>{t("preview.waitingConfirmation")}</AlertDescription>
             </Alert>
           )}
 
@@ -564,13 +547,13 @@ export function ProposalPreview() {
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   {isActionPending
-                    ? "Preparing..."
+                    ? t("preview.preparing")
                     : isWalletPending
-                      ? "Confirming..."
-                      : "Submitting..."}
+                      ? t("preview.confirming")
+                      : t("preview.submitting")}
                 </>
               ) : (
-                "Submit Proposal"
+                t("preview.submitProposal")
               )}
             </Button>
           )}

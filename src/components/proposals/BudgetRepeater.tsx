@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export interface BudgetRepeaterProps {
 const CURRENCIES = ["ETH", "USDC"] as const;
 
 export function BudgetRepeater({ name, getRowError, topLevelError }: BudgetRepeaterProps) {
+  const t = useTranslations("propose");
   const { control, register } = useFormContext();
   const { fields, append, remove } = useFieldArray({ control, name });
   const rows = (useWatch({ control, name }) as BudgetRow[] | undefined) ?? [];
@@ -48,9 +50,7 @@ export function BudgetRepeater({ name, getRowError, topLevelError }: BudgetRepea
   return (
     <div className="space-y-3">
       {fields.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic">
-          No budget lines yet. Add one to request funding.
-        </p>
+        <p className="text-sm text-muted-foreground italic">{t("budget.noBudgetLines")}</p>
       ) : (
         <div className="space-y-2">
           {fields.map((field, index) => {
@@ -62,8 +62,8 @@ export function BudgetRepeater({ name, getRowError, topLevelError }: BudgetRepea
               >
                 <div>
                   <Input
-                    placeholder="Line item (e.g. Sponsorship fee)"
-                    aria-label={`Budget line ${index + 1} label`}
+                    placeholder={t("budget.labelPlaceholder")}
+                    aria-label={t("budget.lineLabelAriaLabel", { index: index + 1 })}
                     {...register(`${name}.${index}.label` as const)}
                   />
                   {rowErr?.label ? (
@@ -75,8 +75,8 @@ export function BudgetRepeater({ name, getRowError, topLevelError }: BudgetRepea
                     type="number"
                     step="any"
                     min={0}
-                    placeholder="Amount"
-                    aria-label={`Budget line ${index + 1} amount`}
+                    placeholder={t("budget.amountPlaceholder")}
+                    aria-label={t("budget.lineAmountAriaLabel", { index: index + 1 })}
                     {...register(`${name}.${index}.amount` as const, { valueAsNumber: true })}
                   />
                   {rowErr?.amount ? (
@@ -88,7 +88,7 @@ export function BudgetRepeater({ name, getRowError, topLevelError }: BudgetRepea
                   type="button"
                   size="icon"
                   variant="ghost"
-                  aria-label={`Remove budget line ${index + 1}`}
+                  aria-label={t("budget.removeLineAriaLabel", { index: index + 1 })}
                   onClick={() => remove(index)}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -107,10 +107,10 @@ export function BudgetRepeater({ name, getRowError, topLevelError }: BudgetRepea
           onClick={() => append({ label: "", amount: 0, currency: "ETH" })}
         >
           <Plus className="h-4 w-4 mr-1" />
-          Add line
+          {t("budget.addLine")}
         </Button>
         <div className="text-sm">
-          <span className="text-muted-foreground mr-1">Total:</span>
+          <span className="text-muted-foreground mr-1">{t("budget.total")}</span>
           <span className="font-semibold tabular-nums">{totalsStr}</span>
         </div>
       </div>
@@ -121,12 +121,13 @@ export function BudgetRepeater({ name, getRowError, topLevelError }: BudgetRepea
 }
 
 function CurrencySelect({ name }: { name: string }) {
+  const t = useTranslations("propose");
   const { setValue, control } = useFormContext();
   const value = useWatch({ control, name }) as string | undefined;
   return (
     <div>
       <Label className="sr-only" htmlFor={name}>
-        Currency
+        {t("budget.currencyLabel")}
       </Label>
       <Select
         value={value ?? "ETH"}

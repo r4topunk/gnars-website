@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { AlertCircle, CheckCircle2, Loader2, X } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -30,6 +31,7 @@ interface BuyAllModalProps {
  * Modal for buying multiple content coins in bulk
  */
 export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllModalProps) {
+  const t = useTranslations("tv");
   const [mounted, setMounted] = useState(false);
   const [ethAmount, setEthAmount] = useState("0.01");
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
@@ -169,7 +171,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
 
   const handleGenerateShareLink = () => {
     if (!strategyName.trim()) {
-      setError("Please enter a strategy name");
+      setError(t("buyAll.validation.enterStrategyName"));
       return;
     }
 
@@ -190,35 +192,35 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
         setShowShareDialog(false);
         setStrategyName("");
         // Show success feedback
-        alert("Strategy link copied to clipboard!");
+        alert(t("buyAll.validation.strategyCopied"));
       })
       .catch(() => {
-        setError("Failed to copy to clipboard");
+        setError(t("buyAll.validation.failedCopy"));
       });
   };
 
   const handleProceedToConfirm = () => {
     // Basic validation
     if (selectedCoins.length === 0) {
-      setError("Please select at least one coin");
+      setError(t("buyAll.validation.selectOneCoin"));
       return;
     }
 
     if (selectedCoins.length > 20) {
-      setError("Maximum 20 coins per batch");
+      setError(t("buyAll.validation.maxCoins"));
       return;
     }
 
     const totalEth = parseEther(ethAmount || "0");
     if (totalEth === 0n) {
-      setError("ETH amount must be greater than 0");
+      setError(t("buyAll.validation.ethRequired"));
       return;
     }
 
     const ethPerCoin = totalEth / BigInt(selectedCoins.length);
     const minPerCoin = parseEther("0.0001");
     if (ethPerCoin < minPerCoin) {
-      setError("Minimum 0.0001 ETH per coin");
+      setError(t("buyAll.validation.minPerCoin"));
       return;
     }
 
@@ -243,9 +245,9 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
       setStep("success");
     } else if (txError) {
       setStep("error");
-      setError(String(txError) || "Transaction failed");
+      setError(String(txError) || t("buyAll.error.fallback"));
     }
-  }, [isConfirmed, txError]);
+  }, [isConfirmed, txError, t]);
 
   if (!isOpen || !mounted) return null;
 
@@ -261,9 +263,9 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
           <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-green-100 dark:bg-green-900/30">
             <CheckCircle2 className="w-12 h-12 text-green-600 dark:text-green-400" />
           </div>
-          <h3 className="text-2xl font-bold mb-2 text-foreground">Purchase Successful!</h3>
+          <h3 className="text-2xl font-bold mb-2 text-foreground">{t("buyAll.success.title")}</h3>
           <p className="text-center mb-6 text-muted-foreground">
-            You successfully purchased {selectedCount} content coins in a single transaction
+            {t("buyAll.success.description", { count: selectedCount })}
           </p>
           {txHash && (
             <a
@@ -272,7 +274,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
               rel="noopener noreferrer"
               className="text-xs font-mono text-[#FBBF23] hover:underline"
             >
-              View on Basescan: {txHash.slice(0, 8)}...{txHash.slice(-8)}
+              {t("buyAll.success.viewOnBasescan")} {txHash.slice(0, 8)}...{txHash.slice(-8)}
             </a>
           )}
         </div>
@@ -286,15 +288,15 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
           <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-red-100 dark:bg-red-900/30">
             <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-400" />
           </div>
-          <h3 className="text-2xl font-bold mb-2 text-foreground">Purchase Failed</h3>
+          <h3 className="text-2xl font-bold mb-2 text-foreground">{t("buyAll.error.title")}</h3>
           <p className="text-center mb-6 max-w-md text-muted-foreground">
-            {error || "An error occurred during the purchase"}
+            {error || t("buyAll.error.fallback")}
           </p>
           <button
             onClick={() => setStep("select")}
             className="px-6 py-3 font-medium rounded-xl transition-all bg-secondary text-secondary-foreground hover:bg-secondary/80"
           >
-            Try Again
+            {t("buyAll.error.tryAgain")}
           </button>
         </div>
       );
@@ -306,13 +308,13 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
         <div className="flex-1 flex flex-col items-center justify-center p-12">
           <Loader2 className="w-16 h-16 animate-spin mb-6 text-[#FBBF23] dark:text-[#FBBF23]" />
           <h3 className="text-2xl font-bold mb-2 text-foreground">
-            {isPreparing && "Preparing batch transaction..."}
-            {isPending && "Confirming transaction..."}
-            {!isPreparing && !isPending && "Processing..."}
+            {isPreparing && t("buyAll.executing.preparing")}
+            {isPending && t("buyAll.executing.confirming")}
+            {!isPreparing && !isPending && t("buyAll.executing.processing")}
           </h3>
           <p className="text-center text-muted-foreground">
-            {isPreparing && `Generating swap data for ${totalSwaps} coins`}
-            {isPending && "Waiting for blockchain confirmation"}
+            {isPreparing && t("buyAll.executing.preparingDesc", { count: totalSwaps })}
+            {isPending && t("buyAll.executing.confirmingDesc")}
           </p>
         </div>
       );
@@ -335,21 +337,21 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
             </div>
 
             <div className="p-6 mb-6 rounded-xl bg-muted">
-              <h3 className="mb-4 font-semibold text-foreground">Purchase Summary</h3>
+              <h3 className="mb-4 font-semibold text-foreground">{t("buyAll.summary")}</h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Selected Creators</span>
+                  <span className="text-muted-foreground">{t("buyAll.selectedCreators")}</span>
                   <span className="font-medium text-foreground">{selectedCount}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">ETH per Creator</span>
+                  <span className="text-muted-foreground">{t("buyAll.ethPerCreator")}</span>
                   <span className="flex items-center gap-1 font-medium text-foreground">
                     <FaEthereum className="w-3 h-3 text-[#FBBF23]" />
                     {ethPerCoin.toFixed(6)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm pt-3 border-t border-border">
-                  <span className="text-muted-foreground">Total</span>
+                  <span className="text-muted-foreground">{t("buyAll.total")}</span>
                   <span className="flex items-center gap-1 font-bold text-[#FBBF23] dark:text-[#FBBF23]">
                     <FaEthereum className="w-4 h-4" />
                     {ethAmount} ETH
@@ -360,8 +362,8 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
 
             <div className="p-4 border rounded-xl bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
               <p className="text-sm text-foreground">
-                ⚡ <strong>Multicall3:</strong> All {selectedCount} purchases will execute in a
-                single atomic transaction. One approval, one gas fee.
+                ⚡ <strong>Multicall3:</strong>{" "}
+                {t("buyAll.multicallInfo", { count: selectedCount })}
               </p>
             </div>
           </div>
@@ -380,7 +382,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
                     d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
                   />
                 </svg>
-                Share Strategy
+                {t("buyAll.shareStrategy")}
               </button>
             </div>
             <div className="flex gap-3">
@@ -388,13 +390,13 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
                 onClick={() => setStep("select")}
                 className="flex-1 px-6 py-3 font-medium rounded-xl transition-all bg-secondary text-secondary-foreground hover:bg-secondary/80"
               >
-                Back
+                {t("buyAll.back")}
               </button>
               <button
                 onClick={handleExecutePurchase}
                 className="flex-1 px-6 py-3 font-medium text-black rounded-xl transition-all bg-[#FBBF23] hover:bg-[#F59E0B] dark:bg-[#FBBF23] dark:hover:bg-[#F59E0B]"
               >
-                Confirm Purchase
+                {t("buyAll.confirmPurchase")}
               </button>
             </div>
           </div>
@@ -407,7 +409,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
       <>
         {/* ETH Input Section */}
         <div className="p-6 border-b border-border">
-          <label className="block mb-3 font-semibold text-foreground">Total ETH to Spend</label>
+          <label className="block mb-3 font-semibold text-foreground">{t("buyAll.ethInput")}</label>
           <div className="relative">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FBBF23]">
               <FaEthereum className="w-6 h-6" />
@@ -424,7 +426,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
           </div>
           {selectedCount > 0 && (
             <p className="text-sm mt-2 text-muted-foreground">
-              ≈ {ethPerCoin.toFixed(6)} ETH per coin ({selectedCount} selected)
+              {t("buyAll.ethPerCoin", { ethPerCoin: ethPerCoin.toFixed(6), count: selectedCount })}
             </p>
           )}
           {error && (
@@ -439,28 +441,26 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
         <div className="flex-1 overflow-y-auto p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground">
-              Select Creators ({selectedCount}/{contentCoins.length})
+              {t("buyAll.selectCreators", { selected: selectedCount, total: contentCoins.length })}
             </h3>
             <div className="flex gap-2">
               <button
                 onClick={selectAll}
                 className="px-3 py-1.5 text-xs rounded-lg transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
               >
-                Select All
+                {t("buyAll.selectAll")}
               </button>
               <button
                 onClick={deselectAll}
                 className="px-3 py-1.5 text-xs rounded-lg transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
               >
-                Clear
+                {t("buyAll.clear")}
               </button>
             </div>
           </div>
 
           {contentCoins.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">
-              No content coins available in feed
-            </div>
+            <div className="py-12 text-center text-muted-foreground">{t("buyAll.noCoins")}</div>
           ) : (
             <div className="space-y-2">
               {contentCoins.map((item) => {
@@ -567,15 +567,15 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
         <div className="p-6 border-t border-border">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm text-muted-foreground">Total Investment</p>
+              <p className="text-sm text-muted-foreground">{t("buyAll.totalInvestment")}</p>
               <p className="flex items-center gap-2 text-2xl font-bold text-[#FBBF23] dark:text-[#FBBF23]">
                 <FaEthereum className="w-5 h-5" />
                 {ethAmount} ETH
               </p>
             </div>
             <div className="text-right text-muted-foreground">
-              <p className="text-sm">{selectedCount} creators selected</p>
-              <p className="text-xs">≈ {ethPerCoin.toFixed(6)} ETH each</p>
+              <p className="text-sm">{t("buyAll.creatorsSelected", { count: selectedCount })}</p>
+              <p className="text-xs">{t("buyAll.ethEach", { amount: ethPerCoin.toFixed(6) })}</p>
             </div>
           </div>
           <div className="flex gap-3">
@@ -583,7 +583,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
               onClick={handleClose}
               className="flex-1 px-6 py-3 font-medium rounded-xl transition-all bg-secondary text-secondary-foreground hover:bg-secondary/80"
             >
-              Cancel
+              {t("buyAll.cancel")}
             </button>
             <button
               onClick={handleProceedToConfirm}
@@ -594,7 +594,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
                   : "cursor-not-allowed bg-muted text-muted-foreground"
               }`}
             >
-              Review Purchase
+              {t("buyAll.reviewPurchase")}
             </button>
           </div>
         </div>
@@ -616,20 +616,21 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
         <div className="flex items-center justify-between p-6 border-b border-border">
           <div>
             <h2 className="text-2xl font-bold text-foreground">
-              {step === "confirm" && "Confirm Purchase"}
-              {step === "executing" && "Processing..."}
-              {step === "success" && "Success!"}
-              {step === "error" && "Error"}
-              {step === "select" && "Buy Content Coins"}
+              {step === "confirm" && t("buyAll.title.confirm")}
+              {step === "executing" && t("buyAll.title.executing")}
+              {step === "success" && t("buyAll.title.success")}
+              {step === "error" && t("buyAll.title.error")}
+              {step === "select" && t("buyAll.title.select")}
             </h2>
             {(step === "select" || step === "confirm") && (
               <p className="text-muted-foreground text-sm mt-1">
                 {displayStrategyName ? (
                   <span>
-                    <strong className="text-[#FBBF23]">{displayStrategyName}</strong> strategy
+                    <strong className="text-[#FBBF23]">{displayStrategyName}</strong>{" "}
+                    {t("buyAll.subtitle.strategyLabel")}
                   </span>
                 ) : step === "select" ? (
-                  "Select creators to support with your ETH"
+                  t("buyAll.subtitle.select")
                 ) : (
                   ""
                 )}
@@ -640,7 +641,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
             <button
               onClick={handleClose}
               className="flex items-center justify-center w-10 h-10 rounded-full transition-all text-foreground bg-accent hover:bg-accent/80"
-              aria-label="Close modal"
+              aria-label={t("buyAll.closeModal")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -655,15 +656,15 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
       {showShareDialog && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-10">
           <div className="bg-background border border-border rounded-xl p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold text-foreground mb-4">Share Your Strategy</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Give your selection a name and share it with others!
-            </p>
+            <h3 className="text-lg font-bold text-foreground mb-4">
+              {t("buyAll.share.dialogTitle")}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">{t("buyAll.share.dialogSubtitle")}</p>
             <input
               type="text"
               value={strategyName}
               onChange={(e) => setStrategyName(e.target.value)}
-              placeholder="e.g., SkateHive Crew, Gnars Squad..."
+              placeholder={t("buyAll.share.placeholder")}
               className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#FBBF23] mb-4"
               autoFocus
             />
@@ -677,13 +678,13 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
                 }}
                 className="flex-1 px-4 py-2 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
               >
-                Cancel
+                {t("buyAll.share.cancel")}
               </button>
               <button
                 onClick={handleGenerateShareLink}
                 className="flex-1 px-4 py-2 rounded-xl bg-[#FBBF23] text-black hover:bg-[#F59E0B] transition-all font-medium"
               >
-                Copy Link
+                {t("buyAll.share.copyLink")}
               </button>
             </div>
           </div>

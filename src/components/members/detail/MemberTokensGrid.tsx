@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { GnarCard } from "@/components/auctions/GnarCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -17,14 +18,16 @@ interface MemberTokensGridProps {
 }
 
 export function MemberTokensGrid({ tokens }: MemberTokensGridProps) {
+  const t = useTranslations("members");
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gnars Held</CardTitle>
+        <CardTitle>{t("tokens.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {tokens.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">No tokens held.</div>
+          <div className="text-center py-8 text-muted-foreground">{t("tokens.empty")}</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {tokens.map((t) => {

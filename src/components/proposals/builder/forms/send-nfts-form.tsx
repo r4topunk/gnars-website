@@ -1,4 +1,7 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useFormContext } from "react-hook-form";
 import { NftGridSkeleton } from "@/components/skeletons/nftGridSkeleton";
@@ -18,6 +21,7 @@ interface Props {
 }
 
 export function SendNFTsForm({ index }: Props) {
+  const t = useTranslations("propose");
   const {
     register,
     formState: { errors },
@@ -137,7 +141,7 @@ export function SendNFTsForm({ index }: Props) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>Select a Gnar from Treasury *</Label>
+        <Label>{t("sendNfts.selectGnarLabel")}</Label>
         <Card className="py-0">
           <CardContent>
             <ScrollArea className="h-80" viewportRef={viewportRef}>
@@ -145,10 +149,10 @@ export function SendNFTsForm({ index }: Props) {
                 <NftGridSkeleton />
               ) : error ? (
                 <div className="text-sm text-destructive">
-                  Failed to load treasury NFTs: {error}
+                  {t("sendNfts.failedToLoad", { error })}
                 </div>
               ) : tokens.length === 0 ? (
-                <div className="text-sm text-muted-foreground">No Gnars found in treasury.</div>
+                <div className="text-sm text-muted-foreground">{t("sendNfts.noGnarsFound")}</div>
               ) : (
                 <div className="my-6 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 pr-2">
                   {tokens.slice(0, visibleTokensCount).map((t) => {
@@ -202,15 +206,15 @@ export function SendNFTsForm({ index }: Props) {
           </CardContent>
         </Card>
         {errors.transactions?.[index] && "tokenId" in (errors.transactions?.[index] as object) && (
-          <p className="text-xs text-red-500">Please select an NFT</p>
+          <p className="text-xs text-red-500">{t("sendNfts.pleaseSelectNft")}</p>
         )}
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="to">To Address *</Label>
+        <Label htmlFor="to">{t("sendNfts.toAddressLabel")}</Label>
         <Input
           id="to"
-          placeholder="0x... or ENS name"
+          placeholder={t("sendNfts.toAddressPlaceholder")}
           {...register(`transactions.${index}.to` as const)}
         />
         {errors.transactions?.[index] && "to" in (errors.transactions?.[index] as object) && (
@@ -224,10 +228,10 @@ export function SendNFTsForm({ index }: Props) {
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">{t("sendNfts.descriptionLabel")}</Label>
         <Textarea
           id="description"
-          placeholder="Describe the purpose of this NFT transfer..."
+          placeholder={t("sendNfts.descriptionPlaceholder")}
           {...register(`transactions.${index}.description` as const)}
         />
       </div>

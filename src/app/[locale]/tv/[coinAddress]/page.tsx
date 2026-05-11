@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { GnarsTVFeed } from "@/components/tv/GnarsTVFeed";
 import { BASE_URL } from "@/lib/config";
@@ -8,7 +9,7 @@ import { TV_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 export const revalidate = 120;
 
 type Props = {
-  params: Promise<{ coinAddress: string }>;
+  params: Promise<{ coinAddress: string; locale: string }>;
 };
 
 // Helper to fetch coin metadata for OG tags
@@ -106,10 +107,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function TVCoinPage({ params }: Props) {
-  const { coinAddress } = await params;
+  const { coinAddress, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("tv");
+
   return (
     <>
-      <h1 className="sr-only">Gnars TV skateboarding coin feed</h1>
+      <h1 className="sr-only">{t("srOnly.coinFeed")}</h1>
       <Suspense>
         <GnarsTVFeed priorityCoinAddress={coinAddress} />
       </Suspense>

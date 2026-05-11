@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { Proposal } from "@/components/proposals/types";
@@ -72,6 +73,7 @@ export function ProposalsGrid({
   proposals: (Proposal | MultiChainProposal)[];
   isLoading?: boolean;
 }) {
+  const t = useTranslations("proposals");
   const PAGE_SIZE = 12;
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -105,10 +107,8 @@ export function ProposalsGrid({
   if (proposals.length === 0 && !isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-muted-foreground">No proposals match the selected filters</p>
-        <p className="text-sm text-muted-foreground/70 mt-1">
-          Try adjusting the chain or status filters
-        </p>
+        <p className="text-muted-foreground">{t("grid.noMatch")}</p>
+        <p className="text-sm text-muted-foreground/70 mt-1">{t("grid.adjustFilters")}</p>
       </div>
     );
   }

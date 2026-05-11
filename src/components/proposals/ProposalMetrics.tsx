@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProposalStatus } from "@/lib/schemas/proposals";
@@ -23,6 +26,7 @@ export function ProposalMetrics({
   startDate,
   endDate,
 }: ProposalMetricsProps) {
+  const t = useTranslations("proposals");
   const formatVotes = (votes: string) => {
     const num = parseFloat(votes);
     return num.toLocaleString(undefined, { maximumFractionDigits: 1 });
@@ -57,7 +61,9 @@ export function ProposalMetrics({
       {/* Mobile: For | Against, Desktop: For | Against | Abstain */}
       <Card className="py-2 gap-0 md:gap-2">
         <CardHeader className="pb-1 px-4">
-          <CardTitle className="text-md font-semibold text-foreground/90">For</CardTitle>
+          <CardTitle className="text-md font-semibold text-foreground/90">
+            {t("metrics.for")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-1.5 py-1 px-4">
           <div className="text-xl md:text-2xl font-bold text-green-600">
@@ -69,7 +75,9 @@ export function ProposalMetrics({
 
       <Card className="py-2 gap-0 md:gap-2">
         <CardHeader className="pb-1 px-4">
-          <CardTitle className="text-md font-semibold text-foreground/90">Against</CardTitle>
+          <CardTitle className="text-md font-semibold text-foreground/90">
+            {t("metrics.against")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-1.5 py-1 px-4">
           <div className="text-xl md:text-2xl font-bold text-red-600">
@@ -82,7 +90,9 @@ export function ProposalMetrics({
       {/* Mobile: Abstain | Threshold, Desktop: Threshold | Ends | Snapshot */}
       <Card className="py-2 gap-0 md:gap-2">
         <CardHeader className="pb-1 px-4">
-          <CardTitle className="text-md font-semibold text-foreground/90">Abstain</CardTitle>
+          <CardTitle className="text-md font-semibold text-foreground/90">
+            {t("metrics.abstain")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-1.5 py-1 px-4">
           <div className="text-xl md:text-2xl font-bold text-muted-foreground">
@@ -98,11 +108,15 @@ export function ProposalMetrics({
 
       <Card className="py-2 gap-0 md:gap-2">
         <CardHeader className="pb-1 px-4">
-          <CardTitle className="text-md font-semibold text-foreground/90">Threshold</CardTitle>
+          <CardTitle className="text-md font-semibold text-foreground/90">
+            {t("metrics.threshold")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="py-1 px-4">
-          <div className="text-xl md:text-2xl font-bold">{formatVotes(quorumVotes)} votes</div>
-          <div className="text-xs text-muted-foreground">Current threshold</div>
+          <div className="text-xl md:text-2xl font-bold">
+            {t("metrics.votes", { count: formatVotes(quorumVotes) })}
+          </div>
+          <div className="text-xs text-muted-foreground">{t("metrics.currentThreshold")}</div>
         </CardContent>
       </Card>
 
@@ -112,10 +126,10 @@ export function ProposalMetrics({
           <CardHeader className="pb-1 px-4">
             <CardTitle className="text-md font-semibold text-foreground/90">
               {isPending
-                ? "Starts"
+                ? t("metrics.starts")
                 : forNum + againstNum + abstainNum > 0 && dateToShow.getTime() < renderNow
-                  ? "Ended"
-                  : "Ends"}
+                  ? t("metrics.ended")
+                  : t("metrics.ends")}
             </CardTitle>
           </CardHeader>
           <CardContent className="py-1 px-4" suppressHydrationWarning>
@@ -141,11 +155,13 @@ export function ProposalMetrics({
       {snapshotBlock && (
         <Card className="py-2 gap-0 md:gap-2">
           <CardHeader className="pb-1 px-4">
-            <CardTitle className="text-md font-semibold text-foreground/90">Snapshot</CardTitle>
+            <CardTitle className="text-md font-semibold text-foreground/90">
+              {t("metrics.snapshot")}
+            </CardTitle>
           </CardHeader>
           <CardContent className="py-1 px-4">
             <div className="text-xl md:text-2xl font-semibold">#{formatBlock(snapshotBlock)}</div>
-            <div className="text-xs text-muted-foreground">Taken at block</div>
+            <div className="text-xs text-muted-foreground">{t("metrics.takenAtBlock")}</div>
           </CardContent>
         </Card>
       )}

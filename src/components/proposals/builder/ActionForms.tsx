@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { createTradeCall, setApiKey, type TradeParameters } from "@zoralabs/coins-sdk";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -63,6 +64,7 @@ interface ActionFormsProps {
 }
 
 export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFormsProps) {
+  const t = useTranslations("propose");
   const { handleSubmit, setValue, getValues } = useFormContext<ProposalFormValues>();
   const [isGenerating, setIsGenerating] = useState(false);
   const [sdkError, setSDKError] = useState<string | null>(null);
@@ -94,7 +96,7 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
             return `${field}: Unknown error`;
           })
           .join(", ");
-        setSDKError(`Validation errors: ${errorMessages}`);
+        setSDKError(t("transactions.validationErrors", { errors: errorMessages }));
       }
     }
   };
@@ -237,22 +239,21 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
       case "custom":
         return <CustomTransactionForm index={index} />;
       default:
-        return <div>Unknown action type</div>;
+        return <div>{t("transactions.unknownType")}</div>;
     }
   };
 
-  const getTitle = () => {
-    const titles = {
-      "send-eth": "Send ETH",
-      "send-usdc": "Send USDC",
-      "send-tokens": "Send Tokens",
-      "send-nfts": "Send NFTs",
-      droposal: "Create Droposal",
-      "buy-coin": "Buy Coin",
-      custom: "Custom Transaction",
-    } as const;
-    return titles[actionType as keyof typeof titles] || "Transaction";
+  const titleKeys: Record<string, Parameters<typeof t>[0]> = {
+    "send-eth": "transactions.types.sendEth",
+    "send-usdc": "transactions.types.sendUsdc",
+    "send-tokens": "transactions.types.sendTokens",
+    "send-nfts": "transactions.types.sendNfts",
+    droposal: "transactions.types.droposal",
+    "buy-coin": "transactions.types.buyCoin",
+    custom: "transactions.types.custom",
   };
+
+  const getTitle = () => t(titleKeys[actionType] ?? "transactions.types.custom");
 
   return (
     <Card>
@@ -263,7 +264,9 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
           </Button>
           <div>
             <CardTitle>{getTitle()}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Configure transaction details</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t("transactions.configureDetails")}
+            </p>
           </div>
         </div>
       </CardHeader>
@@ -280,7 +283,7 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
 
         <div className="flex justify-end space-x-3">
           <Button variant="outline" onClick={onCancel} disabled={isGenerating}>
-            Cancel
+            {t("transactions.cancel")}
           </Button>
           <Button
             onClick={handleSubmit(
@@ -297,13 +300,13 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {actionType === "droposal"
-                  ? "Creating Split..."
+                  ? t("transactions.creatingSplit")
                   : actionType === "buy-coin"
-                    ? "Generating..."
-                    : "Saving..."}
+                    ? t("transactions.generating")
+                    : t("transactions.saving")}
               </>
             ) : (
-              "Save Transaction"
+              t("transactions.saveTransaction")
             )}
           </Button>
         </div>

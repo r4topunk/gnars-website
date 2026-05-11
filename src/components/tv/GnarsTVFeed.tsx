@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
@@ -46,6 +47,7 @@ const TV_LAST_SEEN_AT_STORAGE_KEY = "gnars-tv:last-seen-at";
  * - Smooth transitions: poster → video with fade animations
  */
 export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
+  const t = useTranslations("tv");
   const searchParams = useSearchParams();
   const [activeIndex, setActiveIndex] = useState(0);
   const [playCount, setPlayCount] = useState(0);
@@ -369,7 +371,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         await navigator.share(shareData);
       } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);
-        toast.success("Link copied to clipboard");
+        toast.success(t("toast.linkCopied"));
       }
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return;
@@ -377,32 +379,32 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
       try {
         if (navigator.clipboard) {
           await navigator.clipboard.writeText(url);
-          toast.success("Link copied to clipboard");
+          toast.success(t("toast.linkCopied"));
         } else {
-          toast.error("Unable to share right now");
+          toast.error(t("toast.unableToShare"));
         }
       } catch {
-        toast.error("Unable to share right now");
+        toast.error(t("toast.unableToShare"));
       }
     }
-  }, [videoItems, activeIndex, isInMiniApp, miniAppShare]);
+  }, [videoItems, activeIndex, isInMiniApp, miniAppShare, t]);
 
   // Buy coin handler
   const handleBuyCoin = useCallback(
     async (coinAddress: string, coinTitle: string) => {
       if (!isConnected || !address) {
-        toast.error("Please connect your wallet first");
+        toast.error(t("toast.connectWallet"));
         return;
       }
 
       const client = getThirdwebClient();
       if (!client || !wallet || !thirdwebAccount) {
-        toast.error("Wallet not ready");
+        toast.error(t("toast.walletNotReady"));
         return;
       }
 
       setIsBuying(true);
-      const buyToast = toast.loading(`Buying ${coinTitle}...`);
+      const buyToast = toast.loading(t("toast.buying", { title: coinTitle }));
 
       try {
         // Zora's `tradeCoin` SDK wants a viem WalletClient — it doesn't take
@@ -437,7 +439,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
           publicClient,
         });
 
-        toast.success(`Successfully bought ${coinTitle}!`, { id: buyToast });
+        toast.success(t("toast.buySuccess", { title: coinTitle }), { id: buyToast });
       } catch (err) {
         // Recursively extract all error messages from the cause chain
         const extractErrorMessages = (error: unknown): string => {
@@ -485,37 +487,37 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
 
         // Show friendly error messages
         if (isUserRejection) {
-          toast.error("Transaction cancelled", {
+          toast.error(t("toast.buyRejected"), {
             id: buyToast,
-            description: "You rejected the transaction in your wallet.",
+            description: t("toast.buyRejectedDesc"),
           });
         } else if (isInsufficientFunds) {
-          toast.error("Insufficient balance", {
+          toast.error(t("toast.buyInsufficientFunds"), {
             id: buyToast,
-            description: "You don't have enough ETH to complete this purchase.",
+            description: t("toast.buyInsufficientFundsDesc"),
           });
         } else if (isGasError) {
-          toast.error("Gas issue", {
+          toast.error(t("toast.buyGasIssue"), {
             id: buyToast,
-            description: "Not enough ETH to pay for gas fees.",
+            description: t("toast.buyGasIssueDesc"),
           });
         } else if (isNetworkError) {
-          toast.error("Network error", {
+          toast.error(t("toast.buyNetworkError"), {
             id: buyToast,
-            description: "Unable to connect to network. Please try again.",
+            description: t("toast.buyNetworkErrorDesc"),
           });
         } else {
           // Generic error - show a simplified message
-          toast.error("Transaction failed", {
+          toast.error(t("toast.buyFailed"), {
             id: buyToast,
-            description: "Unable to complete purchase. Please try again.",
+            description: t("toast.buyFailedDesc"),
           });
         }
       } finally {
         setIsBuying(false);
       }
     },
-    [isConnected, address, wallet, thirdwebAccount, supportAmount],
+    [isConnected, address, wallet, thirdwebAccount, supportAmount, t],
   );
 
   // Resolve token address from execution transaction hash
@@ -559,30 +561,30 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   const handleMintDroposal = useCallback(
     async (item: TVItem, quantity: number) => {
       if (!isConnected || !address || !writer) {
-        toast.error("Please connect your wallet first");
+        toast.error(t("toast.connectWallet"));
         return;
       }
 
       const client = getThirdwebClient();
       if (!client) {
-        toast.error("Thirdweb client not configured");
+        toast.error(t("toast.thirdwebNotConfigured"));
         return;
       }
 
-      const mintToast = toast.loading(`Preparing to mint ${item.title}...`);
+      const mintToast = toast.loading(t("toast.preparingMint", { title: item.title }));
       setIsBuying(true);
 
       try {
-        toast.loading("Switching to Base network...", { id: mintToast });
+        toast.loading(t("toast.switchingNetwork"), { id: mintToast });
         await ensureOnChain(writer.wallet, base);
 
-        toast.loading("Resolving NFT contract...", { id: mintToast });
+        toast.loading(t("toast.resolvingContract"), { id: mintToast });
         const tokenAddress = await resolveTokenAddress(item);
 
         if (!tokenAddress) {
-          toast.error("Unable to find NFT contract", {
+          toast.error(t("toast.nftContractNotFound"), {
             id: mintToast,
-            description: "This droposal may not be ready for minting yet.",
+            description: t("toast.nftContractNotFoundDesc"),
           });
           return;
         }
@@ -592,9 +594,12 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         const protocolReward = ZORA_PROTOCOL_REWARD * quantity;
         const totalPrice = parseEther((salePrice + protocolReward).toFixed(18));
 
-        toast.loading("Confirm in your wallet...", {
+        toast.loading(t("toast.confirmWallet"), {
           id: mintToast,
-          description: `Minting ${quantity} NFT${quantity > 1 ? "s" : ""} for ${(salePrice + protocolReward).toFixed(5)} ETH`,
+          description: t("toast.mintingDesc", {
+            quantity,
+            price: (salePrice + protocolReward).toFixed(5),
+          }),
         });
 
         const contract = getContract({
@@ -616,33 +621,35 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         });
         const txHash = result.transactionHash as `0x${string}`;
 
-        toast.loading("Waiting for confirmation...", { id: mintToast });
+        toast.loading(t("toast.waitingConfirmation"), { id: mintToast });
         await waitForReceipt({ client, chain: base, transactionHash: txHash });
 
-        toast.success(`Successfully minted ${item.title}!`, {
+        toast.success(t("toast.mintSuccess", { title: item.title }), {
           id: mintToast,
-          description: `Transaction: ${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
+          description: t("toast.mintTxDesc", {
+            hash: `${txHash.slice(0, 10)}…${txHash.slice(-4)}`,
+          }),
         });
       } catch (err) {
         const { category, message } = normalizeTxError(err);
 
         if (category === "user-rejected") {
-          toast.error("Transaction cancelled", {
+          toast.error(t("toast.mintRejected"), {
             id: mintToast,
-            description: "You rejected the transaction in your wallet.",
+            description: t("toast.buyRejectedDesc"),
           });
         } else if (message.includes("insufficient funds")) {
-          toast.error("Insufficient funds", {
+          toast.error(t("toast.mintInsufficientFunds"), {
             id: mintToast,
-            description: "You don't have enough ETH to complete this mint.",
+            description: t("toast.mintInsufficientFundsDesc"),
           });
         } else if (message.includes("Sale_Inactive") || message.includes("sale not active")) {
-          toast.error("Sale not active", {
+          toast.error(t("toast.saleNotActive"), {
             id: mintToast,
-            description: "The sale is not currently active.",
+            description: t("toast.saleNotActiveDesc"),
           });
         } else {
-          toast.error("Mint failed", {
+          toast.error(t("toast.mintFailed"), {
             id: mintToast,
             description: message.slice(0, 100),
           });
@@ -651,7 +658,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         setIsBuying(false);
       }
     },
-    [isConnected, address, writer, resolveTokenAddress],
+    [isConnected, address, writer, resolveTokenAddress, t],
   );
 
   return (

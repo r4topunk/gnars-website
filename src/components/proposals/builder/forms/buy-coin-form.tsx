@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Info } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -10,6 +13,7 @@ interface Props {
 }
 
 export function BuyCoinForm({ index }: Props) {
+  const t = useTranslations("propose");
   const {
     register,
     formState: { errors },
@@ -27,62 +31,55 @@ export function BuyCoinForm({ index }: Props) {
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          <p className="text-sm">
-            This transaction will use the Zora Coins SDK to purchase a content or creator coin from
-            the treasury. The swap executes through Uniswap v4 with Zora hooks.
-          </p>
+          <p className="text-sm">{t("buyCoin.infoDesc")}</p>
         </AlertDescription>
       </Alert>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="coinAddress">Coin Address *</Label>
+        <Label htmlFor="coinAddress">{t("buyCoin.coinAddressLabel")}</Label>
         <Input
           id="coinAddress"
-          placeholder="0x..."
+          placeholder={t("buyCoin.coinAddressPlaceholder")}
           {...register(`transactions.${index}.coinAddress` as const)}
         />
         {getErrorMessage("coinAddress") && (
           <p className="text-xs text-red-500">{String(getErrorMessage("coinAddress"))}</p>
         )}
-        <p className="text-xs text-muted-foreground">
-          ERC-20 address of the content or creator coin
-        </p>
+        <p className="text-xs text-muted-foreground">{t("buyCoin.coinAddressHelper")}</p>
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="ethAmount">ETH Amount *</Label>
+        <Label htmlFor="ethAmount">{t("buyCoin.ethAmountLabel")}</Label>
         <Input
           id="ethAmount"
           type="number"
           step="0.01"
           min="0"
-          placeholder="0.1"
+          placeholder={t("buyCoin.ethAmountPlaceholder")}
           {...register(`transactions.${index}.ethAmount` as const)}
         />
         {getErrorMessage("ethAmount") && (
           <p className="text-xs text-red-500">{String(getErrorMessage("ethAmount"))}</p>
         )}
-        <p className="text-xs text-muted-foreground">Amount of ETH to spend from treasury</p>
+        <p className="text-xs text-muted-foreground">{t("buyCoin.ethAmountHelper")}</p>
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="slippage">Slippage Tolerance (%) *</Label>
+        <Label htmlFor="slippage">{t("buyCoin.slippageLabel")}</Label>
         <Input
           id="slippage"
           type="number"
           step="0.1"
           min="0"
           max="100"
-          placeholder="5"
+          placeholder={t("buyCoin.slippagePlaceholder")}
           defaultValue="5"
           {...register(`transactions.${index}.slippage` as const)}
         />
         {getErrorMessage("slippage") && (
           <p className="text-xs text-red-500">{String(getErrorMessage("slippage"))}</p>
         )}
-        <p className="text-xs text-muted-foreground">
-          Maximum acceptable slippage (recommended: 5%)
-        </p>
+        <p className="text-xs text-muted-foreground">{t("buyCoin.slippageHelper")}</p>
       </div>
     </div>
   );

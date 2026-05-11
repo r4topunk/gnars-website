@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
@@ -59,6 +60,7 @@ export function ProposalCard({
   showBanner?: boolean;
   showRequested?: boolean;
 }) {
+  const t = useTranslations("proposals");
   const totalVotes =
     (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
 
@@ -99,7 +101,7 @@ export function ProposalCard({
           ? `${formatAssetAmount(fundingTotals.totalUsdc, 2)} USDC`
           : null,
       ].filter((line): line is string => Boolean(line))
-    : ["No direct ETH/USDC transfer"];
+    : [t("card.noDirectTransfer")];
 
   useEffect(() => {
     setBannerSrc(currentBannerSrc);
@@ -118,7 +120,7 @@ export function ProposalCard({
               {!isImageLoaded && <Skeleton className="absolute inset-0" />}
               <Image
                 src={bannerSrc}
-                alt="Proposal banner"
+                alt={t("card.bannerAlt")}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className={`object-cover transition-opacity duration-300 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
@@ -151,7 +153,7 @@ export function ProposalCard({
                   {proposal.title}
                 </h4>
                 <div className="text-xs text-muted-foreground mt-1">
-                  by{" "}
+                  {t("card.by")}{" "}
                   <AddressDisplay
                     address={proposal.proposer}
                     variant="compact"
@@ -167,13 +169,13 @@ export function ProposalCard({
 
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Voting Progress</span>
+                <span>{t("card.votingProgress")}</span>
                 <span className={cn(isPending && "italic")}>
                   {isPending
-                    ? "not started"
+                    ? t("card.notStarted")
                     : totalVotes === 0
-                      ? "no votes yet"
-                      : `${totalVotes} votes`}
+                      ? t("card.noVotesYet")
+                      : t("card.votes", { count: totalVotes })}
                 </span>
               </div>
               <div className="space-y-1">
@@ -219,7 +221,7 @@ export function ProposalCard({
             {showRequested && (
               <div className="space-y-1 border-t border-border/60 pt-2">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-muted-foreground">Requested</span>
+                  <span className="text-xs text-muted-foreground">{t("card.requested")}</span>
                   <div className="flex items-center gap-2 font-medium text-foreground tabular-nums text-sm">
                     {requestedLines.map((line, idx) => (
                       <span key={line}>

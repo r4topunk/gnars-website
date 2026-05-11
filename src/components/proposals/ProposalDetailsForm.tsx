@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Eye } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Markdown } from "@/components/common/Markdown";
@@ -59,6 +60,7 @@ export const ProposalDetailsForm = forwardRef<ProposalDetailsFormHandle, Proposa
 );
 
 function MarkdownDetailsForm() {
+  const t = useTranslations("propose");
   const {
     register,
     watch,
@@ -70,22 +72,22 @@ function MarkdownDetailsForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Proposal Details</h2>
-        <p className="text-muted-foreground">Provide the basic information for your proposal</p>
+        <h2 className="text-2xl font-bold mb-2">{t("details.title")}</h2>
+        <p className="text-muted-foreground">{t("details.description")}</p>
       </div>
 
       <ProposalDetailsHeader />
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <Label htmlFor="description">Description *</Label>
+          <Label htmlFor="description">{t("details.descriptionLabel")}</Label>
           <Button
             size="sm"
             variant="outline"
             onClick={() => setShowMarkdownPreview(!showMarkdownPreview)}
           >
             <Eye className="h-4 w-4 mr-1" />
-            {showMarkdownPreview ? "Edit" : "Preview"}
+            {showMarkdownPreview ? t("details.edit") : t("details.preview")}
           </Button>
         </div>
 
@@ -95,21 +97,14 @@ function MarkdownDetailsForm() {
               {watchedDescription ? (
                 <Markdown className="prose-sm max-w-none">{watchedDescription}</Markdown>
               ) : (
-                <p className="text-muted-foreground italic">No description yet</p>
+                <p className="text-muted-foreground italic">{t("details.noDescriptionYet")}</p>
               )}
             </CardContent>
           </Card>
         ) : (
           <Textarea
             id="description"
-            placeholder="Describe your proposal in detail...
-
-You can use **markdown** formatting:
-- **Bold text**
-- *Italic text*
-- `Code snippets`
-
-Explain the problem, solution, and expected outcomes."
+            placeholder={t("details.descriptionPlaceholder")}
             {...register("description")}
             rows={8}
             className="resize-none"
@@ -119,10 +114,7 @@ Explain the problem, solution, and expected outcomes."
         {errors.description && (
           <p className="text-xs text-red-500 mt-1">{errors.description.message}</p>
         )}
-        <p className="text-xs text-muted-foreground mt-1">
-          Markdown formatting supported. Be thorough and clear about your proposal&apos;s purpose
-          and impact.
-        </p>
+        <p className="text-xs text-muted-foreground mt-1">{t("details.descriptionHelper")}</p>
       </div>
     </div>
   );
