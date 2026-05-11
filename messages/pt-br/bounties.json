@@ -1,7 +1,6 @@
 {
-  "title": "Desafios",
-  "description": "Gnars Bountie é uma nova via de pequenos grants onchain feita pra manter as rodas girando.",
-  "poweredBy": "Powered by POIDH",
+  "title": "Bounties",
+  "description": "Os Gnars Bounties são desafios da comunidade: paguem atletas em ETH para mandar as manobras, runs e tretas que a DAO quer ver filmadas.",
   "cta": {
     "createBounty": "Criar Bounty",
     "create": "Criar",
@@ -59,9 +58,9 @@
     "error": "Falha ao carregar bounties"
   },
   "manifesto": {
-    "sectionLabel": "Manifesto",
+    "sectionLabel": "Como funciona",
     "p1": "Gnars Bounties se apoia em momentos anteriores movidos pela comunidade ao permitir execução direta e permissionless. Tira a fricção dos sistemas tradicionais de grant, permitindo que ideias sejam postadas, financiadas, concluídas e recompensadas onchain num fluxo simples e aberto.",
-    "howItWorksLabel": "Como funciona:",
+    "howItWorksLabel": "O fluxo:",
     "howItWorksBody": "Crie ou selecione um bounty → financie ou apoie uma missão → execute e envie o trabalho → seja verificado → receba pagamento onchain"
   },
   "detail": {

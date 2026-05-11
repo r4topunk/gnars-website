@@ -129,7 +129,14 @@ export const fetchPoidhBounty = cache(
     if (!SUPPORTED_CHAIN_IDS.includes(chainId)) return null;
     if (isNaN(id) || id < 1) return null;
 
-    const bountyData = await fetchFromPoidh("bounties.fetch", { id, chainId }, DETAIL_CACHE_TTL);
+    let bountyData: unknown;
+    try {
+      bountyData = await fetchFromPoidh("bounties.fetch", { id, chainId }, DETAIL_CACHE_TTL);
+    } catch (err) {
+      // POIDH upstream failure — degrade gracefully instead of crashing the page
+      console.error("POIDH bounty fetch failed:", err);
+      return null;
+    }
 
     if (!bountyData) return null;
     const bounty = bountyData as PoidhBounty;

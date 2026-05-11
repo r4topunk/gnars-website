@@ -36,6 +36,10 @@
         "title": "Tesouro",
         "description": "ETH, ERC-20s, NFTs e analytics onchain do tesouro da DAO"
       },
+      "bounties": {
+        "title": "Bounties",
+        "description": "Desafios gnarly da comunidade de esportes radicais"
+      },
       "swap": {
         "title": "Swap",
         "description": "Troque tokens na Base via 0x — melhor preço em mais de 150 DEXes"
@@ -66,10 +70,6 @@
       "createCoin": {
         "title": "Criar Coin",
         "description": "Crie um novo coin na Zora"
-      },
-      "bounties": {
-        "title": "Bounties",
-        "description": "Desafios gnarly da comunidade de esportes radicais"
       }
     }
   }

@@ -1092,8 +1092,8 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
             </Card>
           )}
 
-          {/* Cancel (creator only) */}
-          {isCreator && !bounty.isCanceled && (
+          {/* Cancel (creator only — only available while the bounty is active) */}
+          {isCreator && isActive && (
             <Card className="border-destructive/20">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base text-destructive/80">
