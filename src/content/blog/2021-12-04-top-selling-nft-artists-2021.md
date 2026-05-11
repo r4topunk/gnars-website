@@ -7,9 +7,9 @@ permalink: /top-selling-nft-artists-2021/
 author: gami
 image: /images/top-selling-nft-artists.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [artists]
-featured: 
+featured:
 ---
 
 Picasso and Da Vinci, without doubt, had their moments on the Creative Arts grand stage for centuries. Now it’s time for digital art to take over, and at the forefront are the NFT Artists.
@@ -30,7 +30,7 @@ They shot up the NFT creators’ charts by averaging $ 7,310 in sales and sellin
 
 Canadian-born artist Mad Dog Jones is known for blending music and art. His work is surreal and dynamic, which helped him sell 1,567 NFT coding art for an average of $9,063 apiece.
 
-Mad Dog Jones [became the world’s most expensive Canadian artist](https://news.artnet.com/market/phillips-4-4m-sale-of-mad-dog-nft-1961626) and auctioned his first cryptographic work of art at Phillips. His unique digital work of art, [*Replicator*](https://www.phillips.com/mdj), produces a new NFT every 28 days or a new NFT every month – more or less like a traditional copier. Ultimately, the buyer can have up to 220 unique NFTs, each of which is an NFT worth reselling in the secondary market.
+Mad Dog Jones [became the world’s most expensive Canadian artist](https://news.artnet.com/market/phillips-4-4m-sale-of-mad-dog-nft-1961626) and auctioned his first cryptographic work of art at Phillips. His unique digital work of art, [_Replicator_](https://www.phillips.com/mdj), produces a new NFT every 28 days or a new NFT every month – more or less like a traditional copier. Ultimately, the buyer can have up to 220 unique NFTs, each of which is an NFT worth reselling in the secondary market.
 
 With real names as Michah Dowbak, Dowbak’s artistic foray as Mad Dog Jones is primarily digital, although he has worked in many media and formats throughout his career. From music to sculpture, there is no particular pathway to his artistic possibilities.
 
@@ -42,9 +42,9 @@ Pak is extremely popular on Twitter and Instagram, where he has millions of foll
 
 But hey! We are more concerned about their works of creativity than their true faces.
 
-Pak recently released an artwork called *The Gift* on the Nifty Gateway and announced that it would be donated to any auction house that requests it.
+Pak recently released an artwork called _The Gift_ on the Nifty Gateway and announced that it would be donated to any auction house that requests it.
 
-Pak has sold over 1,691 artworks for approximately $16,880,471, with their most expensive being *Metarift* that went for $ 974,982.87 as of March 2021
+Pak has sold over 1,691 artworks for approximately $16,880,471, with their most expensive being _Metarift_ that went for $ 974,982.87 as of March 2021
 
 ## 3. Fewocious
 

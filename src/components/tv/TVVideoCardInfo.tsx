@@ -79,7 +79,9 @@ export function TVVideoCardInfo({
   }
 
   return (
-    <div className={`pointer-events-none absolute left-3 right-3 md:left-6 md:right-6 bottom-3 md:bottom-6 bg-black/50 md:bg-black/60 p-3 md:p-5 rounded-2xl backdrop-blur-lg border border-white/10 shadow-2xl transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+    <div
+      className={`pointer-events-none absolute left-3 right-3 md:left-6 md:right-6 bottom-3 md:bottom-6 bg-black/50 md:bg-black/60 p-3 md:p-5 rounded-2xl backdrop-blur-lg border border-white/10 shadow-2xl transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
+    >
       {/* Buy/Mint button - positioned at top-right inside card */}
       <div className="pointer-events-auto absolute top-2 right-2 md:top-3 md:right-3">
         {/* Droposal Mint Button */}

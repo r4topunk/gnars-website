@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 
 export function NogglesRailsManifesto() {
   return (
@@ -41,10 +41,9 @@ export function NogglesRailsManifesto() {
           <h2 className="mb-4 text-2xl font-bold tracking-tight">Build it anywhere</h2>
           <div className="space-y-4 text-sm leading-7 text-muted-foreground md:text-base">
             <p>
-              One of the first Gnars droposals was an open-source PDF created by Pharra,
-              documenting how to build a Nogglesrail. This document enabled replication across
-              cities and countries, turning a single idea into a global, permissionless skate
-              infrastructure.
+              One of the first Gnars droposals was an open-source PDF created by Pharra, documenting
+              how to build a Nogglesrail. This document enabled replication across cities and
+              countries, turning a single idea into a global, permissionless skate infrastructure.
             </p>
             <p>
               <Link
@@ -62,7 +61,8 @@ export function NogglesRailsManifesto() {
 
       <div className="border-t pt-8 text-center">
         <p className="mx-auto max-w-lg text-muted-foreground">
-          Want to bring a NogglesRail to your city? Submit a proposal and the community will fund it.
+          Want to bring a NogglesRail to your city? Submit a proposal and the community will fund
+          it.
         </p>
         <Button asChild className="mt-4">
           <Link href="/propose">Submit a Proposal</Link>

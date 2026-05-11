@@ -10,7 +10,7 @@ import { MINIAPP_CONFIG } from "@/lib/miniapp-config";
  */
 
 function withValidProperties(
-  properties: Record<string, undefined | string | string[] | object | boolean>
+  properties: Record<string, undefined | string | string[] | object | boolean>,
 ) {
   return Object.fromEntries(
     Object.entries(properties).filter(([, value]) => {
@@ -20,7 +20,7 @@ function withValidProperties(
         return Object.values(value).some((v) => v !== "" && v !== undefined);
       }
       return !!value;
-    })
+    }),
   );
 }
 

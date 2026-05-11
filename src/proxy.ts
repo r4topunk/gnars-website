@@ -1,24 +1,37 @@
+import createIntlMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
+import { routing } from "@/i18n/routing";
+
+const intlProxy = createIntlMiddleware(routing);
 
 const MARKDOWN_PATHS = ["/", "/proposals"];
 const MARKDOWN_DYNAMIC_PATTERNS = [/^\/proposals\/[^/]+$/];
 
-function isMarkdownPath(pathname: string): boolean {
-  if (MARKDOWN_PATHS.includes(pathname)) return true;
-  return MARKDOWN_DYNAMIC_PATTERNS.some((pattern) => pattern.test(pathname));
+export function stripLocale(pathname: string): string {
+  for (const locale of routing.locales) {
+    if (locale === routing.defaultLocale) continue;
+    if (pathname === `/${locale}`) return "/";
+    if (pathname.startsWith(`/${locale}/`)) return pathname.slice(`/${locale}`.length);
+  }
+  return pathname;
 }
 
-export function proxy(request: NextRequest) {
+function isMarkdownPath(pathname: string): boolean {
+  const stripped = stripLocale(pathname);
+  if (MARKDOWN_PATHS.includes(stripped)) return true;
+  return MARKDOWN_DYNAMIC_PATTERNS.some((p) => p.test(stripped));
+}
+
+export function proxy(request: NextRequest): NextResponse {
   const accept = request.headers.get("accept") ?? "";
-  if (!accept.includes("text/markdown")) return NextResponse.next();
-
-  const { pathname } = request.nextUrl;
-  if (!isMarkdownPath(pathname)) return NextResponse.next();
-
-  const mdPath = pathname === "/" ? "/md" : `/md${pathname}`;
-  return NextResponse.rewrite(new URL(mdPath, request.url));
+  if (accept.includes("text/markdown") && isMarkdownPath(request.nextUrl.pathname)) {
+    const stripped = stripLocale(request.nextUrl.pathname);
+    const mdPath = stripped === "/" ? "/md" : `/md${stripped}`;
+    return NextResponse.rewrite(new URL(mdPath, request.url));
+  }
+  return intlProxy(request);
 }
 
 export const config = {
-  matcher: ["/", "/proposals", "/proposals/:id*"],
+  matcher: ["/((?!api|_next|_vercel|md|.*\\..*).*)"],
 };

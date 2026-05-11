@@ -13,9 +13,9 @@ export function ProposalDescriptionCard({ description }: ProposalDescriptionCard
   // This is a fallback for any remaining ipfs:// URLs
   const processedDescription = description.replace(
     /!\[([^\]]*)\]\(ipfs:\/\/([a-zA-Z0-9]+)\)/g,
-    (match, alt, cid) => `![${alt}](https://ipfs.skatehive.app/ipfs/${cid})`
+    (match, alt, cid) => `![${alt}](https://ipfs.skatehive.app/ipfs/${cid})`,
   );
-  
+
   return (
     <Card>
       <CardHeader>

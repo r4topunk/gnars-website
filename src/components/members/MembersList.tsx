@@ -1,7 +1,6 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { ArrowDown, ArrowUp, ArrowUpDown, Search, UserPlus } from "lucide-react";
 import { DelegationModal } from "@/components/layout/DelegationModal";
 import { AddressDisplay } from "@/components/ui/address-display";
@@ -16,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Link } from "@/i18n/navigation";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { type MemberListItem } from "@/services/members";
 
@@ -354,7 +354,8 @@ export function MembersList({
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                          @{member.farcaster.username} · {member.farcaster.followerCount.toLocaleString()} followers on Farcaster
+                          @{member.farcaster.username} ·{" "}
+                          {member.farcaster.followerCount.toLocaleString()} followers on Farcaster
                         </TooltipContent>
                       </Tooltip>
                     ) : (

@@ -54,7 +54,11 @@ function compareFeed(before: Record<string, unknown>, after: Record<string, unkn
     ["Server Duration", bSummary.serverDurationMs, aSummary.serverDurationMs],
     ["TTFB Cold", bSummary.ttfbColdMs, aSummary.ttfbColdMs],
     ["TTFB Warm (avg)", bSummary.ttfbWarmAvgMs, aSummary.ttfbWarmAvgMs],
-    ["Response Size (KB)", Math.round(bSummary.responseSizeBytes / 1024), Math.round(aSummary.responseSizeBytes / 1024)],
+    [
+      "Response Size (KB)",
+      Math.round(bSummary.responseSizeBytes / 1024),
+      Math.round(aSummary.responseSizeBytes / 1024),
+    ],
   ] as const;
 
   console.log("║                                                              ║");
@@ -68,7 +72,9 @@ function compareFeed(before: Record<string, unknown>, after: Record<string, unkn
     const change = label.includes("KB")
       ? delta(bVal as number, aVal as number).replace("ms", "KB")
       : delta(bVal as number, aVal as number);
-    console.log(`║  ${label.padEnd(20)} ${bStr.padStart(8)} → ${aStr.padStart(8)}  ${change.padEnd(22)}║`);
+    console.log(
+      `║  ${label.padEnd(20)} ${bStr.padStart(8)} → ${aStr.padStart(8)}  ${change.padEnd(22)}║`,
+    );
   }
 
   if (bFeed && aFeed) {
@@ -88,7 +94,9 @@ function compareFeed(before: Record<string, unknown>, after: Record<string, unkn
 
     for (const [label, bVal, aVal] of feedMetrics) {
       const changed = bVal !== aVal ? " ⚡" : "";
-      console.log(`║  ${label.padEnd(20)} ${String(bVal).padStart(8)} → ${String(aVal).padStart(8)}${changed.padEnd(24)}║`);
+      console.log(
+        `║  ${label.padEnd(20)} ${String(bVal).padStart(8)} → ${String(aVal).padStart(8)}${changed.padEnd(24)}║`,
+      );
     }
   }
 
@@ -113,7 +121,9 @@ function compareClient(before: Record<string, unknown>, after: Record<string, un
   console.log("║                                                              ║");
   console.log("║  FEED ONLY                                                   ║");
   console.log("║  ────────────────────────────────────────────────────         ║");
-  console.log(`║  Total              ${formatMs(bFeed.totalMs).padStart(8)} → ${formatMs(aFeed.totalMs).padStart(8)}  ${delta(bFeed.totalMs, aFeed.totalMs).padEnd(22)}║`);
+  console.log(
+    `║  Total              ${formatMs(bFeed.totalMs).padStart(8)} → ${formatMs(aFeed.totalMs).padStart(8)}  ${delta(bFeed.totalMs, aFeed.totalMs).padEnd(22)}║`,
+  );
 
   const bSeq = bScenarios.sequential as Record<string, number> | null;
   const aSeq = aScenarios.sequential as Record<string, number> | null;
@@ -124,16 +134,24 @@ function compareClient(before: Record<string, unknown>, after: Record<string, un
     console.log("║                                                              ║");
     console.log("║  SEQUENTIAL (coin → feed)                                    ║");
     console.log("║  ────────────────────────────────────────────────────         ║");
-    console.log(`║  Total              ${formatMs(bSeq.totalMs).padStart(8)} → ${formatMs(aSeq.totalMs).padStart(8)}  ${delta(bSeq.totalMs, aSeq.totalMs).padEnd(22)}║`);
-    console.log(`║  Coin               ${formatMs(bSeq.coinMs).padStart(8)} → ${formatMs(aSeq.coinMs).padStart(8)}  ${delta(bSeq.coinMs, aSeq.coinMs).padEnd(22)}║`);
-    console.log(`║  Feed               ${formatMs(bSeq.feedMs).padStart(8)} → ${formatMs(aSeq.feedMs).padStart(8)}  ${delta(bSeq.feedMs, aSeq.feedMs).padEnd(22)}║`);
+    console.log(
+      `║  Total              ${formatMs(bSeq.totalMs).padStart(8)} → ${formatMs(aSeq.totalMs).padStart(8)}  ${delta(bSeq.totalMs, aSeq.totalMs).padEnd(22)}║`,
+    );
+    console.log(
+      `║  Coin               ${formatMs(bSeq.coinMs).padStart(8)} → ${formatMs(aSeq.coinMs).padStart(8)}  ${delta(bSeq.coinMs, aSeq.coinMs).padEnd(22)}║`,
+    );
+    console.log(
+      `║  Feed               ${formatMs(bSeq.feedMs).padStart(8)} → ${formatMs(aSeq.feedMs).padStart(8)}  ${delta(bSeq.feedMs, aSeq.feedMs).padEnd(22)}║`,
+    );
   }
 
   if (bPar && aPar) {
     console.log("║                                                              ║");
     console.log("║  PARALLEL (coin || feed)                                     ║");
     console.log("║  ────────────────────────────────────────────────────         ║");
-    console.log(`║  Total              ${formatMs(bPar.totalMs).padStart(8)} → ${formatMs(aPar.totalMs).padStart(8)}  ${delta(bPar.totalMs, aPar.totalMs).padEnd(22)}║`);
+    console.log(
+      `║  Total              ${formatMs(bPar.totalMs).padStart(8)} → ${formatMs(aPar.totalMs).padStart(8)}  ${delta(bPar.totalMs, aPar.totalMs).padEnd(22)}║`,
+    );
   }
 
   const bImprove = bScenarios.improvement as Record<string, unknown> | null;
@@ -143,8 +161,12 @@ function compareClient(before: Record<string, unknown>, after: Record<string, un
     console.log("║                                                              ║");
     console.log("║  PARALLEL IMPROVEMENT                                        ║");
     console.log("║  ────────────────────────────────────────────────────         ║");
-    console.log(`║  Before: saved ${String(bImprove.savedMs).padStart(4)}ms (${String(bImprove.savedPct).padStart(5)})                              ║`);
-    console.log(`║  After:  saved ${String(aImprove.savedMs).padStart(4)}ms (${String(aImprove.savedPct).padStart(5)})                              ║`);
+    console.log(
+      `║  Before: saved ${String(bImprove.savedMs).padStart(4)}ms (${String(bImprove.savedPct).padStart(5)})                              ║`,
+    );
+    console.log(
+      `║  After:  saved ${String(aImprove.savedMs).padStart(4)}ms (${String(aImprove.savedPct).padStart(5)})                              ║`,
+    );
   }
 
   console.log("║                                                              ║");
@@ -161,7 +183,9 @@ function main() {
   } else if ("scenarios" in before && "scenarios" in after) {
     compareClient(before, after);
   } else {
-    console.error("Cannot determine benchmark type. Ensure both files are the same type (feed or client).");
+    console.error(
+      "Cannot determine benchmark type. Ensure both files are the same type (feed or client).",
+    );
     process.exit(1);
   }
 }

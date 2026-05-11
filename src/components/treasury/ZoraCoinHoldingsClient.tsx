@@ -1,6 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { ExternalLink } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -9,9 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ExternalLink } from "lucide-react";
 
 export interface ZoraCoin {
   id: string;
@@ -67,7 +67,10 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
   const totalValue = coins.reduce((sum, coin) => sum + coin.usdValue, 0);
 
   // Log coin images for debugging
-  console.log("Frontend coins:", coins.map(c => ({ name: c.name, image: c.image })));
+  console.log(
+    "Frontend coins:",
+    coins.map((c) => ({ name: c.name, image: c.image })),
+  );
 
   if (error) {
     return (
@@ -104,7 +107,8 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
       <CardHeader>
         <CardTitle>Zora Coins</CardTitle>
         <CardDescription>
-          {coins.length} {coins.length === 1 ? "coin" : "coins"} · Total value: {formatUSD(totalValue)}
+          {coins.length} {coins.length === 1 ? "coin" : "coins"} · Total value:{" "}
+          {formatUSD(totalValue)}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -160,7 +164,10 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
                     {formatUSD(coin.volume24h)}
                   </TableCell>
                   <TableCell className="text-right text-sm text-muted-foreground">
-                    {coin.creatorName || (coin.creatorAddress ? `${coin.creatorAddress.slice(0, 6)}...${coin.creatorAddress.slice(-4)}` : "—")}
+                    {coin.creatorName ||
+                      (coin.creatorAddress
+                        ? `${coin.creatorAddress.slice(0, 6)}...${coin.creatorAddress.slice(-4)}`
+                        : "—")}
                   </TableCell>
                   <TableCell className="text-right">
                     <a

@@ -2,11 +2,11 @@
 
 import { type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiProvider, type Config } from "wagmi";
 import { ThirdwebProvider } from "thirdweb/react";
-import { getWagmiConfig } from "@/lib/wagmi";
+import { WagmiProvider, type Config } from "wagmi";
 import { ThirdwebBootstrap } from "@/components/layout/ThirdwebBootstrap";
 import { ViewAccountProvider } from "@/components/layout/ViewAccountContext";
+import { getWagmiConfig } from "@/lib/wagmi";
 
 // Create singleton instances outside component to prevent re-creation
 // This avoids duplicate provider warnings in development mode

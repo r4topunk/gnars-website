@@ -1,7 +1,7 @@
 "use client";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DAO_ADDRESSES } from "@/lib/config";
 
 interface CoinPurchasePreviewProps {

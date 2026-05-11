@@ -1,6 +1,6 @@
-import { ProposalStatus } from "@/lib/schemas/proposals";
-import { Badge } from "@/components/ui/badge";
 import { getStatusConfig } from "@/components/proposals/utils";
+import { Badge } from "@/components/ui/badge";
+import { ProposalStatus } from "@/lib/schemas/proposals";
 import { cn } from "@/lib/utils";
 
 export interface ProposalStatusBadgeProps {
@@ -29,4 +29,3 @@ export function ProposalStatusBadge({
     </Badge>
   );
 }
-

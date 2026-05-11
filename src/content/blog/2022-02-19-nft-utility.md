@@ -1,15 +1,15 @@
 ---
 layout: post
 title: Beyond The Hype - The Utility of NFTs
-description: 
+description:
 date: 2022-02-19 00:00:00 +0000
 permalink: /nft-utility/
 author: gami
 image: /images/nft-utility.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 It’s no secret: Most NFT projects nowadays thrive and survive on hype. Unlike the early days where art patronage and appreciating art for art’s sake made NFTs valuable, these things are practically non-existent in today’s digital art sphere.

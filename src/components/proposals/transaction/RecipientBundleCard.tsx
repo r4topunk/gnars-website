@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Coins, FileImage, Send } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { cn, getETHDisplayProps } from "@/lib/utils";
-import { subgraphQuery } from "@/lib/subgraph";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { subgraphQuery } from "@/lib/subgraph";
+import { cn, getETHDisplayProps } from "@/lib/utils";
 import { type TransactionFormValues } from "../schema";
 
 // --- Asset extraction helpers ---
@@ -197,13 +197,7 @@ function TokenRow({ amount, tokenAddress }: { amount: string; tokenAddress: stri
   );
 }
 
-function NftRow({
-  tokenIds,
-  images,
-}: {
-  tokenIds: string[];
-  images: Record<string, string>;
-}) {
+function NftRow({ tokenIds, images }: { tokenIds: string[]; images: Record<string, string> }) {
   return (
     <div className="px-3 py-2.5 space-y-2">
       <div className="flex items-center gap-3">
@@ -297,9 +291,7 @@ export function RecipientBundleCard({
       <CardHeader className="relative pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <h3 className="text-sm font-semibold text-foreground">
-              Transfer to
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground">Transfer to</h3>
             <AddressDisplay
               address={recipient}
               variant="compact"
@@ -311,9 +303,7 @@ export function RecipientBundleCard({
               className="text-sm font-medium"
             />
           </div>
-          <span className="text-xs text-muted-foreground flex-shrink-0">
-            {rangeLabel}
-          </span>
+          <span className="text-xs text-muted-foreground flex-shrink-0">{rangeLabel}</span>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
           from{" "}
@@ -340,13 +330,7 @@ export function RecipientBundleCard({
                   />
                 );
               case "nft":
-                return (
-                  <NftRow
-                    key={`nft-${i}`}
-                    tokenIds={asset.tokenIds}
-                    images={images}
-                  />
-                );
+                return <NftRow key={`nft-${i}`} tokenIds={asset.tokenIds} images={images} />;
             }
           })}
         </div>

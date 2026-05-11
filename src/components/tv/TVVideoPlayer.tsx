@@ -53,7 +53,7 @@ export function TVVideoPlayer({
   const isImageOnly = !src && !!poster;
 
   // Convert IPFS URLs to HTTP gateway
-  const videoSrc = useMemo(() => src ? toHttpUrl(src) : "", [src]);
+  const videoSrc = useMemo(() => (src ? toHttpUrl(src) : ""), [src]);
   const [loadProgress, setLoadProgress] = useState(0);
   const [hasFirstFrame, setHasFirstFrame] = useState(false);
   const mountedRef = useRef(true);
@@ -120,7 +120,7 @@ export function TVVideoPlayer({
   const handleProgress = useCallback(() => {
     const video = videoRef.current;
     if (!video || !mountedRef.current) return;
-    
+
     if (video.buffered.length > 0) {
       const bufferedEnd = video.buffered.end(video.buffered.length - 1);
       const duration = video.duration;
@@ -274,12 +274,12 @@ export function TVVideoPlayer({
               unoptimized
             />
           </div>
-          
+
           {/* Progress indicator (only when we have progress) */}
           {loadProgress > 0 && (
             <div className="mt-4 w-32">
               <div className="h-1 bg-white/20 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-white/60 transition-all duration-300"
                   style={{ width: `${loadProgress}%` }}
                 />

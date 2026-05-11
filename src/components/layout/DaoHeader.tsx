@@ -21,8 +21,6 @@
 
 import * as React from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   ArrowLeftRight,
   BookOpen,
@@ -46,6 +44,7 @@ import { base as thirdwebBase } from "thirdweb/chains";
 import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
 import { base } from "wagmi/chains";
 import { DelegationModal } from "@/components/layout/DelegationModal";
+import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,6 +67,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 // Navigation structure
@@ -469,7 +469,10 @@ function MobileNav() {
                 {isPending ? "Switching..." : "Switch to Base"}
               </Badge>
             )}
-            <ConnectButton />
+            <div className="flex items-center justify-between w-full">
+              <LocaleSwitcher />
+              <ConnectButton />
+            </div>
           </SheetFooter>
         </SheetContent>
       </Sheet>
@@ -511,6 +514,7 @@ function HeaderActions() {
         </Badge>
       )}
       <ThemeToggle />
+      <LocaleSwitcher />
       <div className="hidden sm:block">
         <ConnectButton />
       </div>

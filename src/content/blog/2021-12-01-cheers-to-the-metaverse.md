@@ -7,9 +7,9 @@ permalink: /cheers-to-the-metaverse/
 author: gami
 image: /images/cheers-metaverse.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 Big players continued to enter the metaverse as [Budweiser](https://decrypt.co/79397/from-visa-to-budweiser-big-brands-are-taking-nfts-seriously) jumped aboard in a big way. The beer giant released a collection of NFT’s meant to commemorate their past and push them towards the future. The NFT will give owners special privileges, which are not yet precisely clear. What is clear, lots of big players, and even unconventional players, want in the metaverse.

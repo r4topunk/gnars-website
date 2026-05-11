@@ -11,8 +11,8 @@
  * - priceEth: formatted ETH price string
  * - editionSize: string or "Open"
  */
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 
 export interface DroposalHeaderProps {
   proposalNumber: number;

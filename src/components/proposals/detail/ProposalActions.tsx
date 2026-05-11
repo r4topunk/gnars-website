@@ -1,19 +1,19 @@
 "use client";
 
-import { Timer } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Timer } from "lucide-react";
 import { Countdown } from "@/components/common/Countdown";
 import { ExecuteProposalButton } from "@/components/proposals/ExecuteProposalButton";
 import { QueueProposalButton } from "@/components/proposals/QueueProposalButton";
 import { Proposal } from "@/components/proposals/types";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { useProposalEta } from "@/hooks/useProposalEta";
 // import { useVotes } from "@/hooks/useVotes";
 // import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
-import { useProposalEta } from "@/hooks/useProposalEta";
-import { useUserAddress } from "@/hooks/use-user-address";
 
 interface ProposalActionsProps {
   proposal: Proposal;
@@ -41,16 +41,8 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
   //   signerAddress: address ?? undefined,
   // });
 
-  const {
-    proposalId,
-    status,
-    expiresAt,
-    targets,
-    values,
-    calldatas,
-    descriptionHash,
-    proposer,
-  } = proposal;
+  const { proposalId, status, expiresAt, targets, values, calldatas, descriptionHash, proposer } =
+    proposal;
 
   // Fetch the on-chain ETA from the Governor contract
   const { etaDate: contractEta, isLoading: etaLoading } = useProposalEta(proposalId);

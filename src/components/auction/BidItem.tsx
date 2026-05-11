@@ -53,9 +53,7 @@ export function BidItem({ bidder, amount, bidTime, comment, isNew }: BidItemProp
         ) : (
           <span />
         )}
-        <span className="shrink-0 text-[10px] text-muted-foreground">
-          {timeAgo}
-        </span>
+        <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo}</span>
       </div>
     </div>
   );

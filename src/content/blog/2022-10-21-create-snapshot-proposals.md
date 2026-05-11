@@ -1,15 +1,15 @@
 ---
 layout: post
 title: How To Create Snapshot Proposals
-description: 
+description:
 date: 2022-10-21 00:00:00 +0000
 permalink: /create-snapshot-proposals/
 author: gami
 image: /images/create-snapshot-proposals.jpg
 image_caption:
-video_embed: 
+video_embed:
 tags: [tutorial]
-featured: 
+featured:
 ---
 
 Gnars DAO uses Snapshot for submitting and voting on proposals. This post serves as a guide for submitting proposals and gaining access to funding from the community treasury.

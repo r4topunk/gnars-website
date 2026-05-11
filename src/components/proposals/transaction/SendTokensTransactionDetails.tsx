@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, AlertCircle } from "lucide-react";
+import { AlertCircle, ArrowRight } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { type TransactionFormValues } from "../schema";
 
@@ -17,7 +17,9 @@ export function SendTokensTransactionDetails({ transaction }: SendTokensTransact
     <div className="space-y-4">
       {/* Token Info */}
       <div className="px-3 py-2 rounded-lg bg-background border">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Token Contract</p>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+          Token Contract
+        </p>
         {tokenAddress ? (
           <AddressDisplay
             address={tokenAddress}
@@ -31,7 +33,9 @@ export function SendTokensTransactionDetails({ transaction }: SendTokensTransact
         ) : (
           <div className="flex items-center gap-2">
             <AlertCircle className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-            <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Token not specified</span>
+            <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+              Token not specified
+            </span>
           </div>
         )}
       </div>
@@ -73,7 +77,9 @@ export function SendTokensTransactionDetails({ transaction }: SendTokensTransact
             <div className="px-3 py-2 rounded-lg border border-dashed border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20 min-h-[60px] flex items-center">
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Not set</span>
+                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                  Not set
+                </span>
               </div>
             </div>
           )}

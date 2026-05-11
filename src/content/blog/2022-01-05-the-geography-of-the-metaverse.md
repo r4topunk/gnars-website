@@ -7,9 +7,9 @@ permalink: /the-geography-of-the-metaverse/
 author: gami
 image: /images/metageo2.png
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 What causes poverty? Why are some countries so much richer than others? Much ink has been spilled trying to answer these questions. Despite this, a consensus answer is yet to be reached. Many believe geographic shortcomings are the culprit. Countries with poor geographic endowments, poor soil, etc., are destined to be poor. Others point to the lack of good governance. The list goes on, and often causes are suggested to be interrelated, meaning it might be an interaction of many factors.

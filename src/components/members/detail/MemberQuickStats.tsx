@@ -90,11 +90,8 @@ export function MemberQuickStats({
     overview.smartAccount && overview.smartAccount.tokenCount > 0,
   );
   const showSmartAccountCardFromSession =
-    isOwnProfile &&
-    Boolean(adminAddress) &&
-    Boolean(delegationStatus.smartAccountAddress);
-  const showSmartAccountCard =
-    showSmartAccountCardFromOverview || showSmartAccountCardFromSession;
+    isOwnProfile && Boolean(adminAddress) && Boolean(delegationStatus.smartAccountAddress);
+  const showSmartAccountCard = showSmartAccountCardFromOverview || showSmartAccountCardFromSession;
 
   const smartAccountAddress =
     overview.smartAccount?.address ?? delegationStatus.smartAccountAddress;
@@ -166,9 +163,7 @@ export function MemberQuickStats({
       {showSmartAccountCard && smartAccountAddress ? (
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              Smart account
-            </CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">Smart account</CardTitle>
             <CardDescription>
               An onchain account that signs Gnars transactions on behalf of the wallet. Gas is
               sponsored by the DAO.
@@ -200,9 +195,7 @@ export function MemberQuickStats({
               <Card className="bg-muted/30 shadow-none">
                 <CardHeader className="gap-1">
                   <CardDescription className="text-xs">Gnars at wallet</CardDescription>
-                  <CardTitle className="text-2xl font-semibold tabular-nums">
-                    {eoaCount}
-                  </CardTitle>
+                  <CardTitle className="text-2xl font-semibold tabular-nums">{eoaCount}</CardTitle>
                 </CardHeader>
               </Card>
               <Card className="bg-muted/30 shadow-none">

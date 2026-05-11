@@ -22,7 +22,10 @@ export function TokenImage({ src, tokenId, size = 96, className }: TokenImagePro
   if (!src || errored) {
     return (
       <div
-        className={cn("rounded-lg bg-muted flex items-center justify-center text-muted-foreground", className)}
+        className={cn(
+          "rounded-lg bg-muted flex items-center justify-center text-muted-foreground",
+          className,
+        )}
         style={{ width: size, height: size }}
       >
         <span className="text-xs font-bold">#{String(tokenId)}</span>
@@ -44,7 +47,10 @@ export function TokenImage({ src, tokenId, size = 96, className }: TokenImagePro
   }
 
   return (
-    <div className={cn("relative rounded-lg overflow-hidden bg-muted", className)} style={{ width: size, height: size }}>
+    <div
+      className={cn("relative rounded-lg overflow-hidden bg-muted", className)}
+      style={{ width: size, height: size }}
+    >
       <Image
         src={src}
         alt={`Token #${tokenId}`}

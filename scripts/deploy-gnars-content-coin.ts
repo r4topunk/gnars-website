@@ -1,14 +1,14 @@
 /**
  * Deploy Gnars Content Coin Script
- * 
+ *
  * This script deploys a Content Coin on Base (chainId 8453) backed by Gnars Creator Coin
  * using direct calls to ZoraFactory.deploy() instead of the Zora SDK.
- * 
+ *
  * SETUP:
  * 1. Set environment variable: PRIVATE_KEY=0x...
  * 2. Update constants below with your addresses
  * 3. Run: tsx scripts/deploy-gnars-content-coin.ts
- * 
+ *
  * CONFIGURATION:
  * - GNARS_CREATOR_COIN: The Gnars Creator Coin address on Base (backing currency)
  * - PAYOUT_RECIPIENT: Address to receive coin payouts
@@ -17,34 +17,34 @@
  * - METADATA_URI: IPFS URI for coin metadata
  * - COIN_NAME: Name of your content coin
  * - COIN_SYMBOL: Symbol for your content coin
- * 
+ *
  * ⚠️  PRODUCTION WARNING:
  * This script uses placeholder curveParams (zero-length bytes). In production,
  * fetch validated curve parameters from Zora's configuration API for optimal
  * liquidity curves and token economics.
- * 
+ *
  * @see https://docs.zora.co/coins/contracts/factory
  */
 
 import {
+  Address,
   createPublicClient,
   createWalletClient,
+  decodeEventLog,
+  Hex,
   http,
   keccak256,
   toBytes,
-  decodeEventLog,
-  Address,
-  Hex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base } from "viem/chains";
+import { GNARS_ADDRESSES, PLATFORM_REFERRER } from "../src/lib/config";
 import {
-  zoraFactoryAbi,
-  ZORA_FACTORY_ADDRESS,
   GNARS_CREATOR_COIN,
+  ZORA_FACTORY_ADDRESS,
+  zoraFactoryAbi,
 } from "../src/lib/zora/factoryAbi";
 import { encodeContentPoolConfigForCreator } from "../src/lib/zora/poolConfig";
-import { GNARS_ADDRESSES, PLATFORM_REFERRER } from "../src/lib/config";
 
 // Type for CoinCreatedV4 event args
 interface CoinCreatedV4EventArgs {
@@ -99,20 +99,13 @@ async function main() {
 
   // Encode pool config for Gnars Creator Coin backing
   const poolConfig = encodeContentPoolConfigForCreator(GNARS_CREATOR_COIN);
-  
+
   // Predict deployment address
   const predictedAddress = await publicClient.readContract({
     address: ZORA_FACTORY_ADDRESS,
     abi: zoraFactoryAbi,
     functionName: "coinAddress",
-    args: [
-      account.address,
-      COIN_NAME,
-      COIN_SYMBOL,
-      poolConfig,
-      PLATFORM_REFERRER_ADDRESS,
-      SALT,
-    ],
+    args: [account.address, COIN_NAME, COIN_SYMBOL, poolConfig, PLATFORM_REFERRER_ADDRESS, SALT],
   });
 
   // Deploy coin contract
@@ -137,7 +130,7 @@ async function main() {
 
   // Wait for confirmation
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  
+
   if (receipt.status !== "success") {
     throw new Error("Transaction failed");
   }

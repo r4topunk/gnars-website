@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowRight, AlertCircle } from "lucide-react";
+import { AlertCircle, ArrowRight } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { type TransactionFormValues } from "../schema";
 import { DAO_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
+import { type TransactionFormValues } from "../schema";
 
 interface SendUsdcTransactionDetailsProps {
   transaction: TransactionFormValues;
@@ -57,7 +57,9 @@ export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionD
             <div className="px-3 py-2 rounded-lg border border-dashed border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20 min-h-[60px] flex items-center">
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Not set</span>
+                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                  Not set
+                </span>
               </div>
             </div>
           )}
@@ -65,7 +67,9 @@ export function SendUsdcTransactionDetails({ transaction }: SendUsdcTransactionD
       </div>
 
       <div className="px-3 py-2 rounded-lg bg-muted/50">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Token Contract</p>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+          Token Contract
+        </p>
         <AddressDisplay
           address={tokenAddress}
           variant="compact"

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
 import { Proposal } from "@/components/proposals/types";
@@ -11,9 +10,11 @@ import { AddressDisplay } from "@/components/ui/address-display";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "@/i18n/navigation";
 import { getProposalFundingTotals } from "@/lib/proposal-funding";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { cn } from "@/lib/utils";
+import type { MultiChainProposal, ProposalSource } from "@/services/multi-chain-proposals";
 
 function formatAssetAmount(value: number, maxFractionDigits = 4): string {
   return new Intl.NumberFormat("en-US", {
@@ -21,8 +22,6 @@ function formatAssetAmount(value: number, maxFractionDigits = 4): string {
     maximumFractionDigits: maxFractionDigits,
   }).format(value);
 }
-
-import type { MultiChainProposal, ProposalSource } from "@/services/multi-chain-proposals";
 
 const CHAIN_INDICATOR_CONFIG: Record<string, { label: string; className: string }> = {
   ethereum: {
@@ -96,7 +95,9 @@ export function ProposalCard({
   const requestedLines = hasFundingRequest
     ? [
         fundingTotals.totalEthWei > 0n ? `${formatAssetAmount(fundingTotals.totalEth)} ETH` : null,
-        fundingTotals.totalUsdcRaw > 0n ? `${formatAssetAmount(fundingTotals.totalUsdc, 2)} USDC` : null,
+        fundingTotals.totalUsdcRaw > 0n
+          ? `${formatAssetAmount(fundingTotals.totalUsdc, 2)} USDC`
+          : null,
       ].filter((line): line is string => Boolean(line))
     : ["No direct ETH/USDC transfer"];
 
@@ -140,9 +141,7 @@ export function ProposalCard({
                     <span className="text-sm font-medium text-muted-foreground">
                       Prop #{proposal.proposalNumber}
                     </span>
-                    {source !== "base" && (
-                      <ChainIndicator source={source} />
-                    )}
+                    {source !== "base" && <ChainIndicator source={source} />}
                   </div>
                   <div className="flex-shrink-0">
                     <ProposalStatusBadge status={proposal.status} className="text-xs" />
@@ -225,7 +224,9 @@ export function ProposalCard({
                     {requestedLines.map((line, idx) => (
                       <span key={line}>
                         {line}
-                        {idx < requestedLines.length - 1 && <span className="text-muted-foreground mx-1">+</span>}
+                        {idx < requestedLines.length - 1 && (
+                          <span className="text-muted-foreground mx-1">+</span>
+                        )}
                       </span>
                     ))}
                   </div>

@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useSimulateContract } from "wagmi";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { Button } from "@/components/ui/button";
+import { useSimulateContract } from "wagmi";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,12 +17,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
+import { Button } from "@/components/ui/button";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
-import { useWriteAccount } from "@/hooks/use-write-account";
-import { toast } from "sonner";
+import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
 
 export interface ExecuteProposalButtonProps {
   args: readonly [

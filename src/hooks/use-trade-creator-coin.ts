@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { setApiKey, tradeCoin, type TradeParameters } from "@zoralabs/coins-sdk";
-import { parseEther, type PublicClient, type WalletClient } from "viem";
 import { toast } from "sonner";
-import { useActiveAccount, useActiveWallet } from "thirdweb/react";
-import { base } from "thirdweb/chains";
 import { viemAdapter } from "thirdweb/adapters/viem";
+import { base } from "thirdweb/chains";
+import { useActiveAccount, useActiveWallet } from "thirdweb/react";
+import { parseEther, type PublicClient, type WalletClient } from "viem";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { normalizeTxError } from "@/lib/thirdweb-tx";
 

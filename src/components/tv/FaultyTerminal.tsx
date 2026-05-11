@@ -1,8 +1,8 @@
 "use client";
-/* eslint-disable react-hooks/purity -- OGL WebGL imperative API requires render-time allocation */
 
-import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
-import { useEffect, useRef, useMemo, useCallback } from "react";
+/* eslint-disable react-hooks/purity -- OGL WebGL imperative API requires render-time allocation */
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { Color, Mesh, Program, Renderer, Triangle } from "ogl";
 
 const vertexShader = `
 attribute vec2 position;
@@ -280,7 +280,7 @@ export function FaultyTerminal({
 
   const ditherValue = useMemo(
     () => (typeof dither === "boolean" ? (dither ? 1 : 0) : dither),
-    [dither]
+    [dither],
   );
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -343,7 +343,7 @@ export function FaultyTerminal({
       program.uniforms.iResolution.value = new Color(
         gl.canvas.width,
         gl.canvas.height,
-        gl.canvas.width / gl.canvas.height
+        gl.canvas.width / gl.canvas.height,
       );
     }
 

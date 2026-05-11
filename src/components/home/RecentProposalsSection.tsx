@@ -1,6 +1,6 @@
 import { RecentProposals } from "@/components/proposals/recent/RecentProposals";
-import { listProposals } from "@/services/proposals";
 import { ProposalStatus } from "@/lib/schemas/proposals";
+import { listProposals } from "@/services/proposals";
 
 interface RecentProposalsSectionProps {
   limit?: number;

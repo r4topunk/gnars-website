@@ -11,8 +11,6 @@ export interface UseENSResult {
   refetch: () => Promise<void>;
 }
 
-
-
 /**
  * Hook for getting ENS data for a single address with optimistic updates
  */
@@ -68,7 +66,7 @@ export function useENSOptimistic(address?: string | Address): UseENSResult {
  */
 export function useEnsNameAndAvatar(address?: string | Address) {
   const { data } = useENSOptimistic(address);
-  
+
   return {
     ensName: data?.name || null,
     ensAvatar: data?.avatar || null,

@@ -1,11 +1,9 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
-import { Initialize } from "../generated/UniswapV4PoolManager/UniswapV4PoolManager";
 import { GnarsPairedCoin } from "../generated/schema";
+import { Initialize } from "../generated/UniswapV4PoolManager/UniswapV4PoolManager";
 
 // GNARS Creator Coin address (lowercase for comparison)
-const GNARS_CREATOR_COIN = Address.fromString(
-  "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b"
-);
+const GNARS_CREATOR_COIN = Address.fromString("0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b");
 
 export function handleInitialize(event: Initialize): void {
   // Check if either currency0 or currency1 is the GNARS Creator Coin

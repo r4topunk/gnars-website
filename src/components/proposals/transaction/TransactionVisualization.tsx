@@ -1,13 +1,13 @@
 "use client";
 
 import { type TransactionFormValues } from "../schema";
-import { TransactionCard } from "./TransactionCard";
-import { SendEthTransactionDetails } from "./SendEthTransactionDetails";
-import { SendUsdcTransactionDetails } from "./SendUsdcTransactionDetails";
-import { SendTokensTransactionDetails } from "./SendTokensTransactionDetails";
-import { SendNftsTransactionDetails } from "./SendNftsTransactionDetails";
 import { CustomTransactionDetails } from "./CustomTransactionDetails";
 import { DroposalTransactionDetails } from "./DroposalTransactionDetails";
+import { SendEthTransactionDetails } from "./SendEthTransactionDetails";
+import { SendNftsTransactionDetails } from "./SendNftsTransactionDetails";
+import { SendTokensTransactionDetails } from "./SendTokensTransactionDetails";
+import { SendUsdcTransactionDetails } from "./SendUsdcTransactionDetails";
+import { TransactionCard } from "./TransactionCard";
 
 interface TransactionVisualizationProps {
   index: number;

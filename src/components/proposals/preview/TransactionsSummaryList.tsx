@@ -43,7 +43,6 @@ function getTransactionLabel(type: string | undefined) {
   }
 }
 
-
 export function TransactionsSummaryList({
   transactions,
 }: {

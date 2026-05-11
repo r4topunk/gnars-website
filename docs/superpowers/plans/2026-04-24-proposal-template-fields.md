@@ -17,6 +17,7 @@
 ## File Structure
 
 **New files:**
+
 - `src/lib/proposal-template-schemas.ts` — types + per-template schemas + `compileTemplate` + `buildTemplateValidator`.
 - `src/lib/proposal-template-schemas.test.ts` — vitest tests for compiler + validator.
 - `src/components/proposals/BudgetRepeater.tsx` — structured budget rows via `useFieldArray`.
@@ -24,6 +25,7 @@
 - `src/components/proposals/ProposalDetailsHeader.tsx` — shared title + banner upload subform (hoisted).
 
 **Modified files:**
+
 - `src/lib/proposal-templates.ts` — keep `slug` / `title` / `defaultTitle`; drop markdown `description` blobs.
 - `src/components/proposals/schema.ts` — add optional `templateFields` to `proposalSchema`.
 - `src/components/proposals/ProposalDetailsForm.tsx` — thin switcher + consumer of `ProposalDetailsHeader`.
@@ -34,6 +36,7 @@
 ## Task 1: Types + pure compiler (TDD)
 
 **Files:**
+
 - Create: `src/lib/proposal-template-schemas.ts`
 - Test: `src/lib/proposal-template-schemas.test.ts`
 
@@ -216,8 +219,7 @@ export const TEMPLATE_SCHEMAS: Record<string, TemplateSchema> = {
         label: "Budget Breakdown",
         type: "budget",
         required: true,
-        helper:
-          "Sponsorship fee, gear, travel, content production.",
+        helper: "Sponsorship fee, gear, travel, content production.",
       },
       {
         id: "timeline",
@@ -259,9 +261,7 @@ function formatAmount(n: number): string {
 }
 
 function compileBudget(label: string, rows: BudgetRow[]): string {
-  const valid = rows.filter(
-    (r) => isBudgetRow(r) && r.label.trim().length > 0 && r.amount > 0,
-  );
+  const valid = rows.filter((r) => isBudgetRow(r) && r.label.trim().length > 0 && r.amount > 0);
   if (valid.length === 0) return "";
 
   const bullets = valid
@@ -319,6 +319,7 @@ git commit -m "feat(propose): add template schema types + markdown compiler"
 ## Task 2: All 6 template schemas
 
 **Files:**
+
 - Modify: `src/lib/proposal-template-schemas.ts`
 - Test: `src/lib/proposal-template-schemas.test.ts` (already written — covers 6-template assertion)
 
@@ -637,6 +638,7 @@ git commit -m "feat(propose): add schemas for remaining 5 proposal templates"
 ## Task 3: Zod validator builder (TDD)
 
 **Files:**
+
 - Modify: `src/lib/proposal-template-schemas.ts`
 - Test: `src/lib/proposal-template-schemas.test.ts`
 
@@ -650,7 +652,10 @@ import { buildTemplateValidator } from "./proposal-template-schemas";
 describe("buildTemplateValidator", () => {
   it("rejects missing required textarea", () => {
     const schema = buildTemplateValidator("athlete-sponsorship");
-    const res = schema.safeParse({ budget: [{ label: "x", amount: 1, currency: "ETH" }], timeline: "Q2" });
+    const res = schema.safeParse({
+      budget: [{ label: "x", amount: 1, currency: "ETH" }],
+      timeline: "Q2",
+    });
     expect(res.success).toBe(false);
     if (!res.success) {
       expect(res.error.issues.some((i) => i.path[0] === "profile")).toBe(true);
@@ -774,6 +779,7 @@ git commit -m "feat(propose): add zod validator builder for template fields"
 ## Task 4: Update parent proposal schema
 
 **Files:**
+
 - Modify: `src/components/proposals/schema.ts`
 
 - [ ] **Step 1: Add `templateFields` to `proposalSchema`**
@@ -819,6 +825,7 @@ git commit -m "feat(propose): add optional templateFields to proposal schema"
 ## Task 5: `BudgetRepeater` component
 
 **Files:**
+
 - Create: `src/components/proposals/BudgetRepeater.tsx`
 
 - [ ] **Step 1: Write the component**
@@ -827,8 +834,8 @@ Create `src/components/proposals/BudgetRepeater.tsx`:
 
 ```tsx
 "use client";
-/* eslint-disable react-hooks/incompatible-library -- react-hook-form useFieldArray/watch pattern is known-incompatible with React Compiler */
 
+/* eslint-disable react-hooks/incompatible-library -- react-hook-form useFieldArray/watch pattern is known-incompatible with React Compiler */
 import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -885,7 +892,10 @@ export function BudgetRepeater({ name, getRowError, topLevelError }: BudgetRepea
           {fields.map((field, index) => {
             const rowErr = getRowError?.(index);
             return (
-              <div key={field.id} className="grid grid-cols-[1fr_140px_110px_auto] gap-2 items-start">
+              <div
+                key={field.id}
+                className="grid grid-cols-[1fr_140px_110px_auto] gap-2 items-start"
+              >
                 <div>
                   <Input
                     placeholder="Line item (e.g. Sponsorship fee)"
@@ -991,6 +1001,7 @@ git commit -m "feat(propose): add BudgetRepeater component"
 ## Task 6: `ProposalDetailsHeader` (hoist shared subform)
 
 **Files:**
+
 - Create: `src/components/proposals/ProposalDetailsHeader.tsx`
 
 - [ ] **Step 1: Extract title + banner subform**
@@ -1163,6 +1174,7 @@ git commit -m "refactor(propose): hoist title+banner into ProposalDetailsHeader"
 ## Task 7: `TemplateDetailsForm`
 
 **Files:**
+
 - Create: `src/components/proposals/TemplateDetailsForm.tsx`
 
 - [ ] **Step 1: Implement the template-driven form with imperative validate handle**
@@ -1171,8 +1183,8 @@ Create `src/components/proposals/TemplateDetailsForm.tsx`:
 
 ```tsx
 "use client";
-/* eslint-disable react-hooks/incompatible-library -- react-hook-form watch()/useFormContext pattern is known-incompatible with React Compiler */
 
+/* eslint-disable react-hooks/incompatible-library -- react-hook-form watch()/useFormContext pattern is known-incompatible with React Compiler */
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -1205,118 +1217,118 @@ export interface TemplateDetailsFormProps {
   slug: string;
 }
 
-export const TemplateDetailsForm = forwardRef<
-  TemplateDetailsFormHandle,
-  TemplateDetailsFormProps
->(function TemplateDetailsForm({ slug }, ref) {
-  const schema = getTemplateSchema(slug);
-  const parent = useFormContext<ProposalFormValues>();
-  const initialLoadedRef = useRef(false);
+export const TemplateDetailsForm = forwardRef<TemplateDetailsFormHandle, TemplateDetailsFormProps>(
+  function TemplateDetailsForm({ slug }, ref) {
+    const schema = getTemplateSchema(slug);
+    const parent = useFormContext<ProposalFormValues>();
+    const initialLoadedRef = useRef(false);
 
-  // Nested form for structured fields. Keeps validation isolated from parent wizard.
-  const initialValues = (parent.getValues("templateFields") as TemplateValues | undefined) ?? {};
-  const templateForm = useForm<TemplateValues>({
-    resolver: zodResolver(buildTemplateValidator(slug)),
-    defaultValues: buildDefaults(slug, initialValues),
-    mode: "onChange",
-  });
+    // Nested form for structured fields. Keeps validation isolated from parent wizard.
+    const initialValues = (parent.getValues("templateFields") as TemplateValues | undefined) ?? {};
+    const templateForm = useForm<TemplateValues>({
+      resolver: zodResolver(buildTemplateValidator(slug)),
+      defaultValues: buildDefaults(slug, initialValues),
+      mode: "onChange",
+    });
 
-  const watchedValues = useWatch({ control: templateForm.control }) as TemplateValues;
+    const watchedValues = useWatch({ control: templateForm.control }) as TemplateValues;
 
-  // Mirror structured values into parent form: templateFields + compiled description.
-  useEffect(() => {
-    if (!schema) return;
-    parent.setValue("templateFields", watchedValues, { shouldDirty: true });
-    const compiled = compileTemplate(slug, watchedValues);
-    parent.setValue("description", compiled, { shouldDirty: true, shouldValidate: false });
-    initialLoadedRef.current = true;
-  }, [watchedValues, slug, schema, parent]);
+    // Mirror structured values into parent form: templateFields + compiled description.
+    useEffect(() => {
+      if (!schema) return;
+      parent.setValue("templateFields", watchedValues, { shouldDirty: true });
+      const compiled = compileTemplate(slug, watchedValues);
+      parent.setValue("description", compiled, { shouldDirty: true, shouldValidate: false });
+      initialLoadedRef.current = true;
+    }, [watchedValues, slug, schema, parent]);
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      validate: async () => {
-        const ok = await templateForm.trigger();
-        if (!ok) {
-          // Focus first error.
-          const firstError = Object.keys(templateForm.formState.errors)[0];
-          if (firstError) {
-            templateForm.setFocus(firstError as keyof TemplateValues);
+    useImperativeHandle(
+      ref,
+      () => ({
+        validate: async () => {
+          const ok = await templateForm.trigger();
+          if (!ok) {
+            // Focus first error.
+            const firstError = Object.keys(templateForm.formState.errors)[0];
+            if (firstError) {
+              templateForm.setFocus(firstError as keyof TemplateValues);
+            }
           }
-        }
-        return ok;
-      },
-    }),
-    [templateForm],
-  );
+          return ok;
+        },
+      }),
+      [templateForm],
+    );
 
-  const onSubmit: SubmitHandler<TemplateValues> = () => {};
+    const onSubmit: SubmitHandler<TemplateValues> = () => {};
 
-  if (!schema) return null;
+    if (!schema) return null;
 
-  return (
-    <FormProvider {...templateForm}>
-      <form
-        onSubmit={templateForm.handleSubmit(onSubmit)}
-        className="space-y-6"
-        noValidate
-      >
-        <div>
-          <h2 className="text-2xl font-bold mb-1">{schema.title}</h2>
-          <p className="text-muted-foreground">
-            Fill in the sections below. Your answers are compiled into the proposal.
-          </p>
-        </div>
+    return (
+      <FormProvider {...templateForm}>
+        <form onSubmit={templateForm.handleSubmit(onSubmit)} className="space-y-6" noValidate>
+          <div>
+            <h2 className="text-2xl font-bold mb-1">{schema.title}</h2>
+            <p className="text-muted-foreground">
+              Fill in the sections below. Your answers are compiled into the proposal.
+            </p>
+          </div>
 
-        <ProposalDetailsHeader />
+          <ProposalDetailsHeader />
 
-        <div className="space-y-5">
-          {schema.fields.map((field) => {
-            const error = templateForm.formState.errors[field.id] as
-              | { message?: string }
-              | undefined;
-            return (
-              <div key={field.id}>
-                <Label htmlFor={field.id}>
-                  {field.label}
-                  {field.required ? " *" : ""}
-                </Label>
-                <p className="text-xs text-muted-foreground mt-1 mb-2">{field.helper}</p>
-                {field.type === "textarea" ? (
-                  <Textarea
-                    id={field.id}
-                    rows={field.rows ?? 4}
-                    className="resize-y"
-                    {...templateForm.register(field.id)}
-                  />
-                ) : (
-                  <BudgetRepeater
-                    name={field.id}
-                    topLevelError={error?.message}
-                    getRowError={(index) => {
-                      const arrErrors = templateForm.formState.errors[field.id] as
-                        | { [key: number]: { label?: { message?: string }; amount?: { message?: string } } }
-                        | undefined;
-                      const rowErr = arrErrors?.[index];
-                      if (!rowErr) return undefined;
-                      return {
-                        label: rowErr.label?.message,
-                        amount: rowErr.amount?.message,
-                      };
-                    }}
-                  />
-                )}
-                {field.type === "textarea" && error?.message ? (
-                  <p className="text-xs text-red-500 mt-1">{error.message}</p>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-      </form>
-    </FormProvider>
-  );
-});
+          <div className="space-y-5">
+            {schema.fields.map((field) => {
+              const error = templateForm.formState.errors[field.id] as
+                | { message?: string }
+                | undefined;
+              return (
+                <div key={field.id}>
+                  <Label htmlFor={field.id}>
+                    {field.label}
+                    {field.required ? " *" : ""}
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1 mb-2">{field.helper}</p>
+                  {field.type === "textarea" ? (
+                    <Textarea
+                      id={field.id}
+                      rows={field.rows ?? 4}
+                      className="resize-y"
+                      {...templateForm.register(field.id)}
+                    />
+                  ) : (
+                    <BudgetRepeater
+                      name={field.id}
+                      topLevelError={error?.message}
+                      getRowError={(index) => {
+                        const arrErrors = templateForm.formState.errors[field.id] as
+                          | {
+                              [key: number]: {
+                                label?: { message?: string };
+                                amount?: { message?: string };
+                              };
+                            }
+                          | undefined;
+                        const rowErr = arrErrors?.[index];
+                        if (!rowErr) return undefined;
+                        return {
+                          label: rowErr.label?.message,
+                          amount: rowErr.amount?.message,
+                        };
+                      }}
+                    />
+                  )}
+                  {field.type === "textarea" && error?.message ? (
+                    <p className="text-xs text-red-500 mt-1">{error.message}</p>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </form>
+      </FormProvider>
+    );
+  },
+);
 
 function buildDefaults(slug: string, existing: TemplateValues): TemplateValues {
   const schema = getTemplateSchema(slug);
@@ -1353,6 +1365,7 @@ git commit -m "feat(propose): add TemplateDetailsForm with nested useForm + impe
 ## Task 8: `ProposalDetailsForm` becomes a switcher
 
 **Files:**
+
 - Modify: `src/components/proposals/ProposalDetailsForm.tsx`
 
 - [ ] **Step 1: Rewrite as switcher**
@@ -1361,9 +1374,10 @@ Replace the entire contents of `src/components/proposals/ProposalDetailsForm.tsx
 
 ```tsx
 "use client";
-/* eslint-disable react-hooks/incompatible-library -- react-hook-form watch() pattern is known-incompatible with React Compiler */
 
-import { forwardRef, useState } from "react";
+/* eslint-disable react-hooks/incompatible-library -- react-hook-form watch() pattern is known-incompatible with React Compiler */
+// Small helpers kept local to avoid scope creep.
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { Eye } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Markdown } from "@/components/common/Markdown";
@@ -1373,11 +1387,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getTemplateSchema } from "@/lib/proposal-template-schemas";
 import { ProposalDetailsHeader } from "./ProposalDetailsHeader";
-import {
-  TemplateDetailsForm,
-  type TemplateDetailsFormHandle,
-} from "./TemplateDetailsForm";
 import type { ProposalFormValues } from "./schema";
+import { TemplateDetailsForm, type TemplateDetailsFormHandle } from "./TemplateDetailsForm";
 
 export interface ProposalDetailsFormHandle {
   /** Validates current mode's fields. For template mode, includes all required template fields. */
@@ -1388,43 +1399,38 @@ export interface ProposalDetailsFormProps {
   templateSlug?: string | null;
 }
 
-export const ProposalDetailsForm = forwardRef<
-  ProposalDetailsFormHandle,
-  ProposalDetailsFormProps
->(function ProposalDetailsForm({ templateSlug }, ref) {
-  const templateRef = useState<TemplateDetailsFormHandle | null>(null)[0];
-  const templateHandleRef = useTemplateHandleRef();
+export const ProposalDetailsForm = forwardRef<ProposalDetailsFormHandle, ProposalDetailsFormProps>(
+  function ProposalDetailsForm({ templateSlug }, ref) {
+    const templateRef = useState<TemplateDetailsFormHandle | null>(null)[0];
+    const templateHandleRef = useTemplateHandleRef();
 
-  const hasTemplate = Boolean(templateSlug && getTemplateSchema(templateSlug));
+    const hasTemplate = Boolean(templateSlug && getTemplateSchema(templateSlug));
 
-  // Expose validate via imperative handle. Parent wizard calls this before advancing.
-  useImperativeHandleValidate(ref, async (parentTrigger) => {
+    // Expose validate via imperative handle. Parent wizard calls this before advancing.
+    useImperativeHandleValidate(ref, async (parentTrigger) => {
+      if (hasTemplate) {
+        const ok = await templateHandleRef.current?.validate();
+        if (!ok) return false;
+        // Also ensure parent's title is non-empty.
+        return parentTrigger(["title"]);
+      }
+      return parentTrigger(["title", "description"]);
+    });
+
     if (hasTemplate) {
-      const ok = await templateHandleRef.current?.validate();
-      if (!ok) return false;
-      // Also ensure parent's title is non-empty.
-      return parentTrigger(["title"]);
+      return (
+        <TemplateDetailsForm
+          ref={(handle) => {
+            templateHandleRef.current = handle;
+          }}
+          slug={templateSlug!}
+        />
+      );
     }
-    return parentTrigger(["title", "description"]);
-  });
 
-  if (hasTemplate) {
-    return (
-      <TemplateDetailsForm
-        ref={(handle) => {
-          templateHandleRef.current = handle;
-        }}
-        slug={templateSlug!}
-      />
-    );
-  }
-
-  return <MarkdownDetailsForm />;
-});
-
-// Small helpers kept local to avoid scope creep.
-
-import { useImperativeHandle, useRef } from "react";
+    return <MarkdownDetailsForm />;
+  },
+);
 
 function useTemplateHandleRef() {
   return useRef<TemplateDetailsFormHandle | null>(null);
@@ -1536,6 +1542,7 @@ git commit -m "feat(propose): switch ProposalDetailsForm between template and ma
 ## Task 9: Wire `ProposalWizard`
 
 **Files:**
+
 - Modify: `src/components/proposals/ProposalWizard.tsx`
 - Modify: `src/lib/proposal-templates.ts`
 
@@ -1544,24 +1551,29 @@ git commit -m "feat(propose): switch ProposalDetailsForm between template and ma
 Replace the template-pre-fill `useEffect` and `handleNextToTransactions` in `src/components/proposals/ProposalWizard.tsx`.
 
 Find the import block and replace:
+
 ```ts
 import { getProposalTemplate } from "@/lib/proposal-templates";
 ```
+
 with:
+
 ```ts
-import { getProposalTemplate } from "@/lib/proposal-templates";
 import {
   ProposalDetailsForm,
   type ProposalDetailsFormHandle,
 } from "@/components/proposals/ProposalDetailsForm";
+import { getProposalTemplate } from "@/lib/proposal-templates";
 ```
 
 Remove the existing import line:
+
 ```ts
 import { ProposalDetailsForm } from "@/components/proposals/ProposalDetailsForm";
 ```
 
 Inside `ProposalWizard()`, add a ref after `useSearchParams`:
+
 ```ts
 const detailsFormRef = useRef<ProposalDetailsFormHandle | null>(null);
 const templateSlug = searchParams.get("template");
@@ -1702,6 +1714,7 @@ Open browser to `http://localhost:3000/propose/templates`.
 - [ ] **Step 2: Click each of the 6 template cards**
 
 For each template, verify:
+
 - Lands on `/propose?template=<slug>`.
 - Title input is pre-filled with `defaultTitle`.
 - Structured fields render (labels + helper text).
@@ -1754,6 +1767,7 @@ Run: `pnpm lint && pnpm format:check`
 Expected: no issues.
 
 If format:check fails, run `pnpm format` and commit the changes:
+
 ```bash
 git add -A && git commit -m "chore: format"
 ```

@@ -1,6 +1,11 @@
 import { encodeFunctionData, parseEther, parseUnits } from "viem";
 import { TransactionFormValues } from "@/components/proposals/schema";
-import { TREASURY_TOKEN_ALLOWLIST, DROPOSAL_DEFAULT_MINT_LIMIT, DROPOSAL_TARGET, DAO_ADDRESSES } from "@/lib/config";
+import {
+  DAO_ADDRESSES,
+  DROPOSAL_DEFAULT_MINT_LIMIT,
+  DROPOSAL_TARGET,
+  TREASURY_TOKEN_ALLOWLIST,
+} from "@/lib/config";
 
 export function encodeTransactions(transactions: TransactionFormValues[]) {
   const targets: `0x${string}`[] = [];
@@ -103,7 +108,7 @@ export function encodeTransactions(transactions: TransactionFormValues[]) {
           // Encode droposal using Zora's createEdition function via DROPOSAL_TARGET proxy
           targets.push(DROPOSAL_TARGET.base as `0x${string}`);
           values.push(BigInt(0));
-          
+
           const droposalCalldata = encodeFunctionData({
             abi: [
               {
@@ -149,18 +154,23 @@ export function encodeTransactions(transactions: TransactionFormValues[]) {
               {
                 publicSalePrice: parseEther(tx.price || "0"),
                 maxSalePurchasePerAddress: DROPOSAL_DEFAULT_MINT_LIMIT, // Hardcoded to 1,000,000 (effectively unlimited)
-                publicSaleStart: tx.startTime ? BigInt(Math.floor(new Date(tx.startTime).getTime() / 1000)) : BigInt(0),
-                publicSaleEnd: tx.endTime ? BigInt(Math.floor(new Date(tx.endTime).getTime() / 1000)) : BigInt("18446744073709551615"),
+                publicSaleStart: tx.startTime
+                  ? BigInt(Math.floor(new Date(tx.startTime).getTime() / 1000))
+                  : BigInt(0),
+                publicSaleEnd: tx.endTime
+                  ? BigInt(Math.floor(new Date(tx.endTime).getTime() / 1000))
+                  : BigInt("18446744073709551615"),
                 presaleStart: BigInt(0),
                 presaleEnd: BigInt(0),
-                presaleMerkleRoot: "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`,
+                presaleMerkleRoot:
+                  "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`,
               },
               tx.collectionDescription || "",
               tx.animationUri || "",
               tx.imageUri || "",
             ],
           });
-          
+
           calldatas.push(droposalCalldata);
           break;
 

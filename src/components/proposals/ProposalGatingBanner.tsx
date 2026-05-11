@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useReadContract } from "wagmi";
 import { ConnectButton } from "@/components/ui/ConnectButton";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { Link } from "@/i18n/navigation";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 
 const balanceOfAbi = [
@@ -55,13 +55,13 @@ export function ProposalGatingBanner() {
 
           {variant === "disconnected" ? (
             <p className="text-sm leading-relaxed text-foreground/80">
-              <span className="font-medium text-foreground">Wallet not connected.</span>{" "}
-              You can explore the form — connect when you&apos;re ready to submit.
+              <span className="font-medium text-foreground">Wallet not connected.</span> You can
+              explore the form — connect when you&apos;re ready to submit.
             </p>
           ) : (
             <p className="text-sm leading-relaxed text-foreground/80">
-              <span className="font-medium text-foreground">No Gnars NFT found.</span>{" "}
-              Holding a Gnar lets you submit proposals.{" "}
+              <span className="font-medium text-foreground">No Gnars NFT found.</span> Holding a
+              Gnar lets you submit proposals.{" "}
               <Link
                 href="/"
                 className="font-medium text-amber-600 underline decoration-amber-600/40 underline-offset-2 transition-colors hover:text-amber-500 hover:decoration-amber-500 dark:text-amber-400 dark:decoration-amber-400/40 dark:hover:text-amber-300"

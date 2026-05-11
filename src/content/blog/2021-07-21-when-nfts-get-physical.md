@@ -7,9 +7,9 @@ permalink: /when-nfts-get-physical/
 author: gami
 image: /images/when-nfts-get-physical-1.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 Brick-and-Mortar Art Galleries and Museums, taking bold steps into the unknown (NFTs as “Terra Incognita”), can be seen, in an increasing fashion, either featuring NFTs in their permanent collections, or organizing NFT events. This is a fascinating turn of events. These institutions have chosen to not ignore NFTs: they know they cannot afford to remain indifferent to the fast changing technological landscape for very long.

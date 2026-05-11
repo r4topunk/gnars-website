@@ -7,9 +7,9 @@ permalink: /best-nft-wallets/
 author: gami
 image: /images/af8f9f4537a77e3ab3b8a9295f01234c.png
 image_caption:
-video_embed: 
+video_embed:
 tags: [education]
-featured: 
+featured:
 ---
 
 It is rather difficult to overstate how important a good wallet is, when it comes to safeguarding your Non-Fungible Tokens. Non-Fungible tokens need to be stored in secure software environments called “wallets”, which take the form of desktop and mobile applications.
@@ -64,7 +64,7 @@ The only downside of the Coinbase wallet, compared to a solution such as Metamas
 
 [AlphaWallet](https://alphawallet.com/) is a notable addition to our list as it allows users to mint NFTs, in addition to storing them and transferring them. Of all the wallets we have looked into, AlphaWallet is the only one that provides this function. A number of popular decentralized applications, such as Crypto Kitties, OpenSea and ChainZ Arena can also be accessed directly from this mobile-only wallet.
 
-This open-source wallet distinguishes itself through its use of *Secure Enclaves*, which are software regions on mobile phones in which programs are able to run completely isolated from the rest of the CPU.
+This open-source wallet distinguishes itself through its use of _Secure Enclaves_, which are software regions on mobile phones in which programs are able to run completely isolated from the rest of the CPU.
 
 Collectors who own a very large amount of NFTs will find this wallet useful, since users are allowed to use **meta-tags** to better organize their collections.
 

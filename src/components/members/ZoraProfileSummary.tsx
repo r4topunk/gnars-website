@@ -13,10 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-import { useEthPrice, formatEthToUsd } from "@/hooks/use-eth-price";
+import { formatEthToUsd, useEthPrice } from "@/hooks/use-eth-price";
 import { useTradeCreatorCoin } from "@/hooks/use-trade-creator-coin";
 import type { ZoraProfile } from "@/hooks/use-zora-profile";
+import { cn } from "@/lib/utils";
 
 interface ZoraProfileSummaryProps {
   profile?: ZoraProfile | null;
@@ -87,15 +87,11 @@ export function ZoraProfileSummary({
   };
 
   if (loading) {
-    return (
-      <div className={cn("text-xs text-muted-foreground", className)}>Loading Zora...</div>
-    );
+    return <div className={cn("text-xs text-muted-foreground", className)}>Loading Zora...</div>;
   }
 
   if (!profile) {
-    return (
-      <div className={cn("text-xs text-muted-foreground", className)}>Zora: Not linked</div>
-    );
+    return <div className={cn("text-xs text-muted-foreground", className)}>Zora: Not linked</div>;
   }
 
   const displayName = profile.displayName || profile.handle;
@@ -113,9 +109,7 @@ export function ZoraProfileSummary({
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            {displayName && (
-              <span className={cn("font-semibold", styles.name)}>{displayName}</span>
-            )}
+            {displayName && <span className={cn("font-semibold", styles.name)}>{displayName}</span>}
             {handle && (
               <a
                 href={`https://zora.co/${profile.handle}`}

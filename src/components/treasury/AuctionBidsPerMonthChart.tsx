@@ -8,13 +8,7 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -103,12 +97,7 @@ export function AuctionBidsPerMonthChart() {
                   />
                 }
               />
-              <Bar
-                dataKey="value"
-                name="ETH"
-                fill="var(--color-value)"
-                radius={[4, 4, 0, 0]}
-              />
+              <Bar dataKey="value" name="ETH" fill="var(--color-value)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ChartContainer>
         </div>

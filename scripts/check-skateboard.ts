@@ -1,6 +1,6 @@
-import { config } from "dotenv";
 import { resolve } from "path";
 import { Configuration, NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { config } from "dotenv";
 
 config({ path: resolve(process.cwd(), ".env.local") });
 
@@ -26,9 +26,14 @@ async function checkSkateboard() {
         console.log(`   FID: ${user.fid}`);
         console.log(`   Display Name: ${user.display_name}`);
         console.log(`   Followers: ${user.follower_count}`);
-        console.log(`   Verified Addresses: ${user.verified_addresses?.eth_addresses?.length || 0}\n`);
+        console.log(
+          `   Verified Addresses: ${user.verified_addresses?.eth_addresses?.length || 0}\n`,
+        );
 
-        if (user.verified_addresses?.eth_addresses && user.verified_addresses.eth_addresses.length > 0) {
+        if (
+          user.verified_addresses?.eth_addresses &&
+          user.verified_addresses.eth_addresses.length > 0
+        ) {
           console.log(`   Wallets:`);
           for (const addr of user.verified_addresses.eth_addresses) {
             console.log(`   - ${addr}`);

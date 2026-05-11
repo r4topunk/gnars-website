@@ -3,13 +3,13 @@
 import { useCallback, useState } from "react";
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
 import { arbitrum, base, type Chain } from "thirdweb/chains";
+import { parseEther } from "viem";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useWriteAccount, type WriteAccount } from "@/hooks/use-write-account";
 import { POIDH_ABI } from "@/lib/poidh/abi";
 import { POIDH_CONTRACTS } from "@/lib/poidh/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
-import { parseEther } from "viem";
 
 function resolveThirdwebChain(chainId: number): Chain | undefined {
   if (chainId === base.id) return base;
@@ -70,31 +70,31 @@ function buildPoidhReturn(state: PoidhWriteState) {
 }
 
 const POIDH_ERROR_MESSAGES: Record<string, string> = {
-  AlreadyVoted:                  "You have already voted on this claim.",
-  ClaimNotFound:                 "Claim not found on-chain. Make sure you're on the right network.",
-  BountyNotFound:                "Bounty not found on-chain.",
-  VotingOngoing:                 "Voting is still in progress — wait for the deadline to resolve.",
-  VotingEnded:                   "The voting period has ended.",
-  NoVotingPeriodSet:             "No voting period is active for this bounty.",
-  BountyClaimed:                 "This bounty has already been claimed.",
-  BountyClosed:                  "This bounty is closed.",
-  WrongCaller:                   "You are not allowed to perform this action.",
-  IssuerCannotClaim:             "The bounty creator cannot submit a claim.",
-  IssuerCannotWithdraw:          "The bounty creator cannot withdraw as a contributor.",
-  NotActiveParticipant:          "You are not a participant in this bounty.",
-  NotOpenBounty:                 "This action is only available for open bounties.",
-  NotSoloBounty:                 "This action is only available for solo bounties.",
-  ClaimAlreadyAccepted:          "This claim has already been accepted.",
-  NothingToWithdraw:             "Nothing to withdraw.",
-  MaxParticipantsReached:        "This bounty has reached its maximum number of participants.",
-  NotCancelledOpenBounty:        "This bounty has not been cancelled.",
-  VoteWouldPass:                 "Cannot reset — the vote would pass. Resolve it instead.",
-  MinimumBountyNotMet:           "Amount is below the minimum required to create a bounty.",
-  MinimumContributionNotMet:     "Amount is below the minimum required to contribute.",
-  NoEther:                       "No ETH sent.",
+  AlreadyVoted: "You have already voted on this claim.",
+  ClaimNotFound: "Claim not found on-chain. Make sure you're on the right network.",
+  BountyNotFound: "Bounty not found on-chain.",
+  VotingOngoing: "Voting is still in progress — wait for the deadline to resolve.",
+  VotingEnded: "The voting period has ended.",
+  NoVotingPeriodSet: "No voting period is active for this bounty.",
+  BountyClaimed: "This bounty has already been claimed.",
+  BountyClosed: "This bounty is closed.",
+  WrongCaller: "You are not allowed to perform this action.",
+  IssuerCannotClaim: "The bounty creator cannot submit a claim.",
+  IssuerCannotWithdraw: "The bounty creator cannot withdraw as a contributor.",
+  NotActiveParticipant: "You are not a participant in this bounty.",
+  NotOpenBounty: "This action is only available for open bounties.",
+  NotSoloBounty: "This action is only available for solo bounties.",
+  ClaimAlreadyAccepted: "This claim has already been accepted.",
+  NothingToWithdraw: "Nothing to withdraw.",
+  MaxParticipantsReached: "This bounty has reached its maximum number of participants.",
+  NotCancelledOpenBounty: "This bounty has not been cancelled.",
+  VoteWouldPass: "Cannot reset — the vote would pass. Resolve it instead.",
+  MinimumBountyNotMet: "Amount is below the minimum required to create a bounty.",
+  MinimumContributionNotMet: "Amount is below the minimum required to contribute.",
+  NoEther: "No ETH sent.",
   ContractsCannotCreateBounties: "Smart contracts cannot create bounties directly.",
-  TransferFailed:                "ETH transfer failed.",
-  InsufficientBalance:           "Insufficient balance.",
+  TransferFailed: "ETH transfer failed.",
+  InsufficientBalance: "Insufficient balance.",
 };
 
 function decodePoidhError(err: unknown): Error {
@@ -165,14 +165,17 @@ export function usePoidhCreateClaim(bountyChainId: number) {
   const state = usePoidhWriteState();
 
   const submit = useCallback(
-    async (
-      onChainBountyId: number,
-      name: string,
-      description: string,
-      imageUri: string = "",
-    ) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+    async (onChainBountyId: number, name: string, description: string, imageUri: string = "") => {
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "createClaim",
@@ -194,8 +197,16 @@ export function usePoidhCreateOpenBounty(bountyChainId: number) {
 
   const create = useCallback(
     async (name: string, description: string, rewardEth: string) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "createOpenBounty",
@@ -218,8 +229,16 @@ export function usePoidhCreateSoloBounty(bountyChainId: number) {
 
   const create = useCallback(
     async (name: string, description: string, rewardEth: string) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "createSoloBounty",
@@ -242,8 +261,16 @@ export function usePoidhJoinBounty(bountyChainId: number) {
 
   const join = useCallback(
     async (onChainBountyId: number, contributionEth: string) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "joinOpenBounty",
@@ -266,8 +293,16 @@ export function usePoidhCancelBounty(bountyChainId: number) {
 
   const cancel = useCallback(
     async (onChainBountyId: number, isOpen: boolean) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = isOpen
         ? prepareContractCall({
             contract,
@@ -295,8 +330,16 @@ export function usePoidhWithdrawFromBounty(bountyChainId: number) {
 
   const withdraw = useCallback(
     async (onChainBountyId: number) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "withdrawFromOpenBounty",
@@ -318,8 +361,16 @@ export function usePoidhSubmitClaimForVote(bountyChainId: number) {
 
   const submit = useCallback(
     async (onChainBountyId: number, claimId: number) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "submitClaimForVote",
@@ -341,8 +392,16 @@ export function usePoidhVoteClaim(bountyChainId: number) {
 
   const vote = useCallback(
     async (onChainBountyId: number, accept: boolean) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "voteClaim",
@@ -364,8 +423,16 @@ export function usePoidhResolveVote(bountyChainId: number) {
 
   const resolve = useCallback(
     async (onChainBountyId: number) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "resolveVote",
@@ -387,8 +454,16 @@ export function usePoidhAcceptClaim(bountyChainId: number) {
 
   const accept = useCallback(
     async (onChainBountyId: number, claimId: number) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "acceptClaim",
@@ -410,8 +485,16 @@ export function usePoidhClaimRefundFromCancelledBounty(bountyChainId: number) {
 
   const claimRefund = useCallback(
     async (onChainBountyId: number) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "claimRefundFromCancelledOpenBounty",
@@ -433,8 +516,16 @@ export function usePoidhResetVotingPeriod(bountyChainId: number) {
 
   const resetVoting = useCallback(
     async (onChainBountyId: number) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "resetVotingPeriod",
@@ -454,19 +545,21 @@ export function usePoidhWithdraw(bountyChainId: number) {
   const ctx = usePoidhContext(bountyChainId);
   const state = usePoidhWriteState();
 
-  const withdraw = useCallback(
-    async () => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
-      const tx = prepareContractCall({
-        contract,
-        method: "withdraw",
-        params: [],
-      });
-      await sendAndConfirm(state, client, twChain, writer, tx);
-    },
-    [ctx, bountyChainId, state],
-  );
+  const withdraw = useCallback(async () => {
+    const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
+    const contract = getContract({
+      client,
+      chain: twChain,
+      address: contractAddress,
+      abi: POIDH_ABI,
+    });
+    const tx = prepareContractCall({
+      contract,
+      method: "withdraw",
+      params: [],
+    });
+    await sendAndConfirm(state, client, twChain, writer, tx);
+  }, [ctx, bountyChainId, state]);
 
   return { withdraw, ...buildPoidhReturn(state) };
 }

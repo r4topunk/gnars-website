@@ -5,11 +5,11 @@ description: Best CC0 NFT projects where NOT copyrighting is intended to create 
 date: 2022-03-26 00:00:00 +0000
 permalink: /best-cc0-nft-projects/
 author: gami
-image: '/images/best-cc0-nft-projects.png'
+image: "/images/best-cc0-nft-projects.png"
 image_caption:
-video_embed: 
+video_embed:
 tags: [opinion]
-featured: 
+featured:
 ---
 
 Ever since its inception, CC0 (C-C-Zero, not C-C-Oh) in NFTs has been an interesting concept to play with. The idea of NOT copyrighting an easily “copyable” digital artwork, ironically creating more value for the original artist, is indeed a fascinating phenomenon.

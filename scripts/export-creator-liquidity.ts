@@ -32,11 +32,9 @@
  *   NEXT_PUBLIC_TOKEN_ADDRESS       — DAO token address override (default: Gnars)
  */
 
-import { promises as fs } from "node:fs";
-import { existsSync } from "node:fs";
+import { existsSync, promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-
 import { getProfileCoins, setApiKey } from "@zoralabs/coins-sdk";
 import { createPublicClient, http, isAddress, type Address } from "viem";
 import { mainnet } from "viem/chains";
@@ -232,18 +230,14 @@ async function withRetry<T>(
         err && typeof err === "object" && "status" in err
           ? (err as { status?: number }).status
           : undefined;
-      const transient =
-        !status || status === 429 || (status >= 500 && status < 600);
+      const transient = !status || status === 429 || (status >= 500 && status < 600);
       if (!transient || i === attempts - 1) throw err;
       // 429 → much longer waits since GeckoTerminal's free-tier window is per-minute
       const delay =
         status === 429
           ? Math.min(60_000, 8_000 * 2 ** i) + Math.floor(Math.random() * 1_000)
           : baseDelayMs * 2 ** i + Math.floor(Math.random() * 200);
-      warn(
-        `${label} failed (${status ?? "?"}), retry ${i + 1}/${attempts - 1} in ${delay}ms`,
-        err,
-      );
+      warn(`${label} failed (${status ?? "?"}), retry ${i + 1}/${attempts - 1} in ${delay}ms`, err);
       await sleep(delay);
     }
   }
@@ -407,8 +401,7 @@ function mapCoinNode(node: unknown): ProfileCoin | null {
     totalVolume: typeof n.totalVolume === "string" ? n.totalVolume : undefined,
     volume24h: typeof n.volume24h === "string" ? n.volume24h : undefined,
     marketCap: typeof n.marketCap === "string" ? n.marketCap : undefined,
-    marketCapDelta24h:
-      typeof n.marketCapDelta24h === "string" ? n.marketCapDelta24h : undefined,
+    marketCapDelta24h: typeof n.marketCapDelta24h === "string" ? n.marketCapDelta24h : undefined,
     createdAt: typeof n.createdAt === "string" ? n.createdAt : undefined,
     creatorAddress:
       typeof n.creatorAddress === "string" ? n.creatorAddress.toLowerCase() : undefined,
@@ -468,8 +461,9 @@ async function fetchProfileCoinsForMember(address: string): Promise<ProfileCoins
       if (mapped) coins.push(mapped);
     }
 
-    const pageInfo = (profile.createdCoins as { pageInfo?: { hasNextPage?: boolean; endCursor?: string } })
-      ?.pageInfo;
+    const pageInfo = (
+      profile.createdCoins as { pageInfo?: { hasNextPage?: boolean; endCursor?: string } }
+    )?.pageInfo;
     if (!pageInfo?.hasNextPage || !pageInfo.endCursor) break;
     after = pageInfo.endCursor;
   }
@@ -705,9 +699,7 @@ interface NeynarUser {
   verified_accounts?: Array<{ platform?: string; username?: string }>;
 }
 
-async function fetchFarcasterByAddress(
-  addresses: string[],
-): Promise<Map<string, FarcasterRecord>> {
+async function fetchFarcasterByAddress(addresses: string[]): Promise<Map<string, FarcasterRecord>> {
   const map = new Map<string, FarcasterRecord>();
   const cached = await readJson<Record<string, FarcasterRecord>>(CACHE_FARCASTER);
   if (cached) {
@@ -750,8 +742,7 @@ async function fetchFarcasterByAddress(
         if (!user) continue;
 
         const twitterAccount = user.verified_accounts?.find(
-          (a) =>
-            a.platform?.toLowerCase() === "x" || a.platform?.toLowerCase() === "twitter",
+          (a) => a.platform?.toLowerCase() === "x" || a.platform?.toLowerCase() === "twitter",
         );
 
         map.set(addr, {
@@ -943,8 +934,7 @@ function buildCreatorAggregates(
       (a, b) => (b.pool?.reserveInUsd ?? 0) - (a.pool?.reserveInUsd ?? 0),
     )[0];
 
-    const twitter =
-      profile?.socials.twitter ?? fc?.twitter ?? coins[0]?.coin.zoraTwitter ?? null;
+    const twitter = profile?.socials.twitter ?? fc?.twitter ?? coins[0]?.coin.zoraTwitter ?? null;
     const email = findEmail(fc?.bio, profile?.socials.twitter, profile?.socials.farcaster);
 
     creators.push({

@@ -5,18 +5,18 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuctionBids } from "@/hooks/use-auction-bids";
 import { useBidComments } from "@/hooks/use-bid-comments";
@@ -40,13 +40,7 @@ function useIsMobile(breakpoint = 768) {
   return isMobile;
 }
 
-function BidListContent({
-  tokenId,
-  enabled,
-}: {
-  tokenId: string | undefined;
-  enabled: boolean;
-}) {
+function BidListContent({ tokenId, enabled }: { tokenId: string | undefined; enabled: boolean }) {
   const { bids, isLoading, error, newBidIds } = useAuctionBids(tokenId, enabled);
   const txHashes = useMemo(() => bids.map((b) => b.transactionHash), [bids]);
   const { comments } = useBidComments(txHashes);
@@ -62,19 +56,11 @@ function BidListContent({
   }
 
   if (error) {
-    return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
-        Failed to load bids
-      </p>
-    );
+    return <p className="py-8 text-center text-sm text-muted-foreground">Failed to load bids</p>;
   }
 
   if (bids.length === 0) {
-    return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
-        No bids yet
-      </p>
-    );
+    return <p className="py-8 text-center text-sm text-muted-foreground">No bids yet</p>;
   }
 
   return (
@@ -93,12 +79,7 @@ function BidListContent({
   );
 }
 
-export function BidHistoryModal({
-  tokenId,
-  tokenName,
-  open,
-  onOpenChange,
-}: BidHistoryModalProps) {
+export function BidHistoryModal({ tokenId, tokenName, open, onOpenChange }: BidHistoryModalProps) {
   const isMobile = useIsMobile();
   const title = tokenName
     ? `Bids for ${tokenName.replace("Gnars", "Gnar")}`

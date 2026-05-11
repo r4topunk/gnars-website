@@ -21,9 +21,9 @@ export function NounstacleDefinition() {
 
             <p>
               It operates as a continuously evolving system of collective construction an
-              onchain-native, IRL sculptural practice that integrates architectural thinking,
-              social dynamism, and decentralized coordination, remaining active, adaptive, and in
-              perpetual development. Keep it Gnarly.
+              onchain-native, IRL sculptural practice that integrates architectural thinking, social
+              dynamism, and decentralized coordination, remaining active, adaptive, and in perpetual
+              development. Keep it Gnarly.
             </p>
 
             <p>

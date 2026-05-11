@@ -1,9 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  AlertCircle,
+  ArrowLeftRight,
+  CheckCircle2,
+  ExternalLink,
+  Loader2,
+  PlusCircle,
+} from "lucide-react";
 import { arbitrum as thirdwebArbitrum, base as thirdwebBase } from "thirdweb/chains";
 import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
-import { ExternalLink, Loader2, CheckCircle2, AlertCircle, PlusCircle, ArrowLeftRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ConnectButton } from "@/components/ui/ConnectButton";
 import {
   Dialog,
   DialogContent,
@@ -12,9 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -23,10 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ConnectButton } from "@/components/ui/ConnectButton";
-import { usePoidhCreateOpenBounty, usePoidhCreateSoloBounty } from "@/hooks/usePoidhContract";
+import { Textarea } from "@/components/ui/textarea";
 import { useUserAddress } from "@/hooks/use-user-address";
-import { getTxUrl, CHAIN_NAMES, SUPPORTED_CHAINS } from "@/lib/poidh/config";
+import { usePoidhCreateOpenBounty, usePoidhCreateSoloBounty } from "@/hooks/usePoidhContract";
+import { CHAIN_NAMES, getTxUrl, SUPPORTED_CHAINS } from "@/lib/poidh/config";
 
 const CHAIN_OPTIONS = [
   { label: "Base", chainId: SUPPORTED_CHAINS.BASE },
@@ -65,7 +72,9 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
   };
 
   // Default to wallet's chain if supported, else Base
-  const defaultChain = SUPPORTED_IDS.includes(walletChainId) ? walletChainId : SUPPORTED_CHAINS.BASE;
+  const defaultChain = SUPPORTED_IDS.includes(walletChainId)
+    ? walletChainId
+    : SUPPORTED_CHAINS.BASE;
   const [chainId, setChainId] = useState<number>(defaultChain);
 
   // Keep form chain in sync when wallet switches externally
@@ -115,8 +124,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
   const error = active.error;
 
   const currentWalletChainName =
-    CHAIN_NAMES[walletChainId as keyof typeof CHAIN_NAMES] ??
-    `Chain ${walletChainId}`;
+    CHAIN_NAMES[walletChainId as keyof typeof CHAIN_NAMES] ?? `Chain ${walletChainId}`;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -185,7 +193,9 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                   </SelectTrigger>
                   <SelectContent>
                     {CHAIN_OPTIONS.map((c) => (
-                      <SelectItem key={c.chainId} value={String(c.chainId)}>{c.label}</SelectItem>
+                      <SelectItem key={c.chainId} value={String(c.chainId)}>
+                        {c.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -214,8 +224,8 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                 <div className="flex items-start gap-2 text-sm text-yellow-600 dark:text-yellow-400">
                   <ArrowLeftRight className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>
-                    Your wallet is on <strong>{currentWalletChainName}</strong>.
-                    Switch to <strong>{chainName}</strong> to continue.
+                    Your wallet is on <strong>{currentWalletChainName}</strong>. Switch to{" "}
+                    <strong>{chainName}</strong> to continue.
                   </span>
                 </div>
                 <Button
@@ -283,7 +293,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
             {error && (
               <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{error.message.split('\n')[0]}</span>
+                <span>{error.message.split("\n")[0]}</span>
               </div>
             )}
 
@@ -300,7 +310,9 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isPending || wrongNetwork || !name.trim() || !description.trim() || !reward}
+                disabled={
+                  isPending || wrongNetwork || !name.trim() || !description.trim() || !reward
+                }
               >
                 {isPending ? (
                   <>

@@ -1,10 +1,8 @@
 import { formatEther } from "viem";
-import { DROPOSAL_TARGET, DAO_ADDRESSES } from "@/lib/config";
+import { DAO_ADDRESSES, DROPOSAL_TARGET } from "@/lib/config";
 import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
 import { subgraphQuery } from "@/lib/subgraph";
-
-
 
 type ProposalsQuery = {
   proposals: Array<{

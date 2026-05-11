@@ -102,7 +102,8 @@ export function useProposalEligibility({
     votes !== undefined && proposalThreshold !== undefined ? votes > proposalThreshold : undefined;
 
   const isDelegating =
-    Boolean(signerAddress && delegatedTo) && delegatedTo?.toLowerCase() !== signerAddress?.toLowerCase();
+    Boolean(signerAddress && delegatedTo) &&
+    delegatedTo?.toLowerCase() !== signerAddress?.toLowerCase();
 
   return {
     isLoading: Boolean(thresholdRead.isLoading || votesRead.isLoading || delegatesRead.isLoading),
@@ -114,4 +115,3 @@ export function useProposalEligibility({
     hasThreshold,
   };
 }
-

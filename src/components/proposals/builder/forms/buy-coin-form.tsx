@@ -1,8 +1,8 @@
+import { Info } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Info } from "lucide-react";
 import { type ProposalFormValues } from "../../schema";
 
 interface Props {
@@ -28,8 +28,8 @@ export function BuyCoinForm({ index }: Props) {
         <Info className="h-4 w-4" />
         <AlertDescription>
           <p className="text-sm">
-            This transaction will use the Zora Coins SDK to purchase a content or creator coin
-            from the treasury. The swap executes through Uniswap v4 with Zora hooks.
+            This transaction will use the Zora Coins SDK to purchase a content or creator coin from
+            the treasury. The swap executes through Uniswap v4 with Zora hooks.
           </p>
         </AlertDescription>
       </Alert>
@@ -62,9 +62,7 @@ export function BuyCoinForm({ index }: Props) {
         {getErrorMessage("ethAmount") && (
           <p className="text-xs text-red-500">{String(getErrorMessage("ethAmount"))}</p>
         )}
-        <p className="text-xs text-muted-foreground">
-          Amount of ETH to spend from treasury
-        </p>
+        <p className="text-xs text-muted-foreground">Amount of ETH to spend from treasury</p>
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">

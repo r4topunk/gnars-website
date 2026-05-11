@@ -26,6 +26,7 @@ Identify medium-sized tasks that span 2–3 independent work streams, suitable f
 **Missing OG image** (has TV layout metadata but no page-level image): `tv/page.tsx`
 
 Confirmed by checking:
+
 - Metadata: all 7 pages have no `export const metadata` or `generateMetadata`
 - OG images: `members/`, `feed/`, `lootbox/`, `mural/`, `propose/` have no `opengraph-image.tsx`; `treasury/` has one; `tv/` has one via layout
 
@@ -104,6 +105,7 @@ This can silently produce wrong calldata if a proposer sends a 6-decimal token (
 Inconsistency confirmed: `TokenHoldings.tsx` and `ZoraCoinHoldings.tsx` use `react.cache` + server fetch. `NftHoldings.tsx` does not — it directly calls `subgraphQuery` from a client context.
 
 This task involves:
+
 1. Extract data-fetching logic into a server-side function (or service in `src/services/`)
 2. Create `NftHoldingsClient.tsx` for the display/infinite scroll UI (using the same IntersectionObserver pattern already in the file)
 3. Update `NftHoldings.tsx` to be the server wrapper that fetches the first page and passes it as props
@@ -142,6 +144,7 @@ The `MembersList` component has a built-in search feature but the members page p
 Additionally, `/members/page.tsx` has no `metadata` export.
 
 This task spans:
+
 1. Enable search on the members page (`showSearch={true}` or remove the prop default)
 2. Add `export const metadata` to `src/app/members/page.tsx`
 3. Create `src/app/members/opengraph-image.tsx`
@@ -172,18 +175,19 @@ Note: Agent C depends on confirming what data `MemberListItem` contains. This ma
 
 ## Findings Summary
 
-| # | Task | Visible Impact | Files Changed | Parallelism |
-|---|------|----------------|---------------|-------------|
-| 1 | SEO metadata + OG images (7 pages) | Medium — social sharing | ~14 files | High (no deps) |
-| 2 | `send-tokens` decimals fix | High — prevents wrong proposal calldata | 5 files | Medium (shared interface) |
-| 3 | `NftHoldings` SC migration | Medium — treasury page TTI | 4 files | High (shared type) |
-| 4 | Members search + metadata | Medium — UX + SEO | 3 files | High |
+| #   | Task                               | Visible Impact                          | Files Changed | Parallelism               |
+| --- | ---------------------------------- | --------------------------------------- | ------------- | ------------------------- |
+| 1   | SEO metadata + OG images (7 pages) | Medium — social sharing                 | ~14 files     | High (no deps)            |
+| 2   | `send-tokens` decimals fix         | High — prevents wrong proposal calldata | 5 files       | Medium (shared interface) |
+| 3   | `NftHoldings` SC migration         | Medium — treasury page TTI              | 4 files       | High (shared type)        |
+| 4   | Members search + metadata          | Medium — UX + SEO                       | 3 files       | High                      |
 
 ## Recommendation
 
 **Top pick for agent team: Candidate 2 (send-tokens decimals fix)**
 
 Rationale:
+
 - The TODO has a clear correctness risk, not just aesthetics
 - The 3-agent split maps cleanly to 3 orthogonal concerns (form UI, encoding logic, tests)
 - The interface between agents is a single `decimals: number` field — low coordination overhead
@@ -192,6 +196,7 @@ Rationale:
 **Second pick: Candidate 1 (SEO metadata + OG images)**
 
 Rationale:
+
 - Pure parallelism — 3 agents working on completely independent pages
 - Zero risk to existing functionality
 - Straightforward completion criterion

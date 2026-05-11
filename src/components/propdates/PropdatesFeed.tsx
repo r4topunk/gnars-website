@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { FileText } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { Markdown } from "@/components/common/Markdown";
 import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "@/i18n/navigation";
 import type { ProposalStatus } from "@/lib/schemas/proposals";
 
 // ---------------------------------------------------------------------------
@@ -103,12 +103,13 @@ function ProposalUpdateCard({ entry, index }: ProposalUpdateCardProps) {
 
         {/* Latest update content */}
         <CardContent className="px-4 pt-0 pb-3">
-          <p className="text-xs text-muted-foreground mb-2">
-            Latest Update&nbsp;·&nbsp;{timeAgo}
-          </p>
+          <p className="text-xs text-muted-foreground mb-2">Latest Update&nbsp;·&nbsp;{timeAgo}</p>
 
           {latestPropdate && (
-            <div className="rounded-md border bg-muted/40 p-3 relative overflow-hidden" style={{ maxHeight: 160 }}>
+            <div
+              className="rounded-md border bg-muted/40 p-3 relative overflow-hidden"
+              style={{ maxHeight: 160 }}
+            >
               <Markdown className="prose-sm">{latestPropdate.message}</Markdown>
               <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-card to-transparent" />
             </div>
@@ -220,9 +221,7 @@ export function PropdatesFeed() {
   }, [entries.length]);
 
   useEffect(() => {
-    setVisibleCount((prev) =>
-      Math.min(Math.max(PAGE_SIZE, prev), entries.length || PAGE_SIZE),
-    );
+    setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), entries.length || PAGE_SIZE));
   }, [entries.length]);
 
   if (isLoading) {
@@ -233,9 +232,7 @@ export function PropdatesFeed() {
     return (
       <Alert variant="destructive">
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Failed to load propdates feed. Please try again later.
-        </AlertDescription>
+        <AlertDescription>Failed to load propdates feed. Please try again later.</AlertDescription>
       </Alert>
     );
   }

@@ -90,11 +90,7 @@ export function ViewAccountProvider({ children }: { children: ReactNode }) {
     [viewMode, setViewMode, toggleViewMode, clearViewMode],
   );
 
-  return (
-    <ViewAccountContext.Provider value={value}>
-      {children}
-    </ViewAccountContext.Provider>
-  );
+  return <ViewAccountContext.Provider value={value}>{children}</ViewAccountContext.Provider>;
 }
 
 export function useViewAccount(): ViewAccountContextValue {

@@ -7,9 +7,9 @@ permalink: /unicef-connecting-with-the-metaverse/
 author: gami
 image: /images/unicef.png
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 A few of my recent posts have been about ‘big players’ entering the metaverse; see [VISA](/big-players-buying-up-real-estate-in-the-metaverse/), [Adobe](/big-players-buying-up-real-estate-part-2-adobe/), and most recently [Budweiser](/cheers-to-the-metaverse/). Thus far, the companies I’ve talked about have something rather obvious in common –they are big companies. That is private institutions whose primary goal is profit. However, that doesn’t mean the only ‘big players’ entering the metaverse are profit-seeking.

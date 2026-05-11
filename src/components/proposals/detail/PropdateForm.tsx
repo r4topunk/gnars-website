@@ -2,14 +2,14 @@
 
 import { useRef, useState } from "react";
 import { Paperclip } from "lucide-react";
+import { Markdown } from "@/components/common/Markdown";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Markdown } from "@/components/common/Markdown";
-import { AddressDisplay } from "@/components/ui/address-display";
+import { Textarea } from "@/components/ui/textarea";
 import { usePropdates } from "@/hooks/use-propdates";
 import { uploadToPinata } from "@/lib/pinata";
 import { type Propdate } from "@/services/propdates";
@@ -121,7 +121,9 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
               <Textarea
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
-                placeholder={replyTo ? "Write your reply..." : "Share an update on this proposal..."}
+                placeholder={
+                  replyTo ? "Write your reply..." : "Share an update on this proposal..."
+                }
                 required
                 rows={6}
               />
@@ -165,9 +167,7 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
                 </>
               )}
             </Button>
-            {uploadError && (
-              <span className="text-sm text-destructive">{uploadError}</span>
-            )}
+            {uploadError && <span className="text-sm text-destructive">{uploadError}</span>}
           </div>
 
           <div className={replyTo ? "flex items-center justify-end gap-2" : ""}>

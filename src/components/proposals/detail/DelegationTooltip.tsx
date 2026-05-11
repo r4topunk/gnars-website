@@ -2,8 +2,8 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { DelegatorWithCount } from "@/services/members";
 
 type DelegationStatus = "loading" | "done" | "error";

@@ -45,8 +45,7 @@ export function FuzzyText({
           ? window.getComputedStyle(canvas).fontFamily || "sans-serif"
           : fontFamily;
 
-      const fontSizeStr =
-        typeof fontSize === "number" ? `${fontSize}px` : fontSize;
+      const fontSizeStr = typeof fontSize === "number" ? `${fontSize}px` : fontSize;
       let numericFontSize: number;
       if (typeof fontSize === "number") {
         numericFontSize = fontSize;
@@ -72,8 +71,7 @@ export function FuzzyText({
       const actualLeft = metrics.actualBoundingBoxLeft ?? 0;
       const actualRight = metrics.actualBoundingBoxRight ?? metrics.width;
       const actualAscent = metrics.actualBoundingBoxAscent ?? numericFontSize;
-      const actualDescent =
-        metrics.actualBoundingBoxDescent ?? numericFontSize * 0.2;
+      const actualDescent = metrics.actualBoundingBoxDescent ?? numericFontSize * 0.2;
 
       const textBoundingWidth = Math.ceil(actualLeft + actualRight);
       const tightHeight = Math.ceil(actualAscent + actualDescent);
@@ -110,13 +108,11 @@ export function FuzzyText({
           -fuzzRange,
           -fuzzRange,
           offscreenWidth + 2 * fuzzRange,
-          tightHeight + 2 * fuzzRange
+          tightHeight + 2 * fuzzRange,
         );
         const intensity = isHovering ? hoverIntensity : baseIntensity;
         for (let j = 0; j < tightHeight; j++) {
-          const dx = Math.floor(
-            intensity * (Math.random() - 0.5) * fuzzRange
-          );
+          const dx = Math.floor(intensity * (Math.random() - 0.5) * fuzzRange);
           ctx.drawImage(offscreen, 0, j, offscreenWidth, 1, dx, j, offscreenWidth, 1);
         }
         animationFrameId = window.requestAnimationFrame(run);
@@ -187,7 +183,8 @@ export function FuzzyText({
     return () => {
       isCancelled = true;
       window.cancelAnimationFrame(animationFrameId);
-      const cleanupFn = (canvas as HTMLCanvasElement & { cleanupFuzzyText?: () => void })?.cleanupFuzzyText;
+      const cleanupFn = (canvas as HTMLCanvasElement & { cleanupFuzzyText?: () => void })
+        ?.cleanupFuzzyText;
       if (canvas && cleanupFn) {
         cleanupFn();
       }

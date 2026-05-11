@@ -5,8 +5,8 @@
  */
 
 import { getProfileBalances, getProfileCoins, setApiKey } from "@zoralabs/coins-sdk";
-import { fetchDroposals } from "../src/services/droposals";
 import { GNARS_ZORA_HANDLE } from "../src/lib/config";
+import { fetchDroposals } from "../src/services/droposals";
 
 const INITIAL_COINS_PER_CREATOR = 50;
 
@@ -67,7 +67,8 @@ async function testTVFeed() {
       chainIds: [8453],
     });
 
-    const balanceEdges = (balancesResult?.data?.profile?.coinBalances?.edges || []) as BalanceEdge[];
+    const balanceEdges = (balancesResult?.data?.profile?.coinBalances?.edges ||
+      []) as BalanceEdge[];
 
     for (const edge of balanceEdges) {
       const coin = edge.node?.coin;
@@ -127,7 +128,7 @@ async function testTVFeed() {
   // Fetch droposals
   try {
     const droposals = await fetchDroposals(20);
-    const videoDroposals = droposals.filter(d => d.animationUrl);
+    const videoDroposals = droposals.filter((d) => d.animationUrl);
 
     for (const d of videoDroposals) {
       const timestamp = d.executedAt || d.createdAt;
@@ -161,8 +162,8 @@ async function testTVFeed() {
   });
 
   // Summary
-  const coins = allVideos.filter(v => v.type === "coin");
-  const droposals = allVideos.filter(v => v.type === "droposal");
+  const coins = allVideos.filter((v) => v.type === "coin");
+  const droposals = allVideos.filter((v) => v.type === "droposal");
 
   console.log("\n" + "=".repeat(60));
   console.log("📊 SUMMARY\n");

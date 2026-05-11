@@ -59,9 +59,11 @@ Recipients receive their percentage automatically
 ## UI Components
 
 ### 1. SplitRecipientsSection
+
 **Location:** `src/components/proposals/builder/forms/droposal/SplitRecipientsSection.tsx`
 
 Dynamic form for managing split recipients:
+
 - Add/remove recipient rows
 - Address input with validation
 - Percentage slider (0-100%, 2 decimals)
@@ -71,6 +73,7 @@ Dynamic form for managing split recipients:
 - Distributor fee slider (0-10%)
 
 **Validation:**
+
 - Minimum 2 recipients required
 - Maximum 100 recipients (gas limit)
 - All addresses must be valid (checksummed)
@@ -78,9 +81,11 @@ Dynamic form for managing split recipients:
 - Maximum 4 decimal places for percentages
 
 ### 2. SplitDebugPanel
+
 **Location:** `src/components/proposals/builder/forms/droposal/SplitDebugPanel.tsx`
 
 Test panel for split creation:
+
 - Configuration preview
 - "🧪 Test Create Split" button
 - Loading state during transaction
@@ -92,6 +97,7 @@ Test panel for split creation:
 ### 3. Integration in droposal-form.tsx
 
 Toggle switch in Advanced Options:
+
 - OFF: Shows traditional payout address input (defaults to treasury)
 - ON: Shows SplitRecipientsSection + SplitDebugPanel
 
@@ -113,20 +119,24 @@ Extended droposal transaction schema in `src/components/proposals/schema.ts`:
 **Location:** `src/lib/splits-utils.ts`
 
 ### Validation Functions
+
 - `validateSplitConfig()` - Validates entire split configuration
 - `validateSplitRecipients()` - Validates recipient array (min 2, sum 100%)
 - `validatePercentage()` - Validates single percentage (0-100%, max 4 decimals)
 
 ### Formatting Functions
+
 - `formatSplitAddress()` - Shortens address for display (0x1234...5678)
 - `prepareSplitConfigForSDK()` - Converts to Splits SDK format
 
 ### Helper Functions
+
 - `createDefaultSplitConfig()` - Creates 50/50 DAO/user split
 - `autoAdjustPercentages()` - Distributes 100% evenly among recipients
 - `calculateRemainingPercentage()` - Shows unallocated percentage
 
 ### Constants
+
 - `IMMUTABLE_CONTROLLER` = `0x0000000000000000000000000000000000000000`
 - Used for splits with no admin control (trustless)
 
@@ -136,24 +146,24 @@ Extended droposal transaction schema in `src/components/proposals/schema.ts`:
 
 ```typescript
 const {
-  createSplit,      // async function to create split
-  isPending,        // loading state
-  isSuccess,        // success state
-  isError,          // error state
-  error,            // error object
-  splitAddress,     // created split address
-  txHash,           // transaction hash
-  reset,            // reset state
+  createSplit, // async function to create split
+  isPending, // loading state
+  isSuccess, // success state
+  isError, // error state
+  error, // error object
+  splitAddress, // created split address
+  txHash, // transaction hash
+  reset, // reset state
 } = useSplitCreation();
 
 // Usage
 await createSplit({
   recipients: [
     { address: "0x...", percentAllocation: 60.0 },
-    { address: "0x...", percentAllocation: 40.0 }
+    { address: "0x...", percentAllocation: 40.0 },
   ],
   distributorFeePercent: 1.0,
-  controller: IMMUTABLE_CONTROLLER
+  controller: IMMUTABLE_CONTROLLER,
 });
 ```
 
@@ -163,7 +173,7 @@ await createSplit({
 
 ```typescript
 export const SPLITS_ADDRESSES = {
-  splitMain: "0x2ed6c4B5dA6378c7897AC67Ba9e43102Feb694EE",  // Base chain
+  splitMain: "0x2ed6c4B5dA6378c7897AC67Ba9e43102Feb694EE", // Base chain
 } as const;
 ```
 
@@ -172,6 +182,7 @@ export const SPLITS_ADDRESSES = {
 ### What is 0xSplits?
 
 0xSplits is a trustless protocol for splitting payments onchain:
+
 - **Zero protocol fees** (only gas costs)
 - **Immutable splits** (no admin control = trustless)
 - **Automatic distribution** (bots trigger, earn fee)
@@ -196,6 +207,7 @@ export const SPLITS_ADDRESSES = {
 ## Example Use Cases
 
 ### 1. Artist Collaboration (50/50 Split)
+
 ```
 Recipients:
 - Artist A: 50%
@@ -204,6 +216,7 @@ Distributor Fee: 1%
 ```
 
 ### 2. DAO + Creator Split (80/20)
+
 ```
 Recipients:
 - Gnars DAO Treasury: 80%
@@ -212,6 +225,7 @@ Distributor Fee: 1%
 ```
 
 ### 3. Team Distribution
+
 ```
 Recipients:
 - Developer: 40%
@@ -255,17 +269,20 @@ Distributor Fee: 1%
 ## Implementation Files
 
 ### Core Files Created
+
 1. `/src/lib/splits-utils.ts` - Utility functions and validation
 2. `/src/hooks/use-split-creation.ts` - React hook for split creation
 3. `/src/components/proposals/builder/forms/droposal/SplitRecipientsSection.tsx` - Recipient UI
 4. `/src/components/proposals/builder/forms/droposal/SplitDebugPanel.tsx` - Test panel
 
 ### Modified Files
+
 1. `/src/components/proposals/builder/forms/droposal-form.tsx` - Added toggle and integration
 2. `/src/components/proposals/schema.ts` - Extended with split fields
 3. `/src/lib/config.ts` - Added SPLITS_ADDRESSES constant
 
 ### Dependencies
+
 - `@0xsplits/splits-sdk` v6.3.0
 
 ## Best Practices
@@ -280,16 +297,19 @@ Distributor Fee: 1%
 ## Troubleshooting
 
 ### "Fix validation errors before creating split"
+
 - Check that percentages sum to exactly 100%
 - Ensure minimum 2 recipients
 - Verify all addresses are valid
 
 ### Transaction fails
+
 - Check wallet has enough ETH for gas
 - Ensure connected to Base network (chain ID 8453)
 - Verify all addresses are valid Base addresses
 
 ### Split not appearing in proposal
+
 - Check that "Use Revenue Split" toggle is ON
 - Verify split was successfully created (check SplitDebugPanel)
 - Ensure createdSplitAddress is populated

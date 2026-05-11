@@ -26,7 +26,7 @@ import { generateMockFeedEvents } from "@/lib/mock-data/feed-events";
 
 export default function FeedPage() {
   const events = await getFeedEvents(); // or use mock data
-  
+
   return <LiveFeedView events={events} />;
 }
 ```
@@ -34,16 +34,13 @@ export default function FeedPage() {
 ### With Loading State
 
 ```tsx
-<LiveFeedView 
-  events={events} 
-  isLoading={isLoading}
-  error={error}
-/>
+<LiveFeedView events={events} isLoading={isLoading} error={error} />
 ```
 
 ## 📊 Event Types
 
 ### Governance Events (11 types)
+
 - **ProposalCreated** - New proposal submitted
 - **VoteCast** - Member voted on proposal
 - **ProposalQueued** - Proposal queued for execution
@@ -54,17 +51,20 @@ export default function FeedPage() {
 - **VotingClosingSoon** - Voting ending soon (computed)
 
 ### Auction Events (4 types)
+
 - **AuctionCreated** - New auction started
 - **AuctionBid** - New bid placed
 - **AuctionSettled** - Auction won
 - **AuctionEndingSoon** - Auction ending (computed)
 
 ### Token Events (3 types)
+
 - **TokenMinted** - New token minted
 - **TokenTransferred** - Token ownership changed
 - **DelegateChanged** - Vote delegation changed
 
 ### Admin Events (3 types)
+
 - **TreasuryTransaction** - Treasury funds sent
 - **SettingsUpdated** - DAO settings changed
 - **OwnershipTransferred** - Contract ownership changed
@@ -72,18 +72,21 @@ export default function FeedPage() {
 ## 🎨 Features
 
 ### Event Filtering
+
 - **Category**: Filter by governance, auction, token, etc.
 - **Priority**: High/Medium/Low priority events
 - **Time Range**: 1h, 24h, 7d, 30d, all time
 - **Comments**: Show only votes with comments
 
 ### Performance
+
 - **Infinite Scroll**: Loads events incrementally
 - **Virtual Scrolling**: Only renders visible events
 - **Optimized Rendering**: Memoized filtering
 - **Lazy Loading**: Images and components
 
 ### UI/UX
+
 - **Responsive Design**: Mobile and desktop optimized
 - **Dark Mode**: Full dark mode support
 - **Hover States**: Interactive feedback
@@ -100,19 +103,19 @@ Current implementation uses mock data. To integrate real data:
 // src/app/feed/page.tsx
 async function getFeedEvents() {
   // Replace mock data with real data sources:
-  
+
   // Option 1: The Graph Subgraph
-  const response = await fetch('YOUR_SUBGRAPH_URL', {
-    method: 'POST',
-    body: JSON.stringify({ query: YOUR_QUERY })
+  const response = await fetch("YOUR_SUBGRAPH_URL", {
+    method: "POST",
+    body: JSON.stringify({ query: YOUR_QUERY }),
   });
-  
+
   // Option 2: Backend API
-  const response = await fetch('/api/feed/events');
-  
+  const response = await fetch("/api/feed/events");
+
   // Option 3: Direct blockchain events
   // Use ethers.js or viem to query events
-  
+
   return transformToFeedEvents(response.data);
 }
 ```
@@ -128,19 +131,19 @@ import { useEffect, useState } from "react";
 
 export function LiveFeedContainer() {
   const [events, setEvents] = useState<FeedEvent[]>([]);
-  
+
   useEffect(() => {
     // WebSocket connection
-    const ws = new WebSocket('ws://your-api/feed');
-    
+    const ws = new WebSocket("ws://your-api/feed");
+
     ws.onmessage = (msg) => {
       const newEvent = JSON.parse(msg.data);
-      setEvents(prev => [newEvent, ...prev]);
+      setEvents((prev) => [newEvent, ...prev]);
     };
-    
+
     return () => ws.close();
   }, []);
-  
+
   return <LiveFeedView events={events} />;
 }
 ```
@@ -154,7 +157,7 @@ Create a service to generate time-based events:
 export function computeTimeBasedEvents(proposals: Proposal[]): FeedEvent[] {
   const now = Math.floor(Date.now() / 1000);
   const events: FeedEvent[] = [];
-  
+
   for (const proposal of proposals) {
     // Voting closing soon
     if (proposal.voteEnd - now <= 3600 && proposal.voteEnd > now) {
@@ -165,7 +168,7 @@ export function computeTimeBasedEvents(proposals: Proposal[]): FeedEvent[] {
       });
     }
   }
-  
+
   return events;
 }
 ```
@@ -194,6 +197,7 @@ function handleEvent(event: FeedEvent) {
 ### Add New Event Type
 
 1. Add type to `feed-events.ts`:
+
 ```typescript
 export interface CustomEvent extends BaseEvent {
   type: "CustomEvent";
@@ -205,6 +209,7 @@ export type FeedEvent = ... | CustomEvent;
 ```
 
 2. Create card component:
+
 ```tsx
 // CustomEventCard.tsx
 export function CustomEventCard({ event }) {
@@ -213,6 +218,7 @@ export function CustomEventCard({ event }) {
 ```
 
 3. Update router in `FeedEventCard.tsx`:
+
 ```tsx
 case "custom":
   return <CustomEventCard event={event} />;
@@ -236,8 +242,8 @@ const DEFAULT_FILTERS: FeedFilters = {
 Each event card can be customized via props:
 
 ```tsx
-<FeedEventCard 
-  event={event} 
+<FeedEventCard
+  event={event}
   compact={true} // Compact view
 />
 ```
@@ -249,13 +255,12 @@ Or modify the card components directly for global changes.
 Use the mock data generator for development:
 
 ```tsx
-import { generateMockFeedEvents } from "@/lib/mock-data/feed-events";
+// Generate specific event type
+import { generateMockEvent, generateMockFeedEvents } from "@/lib/mock-data/feed-events";
 
 // Generate 24 hours of events
 const events = generateMockFeedEvents(24);
 
-// Generate specific event type
-import { generateMockEvent } from "@/lib/mock-data/feed-events";
 const voteEvent = generateMockEvent("VoteCast");
 ```
 
@@ -269,6 +274,7 @@ const voteEvent = generateMockEvent("VoteCast");
 ## 📱 Mobile Considerations
 
 The feed is fully responsive with:
+
 - Compact card layout on small screens
 - Touch-friendly tap targets
 - Optimized image loading
@@ -293,4 +299,3 @@ The feed is fully responsive with:
 ## 📄 License
 
 Part of the Gnars DAO website codebase.
-

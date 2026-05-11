@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ address: string }> }
+  { params }: { params: Promise<{ address: string }> },
 ) {
   const { address } = await params;
 
@@ -33,13 +33,15 @@ export async function GET(
     const voteCount = votes?.votes?.length || 0;
 
     // Safely access creatorCoin properties
-    const coin = profile?.creatorCoin as {
-      address?: string;
-      name?: string;
-      symbol?: string;
-      marketCap?: string;
-      marketCapDelta24h?: string;
-    } | undefined;
+    const coin = profile?.creatorCoin as
+      | {
+          address?: string;
+          name?: string;
+          symbol?: string;
+          marketCap?: string;
+          marketCapDelta24h?: string;
+        }
+      | undefined;
 
     const creatorCoin = coin
       ? {
@@ -70,7 +72,7 @@ export async function GET(
         voteCount: 0,
         creatorCoin: null,
       },
-      { status: 200 }
+      { status: 200 },
     );
   }
 }

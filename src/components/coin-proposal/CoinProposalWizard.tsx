@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createTradeCall, setApiKey, type TradeParameters } from "@zoralabs/coins-sdk";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
 import { Address, formatEther, parseEther } from "viem";
-import { AlertTriangle, Loader2 } from "lucide-react";
-import { createTradeCall, setApiKey, type TradeParameters } from "@zoralabs/coins-sdk";
+import { ProposalPreview } from "@/components/proposals/ProposalPreview";
+import { proposalSchema, type ProposalFormValues } from "@/components/proposals/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,8 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useVotes } from "@/hooks/useVotes";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
-import { proposalSchema, type ProposalFormValues } from "@/components/proposals/schema";
-import { ProposalPreview } from "@/components/proposals/ProposalPreview";
 import { CoinPurchaseForm } from "./CoinPurchaseForm";
 import { CoinPurchasePreview } from "./CoinPurchasePreview";
 

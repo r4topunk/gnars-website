@@ -5,9 +5,8 @@
  */
 
 import { existsSync, readFileSync } from "fs";
-import { resolve } from "path";
 import { createRequire } from "module";
-import path from "path";
+import path, { resolve } from "path";
 
 function loadEnvLocal(): void {
   const envPath = resolve(process.cwd(), ".env.local");
@@ -20,7 +19,10 @@ function loadEnvLocal(): void {
     if (idx === -1) continue;
     const key = trimmed.slice(0, idx).trim();
     let value = trimmed.slice(idx + 1).trim();
-    if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
       value = value.slice(1, -1);
     }
     if (!process.env[key]) {

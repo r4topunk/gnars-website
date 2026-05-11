@@ -15,9 +15,11 @@
 ### Task 1: Create `useAuctionBids` hook — subgraph query for bids by tokenId
 
 **Files:**
+
 - Create: `src/hooks/use-auction-bids.ts`
 
 **Context:**
+
 - Existing subgraph client: `src/lib/subgraph.ts` — exports `subgraphQuery<TData>(query, variables)`
 - Existing bid query pattern: `src/services/feed-events.ts:104-129` — `BIDS_QUERY` filters by `auction_.dao`
 - DAO address: `GNARS_ADDRESSES.token` from `src/lib/config.ts`
@@ -85,13 +87,10 @@ export function useAuctionBids(
       if (isFirstFetch.current) setIsLoading(true);
 
       const { subgraphQuery } = await import("@/lib/subgraph");
-      const data = await subgraphQuery<{ auctionBids: AuctionBid[] }>(
-        AUCTION_BIDS_QUERY,
-        {
-          daoAddress: GNARS_ADDRESSES.token,
-          tokenId,
-        },
-      );
+      const data = await subgraphQuery<{ auctionBids: AuctionBid[] }>(AUCTION_BIDS_QUERY, {
+        daoAddress: GNARS_ADDRESSES.token,
+        tokenId,
+      });
 
       const fetched = data.auctionBids ?? [];
       setBids(fetched);
@@ -154,9 +153,11 @@ git commit -m "feat(auction): add useAuctionBids hook for bid polling"
 ### Task 2: Create `useBidComments` hook — decode calldata comments via RPC
 
 **Files:**
+
 - Create: `src/hooks/use-bid-comments.ts`
 
 **Context:**
+
 - Comment encoding in `src/components/hero/AuctionSpotlight.tsx:141-156`:
   - `encodeFunctionData({ abi: auctionAbi, functionName: "createBid", args: [BigInt(tokenId)] })`
   - Comment bytes appended after standard calldata via `concat([baseCalldata, commentBytes])`
@@ -184,9 +185,7 @@ function decodeComment(input: string): string | null {
   if (commentHex.length === 0) return null;
 
   try {
-    const bytes = new Uint8Array(
-      commentHex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
-    );
+    const bytes = new Uint8Array(commentHex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
     const decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     return decoded.trim() || null;
   } catch {
@@ -286,9 +285,11 @@ git commit -m "feat(auction): add useBidComments hook for calldata decoding"
 ### Task 3: Create `BidItem` component
 
 **Files:**
+
 - Create: `src/components/auction/BidItem.tsx`
 
 **Context:**
+
 - Uses `AddressDisplay` from `src/components/ui/address-display.tsx` — supports `variant="compact"`, `showAvatar`, `truncateLength`
 - ENS resolution already handled inside `AddressDisplay` via `useENSOptimistic`
 - Styling: dark theme, Tailwind CSS v4, follows existing card/feed patterns
@@ -379,9 +380,11 @@ git commit -m "feat(auction): add BidItem component with comment display"
 ### Task 4: Create `BidHistoryModal` — responsive Dialog/Sheet container
 
 **Files:**
+
 - Create: `src/components/auction/BidHistoryModal.tsx`
 
 **Context:**
+
 - No Vaul/Drawer installed. Use existing `Dialog` (desktop) + `Sheet` (mobile) pattern.
 - Existing pattern in `src/components/map-location-drawer.tsx:37-39`: manual `isMobile` via `window.innerWidth` + resize listener
 - Dialog: `src/components/ui/dialog.tsx` — Radix-based, centered, zoom animation
@@ -554,9 +557,11 @@ git commit -m "feat(auction): add BidHistoryModal responsive container"
 ### Task 5: Integrate trigger into AuctionSpotlight
 
 **Files:**
+
 - Modify: `src/components/hero/AuctionSpotlight.tsx`
 
 **Context:**
+
 - The trigger goes near line 373-386, after the highest bidder display
 - Add a "View X bids" link that opens the modal
 - Need to add state for modal open/close
@@ -566,11 +571,13 @@ git commit -m "feat(auction): add BidHistoryModal responsive container"
 - [ ] **Step 1: Add imports and state to AuctionSpotlight**
 
 At the top of the file, add import:
+
 ```typescript
 import { BidHistoryModal } from "@/components/auction/BidHistoryModal";
 ```
 
 After the existing `useState` declarations (~line 38), add:
+
 ```typescript
 const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
 ```
@@ -580,6 +587,7 @@ const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
 After the highest bidder block (after line 386, before the closing `</div>` tags), add the "View bids" link:
 
 Find the block:
+
 ```tsx
 {highestBidder && highestBidder !== zeroAddress && (
   <div className="text-center text-xs text-muted-foreground">
@@ -590,6 +598,7 @@ Find the block:
 ```
 
 After it, add:
+
 ```tsx
 <button
   type="button"
@@ -597,17 +606,19 @@ After it, add:
   className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
 >
   View bids
-</button>
+</button>;
 
-{/* Note: bid count can be added here once useAuctionBids is available
-    by lifting the hook or using a lightweight count query */}
+{
+  /* Note: bid count can be added here once useAuctionBids is available
+    by lifting the hook or using a lightweight count query */
+}
 
 <BidHistoryModal
   tokenId={tokenId?.toString()}
   tokenName={tokenUri?.name}
   open={isBidHistoryOpen}
   onOpenChange={setIsBidHistoryOpen}
-/>
+/>;
 ```
 
 - [ ] **Step 3: Verify it compiles**
@@ -617,6 +628,7 @@ Run: `npx tsc --noEmit src/components/hero/AuctionSpotlight.tsx 2>&1 | head -20`
 - [ ] **Step 4: Manual test**
 
 Run: `pnpm dev`
+
 1. Open homepage
 2. Verify "View bids" link appears below the bidder info
 3. Click it — modal opens on desktop, bottom sheet on mobile
@@ -636,6 +648,7 @@ git commit -m "feat(auction): integrate bid history modal into AuctionSpotlight"
 ### Task 6: Polish and edge cases
 
 **Files:**
+
 - Modify: `src/components/auction/BidHistoryModal.tsx` (if needed)
 - Modify: `src/components/auction/BidItem.tsx` (if needed)
 - Modify: `src/hooks/use-bid-comments.ts` (if needed)

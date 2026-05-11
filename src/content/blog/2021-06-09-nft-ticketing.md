@@ -7,9 +7,9 @@ permalink: /nft-ticketing/
 author: gami
 image: /images/nft-ticketing-1.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 **Summary:** The venerable ticketing Industry and Non-fungible Tokens (NFTs) are on a highly desirable and long-awaited collision course: it appears nothing and no one will be able to prevent the emergence of an hybrid ticketing industry, that will redefine what it means exactly to hold a “ticket” for an event.

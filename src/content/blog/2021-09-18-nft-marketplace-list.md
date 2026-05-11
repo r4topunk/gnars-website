@@ -7,9 +7,9 @@ permalink: /nft-marketplace-list/
 author: gami
 image: /images/nft-marketplace-list-feat.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 The digital landscape is changing, in large part thanks to blockchain technology. Not only has blockchain technology revolutionised the finance sector by empowering decentralised, virtual currencies known as cryptocurrencies, but it is also changing the way that collectibles, art, music, and other virtual assets are distributed.

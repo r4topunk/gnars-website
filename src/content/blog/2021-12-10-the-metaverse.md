@@ -7,9 +7,9 @@ permalink: /the-metaverse/
 author: gami
 image: /images/the-metaverse.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 <span id="00">The metaverse</span>. Ever since Mark Zuckerberg announced that Facebook (now Meta) was pinning its hopes on the Metaverse, this thing boomed. Cryptocurrency enthusiasts, enterprising businessmen, and even social media fanatics are now talking about this “Virtual Life”.
@@ -20,38 +20,38 @@ If you’re just a clueless lad jumping on the metaverse hype train, don’t wor
 
 Before we dive right in, here’s a heads up of what we’ll be covering in this comprehensive article. For starters, we’ll be going through the basics of the metaverse, like what it is and its importance. Next, we’ll take a look into the current atmosphere of the metaverse, and how different systems play their part in the virtual universe. To conclude, we’ll explore countless possibilities for the metaverse in the future, and what part you can play in it.
 
-***Table of Contents***
+**_Table of Contents_**
 
 - [The Metaverse: Is This Our Future?](#00)
-    - [Chapter 1a: What Is The Metaverse?](#0)
-        - [Metaverse: Fairness At Its Finest](#1)
-        - [Virtual Reality (VR)](#2)
-        - [Augmented Reality (AR)](#3)
-        - [What Can You Do In The Metaverse?](#4)
-    - [Chapter 1b: The Impact Of The Metaverse](#5)
-        - [The Metaverse Beginnings](#6)
-        - [Importance Of The Metaverse](#7)
-    - [Chapter 2a: The Current State Of The Metaverse](#8)
-        - [The Current Metaverse Mess](#9)
-            - [Underdeveloped and Unfinished](#10)
-            - [Blurred Lines Between The Metaverse And Video Games](#11)
-            - [Overcrowding and Uncertainty](#12)
-        - [The Metaverse Giants](#13)
-            - [Decentraland](#14)
-            - [Axie Infinity](#15)
-            - [The Sandbox](#16)
-        - [Horizon Worlds: Meta’s Plot or Flop?](#17)
-            - [Horizon Worlds](#18)
-            - [The Horizon Worlds Controversy](#19)
-        - [Who Is In The Metaverse?](#20)
-    - [Chapter 2b: Crypto, NFTs, and more in the Metaverse](#21)
-        - [Cryptocurrency](#22)
-        - [NFTs](#23)
-        - [DAOs](#24)
-    - [Chapter 3: Should You Join The Metaverse?](#25)
-        - [Youngsters: No Money, Have Time and Energy](#26)
-        - [Adults: Some Money, No Time, Some Energy](#27)
-        - [Elders: Money, Time, But Little Energy](#28)
+  - [Chapter 1a: What Is The Metaverse?](#0)
+    - [Metaverse: Fairness At Its Finest](#1)
+    - [Virtual Reality (VR)](#2)
+    - [Augmented Reality (AR)](#3)
+    - [What Can You Do In The Metaverse?](#4)
+  - [Chapter 1b: The Impact Of The Metaverse](#5)
+    - [The Metaverse Beginnings](#6)
+    - [Importance Of The Metaverse](#7)
+  - [Chapter 2a: The Current State Of The Metaverse](#8)
+    - [The Current Metaverse Mess](#9)
+      - [Underdeveloped and Unfinished](#10)
+      - [Blurred Lines Between The Metaverse And Video Games](#11)
+      - [Overcrowding and Uncertainty](#12)
+    - [The Metaverse Giants](#13)
+      - [Decentraland](#14)
+      - [Axie Infinity](#15)
+      - [The Sandbox](#16)
+    - [Horizon Worlds: Meta’s Plot or Flop?](#17)
+      - [Horizon Worlds](#18)
+      - [The Horizon Worlds Controversy](#19)
+    - [Who Is In The Metaverse?](#20)
+  - [Chapter 2b: Crypto, NFTs, and more in the Metaverse](#21)
+    - [Cryptocurrency](#22)
+    - [NFTs](#23)
+    - [DAOs](#24)
+  - [Chapter 3: Should You Join The Metaverse?](#25)
+    - [Youngsters: No Money, Have Time and Energy](#26)
+    - [Adults: Some Money, No Time, Some Energy](#27)
+    - [Elders: Money, Time, But Little Energy](#28)
 
 Without further ado, let’s get right into it!
 

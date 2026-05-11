@@ -323,7 +323,9 @@ export function DroposalForm({ index }: Props) {
                   <AlertCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                   <AlertDescription>
                     <div className="space-y-2">
-                      <strong className="text-green-900 dark:text-green-100">✅ Split Contract Created</strong>
+                      <strong className="text-green-900 dark:text-green-100">
+                        ✅ Split Contract Created
+                      </strong>
                       <code className="block bg-white dark:bg-gray-900 px-2 py-1 rounded text-xs border font-mono">
                         {createdSplitAddress}
                       </code>

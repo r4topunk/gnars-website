@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { AuctionCard } from "@/components/auctions/past/AuctionCard";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 
 interface PastAuction {
   id: string;

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { DAO_DESCRIPTION } from "@/lib/config";
-import { OG_SIZE, OG_COLORS, OG_FONTS } from "@/lib/og-utils";
+import { OG_COLORS, OG_FONTS, OG_SIZE } from "@/lib/og-utils";
 
 export const alt = "Gnars DAO";
 export const size = OG_SIZE;
@@ -76,6 +76,6 @@ export default function Image() {
         </div>
       </div>
     ),
-    { ...size }
+    { ...size },
   );
 }

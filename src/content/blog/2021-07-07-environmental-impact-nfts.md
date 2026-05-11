@@ -7,9 +7,9 @@ permalink: /environmental-impact-nfts/
 author: gami
 image: /images/enviro-impact-nfts-1.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 **The environmental impact of NFTs is an important subject that deserves serious treatment.** Much has been written already about their carbon footprint; the consensus, at the moment, among journalists, artists and collectors, is that NFTs are a net negative for our planet.

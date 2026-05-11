@@ -1,11 +1,11 @@
-import { fetchAllDroposals } from "@/services/droposals";
+import { getPostMetadata } from "@/lib/posts";
+import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 import { getAllBlogs } from "@/services/blogs";
+import { fetchAllDroposals } from "@/services/droposals";
+import { getAllInstallations } from "@/services/installations";
 import { fetchAllMembers } from "@/services/members";
 import { listDaoPropdates } from "@/services/propdates";
 import { listProposals } from "@/services/proposals";
-import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
-import { getPostMetadata } from "@/lib/posts";
-import { getAllInstallations } from "@/services/installations";
 
 export const revalidate = 3600;
 export const dynamic = "force-dynamic";
@@ -113,15 +113,17 @@ function buildSitemap(entries: SitemapEntry[]): string {
 export async function GET(): Promise<Response> {
   const now = new Date();
 
-  const [proposals, droposals, blogs, members, propdates, coins, installations] = await Promise.all([
-    safe("proposals", fetchAllProposals, [] as ProposalList),
-    safe("droposals", fetchAllDroposals, [] as DroposalList),
-    safe("blogs", getAllBlogs, [] as BlogList),
-    safe("members", fetchAllMembers, [] as MemberList),
-    safe("propdates", listDaoPropdates, [] as PropdateList),
-    safe("tv coins", fetchAllGnarsPairedCoins, [] as CoinList),
-    safe("installations", getAllInstallations, []),
-  ]);
+  const [proposals, droposals, blogs, members, propdates, coins, installations] = await Promise.all(
+    [
+      safe("proposals", fetchAllProposals, [] as ProposalList),
+      safe("droposals", fetchAllDroposals, [] as DroposalList),
+      safe("blogs", getAllBlogs, [] as BlogList),
+      safe("members", fetchAllMembers, [] as MemberList),
+      safe("propdates", listDaoPropdates, [] as PropdateList),
+      safe("tv coins", fetchAllGnarsPairedCoins, [] as CoinList),
+      safe("installations", getAllInstallations, []),
+    ],
+  );
 
   const proposalLastMod = maxDate(
     proposals.map((proposal) => {
@@ -272,7 +274,7 @@ export async function GET(): Promise<Response> {
   const markdownPostEntries: SitemapEntry[] = blogMetadata.map((post) => {
     const postYear = new Date(post.date).getFullYear();
     const isHistorical = postYear < 2023;
-    
+
     return {
       url: toUrl(`/${post.slug}`),
       lastModified: toDate(post.date) || now,
@@ -280,8 +282,6 @@ export async function GET(): Promise<Response> {
       priority: isHistorical ? 0.6 : 0.8,
     };
   });
-
-
 
   const proposalEntries: SitemapEntry[] = proposals.map((proposal) => ({
     url: toUrl(`/proposals/base/${proposal.proposalNumber}`),

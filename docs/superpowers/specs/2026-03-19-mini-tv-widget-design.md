@@ -13,6 +13,7 @@ Reuse the existing `Gnar3DTVScene` component in a fixed-position container with 
 ### Modified: `Gnar3DTVScene` (`src/components/tv/Gnar3DTVScene.tsx`)
 
 Add two optional props:
+
 - `dpr?: number` (default: `0.6`) — device pixel ratio for the canvas
 - `enableOrbitControls?: boolean` (default: `true`) — conditionally render `<OrbitControls>`
 
@@ -23,17 +24,20 @@ These are backwards-compatible; existing usages are unaffected.
 Client component. Fixed position `bottom-4 left-4`, ~120x120px.
 
 **States:**
+
 - **Idle**: `useTVFeed` hook is called on mount (hooks can't be conditional), but `videoUrl` is NOT passed to `Gnar3DTVScene` — TV shows color bars. Auto-rotate on.
 - **Hover**: Sets `isHovered = true`, passes first video URL to `Gnar3DTVScene` — TV plays video. While feed is still loading, color bars continue (no spinner).
 - **Error**: If feed fetch fails, TV stays on color bars permanently. No error UI.
 - **Click**: Expands to fullscreen overlay with close button and ESC support.
 
 **Mini mode canvas config:**
+
 - `dpr={0.4}` (via new prop on `Gnar3DTVScene`)
 - `enableOrbitControls={false}` (via new prop — auto-rotate only, no user drag)
 - Same `frameloop="demand"`, `powerPreference: "low-power"`
 
 **Fullscreen mode** reuses the same pattern as `Gnar3DTV`: fixed overlay, `z-[60]` (higher than hero TV's `z-50` to avoid stacking conflicts), blur backdrop, close via X button or ESC. In fullscreen:
+
 - `dpr={0.6}` (normal quality)
 - `enableOrbitControls={true}`
 
@@ -44,6 +48,7 @@ Client component. Fixed position `bottom-4 left-4`, ~120x120px.
 React context that controls whether the mini TV should be hidden.
 
 **Interface:**
+
 ```ts
 interface MiniTVVisibilityContextValue {
   // true = hero TV is in viewport, so mini TV should be hidden
@@ -64,6 +69,7 @@ Wraps the `<Gnar3DTVClient>` element on the homepage. Uses an `IntersectionObser
 ### Modified: `src/app/page.tsx`
 
 Wrap the hero TV div with `HeroTVObserver`:
+
 ```tsx
 <HeroTVObserver>
   <Gnar3DTVClient autoRotate={true} />
@@ -73,6 +79,7 @@ Wrap the hero TV div with `HeroTVObserver`:
 ### Modified: `src/app/layout.tsx`
 
 Add `MiniTVVisibilityProvider` and `MiniTV` inside `<TooltipProvider>`, alongside `<ScrollToTop />` and `<Toaster />`:
+
 ```tsx
 <TooltipProvider>
   <MiniTVVisibilityProvider>
@@ -89,11 +96,11 @@ Add `MiniTVVisibilityProvider` and `MiniTV` inside `<TooltipProvider>`, alongsid
 
 ## Visibility Rules
 
-| Page | Mini TV visible? |
-|------|-----------------|
-| Homepage, hero TV in viewport | Hidden |
-| Homepage, scrolled past hero | Visible |
-| Any other page | Always visible |
+| Page                          | Mini TV visible? |
+| ----------------------------- | ---------------- |
+| Homepage, hero TV in viewport | Hidden           |
+| Homepage, scrolled past hero  | Visible          |
+| Any other page                | Always visible   |
 
 ## Performance Budget
 
@@ -113,11 +120,11 @@ Add `MiniTVVisibilityProvider` and `MiniTV` inside `<TooltipProvider>`, alongsid
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `src/components/tv/Gnar3DTVScene.tsx` | Add `dpr` and `enableOrbitControls` props |
-| `src/components/tv/MiniTV.tsx` | New — mini TV widget |
-| `src/components/tv/MiniTVVisibilityContext.tsx` | New — context provider |
-| `src/components/tv/HeroTVObserver.tsx` | New — homepage hero TV visibility reporter |
-| `src/app/layout.tsx` | Add provider + MiniTV inside TooltipProvider |
-| `src/app/page.tsx` | Wrap hero TV with HeroTVObserver |
+| File                                            | Change                                       |
+| ----------------------------------------------- | -------------------------------------------- |
+| `src/components/tv/Gnar3DTVScene.tsx`           | Add `dpr` and `enableOrbitControls` props    |
+| `src/components/tv/MiniTV.tsx`                  | New — mini TV widget                         |
+| `src/components/tv/MiniTVVisibilityContext.tsx` | New — context provider                       |
+| `src/components/tv/HeroTVObserver.tsx`          | New — homepage hero TV visibility reporter   |
+| `src/app/layout.tsx`                            | Add provider + MiniTV inside TooltipProvider |
+| `src/app/page.tsx`                              | Wrap hero TV with HeroTVObserver             |

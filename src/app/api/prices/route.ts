@@ -43,7 +43,9 @@ async function handlePrices(addresses: string[]) {
   }
 
   // Filter out WETH since we'll fetch ETH price separately
-  const tokenAddresses = addresses.filter((a) => a.toLowerCase() !== WETH_ADDRESS_BASE.toLowerCase());
+  const tokenAddresses = addresses.filter(
+    (a) => a.toLowerCase() !== WETH_ADDRESS_BASE.toLowerCase(),
+  );
   const includesWeth = addresses.some((a) => a.toLowerCase() === WETH_ADDRESS_BASE.toLowerCase());
 
   // Fetch token prices and ETH price in parallel
@@ -80,9 +82,12 @@ async function handlePrices(addresses: string[]) {
     normalized[WETH_ADDRESS_BASE.toLowerCase()] = { usd: ethPrice };
   }
 
-  return NextResponse.json({ prices: normalized }, {
-    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600" },
-  });
+  return NextResponse.json(
+    { prices: normalized },
+    {
+      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600" },
+    },
+  );
 }
 
 export async function GET(request: Request) {

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Code2, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
 import { ipfsToGatewayUrl } from "@/lib/pinata";
 import { type ProposalFormValues } from "./schema";
 
@@ -18,7 +18,11 @@ interface ProposalDebugPanelProps {
   };
 }
 
-export function ProposalDebugPanel({ formData, preparedDescription, encodedTransactions }: ProposalDebugPanelProps) {
+export function ProposalDebugPanel({
+  formData,
+  preparedDescription,
+  encodedTransactions,
+}: ProposalDebugPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const copyToClipboard = (text: string, label: string) => {
@@ -40,11 +44,7 @@ export function ProposalDebugPanel({ formData, preparedDescription, encodedTrans
             <Code2 className="h-5 w-5 text-blue-500" />
             <CardTitle className="text-lg">Debug: Proposal Data Preview</CardTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)}>
             {isExpanded ? (
               <>
                 <ChevronUp className="h-4 w-4 mr-1" />
@@ -66,11 +66,7 @@ export function ProposalDebugPanel({ formData, preparedDescription, encodedTrans
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h4 className="font-semibold text-sm">Title (Before &&)</h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => copyToClipboard(titlePart, "Title")}
-              >
+              <Button variant="ghost" size="sm" onClick={() => copyToClipboard(titlePart, "Title")}>
                 <Copy className="h-3 w-3" />
               </Button>
             </div>
@@ -103,7 +99,9 @@ export function ProposalDebugPanel({ formData, preparedDescription, encodedTrans
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => copyToClipboard(ipfsToGatewayUrl(formData.bannerImage!), "Gateway URL")}
+                      onClick={() =>
+                        copyToClipboard(ipfsToGatewayUrl(formData.bannerImage!), "Gateway URL")
+                      }
                     >
                       <Copy className="h-3 w-3" />
                     </Button>
@@ -155,7 +153,8 @@ export function ProposalDebugPanel({ formData, preparedDescription, encodedTrans
                 {preparedDescription}
               </div>
               <p className="text-xs text-muted-foreground">
-                Format: <code className="bg-background px-1 py-0.5 rounded">Title&&Body</code> - The && separator tells the UI where to split title from description
+                Format: <code className="bg-background px-1 py-0.5 rounded">Title&&Body</code> - The
+                && separator tells the UI where to split title from description
               </p>
             </div>
           )}
@@ -172,15 +171,22 @@ export function ProposalDebugPanel({ formData, preparedDescription, encodedTrans
           {encodedTransactions && (
             <div className="space-y-4">
               <h4 className="font-semibold text-sm">Encoded Transaction Data</h4>
-              
+
               {/* Targets */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-muted-foreground">Targets (Contract Addresses)</p>
+                  <p className="text-xs font-semibold text-muted-foreground">
+                    Targets (Contract Addresses)
+                  </p>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => copyToClipboard(JSON.stringify(encodedTransactions.targets, null, 2), "Targets")}
+                    onClick={() =>
+                      copyToClipboard(
+                        JSON.stringify(encodedTransactions.targets, null, 2),
+                        "Targets",
+                      )
+                    }
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
@@ -197,11 +203,22 @@ export function ProposalDebugPanel({ formData, preparedDescription, encodedTrans
               {/* Values */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-muted-foreground">Values (ETH amounts in wei)</p>
+                  <p className="text-xs font-semibold text-muted-foreground">
+                    Values (ETH amounts in wei)
+                  </p>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => copyToClipboard(JSON.stringify(encodedTransactions.values.map(v => v.toString()), null, 2), "Values")}
+                    onClick={() =>
+                      copyToClipboard(
+                        JSON.stringify(
+                          encodedTransactions.values.map((v) => v.toString()),
+                          null,
+                          2,
+                        ),
+                        "Values",
+                      )
+                    }
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
@@ -218,11 +235,18 @@ export function ProposalDebugPanel({ formData, preparedDescription, encodedTrans
               {/* Calldatas */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-muted-foreground">Calldatas (Encoded Function Calls)</p>
+                  <p className="text-xs font-semibold text-muted-foreground">
+                    Calldatas (Encoded Function Calls)
+                  </p>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => copyToClipboard(JSON.stringify(encodedTransactions.calldatas, null, 2), "Calldatas")}
+                    onClick={() =>
+                      copyToClipboard(
+                        JSON.stringify(encodedTransactions.calldatas, null, 2),
+                        "Calldatas",
+                      )
+                    }
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
@@ -231,7 +255,9 @@ export function ProposalDebugPanel({ formData, preparedDescription, encodedTrans
                   {encodedTransactions.calldatas.map((calldata, i) => (
                     <div key={i} className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground font-semibold">Transaction {i + 1}:</p>
+                        <p className="text-xs text-muted-foreground font-semibold">
+                          Transaction {i + 1}:
+                        </p>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -240,8 +266,12 @@ export function ProposalDebugPanel({ formData, preparedDescription, encodedTrans
                           <Copy className="h-3 w-3" />
                         </Button>
                       </div>
-                      <p className="text-xs font-mono break-all bg-background p-2 rounded">{calldata}</p>
-                      <p className="text-xs text-muted-foreground">Length: {calldata.length} characters</p>
+                      <p className="text-xs font-mono break-all bg-background p-2 rounded">
+                        {calldata}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Length: {calldata.length} characters
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -254,8 +284,8 @@ export function ProposalDebugPanel({ formData, preparedDescription, encodedTrans
                     className="text-blue-500 hover:underline"
                   >
                     OpenChain
-                  </a>
-                  {" "}or{" "}
+                  </a>{" "}
+                  or{" "}
                   <a
                     href="https://www.4byte.directory/"
                     target="_blank"

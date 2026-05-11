@@ -1,31 +1,30 @@
 #!/usr/bin/env node
 /**
  * Sync Snapshot Proposals
- * 
+ *
  * Fetches all proposals from Snapshot.org GraphQL API for gnars.eth space
  * and saves to public/data/snapshot-proposals.json
- * 
+ *
  * Usage:
  *   node scripts/sync-snapshot-proposals.mjs [--dry-run]
- * 
+ *
  * API Docs: https://docs.snapshot.box/tools/api
  */
-
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SNAPSHOT_HUB_URL = 'https://hub.snapshot.org/graphql';
-const GNARS_SPACE = 'gnars.eth';
-const OUTPUT_FILE = path.join(__dirname, '../public/data/snapshot-proposals.json');
-const BACKUP_FILE = path.join(__dirname, '../public/data/snapshot-proposals.backup.json');
+const SNAPSHOT_HUB_URL = "https://hub.snapshot.org/graphql";
+const GNARS_SPACE = "gnars.eth";
+const OUTPUT_FILE = path.join(__dirname, "../public/data/snapshot-proposals.json");
+const BACKUP_FILE = path.join(__dirname, "../public/data/snapshot-proposals.backup.json");
 
 // Parse CLI args
 const args = process.argv.slice(2);
-const DRY_RUN = args.includes('--dry-run');
+const DRY_RUN = args.includes("--dry-run");
 
 /**
  * Fetch proposals from Snapshot GraphQL API
@@ -100,9 +99,9 @@ async function fetchAllProposals() {
 
     try {
       const response = await fetch(SNAPSHOT_HUB_URL, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ query }),
       });
@@ -120,7 +119,9 @@ async function fetchAllProposals() {
       const batch = data.data.proposals;
       proposals.push(...batch);
 
-      console.log(`  ✅ Fetched ${batch.length} proposals (skip: ${skip}, total: ${proposals.length})`);
+      console.log(
+        `  ✅ Fetched ${batch.length} proposals (skip: ${skip}, total: ${proposals.length})`,
+      );
 
       // Check if there are more proposals
       if (batch.length < first) {
@@ -128,7 +129,7 @@ async function fetchAllProposals() {
       } else {
         skip += first;
         // Rate limiting: wait 500ms between requests
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
     } catch (error) {
       console.error(`\n❌ Failed to fetch proposals (skip: ${skip}):`, error.message);
@@ -143,12 +144,12 @@ async function fetchAllProposals() {
  * Compare old vs new proposals
  */
 function compareProposals(oldProposals, newProposals) {
-  const oldIds = new Set(oldProposals.map(p => p.id));
-  const newIds = new Set(newProposals.map(p => p.id));
+  const oldIds = new Set(oldProposals.map((p) => p.id));
+  const newIds = new Set(newProposals.map((p) => p.id));
 
-  const added = newProposals.filter(p => !oldIds.has(p.id));
-  const removed = oldProposals.filter(p => !newIds.has(p.id));
-  const unchanged = newProposals.filter(p => oldIds.has(p.id));
+  const added = newProposals.filter((p) => !oldIds.has(p.id));
+  const removed = oldProposals.filter((p) => !newIds.has(p.id));
+  const unchanged = newProposals.filter((p) => oldIds.has(p.id));
 
   return { added, removed, unchanged };
 }
@@ -158,7 +159,7 @@ function compareProposals(oldProposals, newProposals) {
  */
 function saveProposals(proposals) {
   if (DRY_RUN) {
-    console.log('\n🔵 DRY RUN - Would save to:', OUTPUT_FILE);
+    console.log("\n🔵 DRY RUN - Would save to:", OUTPUT_FILE);
     return;
   }
 
@@ -169,7 +170,7 @@ function saveProposals(proposals) {
   }
 
   // Write new file
-  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(proposals, null, 2), 'utf8');
+  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(proposals, null, 2), "utf8");
   console.log(`  ✅ Saved ${proposals.length} proposals to ${path.basename(OUTPUT_FILE)}`);
 }
 
@@ -177,33 +178,35 @@ function saveProposals(proposals) {
  * Print summary
  */
 function printSummary(oldProposals, newProposals, comparison) {
-  console.log('\n' + '='.repeat(60));
-  console.log('📊 Sync Summary');
-  console.log('='.repeat(60));
+  console.log("\n" + "=".repeat(60));
+  console.log("📊 Sync Summary");
+  console.log("=".repeat(60));
   console.log(`Old proposals:     ${oldProposals.length}`);
   console.log(`New proposals:     ${newProposals.length}`);
   console.log(`Added:             ${comparison.added.length} ✨`);
-  console.log(`Removed:           ${comparison.removed.length} ${comparison.removed.length > 0 ? '⚠️' : ''}`);
+  console.log(
+    `Removed:           ${comparison.removed.length} ${comparison.removed.length > 0 ? "⚠️" : ""}`,
+  );
   console.log(`Unchanged:         ${comparison.unchanged.length}`);
-  console.log('='.repeat(60));
+  console.log("=".repeat(60));
 
   if (comparison.added.length > 0) {
-    console.log('\n✨ New proposals:');
-    comparison.added.forEach(p => {
-      const date = new Date(p.created * 1000).toISOString().split('T')[0];
+    console.log("\n✨ New proposals:");
+    comparison.added.forEach((p) => {
+      const date = new Date(p.created * 1000).toISOString().split("T")[0];
       console.log(`  - ${p.title} (${date})`);
     });
   }
 
   if (comparison.removed.length > 0) {
-    console.log('\n⚠️  Removed proposals:');
-    comparison.removed.forEach(p => {
+    console.log("\n⚠️  Removed proposals:");
+    comparison.removed.forEach((p) => {
       console.log(`  - ${p.title}`);
     });
   }
 
   if (DRY_RUN) {
-    console.log('\n🔵 DRY RUN - No changes written to disk');
+    console.log("\n🔵 DRY RUN - No changes written to disk");
   }
 }
 
@@ -211,20 +214,20 @@ function printSummary(oldProposals, newProposals, comparison) {
  * Main
  */
 async function main() {
-  console.log('🚀 Snapshot Proposals Sync\n');
+  console.log("🚀 Snapshot Proposals Sync\n");
 
   if (DRY_RUN) {
-    console.log('🔵 Running in DRY-RUN mode\n');
+    console.log("🔵 Running in DRY-RUN mode\n");
   }
 
   // Load existing proposals
   let oldProposals = [];
   if (fs.existsSync(OUTPUT_FILE)) {
     try {
-      oldProposals = JSON.parse(fs.readFileSync(OUTPUT_FILE, 'utf8'));
+      oldProposals = JSON.parse(fs.readFileSync(OUTPUT_FILE, "utf8"));
       console.log(`📂 Loaded ${oldProposals.length} existing proposals\n`);
     } catch (error) {
-      console.warn('⚠️  Failed to load existing proposals:', error.message);
+      console.warn("⚠️  Failed to load existing proposals:", error.message);
     }
   }
 
@@ -236,7 +239,7 @@ async function main() {
 
   // Save
   if (!DRY_RUN && newProposals.length > 0) {
-    console.log('\n📝 Saving proposals...');
+    console.log("\n📝 Saving proposals...");
     saveProposals(newProposals);
   }
 
@@ -245,14 +248,14 @@ async function main() {
 
   // Exit code
   if (comparison.removed.length > 0) {
-    console.log('\n⚠️  WARNING: Some proposals were removed. Review changes before committing.');
+    console.log("\n⚠️  WARNING: Some proposals were removed. Review changes before committing.");
     process.exit(1);
   }
 
-  console.log('\n✅ Sync completed successfully!');
+  console.log("\n✅ Sync completed successfully!");
 }
 
-main().catch(error => {
-  console.error('\n❌ Fatal error:', error);
+main().catch((error) => {
+  console.error("\n❌ Fatal error:", error);
   process.exit(1);
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatTimeRemaining, parseBlockchainTimestamp } from "@/lib/utils/proposal-state";
 
 interface CountdownProps {

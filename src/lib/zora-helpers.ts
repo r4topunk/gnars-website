@@ -56,15 +56,15 @@ export async function getCreateCoinCallData(params: CreateCoinParams): Promise<C
       abi: zoraFactoryAbi,
       functionName: "deploy",
       args: [
-        creator,                                               // payoutRecipient
-        [creator],                                             // owners[]
-        metadata.uri,                                          // uri
-        name,                                                  // name
-        symbol,                                                // symbol
-        poolConfig,                                            // poolConfig
-        platformReferrer,                                      // platformReferrer
+        creator, // payoutRecipient
+        [creator], // owners[]
+        metadata.uri, // uri
+        name, // name
+        symbol, // symbol
+        poolConfig, // poolConfig
+        platformReferrer, // platformReferrer
         "0x0000000000000000000000000000000000000000" as Address, // postDeployHook (none)
-        "0x" as Hex,                                           // postDeployHookData (empty)
+        "0x" as Hex, // postDeployHookData (empty)
         "0x0000000000000000000000000000000000000000000000000000000000000000" as Hex, // coinSalt (default)
       ],
     });
@@ -75,6 +75,8 @@ export async function getCreateCoinCallData(params: CreateCoinParams): Promise<C
       value: 0n,
     };
   } catch (error) {
-    throw new Error(`Failed to generate create coin call data: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `Failed to generate create coin call data: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }

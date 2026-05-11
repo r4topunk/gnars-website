@@ -1,7 +1,7 @@
-import { BountyCard } from './BountyCard';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent } from '@/components/ui/card';
-import type { PoidhBounty } from '@/types/poidh';
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { PoidhBounty } from "@/types/poidh";
+import { BountyCard } from "./BountyCard";
 
 interface BountyGridProps {
   bounties: PoidhBounty[];

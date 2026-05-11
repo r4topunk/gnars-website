@@ -154,19 +154,15 @@ export function DroposalActionBox({
                 >
                   -
                 </Button>
-                 <Input
-                   id="quantity"
-                   type="number"
-                   min="1"
-                   value={quantity}
-                   onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                   className="w-20 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
-                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuantity(quantity + 1)}
-                >
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-20 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                />
+                <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
                   +
                 </Button>
               </div>

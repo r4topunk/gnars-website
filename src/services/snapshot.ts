@@ -9,7 +9,7 @@ export const listSnapshotProposals = cache(
   async (
     limit = 50,
     skip = 0,
-    state?: "pending" | "active" | "closed"
+    state?: "pending" | "active" | "closed",
   ): Promise<SnapshotProposal[]> => {
     try {
       const fs = await import("fs");
@@ -30,5 +30,5 @@ export const listSnapshotProposals = cache(
       console.error("[snapshot] Failed to load proposals:", error);
       return [];
     }
-  }
+  },
 );

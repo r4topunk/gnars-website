@@ -1,6 +1,11 @@
 import { NextRequest } from "next/server";
-import { getCreateCoinCallData, CreateCoinParams, DEFAULT_CONTENT_COIN,DEFAULT_PLATFORM_REFERRER } from "@/lib/zora-helpers";
 import { Address } from "viem";
+import {
+  CreateCoinParams,
+  DEFAULT_CONTENT_COIN,
+  DEFAULT_PLATFORM_REFERRER,
+  getCreateCoinCallData,
+} from "@/lib/zora-helpers";
 
 interface RequestBody {
   name: string;
@@ -14,19 +19,23 @@ interface RequestBody {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as RequestBody;
+    const body = (await req.json()) as RequestBody;
 
-    const { name, symbol, metadataUri, currency, creator, startingMarketCap, platformReferrer } = body;
+    const { name, symbol, metadataUri, currency, creator, startingMarketCap, platformReferrer } =
+      body;
 
     if (!name || !symbol || !metadataUri) {
-      return new Response(JSON.stringify({ error: "Missing required fields: name, symbol, metadataUri" }), {
-        status: 400,
-        headers: { "content-type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Missing required fields: name, symbol, metadataUri" }),
+        {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        },
+      );
     }
 
     const params: CreateCoinParams = {
-      creator: creator || "0x0000000000000000000000000000000000000000" as Address,
+      creator: creator || ("0x0000000000000000000000000000000000000000" as Address),
       name,
       symbol,
       metadata: { type: "RAW_URI", uri: metadataUri },

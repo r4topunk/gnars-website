@@ -125,13 +125,11 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     country: "USA",
     continent: "Americas",
     type: "Rail",
-    images: [
-      "https://gnars.center/chicago.jpg",
-    ],
+    images: ["https://gnars.center/chicago.jpg"],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "The NogglesRail in Chicago brings CC0 skate infrastructure to the Midwest, expanding the reach of the Nounish movement through community-funded and community-built initiatives.\n\nDeveloped as part of efforts to proliferate and onboard Chicago into the Gnars ecosystem, the project was activated through the ETH Chicago Hackathon and the \"A Lil Gnarly Skate Jam,\" a three-day gathering combining a hackathon, conference, and skate session.\n\nThe initiative connects builders, skaters, and creators, reinforcing the bridge between on-chain coordination and off-chain action while growing the Nounish network in new regions.",
+      'The NogglesRail in Chicago brings CC0 skate infrastructure to the Midwest, expanding the reach of the Nounish movement through community-funded and community-built initiatives.\n\nDeveloped as part of efforts to proliferate and onboard Chicago into the Gnars ecosystem, the project was activated through the ETH Chicago Hackathon and the "A Lil Gnarly Skate Jam," a three-day gathering combining a hackathon, conference, and skate session.\n\nThe initiative connects builders, skaters, and creators, reinforcing the bridge between on-chain coordination and off-chain action while growing the Nounish network in new regions.',
     proposal: {
       name: "Gnars Proposal",
       link: "https://snapshot.box/#/s:gnars.eth/proposal/0x487760526824abbe7997ee2fe4887de10af737eb60d35a4165025b8f58148e50",
@@ -187,9 +185,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     country: "Brazil",
     continent: "Americas",
     type: "Spot",
-    images: [
-      "https://gnars.center/sopadeletras.png",
-    ],
+    images: ["https://gnars.center/sopadeletras.png"],
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
@@ -352,7 +348,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
     iconUrl: "/nogglesRail3D.png",
     iconSize: [30, 30],
     description:
-      "A Nounish ramp in Orange County, California, expanding the NogglesRails network beyond rails into full skateable obstacles and new terrain for progression.\n\nIdeated by shredder Dave Bachinsky, the project focuses on proliferation through creative expression and viral content, bringing unconventional and \"bizarre\" tricks to the miniramp format.\n\nThe activation highlights how Nounish infrastructure evolves beyond a single format, encouraging experimentation, visibility, and community-driven content. Explore the videos and images to dive deeper into the experience.",
+      'A Nounish ramp in Orange County, California, expanding the NogglesRails network beyond rails into full skateable obstacles and new terrain for progression.\n\nIdeated by shredder Dave Bachinsky, the project focuses on proliferation through creative expression and viral content, bringing unconventional and "bizarre" tricks to the miniramp format.\n\nThe activation highlights how Nounish infrastructure evolves beyond a single format, encouraging experimentation, visibility, and community-driven content. Explore the videos and images to dive deeper into the experience.',
     proposal: {
       name: "Gnars Proposal",
       link: "https://www.gnars.com/proposals/63",
@@ -384,13 +380,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
   },
 ];
 
-export const ALL_CONTINENTS: Continent[] = [
-  "Americas",
-  "Europe",
-  "Asia",
-  "Africa",
-  "Oceania",
-];
+export const ALL_CONTINENTS: Continent[] = ["Americas", "Europe", "Asia", "Africa", "Oceania"];
 
 export const ALL_TYPES: RailType[] = ["Rail", "Obstacle", "Spot"];
 

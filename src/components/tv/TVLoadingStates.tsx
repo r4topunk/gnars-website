@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { FuzzyText } from "./FuzzyText";
+import { useEffect, useMemo, useState } from "react";
 import { FaultyTerminal } from "./FaultyTerminal";
+import { FuzzyText } from "./FuzzyText";
 
 /**
  * Loading and status indicators for the TV feed
@@ -22,7 +22,7 @@ export function TVEmptyState({ loading, error }: { loading: boolean; error: stri
       "Almost there...",
       "Slow connection - hang tight! 🛹",
     ],
-    []
+    [],
   );
 
   // Progress through loading phases to give user feedback on slow connections
@@ -37,13 +37,13 @@ export function TVEmptyState({ loading, error }: { loading: boolean; error: stri
     const contentTimer = setTimeout(() => setShowContent(true), 100);
 
     const phases = [
-      { delay: 2000, phase: 1 },  // After 2s: "Finding videos..."
-      { delay: 5000, phase: 2 },  // After 5s: "Almost there..."
+      { delay: 2000, phase: 1 }, // After 2s: "Finding videos..."
+      { delay: 5000, phase: 2 }, // After 5s: "Almost there..."
       { delay: 10000, phase: 3 }, // After 10s: "Slow connection detected..."
     ];
 
     const timers = phases.map(({ delay, phase }) =>
-      setTimeout(() => setLoadingPhase(phase), delay)
+      setTimeout(() => setLoadingPhase(phase), delay),
     );
 
     return () => {
@@ -127,9 +127,7 @@ export function TVEmptyState({ loading, error }: { loading: boolean; error: stri
               {loadingMessages[loadingPhase]}
             </FuzzyText>
             {loadingPhase >= 3 && (
-              <p className="text-white/50 text-xs mt-2">
-                Videos will load faster next time
-              </p>
+              <p className="text-white/50 text-xs mt-2">Videos will load faster next time</p>
             )}
           </div>
         </>

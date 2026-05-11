@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Link } from "@/i18n/navigation";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface ProposalHeaderProps {

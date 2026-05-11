@@ -1,9 +1,9 @@
 "use client";
 
-import { Installation } from "@/types/installation";
 import Image from "next/image";
-import Link from "next/link";
-import { ExternalLink, MapPin, Users, Calendar } from "lucide-react";
+import { Calendar, ExternalLink, MapPin, Users } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { Installation } from "@/types/installation";
 
 interface InstallationDetailProps {
   installation: Installation;

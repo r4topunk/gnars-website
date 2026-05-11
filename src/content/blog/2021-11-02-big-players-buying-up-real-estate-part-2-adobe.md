@@ -7,9 +7,9 @@ permalink: /big-players-buying-up-real-estate-part-2-adobe/
 author: gami
 image: /images/nft-adobe-edition.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [news]
-featured: 
+featured:
 ---
 
 A couple of months ago, I wrote an article about [VISA buying a Crypto Punk avatar](/big-players-buying-up-real-estate-in-the-metaverse/). The primary point of the article is that ‘big players’, or simply big corporations, VISA in this case, plan to enter and play a significant role in the metaverse. There is a long list of other ‘big players’ getting into the metaverse; note Facebook’s recent name change to [Meta](https://qz.com/2081663/why-facebook-changed-its-name-to-meta/).

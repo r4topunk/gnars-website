@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { PropdateCard } from "@/components/proposals/detail/PropdateCard";
+import { Link } from "@/i18n/navigation";
 import { Propdate } from "@/services/propdates";
 
 export function PropdateDetail({ propdate }: { propdate: Propdate }) {

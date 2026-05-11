@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatedListItem } from "@/components/common/AnimatedListItem";
 import { ProposalCard } from "@/components/proposals/ProposalCard";
 import { Proposal } from "@/components/proposals/types";
-import type { MultiChainProposal } from "@/services/multi-chain-proposals";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { MultiChainProposal } from "@/services/multi-chain-proposals";
 
 function ProposalCardSkeleton() {
   return (

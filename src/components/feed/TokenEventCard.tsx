@@ -7,11 +7,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { ArrowRightLeft, Palette, Sparkles, Users } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 import type { FeedEvent } from "@/lib/types/feed-events";
 import { cn } from "@/lib/utils";
 

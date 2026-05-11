@@ -1,12 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Copy, ExternalLink, User } from "lucide-react";
 import { toast } from "sonner";
 import { Address, isAddress } from "viem";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useENSOptimistic } from "@/hooks/use-ens";
+import { useRouter } from "@/i18n/navigation";
 
 export interface AddressDisplayProps {
   address: string | Address;
@@ -274,7 +274,6 @@ export function AddressDisplay({
     </div>
   );
 }
-
 
 /**
  * Address display with loading skeleton

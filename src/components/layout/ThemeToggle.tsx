@@ -1,7 +1,7 @@
 "use client";
 
-import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +12,7 @@ import {
 
 /**
  * ThemeToggle - Dropdown menu for switching between light, dark, and system themes
- * 
+ *
  * Uses next-themes to manage theme state across the app
  * Shows current theme icon with smooth transitions
  */
@@ -45,4 +45,3 @@ export function ThemeToggle() {
     </DropdownMenu>
   );
 }
-

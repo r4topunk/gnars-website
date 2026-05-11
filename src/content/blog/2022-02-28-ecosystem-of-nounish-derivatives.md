@@ -1,15 +1,15 @@
 ---
 layout: post
 title: Exploring The Ecosystem of Nounish Derivatives
-description: 
+description:
 date: 2022-02-28 00:00:00 +0000
 permalink: /ecosystem-of-nounish-derivatives/
 author: gami
 image: /images/nounish-derivatives.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 This project started as an experimentation of CC0, protesting against copyright culture in NFTs. Who knew it would kickstart a trend for CC0-focused NFT projects? Of course, we’re talking about Nouns.
@@ -142,4 +142,4 @@ You can have a look at the rest of the Nounish projects [here](https://nouns.cen
 
 I guess that’s it for this article, hope you’ve discovered new Nounish derivatives you’re interested in!
 
-*Featured artwork by [brandonmighty](https://twitter.com/brandonmighty) ⌐◨-◨*
+_Featured artwork by [brandonmighty](https://twitter.com/brandonmighty) ⌐◨-◨_

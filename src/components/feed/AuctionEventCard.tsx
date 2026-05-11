@@ -7,16 +7,16 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { Palette, DollarSign, Trophy, Clock, Radio } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Clock, DollarSign, Palette, Radio, Trophy } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { TokenImage } from "@/components/ui/token-image";
-import { cn, formatETH } from "@/lib/utils";
-import type { FeedEvent } from "@/lib/types/feed-events";
 import { useBidComments } from "@/hooks/use-bid-comments";
+import { Link } from "@/i18n/navigation";
+import type { FeedEvent } from "@/lib/types/feed-events";
+import { cn, formatETH } from "@/lib/utils";
 
 export interface AuctionEventCardProps {
   event: Extract<FeedEvent, { category: "auction" }>;
@@ -35,10 +35,7 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
   const isLive = event.type === "AuctionCreated" && event.endTime > now;
 
   return (
-    <Card className={cn(
-      "transition-shadow hover:shadow-md relative",
-      compact ? "py-3" : "py-4"
-    )}>
+    <Card className={cn("transition-shadow hover:shadow-md relative", compact ? "py-3" : "py-4")}>
       <CardContent className={cn(compact ? "px-4 py-2" : "px-4")}>
         {/* Sequence number badge */}
         {sequenceNumber !== undefined && (
@@ -49,10 +46,7 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
 
         <div className="flex items-start gap-3">
           {/* Event icon */}
-          <div className={cn(
-            "flex-shrink-0 rounded-full p-2",
-            bgColor
-          )}>
+          <div className={cn("flex-shrink-0 rounded-full p-2", bgColor)}>
             <Icon className={cn("h-4 w-4", iconColor)} />
           </div>
 
@@ -69,7 +63,11 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
                 </div>
               </div>
               {isLive && (
-                <span className={cn("flex items-center gap-1 text-xs font-medium bg-green-50 dark:bg-green-950 px-2 py-0.5 rounded-md")}>
+                <span
+                  className={cn(
+                    "flex items-center gap-1 text-xs font-medium bg-green-50 dark:bg-green-950 px-2 py-0.5 rounded-md",
+                  )}
+                >
                   <Radio className="h-3 w-3 text-green-600" />
                   <span className="text-green-600">LIVE</span>
                 </span>
@@ -77,18 +75,10 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
             </div>
 
             {/* Event-specific content */}
-            {event.type === "AuctionCreated" && (
-              <AuctionCreatedContent event={event} />
-            )}
-            {event.type === "AuctionBid" && (
-              <AuctionBidContent event={event} compact={compact} />
-            )}
-            {event.type === "AuctionSettled" && (
-              <AuctionSettledContent event={event} />
-            )}
-            {event.type === "AuctionEndingSoon" && (
-              <AuctionEndingSoonContent event={event} />
-            )}
+            {event.type === "AuctionCreated" && <AuctionCreatedContent event={event} />}
+            {event.type === "AuctionBid" && <AuctionBidContent event={event} compact={compact} />}
+            {event.type === "AuctionSettled" && <AuctionSettledContent event={event} />}
+            {event.type === "AuctionEndingSoon" && <AuctionEndingSoonContent event={event} />}
 
             {/* Action button */}
             {actionText && (
@@ -110,7 +100,11 @@ export function AuctionEventCard({ event, compact, sequenceNumber }: AuctionEven
 
 // Subcomponents
 
-function AuctionCreatedContent({ event }: { event: Extract<FeedEvent, { type: "AuctionCreated" }> }) {
+function AuctionCreatedContent({
+  event,
+}: {
+  event: Extract<FeedEvent, { type: "AuctionCreated" }>;
+}) {
   // Intentional render-time clock read for relative-time label (hydration suppressed).
   // eslint-disable-next-line react-hooks/purity
   const now = Math.floor(Date.now() / 1000);
@@ -122,22 +116,26 @@ function AuctionCreatedContent({ event }: { event: Extract<FeedEvent, { type: "A
       <p className="text-xs text-muted-foreground" suppressHydrationWarning>
         {hasEnded
           ? `Ended ${formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}`
-          : `Ends ${formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}`
-        }
+          : `Ends ${formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true })}`}
       </p>
-      {event.imageUrl && (
-        <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />
-      )}
+      {event.imageUrl && <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />}
     </div>
   );
 }
 
-function AuctionBidContent({ event, compact }: {
+function AuctionBidContent({
+  event,
+  compact,
+}: {
   event: Extract<FeedEvent, { type: "AuctionBid" }>;
   compact?: boolean;
 }) {
   const increase = event.previousBid
-    ? ((parseFloat(event.amount) - parseFloat(event.previousBid)) / parseFloat(event.previousBid) * 100).toFixed(1)
+    ? (
+        ((parseFloat(event.amount) - parseFloat(event.previousBid)) /
+          parseFloat(event.previousBid)) *
+        100
+      ).toFixed(1)
     : null;
 
   // Decode on-chain comment from TX calldata
@@ -158,32 +156,31 @@ function AuctionBidContent({ event, compact }: {
           showExplorer={false}
         />
         <span className="text-xs text-muted-foreground">bid</span>
-        <span className="text-sm font-bold text-green-600">
-          {formatETH(event.amount)}
-        </span>
-        {increase && (
-          <span className="text-xs text-muted-foreground">(+{increase}%)</span>
-        )}
+        <span className="text-sm font-bold text-green-600">{formatETH(event.amount)}</span>
+        {increase && <span className="text-xs text-muted-foreground">(+{increase}%)</span>}
       </div>
       {comment && (
-        <p className="text-xs text-muted-foreground italic pl-1">
-          &ldquo;{comment}&rdquo;
-        </p>
+        <p className="text-xs text-muted-foreground italic pl-1">&ldquo;{comment}&rdquo;</p>
       )}
       {event.extended && !compact && (
         <Badge variant="secondary" className="text-xs">
           Auction Extended
         </Badge>
       )}
-      {event.imageUrl && (
-        <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />
-      )}
+      {event.imageUrl && <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />}
     </div>
   );
 }
 
-function AuctionSettledContent({ event }: { event: Extract<FeedEvent, { type: "AuctionSettled" }> }) {
-  const isZeroAddress = !event.winner || event.winner === "0x0000000000000000000000000000000000000000" || event.winner === "0x0";
+function AuctionSettledContent({
+  event,
+}: {
+  event: Extract<FeedEvent, { type: "AuctionSettled" }>;
+}) {
+  const isZeroAddress =
+    !event.winner ||
+    event.winner === "0x0000000000000000000000000000000000000000" ||
+    event.winner === "0x0";
 
   return (
     <div className="space-y-2">
@@ -204,18 +201,18 @@ function AuctionSettledContent({ event }: { event: Extract<FeedEvent, { type: "A
           />
         )}
         <span className="text-xs text-muted-foreground">for</span>
-        <span className="text-sm font-bold text-green-600">
-          {formatETH(event.amount)}
-        </span>
+        <span className="text-sm font-bold text-green-600">{formatETH(event.amount)}</span>
       </div>
-      {event.imageUrl && (
-        <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />
-      )}
+      {event.imageUrl && <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />}
     </div>
   );
 }
 
-function AuctionEndingSoonContent({ event }: { event: Extract<FeedEvent, { type: "AuctionEndingSoon" }> }) {
+function AuctionEndingSoonContent({
+  event,
+}: {
+  event: Extract<FeedEvent, { type: "AuctionEndingSoon" }>;
+}) {
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold">#{event.tokenId}</p>
@@ -227,9 +224,7 @@ function AuctionEndingSoonContent({ event }: { event: Extract<FeedEvent, { type:
           Current: {formatETH(event.currentBid)}
         </span>
       </div>
-      {event.imageUrl && (
-        <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />
-      )}
+      {event.imageUrl && <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />}
     </div>
   );
 }

@@ -5,18 +5,18 @@ import { useSearchParams } from "next/navigation";
 import { tradeCoin } from "@zoralabs/coins-sdk";
 import type { TradeParameters } from "@zoralabs/coins-sdk";
 import { toast } from "sonner";
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
+import { viemAdapter } from "thirdweb/adapters/viem";
+import { base } from "thirdweb/chains";
+import { useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { createPublicClient, http, parseEther, type PublicClient, type WalletClient } from "viem";
 import { base as viemBase } from "viem/chains";
-import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
-import { base } from "thirdweb/chains";
-import { viemAdapter } from "thirdweb/adapters/viem";
-import { useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { useMiniApp } from "@/components/miniapp/MiniAppProvider";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
-import { useUserAddress } from "@/hooks/use-user-address";
-import { useWriteAccount } from "@/hooks/use-write-account";
 import { ZORA_PROTOCOL_REWARD, zoraNftMintAbi } from "@/utils/abis/zoraNftMintAbi";
 import { TVControls } from "./TVControls";
 import { TVHeader } from "./TVHeader";
@@ -25,7 +25,7 @@ import { TVVideoCardInfo } from "./TVVideoCardInfo";
 import { TVVideoPlayer } from "./TVVideoPlayer";
 import type { TVItem } from "./types";
 import { usePreloadTrigger, useTVFeed } from "./useTVFeed";
-import { useVideoPreloader, useRenderBuffer } from "./useVideoPreloader";
+import { useRenderBuffer, useVideoPreloader } from "./useVideoPreloader";
 
 // Treasury receives referral rewards
 const MINT_REFERRAL = DAO_ADDRESSES.treasury as `0x${string}`;
@@ -39,7 +39,7 @@ const TV_LAST_SEEN_AT_STORAGE_KEY = "gnars-tv:last-seen-at";
 /**
  * Full-screen TikTok-style video feed for Gnars TV
  * Displays content coins from curated creators with buying functionality
- * 
+ *
  * Performance optimizations:
  * - Virtualized rendering: only mounts videos within buffer distance
  * - Intelligent preloading: preloads next videos based on connection quality
@@ -183,16 +183,14 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     const handleIntersection = (entries: IntersectionObserverEntry[]) => {
       // Process entries in order of intersection ratio (most visible first)
       // This ensures the most visible video becomes active first
-      const sortedEntries = [...entries].sort(
-        (a, b) => b.intersectionRatio - a.intersectionRatio
-      );
+      const sortedEntries = [...entries].sort((a, b) => b.intersectionRatio - a.intersectionRatio);
 
       sortedEntries.forEach((entry) => {
         // Only consider entries that are actually intersecting
         // entry.isIntersecting is more reliable than checking ratio > 0
         if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
           const idx = parseInt(entry.target.getAttribute("data-index") || "0", 10);
-          
+
           // Use requestIdleCallback for state updates if available
           // Falls back to immediate execution on browsers that don't support it
           const updateState = () => {
@@ -233,7 +231,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
   // Helper to check if a video should be rendered
   const shouldRenderVideo = useCallback(
     (index: number) => Math.abs(index - activeIndex) <= renderBuffer,
-    [activeIndex, renderBuffer]
+    [activeIndex, renderBuffer],
   );
 
   // Reset index when items change
@@ -320,12 +318,12 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     const resetHideTimer = () => {
       // Show controls on mouse movement
       setShowControls(true);
-      
+
       // Clear existing timer
       if (hideControlsTimerRef.current) {
         clearTimeout(hideControlsTimerRef.current);
       }
-      
+
       // Hide controls after 3 seconds of no movement
       hideControlsTimerRef.current = setTimeout(() => {
         setShowControls(false);
@@ -338,7 +336,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
     // Reset timer on mouse movement
     container.addEventListener("mousemove", resetHideTimer);
     container.addEventListener("touchstart", resetHideTimer);
-    
+
     // Initial timer
     resetHideTimer();
 
@@ -445,22 +443,22 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
         const extractErrorMessages = (error: unknown): string => {
           const messages: string[] = [];
           let current = error;
-          
+
           while (current) {
             if (current instanceof Error) {
               messages.push(current.message);
-              current = 'cause' in current ? current.cause : null;
+              current = "cause" in current ? current.cause : null;
             } else {
               messages.push(String(current));
               break;
             }
           }
-          
-          return messages.join(' ').toLowerCase();
+
+          return messages.join(" ").toLowerCase();
         };
-        
+
         const fullError = extractErrorMessages(err);
-        
+
         // Detect common error types - check rejection FIRST and be comprehensive
         const isUserRejection =
           fullError.includes("user denied") ||
@@ -472,19 +470,18 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
           fullError.includes("user cancelled");
 
         const isInsufficientFunds =
-          fullError.includes("insufficient funds") ||
-          fullError.includes("insufficient balance");
+          fullError.includes("insufficient funds") || fullError.includes("insufficient balance");
 
         const isNetworkError =
           !isUserRejection && // Don't match network if it's a rejection
           (fullError.includes("network") ||
-           fullError.includes("rpc") ||
-           fullError.includes("unknown rpc error"));
+            fullError.includes("rpc") ||
+            fullError.includes("unknown rpc error"));
 
         const isGasError =
           !isUserRejection && // Don't match gas if it's a rejection
           (fullError.includes("intrinsic gas too low") ||
-           (fullError.includes("gas") && fullError.includes("insufficient")));
+            (fullError.includes("gas") && fullError.includes("insufficient")));
 
         // Show friendly error messages
         if (isUserRejection) {
@@ -639,10 +636,7 @@ export function GnarsTVFeed({ priorityCoinAddress }: GnarsTVFeedProps) {
             id: mintToast,
             description: "You don't have enough ETH to complete this mint.",
           });
-        } else if (
-          message.includes("Sale_Inactive") ||
-          message.includes("sale not active")
-        ) {
+        } else if (message.includes("Sale_Inactive") || message.includes("sale not active")) {
           toast.error("Sale not active", {
             id: mintToast,
             description: "The sale is not currently active.",

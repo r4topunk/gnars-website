@@ -3,11 +3,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { zeroHash } from "viem";
+import { PropdateCardSkeleton } from "@/components/propdates/PropdatesFeedSkeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { PropdateCardSkeleton } from "@/components/propdates/PropdatesFeedSkeleton";
 import { useDaoMembers } from "@/hooks/use-dao-members";
 import { usePropdates } from "@/hooks/use-propdates";
 import { useUserAddress } from "@/hooks/use-user-address";
@@ -40,13 +40,9 @@ export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
     return set;
   }, [proposer, targets]);
 
-  const canCreatePropdate = address
-    ? allowedAuthors.has(address.toLowerCase())
-    : false;
+  const canCreatePropdate = address ? allowedAuthors.has(address.toLowerCase()) : false;
 
-  const canReply = address && daoMembers
-    ? daoMembers.has(address.toLowerCase())
-    : false;
+  const canReply = address && daoMembers ? daoMembers.has(address.toLowerCase()) : false;
 
   const topLevel = useMemo(() => {
     if (!propdates) return [];
@@ -56,17 +52,20 @@ export function Propdates({ proposalId, proposer, targets }: PropdatesProps) {
   }, [propdates]);
 
   // Replies: only show those from DAO members
-  const getReplies = useCallback((parentTxid: string): Propdate[] => {
-    if (!propdates) return [];
-    return propdates
-      .filter((p) => {
-        if (p.originalMessageId !== parentTxid) return false;
-        // Only show replies from DAO members
-        if (!daoMembers) return true; // show all while loading members
-        return daoMembers.has(p.attester.toLowerCase());
-      })
-      .sort((a, b) => a.timeCreated - b.timeCreated);
-  }, [propdates, daoMembers]);
+  const getReplies = useCallback(
+    (parentTxid: string): Propdate[] => {
+      if (!propdates) return [];
+      return propdates
+        .filter((p) => {
+          if (p.originalMessageId !== parentTxid) return false;
+          // Only show replies from DAO members
+          if (!daoMembers) return true; // show all while loading members
+          return daoMembers.has(p.attester.toLowerCase());
+        })
+        .sort((a, b) => a.timeCreated - b.timeCreated);
+    },
+    [propdates, daoMembers],
+  );
 
   const handleReplyClick = (propdate: Propdate) => {
     if (replyingTo?.txid === propdate.txid) {

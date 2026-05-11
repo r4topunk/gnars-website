@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { type Address, isAddressEqual, zeroAddress } from "viem";
+import { isAddressEqual, zeroAddress, type Address } from "viem";
 import { useReadContracts } from "wagmi";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
@@ -103,9 +103,7 @@ export function useDelegationStatus(): DelegationStatus {
   const isSmartAccount = Boolean(adminAddress) || isInAppWallet;
   // SA address == active account whenever the session is smart-wrapped
   // (either an AA-wrapped external wallet OR an inAppWallet).
-  const smartAccountAddress: Address | undefined = isSmartAccount
-    ? activeAddress
-    : undefined;
+  const smartAccountAddress: Address | undefined = isSmartAccount ? activeAddress : undefined;
 
   const enabled = Boolean(eoaAddress);
   // Always pass three reads so wagmi keeps a stable contracts shape.
@@ -170,8 +168,7 @@ export function useDelegationStatus(): DelegationStatus {
     const delegateNotZero =
       currentDelegate !== undefined && !isAddressEqual(currentDelegate, zeroAddress);
 
-    const isDelegatedToSelf =
-      delegateNotZero && isAddressEqual(currentDelegate, eoaAddress);
+    const isDelegatedToSelf = delegateNotZero && isAddressEqual(currentDelegate, eoaAddress);
 
     const isDelegatedToSmartAccount =
       delegateNotZero &&
@@ -181,8 +178,7 @@ export function useDelegationStatus(): DelegationStatus {
     const isDelegatedElsewhere =
       delegateNotZero && !isDelegatedToSelf && !isDelegatedToSmartAccount;
 
-    const hasEoaTokens =
-      typeof eoaTokenBalance === "bigint" && eoaTokenBalance > 0n;
+    const hasEoaTokens = typeof eoaTokenBalance === "bigint" && eoaTokenBalance > 0n;
 
     // For inAppWallet sessions the EOA and SA are the same account — there
     // is no separate EOA holding Gnars to delegate from, so the migration

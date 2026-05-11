@@ -9,7 +9,7 @@ image: /images/gnarsdao-x-mrseaks@0.5x.jpg
 image_caption:
 video_embed: https://player.vimeo.com/video/703168649
 tags: [animation, releases]
-featured: 
+featured:
 ---
 
 A collaboration between Gnars DAO and MrSeaks for NFT.NYC being broadcasted all over times square billboards.

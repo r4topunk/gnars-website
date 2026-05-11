@@ -1,24 +1,28 @@
 /**
  * FeedFilters - Event filtering controls
- * 
+ *
  * Provides UI for filtering feed events by category, priority, and time range.
  * Max 7 props per component rule.
  */
 
 "use client";
 
+import { Filter, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuCheckboxItem,
+  DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Filter, X } from "lucide-react";
-import { EventCategory, EventPriority, FeedFilters as FeedFiltersType } from "@/lib/types/feed-events";
+import {
+  EventCategory,
+  EventPriority,
+  FeedFilters as FeedFiltersType,
+} from "@/lib/types/feed-events";
 import { DEFAULT_FILTERS } from "./LiveFeedView";
 
 export interface FeedFiltersProps {
@@ -47,32 +51,32 @@ const TIME_RANGE_LABELS = {
   "24h": "Last 24 Hours",
   "7d": "Last 7 Days",
   "30d": "Last 30 Days",
-  "all": "All Time",
+  all: "All Time",
 } as const;
 
 export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
   // Check if current filters match defaults
-  const isDefaultFilters = 
+  const isDefaultFilters =
     filters.priorities.length === DEFAULT_FILTERS.priorities.length &&
-    filters.priorities.every(p => DEFAULT_FILTERS.priorities.includes(p)) &&
+    filters.priorities.every((p) => DEFAULT_FILTERS.priorities.includes(p)) &&
     filters.categories.length === DEFAULT_FILTERS.categories.length &&
-    filters.categories.every(c => DEFAULT_FILTERS.categories.includes(c)) &&
+    filters.categories.every((c) => DEFAULT_FILTERS.categories.includes(c)) &&
     filters.timeRange === DEFAULT_FILTERS.timeRange &&
     filters.showOnlyWithComments === DEFAULT_FILTERS.showOnlyWithComments;
 
   const handleCategoryToggle = (category: EventCategory) => {
     const newCategories = filters.categories.includes(category)
-      ? filters.categories.filter(c => c !== category)
+      ? filters.categories.filter((c) => c !== category)
       : [...filters.categories, category];
-    
+
     onFiltersChange({ ...filters, categories: newCategories });
   };
 
   const handlePriorityToggle = (priority: EventPriority) => {
     const newPriorities = filters.priorities.includes(priority)
-      ? filters.priorities.filter(p => p !== priority)
+      ? filters.priorities.filter((p) => p !== priority)
       : [...filters.priorities, priority];
-    
+
     onFiltersChange({ ...filters, priorities: newPriorities });
   };
 
@@ -151,15 +155,17 @@ export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
         <DropdownMenuContent align="start" className="w-40">
           <DropdownMenuLabel>Time Range</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {(Object.entries(TIME_RANGE_LABELS) as [FeedFiltersType["timeRange"], string][]).map(([value, label]) => (
-            <DropdownMenuCheckboxItem
-              key={value}
-              checked={filters.timeRange === value}
-              onCheckedChange={() => handleTimeRangeChange(value)}
-            >
-              {label}
-            </DropdownMenuCheckboxItem>
-          ))}
+          {(Object.entries(TIME_RANGE_LABELS) as [FeedFiltersType["timeRange"], string][]).map(
+            ([value, label]) => (
+              <DropdownMenuCheckboxItem
+                key={value}
+                checked={filters.timeRange === value}
+                onCheckedChange={() => handleTimeRangeChange(value)}
+              >
+                {label}
+              </DropdownMenuCheckboxItem>
+            ),
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -168,22 +174,19 @@ export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
         variant={filters.showOnlyWithComments ? "default" : "outline"}
         size="sm"
         className="h-8"
-        onClick={() => onFiltersChange({ 
-          ...filters, 
-          showOnlyWithComments: !filters.showOnlyWithComments 
-        })}
+        onClick={() =>
+          onFiltersChange({
+            ...filters,
+            showOnlyWithComments: !filters.showOnlyWithComments,
+          })
+        }
       >
         With Comments
       </Button>
 
       {/* Reset button - only show if filters differ from defaults */}
       {!isDefaultFilters && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-1"
-          onClick={handleReset}
-        >
+        <Button variant="ghost" size="sm" className="h-8 gap-1" onClick={handleReset}>
           <X className="h-3.5 w-3.5" />
           Reset
         </Button>
@@ -191,4 +194,3 @@ export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
     </div>
   );
 }
-

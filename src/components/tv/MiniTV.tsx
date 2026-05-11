@@ -1,16 +1,16 @@
 "use client";
 
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
-import { useTVFeed } from "./useTVFeed";
+import { usePathname } from "@/i18n/navigation";
 import { useMiniTVVisibility } from "./MiniTVVisibilityContext";
+import { useTVFeed } from "./useTVFeed";
 
-const Gnar3DTVScene = dynamic(
-  () => import("./Gnar3DTVScene").then((mod) => mod.Gnar3DTVScene),
-  { ssr: false, loading: () => null }
-);
+const Gnar3DTVScene = dynamic(() => import("./Gnar3DTVScene").then((mod) => mod.Gnar3DTVScene), {
+  ssr: false,
+  loading: () => null,
+});
 
 export function MiniTV() {
   const [isHovered, setIsHovered] = useState(false);
@@ -105,14 +105,14 @@ export function MiniTV() {
       tabIndex={0}
       aria-label="Open Gnars TV fullscreen"
       className={`fixed bottom-4 left-4 z-40 h-[120px] w-[120px] cursor-pointer transition-opacity duration-700 ease-in-out ${
-        isLoaded && !heroTVVisible && !isOnTVPage
-          ? "opacity-100"
-          : "opacity-0 pointer-events-none"
+        isLoaded && !heroTVVisible && !isOnTVPage ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleClick(); }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") handleClick();
+      }}
     >
       <div className="h-full w-full overflow-hidden">
         <Gnar3DTVScene

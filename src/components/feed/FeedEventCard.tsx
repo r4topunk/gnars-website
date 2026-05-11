@@ -1,6 +1,6 @@
 /**
  * FeedEventCard - Main event card component
- * 
+ *
  * Displays individual feed events with appropriate styling and actions.
  * Routes to specific event card components based on event type.
  */
@@ -8,10 +8,10 @@
 "use client";
 
 import { FeedEvent } from "@/lib/types/feed-events";
-import { GovernanceEventCard } from "./GovernanceEventCard";
-import { AuctionEventCard } from "./AuctionEventCard";
-import { TokenEventCard } from "./TokenEventCard";
 import { AdminEventCard } from "./AdminEventCard";
+import { AuctionEventCard } from "./AuctionEventCard";
+import { GovernanceEventCard } from "./GovernanceEventCard";
+import { TokenEventCard } from "./TokenEventCard";
 
 export interface FeedEventCardProps {
   event: FeedEvent;
@@ -23,7 +23,9 @@ export function FeedEventCard({ event, compact = false, sequenceNumber }: FeedEv
   // Route to appropriate card component based on event category
   switch (event.category) {
     case "governance":
-      return <GovernanceEventCard event={event} compact={compact} sequenceNumber={sequenceNumber} />;
+      return (
+        <GovernanceEventCard event={event} compact={compact} sequenceNumber={sequenceNumber} />
+      );
     case "auction":
       return <AuctionEventCard event={event} compact={compact} sequenceNumber={sequenceNumber} />;
     case "token":
@@ -37,4 +39,3 @@ export function FeedEventCard({ event, compact = false, sequenceNumber }: FeedEv
       return null;
   }
 }
-

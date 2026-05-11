@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
-import type { TVItem, CoinNode } from "./types";
-import { PRELOAD_THRESHOLD, FALLBACK_ITEMS, mapCoinToTVItem } from "./utils";
+import type { CoinNode, TVItem } from "./types";
+import { FALLBACK_ITEMS, mapCoinToTVItem, PRELOAD_THRESHOLD } from "./utils";
 
 /**
  * Convert IPFS URIs to HTTP gateway URLs
@@ -109,13 +109,9 @@ interface UseTVFeedReturn {
  * 3. Content from Gnars profile
  * 4. Droposals (NFT drops from DAO proposals)
  */
-export function useTVFeed({
-  priorityCoinAddress,
-}: UseTVFeedOptions): UseTVFeedReturn {
+export function useTVFeed({ priorityCoinAddress }: UseTVFeedOptions): UseTVFeedReturn {
   const [rawItems, setRawItems] = useState<TVItem[]>([]);
-  const [creatorCoinImages, setCreatorCoinImages] = useState<CreatorCoinImage[]>(
-    []
-  );
+  const [creatorCoinImages, setCreatorCoinImages] = useState<CreatorCoinImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -155,10 +151,7 @@ export function useTVFeed({
 
         const feedPromise = fetchFeedCached();
 
-        const [priorityCoinResponse, data] = await Promise.all([
-          priorityCoinPromise,
-          feedPromise,
-        ]);
+        const [priorityCoinResponse, data] = await Promise.all([priorityCoinPromise, feedPromise]);
 
         let priorityItem: TVItem | null = null;
         if (priorityCoinResponse) {
@@ -167,23 +160,19 @@ export function useTVFeed({
             priorityItem = mapCoinToTVItem(
               coin,
               0,
-              coin?.creatorProfile?.handle || normalizedPriority!
+              coin?.creatorProfile?.handle || normalizedPriority!,
             );
             if (priorityItem?.coinAddress) {
-              loadedCoinAddressesRef.current.add(
-                priorityItem.coinAddress.toLowerCase()
-              );
+              loadedCoinAddressesRef.current.add(priorityItem.coinAddress.toLowerCase());
             }
           }
         }
 
         if (cancelled.current) return;
 
+        console.log(`[gnars-tv] API returned ${data.items.length} items in ${data.durationMs}ms`);
         console.log(
-          `[gnars-tv] API returned ${data.items.length} items in ${data.durationMs}ms`
-        );
-        console.log(
-          `[gnars-tv] Stats: ${data.stats.withVideo} videos, ${data.stats.gnarsPaired} GNARS-paired, ${data.stats.creatorsCount} creators`
+          `[gnars-tv] Stats: ${data.stats.withVideo} videos, ${data.stats.gnarsPaired} GNARS-paired, ${data.stats.creatorsCount} creators`,
         );
 
         // Build sticker images from creator avatars (normalize IPFS URLs)
@@ -201,9 +190,7 @@ export function useTVFeed({
         let items = data.items.map(normalizeItemUrls);
         if (priorityItem?.coinAddress) {
           items = items.filter(
-            (item) =>
-              item.coinAddress?.toLowerCase() !==
-              priorityItem!.coinAddress?.toLowerCase()
+            (item) => item.coinAddress?.toLowerCase() !== priorityItem!.coinAddress?.toLowerCase(),
           );
         }
 
@@ -264,7 +251,7 @@ export function usePreloadTrigger(
   hasMoreContent: boolean,
   loadingMore: boolean,
   loading: boolean,
-  loadMore: () => void
+  loadMore: () => void,
 ) {
   useEffect(() => {
     if (!totalItems || loading) return;

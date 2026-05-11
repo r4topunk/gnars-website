@@ -1,14 +1,10 @@
 "use client";
 
 import { Wallet } from "lucide-react";
-import {
-  useConnectModal,
-  useConnectedWallets,
-  useDisconnect,
-} from "thirdweb/react";
-import { Button } from "@/components/ui/button";
+import { useConnectedWallets, useConnectModal, useDisconnect } from "thirdweb/react";
 import { useViewAccount } from "@/components/layout/ViewAccountContext";
 import { WalletDrawer } from "@/components/layout/WalletDrawer";
+import { Button } from "@/components/ui/button";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";

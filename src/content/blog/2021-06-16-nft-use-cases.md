@@ -7,9 +7,9 @@ permalink: /nft-use-cases/
 author: gami
 image: /images/nft-use-cases-1.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [education]
-featured: 
+featured:
 ---
 
 **This was the shot that was heard around the world: Beeple,** a celebrated Crypto Artist, sold, on March the 11th of this year, “Everydays — The First Five Thousand Days”, a non-fungible token (NFT), for a record-breaking US $69 Million at Christie’s Auction House.
@@ -28,9 +28,9 @@ An NFT is linked with an asset, digital or physical. The token’s **metadata** 
 
 ![NFT Use Cases](/images/nft-use-cases-3.jpeg)
 
-*The linked asset need not be Digital Art.*
+_The linked asset need not be Digital Art._
 
-Digital art is only one type of asset that can be linked with a cryptographic token. *There are many others.*
+Digital art is only one type of asset that can be linked with a cryptographic token. _There are many others._
 
 **Licenses and Certifications:** An NFT can represent a license or a diploma. For the verification of such documents, it would be easy to leverage an NFT’s metadata, and this in turn would greatly lower administrative overhead. Storing documents like these as NFTs is also an alternative approach for storing evidence of course completion.
 

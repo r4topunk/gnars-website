@@ -6,14 +6,14 @@ Subagent routing guide. For documentation rules, tech stack, and PR protocol see
 
 Use this table to decide which subagent to dispatch for a given task:
 
-| Signal | Subagent | When |
-|--------|----------|------|
-| Need to understand existing code/patterns | **research-analyst** | Before any implementation, exploring unfamiliar areas |
-| Build component logic, hooks, pages | **frontend-engineer** | React state, data fetching hooks, page structure |
-| Styling, layout, responsive, accessibility | **ui-designer** | Tailwind classes, animations, design polish |
-| API routes, services, caching, subgraph | **api-architect** | Data layer, server-side fetching, performance |
-| Contract calls, wallet, transactions | **web3-specialist** | wagmi/viem, ABIs, onchain data, Web3 flows |
-| Write or update documentation | **docs-writer** | Docs in `docs/`, code comments, ADRs |
+| Signal                                     | Subagent              | When                                                  |
+| ------------------------------------------ | --------------------- | ----------------------------------------------------- |
+| Need to understand existing code/patterns  | **research-analyst**  | Before any implementation, exploring unfamiliar areas |
+| Build component logic, hooks, pages        | **frontend-engineer** | React state, data fetching hooks, page structure      |
+| Styling, layout, responsive, accessibility | **ui-designer**       | Tailwind classes, animations, design polish           |
+| API routes, services, caching, subgraph    | **api-architect**     | Data layer, server-side fetching, performance         |
+| Contract calls, wallet, transactions       | **web3-specialist**   | wagmi/viem, ABIs, onchain data, Web3 flows            |
+| Write or update documentation              | **docs-writer**       | Docs in `docs/`, code comments, ADRs                  |
 
 ### Parallel Dispatch Rules
 
@@ -43,6 +43,7 @@ Each teammate owns different files. Coordinate through the shared task list.
 ```
 
 Use subagents (not teams) when:
+
 - Tasks are independent and don't need to share findings
 - Only one agent is needed
 - The task is quick/focused (research, single component, docs update)

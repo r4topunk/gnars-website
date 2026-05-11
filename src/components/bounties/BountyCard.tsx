@@ -1,11 +1,11 @@
-import Link from "next/link";
 import { formatEther } from "viem";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { formatEthToUsd, useEthPrice } from "@/hooks/use-eth-price";
+import { Link } from "@/i18n/navigation";
 import { CHAIN_NAMES } from "@/lib/poidh/config";
 import type { PoidhBounty } from "@/types/poidh";
-import { useEthPrice, formatEthToUsd } from "@/hooks/use-eth-price";
 
 interface BountyCardProps {
   bounty: PoidhBounty;
@@ -19,7 +19,10 @@ function extractImageUrl(text: string): string | null {
 
 /** Strip markdown image syntax for plain text preview */
 function stripMarkdownImages(text: string): string {
-  return text.replace(/!\[.*?\]\(.*?\)/g, '').replace(/Thumbnail:\s*/gi, '').trim();
+  return text
+    .replace(/!\[.*?\]\(.*?\)/g, "")
+    .replace(/Thumbnail:\s*/gi, "")
+    .trim();
 }
 
 const STATUS_STYLES = {
@@ -96,12 +99,16 @@ export function BountyCard({ bounty }: BountyCardProps) {
 
         {/* Reward */}
         <div className="rounded-lg bg-muted/40 px-4 py-3 border border-border/50">
-          <span className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Reward</span>
+          <span className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+            Reward
+          </span>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-2xl font-bold text-primary">{ethAmount.toFixed(4)}</span>
             <span className="text-sm font-medium text-muted-foreground">ETH</span>
             {ethPrice > 0 && (
-              <span className="ml-auto text-sm font-medium text-emerald-600 dark:text-emerald-400">{usdValue}</span>
+              <span className="ml-auto text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                {usdValue}
+              </span>
             )}
           </div>
         </div>

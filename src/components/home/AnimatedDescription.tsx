@@ -1,7 +1,7 @@
 "use client";
 
-import { HOMEPAGE_DESCRIPTIONS } from "@/lib/config";
 import TextType from "@/components/TextType";
+import { HOMEPAGE_DESCRIPTIONS } from "@/lib/config";
 
 export function AnimatedDescription() {
   return (

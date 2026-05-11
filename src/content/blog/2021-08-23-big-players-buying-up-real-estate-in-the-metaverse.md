@@ -7,9 +7,9 @@ permalink: /big-players-buying-up-real-estate-in-the-metaverse/
 author: gami
 image: /images/crypto-punks.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [news]
-featured: 
+featured:
 ---
 
 Imagine you wake up and open your news feed. The first thing you see is the headline “**Free Space Pod**”. Reading on, you see a company is offering free space pods which would allow you to live on a new space station under construction. All you need to do is show up and claim one. You consider it, but no thanks. You think to yourself – no one is ever going to live in space.

@@ -7,7 +7,6 @@
 
 "use client";
 
-import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertCircle,
@@ -23,6 +22,7 @@ import {
 } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 import { extractFirstMedia, stripMarkdown } from "@/lib/markdown-media";
 import type { FeedEvent } from "@/lib/types/feed-events";
 import { cn } from "@/lib/utils";

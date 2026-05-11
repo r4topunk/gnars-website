@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 
 export function RecentProposalsHeader() {
   return (

@@ -18,57 +18,57 @@
 
 **New repo `builder-dao-tools/` (all files created in Phase 1-2):**
 
-| Path | Purpose |
-|------|---------|
-| `package.json` | Workspace root; private; scripts delegate to workspaces |
-| `pnpm-workspace.yaml` | Declares `packages/*` |
-| `tsconfig.base.json` | Shared strict TS config |
-| `.gitignore` | `node_modules`, `dist`, `*.db`, `.env*` |
-| `.npmrc` | `auto-install-peers=true`, `shamefully-hoist=false` |
-| `.nvmrc` | `20` |
-| `README.md` | Main project pitch + quickstart |
-| `CONTRIBUTING.md` | Dev setup + release flow |
-| `LICENSE` | MIT |
-| `CHANGELOG.md` | Managed by @changesets |
-| `.changeset/config.json` | @changesets config |
-| `.github/workflows/ci.yml` | PR: lint + typecheck + test |
-| `.github/workflows/release.yml` | Tag: publish to npm |
-| `packages/core/package.json` | `@builder-dao/cli`; bin `builder-dao` |
-| `packages/core/tsconfig.json` | Extends base; emits to `dist/` |
-| `packages/core/README.md` | Full CLI + MCP reference |
-| `packages/core/src/cli.ts` | CLI entry (replaces current `cli.ts`, uses registry) |
-| `packages/core/src/server.ts` | MCP server entry (uses registry) |
-| `packages/core/src/registry.ts` | Plugin registry API (NEW) |
-| `packages/core/src/config.ts` | `resolveConfig` (NEW — no Gnars defaults) |
-| `packages/core/src/context.ts` | Builds `RunContext` from config (NEW) |
-| `packages/core/src/subgraph/{client,queries,types,dao}.ts` | Migrated; `dao.ts` NEW (fetches governor addr by token) |
-| `packages/core/src/tools/{list-proposals,get-proposal,get-proposal-votes,resolve-ens,cast-vote}.ts` | Migrated; DAO-agnostic tool descriptions + handler signatures take `RunContext` |
-| `packages/core/src/tools/register-core.ts` | Calls `registerCommand`/`registerTool` for all core tools (NEW) |
-| `packages/core/src/utils/encoder.ts` | Migrated verbatim |
-| `packages/core/tests/**` | Migrated + updated for new signatures; adds `tests/config.test.ts`, `tests/registry.test.ts`, `tests/subgraph/dao.test.ts` |
-| `packages/search/package.json` | `@builder-dao/cli-search`; no bin; peerDep core |
-| `packages/search/tsconfig.json` | Extends base |
-| `packages/search/README.md` | DB + embeddings docs |
-| `packages/search/src/index.ts` | Side-effect registration entry (NEW) |
-| `packages/search/src/db/{connection,repository,schema}.ts` | Migrated; path keyed by DAO addr |
-| `packages/search/src/embeddings/{chunker,generator}.ts` | Migrated verbatim |
-| `packages/search/src/tools/{sync-proposals,search-proposals,index-embeddings}.ts` | Migrated; handlers take `RunContext` |
-| `packages/search/tests/**` | Migrated |
-| `examples/gnars.env` | Working Gnars env |
-| `examples/claude-desktop-config.json` | MCP client snippet |
-| `examples/cursor-mcp.json` | MCP client snippet |
-| `docs/architecture.md` | Architecture diagram + data flow |
-| `docs/plugin-api.md` | Addon author guide |
-| `docs/migrating-from-gnars-mcp.md` | Migration guide |
+| Path                                                                                                | Purpose                                                                                                                    |
+| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `package.json`                                                                                      | Workspace root; private; scripts delegate to workspaces                                                                    |
+| `pnpm-workspace.yaml`                                                                               | Declares `packages/*`                                                                                                      |
+| `tsconfig.base.json`                                                                                | Shared strict TS config                                                                                                    |
+| `.gitignore`                                                                                        | `node_modules`, `dist`, `*.db`, `.env*`                                                                                    |
+| `.npmrc`                                                                                            | `auto-install-peers=true`, `shamefully-hoist=false`                                                                        |
+| `.nvmrc`                                                                                            | `20`                                                                                                                       |
+| `README.md`                                                                                         | Main project pitch + quickstart                                                                                            |
+| `CONTRIBUTING.md`                                                                                   | Dev setup + release flow                                                                                                   |
+| `LICENSE`                                                                                           | MIT                                                                                                                        |
+| `CHANGELOG.md`                                                                                      | Managed by @changesets                                                                                                     |
+| `.changeset/config.json`                                                                            | @changesets config                                                                                                         |
+| `.github/workflows/ci.yml`                                                                          | PR: lint + typecheck + test                                                                                                |
+| `.github/workflows/release.yml`                                                                     | Tag: publish to npm                                                                                                        |
+| `packages/core/package.json`                                                                        | `@builder-dao/cli`; bin `builder-dao`                                                                                      |
+| `packages/core/tsconfig.json`                                                                       | Extends base; emits to `dist/`                                                                                             |
+| `packages/core/README.md`                                                                           | Full CLI + MCP reference                                                                                                   |
+| `packages/core/src/cli.ts`                                                                          | CLI entry (replaces current `cli.ts`, uses registry)                                                                       |
+| `packages/core/src/server.ts`                                                                       | MCP server entry (uses registry)                                                                                           |
+| `packages/core/src/registry.ts`                                                                     | Plugin registry API (NEW)                                                                                                  |
+| `packages/core/src/config.ts`                                                                       | `resolveConfig` (NEW — no Gnars defaults)                                                                                  |
+| `packages/core/src/context.ts`                                                                      | Builds `RunContext` from config (NEW)                                                                                      |
+| `packages/core/src/subgraph/{client,queries,types,dao}.ts`                                          | Migrated; `dao.ts` NEW (fetches governor addr by token)                                                                    |
+| `packages/core/src/tools/{list-proposals,get-proposal,get-proposal-votes,resolve-ens,cast-vote}.ts` | Migrated; DAO-agnostic tool descriptions + handler signatures take `RunContext`                                            |
+| `packages/core/src/tools/register-core.ts`                                                          | Calls `registerCommand`/`registerTool` for all core tools (NEW)                                                            |
+| `packages/core/src/utils/encoder.ts`                                                                | Migrated verbatim                                                                                                          |
+| `packages/core/tests/**`                                                                            | Migrated + updated for new signatures; adds `tests/config.test.ts`, `tests/registry.test.ts`, `tests/subgraph/dao.test.ts` |
+| `packages/search/package.json`                                                                      | `@builder-dao/cli-search`; no bin; peerDep core                                                                            |
+| `packages/search/tsconfig.json`                                                                     | Extends base                                                                                                               |
+| `packages/search/README.md`                                                                         | DB + embeddings docs                                                                                                       |
+| `packages/search/src/index.ts`                                                                      | Side-effect registration entry (NEW)                                                                                       |
+| `packages/search/src/db/{connection,repository,schema}.ts`                                          | Migrated; path keyed by DAO addr                                                                                           |
+| `packages/search/src/embeddings/{chunker,generator}.ts`                                             | Migrated verbatim                                                                                                          |
+| `packages/search/src/tools/{sync-proposals,search-proposals,index-embeddings}.ts`                   | Migrated; handlers take `RunContext`                                                                                       |
+| `packages/search/tests/**`                                                                          | Migrated                                                                                                                   |
+| `examples/gnars.env`                                                                                | Working Gnars env                                                                                                          |
+| `examples/claude-desktop-config.json`                                                               | MCP client snippet                                                                                                         |
+| `examples/cursor-mcp.json`                                                                          | MCP client snippet                                                                                                         |
+| `docs/architecture.md`                                                                              | Architecture diagram + data flow                                                                                           |
+| `docs/plugin-api.md`                                                                                | Addon author guide                                                                                                         |
+| `docs/migrating-from-gnars-mcp.md`                                                                  | Migration guide                                                                                                            |
 
 **Existing `gnars-website/` changes (Phase 4 only):**
 
-| Path | Change |
-|------|--------|
-| `mcp-subgraph/` | Deleted entirely |
-| `tsconfig.json` | Remove `"mcp-subgraph/**/*"` from `exclude` |
+| Path                                | Change                                                     |
+| ----------------------------------- | ---------------------------------------------------------- |
+| `mcp-subgraph/`                     | Deleted entirely                                           |
+| `tsconfig.json`                     | Remove `"mcp-subgraph/**/*"` from `exclude`                |
 | `.claude/skills/gnars-cli/SKILL.md` | Rewritten to point at `builder-dao` npm binary + Gnars env |
-| `CLAUDE.md` | Remove any `mcp-subgraph` references if present |
+| `CLAUDE.md`                         | Remove any `mcp-subgraph` references if present            |
 
 ---
 
@@ -77,6 +77,7 @@
 ### Task 1: Scaffold the empty monorepo
 
 **Files:**
+
 - Create: `/Users/r4to/Script/builder-dao-tools/package.json`
 - Create: `/Users/r4to/Script/builder-dao-tools/pnpm-workspace.yaml`
 - Create: `/Users/r4to/Script/builder-dao-tools/tsconfig.base.json`
@@ -197,6 +198,7 @@ git commit -m "chore: scaffold monorepo root (pnpm workspace, tsconfig base)"
 ### Task 2: Scaffold the `@builder-dao/cli` core package
 
 **Files:**
+
 - Create: `packages/core/package.json`
 - Create: `packages/core/tsconfig.json`
 - Create: `packages/core/src/index.ts` (placeholder)
@@ -296,6 +298,7 @@ git commit -m "chore(core): scaffold @builder-dao/cli package"
 ### Task 3: Migrate `utils/encoder.ts` (verbatim)
 
 **Files:**
+
 - Create: `packages/core/src/utils/encoder.ts`
 
 - [ ] **Step 1: Copy file**
@@ -319,6 +322,7 @@ git commit -m "feat(core): migrate encoder util (JSON + TOON)"
 ### Task 4: Migrate subgraph types + queries (verbatim, strip Gnars comment)
 
 **Files:**
+
 - Create: `packages/core/src/subgraph/types.ts`
 - Create: `packages/core/src/subgraph/queries.ts`
 
@@ -329,10 +333,13 @@ Copy `/Users/r4to/Script/gnars-website/mcp-subgraph/src/subgraph/types.ts` → `
 - [ ] **Step 2: Copy queries.ts and update header comment**
 
 Copy queries.ts; change the top comment from:
+
 ```ts
 // GraphQL queries for Gnars DAO subgraph
 ```
+
 to:
+
 ```ts
 // GraphQL queries for the Nouns Builder subgraph on Base
 ```
@@ -354,6 +361,7 @@ git commit -m "feat(core): migrate subgraph types and queries"
 ### Task 5: Write config resolver (TDD)
 
 **Files:**
+
 - Test: `packages/core/tests/config.test.ts`
 - Create: `packages/core/src/config.ts`
 
@@ -361,8 +369,8 @@ git commit -m "feat(core): migrate subgraph types and queries"
 
 ```ts
 // packages/core/tests/config.test.ts
-import { describe, it, expect } from "vitest";
-import { resolveConfig, ConfigError } from "../src/config.js";
+import { describe, expect, it } from "vitest";
+import { ConfigError, resolveConfig } from "../src/config.js";
 
 describe("resolveConfig", () => {
   it("reads daoAddress and goldskyProjectId from env", () => {
@@ -385,27 +393,22 @@ describe("resolveConfig", () => {
   });
 
   it("CLI --subgraph-project overrides env", () => {
-    const cfg = resolveConfig(
-      ["--subgraph-project", "project_x"],
-      {
-        DAO_ADDRESS: "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17",
-        GOLDSKY_PROJECT_ID: "project_env",
-      }
-    );
+    const cfg = resolveConfig(["--subgraph-project", "project_x"], {
+      DAO_ADDRESS: "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17",
+      GOLDSKY_PROJECT_ID: "project_env",
+    });
     expect(cfg.goldskyProjectId).toBe("project_x");
   });
 
   it("throws ConfigError when daoAddress missing", () => {
-    expect(() =>
-      resolveConfig([], { GOLDSKY_PROJECT_ID: "p" })
-    ).toThrowError(ConfigError);
+    expect(() => resolveConfig([], { GOLDSKY_PROJECT_ID: "p" })).toThrowError(ConfigError);
   });
 
   it("throws ConfigError when goldskyProjectId missing", () => {
     expect(() =>
       resolveConfig([], {
         DAO_ADDRESS: "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17",
-      })
+      }),
     ).toThrowError(ConfigError);
   });
 
@@ -414,7 +417,7 @@ describe("resolveConfig", () => {
       resolveConfig([], {
         DAO_ADDRESS: "not-an-address",
         GOLDSKY_PROJECT_ID: "p",
-      })
+      }),
     ).toThrowError(ConfigError);
   });
 
@@ -478,30 +481,21 @@ function extractFlag(argv: string[], name: string): string | undefined {
   return argv[idx + 1];
 }
 
-export function resolveConfig(
-  argv: string[],
-  env: NodeJS.ProcessEnv
-): DaoConfig {
+export function resolveConfig(argv: string[], env: NodeJS.ProcessEnv): DaoConfig {
   const daoAddress = (extractFlag(argv, "--dao") ?? env.DAO_ADDRESS)?.toLowerCase();
-  const goldskyProjectId =
-    extractFlag(argv, "--subgraph-project") ?? env.GOLDSKY_PROJECT_ID;
-  const rpcUrl =
-    extractFlag(argv, "--rpc-url") ?? env.BASE_RPC_URL ?? "https://mainnet.base.org";
+  const goldskyProjectId = extractFlag(argv, "--subgraph-project") ?? env.GOLDSKY_PROJECT_ID;
+  const rpcUrl = extractFlag(argv, "--rpc-url") ?? env.BASE_RPC_URL ?? "https://mainnet.base.org";
   const chainId = env.CHAIN_ID ? parseInt(env.CHAIN_ID, 10) : 8453;
 
   if (!daoAddress) {
-    throw new ConfigError(
-      "Missing DAO address. Provide --dao <addr> or set DAO_ADDRESS env."
-    );
+    throw new ConfigError("Missing DAO address. Provide --dao <addr> or set DAO_ADDRESS env.");
   }
   if (!HEX_ADDRESS_RE.test(daoAddress)) {
-    throw new ConfigError(
-      `Invalid DAO address: ${daoAddress}. Expected 0x-prefixed 20-byte hex.`
-    );
+    throw new ConfigError(`Invalid DAO address: ${daoAddress}. Expected 0x-prefixed 20-byte hex.`);
   }
   if (!goldskyProjectId) {
     throw new ConfigError(
-      "Missing Goldsky project ID. Provide --subgraph-project <id> or set GOLDSKY_PROJECT_ID env."
+      "Missing Goldsky project ID. Provide --subgraph-project <id> or set GOLDSKY_PROJECT_ID env.",
     );
   }
 
@@ -541,6 +535,7 @@ git commit -m "feat(core): add DaoConfig resolver (CLI flags > env, no defaults)
 ### Task 6: Refactor subgraph client to take config (TDD via existing tests)
 
 **Files:**
+
 - Modify: `packages/core/src/subgraph/client.ts` (port from source; signature changes)
 
 - [ ] **Step 1: Port `client.ts` with config as first argument**
@@ -551,16 +546,16 @@ Create `packages/core/src/subgraph/client.ts`:
 import type { DaoConfig } from "../config.js";
 import { getSubgraphUrl } from "../config.js";
 import {
-  PROPOSALS_QUERY,
-  PROPOSAL_BY_NUMBER_QUERY,
   PROPOSAL_BY_ID_QUERY,
-  VOTES_QUERY,
+  PROPOSAL_BY_NUMBER_QUERY,
+  PROPOSALS_QUERY,
   RECENT_PROPOSALS_QUERY,
+  VOTES_QUERY,
 } from "./queries.js";
 import type {
+  ProposalsQueryResponse,
   SubgraphProposal,
   SubgraphVote,
-  ProposalsQueryResponse,
   VotesQueryResponse,
 } from "./types.js";
 
@@ -568,7 +563,7 @@ export class SubgraphError extends Error {
   constructor(
     message: string,
     public readonly query: string,
-    public readonly variables?: Record<string, unknown>
+    public readonly variables?: Record<string, unknown>,
   ) {
     super(message);
     this.name = "SubgraphError";
@@ -597,7 +592,7 @@ export function createSubgraphClient(cfg: DaoConfig): SubgraphClient {
       throw new SubgraphError(
         `Subgraph request failed: ${response.status} ${response.statusText}`,
         query,
-        variables
+        variables,
       );
     }
     const result = (await response.json()) as T & { errors?: Array<{ message: string }> };
@@ -605,7 +600,7 @@ export function createSubgraphClient(cfg: DaoConfig): SubgraphClient {
       throw new SubgraphError(
         `Subgraph query error: ${result.errors.map((e) => e.message).join(", ")}`,
         query,
-        variables
+        variables,
       );
     }
     return result;
@@ -668,6 +663,7 @@ git commit -m "feat(core): refactor subgraph client to factory taking DaoConfig"
 The Nouns Builder subgraph exposes a `dao` entity keyed by token address with `governor`, `treasury`, `auction`, `metadata` fields. This removes the hardcoded `GOVERNOR_ADDRESS` from cast-vote.
 
 **Files:**
+
 - Modify: `packages/core/src/subgraph/queries.ts` (append `DAO_BY_ID_QUERY`)
 - Create: `packages/core/src/subgraph/dao.ts`
 - Create: `packages/core/tests/subgraph/dao.test.ts`
@@ -696,9 +692,9 @@ export const DAO_BY_ID_QUERY = `
 
 ```ts
 // packages/core/tests/subgraph/dao.test.ts
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fetchDaoMetadata } from "../../src/subgraph/dao.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DaoConfig } from "../../src/config.js";
+import { fetchDaoMetadata } from "../../src/subgraph/dao.js";
 
 const baseCfg: DaoConfig = {
   daoAddress: "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17",
@@ -715,23 +711,24 @@ describe("fetchDaoMetadata", () => {
   it("returns parsed dao record", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify({
-            data: {
-              dao: {
-                id: baseCfg.daoAddress,
-                name: "Gnars",
-                symbol: "GNAR",
-                governorAddress: "0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c",
-                treasuryAddress: "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88",
-                auctionAddress: "0x494eaa55ecf6310658b8fc004b0888dcb698097f",
-                metadataAddress: "0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              data: {
+                dao: {
+                  id: baseCfg.daoAddress,
+                  name: "Gnars",
+                  symbol: "GNAR",
+                  governorAddress: "0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c",
+                  treasuryAddress: "0x72ad986ebac0246d2b3c565ab2a1ce3a14ce6f88",
+                  auctionAddress: "0x494eaa55ecf6310658b8fc004b0888dcb698097f",
+                  metadataAddress: "0xdc9799d424ebfdcf5310f3bad3ddcce3931d4b58",
+                },
               },
-            },
-          })
-        )
-      )
+            }),
+          ),
+      ),
     );
     const dao = await fetchDaoMetadata(baseCfg);
     expect(dao.governorAddress).toBe("0x3dd4e53a232b7b715c9ae455f4e732465ed71b4c");
@@ -741,30 +738,29 @@ describe("fetchDaoMetadata", () => {
   it("throws when dao not indexed", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        new Response(JSON.stringify({ data: { dao: null } }))
-      )
+      vi.fn(async () => new Response(JSON.stringify({ data: { dao: null } }))),
     );
     await expect(fetchDaoMetadata(baseCfg)).rejects.toThrow(/not indexed/i);
   });
 
   it("caches results per daoAddress", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(
-        JSON.stringify({
-          data: {
-            dao: {
-              id: baseCfg.daoAddress,
-              name: "X",
-              symbol: "X",
-              governorAddress: "0x1111111111111111111111111111111111111111",
-              treasuryAddress: "0x2222222222222222222222222222222222222222",
-              auctionAddress: "0x3333333333333333333333333333333333333333",
-              metadataAddress: "0x4444444444444444444444444444444444444444",
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            data: {
+              dao: {
+                id: baseCfg.daoAddress,
+                name: "X",
+                symbol: "X",
+                governorAddress: "0x1111111111111111111111111111111111111111",
+                treasuryAddress: "0x2222222222222222222222222222222222222222",
+                auctionAddress: "0x3333333333333333333333333333333333333333",
+                metadataAddress: "0x4444444444444444444444444444444444444444",
+              },
             },
-          },
-        })
-      )
+          }),
+        ),
     );
     vi.stubGlobal("fetch", fetchMock);
     await fetchDaoMetadata(baseCfg);
@@ -824,9 +820,7 @@ export async function fetchDaoMetadata(cfg: DaoConfig): Promise<DaoMetadata> {
   }
   const dao = body.data?.dao;
   if (!dao) {
-    throw new Error(
-      `DAO ${cfg.daoAddress} is not indexed by subgraph ${cfg.goldskyProjectId}`
-    );
+    throw new Error(`DAO ${cfg.daoAddress} is not indexed by subgraph ${cfg.goldskyProjectId}`);
   }
   cache.set(key, dao);
   return dao;
@@ -854,6 +848,7 @@ git commit -m "feat(core): add fetchDaoMetadata (resolves governor/treasury by t
 ### Task 8: Plugin registry (TDD)
 
 **Files:**
+
 - Test: `packages/core/tests/registry.test.ts`
 - Create: `packages/core/src/registry.ts`
 - Create: `packages/core/src/context.ts`
@@ -862,15 +857,15 @@ git commit -m "feat(core): add fetchDaoMetadata (resolves governor/treasury by t
 
 ```ts
 // packages/core/tests/registry.test.ts
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
-  registerCommand,
-  registerTool,
   getCommand,
   getCommands,
   getTool,
   getTools,
+  registerCommand,
+  registerTool,
   resetRegistry,
 } from "../src/registry.js";
 
@@ -897,7 +892,7 @@ describe("registry", () => {
   it("throws on duplicate command name", () => {
     registerCommand({ name: "x", description: "", usage: "", run: async () => {} });
     expect(() =>
-      registerCommand({ name: "x", description: "", usage: "", run: async () => {} })
+      registerCommand({ name: "x", description: "", usage: "", run: async () => {} }),
     ).toThrow(/already registered/);
   });
 
@@ -1002,7 +997,7 @@ export interface RunContext {
 
 export function createContext(
   config: DaoConfig,
-  opts: { format?: OutputFormat; pretty?: boolean } = {}
+  opts: { format?: OutputFormat; pretty?: boolean } = {},
 ): RunContext {
   const format = opts.format ?? "json";
   const pretty = opts.pretty ?? false;
@@ -1041,6 +1036,7 @@ git commit -m "feat(core): plugin registry (commands + MCP tools) and RunContext
 Port each tool so its handler signature is `(input, ctx: RunContext)`. Replace uses of the old module-level `subgraphClient` with `ctx.subgraph`. Replace Gnars-specific descriptions with DAO-agnostic ones.
 
 **Files:**
+
 - Create: `packages/core/src/tools/list-proposals.ts`
 - Create: `packages/core/src/tools/get-proposal.ts`
 - Create: `packages/core/src/tools/get-proposal-votes.ts`
@@ -1051,10 +1047,13 @@ Port each tool so its handler signature is `(input, ctx: RunContext)`. Replace u
 Create `packages/core/src/tools/list-proposals.ts`. Copy from source (`/Users/r4to/Script/gnars-website/mcp-subgraph/src/tools/list-proposals.ts`), then apply these changes:
 
 Replace the import line:
+
 ```ts
 import { subgraphClient } from "../subgraph/client.js";
 ```
+
 with:
+
 ```ts
 import type { RunContext } from "../context.js";
 ```
@@ -1064,7 +1063,7 @@ Change the exported function signature and body to use the context:
 ```ts
 export async function listProposals(
   input: ListProposalsInput,
-  ctx: RunContext
+  ctx: RunContext,
 ): Promise<ListProposalsOutput> {
   const fetchLimit = input.status ? 200 : input.limit;
   const fetchOffset = input.status ? 0 : input.offset;
@@ -1112,15 +1111,16 @@ git commit -m "feat(core): migrate read-path tools (list, get, votes, ens) with 
 Replaces the hardcoded `GOVERNOR_ADDRESS` with `fetchDaoMetadata`.
 
 **Files:**
+
 - Create: `packages/core/src/tools/cast-vote.ts`
 
 - [ ] **Step 1: Port `cast-vote.ts` with dynamic governor**
 
 ```ts
-import { z } from "zod";
-import { createWalletClient, createPublicClient, http, type Hex } from "viem";
+import { createPublicClient, createWalletClient, http, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base } from "viem/chains";
+import { z } from "zod";
 import type { RunContext } from "../context.js";
 import { fetchDaoMetadata } from "../subgraph/dao.js";
 
@@ -1171,10 +1171,7 @@ export interface CastVoteOutput {
   governor: string;
 }
 
-async function resolveProposalId(
-  id: string | number,
-  ctx: RunContext
-): Promise<Hex> {
+async function resolveProposalId(id: string | number, ctx: RunContext): Promise<Hex> {
   if (typeof id === "number" || (typeof id === "string" && !id.startsWith("0x"))) {
     const n = typeof id === "string" ? parseInt(id, 10) : id;
     const p = await ctx.subgraph.fetchProposalByNumber(n);
@@ -1184,14 +1181,9 @@ async function resolveProposalId(
   return id as Hex;
 }
 
-export async function castVote(
-  input: CastVoteInput,
-  ctx: RunContext
-): Promise<CastVoteOutput> {
+export async function castVote(input: CastVoteInput, ctx: RunContext): Promise<CastVoteOutput> {
   if (!ctx.config.privateKey) {
-    throw new Error(
-      "PRIVATE_KEY environment variable is required to cast votes."
-    );
+    throw new Error("PRIVATE_KEY environment variable is required to cast votes.");
   }
 
   const dao = await fetchDaoMetadata(ctx.config);
@@ -1268,6 +1260,7 @@ git commit -m "feat(core): cast-vote resolves governor via subgraph (no hardcode
 ### Task 11: Register core commands + tools
 
 **Files:**
+
 - Create: `packages/core/src/tools/register-core.ts`
 
 - [ ] **Step 1: Write `register-core.ts`**
@@ -1276,15 +1269,15 @@ git commit -m "feat(core): cast-vote resolves governor via subgraph (no hardcode
 import { parseArgs } from "node:util";
 import { z } from "zod";
 import { registerCommand, registerTool } from "../registry.js";
-import { listProposals, listProposalsSchema } from "./list-proposals.js";
-import { getProposal, getProposalSchema } from "./get-proposal.js";
-import { getProposalVotes, getProposalVotesSchema } from "./get-proposal-votes.js";
 import { castVote, castVoteSchema } from "./cast-vote.js";
+import { getProposalVotes, getProposalVotesSchema } from "./get-proposal-votes.js";
+import { getProposal, getProposalSchema } from "./get-proposal.js";
+import { listProposals, listProposalsSchema } from "./list-proposals.js";
 import {
   resolveEns,
-  resolveEnsSchema,
   resolveEnsBatch,
   resolveEnsBatchSchema,
+  resolveEnsSchema,
 } from "./resolve-ens.js";
 
 export function registerCoreCommands(): void {
@@ -1310,7 +1303,7 @@ export function registerCoreCommands(): void {
           order: values.order,
           format: ctx.format,
         }),
-        ctx
+        ctx,
       );
       ctx.print(result);
     },
@@ -1327,7 +1320,7 @@ export function registerCoreCommands(): void {
       const parsed = Number(id);
       const result = await getProposal(
         getProposalSchema.parse({ id: Number.isNaN(parsed) ? id : parsed, hideDescription: false }),
-        ctx
+        ctx,
       );
       if (!result) throw new Error(`Proposal ${id} not found`);
       ctx.print(result);
@@ -1359,7 +1352,7 @@ export function registerCoreCommands(): void {
           offset: parseInt(values.offset!, 10),
           format: ctx.format,
         }),
-        ctx
+        ctx,
       );
       if (!result) throw new Error(`Proposal ${id} not found`);
       ctx.print(result);
@@ -1369,7 +1362,7 @@ export function registerCoreCommands(): void {
   registerCommand({
     name: "vote",
     description: "Cast an on-chain vote (requires PRIVATE_KEY)",
-    usage: "vote <id> FOR|AGAINST|ABSTAIN [--reason \"...\"]",
+    usage: 'vote <id> FOR|AGAINST|ABSTAIN [--reason "..."]',
     async run(args, ctx) {
       const { values, positionals } = parseArgs({
         args,
@@ -1385,7 +1378,7 @@ export function registerCoreCommands(): void {
           support,
           reason: values.reason,
         }),
-        ctx
+        ctx,
       );
       ctx.print(result);
     },
@@ -1402,10 +1395,12 @@ export function registerCoreCommands(): void {
         const result = await resolveEns({ address: addresses[0] });
         ctx.print(result);
       } else {
-        const result = await resolveEnsBatch(resolveEnsBatchSchema.parse({
-          addresses,
-          format: ctx.format,
-        }));
+        const result = await resolveEnsBatch(
+          resolveEnsBatchSchema.parse({
+            addresses,
+            format: ctx.format,
+          }),
+        );
         ctx.print(result);
       }
     },
@@ -1416,8 +1411,7 @@ export function registerCoreCommands(): void {
     description:
       "List proposals for the configured Builder DAO with optional status filter. Use format='toon' for ~40% token savings.",
     inputSchema: listProposalsSchema,
-    handler: async (input, ctx) =>
-      listProposals(listProposalsSchema.parse(input), ctx),
+    handler: async (input, ctx) => listProposals(listProposalsSchema.parse(input), ctx),
   });
 
   registerTool({
@@ -1433,8 +1427,7 @@ export function registerCoreCommands(): void {
     description:
       "Get votes for a specific proposal, optionally filtered by FOR/AGAINST/ABSTAIN. Use format='toon' for ~40% token savings.",
     inputSchema: getProposalVotesSchema,
-    handler: async (input, ctx) =>
-      getProposalVotes(getProposalVotesSchema.parse(input), ctx),
+    handler: async (input, ctx) => getProposalVotes(getProposalVotesSchema.parse(input), ctx),
   });
 
   registerTool({
@@ -1480,16 +1473,17 @@ git commit -m "feat(core): register 5 commands + 6 MCP tools into registry"
 ### Task 12: Write core CLI entry
 
 **Files:**
+
 - Create: `packages/core/src/cli.ts`
 
 - [ ] **Step 1: Write `cli.ts`**
 
 ```ts
 #!/usr/bin/env node
-import { resolveConfig, ConfigError } from "./config.js";
+import { ConfigError, resolveConfig } from "./config.js";
 import { createContext } from "./context.js";
-import { registerCoreCommands } from "./tools/register-core.js";
 import { getCommand, getCommands } from "./registry.js";
+import { registerCoreCommands } from "./tools/register-core.js";
 
 function stripFlags(args: string[]): string[] {
   const out: string[] = [];
@@ -1568,7 +1562,7 @@ async function main(): Promise<void> {
     if (["sync", "search", "index"].includes(commandName)) {
       console.error(
         `Command '${commandName}' requires @builder-dao/cli-search.\n` +
-          `Install: pnpm add -g @builder-dao/cli-search`
+          `Install: pnpm add -g @builder-dao/cli-search`,
       );
     } else {
       printHelp();
@@ -1614,19 +1608,20 @@ git commit -m "feat(core): new CLI entry using registry + dynamic addon import"
 ### Task 13: Write core MCP server entry
 
 **Files:**
+
 - Create: `packages/core/src/server.ts`
 
 - [ ] **Step 1: Write `server.ts`**
 
 ```ts
+import { createServer as createHttpServer } from "node:http";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { createServer as createHttpServer } from "node:http";
 import { resolveConfig } from "./config.js";
 import { createContext } from "./context.js";
-import { registerCoreCommands } from "./tools/register-core.js";
 import { getTools } from "./registry.js";
+import { registerCoreCommands } from "./tools/register-core.js";
 import { createMcpResponse, type OutputFormat } from "./utils/encoder.js";
 
 export async function createServer() {
@@ -1662,7 +1657,7 @@ export async function createServer() {
           const msg = err instanceof Error ? err.message : String(err);
           return { content: [{ type: "text", text: `Error: ${msg}` }], isError: true };
         }
-      }
+      },
     );
   }
 
@@ -1736,6 +1731,7 @@ git commit -m "feat(core): MCP server entry driven by registry"
 The existing tests under `mcp-subgraph/tests/tools/` need their fixtures + call sites updated to pass `ctx`.
 
 **Files:**
+
 - Create: `packages/core/tests/fixtures/proposals.ts`
 - Create: `packages/core/tests/fixtures/context.ts`
 - Create: `packages/core/tests/tools/list-proposals.test.ts`
@@ -1754,12 +1750,11 @@ Copy `/Users/r4to/Script/gnars-website/mcp-subgraph/tests/setup.ts` → `package
 - [ ] **Step 2: Write `packages/core/tests/fixtures/context.ts` helper**
 
 ```ts
+import type { DaoConfig } from "../../src/config.js";
 import type { RunContext } from "../../src/context.js";
 import type { SubgraphClient } from "../../src/subgraph/client.js";
-import type { DaoConfig } from "../../src/config.js";
 
-export const TEST_DAO_ADDRESS =
-  "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17" as const;
+export const TEST_DAO_ADDRESS = "0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17" as const;
 
 export const TEST_CONFIG: DaoConfig = {
   daoAddress: TEST_DAO_ADDRESS,
@@ -1768,9 +1763,7 @@ export const TEST_CONFIG: DaoConfig = {
   rpcUrl: "https://mainnet.base.org",
 };
 
-export function makeContextWithSubgraph(
-  subgraph: Partial<SubgraphClient>
-): RunContext {
+export function makeContextWithSubgraph(subgraph: Partial<SubgraphClient>): RunContext {
   return {
     config: TEST_CONFIG,
     subgraph: {
@@ -1817,6 +1810,7 @@ git commit -m "test(core): migrate tool tests to RunContext-based DI"
 ### Task 15: Scaffold `@builder-dao/cli-search` addon package
 
 **Files:**
+
 - Create: `packages/search/package.json`
 - Create: `packages/search/tsconfig.json`
 - Create: `packages/search/vitest.config.ts`
@@ -1858,12 +1852,7 @@ git commit -m "test(core): migrate tool tests to RunContext-based DI"
     "vitest": "^2.1.6"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "better-sqlite3",
-      "onnxruntime-node",
-      "sharp",
-      "protobufjs"
-    ]
+    "onlyBuiltDependencies": ["better-sqlite3", "onnxruntime-node", "sharp", "protobufjs"]
   },
   "keywords": ["nouns-builder", "dao", "semantic-search", "embeddings", "mcp"],
   "license": "MIT"
@@ -1887,6 +1876,7 @@ git commit -m "test(core): migrate tool tests to RunContext-based DI"
 
 ```ts
 import { defineConfig } from "vitest/config";
+
 export default defineConfig({
   test: {
     environment: "node",
@@ -1918,6 +1908,7 @@ git commit -m "chore(search): scaffold @builder-dao/cli-search package"
 ### Task 16: Migrate DB module with per-DAO path
 
 **Files:**
+
 - Create: `packages/search/src/db/schema.ts` (verbatim copy)
 - Create: `packages/search/src/db/repository.ts` (verbatim copy)
 - Create: `packages/search/src/db/connection.ts` (modified: path from config)
@@ -1933,11 +1924,11 @@ Copy `/Users/r4to/Script/gnars-website/mcp-subgraph/src/db/repository.ts` → `p
 - [ ] **Step 3: Write new `connection.ts` with per-DAO path**
 
 ```ts
-import Database from "better-sqlite3";
-import { mkdirSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import type { DaoConfig } from "@builder-dao/cli";
+import Database from "better-sqlite3";
 import { SCHEMA } from "./schema.js";
 
 function defaultDataDir(): string {
@@ -1975,7 +1966,10 @@ export function openDatabase(cfg: DaoConfig, override?: string): Database.Databa
 export function closeDatabase(path?: string): void {
   if (path) {
     const db = dbCache.get(path);
-    if (db) { db.close(); dbCache.delete(path); }
+    if (db) {
+      db.close();
+      dbCache.delete(path);
+    }
     return;
   }
   for (const [, db] of dbCache) db.close();
@@ -1993,13 +1987,16 @@ export function createTestDatabase(): Database.Database {
 - [ ] **Step 4: Update imports inside `repository.ts`**
 
 Open `packages/search/src/db/repository.ts`. The import:
+
 ```ts
-import type { SubgraphProposal, SubgraphVote, ProposalStatus } from "../subgraph/types.js";
+import type { ProposalStatus, SubgraphProposal, SubgraphVote } from "../subgraph/types.js";
 import { calculateProposalStatus } from "../subgraph/types.js";
 ```
+
 becomes:
+
 ```ts
-import type { SubgraphProposal, SubgraphVote, ProposalStatus } from "@builder-dao/cli";
+import type { ProposalStatus, SubgraphProposal, SubgraphVote } from "@builder-dao/cli";
 import { calculateProposalStatus } from "@builder-dao/cli";
 ```
 
@@ -2044,12 +2041,14 @@ git commit -m "feat(search): migrate db module with per-DAO path"
 ### Task 17: Migrate embeddings
 
 **Files:**
+
 - Create: `packages/search/src/embeddings/chunker.ts` (verbatim)
 - Create: `packages/search/src/embeddings/generator.ts` (verbatim)
 
 - [ ] **Step 1: Copy both files verbatim**
 
 Copy:
+
 - `mcp-subgraph/src/embeddings/chunker.ts` → `packages/search/src/embeddings/chunker.ts`
 - `mcp-subgraph/src/embeddings/generator.ts` → `packages/search/src/embeddings/generator.ts`
 
@@ -2072,6 +2071,7 @@ git commit -m "feat(search): migrate embeddings chunker + generator"
 ### Task 18: Migrate sync / index / search tools
 
 **Files:**
+
 - Create: `packages/search/src/tools/sync-proposals.ts`
 - Create: `packages/search/src/tools/search-proposals.ts`
 - Create: `packages/search/src/tools/index-embeddings.ts`
@@ -2081,8 +2081,8 @@ git commit -m "feat(search): migrate embeddings chunker + generator"
 Copy source. Update imports:
 
 ```ts
-import type { ProposalRepository } from "../db/repository.js";
 import type { RunContext } from "@builder-dao/cli";
+import type { ProposalRepository } from "../db/repository.js";
 ```
 
 Change the handler signature to:
@@ -2091,7 +2091,7 @@ Change the handler signature to:
 export async function syncProposals(
   repo: ProposalRepository,
   input: SyncProposalsInput,
-  ctx: RunContext
+  ctx: RunContext,
 ): Promise<SyncProposalsOutput> {
   // replace direct calls like `subgraphClient.fetchProposals(...)` with `ctx.subgraph.fetchProposals(...)`
   // body otherwise identical
@@ -2112,7 +2112,7 @@ import { chunkText } from "../embeddings/chunker.js";
 import { generateEmbedding } from "../embeddings/generator.js";
 
 export async function indexProposalEmbeddings(
-  repo: ProposalRepository
+  repo: ProposalRepository,
 ): Promise<{ indexed: number; skipped: number }> {
   // Body identical to source `indexProposalEmbeddings` function
 }
@@ -2135,19 +2135,20 @@ git commit -m "feat(search): migrate sync/search/index tools with RunContext"
 ### Task 19: Write addon registration entry
 
 **Files:**
+
 - Create: `packages/search/src/index.ts` (replaces placeholder)
 
 - [ ] **Step 1: Write registration**
 
 ```ts
 import { parseArgs } from "node:util";
-import { z } from "zod";
 import { registerCommand, registerTool } from "@builder-dao/cli";
+import { z } from "zod";
 import { openDatabase } from "./db/connection.js";
 import { ProposalRepository } from "./db/repository.js";
-import { syncProposals, syncProposalsSchema } from "./tools/sync-proposals.js";
-import { searchProposals, searchProposalsSchema } from "./tools/search-proposals.js";
 import { indexProposalEmbeddings } from "./tools/index-embeddings.js";
+import { searchProposals, searchProposalsSchema } from "./tools/search-proposals.js";
+import { syncProposals, syncProposalsSchema } from "./tools/sync-proposals.js";
 
 registerCommand({
   name: "sync",
@@ -2204,7 +2205,7 @@ registerCommand({
         threshold: parseFloat(values.threshold!),
         format: ctx.format,
       }),
-      ctx
+      ctx,
     );
     ctx.print(result);
   },
@@ -2212,7 +2213,8 @@ registerCommand({
 
 registerTool({
   name: "sync_proposals",
-  description: "Sync proposals from the Nouns Builder subgraph to the local per-DAO database. Pass full=true for a complete re-sync.",
+  description:
+    "Sync proposals from the Nouns Builder subgraph to the local per-DAO database. Pass full=true for a complete re-sync.",
   inputSchema: syncProposalsSchema,
   handler: async (input, ctx) => {
     const db = openDatabase(ctx.config);
@@ -2223,7 +2225,8 @@ registerTool({
 
 registerTool({
   name: "search_proposals",
-  description: "Semantic search over proposals. Requires sync_proposals + index_embeddings to have been run. Use format='toon' for ~40% token savings.",
+  description:
+    "Semantic search over proposals. Requires sync_proposals + index_embeddings to have been run. Use format='toon' for ~40% token savings.",
   inputSchema: searchProposalsSchema,
   handler: async (input, ctx) => {
     const db = openDatabase(ctx.config);
@@ -2234,14 +2237,18 @@ registerTool({
 
 registerTool({
   name: "index_embeddings",
-  description: "Generate embeddings for synced proposals. Must be run after sync_proposals. Idempotent — only indexes proposals missing embeddings.",
+  description:
+    "Generate embeddings for synced proposals. Must be run after sync_proposals. Idempotent — only indexes proposals missing embeddings.",
   inputSchema: z.object({}),
   handler: async (_input, ctx) => {
     const db = openDatabase(ctx.config);
     const repo = new ProposalRepository(db);
     const stats = repo.getEmbeddingStats();
     const result = await indexProposalEmbeddings(repo);
-    return { ...result, stats: { ...repo.getEmbeddingStats(), previouslyIndexed: stats.embeddedProposals } };
+    return {
+      ...result,
+      stats: { ...repo.getEmbeddingStats(), previouslyIndexed: stats.embeddedProposals },
+    };
   },
 });
 ```
@@ -2263,6 +2270,7 @@ git commit -m "feat(search): register sync/index/search commands + tools"
 ### Task 20: Migrate search tests
 
 **Files:**
+
 - Create: `packages/search/tests/fixtures/proposals.ts`
 - Create: `packages/search/tests/db/repository.test.ts`
 - Create: `packages/search/tests/embeddings/chunker.test.ts`
@@ -2271,6 +2279,7 @@ git commit -m "feat(search): register sync/index/search commands + tools"
 - [ ] **Step 1: Copy fixtures + tests verbatim**
 
 Copy:
+
 - `mcp-subgraph/tests/fixtures/proposals.ts` → `packages/search/tests/fixtures/proposals.ts`
 - `mcp-subgraph/tests/db/repository.test.ts` → `packages/search/tests/db/repository.test.ts`
 - `mcp-subgraph/tests/embeddings/chunker.test.ts` → `packages/search/tests/embeddings/chunker.test.ts`
@@ -2297,10 +2306,12 @@ git commit -m "test(search): migrate db + embeddings tests"
 - [ ] **Step 1: Clean build of both packages**
 
 Run:
+
 ```bash
 cd /Users/r4to/Script/builder-dao-tools
 pnpm -r build
 ```
+
 Expected: no errors. `packages/core/dist/cli.js` and `packages/search/dist/index.js` exist.
 
 - [ ] **Step 2: Full test run**
@@ -2311,6 +2322,7 @@ Expected: all tests pass across both packages.
 - [ ] **Step 3: Link core binary locally for manual testing**
 
 Run:
+
 ```bash
 pnpm --filter @builder-dao/cli exec pnpm link --global
 ```
@@ -2318,19 +2330,23 @@ pnpm --filter @builder-dao/cli exec pnpm link --global
 - [ ] **Step 4: Smoke-test read commands**
 
 Run with Gnars env:
+
 ```bash
 DAO_ADDRESS=0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17 \
 GOLDSKY_PROJECT_ID=project_cm33ek8kjx6pz010i2c3w8z25 \
 builder-dao proposals --limit 3 --pretty
 ```
+
 Expected: 3 Gnars proposals printed as JSON.
 
 Run:
+
 ```bash
 DAO_ADDRESS=0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17 \
 GOLDSKY_PROJECT_ID=project_cm33ek8kjx6pz010i2c3w8z25 \
 builder-dao proposal 1 --pretty
 ```
+
 Expected: proposal #1 detail.
 
 - [ ] **Step 5: Smoke-test error on missing config**
@@ -2346,21 +2362,26 @@ Before search addon is link-installed, expected stderr: `Command 'search' requir
 - [ ] **Step 7: Link search addon and re-test**
 
 Run:
+
 ```bash
 pnpm --filter @builder-dao/cli-search exec pnpm link --global @builder-dao/cli
 pnpm --filter @builder-dao/cli exec pnpm link --global @builder-dao/cli-search
 ```
+
 Then:
+
 ```bash
 DAO_ADDRESS=0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17 \
 GOLDSKY_PROJECT_ID=project_cm33ek8kjx6pz010i2c3w8z25 \
 builder-dao sync
 ```
+
 Expected: syncs proposals, prints `{ synced: N, ... }`. DB file created at `~/.local/share/builder-dao/0x880fb3cf.db`.
 
 - [ ] **Step 8: Unlink globals to avoid polluting dev env**
 
 Run:
+
 ```bash
 pnpm unlink --global @builder-dao/cli
 pnpm unlink --global @builder-dao/cli-search
@@ -2379,6 +2400,7 @@ git commit --allow-empty -m "chore: phase 1 complete — extract + generalize + 
 ### Task 22: Root docs + licence
 
 **Files:**
+
 - Create: `README.md`
 - Create: `LICENSE`
 - Create: `CHANGELOG.md`
@@ -2390,7 +2412,7 @@ Use the standard MIT license template. Copyright line: `Copyright (c) 2026 build
 
 - [ ] **Step 2: Write `README.md`**
 
-```markdown
+````markdown
 # builder-dao-tools
 
 CLI and MCP server for Nouns Builder DAOs on Base.
@@ -2406,13 +2428,14 @@ export DAO_ADDRESS=0x...           # DAO token contract
 export GOLDSKY_PROJECT_ID=...       # Goldsky project ID for Builder Base subgraph
 builder-dao proposals --limit 5 --pretty
 ```
+````
 
 ## Commands
 
-| Command | Package |
-|---------|---------|
-| `proposals`, `proposal`, `votes`, `vote`, `ens`, `mcp` | `@builder-dao/cli` |
-| `sync`, `index`, `search` | `@builder-dao/cli-search` |
+| Command                                                | Package                   |
+| ------------------------------------------------------ | ------------------------- |
+| `proposals`, `proposal`, `votes`, `vote`, `ens`, `mcp` | `@builder-dao/cli`        |
+| `sync`, `index`, `search`                              | `@builder-dao/cli-search` |
 
 ## MCP
 
@@ -2433,7 +2456,8 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 ## License
 
 MIT.
-```
+
+````
 
 - [ ] **Step 3: Write `CONTRIBUTING.md`**
 
@@ -2446,7 +2470,7 @@ MIT.
 pnpm install
 pnpm -r build
 pnpm -r test:run
-```
+````
 
 ## Running the CLI locally
 
@@ -2460,7 +2484,8 @@ pnpm --filter @builder-dao/cli dev -- proposals --limit 3
 2. Open PR; CI must be green.
 3. Merge; the `release.yml` workflow opens a "Version packages" PR.
 4. Merge the version PR; the workflow publishes to npm.
-```
+
+````
 
 - [ ] **Step 4: Write empty `CHANGELOG.md`**
 
@@ -2468,7 +2493,7 @@ pnpm --filter @builder-dao/cli dev -- proposals --limit 3
 # Changelog
 
 Maintained by @changesets. See individual package changelogs under `packages/*/CHANGELOG.md`.
-```
+````
 
 - [ ] **Step 5: Commit**
 
@@ -2482,6 +2507,7 @@ git commit -m "docs: root README, LICENSE, CHANGELOG, CONTRIBUTING"
 ### Task 23: Package READMEs
 
 **Files:**
+
 - Create: `packages/core/README.md`
 - Create: `packages/search/README.md`
 
@@ -2505,6 +2531,7 @@ git commit -m "docs: package-level READMEs for core and search"
 ### Task 24: Detailed docs
 
 **Files:**
+
 - Create: `docs/architecture.md`
 - Create: `docs/plugin-api.md`
 - Create: `docs/migrating-from-gnars-mcp.md`
@@ -2512,6 +2539,7 @@ git commit -m "docs: package-level READMEs for core and search"
 - [ ] **Step 1: Write `docs/architecture.md`**
 
 Port the diagram from `gnars-website/mcp-subgraph/SPEC.md` but update:
+
 - Server name: `builder-dao` (not `gnars-subgraph`).
 - Add the plugin registry between Server and Tools.
 - Show optional `search` addon box dotted-outlined.
@@ -2521,6 +2549,7 @@ Port the diagram from `gnars-website/mcp-subgraph/SPEC.md` but update:
 - [ ] **Step 2: Write `docs/plugin-api.md`**
 
 Walk through writing a custom addon:
+
 - Package setup (peerDep on `@builder-dao/cli`).
 - `registerCommand({ name, description, usage, run })` signature with explanation.
 - `registerTool({ name, description, inputSchema, handler })` signature.
@@ -2531,6 +2560,7 @@ Walk through writing a custom addon:
 - [ ] **Step 3: Write `docs/migrating-from-gnars-mcp.md`**
 
 Translation table:
+
 - Old pkg `gnars-subgraph-mcp` → `@builder-dao/cli` + `@builder-dao/cli-search`.
 - Old binary `gnars` → `builder-dao`.
 - Old env `GOLDSKY_PROJECT_ID` still works; new env `DAO_ADDRESS` required (was defaulted to Gnars).
@@ -2549,6 +2579,7 @@ git commit -m "docs: architecture, plugin API, migration guide"
 ### Task 25: Examples
 
 **Files:**
+
 - Create: `examples/gnars.env`
 - Create: `examples/claude-desktop-config.json`
 - Create: `examples/cursor-mcp.json`
@@ -2608,6 +2639,7 @@ git commit -m "docs(examples): Gnars env + MCP client configs"
 ### Task 26: CI workflow
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`
 
 - [ ] **Step 1: Write `.github/workflows/ci.yml`**
@@ -2662,6 +2694,7 @@ git commit -m "ci: lint, typecheck, test, build, and no-Gnars-defaults guard"
 ### Task 27: `@changesets` setup + release workflow
 
 **Files:**
+
 - Create: `.changeset/config.json`
 - Create: `.changeset/README.md`
 - Create: `.github/workflows/release.yml`
@@ -2674,6 +2707,7 @@ Expected: creates `.changeset/config.json` and a starter README.
 - [ ] **Step 2: Edit `.changeset/config.json`**
 
 Set:
+
 ```json
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
@@ -2746,16 +2780,19 @@ git commit -m "chore: @changesets config + release workflow"
 Ensure the core package never accidentally pulls heavy deps.
 
 **Files:**
+
 - No new files.
 
 - [ ] **Step 1: Inspect core's dependency closure**
 
 Run:
+
 ```bash
 cd /Users/r4to/Script/builder-dao-tools
 pnpm --filter @builder-dao/cli why better-sqlite3 2>&1 | head -20
 pnpm --filter @builder-dao/cli why @huggingface/transformers 2>&1 | head -20
 ```
+
 Expected: both report "not found" or no paths (the addon's deps must not appear in core).
 
 - [ ] **Step 2: If either leaks, fix the import path and re-run**
@@ -2775,6 +2812,7 @@ git add -A && git diff --cached --quiet || git commit -m "fix: remove leaked hea
 ### Task 29: Verify npm namespace availability and publish
 
 **Files:**
+
 - None (this is a publishing step).
 
 > **Pause here and ask the user before running the publish commands.** Publishing to npm is public and hard to reverse.
@@ -2782,24 +2820,29 @@ git add -A && git diff --cached --quiet || git commit -m "fix: remove leaked hea
 - [ ] **Step 1: Check namespace availability**
 
 Run:
+
 ```bash
 npm view @builder-dao/cli 2>&1 | head -5
 npm view @builder-dao/cli-search 2>&1 | head -5
 ```
+
 If both say `404` / `Not found`, the namespace is free. Otherwise pick a fallback from the spec ("Naming decisions" §5) and update both `package.json` `name` fields + all imports via find/replace before proceeding.
 
 - [ ] **Step 2: Dry-run publish**
 
 Run:
+
 ```bash
 pnpm -r build
 pnpm -r publish --dry-run --access public
 ```
+
 Expected: shows the file list for each tarball; no errors.
 
 - [ ] **Step 3: Ask user to confirm publishing**
 
 Stop here. Show the user the dry-run output and ask:
+
 > "Dry-run looks clean. Publish `@builder-dao/cli@0.1.0` and `@builder-dao/cli-search@0.1.0` to npm now? (y/N)"
 
 Proceed only on explicit `y`.
@@ -2807,15 +2850,18 @@ Proceed only on explicit `y`.
 - [ ] **Step 4: Log in + publish**
 
 Run:
+
 ```bash
 npm login
 pnpm -r publish --access public
 ```
+
 Expected: both packages published. Visible at `https://www.npmjs.com/package/@builder-dao/cli`.
 
 - [ ] **Step 5: Tag + GitHub release**
 
 Run:
+
 ```bash
 git tag -a v0.1.0 -m "Initial public release"
 git push origin main --tags
@@ -2835,6 +2881,7 @@ EOF
 - [ ] **Step 6: Smoke-test the published package**
 
 In a temp dir, run:
+
 ```bash
 mkdir /tmp/bd-smoke && cd /tmp/bd-smoke
 pnpm init
@@ -2843,6 +2890,7 @@ DAO_ADDRESS=0x880fb3cf5c6cc2d7dfc13a993e839a9411200c17 \
 GOLDSKY_PROJECT_ID=project_cm33ek8kjx6pz010i2c3w8z25 \
 npx builder-dao proposals --limit 2 --pretty
 ```
+
 Expected: prints 2 Gnars proposals. Confirms the published tarball works.
 
 ---
@@ -2854,6 +2902,7 @@ Expected: prints 2 Gnars proposals. Confirms the published tarball works.
 ### Task 30: Remove `mcp-subgraph/` from gnars-website
 
 **Files:**
+
 - Delete: `/Users/r4to/Script/gnars-website/mcp-subgraph/` (whole directory)
 - Modify: `/Users/r4to/Script/gnars-website/tsconfig.json`
 - Modify: `/Users/r4to/Script/gnars-website/.claude/skills/gnars-cli/SKILL.md`
@@ -2874,10 +2923,13 @@ git rm -r mcp-subgraph/
 - [ ] **Step 3: Update `tsconfig.json`**
 
 Open `/Users/r4to/Script/gnars-website/tsconfig.json`. In the `exclude` array, change:
+
 ```json
 "exclude": ["node_modules", "references/**/*", "mcp-subgraph/**/*", "scripts/**/*", "subgraphs/**/*"]
 ```
+
 to:
+
 ```json
 "exclude": ["node_modules", "references/**/*", "scripts/**/*", "subgraphs/**/*"]
 ```
@@ -2886,7 +2938,7 @@ to:
 
 Replace the contents to document the npm-installed binary with pre-configured Gnars env. Keep the same frontmatter block. Body becomes:
 
-```markdown
+````markdown
 # Gnars CLI
 
 Use the `builder-dao` binary (from `@builder-dao/cli` on npm), configured for Gnars via env vars.
@@ -2897,6 +2949,7 @@ Use the `builder-dao` binary (from `@builder-dao/cli` on npm), configured for Gn
 pnpm add -g @builder-dao/cli
 pnpm add -g @builder-dao/cli-search   # optional: enables `sync`/`index`/`search`
 ```
+````
 
 ## Env (always set before running)
 
@@ -2914,7 +2967,8 @@ export GOLDSKY_PROJECT_ID=project_cm33ek8kjx6pz010i2c3w8z25
 - Command reference and flags are preserved from the previous `gnars` binary.
 - `builder-dao vote` still requires `PRIVATE_KEY` in env.
 - Governor address is resolved from `DAO_ADDRESS` via subgraph automatically.
-```
+
+````
 
 Update every `gnars <verb>` example to `builder-dao <verb>`.
 
@@ -2925,16 +2979,19 @@ Run:
 cd /Users/r4to/Script/gnars-website
 grep -R -n --include='*.md' --include='*.ts' --include='*.json' --include='*.mjs' \
   -E 'mcp-subgraph|gnars-subgraph-mcp' . 2>/dev/null | grep -v node_modules | grep -v '.worktrees'
-```
+````
+
 For each match (excluding `docs/superpowers/plans/`), either update or remove the reference.
 
 - [ ] **Step 6: Verify gnars-website still builds/typechecks**
 
 Run:
+
 ```bash
 cd /Users/r4to/Script/gnars-website
 pnpm typecheck 2>&1 | tail -20
 ```
+
 Expected: no new errors introduced by the deletion.
 
 - [ ] **Step 7: Commit and open PR**

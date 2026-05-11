@@ -28,13 +28,13 @@ from where it stopped.
 
 ## Required env (in `.env.local`)
 
-| Variable                       | Required? | Notes                                                |
-| ------------------------------ | --------- | ---------------------------------------------------- |
-| `NEXT_PUBLIC_GOLDSKY_PROJECT_ID` | yes     | Builder DAO subgraph                                 |
-| `NEXT_PUBLIC_ZORA_API_KEY`     | recommended | raises Zora API rate limits                       |
-| `ALCHEMY_API_KEY`              | recommended | mainnet ENS reverse lookup                        |
-| `NEYNAR_API_KEY`               | optional  | Farcaster username, bio, follower count, Twitter via verified accounts |
-| `GECKOTERMINAL_API_KEY`        | optional  | paid tier; without it the run is throttled to ~30 req/min |
+| Variable                         | Required?   | Notes                                                                  |
+| -------------------------------- | ----------- | ---------------------------------------------------------------------- |
+| `NEXT_PUBLIC_GOLDSKY_PROJECT_ID` | yes         | Builder DAO subgraph                                                   |
+| `NEXT_PUBLIC_ZORA_API_KEY`       | recommended | raises Zora API rate limits                                            |
+| `ALCHEMY_API_KEY`                | recommended | mainnet ENS reverse lookup                                             |
+| `NEYNAR_API_KEY`                 | optional    | Farcaster username, bio, follower count, Twitter via verified accounts |
+| `GECKOTERMINAL_API_KEY`          | optional    | paid tier; without it the run is throttled to ~30 req/min              |
 
 Without an Alchemy or Neynar key, those columns are blank — the run still
 completes.
@@ -53,53 +53,53 @@ completes.
 
 One row per creator who has at least one created coin. Sorted by `total_tvl_usd` desc.
 
-| Column                     | Notes                                                                |
-| -------------------------- | -------------------------------------------------------------------- |
-| `creator_address`          | DAO member address (lowercase)                                       |
-| `creator_ens`              | mainnet ENS name (if any)                                            |
-| `creator_farcaster`        | Neynar-resolved Farcaster username                                   |
-| `creator_twitter`          | Zora-linked Twitter > Farcaster verified accounts > coin metadata    |
-| `creator_email`            | best-effort regex on Farcaster bio + Zora handles (often blank)      |
-| `creator_gnars_held`       | NFT count from subgraph                                              |
-| `creator_delegate`         | who they delegated to (lowercase)                                    |
-| `coins_count`              | total created coins matched to this creator                          |
-| `coins_with_liquidity`     | coins where pool TVL > $0                                            |
-| `total_tvl_usd`            | sum of `reserve_in_usd` across all their pools                       |
-| `gnars_paired_tvl_usd`     | sum of TVL where pool currency is the Gnars creator coin             |
-| `top_coin_symbol`          | symbol of the coin with the highest TVL                              |
-| `top_coin_tvl_usd`         | TVL of that top coin                                                 |
-| `migration_priority_tier`  | `high` (≥$10k), `med` (≥$1k), `low` (>$0), `none`                    |
+| Column                    | Notes                                                             |
+| ------------------------- | ----------------------------------------------------------------- |
+| `creator_address`         | DAO member address (lowercase)                                    |
+| `creator_ens`             | mainnet ENS name (if any)                                         |
+| `creator_farcaster`       | Neynar-resolved Farcaster username                                |
+| `creator_twitter`         | Zora-linked Twitter > Farcaster verified accounts > coin metadata |
+| `creator_email`           | best-effort regex on Farcaster bio + Zora handles (often blank)   |
+| `creator_gnars_held`      | NFT count from subgraph                                           |
+| `creator_delegate`        | who they delegated to (lowercase)                                 |
+| `coins_count`             | total created coins matched to this creator                       |
+| `coins_with_liquidity`    | coins where pool TVL > $0                                         |
+| `total_tvl_usd`           | sum of `reserve_in_usd` across all their pools                    |
+| `gnars_paired_tvl_usd`    | sum of TVL where pool currency is the Gnars creator coin          |
+| `top_coin_symbol`         | symbol of the coin with the highest TVL                           |
+| `top_coin_tvl_usd`        | TVL of that top coin                                              |
+| `migration_priority_tier` | `high` (≥$10k), `med` (≥$1k), `low` (>$0), `none`                 |
 
 ### `coins-YYYYMMDD-HHMMSS.csv`
 
 One row per created coin. Sorted by `is_gnars_paired` desc, then `pool_tvl_usd` desc.
 
-| Column                      | Notes                                                                  |
-| --------------------------- | ---------------------------------------------------------------------- |
-| `creator_address`           |                                                                        |
-| `creator_ens`               |                                                                        |
-| `creator_farcaster`         |                                                                        |
-| `coin_address`              | Zora content coin address (lowercase)                                  |
-| `coin_name`                 |                                                                        |
-| `coin_symbol`               |                                                                        |
-| `coin_created_at`           | ISO timestamp from Zora                                                |
-| `is_gnars_paired`           | `true` if pool currency address = `0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b` |
-| `has_liquidity`             | `true` if pool `reserve_in_usd` > 0                                    |
-| `pool_address`              | Uni V4 / Uni V3 pool                                                   |
-| `pool_url`                  | GeckoTerminal explorer link                                            |
-| `backing_currency_symbol`   | from Zora `poolCurrencyToken.name` falling back to Gecko quote symbol  |
-| `backing_currency_address`  |                                                                        |
-| `pool_tvl_usd`              | sum of both sides of the pool, USD                                     |
-| `base_reserve_usd`          | one-side approx (≈ TVL/2; Gecko doesn't expose exact split)            |
-| `quote_reserve_usd`         | one-side approx (≈ TVL/2)                                              |
-| `market_cap_usd`            | from Gecko, falling back to Zora                                       |
-| `volume_24h_usd`            |                                                                        |
-| `total_volume_usd`          | lifetime, from Zora                                                    |
-| `price_usd`                 | Zora `tokenPrice.priceInUsdc`                                          |
-| `holders_count`             | Zora `uniqueHolders`                                                   |
-| `fee_bps`                   | pool fee in basis points                                               |
-| `dex`                       | Gecko DEX id (e.g. `uniswap-v4`)                                       |
-| `zora_url`                  | `https://zora.co/coin/base:{address}`                                  |
+| Column                     | Notes                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------ |
+| `creator_address`          |                                                                                |
+| `creator_ens`              |                                                                                |
+| `creator_farcaster`        |                                                                                |
+| `coin_address`             | Zora content coin address (lowercase)                                          |
+| `coin_name`                |                                                                                |
+| `coin_symbol`              |                                                                                |
+| `coin_created_at`          | ISO timestamp from Zora                                                        |
+| `is_gnars_paired`          | `true` if pool currency address = `0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b` |
+| `has_liquidity`            | `true` if pool `reserve_in_usd` > 0                                            |
+| `pool_address`             | Uni V4 / Uni V3 pool                                                           |
+| `pool_url`                 | GeckoTerminal explorer link                                                    |
+| `backing_currency_symbol`  | from Zora `poolCurrencyToken.name` falling back to Gecko quote symbol          |
+| `backing_currency_address` |                                                                                |
+| `pool_tvl_usd`             | sum of both sides of the pool, USD                                             |
+| `base_reserve_usd`         | one-side approx (≈ TVL/2; Gecko doesn't expose exact split)                    |
+| `quote_reserve_usd`        | one-side approx (≈ TVL/2)                                                      |
+| `market_cap_usd`           | from Gecko, falling back to Zora                                               |
+| `volume_24h_usd`           |                                                                                |
+| `total_volume_usd`         | lifetime, from Zora                                                            |
+| `price_usd`                | Zora `tokenPrice.priceInUsdc`                                                  |
+| `holders_count`            | Zora `uniqueHolders`                                                           |
+| `fee_bps`                  | pool fee in basis points                                                       |
+| `dex`                      | Gecko DEX id (e.g. `uniswap-v4`)                                               |
+| `zora_url`                 | `https://zora.co/coin/base:{address}`                                          |
 
 ## Caveats
 

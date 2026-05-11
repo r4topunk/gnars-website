@@ -14,33 +14,37 @@
 
 ## File Structure
 
-| Action | File | Responsibility |
-|--------|------|---------------|
-| Create | `src/services/poidh.ts` | Cached service functions for fetching bounties from POIDH tRPC API |
-| Create | `src/components/bounties/BountiesView.tsx` | Client component: filters, stats, grid (extracted from current page.tsx) |
-| Create | `src/components/bounties/BountyDetailView.tsx` | Client component: interactive bounty detail (extracted from current [id]/page.tsx) |
-| Rewrite | `src/app/community/bounties/page.tsx` | Server Component: SSR with Suspense |
-| Rewrite | `src/app/community/bounties/[chainId]/[id]/page.tsx` | Server Component: SSR with generateMetadata |
-| Rewrite | `src/app/api/poidh/bounties/route.ts` | Thin route: parse params, call service |
-| Rewrite | `src/app/api/poidh/bounty/[chainId]/[id]/route.ts` | Thin route: parse params, call service |
-| Edit | `src/hooks/usePoidhBounties.ts` | Add optional `initialData` support |
-| Export | `src/components/bounties/BountyGrid.tsx` | Export `SkeletonCard` grid for Suspense fallback |
+| Action  | File                                                 | Responsibility                                                                     |
+| ------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Create  | `src/services/poidh.ts`                              | Cached service functions for fetching bounties from POIDH tRPC API                 |
+| Create  | `src/components/bounties/BountiesView.tsx`           | Client component: filters, stats, grid (extracted from current page.tsx)           |
+| Create  | `src/components/bounties/BountyDetailView.tsx`       | Client component: interactive bounty detail (extracted from current [id]/page.tsx) |
+| Rewrite | `src/app/community/bounties/page.tsx`                | Server Component: SSR with Suspense                                                |
+| Rewrite | `src/app/community/bounties/[chainId]/[id]/page.tsx` | Server Component: SSR with generateMetadata                                        |
+| Rewrite | `src/app/api/poidh/bounties/route.ts`                | Thin route: parse params, call service                                             |
+| Rewrite | `src/app/api/poidh/bounty/[chainId]/[id]/route.ts`   | Thin route: parse params, call service                                             |
+| Edit    | `src/hooks/usePoidhBounties.ts`                      | Add optional `initialData` support                                                 |
+| Export  | `src/components/bounties/BountyGrid.tsx`             | Export `SkeletonCard` grid for Suspense fallback                                   |
 
 ## Parallelization
 
 Tasks 1, 2, and 3 are **independent** and can run in parallel:
+
 - Task 1: Service layer
 - Task 2: BountiesView client component
 - Task 3: BountyDetailView client component
 
 Tasks 4 and 5 depend on Tasks 1+2 and 1+3 respectively:
+
 - Task 4: List page SSR (needs service + BountiesView)
 - Task 5: Detail page SSR (needs service + BountyDetailView)
 
 Task 6 depends on Task 1:
+
 - Task 6: Thin API routes (needs service)
 
 Task 7 is independent:
+
 - Task 7: Hook update
 
 ---
@@ -48,6 +52,7 @@ Task 7 is independent:
 ### Task 1: Create Service Layer
 
 **Files:**
+
 - Create: `src/services/poidh.ts`
 
 - [ ] **Step 1: Create `src/services/poidh.ts`**
@@ -56,8 +61,8 @@ Extract all business logic from the two API routes into cached service functions
 
 ```typescript
 import { cache } from "react";
-import { matchesGnarsKeywords } from "@/lib/poidh/keywords";
 import { SUPPORTED_CHAINS } from "@/lib/poidh/config";
+import { matchesGnarsKeywords } from "@/lib/poidh/keywords";
 import type { PoidhBounty, PoidhClaim } from "@/types/poidh";
 
 const POIDH_TRPC = "https://poidh.xyz/api/trpc";
@@ -93,10 +98,7 @@ async function fetchFromPoidh(
   return data?.result?.data?.json;
 }
 
-async function fetchBountiesByStatus(
-  status: string,
-  limit: number,
-): Promise<PoidhBounty[]> {
+async function fetchBountiesByStatus(status: string, limit: number): Promise<PoidhBounty[]> {
   const data = await fetchFromPoidh(
     "bounties.fetchAll",
     { status, sortType: "date", limit },
@@ -121,8 +123,7 @@ function normalizeBounties(
     .map((b) => ({
       ...b,
       isOpenBounty: b.isOpenBounty ?? b.isMultiplayer,
-      isCompleted:
-        rawStatus === "all" ? (b.isCompleted ?? false) : rawStatus === "closed",
+      isCompleted: rawStatus === "all" ? (b.isCompleted ?? false) : rawStatus === "closed",
     }));
 }
 
@@ -151,10 +152,7 @@ export const fetchPoidhBounties = cache(
         closed: "past",
         voting: "progress",
       };
-      bounties = await fetchBountiesByStatus(
-        statusMap[status] || "open",
-        clampedLimit,
-      );
+      bounties = await fetchBountiesByStatus(statusMap[status] || "open", clampedLimit);
     }
 
     const normalized = normalizeBounties(bounties, status, filterGnarly);
@@ -191,11 +189,7 @@ export const fetchPoidhBounty = cache(
     if (!SUPPORTED_CHAIN_IDS.includes(chainId)) return null;
     if (isNaN(id) || id < 1) return null;
 
-    const bountyData = await fetchFromPoidh(
-      "bounties.fetch",
-      { id, chainId },
-      DETAIL_CACHE_TTL,
-    );
+    const bountyData = await fetchFromPoidh("bounties.fetch", { id, chainId }, DETAIL_CACHE_TTL);
 
     if (!bountyData) return null;
     const bounty = bountyData as PoidhBounty;
@@ -240,6 +234,7 @@ git commit -m "feat(poidh): create service layer with cached fetch functions"
 ### Task 2: Extract BountiesView Client Component
 
 **Files:**
+
 - Create: `src/components/bounties/BountiesView.tsx`
 - Edit: `src/hooks/usePoidhBounties.ts` (add initialData)
 - Edit: `src/components/bounties/BountyGrid.tsx` (export skeleton)
@@ -249,11 +244,11 @@ git commit -m "feat(poidh): create service layer with cached fetch functions"
 Replace `src/hooks/usePoidhBounties.ts` with:
 
 ```typescript
-import { useQuery } from '@tanstack/react-query';
-import type { PoidhBounty } from '@/types/poidh';
+import { useQuery } from "@tanstack/react-query";
+import type { PoidhBounty } from "@/types/poidh";
 
 interface UsePoidhBountiesOptions {
-  status?: 'open' | 'closed' | 'voting' | 'all';
+  status?: "open" | "closed" | "voting" | "all";
   limit?: number;
   filterGnarly?: boolean;
   initialData?: PoidhBountiesResponse;
@@ -265,10 +260,10 @@ interface PoidhBountiesResponse {
 }
 
 export function usePoidhBounties(options: UsePoidhBountiesOptions = {}) {
-  const { status = 'open', limit = 100, filterGnarly = false, initialData } = options;
+  const { status = "open", limit = 100, filterGnarly = false, initialData } = options;
 
   return useQuery<PoidhBountiesResponse, Error>({
-    queryKey: ['poidh-bounties', status, limit, filterGnarly],
+    queryKey: ["poidh-bounties", status, limit, filterGnarly],
     queryFn: async () => {
       const params = new URLSearchParams({
         status,
@@ -280,7 +275,7 @@ export function usePoidhBounties(options: UsePoidhBountiesOptions = {}) {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.details || 'Failed to fetch bounties');
+        throw new Error(error.details || "Failed to fetch bounties");
       }
 
       return res.json();
@@ -511,11 +506,13 @@ git commit -m "feat(poidh): extract BountiesView client component with initialDa
 ### Task 3: Extract BountyDetailView Client Component
 
 **Files:**
+
 - Create: `src/components/bounties/BountyDetailView.tsx`
 
 - [ ] **Step 1: Create `src/components/bounties/BountyDetailView.tsx`**
 
 Move the entire content of the current `src/app/community/bounties/[chainId]/[id]/page.tsx` into this new file with these changes:
+
 1. Rename the default export to `export function BountyDetailView`
 2. Change the component signature to accept props instead of using `useParams`:
    ```typescript
@@ -524,16 +521,16 @@ Move the entire content of the current `src/app/community/bounties/[chainId]/[id
      chainId: number;
      bountyId: number;
    }
-   export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDetailViewProps)
+   export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDetailViewProps);
    ```
 3. Remove `useParams()` — use `chainId` and `bountyId` from props
 4. Use React Query with `initialData` for the bounty fetch:
    ```typescript
    const { data, isLoading, error } = useQuery<{ bounty: PoidhBounty }>({
-     queryKey: ['poidh-bounty', chainId, bountyId],
+     queryKey: ["poidh-bounty", chainId, bountyId],
      queryFn: async () => {
        const res = await fetch(`/api/poidh/bounty/${chainId}/${bountyId}`);
-       if (!res.ok) throw new Error('Bounty not found');
+       if (!res.ok) throw new Error("Bounty not found");
        return res.json();
      },
      initialData: { bounty: initialBounty },
@@ -563,6 +560,7 @@ git commit -m "feat(poidh): extract BountyDetailView client component"
 ### Task 4: Rewrite List Page as Server Component
 
 **Files:**
+
 - Rewrite: `src/app/community/bounties/page.tsx`
 
 **Depends on:** Task 1 (service), Task 2 (BountiesView)
@@ -615,6 +613,7 @@ git commit -m "feat(poidh): convert bounties list page to SSR with Suspense"
 ### Task 5: Rewrite Detail Page as Server Component
 
 **Files:**
+
 - Rewrite: `src/app/community/bounties/[chainId]/[id]/page.tsx`
 
 **Depends on:** Task 1 (service), Task 3 (BountyDetailView)
@@ -722,6 +721,7 @@ git commit -m "feat(poidh): convert bounty detail page to SSR with generateMetad
 ### Task 6: Thin Out API Routes
 
 **Files:**
+
 - Rewrite: `src/app/api/poidh/bounties/route.ts`
 - Rewrite: `src/app/api/poidh/bounty/[chainId]/[id]/route.ts`
 
@@ -746,10 +746,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     console.error("POIDH API error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch bounties" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch bounties" }, { status: 500 });
   }
 }
 ```
@@ -782,10 +779,7 @@ export async function GET(
     return NextResponse.json({ bounty });
   } catch (error) {
     console.error("POIDH bounty API error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch bounty" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch bounty" }, { status: 500 });
   }
 }
 ```

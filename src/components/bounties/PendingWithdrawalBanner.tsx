@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useReadContract } from 'wagmi';
-import { formatEther } from 'viem';
-import { Wallet, Loader2, CheckCircle2, ExternalLink, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { POIDH_ABI } from '@/lib/poidh/abi';
-import { POIDH_CONTRACTS, CHAIN_NAMES, getTxUrl, SUPPORTED_CHAINS } from '@/lib/poidh/config';
-import { usePoidhWithdraw } from '@/hooks/usePoidhContract';
-import { useUserAddress } from '@/hooks/use-user-address';
+import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Wallet } from "lucide-react";
+import { formatEther } from "viem";
+import { useReadContract } from "wagmi";
+import { Button } from "@/components/ui/button";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { usePoidhWithdraw } from "@/hooks/usePoidhContract";
+import { POIDH_ABI } from "@/lib/poidh/abi";
+import { CHAIN_NAMES, getTxUrl, POIDH_CONTRACTS, SUPPORTED_CHAINS } from "@/lib/poidh/config";
 
 interface ChainBannerProps {
   chainId: number;
@@ -22,7 +22,7 @@ function ChainWithdrawalBanner({ chainId, userAddress }: ChainBannerProps) {
   const { data: pending, refetch } = useReadContract({
     address: contractAddress,
     abi: POIDH_ABI,
-    functionName: 'pendingWithdrawals',
+    functionName: "pendingWithdrawals",
     args: [userAddress],
     chainId,
     query: { enabled: !!contractAddress, refetchInterval: 30_000 },
@@ -71,15 +71,18 @@ function ChainWithdrawalBanner({ chainId, userAddress }: ChainBannerProps) {
             onClick={() => withdraw()}
           >
             {isPending ? (
-              <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Withdrawing…</>
+              <>
+                <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                Withdrawing…
+              </>
             ) : (
-              'Withdraw'
+              "Withdraw"
             )}
           </Button>
           {error && (
             <div className="flex items-start gap-1 text-destructive text-xs max-w-[12rem]">
               <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-              <span className="break-words">{error.message.split('\n')[0]}</span>
+              <span className="break-words">{error.message.split("\n")[0]}</span>
             </div>
           )}
         </div>

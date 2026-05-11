@@ -1,5 +1,5 @@
-import { config } from "dotenv";
 import { resolve } from "path";
+import { config } from "dotenv";
 import { createPublicClient, http, parseAbi } from "viem";
 import { base } from "viem/chains";
 
@@ -55,7 +55,9 @@ async function checkSkateboardNFTs() {
   }
 
   console.log(`\n📊 Total Gnars NFTs: ${totalNFTs}`);
-  console.log(`\n${totalNFTs >= 1 ? "✅" : "❌"} Qualified Creator: ${totalNFTs >= 1 ? "YES" : "NO"} (needs 1+ NFT)`);
+  console.log(
+    `\n${totalNFTs >= 1 ? "✅" : "❌"} Qualified Creator: ${totalNFTs >= 1 ? "YES" : "NO"} (needs 1+ NFT)`,
+  );
 }
 
 checkSkateboardNFTs();

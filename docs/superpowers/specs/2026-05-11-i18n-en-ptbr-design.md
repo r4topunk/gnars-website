@@ -29,15 +29,15 @@ Ship a fully bilingual UI shell (English + Brazilian Portuguese) for the Gnars D
 
 ## Decisions (locked)
 
-| # | Decision | Reason |
-|---|---|---|
-| 1 | Scope: **UI shell only** | Onchain content is canonical and shouldn't be machine-translated; blog post translation is a separate body of work. |
-| 2 | Routing: **subpath, `localePrefix: "as-needed"`** | `/` stays English (no prefix); `/pt-br/*` for Portuguese. Preserves all inbound URLs, miniapp config, existing redirects. SEO via `hreflang`. |
-| 3 | Library: **`next-intl`** | Only mature App Router + subpath solution. Server/client component split, typed messages, ICU plurals, navigation helpers, metadata integration. |
-| 4 | Translation generation: **auto-translate with tone brief, human spot-check** | Native speaker (user) encodes preferences once; agents produce credible first pass; orchestrator reviews highlights. |
-| 5 | Default locale at `/`: **English unprefixed; PT-BR returning visitors redirected via cookie middleware** | No URL breakage; returning PT-BR users get the right locale without manual switching. |
-| 6 | Rollout: **single PR, single worktree, multiple subagents** | Per user direction. Conflict avoidance via disjoint file ownership + per-namespace JSON files. |
-| 7 | Messages organization: **per-namespace JSON files merged at runtime in `i18n/request.ts`** | Avoids merge conflicts on one giant `en.json` when multiple agents work in parallel. |
+| #   | Decision                                                                                                 | Reason                                                                                                                                           |
+| --- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Scope: **UI shell only**                                                                                 | Onchain content is canonical and shouldn't be machine-translated; blog post translation is a separate body of work.                              |
+| 2   | Routing: **subpath, `localePrefix: "as-needed"`**                                                        | `/` stays English (no prefix); `/pt-br/*` for Portuguese. Preserves all inbound URLs, miniapp config, existing redirects. SEO via `hreflang`.    |
+| 3   | Library: **`next-intl`**                                                                                 | Only mature App Router + subpath solution. Server/client component split, typed messages, ICU plurals, navigation helpers, metadata integration. |
+| 4   | Translation generation: **auto-translate with tone brief, human spot-check**                             | Native speaker (user) encodes preferences once; agents produce credible first pass; orchestrator reviews highlights.                             |
+| 5   | Default locale at `/`: **English unprefixed; PT-BR returning visitors redirected via cookie middleware** | No URL breakage; returning PT-BR users get the right locale without manual switching.                                                            |
+| 6   | Rollout: **single PR, single worktree, multiple subagents**                                              | Per user direction. Conflict avoidance via disjoint file ownership + per-namespace JSON files.                                                   |
+| 7   | Messages organization: **per-namespace JSON files merged at runtime in `i18n/request.ts`**               | Avoids merge conflicts on one giant `en.json` when multiple agents work in parallel.                                                             |
 
 ## Architecture
 
@@ -136,18 +136,36 @@ export const routing = defineRouting({
 ### `src/i18n/request.ts`
 
 ```ts
-import { getRequestConfig } from "next-intl/server";
 import { hasLocale } from "next-intl";
+import { getRequestConfig } from "next-intl/server";
 import { routing } from "./routing";
 
 const NAMESPACES = [
-  "common", "nav", "footer", "wallet",
-  "home", "about",
-  "proposals", "propose", "propdates",
-  "auctions", "tv", "members", "treasury",
-  "feed", "droposals", "swap", "coinProposal", "createCoin",
-  "mural", "map", "installations", "bounties", "blogs",
-  "errors", "metadata",
+  "common",
+  "nav",
+  "footer",
+  "wallet",
+  "home",
+  "about",
+  "proposals",
+  "propose",
+  "propdates",
+  "auctions",
+  "tv",
+  "members",
+  "treasury",
+  "feed",
+  "droposals",
+  "swap",
+  "coinProposal",
+  "createCoin",
+  "mural",
+  "map",
+  "installations",
+  "bounties",
+  "blogs",
+  "errors",
+  "metadata",
 ] as const;
 
 export default getRequestConfig(async ({ requestLocale }) => {
@@ -158,7 +176,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     NAMESPACES.map(async (ns) => {
       const mod = await import(`@/messages/${locale}/${ns}.json`);
       return [ns, mod.default] as const;
-    })
+    }),
   );
 
   return {
@@ -180,8 +198,8 @@ export const { Link, redirect, usePathname, useRouter, getPathname } = createNav
 ### `src/proxy.ts` (merged)
 
 ```ts
-import { NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
+import { NextRequest, NextResponse } from "next/server";
 import { routing } from "@/i18n/routing";
 
 const intlProxy = createIntlMiddleware(routing);
@@ -223,10 +241,11 @@ export const config = {
 
 ```tsx
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
+import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+
 // … existing provider imports
 
 export function generateStaticParams() {
@@ -300,25 +319,25 @@ Verbs ARE translated when used as plain action labels (e.g., button "Vote" → "
 
 ### Specific term mapping
 
-| English | PT-BR | Notes |
-|---|---|---|
-| Connect wallet | Conectar wallet | keep "wallet" |
-| Place bid | Dar bid | keep "bid" |
-| Create proposal | Criar proposal | keep "proposal" |
-| Vote against | Votar contra | |
-| Vote for | Votar a favor | |
-| Abstain | Abster | |
-| Loading… | Carregando… | |
-| Something went wrong | Algo deu errado | |
-| Not found | Não encontrado | |
-| Empty / nothing here yet | Nada por aqui ainda | |
-| Skater | Skatista | OK to localize |
-| Community | Comunidade | |
-| Members | Membros | |
-| Treasury | Treasury | keep English (governance term) |
-| Coin proposal | Coin proposal | wizard label, keep English |
-| Onchain | Onchain | keep |
-| Mainnet / Base | Mainnet / Base | keep |
+| English                  | PT-BR               | Notes                          |
+| ------------------------ | ------------------- | ------------------------------ |
+| Connect wallet           | Conectar wallet     | keep "wallet"                  |
+| Place bid                | Dar bid             | keep "bid"                     |
+| Create proposal          | Criar proposal      | keep "proposal"                |
+| Vote against             | Votar contra        |                                |
+| Vote for                 | Votar a favor       |                                |
+| Abstain                  | Abster              |                                |
+| Loading…                 | Carregando…         |                                |
+| Something went wrong     | Algo deu errado     |                                |
+| Not found                | Não encontrado      |                                |
+| Empty / nothing here yet | Nada por aqui ainda |                                |
+| Skater                   | Skatista            | OK to localize                 |
+| Community                | Comunidade          |                                |
+| Members                  | Membros             |                                |
+| Treasury                 | Treasury            | keep English (governance term) |
+| Coin proposal            | Coin proposal       | wizard label, keep English     |
+| Onchain                  | Onchain             | keep                           |
+| Mainnet / Base           | Mainnet / Base      | keep                           |
 
 ### Style rules
 
@@ -331,14 +350,14 @@ Verbs ARE translated when used as plain action labels (e.g., button "Vote" → "
 
 ### Examples (showing the tone)
 
-| EN | PT-BR (good) | PT-BR (bad) |
-|---|---|---|
-| Place bid | Dar bid | Fazer um lance |
+| EN                                 | PT-BR (good)                          | PT-BR (bad)                                     |
+| ---------------------------------- | ------------------------------------- | ----------------------------------------------- |
+| Place bid                          | Dar bid                               | Fazer um lance                                  |
 | You don't have enough voting power | Você não tem poder de voto suficiente | O senhor não dispõe de poder de voto suficiente |
-| Loading proposals… | Carregando proposals… | A carregar propostas… |
-| No proposals yet | Nenhum proposal ainda | Não há propostas ainda |
-| Connect to bid | Conecta a wallet pra dar bid | Por favor, conecte sua carteira |
-| Funding skate culture worldwide | Bancando a cultura skate pelo mundo | Financiando a cultura do skate mundialmente |
+| Loading proposals…                 | Carregando proposals…                 | A carregar propostas…                           |
+| No proposals yet                   | Nenhum proposal ainda                 | Não há propostas ainda                          |
+| Connect to bid                     | Conecta a wallet pra dar bid          | Por favor, conecte sua carteira                 |
+| Funding skate culture worldwide    | Bancando a cultura skate pelo mundo   | Financiando a cultura do skate mundialmente     |
 
 ## Subagent orchestration plan
 
@@ -347,6 +366,7 @@ Verbs ARE translated when used as plain action labels (e.g., button "Vote" → "
 Subagent type: `frontend-engineer`.
 
 Tasks:
+
 1. `pnpm add next-intl@latest`.
 2. Create `src/i18n/{routing,request,navigation}.ts` exactly as specified above.
 3. Move all routes from `src/app/` to `src/app/[locale]/` (EXCEPT: `api/`, `md/`, `opengraph-image.tsx`, `robots.ts`, `sitemap.xml/`, `miniapp-image/`, `favicon.ico`).
@@ -367,6 +387,7 @@ Acceptance: dev server boots, both URLs load, no console errors, lint+format cle
 Subagent type: `frontend-engineer` per slice. Run in batches of up to 5 in parallel.
 
 **Each agent's prompt receives**:
+
 - Slice name + complete file ownership list (explicit paths).
 - JSON namespace(s) it owns.
 - Reference to `docs/i18n/tone-brief.md`.
@@ -376,17 +397,17 @@ Subagent type: `frontend-engineer` per slice. Run in batches of up to 5 in paral
 
 **Slice ownership** (no overlap):
 
-| Slice | Component / route files | JSON namespaces owned |
-|---|---|---|
-| **A — Layout** | `components/layout/{DaoHeader,SiteFooter,WalletDrawer,DelegationModal,AAOnboarding,ThemeToggle,LocaleSwitcher}.tsx`, `components/miniapp/**`, `components/tv/{MiniTV,MiniTVVisibilityContext}.tsx`, `components/home/{HomeFooter,NogglesCopyFooter}.tsx` (footer variants), wallet hook UX strings | `nav`, `footer`, `wallet` |
-| **B — Common UI + Errors** | `components/common/**` (except `FAQ.tsx`), `components/skeletons/**`, `components/ui/**` (only user-facing strings in those components; most are unstyled primitives with no copy), error/toast strings in `lib/proposal-utils.ts`, `lib/proposal-template-schemas.ts`, `lib/schemas/**` | `common`, `errors` |
-| **C — Home + About** | `app/[locale]/page.tsx`, `components/home/**` (excl. footer variants from A), `components/hero/**`, `components/common/FAQ.tsx`, `app/[locale]/about/**` | `home`, `about` |
-| **D — Auctions** | `app/[locale]/auctions/**`, `components/auctions/**`, `components/auction/**` | `auctions` |
-| **E — Proposals + Propose + Propdates** | `app/[locale]/proposals/**`, `app/[locale]/propose/**`, `app/[locale]/propdates/**`, `components/proposals/**`, `components/propdates/**` | `proposals`, `propose`, `propdates` |
-| **F — TV** | `app/[locale]/tv/**`, `components/tv/**` (excluding Mini* from A) | `tv` |
-| **G — Members + Treasury** | `app/[locale]/members/**`, `app/[locale]/treasury/**`, `components/members/**`, `components/treasury/**` | `members`, `treasury` |
-| **H — Coin / Swap / Feed / Droposals** | `app/[locale]/coin-proposal/**`, `app/[locale]/create-coin/**`, `app/[locale]/swap/**`, `app/[locale]/feed/**`, `app/[locale]/droposals/**`, `components/coin-proposal/**`, `components/feed/**`, `components/droposals/**`, `components/snapshot/**` | `coinProposal`, `createCoin`, `swap`, `feed`, `droposals` |
-| **I — Community surfaces + Blogs shell** | `app/[locale]/community/**`, `app/[locale]/installations/**`, `app/[locale]/map/**`, `app/[locale]/mural/**`, `app/[locale]/blogs/**` (list/filter/headings ONLY, post body untouched), `app/[locale]/nogglesrails/**`, `app/[locale]/[slug]/**`, `components/bounties/**`, `components/installations/**`, `components/blogs/**` (excluding post-body rendering), `components/nogglesrails/**`, `components/map-location-drawer.tsx`, `components/contracts-list.tsx` | `bounties`, `blogs`, `installations`, `map`, `mural` |
+| Slice                                    | Component / route files                                                                                                                                                                                                                                                                                                                                                                                                                                               | JSON namespaces owned                                     |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| **A — Layout**                           | `components/layout/{DaoHeader,SiteFooter,WalletDrawer,DelegationModal,AAOnboarding,ThemeToggle,LocaleSwitcher}.tsx`, `components/miniapp/**`, `components/tv/{MiniTV,MiniTVVisibilityContext}.tsx`, `components/home/{HomeFooter,NogglesCopyFooter}.tsx` (footer variants), wallet hook UX strings                                                                                                                                                                    | `nav`, `footer`, `wallet`                                 |
+| **B — Common UI + Errors**               | `components/common/**` (except `FAQ.tsx`), `components/skeletons/**`, `components/ui/**` (only user-facing strings in those components; most are unstyled primitives with no copy), error/toast strings in `lib/proposal-utils.ts`, `lib/proposal-template-schemas.ts`, `lib/schemas/**`                                                                                                                                                                              | `common`, `errors`                                        |
+| **C — Home + About**                     | `app/[locale]/page.tsx`, `components/home/**` (excl. footer variants from A), `components/hero/**`, `components/common/FAQ.tsx`, `app/[locale]/about/**`                                                                                                                                                                                                                                                                                                              | `home`, `about`                                           |
+| **D — Auctions**                         | `app/[locale]/auctions/**`, `components/auctions/**`, `components/auction/**`                                                                                                                                                                                                                                                                                                                                                                                         | `auctions`                                                |
+| **E — Proposals + Propose + Propdates**  | `app/[locale]/proposals/**`, `app/[locale]/propose/**`, `app/[locale]/propdates/**`, `components/proposals/**`, `components/propdates/**`                                                                                                                                                                                                                                                                                                                             | `proposals`, `propose`, `propdates`                       |
+| **F — TV**                               | `app/[locale]/tv/**`, `components/tv/**` (excluding Mini\* from A)                                                                                                                                                                                                                                                                                                                                                                                                    | `tv`                                                      |
+| **G — Members + Treasury**               | `app/[locale]/members/**`, `app/[locale]/treasury/**`, `components/members/**`, `components/treasury/**`                                                                                                                                                                                                                                                                                                                                                              | `members`, `treasury`                                     |
+| **H — Coin / Swap / Feed / Droposals**   | `app/[locale]/coin-proposal/**`, `app/[locale]/create-coin/**`, `app/[locale]/swap/**`, `app/[locale]/feed/**`, `app/[locale]/droposals/**`, `components/coin-proposal/**`, `components/feed/**`, `components/droposals/**`, `components/snapshot/**`                                                                                                                                                                                                                 | `coinProposal`, `createCoin`, `swap`, `feed`, `droposals` |
+| **I — Community surfaces + Blogs shell** | `app/[locale]/community/**`, `app/[locale]/installations/**`, `app/[locale]/map/**`, `app/[locale]/mural/**`, `app/[locale]/blogs/**` (list/filter/headings ONLY, post body untouched), `app/[locale]/nogglesrails/**`, `app/[locale]/[slug]/**`, `components/bounties/**`, `components/installations/**`, `components/blogs/**` (excluding post-body rendering), `components/nogglesrails/**`, `components/map-location-drawer.tsx`, `components/contracts-list.tsx` | `bounties`, `blogs`, `installations`, `map`, `mural`      |
 
 **Batching strategy** (orchestrator runs):
 
@@ -407,6 +428,7 @@ Reads every `messages/en/*.json`, writes the matching `messages/pt-br/*.json` fo
 Subagent type: `frontend-engineer`.
 
 Tasks:
+
 1. Convert every `export const metadata` in `[locale]/**/page.tsx` and `[locale]/**/layout.tsx` to `generateMetadata({ params })` using `getTranslations({ locale, namespace: 'metadata.<route>' })`.
 2. Add `alternates: { canonical, languages }` to every route's metadata.
 3. Update `src/app/sitemap.xml/route.ts` to emit both locales with `xhtml:link` alternates.
@@ -418,6 +440,7 @@ Tasks:
 Subagent type: `superpowers:code-reviewer`.
 
 Tasks (read-only, except for adding follow-up flags):
+
 1. Grep for hardcoded English strings still present in `src/app/[locale]/**` and `src/components/**` (exclude shadcn primitives, `cn()` classNames, code comments, `aria-label` placeholders intentionally English).
 2. Diff `messages/en/` and `messages/pt-br/` key sets — every key in `en` must exist in `pt-br`.
 3. Verify zero `from "next/link"` and zero `from "next/navigation"` imports remain inside `src/app/[locale]/**` and `src/components/**` (API routes excluded).
@@ -428,6 +451,7 @@ Tasks (read-only, except for adding follow-up flags):
 ### Phase 6 — Manual smoke + PR
 
 Orchestrator (not a subagent) runs `pnpm dev`, verifies:
+
 - `/` renders English.
 - `/pt-br` renders Portuguese.
 - `/pt-br/proposals` renders Portuguese.
@@ -448,16 +472,16 @@ Then `gh pr create` to `main` with PR body following CLAUDE.md template.
 
 ## Risks & mitigations
 
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Auto-translation tone drifts (too formal or wrong gíria) | Medium | Medium (UX feel) | Tone brief + spot-check pass during Phase 6. User reviews a sample before PR. |
-| Hidden hardcoded strings missed in extraction | High | Low-medium (English bleed-through in PT-BR) | Phase 5 audit grep. Iterate as needed. |
-| `[locale]` move breaks an inbound URL or test | Medium | High | `localePrefix: "as-needed"` preserves all unprefixed URLs. Run existing Playwright tests in Phase 5. Manual smoke covers redirects. |
-| `proxy.ts` markdown rewrite breaks under locale prefix | Medium | Medium | `stripLocale` helper in the proxy + matcher excludes `/md`. Verify `Accept: text/markdown` for both `/proposals` and `/pt-br/proposals`. |
-| React Compiler interaction with next-intl context | Low | Low | next-intl uses standard React context (compatible). Subagents instructed not to manually memoize. |
-| Bundle size growth | Low | Low | All messages loaded at layout boundary (~30-50kb JSON gzipped). Acceptable for v1; can split per-route later if needed. |
-| Onchain content visually mixed with PT-BR UI (proposal title in English inside PT-BR shell) | Certain | Low | Documented and accepted. Future enhancement: add a small `[EN]` badge or auto-translate proposal titles with a disclaimer. Out of scope. |
-| Subagent dispatched in wrong batch leaves intermediate state | Low | Medium | Batches are sequential at the orchestrator level. Each batch's completion is verified before the next launches. |
+| Risk                                                                                        | Likelihood | Impact                                      | Mitigation                                                                                                                               |
+| ------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Auto-translation tone drifts (too formal or wrong gíria)                                    | Medium     | Medium (UX feel)                            | Tone brief + spot-check pass during Phase 6. User reviews a sample before PR.                                                            |
+| Hidden hardcoded strings missed in extraction                                               | High       | Low-medium (English bleed-through in PT-BR) | Phase 5 audit grep. Iterate as needed.                                                                                                   |
+| `[locale]` move breaks an inbound URL or test                                               | Medium     | High                                        | `localePrefix: "as-needed"` preserves all unprefixed URLs. Run existing Playwright tests in Phase 5. Manual smoke covers redirects.      |
+| `proxy.ts` markdown rewrite breaks under locale prefix                                      | Medium     | Medium                                      | `stripLocale` helper in the proxy + matcher excludes `/md`. Verify `Accept: text/markdown` for both `/proposals` and `/pt-br/proposals`. |
+| React Compiler interaction with next-intl context                                           | Low        | Low                                         | next-intl uses standard React context (compatible). Subagents instructed not to manually memoize.                                        |
+| Bundle size growth                                                                          | Low        | Low                                         | All messages loaded at layout boundary (~30-50kb JSON gzipped). Acceptable for v1; can split per-route later if needed.                  |
+| Onchain content visually mixed with PT-BR UI (proposal title in English inside PT-BR shell) | Certain    | Low                                         | Documented and accepted. Future enhancement: add a small `[EN]` badge or auto-translate proposal titles with a disclaimer. Out of scope. |
+| Subagent dispatched in wrong batch leaves intermediate state                                | Low        | Medium                                      | Batches are sequential at the orchestrator level. Each batch's completion is verified before the next launches.                          |
 
 ## Out of scope (deferred)
 

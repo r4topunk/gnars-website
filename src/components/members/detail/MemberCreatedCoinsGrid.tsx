@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Coins, ExternalLink, TrendingDown, TrendingUp, Minus, Plus } from "lucide-react";
+import { Coins, ExternalLink, Minus, Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { FaEthereum } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,8 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { formatEthToUsd, useEthPrice } from "@/hooks/use-eth-price";
 import { useTradeCreatorCoin } from "@/hooks/use-trade-creator-coin";
-import { useEthPrice, formatEthToUsd } from "@/hooks/use-eth-price";
 import { GNARS_CREATOR_COIN } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
@@ -311,7 +311,7 @@ function CoinCard({ coin }: { coin: CreatedCoin }) {
                 >
                   <Minus className="w-5 h-5 text-white" />
                 </button>
-                
+
                 <div className="flex items-center gap-3">
                   <span className="text-4xl font-bold text-white tabular-nums">
                     {ethAmount.toFixed(3)}
@@ -333,12 +333,8 @@ function CoinCard({ coin }: { coin: CreatedCoin }) {
 
               {/* USD Conversion */}
               <div className="flex items-center justify-between text-sm">
-                <span className="text-zinc-400">
-                  {formatEthToUsd(ethAmount, ethPrice)}
-                </span>
-                <span className="text-zinc-500 tabular-nums">
-                  {ethAmount.toFixed(6)} ETH
-                </span>
+                <span className="text-zinc-400">{formatEthToUsd(ethAmount, ethPrice)}</span>
+                <span className="text-zinc-500 tabular-nums">{ethAmount.toFixed(6)} ETH</span>
               </div>
             </div>
 

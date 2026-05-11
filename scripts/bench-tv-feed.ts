@@ -14,7 +14,7 @@
  * Results saved to scripts/bench-results/feed-YYYY-MM-DDTHH-MM-SS.json
  */
 
-import { writeFileSync, mkdirSync } from "fs";
+import { mkdirSync, writeFileSync } from "fs";
 import { resolve } from "path";
 
 const args = process.argv.slice(2);
@@ -148,7 +148,7 @@ async function runBenchmark(): Promise<BenchResult> {
       }
 
       console.log(
-        ` ${result.latencyMs}ms (TTFB: ${result.ttfbMs}ms, server: ${results[i].serverDurationMs}ms, ${(result.responseSizeBytes / 1024).toFixed(1)}KB)`
+        ` ${result.latencyMs}ms (TTFB: ${result.ttfbMs}ms, server: ${results[i].serverDurationMs}ms, ${(result.responseSizeBytes / 1024).toFixed(1)}KB)`,
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -205,8 +205,12 @@ async function runBenchmark(): Promise<BenchResult> {
   console.log(`      Server duration: ${summary.serverDurationMs}ms`);
   console.log(`      Response: ${(summary.responseSizeBytes / 1024).toFixed(1)}KB`);
   if (feed) {
-    console.log(`      Items: ${feed.totalItems} (${feed.withVideo} video, ${feed.withImage} image)`);
-    console.log(`      Sources: ${feed.gnarsPaired} paired, ${feed.droposals} droposals, ${feed.farcasterItems} farcaster`);
+    console.log(
+      `      Items: ${feed.totalItems} (${feed.withVideo} video, ${feed.withImage} image)`,
+    );
+    console.log(
+      `      Sources: ${feed.gnarsPaired} paired, ${feed.droposals} droposals, ${feed.farcasterItems} farcaster`,
+    );
     console.log(`      Creators: ${feed.creatorsCount}`);
   }
 

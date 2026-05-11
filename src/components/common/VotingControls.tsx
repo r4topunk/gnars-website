@@ -24,11 +24,11 @@ import {
 } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { useCastVote } from "@/hooks/useCastVote";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useCastVote } from "@/hooks/useCastVote";
 import { ProposalStatus } from "@/lib/schemas/proposals";
-import { fetchDelegatorsWithCounts, type DelegatorWithCount } from "@/services/members";
 import { cn } from "@/lib/utils";
+import { fetchDelegatorsWithCounts, type DelegatorWithCount } from "@/services/members";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
 
@@ -429,7 +429,9 @@ export function VotingPowerNotice({
                 </Badge>
               ))}
               {inboundDelegatorsCount > topDelegators.length ? (
-                <Badge variant="outline">+{inboundDelegatorsCount - topDelegators.length} more</Badge>
+                <Badge variant="outline">
+                  +{inboundDelegatorsCount - topDelegators.length} more
+                </Badge>
               ) : null}
             </div>
           </div>
@@ -447,7 +449,8 @@ export function VotingPowerNotice({
                   You have {inboundDelegatedVotes} incoming delegated votes, but 0 voting power at
                   the proposal snapshot. This may happen if delegations were received after the
                   proposal was created. When you vote, the smart contract will use your actual
-                  voting power at the snapshot block, which may differ from what&apos;s displayed here.
+                  voting power at the snapshot block, which may differ from what&apos;s displayed
+                  here.
                 </>
               ) : (
                 <>

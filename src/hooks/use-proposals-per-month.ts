@@ -7,7 +7,7 @@ export type ProposalMonthPoint = {
 
 async function fetchProposalsPerMonth(months: number): Promise<ProposalMonthPoint[]> {
   const response = await fetch(`/api/proposals/per-month?months=${months}`);
-  
+
   if (!response.ok) {
     throw new Error("Failed to fetch proposals per month");
   }
@@ -24,4 +24,3 @@ export function useProposalsPerMonth(months: number = 12) {
     refetchOnWindowFocus: false,
   });
 }
-

@@ -16,15 +16,15 @@ Scope: the 6 existing templates (`athlete-sponsorship`, `event-activation`, `phy
 
 ## Decisions
 
-| # | Decision | Rationale |
-|---|---|---|
-| 1 | Fields compile to markdown, stored in existing `description` form field | No schema/contract change; onchain payload identical to today |
-| 2 | Section-level `textarea` by default; `Budget` section is a structured repeater | Biggest UX win from structured budget; other sections stay flexible prose |
-| 3 | Validation required only on key sections per template (not all) | Soft enforcement; allows edge cases (renewals, stub proposals) |
-| 4 | `ProposalDetailsForm` switches to `TemplateDetailsForm` when `?template=X` present | Tightest fit with existing wizard; no new routes |
-| 5 | No inline markdown preview on Details step | Step 3 (Preview) already renders full proposal |
-| 6 | No shared "Links" repeater | Links are scattered across templates; markdown links in prose handles it |
-| 7 | Budget row schema: `label + amount + currency (ETH/USDC)` with auto-total per currency | Mirrors how Gnars actually pays out via Transactions step |
+| #   | Decision                                                                               | Rationale                                                                 |
+| --- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| 1   | Fields compile to markdown, stored in existing `description` form field                | No schema/contract change; onchain payload identical to today             |
+| 2   | Section-level `textarea` by default; `Budget` section is a structured repeater         | Biggest UX win from structured budget; other sections stay flexible prose |
+| 3   | Validation required only on key sections per template (not all)                        | Soft enforcement; allows edge cases (renewals, stub proposals)            |
+| 4   | `ProposalDetailsForm` switches to `TemplateDetailsForm` when `?template=X` present     | Tightest fit with existing wizard; no new routes                          |
+| 5   | No inline markdown preview on Details step                                             | Step 3 (Preview) already renders full proposal                            |
+| 6   | No shared "Links" repeater                                                             | Links are scattered across templates; markdown links in prose handles it  |
+| 7   | Budget row schema: `label + amount + currency (ETH/USDC)` with auto-total per currency | Mirrors how Gnars actually pays out via Transactions step                 |
 
 ## Architecture
 
@@ -79,10 +79,7 @@ interface BudgetRow {
 ### Compiler
 
 ```ts
-function compileTemplate(
-  slug: string,
-  values: Record<string, string | BudgetRow[]>
-): string;
+function compileTemplate(slug: string, values: Record<string, string | BudgetRow[]>): string;
 ```
 
 - Iterate schema fields in order.
@@ -107,66 +104,72 @@ Budget markdown example:
 Each template preserves today's section titles. Helper text is the content of each current `<!-- comment -->`, trimmed and tightened.
 
 ### athlete-sponsorship
-| id | label | type | required |
-|---|---|---|---|
-| `profile` | Athlete Profile | textarea (4 rows) | ✓ |
-| `content-plan` | Sport & Content Plan | textarea (5 rows) | — |
-| `reach` | Social Reach & Audience | textarea (4 rows) | — |
-| `budget` | Budget Breakdown | budget | ✓ |
-| `timeline` | Timeline & Milestones | textarea (4 rows) | ✓ |
-| `track-record` | Track Record & References | textarea (4 rows) | — |
+
+| id             | label                     | type              | required |
+| -------------- | ------------------------- | ----------------- | -------- |
+| `profile`      | Athlete Profile           | textarea (4 rows) | ✓        |
+| `content-plan` | Sport & Content Plan      | textarea (5 rows) | —        |
+| `reach`        | Social Reach & Audience   | textarea (4 rows) | —        |
+| `budget`       | Budget Breakdown          | budget            | ✓        |
+| `timeline`     | Timeline & Milestones     | textarea (4 rows) | ✓        |
+| `track-record` | Track Record & References | textarea (4 rows) | —        |
 
 ### event-activation
-| id | label | type | required |
-|---|---|---|---|
-| `overview` | Event Overview | textarea (4 rows) | ✓ |
-| `logistics` | Location & Logistics | textarea (4 rows) | — |
-| `content-plan` | Content Capture Plan | textarea (4 rows) | — |
-| `budget` | Budget Breakdown | budget | ✓ |
-| `marketing` | Marketing & Promotion | textarea (4 rows) | — |
-| `metrics` | Success Metrics | textarea (4 rows) | ✓ |
+
+| id             | label                 | type              | required |
+| -------------- | --------------------- | ----------------- | -------- |
+| `overview`     | Event Overview        | textarea (4 rows) | ✓        |
+| `logistics`    | Location & Logistics  | textarea (4 rows) | —        |
+| `content-plan` | Content Capture Plan  | textarea (4 rows) | —        |
+| `budget`       | Budget Breakdown      | budget            | ✓        |
+| `marketing`    | Marketing & Promotion | textarea (4 rows) | —        |
+| `metrics`      | Success Metrics       | textarea (4 rows) | ✓        |
 
 ### physical-installation
-| id | label | type | required |
-|---|---|---|---|
-| `overview` | Installation Overview | textarea (4 rows) | ✓ |
-| `permits` | Location & Permits | textarea (4 rows) | — |
-| `construction` | Materials & Construction | textarea (5 rows) | — |
-| `budget` | Budget Breakdown | budget | ✓ |
-| `access` | Community Access & Sustainability | textarea (4 rows) | ✓ |
-| `docs-plan` | Documentation Plan | textarea (4 rows) | — |
+
+| id             | label                             | type              | required |
+| -------------- | --------------------------------- | ----------------- | -------- |
+| `overview`     | Installation Overview             | textarea (4 rows) | ✓        |
+| `permits`      | Location & Permits                | textarea (4 rows) | —        |
+| `construction` | Materials & Construction          | textarea (5 rows) | —        |
+| `budget`       | Budget Breakdown                  | budget            | ✓        |
+| `access`       | Community Access & Sustainability | textarea (4 rows) | ✓        |
+| `docs-plan`    | Documentation Plan                | textarea (4 rows) | —        |
 
 ### content-media
-| id | label | type | required |
-|---|---|---|---|
-| `vision` | Creative Vision | textarea (4 rows) | ✓ |
-| `production` | Production Plan | textarea (5 rows) | — |
-| `distribution` | Distribution Strategy | textarea (4 rows) | — |
-| `licensing` | CC0 & Licensing | textarea (4 rows) | — |
-| `budget` | Budget & Resources | budget | ✓ |
-| `deliverables` | Deliverables & Timeline | textarea (4 rows) | ✓ |
+
+| id             | label                   | type              | required |
+| -------------- | ----------------------- | ----------------- | -------- |
+| `vision`       | Creative Vision         | textarea (4 rows) | ✓        |
+| `production`   | Production Plan         | textarea (5 rows) | —        |
+| `distribution` | Distribution Strategy   | textarea (4 rows) | —        |
+| `licensing`    | CC0 & Licensing         | textarea (4 rows) | —        |
+| `budget`       | Budget & Resources      | budget            | ✓        |
+| `deliverables` | Deliverables & Timeline | textarea (4 rows) | ✓        |
 
 ### development
-| id | label | type | required |
-|---|---|---|---|
-| `description` | Project Description | textarea (4 rows) | ✓ |
-| `architecture` | Technical Architecture | textarea (5 rows) | — |
-| `open-source` | Open Source Strategy | textarea (4 rows) | — |
-| `timeline` | Development Timeline | textarea (4 rows) | ✓ |
-| `budget` | Budget & Resources | budget | ✓ |
-| `support` | Post-Launch Support | textarea (4 rows) | — |
+
+| id             | label                  | type              | required |
+| -------------- | ---------------------- | ----------------- | -------- |
+| `description`  | Project Description    | textarea (4 rows) | ✓        |
+| `architecture` | Technical Architecture | textarea (5 rows) | —        |
+| `open-source`  | Open Source Strategy   | textarea (4 rows) | —        |
+| `timeline`     | Development Timeline   | textarea (4 rows) | ✓        |
+| `budget`       | Budget & Resources     | budget            | ✓        |
+| `support`      | Post-Launch Support    | textarea (4 rows) | —        |
 
 ### droposal
-| id | label | type | required |
-|---|---|---|---|
-| `concept` | Drop Concept | textarea (4 rows) | ✓ |
-| `artwork` | Artwork & Artist | textarea (4 rows) | — |
-| `mint` | Mint Details | textarea (5 rows) | ✓ |
-| `irl` | Connection to IRL | textarea (4 rows) | — |
-| `revenue` | Revenue Split & Treasury Impact | textarea (4 rows) | ✓ |
-| `promotion` | Timeline & Promotion | textarea (4 rows) | — |
 
-*(Droposal's Mint Details stays a textarea in v1. Structured mint fields — edition size, price, royalty %, split — noted as future work.)*
+| id          | label                           | type              | required |
+| ----------- | ------------------------------- | ----------------- | -------- |
+| `concept`   | Drop Concept                    | textarea (4 rows) | ✓        |
+| `artwork`   | Artwork & Artist                | textarea (4 rows) | —        |
+| `mint`      | Mint Details                    | textarea (5 rows) | ✓        |
+| `irl`       | Connection to IRL               | textarea (4 rows) | —        |
+| `revenue`   | Revenue Split & Treasury Impact | textarea (4 rows) | ✓        |
+| `promotion` | Timeline & Promotion            | textarea (4 rows) | —        |
+
+_(Droposal's Mint Details stays a textarea in v1. Structured mint fields — edition size, price, royalty %, split — noted as future work.)_
 
 ## Validation
 
@@ -224,16 +227,19 @@ None. Decisions locked via Q&A on 2026-04-24.
 ## File-touch summary
 
 **New:**
+
 - `src/lib/proposal-template-schemas.ts`
 - `src/components/proposals/TemplateDetailsForm.tsx`
 - `src/components/proposals/BudgetRepeater.tsx`
 - `src/components/proposals/ProposalDetailsHeader.tsx`
 
 **Modified:**
+
 - `src/lib/proposal-templates.ts`
 - `src/components/proposals/schema.ts`
 - `src/components/proposals/ProposalDetailsForm.tsx`
 - `src/components/proposals/ProposalWizard.tsx`
 
 **Docs:**
+
 - `docs/INDEX.md` (add spec entry under Specs)

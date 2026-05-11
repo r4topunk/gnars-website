@@ -1,45 +1,45 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { BountyGrid } from '@/components/bounties/BountyGrid';
-import { usePoidhBounties } from '@/hooks/usePoidhBounties';
-import { CreateBountyModal } from '@/components/bounties/CreateBountyModal';
-import { PlusCircle, Search, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatEther } from 'viem';
-import { useEthPrice, formatEthToUsd } from '@/hooks/use-eth-price';
-import type { PoidhBounty } from '@/types/poidh';
-import { PendingWithdrawalBanner } from '@/components/bounties/PendingWithdrawalBanner';
+import { useMemo, useState } from "react";
+import { PlusCircle, Search, X } from "lucide-react";
+import { formatEther } from "viem";
+import { BountyGrid } from "@/components/bounties/BountyGrid";
+import { CreateBountyModal } from "@/components/bounties/CreateBountyModal";
+import { PendingWithdrawalBanner } from "@/components/bounties/PendingWithdrawalBanner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatEthToUsd, useEthPrice } from "@/hooks/use-eth-price";
+import { usePoidhBounties } from "@/hooks/usePoidhBounties";
+import type { PoidhBounty } from "@/types/poidh";
 
 const CATEGORIES = [
-  { key: 'all', label: 'All' },
-  { key: 'skate', label: 'Skate' },
-  { key: 'surf', label: 'Surf' },
-  { key: 'parkour', label: 'Parkour' },
-  { key: 'weed', label: 'Weed' },
+  { key: "all", label: "All" },
+  { key: "skate", label: "Skate" },
+  { key: "surf", label: "Surf" },
+  { key: "parkour", label: "Parkour" },
+  { key: "weed", label: "Weed" },
 ] as const;
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  skate: ['skate', 'skateboard', 'kickflip', 'grind', 'ollie', 'flip', 'trick'],
-  surf: ['surf', 'wave', 'barrel', 'tube', 'ocean', 'beach'],
-  parkour: ['parkour', 'freerun', 'vault', 'flip', 'jump'],
-  weed: ['weed', 'cannabis', 'joint', 'blunt', '420', 'smoke', 'kush'],
+  skate: ["skate", "skateboard", "kickflip", "grind", "ollie", "flip", "trick"],
+  surf: ["surf", "wave", "barrel", "tube", "ocean", "beach"],
+  parkour: ["parkour", "freerun", "vault", "flip", "jump"],
+  weed: ["weed", "cannabis", "joint", "blunt", "420", "smoke", "kush"],
 };
 
 const BANNER_IMAGES = [
   {
-    src: 'https://images.hive.blog/DQmZtLJgBNArPUScjdJzf4bn56wdn6BZ3Nwwd8rPoUFKc1f/Captura%20de%20Tela%202026-04-24%20a%CC%80s%2013.06.11.png',
-    fit: 'contain',
+    src: "https://images.hive.blog/DQmZtLJgBNArPUScjdJzf4bn56wdn6BZ3Nwwd8rPoUFKc1f/Captura%20de%20Tela%202026-04-24%20a%CC%80s%2013.06.11.png",
+    fit: "contain",
   },
   {
-    src: 'https://img.paragraph.com/cdn-cgi/image/format=auto,width=1080,quality=85/https://storage.googleapis.com/papyrus_images/44c796ba01b6ab07b5ad419da0dc4195.jpg',
-    fit: 'cover',
+    src: "https://img.paragraph.com/cdn-cgi/image/format=auto,width=1080,quality=85/https://storage.googleapis.com/papyrus_images/44c796ba01b6ab07b5ad419da0dc4195.jpg",
+    fit: "cover",
   },
   {
-    src: 'https://images.hive.blog/DQmRam7hFrAUvstnn4aodL58w7oqgEWLsZGK3Qh5DHrgqp1/Captura%20de%20Tela%202026-04-24%20a%CC%80s%2013.15.40.png',
-    fit: 'cover',
+    src: "https://images.hive.blog/DQmRam7hFrAUvstnn4aodL58w7oqgEWLsZGK3Qh5DHrgqp1/Captura%20de%20Tela%202026-04-24%20a%CC%80s%2013.15.40.png",
+    fit: "cover",
   },
 ] as const;
 
@@ -48,16 +48,17 @@ interface BountiesViewProps {
 }
 
 export function BountiesView({ initialBounties }: BountiesViewProps) {
-  const [status, setStatus] = useState<'open' | 'closed' | 'voting' | 'all'>('open');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [status, setStatus] = useState<"open" | "closed" | "voting" | "all">("open");
+  const [searchQuery, setSearchQuery] = useState("");
   const [filterGnarly] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState<string>('skate');
+  const [categoryFilter, setCategoryFilter] = useState<string>("skate");
 
   const { data, isLoading, error } = usePoidhBounties({
     status,
     filterGnarly,
     // Only use initialData for the default "open" status
-    initialData: status === 'open' ? { bounties: initialBounties, total: initialBounties.length } : undefined,
+    initialData:
+      status === "open" ? { bounties: initialBounties, total: initialBounties.length } : undefined,
   });
 
   const { ethPrice } = useEthPrice();
@@ -72,7 +73,7 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
           if (!text.includes(query)) return false;
         }
 
-        if (categoryFilter === 'all') return true;
+        if (categoryFilter === "all") return true;
         return CATEGORY_KEYWORDS[categoryFilter]?.some((keyword) => text.includes(keyword));
       }) || []
     );
@@ -87,7 +88,7 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
     return { eth: totalEth.toFixed(4), usd: totalUsd, count: filteredBounties.length };
   }, [filteredBounties, ethPrice]);
 
-  const statusLabel = status !== 'all' ? status : '';
+  const statusLabel = status !== "all" ? status : "";
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -98,7 +99,7 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Challenges</h1>
             <p className="text-muted-foreground mt-1">
-              Gnars Bountie is a new lane for small onchain grants built to keep the wheels turning.{' '}
+              Gnars Bountie is a new lane for small onchain grants built to keep the wheels turning.{" "}
               <a
                 href="https://poidh.xyz"
                 target="_blank"
@@ -128,7 +129,7 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
                 <img
                   src={src}
                   alt={`Gnars bounty banner image ${index + 1}`}
-                  className={`h-full w-full ${fit === 'cover' ? 'object-cover' : 'object-contain'}`}
+                  className={`h-full w-full ${fit === "cover" ? "object-cover" : "object-contain"}`}
                 />
               </div>
             ))}
@@ -144,7 +145,9 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
                 <span className="text-base font-semibold text-muted-foreground ml-1.5">ETH</span>
               </div>
               <div className="text-xs text-muted-foreground mt-0.5">
-                {statusLabel ? `${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)} pool` : 'Total pool'}
+                {statusLabel
+                  ? `${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)} pool`
+                  : "Total pool"}
               </div>
             </div>
             {ethPrice > 0 && (
@@ -160,7 +163,9 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
                 {totalValue.count}
               </div>
               <div className="text-xs text-muted-foreground mt-0.5">
-                {statusLabel ? `${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)} bounties` : 'Bounties'}
+                {statusLabel
+                  ? `${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)} bounties`
+                  : "Bounties"}
               </div>
             </div>
           </div>
@@ -180,7 +185,7 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={() => setSearchQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
@@ -201,7 +206,9 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
             <Tabs value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
               <TabsList>
                 {CATEGORIES.map(({ key, label }) => (
-                  <TabsTrigger key={key} value={key}>{label}</TabsTrigger>
+                  <TabsTrigger key={key} value={key}>
+                    {label}
+                  </TabsTrigger>
                 ))}
               </TabsList>
             </Tabs>
@@ -209,26 +216,28 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
         </div>
 
         {/* Grid */}
-        <BountyGrid
-          bounties={filteredBounties}
-          isLoading={isLoading}
-          error={error}
-        />
+        <BountyGrid bounties={filteredBounties} isLoading={isLoading} error={error} />
 
         <div className="rounded-3xl border border-border bg-muted/30 p-6 md:p-8">
           <div className="max-w-4xl space-y-5">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Manifesto</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Manifesto
+              </div>
             </div>
             <div className="space-y-4 text-sm leading-7 text-muted-foreground md:text-base">
               <p>
-                Gnars Bounties builds on prior community-driven moments by enabling direct, permissionless execution. It removes
-                friction from traditional grant systems, allowing ideas to be posted, funded, completed, and rewarded onchain in a
-                simple, open flow.
+                Gnars Bounties builds on prior community-driven moments by enabling direct,
+                permissionless execution. It removes friction from traditional grant systems,
+                allowing ideas to be posted, funded, completed, and rewarded onchain in a simple,
+                open flow.
               </p>
               <div className="space-y-2">
                 <p className="text-foreground">How It Works:</p>
-                <p>Create or select a bounty → fund or support a mission → execute and submit work → get verified → receive onchain payment</p>
+                <p>
+                  Create or select a bounty → fund or support a mission → execute and submit work →
+                  get verified → receive onchain payment
+                </p>
               </div>
             </div>
           </div>

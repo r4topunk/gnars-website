@@ -1,8 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { MemberHeader } from "@/components/members/detail/MemberHeader";
 import { MemberQuickStats } from "@/components/members/detail/MemberQuickStats";
@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProfileCoins } from "@/hooks/use-profile-coins";
 import { useZoraProfile } from "@/hooks/use-zora-profile";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { resolveENS } from "@/lib/ens";
 import { getProposalStatus } from "@/lib/schemas/proposals";
@@ -25,11 +26,31 @@ import {
   type MemberListItem,
 } from "@/services/members";
 
-const MemberProposalsGrid = dynamic(() => import("@/components/members/detail/MemberProposalsGrid").then(mod => ({ default: mod.MemberProposalsGrid })));
-const MemberVotesTable = dynamic(() => import("@/components/members/detail/MemberVotesTable").then(mod => ({ default: mod.MemberVotesTable })));
-const MemberTokensGrid = dynamic(() => import("@/components/members/detail/MemberTokensGrid").then(mod => ({ default: mod.MemberTokensGrid })));
-const MemberDelegatorsTable = dynamic(() => import("@/components/members/detail/MemberDelegatorsTable").then(mod => ({ default: mod.MemberDelegatorsTable })));
-const MemberCreatedCoinsGrid = dynamic(() => import("@/components/members/detail/MemberCreatedCoinsGrid").then(mod => ({ default: mod.MemberCreatedCoinsGrid })));
+const MemberProposalsGrid = dynamic(() =>
+  import("@/components/members/detail/MemberProposalsGrid").then((mod) => ({
+    default: mod.MemberProposalsGrid,
+  })),
+);
+const MemberVotesTable = dynamic(() =>
+  import("@/components/members/detail/MemberVotesTable").then((mod) => ({
+    default: mod.MemberVotesTable,
+  })),
+);
+const MemberTokensGrid = dynamic(() =>
+  import("@/components/members/detail/MemberTokensGrid").then((mod) => ({
+    default: mod.MemberTokensGrid,
+  })),
+);
+const MemberDelegatorsTable = dynamic(() =>
+  import("@/components/members/detail/MemberDelegatorsTable").then((mod) => ({
+    default: mod.MemberDelegatorsTable,
+  })),
+);
+const MemberCreatedCoinsGrid = dynamic(() =>
+  import("@/components/members/detail/MemberCreatedCoinsGrid").then((mod) => ({
+    default: mod.MemberCreatedCoinsGrid,
+  })),
+);
 
 interface MemberDetailProps {
   address: string;
@@ -126,11 +147,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
         setVotes(vts.votes);
 
         // Load proposals using the same SDK mapping as proposals page, then filter by proposer
-        const { proposals: sdkProposals } = await getProposals(
-          CHAIN.id,
-          DAO_ADDRESSES.token,
-          200,
-        );
+        const { proposals: sdkProposals } = await getProposals(CHAIN.id, DAO_ADDRESSES.token, 200);
         const mapped: UiProposal[] = ((sdkProposals as SdkProposal[] | undefined) ?? [])
           .filter((p) => String(p.proposer).toLowerCase() === address.toLowerCase())
           .map((p) => {

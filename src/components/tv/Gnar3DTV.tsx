@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import { ExternalLink } from "lucide-react";
+import { useRouter } from "@/i18n/navigation";
 import { useTVFeed } from "./useTVFeed";
 
 const Gnar3DTVScene = dynamic(() => import("./Gnar3DTVScene").then((mod) => mod.Gnar3DTVScene), {

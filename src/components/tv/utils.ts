@@ -7,8 +7,8 @@
  * 3. Droposals (NFT drops from DAO proposals)
  */
 
-import type { CoinMedia, CoinNode, TVItem } from "./types";
 import { DAO_ADDRESSES, GNARS_CREATOR_COIN } from "@/lib/config";
+import type { CoinMedia, CoinNode, TVItem } from "./types";
 
 const GNARS_TREASURY = DAO_ADDRESSES.treasury;
 const SKATEHIVE_REFERRER = "0xb4964e1eca55db36a94e8aeffbfbab48529a2f6c";
@@ -96,8 +96,7 @@ export function mapCoinToTVItem(
   const marketCapRaw = coin?.marketCap || coin?.coin?.marketCap;
   const marketCapDelta24hRaw = coin?.marketCapDelta24h || coin?.coin?.marketCapDelta24h;
 
-  const marketCap =
-    typeof marketCapRaw === "string" ? parseFloat(marketCapRaw) : marketCapRaw || 0;
+  const marketCap = typeof marketCapRaw === "string" ? parseFloat(marketCapRaw) : marketCapRaw || 0;
   const marketCapDelta24h =
     typeof marketCapDelta24hRaw === "string"
       ? parseFloat(marketCapDelta24hRaw)

@@ -1,18 +1,18 @@
 /**
  * AdminEventCard - Administrative event display
- * 
+ *
  * Handles treasury, settings, and admin events.
  */
 
 "use client";
 
-import Link from "next/link";
-import { Settings, Crown, Send } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Crown, Send, Settings } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { cn, formatETH } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 import type { FeedEvent } from "@/lib/types/feed-events";
+import { cn, formatETH } from "@/lib/utils";
 
 export interface AdminEventCardProps {
   event: Extract<FeedEvent, { category: "treasury" | "admin" | "settings" }>;
@@ -22,14 +22,11 @@ export interface AdminEventCardProps {
 
 export function AdminEventCard({ event, compact, sequenceNumber }: AdminEventCardProps) {
   // Removed: timeAgo is redundant since we have day headers
-  
+
   const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
 
   return (
-    <Card className={cn(
-      "transition-shadow hover:shadow-md relative",
-      compact ? "py-3" : "py-4"
-    )}>
+    <Card className={cn("transition-shadow hover:shadow-md relative", compact ? "py-3" : "py-4")}>
       <CardContent className={cn(compact ? "px-4 py-2" : "px-4")}>
         {/* Sequence number badge */}
         {sequenceNumber !== undefined && (
@@ -37,13 +34,10 @@ export function AdminEventCard({ event, compact, sequenceNumber }: AdminEventCar
             {sequenceNumber}
           </div>
         )}
-        
+
         <div className="flex items-start gap-3">
           {/* Event icon */}
-          <div className={cn(
-            "flex-shrink-0 rounded-full p-2",
-            bgColor
-          )}>
+          <div className={cn("flex-shrink-0 rounded-full p-2", bgColor)}>
             <Icon className={cn("h-4 w-4", iconColor)} />
           </div>
 
@@ -55,25 +49,21 @@ export function AdminEventCard({ event, compact, sequenceNumber }: AdminEventCar
                 <p className="text-sm font-medium">{title}</p>
               </div>
               {event.priority === "MEDIUM" && event.category === "admin" && (
-                <Badge variant="secondary" className="text-xs">Admin</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  Admin
+                </Badge>
               )}
             </div>
 
             {/* Event-specific content */}
-            {event.type === "TreasuryTransaction" && (
-              <TreasuryTransactionContent event={event} />
-            )}
-            {event.type === "SettingsUpdated" && (
-              <SettingsUpdatedContent event={event} />
-            )}
-            {event.type === "OwnershipTransferred" && (
-              <OwnershipTransferredContent event={event} />
-            )}
+            {event.type === "TreasuryTransaction" && <TreasuryTransactionContent event={event} />}
+            {event.type === "SettingsUpdated" && <SettingsUpdatedContent event={event} />}
+            {event.type === "OwnershipTransferred" && <OwnershipTransferredContent event={event} />}
 
             {/* Action button */}
             {actionText && (
               <div className="pt-1">
-                <Link 
+                <Link
                   href={getEventLink(event)}
                   className="text-xs text-primary hover:underline font-medium"
                 >
@@ -90,16 +80,18 @@ export function AdminEventCard({ event, compact, sequenceNumber }: AdminEventCar
 
 // Subcomponents
 
-function TreasuryTransactionContent({ event }: { event: Extract<FeedEvent, { type: "TreasuryTransaction" }> }) {
+function TreasuryTransactionContent({
+  event,
+}: {
+  event: Extract<FeedEvent, { type: "TreasuryTransaction" }>;
+}) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-1.5 flex-wrap">
         <span className="text-xs text-muted-foreground">Sent</span>
-        <span className="text-sm font-bold text-green-600">
-          {formatETH(event.amount)}
-        </span>
+        <span className="text-sm font-bold text-green-600">{formatETH(event.amount)}</span>
         <span className="text-xs text-muted-foreground">to</span>
-        <AddressDisplay 
+        <AddressDisplay
           address={event.recipient}
           variant="compact"
           showAvatar={true}
@@ -109,14 +101,16 @@ function TreasuryTransactionContent({ event }: { event: Extract<FeedEvent, { typ
           showExplorer={false}
         />
       </div>
-      <p className="text-xs text-muted-foreground">
-        Proposal #{event.proposalNumber}
-      </p>
+      <p className="text-xs text-muted-foreground">Proposal #{event.proposalNumber}</p>
     </div>
   );
 }
 
-function SettingsUpdatedContent({ event }: { event: Extract<FeedEvent, { type: "SettingsUpdated" }> }) {
+function SettingsUpdatedContent({
+  event,
+}: {
+  event: Extract<FeedEvent, { type: "SettingsUpdated" }>;
+}) {
   return (
     <div className="space-y-1">
       <p className="text-sm font-medium">{event.setting}</p>
@@ -127,12 +121,16 @@ function SettingsUpdatedContent({ event }: { event: Extract<FeedEvent, { type: "
   );
 }
 
-function OwnershipTransferredContent({ event }: { event: Extract<FeedEvent, { type: "OwnershipTransferred" }> }) {
+function OwnershipTransferredContent({
+  event,
+}: {
+  event: Extract<FeedEvent, { type: "OwnershipTransferred" }>;
+}) {
   return (
     <div className="space-y-1.5">
       <p className="text-xs text-muted-foreground capitalize">{event.contract} Contract</p>
       <div className="flex items-center gap-1.5 flex-wrap text-xs">
-        <AddressDisplay 
+        <AddressDisplay
           address={event.previousOwner}
           variant="compact"
           showAvatar={true}
@@ -142,7 +140,7 @@ function OwnershipTransferredContent({ event }: { event: Extract<FeedEvent, { ty
           showExplorer={false}
         />
         <span className="text-muted-foreground">→</span>
-        <AddressDisplay 
+        <AddressDisplay
           address={event.newOwner}
           variant="compact"
           showAvatar={true}
@@ -158,7 +156,9 @@ function OwnershipTransferredContent({ event }: { event: Extract<FeedEvent, { ty
 
 // Helper functions
 
-function getEventDisplay(event: Extract<FeedEvent, { category: "treasury" | "admin" | "settings" }>) {
+function getEventDisplay(
+  event: Extract<FeedEvent, { category: "treasury" | "admin" | "settings" }>,
+) {
   switch (event.type) {
     case "TreasuryTransaction":
       return {
@@ -187,10 +187,11 @@ function getEventDisplay(event: Extract<FeedEvent, { category: "treasury" | "adm
   }
 }
 
-function getEventLink(event: Extract<FeedEvent, { category: "treasury" | "admin" | "settings" }>): string {
+function getEventLink(
+  event: Extract<FeedEvent, { category: "treasury" | "admin" | "settings" }>,
+): string {
   if (event.type === "TreasuryTransaction") {
     return `/proposals/${event.proposalNumber}`;
   }
   return "/treasury";
 }
-

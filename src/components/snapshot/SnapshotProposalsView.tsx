@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { SnapshotProposal } from "@/types/snapshot";
-import { SnapshotProposalCard } from "./SnapshotProposalCard";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { SnapshotProposal } from "@/types/snapshot";
+import { SnapshotProposalCard } from "./SnapshotProposalCard";
 
 interface SnapshotProposalsViewProps {
   proposals: SnapshotProposal[];
@@ -18,7 +18,7 @@ export function SnapshotProposalsView({ proposals: allProposals }: SnapshotPropo
   const ALL_STATES: ProposalState[] = ["active", "closed", "pending"];
 
   const [activeStates, setActiveStates] = useState<Set<ProposalState>>(
-    () => new Set(["active", "closed"] as ProposalState[])
+    () => new Set(["active", "closed"] as ProposalState[]),
   );
 
   const availableStates = useMemo(() => {
@@ -51,9 +51,7 @@ export function SnapshotProposalsView({ proposals: allProposals }: SnapshotPropo
           }}
           onSelectAll={() => setActiveStates(new Set(ALL_STATES))}
           onClearAll={() => setActiveStates(new Set())}
-          onSelectDefault={() =>
-            setActiveStates(new Set(["active", "closed"] as ProposalState[]))
-          }
+          onSelectDefault={() => setActiveStates(new Set(["active", "closed"] as ProposalState[]))}
         />
       </div>
       <div className="grid gap-4 grid-cols-1">

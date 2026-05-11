@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { listProposals } from "@/services/proposals";
 import { ProposalStatus } from "@/lib/schemas/proposals";
+import { listProposals } from "@/services/proposals";
 
 export const revalidate = 60;
 

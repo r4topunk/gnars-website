@@ -2,9 +2,6 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { type Address, type Hex } from "viem";
-import { base as wagmiBase } from "wagmi/chains";
-import { useSimulateContract } from "wagmi";
 import {
   getContract,
   prepareContractCall,
@@ -13,10 +10,13 @@ import {
   waitForReceipt,
 } from "thirdweb";
 import { base } from "thirdweb/chains";
+import { type Address, type Hex } from "viem";
+import { useSimulateContract } from "wagmi";
+import { base as wagmiBase } from "wagmi/chains";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
-import { useWriteAccount } from "@/hooks/use-write-account";
 import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";

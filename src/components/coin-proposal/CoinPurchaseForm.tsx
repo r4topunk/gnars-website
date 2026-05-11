@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { Info, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Info, Loader2 } from "lucide-react";
 
 interface CoinPurchaseFormProps {
   onGenerate: (data: {
@@ -92,9 +92,7 @@ export function CoinPurchaseForm({ onGenerate, isGenerating, error }: CoinPurcha
           disabled={isGenerating}
           required
         />
-        <p className="text-xs text-muted-foreground">
-          Amount of ETH the DAO treasury will spend
-        </p>
+        <p className="text-xs text-muted-foreground">Amount of ETH the DAO treasury will spend</p>
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">

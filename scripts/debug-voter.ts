@@ -37,7 +37,6 @@ const tokenAbi = [
   },
 ] as const;
 
-
 async function debugVoter(voterAddress: string, proposalNumber: number, snapshotBlock: bigint) {
   const client = createPublicClient({
     chain: base,

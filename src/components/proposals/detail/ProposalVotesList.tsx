@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Markdown } from "@/components/common/Markdown";
@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useActiveMembers } from "@/hooks/use-active-members";
-import { DelegationTooltip } from "./DelegationTooltip";
 import type { DelegatorWithCount } from "@/services/members";
+import { DelegationTooltip } from "./DelegationTooltip";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
 
@@ -54,7 +54,10 @@ export function ProposalVotesList({
     if (!votes || votes.length === 0) return;
 
     // Mark all as loading
-    const initial = new Map<string, { delegators: DelegatorWithCount[]; status: "loading" | "done" | "error" }>();
+    const initial = new Map<
+      string,
+      { delegators: DelegatorWithCount[]; status: "loading" | "done" | "error" }
+    >();
     for (const vote of votes) {
       initial.set(vote.voter.toLowerCase(), { delegators: [], status: "loading" });
     }
@@ -76,7 +79,7 @@ export function ProposalVotesList({
         } catch {
           results.set(key, { delegators: [], status: "error" });
         }
-      })
+      }),
     );
 
     setDelegationMap(results);
@@ -142,7 +145,8 @@ export function ProposalVotesList({
                     />
                     {vote.timestamp ? (
                       <span className="text-muted-foreground text-xs">
-                        · {formatDistanceToNow(new Date(vote.timestamp * 1000), { addSuffix: true })}
+                        ·{" "}
+                        {formatDistanceToNow(new Date(vote.timestamp * 1000), { addSuffix: true })}
                       </span>
                     ) : null}
                   </div>

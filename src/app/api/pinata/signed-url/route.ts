@@ -10,10 +10,7 @@ export async function POST(req: NextRequest) {
     const pinataJWT = process.env.PINATA_JWT;
     if (!pinataJWT) {
       console.error("PINATA_JWT environment variable is not set");
-      return NextResponse.json(
-        { error: "Server configuration error" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
     }
 
     const body = await req.json();
@@ -55,7 +52,7 @@ export async function POST(req: NextRequest) {
       console.error("Pinata signed URL error:", errorText);
       return NextResponse.json(
         { error: "Failed to get signed upload URL" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -67,9 +64,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Signed URL error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

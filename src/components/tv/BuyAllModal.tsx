@@ -1,15 +1,15 @@
 "use client";
 
-import { X, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { createPortal } from "react-dom";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { AlertCircle, CheckCircle2, Loader2, X } from "lucide-react";
+import { createPortal } from "react-dom";
 import { FaEthereum } from "react-icons/fa";
 import { parseEther } from "viem";
-import type { TVItem } from "./types";
 import { useBatchCoinPurchase } from "@/hooks/use-batch-coin-purchase";
 import { GNARS_CREATOR_COIN } from "@/lib/config";
 import { PurchaseFlowChart } from "./PurchaseFlowChart";
+import type { TVItem } from "./types";
 
 const SKATEHIVE_REFERRER = "0xb4964e1eca55db36a94e8aeffbfbab48529a2f6c";
 
@@ -41,9 +41,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
 
   // Filter to only coins (not droposals) and take first 20
   const contentCoins = useMemo(() => {
-    return items
-      .filter((item) => item.coinAddress && !item.tokenAddress)
-      .slice(0, 20);
+    return items.filter((item) => item.coinAddress && !item.tokenAddress).slice(0, 20);
   }, [items]);
 
   // Selected coins with amounts
@@ -55,9 +53,9 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
       // Invalid input - default to 0
       console.warn("Invalid ETH amount:", ethAmount, error);
     }
-    
+
     const ethPerCoin = selectedItems.size > 0 ? totalEth / BigInt(selectedItems.size) : 0n;
-    
+
     return contentCoins
       .filter((item) => selectedItems.has(item.id))
       .map((item) => ({
@@ -93,10 +91,10 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
       if (sharedStrategy && sharedStrategy.coins.length > 0) {
         // Find items matching the shared coin addresses
         const sharedCoinSet = new Set(sharedStrategy.coins.map((addr) => addr.toLowerCase()));
-        const matchingItems = contentCoins.filter((item) => 
-          item.coinAddress && sharedCoinSet.has(item.coinAddress.toLowerCase())
+        const matchingItems = contentCoins.filter(
+          (item) => item.coinAddress && sharedCoinSet.has(item.coinAddress.toLowerCase()),
         );
-        
+
         setSelectedItems(new Set(matchingItems.map((item) => item.id)));
         setEthAmount(sharedStrategy.eth);
         setDisplayStrategyName(sharedStrategy.name);
@@ -106,13 +104,13 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
         const pairedCoins = contentCoins.filter((item) => item.poolCurrencyTokenAddress);
         const unpairedCoins = contentCoins.filter((item) => !item.poolCurrencyTokenAddress);
         const sortedCoins = [...pairedCoins, ...unpairedCoins];
-        
+
         const preSelected = new Set(sortedCoins.slice(0, 10).map((item) => item.id));
         setSelectedItems(preSelected);
         setDisplayStrategyName(null);
         setStep("select");
       }
-      
+
       setError(null);
     }
   }, [isOpen, contentCoins, sharedStrategy]);
@@ -177,23 +175,26 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
 
     const selectedItemsData = contentCoins.filter((item) => selectedItems.has(item.id));
     const coinAddresses = selectedItemsData.map((item) => item.coinAddress).filter(Boolean);
-    
+
     const params = new URLSearchParams();
     params.set("strategy", strategyName.trim());
     params.set("coins", coinAddresses.join(","));
     params.set("eth", ethAmount);
-    
+
     const shareUrl = `${window.location.origin}/tv?${params.toString()}`;
-    
+
     // Copy to clipboard
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      setShowShareDialog(false);
-      setStrategyName("");
-      // Show success feedback
-      alert("Strategy link copied to clipboard!");
-    }).catch(() => {
-      setError("Failed to copy to clipboard");
-    });
+    navigator.clipboard
+      .writeText(shareUrl)
+      .then(() => {
+        setShowShareDialog(false);
+        setStrategyName("");
+        // Show success feedback
+        alert("Strategy link copied to clipboard!");
+      })
+      .catch(() => {
+        setError("Failed to copy to clipboard");
+      });
   };
 
   const handleProceedToConfirm = () => {
@@ -228,7 +229,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
   const handleExecutePurchase = async () => {
     setStep("executing");
     setError(null);
-    
+
     try {
       await executeBatchPurchase();
     } catch {
@@ -326,7 +327,11 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
           <div className="flex-1 overflow-y-auto p-6">
             {/* Flow Chart Visualization */}
             <div className="mb-6">
-              <PurchaseFlowChart items={selectedItemsData} ethPerCoin={ethPerCoin} totalEth={ethAmount} />
+              <PurchaseFlowChart
+                items={selectedItemsData}
+                ethPerCoin={ethPerCoin}
+                totalEth={ethAmount}
+              />
             </div>
 
             <div className="p-6 mb-6 rounded-xl bg-muted">
@@ -355,7 +360,8 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
 
             <div className="p-4 border rounded-xl bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
               <p className="text-sm text-foreground">
-                ⚡ <strong>Multicall3:</strong> All {selectedCount} purchases will execute in a single atomic transaction. One approval, one gas fee.
+                ⚡ <strong>Multicall3:</strong> All {selectedCount} purchases will execute in a
+                single atomic transaction. One approval, one gas fee.
               </p>
             </div>
           </div>
@@ -367,7 +373,12 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
                 className="w-full px-4 py-2 text-sm font-medium rounded-xl transition-all bg-secondary text-secondary-foreground hover:bg-secondary/80 flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                  />
                 </svg>
                 Share Strategy
               </button>
@@ -455,13 +466,13 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
               {contentCoins.map((item) => {
                 const isSelected = selectedItems.has(item.id);
                 // Safely compute badge flags with explicit null checks
-                const isGnarsPaired = 
+                const isGnarsPaired =
                   item.poolCurrencyTokenAddress != null &&
                   item.poolCurrencyTokenAddress.toLowerCase() === GNARS_CREATOR_COIN.toLowerCase();
-                const isSkatehive = 
+                const isSkatehive =
                   item.platformReferrer != null &&
                   item.platformReferrer.toLowerCase() === SKATEHIVE_REFERRER.toLowerCase();
-                
+
                 return (
                   <button
                     key={item.id}
@@ -475,9 +486,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
                     {/* Checkbox */}
                     <div
                       className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                        isSelected
-                          ? "bg-[#FBBF23] border-[#FBBF23]"
-                          : "border-white/30"
+                        isSelected ? "bg-[#FBBF23] border-[#FBBF23]" : "border-white/30"
                       }`}
                     >
                       {isSelected && (
@@ -518,9 +527,11 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
                         </div>
                       )}
                       {isSkatehive && (
-                        <div className={`absolute bottom-0 w-5 h-5 rounded-tl-md bg-white dark:bg-black border-l border-t border-border flex items-center justify-center z-10 ${
-                          isGnarsPaired ? "right-5" : "right-0"
-                        }`}>
+                        <div
+                          className={`absolute bottom-0 w-5 h-5 rounded-tl-md bg-white dark:bg-black border-l border-t border-border flex items-center justify-center z-10 ${
+                            isGnarsPaired ? "right-5" : "right-0"
+                          }`}
+                        >
                           <span className="text-xs">🛹</span>
                         </div>
                       )}
@@ -617,8 +628,10 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
                   <span>
                     <strong className="text-[#FBBF23]">{displayStrategyName}</strong> strategy
                   </span>
+                ) : step === "select" ? (
+                  "Select creators to support with your ETH"
                 ) : (
-                  step === "select" ? "Select creators to support with your ETH" : ""
+                  ""
                 )}
               </p>
             )}
@@ -654,9 +667,7 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
               className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#FBBF23] mb-4"
               autoFocus
             />
-            {error && (
-              <p className="text-sm text-red-600 dark:text-red-400 mb-4">{error}</p>
-            )}
+            {error && <p className="text-sm text-red-600 dark:text-red-400 mb-4">{error}</p>}
             <div className="flex gap-3">
               <button
                 onClick={() => {
@@ -679,6 +690,6 @@ export function BuyAllModal({ isOpen, onClose, items, sharedStrategy }: BuyAllMo
         </div>
       )}
     </div>,
-    document.body
+    document.body,
   );
 }

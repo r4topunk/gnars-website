@@ -1,14 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { type NogglesRailLocation } from "@/content/nogglesrails";
+import { Link } from "@/i18n/navigation";
 
 function getThumbnail(images: string[]): string {
   // Use first non-video, non-droposal image as thumbnail
   const img = images.find(
-    (src) => !src.includes("youtube.com") && !src.includes("youtu.be") && !src.startsWith("droposal:")
+    (src) =>
+      !src.includes("youtube.com") && !src.includes("youtu.be") && !src.startsWith("droposal:"),
   );
   return img || images[0] || "/nogglesRail3D.png";
 }

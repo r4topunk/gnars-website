@@ -242,7 +242,8 @@ async function main() {
   console.log("");
 
   async function countMismatches(timepointLabel: string, timepoint: bigint) {
-    const mismatches: Array<{ voter: Address; uiName: string; subgraph: bigint; onchain: bigint }> = [];
+    const mismatches: Array<{ voter: Address; uiName: string; subgraph: bigint; onchain: bigint }> =
+      [];
     for (const v of allVotes) {
       const voter = v.voter.toLowerCase() as Address;
       const uiName = nameByAddress.get(voter) ?? voter;
@@ -332,7 +333,9 @@ async function main() {
     console.log(`  onchain getPastVotes(@voteStart): ${onchainVpAtVoteStart}`);
     console.log(`  token balance (now): ${currentBalance}`);
     console.log(`  voting power (now): ${currentVotes}`);
-    console.log(`  delegate (now): ${currentDelegate} ${currentDelegate.toLowerCase() === voter.toLowerCase() ? "(self)" : ""}`);
+    console.log(
+      `  delegate (now): ${currentDelegate} ${currentDelegate.toLowerCase() === voter.toLowerCase() ? "(self)" : ""}`,
+    );
 
     if (!vote) {
       console.log("  subgraph vote: (not found)");

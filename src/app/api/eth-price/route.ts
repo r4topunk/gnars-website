@@ -9,15 +9,12 @@ export async function GET() {
   }
 
   try {
-    const res = await fetch(
-      "https://api.g.alchemy.com/prices/v1/tokens/by-symbol?symbols=ETH",
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-        cache: "no-store",
-      }
-    );
+    const res = await fetch("https://api.g.alchemy.com/prices/v1/tokens/by-symbol?symbols=ETH", {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      cache: "no-store",
+    });
 
     if (!res.ok) {
       console.error("[eth-price] Alchemy API error:", res.status);
@@ -27,14 +24,17 @@ export async function GET() {
     const data = await res.json();
     const ethData = data?.data?.find((d: { symbol: string }) => d.symbol === "ETH");
     const usdPrice = ethData?.prices?.find(
-      (p: { currency: string }) => p.currency.toLowerCase() === "usd"
+      (p: { currency: string }) => p.currency.toLowerCase() === "usd",
     );
     const usd = Number(usdPrice?.value ?? 0) || 0;
 
     console.log("[eth-price] ETH price:", usd);
-    return NextResponse.json({ usd }, {
-      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
-    });
+    return NextResponse.json(
+      { usd },
+      {
+        headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+      },
+    );
   } catch (error) {
     console.error("[eth-price] Error:", error);
     return NextResponse.json({ usd: 0, error: "fetch_error" });

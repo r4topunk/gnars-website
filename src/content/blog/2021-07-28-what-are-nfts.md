@@ -7,9 +7,9 @@ permalink: /what-are-nfts/
 author: gami
 image: /images/what-are-nfts-digital.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [education]
-featured: 
+featured:
 ---
 
 The cryptocurrency boom has brought growing awareness of the many uses of blockchain technology beyond digital cash. One of 2021’s hottest trends is **Non-Fungible Tokens (NFTs):** Unique blockchain assets that, among other things, can be used to prove the origins and ownership of image files or even physical paintings. This functionality has driven a thriving digital art movement, as both new and established artists learn the benefits of putting their works on the blockchain, democratizing art ownership, and accessing prestigious and lucrative new markets.
@@ -25,7 +25,7 @@ Most of these Ethereum tokens share certain characteristics, including **divisib
 But now imagine a $10 bill that had been signed by Beeple, whose digital collage Everydays: The First 5000 Days was recently [sold as an NFT by Christie’s for $69 million](https://www.christies.com/features/Monumental-collage-by-Beeple-is-first-purely-digital-artwork-NFT-to-come-to-auction-11510-7.aspx). Suddenly, that note is unique, or non-fungible, and very likely worth a lot more than $10.
 
 ![What Are NFTs](/images/beeple-5000-days.jpeg)  
-*Beeple’s Everydays was the first purely digital work to be sold by Christie’s.*
+_Beeple’s Everydays was the first purely digital work to be sold by Christie’s._
 
 In the same way, Non-Fungible Tokens modify the rules of standard Ethereum tokens in two key ways:
 
@@ -53,6 +53,6 @@ Thanks to these benefits, NFTs have proven extremely attractive to artists and c
 The first NFTs were created just four years ago, in June 2017. [CryptoPunks](https://www.larvalabs.com/cryptopunks) are a series of 10,000 unique characters, generated in 8-bit style as 24×24-pixel images. While “Punks”, as they are now known, could originally be claimed for free, they were quickly snapped up and these pieces of digital art history have become some of the hottest property on the blockchain. On June 10, 2021, a [rare CryptoPunk was sold by Sotheby’s for $11.8 million](https://twitter.com/Sothebys/status/1402996062474760193).
 
 ![What Are NFTs](/images/rare-punk-sale.png)  
-*Punk #7523, dubbed “Covid Alien”, is the only CryptoPunk depicted with a mask.*
+_Punk #7523, dubbed “Covid Alien”, is the only CryptoPunk depicted with a mask._
 
 While celebrated auction houses like Christie’s and Sotheby’s lend legitimacy to the emerging NFT phenomenon, these gatekeepers of the traditional art market are by no means necessary when dealing with digital art and the global blockchain. Online NFT marketplaces like [OpenSea](https://opensea.io/) and [Rarible](https://rarible.com/) do a brisk trade in virtual collectibles of all kinds, with sales ranging from just a few dollars to many millions. NFT news and information site [NonFungible.com](https://nonfungible.com/market/history) puts total monthly trading volumes for digital art NFTs alone at around $20 million, which is likely an underestimate given the active private market.

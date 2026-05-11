@@ -116,7 +116,15 @@ export function useSupporters({
     };
 
     fetchInitial();
-  }, [autoLoad, canLoad, contractAddress, totalSupply, batchSize, itemsPerPage, effectiveRefreshKey]);
+  }, [
+    autoLoad,
+    canLoad,
+    contractAddress,
+    totalSupply,
+    batchSize,
+    itemsPerPage,
+    effectiveRefreshKey,
+  ]);
 
   // Refresh function to force re-fetch
   const refresh = useCallback(() => {

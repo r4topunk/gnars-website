@@ -32,8 +32,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useDelegate } from "@/hooks/useDelegate";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useDelegate } from "@/hooks/useDelegate";
 import { useVotes } from "@/hooks/useVotes";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { cn } from "@/lib/utils";

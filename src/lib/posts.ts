@@ -26,7 +26,7 @@ function extractSlugFromFilename(filename: string): string {
 
 export function getPostMetadata(directory: string): PostMetadata[] {
   const dirPath = path.join(process.cwd(), "src", "content", directory);
-  
+
   if (!fs.existsSync(dirPath)) {
     return [];
   }
@@ -61,7 +61,10 @@ export function getPostMetadata(directory: string): PostMetadata[] {
   return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
-export function getPostBySlug(directory: string, slug: string): {
+export function getPostBySlug(
+  directory: string,
+  slug: string,
+): {
   metadata: PostMetadata;
   content: string;
 } | null {

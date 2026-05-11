@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { getAddress, isAddress } from "viem";
 
@@ -78,8 +78,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Metadata request failed" }, { status: 502 });
   }
 
-  const meta: { name: string | null; symbol: string | null; decimals: number | null; logo: string | null } =
-    (await metaRes.json())?.result ?? {};
+  const meta: {
+    name: string | null;
+    symbol: string | null;
+    decimals: number | null;
+    logo: string | null;
+  } = (await metaRes.json())?.result ?? {};
 
   if (!meta.symbol || !meta.name || meta.decimals == null) {
     return NextResponse.json({ error: "Not a valid ERC-20 token" }, { status: 404 });
@@ -92,7 +96,8 @@ export async function GET(req: NextRequest) {
     const preview = zoraToken.mediaContent.previewImage;
     const raw =
       typeof preview === "object"
-        ? (preview as Record<string, string>)?.medium ?? (preview as Record<string, string>)?.small
+        ? ((preview as Record<string, string>)?.medium ??
+          (preview as Record<string, string>)?.small)
         : (preview as string | undefined);
     if (raw) {
       logoUrl = raw.startsWith("ipfs://") ? raw.replace("ipfs://", "https://dweb.link/ipfs/") : raw;

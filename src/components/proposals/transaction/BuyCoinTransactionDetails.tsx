@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowLeftRight, AlertCircle } from "lucide-react";
+import { AlertCircle, ArrowLeftRight } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { cn, getETHDisplayProps } from "@/lib/utils";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { cn, getETHDisplayProps } from "@/lib/utils";
 import { type TransactionFormValues } from "../schema";
 
 interface BuyCoinTransactionDetailsProps {
@@ -36,10 +36,7 @@ export function BuyCoinTransactionDetails({ transaction }: BuyCoinTransactionDet
         <div className="flex flex-col items-center">
           <ArrowLeftRight className="h-4 w-4 text-muted-foreground rotate-90 md:rotate-0" />
           {ethProps && (
-            <div className={cn(
-              "text-sm font-bold font-mono mt-1",
-              ethProps.textColor
-            )}>
+            <div className={cn("text-sm font-bold font-mono mt-1", ethProps.textColor)}>
               {ethProps.formatted}
             </div>
           )}
@@ -63,7 +60,9 @@ export function BuyCoinTransactionDetails({ transaction }: BuyCoinTransactionDet
             <div className="px-3 py-2 rounded-lg border border-dashed border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20 min-h-[60px] flex items-center">
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Not set</span>
+                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                  Not set
+                </span>
               </div>
             </div>
           )}

@@ -46,7 +46,7 @@ export function ProposalMetrics({
   const abstainPct = Math.min(100, Math.max(0, (abstainNum / totalVotes) * 100));
 
   const isPending = status === ProposalStatus.PENDING;
-  const dateToShow = isPending ? startDate ?? endDate : endDate;
+  const dateToShow = isPending ? (startDate ?? endDate) : endDate;
   // Intentional render-time read: the label reflects current clock on each render.
   // Hydration mismatch is suppressed on the consuming nodes below.
   // eslint-disable-next-line react-hooks/purity
@@ -60,7 +60,9 @@ export function ProposalMetrics({
           <CardTitle className="text-md font-semibold text-foreground/90">For</CardTitle>
         </CardHeader>
         <CardContent className="space-y-1.5 py-1 px-4">
-          <div className="text-xl md:text-2xl font-bold text-green-600">{formatVotes(forVotes)}</div>
+          <div className="text-xl md:text-2xl font-bold text-green-600">
+            {formatVotes(forVotes)}
+          </div>
           <Progress value={forPct} className="h-1.5" indicatorClassName="bg-green-500" />
         </CardContent>
       </Card>
@@ -70,7 +72,9 @@ export function ProposalMetrics({
           <CardTitle className="text-md font-semibold text-foreground/90">Against</CardTitle>
         </CardHeader>
         <CardContent className="space-y-1.5 py-1 px-4">
-          <div className="text-xl md:text-2xl font-bold text-red-600">{formatVotes(againstVotes)}</div>
+          <div className="text-xl md:text-2xl font-bold text-red-600">
+            {formatVotes(againstVotes)}
+          </div>
           <Progress value={againstPct} className="h-1.5" indicatorClassName="bg-red-500" />
         </CardContent>
       </Card>

@@ -1,7 +1,10 @@
-import type { NextConfig } from "next";
 import fs from "fs";
 import path from "path";
+import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 import matter from "gray-matter";
+
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 // Generate redirects from markdown files (trailing slash cleanup only)
 function generateBlogRedirects() {
@@ -12,7 +15,7 @@ function generateBlogRedirects() {
   }> = [];
 
   const blogDir = path.join(process.cwd(), "src/content/blog");
-  
+
   if (!fs.existsSync(blogDir)) {
     return redirects;
   }
@@ -103,4 +106,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

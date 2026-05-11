@@ -7,9 +7,9 @@ permalink: /top-solana-nft-projects/
 author: gami
 image: /images/top-solana-nfts.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [opinion]
-featured: 
+featured:
 ---
 
 Solana NFTs, the up-and-coming underdogs of the 20 billion dollar NFT industry. Will they flip Ethereum NFTs in the near future? Probably not. But does this mean Solana NFTs don’t have growth potential like their Ethereum counterparts? Absolutely not!
@@ -20,7 +20,7 @@ In this article, we will be talking about the best of those select few Solana pr
 
 ## Best Solana NFT Projects
 
-*Disclaimer: All the Solana NFT projects listed below are that of my (Blowned.eth) personal opinion. They are not solely based on market cap/utility, but more on my perception of their future growth potential. As [DCinvestor.eth](https://twitter.com/iamDCinvestor/status/1514016206017204224) perfectly put it, “One man’s garbage is another man’s future historical NFT.” This is an opinion piece, not NFT alpha. Without further ado, enjoy!*
+_Disclaimer: All the Solana NFT projects listed below are that of my (Blowned.eth) personal opinion. They are not solely based on market cap/utility, but more on my perception of their future growth potential. As [DCinvestor.eth](https://twitter.com/iamDCinvestor/status/1514016206017204224) perfectly put it, “One man’s garbage is another man’s future historical NFT.” This is an opinion piece, not NFT alpha. Without further ado, enjoy!_
 
 ### 1) Solana Monkey Business – The CryptoPunks of Solana
 

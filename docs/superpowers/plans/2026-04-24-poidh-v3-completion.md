@@ -12,32 +12,35 @@
 
 ## File Map
 
-| File | Action | What changes |
-|---|---|---|
-| `src/lib/poidh/abi.ts` | Modify | Fix `voteClaim`/`resolveVote`, remove `getBounty`, fix `bounties` getter, add 6 new entries |
-| `src/hooks/usePoidhContract.ts` | Modify | Fix vote/resolve params, add `usePoidhClaimRefund`, `usePoidhResetVotingPeriod`, `usePoidhWithdraw` |
-| `src/components/bounties/VoteDashboard.tsx` | Create | Live yes/no tallies + vote deadline countdown |
-| `src/components/bounties/PendingWithdrawalBanner.tsx` | Create | Per-chain claimable ETH notification + withdraw button |
-| `src/components/bounties/BountyDetailView.tsx` | Modify | Remove dead `getBounty`, add `everHadExternalContributor` gate, fix canceled-bounty withdraw, add VoteDashboard + resetVotingPeriod |
-| `src/components/bounties/BountiesView.tsx` | Modify | Add PendingWithdrawalBanner at top |
-| `scripts/test-poidh.ts` | Create | Full integration test script with thirdweb wallets |
+| File                                                  | Action | What changes                                                                                                                        |
+| ----------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/poidh/abi.ts`                                | Modify | Fix `voteClaim`/`resolveVote`, remove `getBounty`, fix `bounties` getter, add 6 new entries                                         |
+| `src/hooks/usePoidhContract.ts`                       | Modify | Fix vote/resolve params, add `usePoidhClaimRefund`, `usePoidhResetVotingPeriod`, `usePoidhWithdraw`                                 |
+| `src/components/bounties/VoteDashboard.tsx`           | Create | Live yes/no tallies + vote deadline countdown                                                                                       |
+| `src/components/bounties/PendingWithdrawalBanner.tsx` | Create | Per-chain claimable ETH notification + withdraw button                                                                              |
+| `src/components/bounties/BountyDetailView.tsx`        | Modify | Remove dead `getBounty`, add `everHadExternalContributor` gate, fix canceled-bounty withdraw, add VoteDashboard + resetVotingPeriod |
+| `src/components/bounties/BountiesView.tsx`            | Modify | Add PendingWithdrawalBanner at top                                                                                                  |
+| `scripts/test-poidh.ts`                               | Create | Full integration test script with thirdweb wallets                                                                                  |
 
 ---
 
 ## Task 1: Fix ABI
 
 **Files:**
+
 - Modify: `src/lib/poidh/abi.ts` (replace entirely)
 
 Three bugs + six missing entries.
 
 **Bug fixes:**
+
 - `voteClaim`: V2 had `(bountyId, claimId, accept)`, V3 is `(bountyId, vote: bool)` — drop `claimId`
 - `resolveVote`: V2 had `(bountyId, claimId)`, V3 is `(bountyId)` — drop `claimId`
 - `getBounty`: does not exist on V3 — remove entirely
 - `bounties` storage getter: remove phantom fields `deadline`, `status`, `isOpenBounty`
 
 **New entries to add:**
+
 - `claimRefundFromCancelledOpenBounty(bountyId)` — contributor pull-refund after issuer cancels open bounty
 - `resetVotingPeriod(bountyId)` — recovery after a failed vote (reverts if vote would have passed)
 - `withdrawTo(to: address)` — variant of `withdraw()` for contract wallets
@@ -51,188 +54,188 @@ Three bugs + six missing entries.
 export const POIDH_ABI = [
   // ── Write functions ──────────────────────────────────────────────────────
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "bountyId", "type": "uint256" },
-      { "internalType": "string",  "name": "name",        "type": "string" },
-      { "internalType": "string",  "name": "description", "type": "string" },
-      { "internalType": "string",  "name": "imageUri",    "type": "string" }
+    inputs: [
+      { internalType: "uint256", name: "bountyId", type: "uint256" },
+      { internalType: "string", name: "name", type: "string" },
+      { internalType: "string", name: "description", type: "string" },
+      { internalType: "string", name: "imageUri", type: "string" },
     ],
-    "name": "createClaim",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "createClaim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
-      { "internalType": "string", "name": "name",        "type": "string" },
-      { "internalType": "string", "name": "description", "type": "string" }
+    inputs: [
+      { internalType: "string", name: "name", type: "string" },
+      { internalType: "string", name: "description", type: "string" },
     ],
-    "name": "createSoloBounty",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
+    name: "createSoloBounty",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
   },
   {
-    "inputs": [
-      { "internalType": "string", "name": "name",        "type": "string" },
-      { "internalType": "string", "name": "description", "type": "string" }
+    inputs: [
+      { internalType: "string", name: "name", type: "string" },
+      { internalType: "string", name: "description", type: "string" },
     ],
-    "name": "createOpenBounty",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
+    name: "createOpenBounty",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "bountyId", "type": "uint256" }],
-    "name": "joinOpenBounty",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
+    inputs: [{ internalType: "uint256", name: "bountyId", type: "uint256" }],
+    name: "joinOpenBounty",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
   },
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "bountyId", "type": "uint256" },
-      { "internalType": "uint256", "name": "claimId",  "type": "uint256" }
+    inputs: [
+      { internalType: "uint256", name: "bountyId", type: "uint256" },
+      { internalType: "uint256", name: "claimId", type: "uint256" },
     ],
-    "name": "acceptClaim",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "acceptClaim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "bountyId", "type": "uint256" },
-      { "internalType": "uint256", "name": "claimId",  "type": "uint256" }
+    inputs: [
+      { internalType: "uint256", name: "bountyId", type: "uint256" },
+      { internalType: "uint256", name: "claimId", type: "uint256" },
     ],
-    "name": "submitClaimForVote",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "submitClaimForVote",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "bountyId", "type": "uint256" },
-      { "internalType": "bool",    "name": "vote",     "type": "bool" }
+    inputs: [
+      { internalType: "uint256", name: "bountyId", type: "uint256" },
+      { internalType: "bool", name: "vote", type: "bool" },
     ],
-    "name": "voteClaim",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "voteClaim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "bountyId", "type": "uint256" }],
-    "name": "resolveVote",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [{ internalType: "uint256", name: "bountyId", type: "uint256" }],
+    name: "resolveVote",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "bountyId", "type": "uint256" }],
-    "name": "cancelSoloBounty",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [{ internalType: "uint256", name: "bountyId", type: "uint256" }],
+    name: "cancelSoloBounty",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "bountyId", "type": "uint256" }],
-    "name": "cancelOpenBounty",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [{ internalType: "uint256", name: "bountyId", type: "uint256" }],
+    name: "cancelOpenBounty",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "bountyId", "type": "uint256" }],
-    "name": "withdrawFromOpenBounty",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [{ internalType: "uint256", name: "bountyId", type: "uint256" }],
+    name: "withdrawFromOpenBounty",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "bountyId", "type": "uint256" }],
-    "name": "claimRefundFromCancelledOpenBounty",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [{ internalType: "uint256", name: "bountyId", type: "uint256" }],
+    name: "claimRefundFromCancelledOpenBounty",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "bountyId", "type": "uint256" }],
-    "name": "resetVotingPeriod",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [{ internalType: "uint256", name: "bountyId", type: "uint256" }],
+    name: "resetVotingPeriod",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "withdraw",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [],
+    name: "withdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "address", "name": "to", "type": "address" }],
-    "name": "withdrawTo",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [{ internalType: "address", name: "to", type: "address" }],
+    name: "withdrawTo",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   // ── Read functions ───────────────────────────────────────────────────────
   {
-    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "name": "bounties",
-    "outputs": [
-      { "internalType": "string",  "name": "name",        "type": "string" },
-      { "internalType": "string",  "name": "description", "type": "string" },
-      { "internalType": "uint256", "name": "amount",      "type": "uint256" },
-      { "internalType": "address", "name": "issuer",      "type": "address" },
-      { "internalType": "address", "name": "claimer",     "type": "address" },
-      { "internalType": "uint256", "name": "createdAt",   "type": "uint256" },
-      { "internalType": "uint256", "name": "claimId",     "type": "uint256" }
+    inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    name: "bounties",
+    outputs: [
+      { internalType: "string", name: "name", type: "string" },
+      { internalType: "string", name: "description", type: "string" },
+      { internalType: "uint256", name: "amount", type: "uint256" },
+      { internalType: "address", name: "issuer", type: "address" },
+      { internalType: "address", name: "claimer", type: "address" },
+      { internalType: "uint256", name: "createdAt", type: "uint256" },
+      { internalType: "uint256", name: "claimId", type: "uint256" },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "bountyId", "type": "uint256" }],
-    "name": "getParticipants",
-    "outputs": [
-      { "internalType": "address[]", "name": "", "type": "address[]" },
-      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
+    inputs: [{ internalType: "uint256", name: "bountyId", type: "uint256" }],
+    name: "getParticipants",
+    outputs: [
+      { internalType: "address[]", name: "", type: "address[]" },
+      { internalType: "uint256[]", name: "", type: "uint256[]" },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "bountyId", "type": "uint256" }],
-    "name": "bountyVotingTracker",
-    "outputs": [
-      { "internalType": "uint256", "name": "yes",      "type": "uint256" },
-      { "internalType": "uint256", "name": "no",       "type": "uint256" },
-      { "internalType": "uint256", "name": "deadline", "type": "uint256" }
+    inputs: [{ internalType: "uint256", name: "bountyId", type: "uint256" }],
+    name: "bountyVotingTracker",
+    outputs: [
+      { internalType: "uint256", name: "yes", type: "uint256" },
+      { internalType: "uint256", name: "no", type: "uint256" },
+      { internalType: "uint256", name: "deadline", type: "uint256" },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "bountyId", "type": "uint256" }],
-    "name": "bountyCurrentVotingClaim",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
+    inputs: [{ internalType: "uint256", name: "bountyId", type: "uint256" }],
+    name: "bountyCurrentVotingClaim",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "bountyId", "type": "uint256" }],
-    "name": "everHadExternalContributor",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-    "stateMutability": "view",
-    "type": "function"
+    inputs: [{ internalType: "uint256", name: "bountyId", type: "uint256" }],
+    name: "everHadExternalContributor",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "name": "pendingWithdrawals",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "pendingWithdrawals",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
 ] as const;
 ```
 
@@ -256,6 +259,7 @@ git commit -m "fix(poidh): update ABI to V3 — fix voteClaim/resolveVote, add m
 ## Task 2: Fix & Extend Contract Hooks
 
 **Files:**
+
 - Modify: `src/hooks/usePoidhContract.ts`
 
 Three changes to existing hooks + three new hooks.
@@ -273,8 +277,16 @@ export function usePoidhVoteClaim(bountyChainId: number) {
 
   const vote = useCallback(
     async (onChainBountyId: number, accept: boolean) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "voteClaim",
@@ -302,8 +314,16 @@ export function usePoidhResolveVote(bountyChainId: number) {
 
   const resolve = useCallback(
     async (onChainBountyId: number) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "resolveVote",
@@ -331,8 +351,16 @@ export function usePoidhClaimRefundFromCancelledBounty(bountyChainId: number) {
 
   const claimRefund = useCallback(
     async (onChainBountyId: number) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "claimRefundFromCancelledOpenBounty",
@@ -354,8 +382,16 @@ export function usePoidhResetVotingPeriod(bountyChainId: number) {
 
   const reset = useCallback(
     async (onChainBountyId: number) => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
+      const { client, contractAddress, twChain, writer } = await assertPoidhReady(
+        ctx,
+        bountyChainId,
+      );
+      const contract = getContract({
+        client,
+        chain: twChain,
+        address: contractAddress,
+        abi: POIDH_ABI,
+      });
       const tx = prepareContractCall({
         contract,
         method: "resetVotingPeriod",
@@ -375,19 +411,21 @@ export function usePoidhWithdraw(bountyChainId: number) {
   const ctx = usePoidhContext(bountyChainId);
   const state = usePoidhWriteState();
 
-  const withdraw = useCallback(
-    async () => {
-      const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
-      const contract = getContract({ client, chain: twChain, address: contractAddress, abi: POIDH_ABI });
-      const tx = prepareContractCall({
-        contract,
-        method: "withdraw",
-        params: [],
-      });
-      await sendAndConfirm(state, client, twChain, writer, tx);
-    },
-    [ctx, bountyChainId, state],
-  );
+  const withdraw = useCallback(async () => {
+    const { client, contractAddress, twChain, writer } = await assertPoidhReady(ctx, bountyChainId);
+    const contract = getContract({
+      client,
+      chain: twChain,
+      address: contractAddress,
+      abi: POIDH_ABI,
+    });
+    const tx = prepareContractCall({
+      contract,
+      method: "withdraw",
+      params: [],
+    });
+    await sendAndConfirm(state, client, twChain, writer, tx);
+  }, [ctx, bountyChainId, state]);
 
   return { withdraw, ...buildPoidhReturn(state) };
 }
@@ -413,6 +451,7 @@ git commit -m "fix(poidh): fix voteClaim/resolveVote params, add claimRefund/res
 ## Task 3: VoteDashboard Component
 
 **Files:**
+
 - Create: `src/components/bounties/VoteDashboard.tsx`
 
 Reads `bountyVotingTracker` on-chain every 15s. Shows yes/no ETH weights as a progress bar and the vote deadline as a live countdown.
@@ -546,6 +585,7 @@ git commit -m "feat(poidh): add VoteDashboard with live vote tallies and deadlin
 ## Task 4: PendingWithdrawalBanner Component
 
 **Files:**
+
 - Create: `src/components/bounties/PendingWithdrawalBanner.tsx`
 
 Reads `pendingWithdrawals(userAddress)` for each supported chain. Shows a banner per chain where balance > 0. Calls `withdraw()` via `usePoidhWithdraw`.
@@ -679,9 +719,11 @@ git commit -m "feat(poidh): add PendingWithdrawalBanner for claimable ETH across
 ## Task 5: Update BountyDetailView
 
 **Files:**
+
 - Modify: `src/components/bounties/BountyDetailView.tsx`
 
 Four independent changes:
+
 1. Remove dead `getBounty` call, simplify `isJoinable`
 2. Add `everHadExternalContributor` read to gate the Accept Claim button
 3. Fix canceled-bounty withdraw to use `claimRefundFromCancelledOpenBounty`
@@ -692,22 +734,26 @@ Four independent changes:
 - [ ] **Step 1: Remove the `getBounty` useReadContract block and simplify isJoinable**
 
 Replace this block (lines 178–187):
+
 ```typescript
-  // Read the authoritative on-chain isOpenBounty flag (overrides API field which can be null on V2)
-  const { data: onChainBountyData } = useReadContract({
-    address: POIDH_CONTRACTS[chainId],
-    abi: POIDH_ABI,
-    functionName: 'getBounty',
-    args: [BigInt(bounty?.onChainId ?? 0)],
-    chainId,
-    query: { enabled: !!(bounty?.onChainId) },
-  });
-  const isJoinable = onChainBountyData ? onChainBountyData.isOpenBounty : (bounty?.isOpenBounty || bounty?.isMultiplayer);
+// Read the authoritative on-chain isOpenBounty flag (overrides API field which can be null on V2)
+const { data: onChainBountyData } = useReadContract({
+  address: POIDH_CONTRACTS[chainId],
+  abi: POIDH_ABI,
+  functionName: "getBounty",
+  args: [BigInt(bounty?.onChainId ?? 0)],
+  chainId,
+  query: { enabled: !!bounty?.onChainId },
+});
+const isJoinable = onChainBountyData
+  ? onChainBountyData.isOpenBounty
+  : bounty?.isOpenBounty || bounty?.isMultiplayer;
 ```
 
 With:
+
 ```typescript
-  const isJoinable = bounty?.isOpenBounty || bounty?.isMultiplayer;
+const isJoinable = bounty?.isOpenBounty || bounty?.isMultiplayer;
 ```
 
 ### 5b — Add everHadExternalContributor read
@@ -715,33 +761,45 @@ With:
 - [ ] **Step 2: Add the read after the `participantsData` block (after line 199)**
 
 ```typescript
-  const { data: hadExternalContributor } = useReadContract({
-    address: POIDH_CONTRACTS[chainId],
-    abi: POIDH_ABI,
-    functionName: 'everHadExternalContributor',
-    args: [BigInt(bounty?.onChainId ?? 0)],
-    chainId,
-    query: { enabled: !!(bounty?.onChainId) },
-  });
+const { data: hadExternalContributor } = useReadContract({
+  address: POIDH_CONTRACTS[chainId],
+  abi: POIDH_ABI,
+  functionName: "everHadExternalContributor",
+  args: [BigInt(bounty?.onChainId ?? 0)],
+  chainId,
+  query: { enabled: !!bounty?.onChainId },
+});
 ```
 
 - [ ] **Step 3: Update imports — add the three new hooks and VoteDashboard**
 
 In the imports at the top of BountyDetailView.tsx, update the hook import line:
+
 ```typescript
-import { usePoidhCancelBounty, usePoidhJoinBounty, usePoidhWithdrawFromBounty, usePoidhAcceptClaim, usePoidhSubmitClaimForVote, usePoidhVoteClaim, usePoidhResolveVote, usePoidhClaimRefundFromCancelledBounty, usePoidhResetVotingPeriod } from '@/hooks/usePoidhContract';
+import {
+  usePoidhAcceptClaim,
+  usePoidhCancelBounty,
+  usePoidhClaimRefundFromCancelledBounty,
+  usePoidhJoinBounty,
+  usePoidhResetVotingPeriod,
+  usePoidhResolveVote,
+  usePoidhSubmitClaimForVote,
+  usePoidhVoteClaim,
+  usePoidhWithdrawFromBounty,
+} from "@/hooks/usePoidhContract";
 ```
 
 Add VoteDashboard import:
+
 ```typescript
-import { VoteDashboard } from '@/components/bounties/VoteDashboard';
+import { VoteDashboard } from "@/components/bounties/VoteDashboard";
 ```
 
 - [ ] **Step 4: Instantiate the new hooks** — add after line 173 (after `resolveVoteHook`):
 
 ```typescript
-  const claimRefundHook = usePoidhClaimRefundFromCancelledBounty(chainId);
-  const resetVotingHook = usePoidhResetVotingPeriod(chainId);
+const claimRefundHook = usePoidhClaimRefundFromCancelledBounty(chainId);
+const resetVotingHook = usePoidhResetVotingPeriod(chainId);
 ```
 
 ### 5c — Gate Accept Claim with everHadExternalContributor
@@ -749,16 +807,19 @@ import { VoteDashboard } from '@/components/bounties/VoteDashboard';
 - [ ] **Step 5: Update the Accept Claim button condition**
 
 Find (line ~451):
+
 ```typescript
 {isCreator && !claim.accepted && !bounty.isCanceled && (
 ```
 
 Replace with:
+
 ```typescript
 {isCreator && !claim.accepted && !bounty.isCanceled && !hadExternalContributor && (
 ```
 
 Also add a note for when `hadExternalContributor` is true — insert directly after the Accept button block:
+
 ```typescript
 {isCreator && !claim.accepted && !bounty.isCanceled && hadExternalContributor && !bounty.isVoting && (
   <p className="text-xs text-muted-foreground pt-1">
@@ -867,28 +928,37 @@ Inside the `{bounty.isVoting && isConnected && (` block, after the Resolve Vote 
 - [ ] **Step 9: Also update vote/resolve call sites** — the vote and resolve hooks no longer accept `claimId`
 
 Find in the voting controls section:
+
 ```typescript
 onClick={() => voteClaimHook.vote(bounty.onChainId, claim.id, true)}
 ```
+
 Replace with:
+
 ```typescript
 onClick={() => voteClaimHook.vote(bounty.onChainId, true)}
 ```
 
 Find:
+
 ```typescript
 onClick={() => voteClaimHook.vote(bounty.onChainId, claim.id, false)}
 ```
+
 Replace with:
+
 ```typescript
 onClick={() => voteClaimHook.vote(bounty.onChainId, false)}
 ```
 
 Find:
+
 ```typescript
 onClick={() => resolveVoteHook.resolve(bounty.onChainId, claim.id)}
 ```
+
 Replace with:
+
 ```typescript
 onClick={() => resolveVoteHook.resolve(bounty.onChainId)}
 ```
@@ -913,6 +983,7 @@ git commit -m "fix(poidh): fix vote/resolve calls, add VoteDashboard, claimRefun
 ## Task 6: Wire PendingWithdrawalBanner into BountiesView
 
 **Files:**
+
 - Modify: `src/components/bounties/BountiesView.tsx`
 
 Add import + render at top of the view, before the tabs/filters.
@@ -920,7 +991,7 @@ Add import + render at top of the view, before the tabs/filters.
 - [ ] **Step 1: Add import to BountiesView.tsx**
 
 ```typescript
-import { PendingWithdrawalBanner } from '@/components/bounties/PendingWithdrawalBanner';
+import { PendingWithdrawalBanner } from "@/components/bounties/PendingWithdrawalBanner";
 ```
 
 - [ ] **Step 2: Render the banner at the top of the returned JSX**
@@ -949,11 +1020,13 @@ git commit -m "feat(poidh): show pending withdrawal banner on bounties list page
 ## Task 7: Integration Test Script
 
 **Files:**
+
 - Create: `scripts/test-poidh.ts`
 
 Tests the full V3 contract flow using two thirdweb private-key wallets against a local Anvil fork of Base mainnet. Covers the golden path (solo bounty, open bounty, claim, vote) and edge cases (AA wallet blocked, non-issuer accept blocked, non-participant vote blocked, cancel refund flow).
 
 **Prerequisites:**
+
 ```bash
 # 1. Install anvil (part of foundry)
 curl -L https://foundry.paradigm.xyz | bash && foundryup
@@ -967,6 +1040,7 @@ export POIDH_RPC_URL="http://127.0.0.1:8545"   # anvil default
 ```
 
 **Running the script:**
+
 ```bash
 npx tsx scripts/test-poidh.ts
 ```
@@ -978,14 +1052,14 @@ import {
   createThirdwebClient,
   getContract,
   prepareContractCall,
-  sendTransaction,
-  waitForReceipt,
   readContract,
+  sendTransaction,
   toWei,
+  waitForReceipt,
 } from "thirdweb";
-import { privateKeyToAccount } from "thirdweb/wallets";
 import { defineChain } from "thirdweb/chains";
-import { createWalletClient, http, parseEther, formatEther } from "viem";
+import { privateKeyToAccount } from "thirdweb/wallets";
+import { createWalletClient, formatEther, http, parseEther } from "viem";
 import { privateKeyToAccount as viemPrivKey } from "viem/accounts";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -995,16 +1069,16 @@ const SECRET_KEY = process.env.THIRDWEB_SECRET_KEY ?? "";
 const POIDH_CONTRACT_ADDR = "0x5555fa783936c260f77385b4e153b9725fef1719" as const;
 
 // Anvil default funded accounts (deterministic from default mnemonic)
-const ANVIL_KEY_A = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as `0x${string}`;
-const ANVIL_KEY_B = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d" as `0x${string}`;
+const ANVIL_KEY_A =
+  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as `0x${string}`;
+const ANVIL_KEY_B =
+  "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d" as `0x${string}`;
 
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
 const baseFork = defineChain({ id: 8453, rpc: RPC_URL });
 
-const client = createThirdwebClient(
-  SECRET_KEY ? { secretKey: SECRET_KEY } : { clientId: "test" }
-);
+const client = createThirdwebClient(SECRET_KEY ? { secretKey: SECRET_KEY } : { clientId: "test" });
 
 const accountA = privateKeyToAccount({ client, privateKey: ANVIL_KEY_A });
 const accountB = privateKeyToAccount({ client, privateKey: ANVIL_KEY_B });
@@ -1051,31 +1125,196 @@ async function expect<T>(actual: T, check: (v: T) => boolean, label: string) {
 // ─── ABI (inline for script independence) ────────────────────────────────────
 
 const POIDH_ABI = [
-  { inputs: [{ name: "name", type: "string" }, { name: "description", type: "string" }], name: "createSoloBounty", outputs: [], stateMutability: "payable", type: "function" },
-  { inputs: [{ name: "name", type: "string" }, { name: "description", type: "string" }], name: "createOpenBounty", outputs: [], stateMutability: "payable", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }], name: "joinOpenBounty", outputs: [], stateMutability: "payable", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }, { name: "name", type: "string" }, { name: "description", type: "string" }, { name: "imageUri", type: "string" }], name: "createClaim", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }, { name: "claimId", type: "uint256" }], name: "acceptClaim", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }, { name: "claimId", type: "uint256" }], name: "submitClaimForVote", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }, { name: "vote", type: "bool" }], name: "voteClaim", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }], name: "resolveVote", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }], name: "cancelSoloBounty", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }], name: "cancelOpenBounty", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }], name: "withdrawFromOpenBounty", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }], name: "claimRefundFromCancelledOpenBounty", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }], name: "resetVotingPeriod", outputs: [], stateMutability: "nonpayable", type: "function" },
+  {
+    inputs: [
+      { name: "name", type: "string" },
+      { name: "description", type: "string" },
+    ],
+    name: "createSoloBounty",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "name", type: "string" },
+      { name: "description", type: "string" },
+    ],
+    name: "createOpenBounty",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "bountyId", type: "uint256" }],
+    name: "joinOpenBounty",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "bountyId", type: "uint256" },
+      { name: "name", type: "string" },
+      { name: "description", type: "string" },
+      { name: "imageUri", type: "string" },
+    ],
+    name: "createClaim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "bountyId", type: "uint256" },
+      { name: "claimId", type: "uint256" },
+    ],
+    name: "acceptClaim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "bountyId", type: "uint256" },
+      { name: "claimId", type: "uint256" },
+    ],
+    name: "submitClaimForVote",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "bountyId", type: "uint256" },
+      { name: "vote", type: "bool" },
+    ],
+    name: "voteClaim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "bountyId", type: "uint256" }],
+    name: "resolveVote",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "bountyId", type: "uint256" }],
+    name: "cancelSoloBounty",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "bountyId", type: "uint256" }],
+    name: "cancelOpenBounty",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "bountyId", type: "uint256" }],
+    name: "withdrawFromOpenBounty",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "bountyId", type: "uint256" }],
+    name: "claimRefundFromCancelledOpenBounty",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "bountyId", type: "uint256" }],
+    name: "resetVotingPeriod",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
   { inputs: [], name: "withdraw", outputs: [], stateMutability: "nonpayable", type: "function" },
   // Read
-  { inputs: [], name: "getBountiesLength", outputs: [{ name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-  { inputs: [], name: "MIN_BOUNTY_AMOUNT", outputs: [{ name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-  { inputs: [], name: "MIN_CONTRIBUTION", outputs: [{ name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-  { inputs: [], name: "FEE_BPS", outputs: [{ name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-  { inputs: [], name: "votingPeriod", outputs: [{ name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }], name: "everHadExternalContributor", outputs: [{ name: "", type: "bool" }], stateMutability: "view", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }], name: "bountyVotingTracker", outputs: [{ name: "yes", type: "uint256" }, { name: "no", type: "uint256" }, { name: "deadline", type: "uint256" }], stateMutability: "view", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }], name: "bountyCurrentVotingClaim", outputs: [{ name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-  { inputs: [{ name: "", type: "address" }], name: "pendingWithdrawals", outputs: [{ name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-  { inputs: [{ name: "bountyId", type: "uint256" }], name: "getParticipants", outputs: [{ name: "", type: "address[]" }, { name: "", type: "uint256[]" }], stateMutability: "view", type: "function" },
+  {
+    inputs: [],
+    name: "getBountiesLength",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "MIN_BOUNTY_AMOUNT",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "MIN_CONTRIBUTION",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "FEE_BPS",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "votingPeriod",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "bountyId", type: "uint256" }],
+    name: "everHadExternalContributor",
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "bountyId", type: "uint256" }],
+    name: "bountyVotingTracker",
+    outputs: [
+      { name: "yes", type: "uint256" },
+      { name: "no", type: "uint256" },
+      { name: "deadline", type: "uint256" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "bountyId", type: "uint256" }],
+    name: "bountyCurrentVotingClaim",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "", type: "address" }],
+    name: "pendingWithdrawals",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "bountyId", type: "uint256" }],
+    name: "getParticipants",
+    outputs: [
+      { name: "", type: "address[]" },
+      { name: "", type: "uint256[]" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
 ] as const;
 
 // ─── Test: read contract constants ───────────────────────────────────────────
@@ -1104,50 +1343,73 @@ async function testSoloBountyFlow() {
   const lengthBefore = await readContract({ contract, method: "getBountiesLength" });
 
   // Create solo bounty (account A)
-  await send(accountA, prepareContractCall({
-    contract,
-    method: "createSoloBounty",
-    params: ["Test Solo Bounty", "Integration test — gnars website"],
-    value: parseEther("0.001"),
-  }));
+  await send(
+    accountA,
+    prepareContractCall({
+      contract,
+      method: "createSoloBounty",
+      params: ["Test Solo Bounty", "Integration test — gnars website"],
+      value: parseEther("0.001"),
+    }),
+  );
 
   const bountyId = lengthBefore; // new bounty ID = previous length (0-indexed)
   await expect(
     await readContract({ contract, method: "getBountiesLength" }),
     (v) => v === lengthBefore + 1n,
-    "Solo bounty created — length increased"
+    "Solo bounty created — length increased",
   );
 
   // Verify no external contributors yet
   await expect(
     await readContract({ contract, method: "everHadExternalContributor", args: [bountyId] }),
     (v) => v === false,
-    "everHadExternalContributor = false (solo)"
+    "everHadExternalContributor = false (solo)",
   );
 
   // Create claim (account B)
-  await send(accountB, prepareContractCall({
-    contract,
-    method: "createClaim",
-    params: [bountyId, "My proof", "I did it!", ""],
-  }));
-  console.log(`  ✅ PASS [claim created by wallet B]`); passed++;
+  await send(
+    accountB,
+    prepareContractCall({
+      contract,
+      method: "createClaim",
+      params: [bountyId, "My proof", "I did it!", ""],
+    }),
+  );
+  console.log(`  ✅ PASS [claim created by wallet B]`);
+  passed++;
 
   // Accept claim directly (solo bounty, no contributors → acceptClaim works)
-  await send(accountA, prepareContractCall({
-    contract,
-    method: "acceptClaim",
-    params: [bountyId, 0n],
-  }));
-  console.log(`  ✅ PASS [claim accepted by issuer]`); passed++;
+  await send(
+    accountA,
+    prepareContractCall({
+      contract,
+      method: "acceptClaim",
+      params: [bountyId, 0n],
+    }),
+  );
+  console.log(`  ✅ PASS [claim accepted by issuer]`);
+  passed++;
 
   // Winner (B) should have pending withdrawal balance
-  const pending = await readContract({ contract, method: "pendingWithdrawals", args: [accountB.address as `0x${string}`] });
-  await expect(pending, (v) => v > 0n, `Winner has pending withdrawal (${formatEther(pending)} ETH after fee)`);
+  const pending = await readContract({
+    contract,
+    method: "pendingWithdrawals",
+    args: [accountB.address as `0x${string}`],
+  });
+  await expect(
+    pending,
+    (v) => v > 0n,
+    `Winner has pending withdrawal (${formatEther(pending)} ETH after fee)`,
+  );
 
   // Withdraw the winnings
   await send(accountB, prepareContractCall({ contract, method: "withdraw", params: [] }));
-  const pendingAfter = await readContract({ contract, method: "pendingWithdrawals", args: [accountB.address as `0x${string}`] });
+  const pendingAfter = await readContract({
+    contract,
+    method: "pendingWithdrawals",
+    args: [accountB.address as `0x${string}`],
+  });
   await expect(pendingAfter, (v) => v === 0n, "Pending balance cleared after withdraw");
 }
 
@@ -1159,67 +1421,97 @@ async function testOpenBountyVoteFlow() {
   const lengthBefore = await readContract({ contract, method: "getBountiesLength" });
 
   // Create open bounty (account A)
-  await send(accountA, prepareContractCall({
-    contract,
-    method: "createOpenBounty",
-    params: ["Open Gnars Challenge", "Multiplayer test"],
-    value: parseEther("0.001"),
-  }));
+  await send(
+    accountA,
+    prepareContractCall({
+      contract,
+      method: "createOpenBounty",
+      params: ["Open Gnars Challenge", "Multiplayer test"],
+      value: parseEther("0.001"),
+    }),
+  );
   const bountyId = lengthBefore;
-  console.log(`  ✅ PASS [open bounty created — id ${bountyId}]`); passed++;
+  console.log(`  ✅ PASS [open bounty created — id ${bountyId}]`);
+  passed++;
 
   // Account B joins
-  await send(accountB, prepareContractCall({
-    contract,
-    method: "joinOpenBounty",
-    params: [bountyId],
-    value: parseEther("0.001"),
-  }));
-  console.log(`  ✅ PASS [wallet B joined open bounty]`); passed++;
+  await send(
+    accountB,
+    prepareContractCall({
+      contract,
+      method: "joinOpenBounty",
+      params: [bountyId],
+      value: parseEther("0.001"),
+    }),
+  );
+  console.log(`  ✅ PASS [wallet B joined open bounty]`);
+  passed++;
 
   // Now everHadExternalContributor should be true
   await expect(
     await readContract({ contract, method: "everHadExternalContributor", args: [bountyId] }),
     (v) => v === true,
-    "everHadExternalContributor = true after B joined"
+    "everHadExternalContributor = true after B joined",
   );
 
   // Account A creates a claim
-  await send(accountA, prepareContractCall({
-    contract,
-    method: "createClaim",
-    params: [bountyId, "A's proof", "Gnars proof by A", ""],
-  }));
+  await send(
+    accountA,
+    prepareContractCall({
+      contract,
+      method: "createClaim",
+      params: [bountyId, "A's proof", "Gnars proof by A", ""],
+    }),
+  );
   const claimId = 0n;
 
   // acceptClaim should now REVERT because everHadExternalContributor = true
   await expectRevert(
-    () => send(accountA, prepareContractCall({
-      contract,
-      method: "acceptClaim",
-      params: [bountyId, claimId],
-    })),
-    "acceptClaim reverts when open bounty had contributors"
+    () =>
+      send(
+        accountA,
+        prepareContractCall({
+          contract,
+          method: "acceptClaim",
+          params: [bountyId, claimId],
+        }),
+      ),
+    "acceptClaim reverts when open bounty had contributors",
   );
 
   // Submit claim for vote (A submits their own claim)
-  await send(accountA, prepareContractCall({
-    contract,
-    method: "submitClaimForVote",
-    params: [bountyId, claimId],
-  }));
-  console.log(`  ✅ PASS [claim submitted for vote]`); passed++;
+  await send(
+    accountA,
+    prepareContractCall({
+      contract,
+      method: "submitClaimForVote",
+      params: [bountyId, claimId],
+    }),
+  );
+  console.log(`  ✅ PASS [claim submitted for vote]`);
+  passed++;
 
   // Check vote tracker has a deadline
   const tracker = await readContract({ contract, method: "bountyVotingTracker", args: [bountyId] });
   await expect(tracker[2], (v) => v > 0n, "Vote deadline set after submitClaimForVote");
 
   // Vote YES (account A), Vote NO (account B)
-  await send(accountA, prepareContractCall({ contract, method: "voteClaim", params: [bountyId, true] }));
-  await send(accountB, prepareContractCall({ contract, method: "voteClaim", params: [bountyId, false] }));
-  console.log(`  ✅ PASS [A voted yes, B voted no]`); passed++;
+  await send(
+    accountA,
+    prepareContractCall({ contract, method: "voteClaim", params: [bountyId, true] }),
+  );
+  await send(
+    accountB,
+    prepareContractCall({ contract, method: "voteClaim", params: [bountyId, false] }),
+  );
+  console.log(`  ✅ PASS [A voted yes, B voted no]`);
+  passed++;
 
-  const trackerAfter = await readContract({ contract, method: "bountyVotingTracker", args: [bountyId] });
+  const trackerAfter = await readContract({
+    contract,
+    method: "bountyVotingTracker",
+    args: [bountyId],
+  });
   await expect(trackerAfter[0], (v) => v > 0n, "Yes weight > 0 after A voted");
   await expect(trackerAfter[1], (v) => v > 0n, "No weight > 0 after B voted");
 
@@ -1227,8 +1519,12 @@ async function testOpenBountyVoteFlow() {
   await advanceAnvilTime(48 * 3600 + 60);
 
   // Resolve vote
-  await send(accountA, prepareContractCall({ contract, method: "resolveVote", params: [bountyId] }));
-  console.log(`  ✅ PASS [vote resolved]`); passed++;
+  await send(
+    accountA,
+    prepareContractCall({ contract, method: "resolveVote", params: [bountyId] }),
+  );
+  console.log(`  ✅ PASS [vote resolved]`);
+  passed++;
 }
 
 // ─── Test: Cancel open bounty → contributors claim refund ────────────────────
@@ -1238,46 +1534,64 @@ async function testCancelAndRefundFlow() {
 
   const lengthBefore = await readContract({ contract, method: "getBountiesLength" });
 
-  await send(accountA, prepareContractCall({
-    contract,
-    method: "createOpenBounty",
-    params: ["Refund Test Bounty", "Will be cancelled"],
-    value: parseEther("0.001"),
-  }));
+  await send(
+    accountA,
+    prepareContractCall({
+      contract,
+      method: "createOpenBounty",
+      params: ["Refund Test Bounty", "Will be cancelled"],
+      value: parseEther("0.001"),
+    }),
+  );
   const bountyId = lengthBefore;
 
-  await send(accountB, prepareContractCall({
-    contract,
-    method: "joinOpenBounty",
-    params: [bountyId],
-    value: parseEther("0.001"),
-  }));
+  await send(
+    accountB,
+    prepareContractCall({
+      contract,
+      method: "joinOpenBounty",
+      params: [bountyId],
+      value: parseEther("0.001"),
+    }),
+  );
 
   // Issuer cancels
-  await send(accountA, prepareContractCall({
-    contract,
-    method: "cancelOpenBounty",
-    params: [bountyId],
-  }));
-  console.log(`  ✅ PASS [open bounty cancelled by issuer]`); passed++;
+  await send(
+    accountA,
+    prepareContractCall({
+      contract,
+      method: "cancelOpenBounty",
+      params: [bountyId],
+    }),
+  );
+  console.log(`  ✅ PASS [open bounty cancelled by issuer]`);
+  passed++;
 
   // withdrawFromOpenBounty should REVERT on a cancelled bounty
   await expectRevert(
-    () => send(accountB, prepareContractCall({
-      contract,
-      method: "withdrawFromOpenBounty",
-      params: [bountyId],
-    })),
-    "withdrawFromOpenBounty reverts on cancelled bounty"
+    () =>
+      send(
+        accountB,
+        prepareContractCall({
+          contract,
+          method: "withdrawFromOpenBounty",
+          params: [bountyId],
+        }),
+      ),
+    "withdrawFromOpenBounty reverts on cancelled bounty",
   );
 
   // claimRefundFromCancelledOpenBounty should succeed
-  await send(accountB, prepareContractCall({
-    contract,
-    method: "claimRefundFromCancelledOpenBounty",
-    params: [bountyId],
-  }));
-  console.log(`  ✅ PASS [contributor claimed refund via claimRefundFromCancelledOpenBounty]`); passed++;
+  await send(
+    accountB,
+    prepareContractCall({
+      contract,
+      method: "claimRefundFromCancelledOpenBounty",
+      params: [bountyId],
+    }),
+  );
+  console.log(`  ✅ PASS [contributor claimed refund via claimRefundFromCancelledOpenBounty]`);
+  passed++;
 }
 
 // ─── Test: Edge cases ─────────────────────────────────────────────────────────
@@ -1286,53 +1600,97 @@ async function testEdgeCases() {
   console.log("\n⚠️  Edge Cases");
 
   const lengthBefore = await readContract({ contract, method: "getBountiesLength" });
-  await send(accountA, prepareContractCall({
-    contract,
-    method: "createSoloBounty",
-    params: ["Edge Case Bounty", "For edge case tests"],
-    value: parseEther("0.001"),
-  }));
+  await send(
+    accountA,
+    prepareContractCall({
+      contract,
+      method: "createSoloBounty",
+      params: ["Edge Case Bounty", "For edge case tests"],
+      value: parseEther("0.001"),
+    }),
+  );
   const bountyId = lengthBefore;
 
   // Non-creator cannot accept a claim on behalf of creator
-  await send(accountB, prepareContractCall({
-    contract,
-    method: "createClaim",
-    params: [bountyId, "B's claim", "B tries to accept their own claim", ""],
-  }));
-  await expectRevert(
-    () => send(accountB, prepareContractCall({
+  await send(
+    accountB,
+    prepareContractCall({
       contract,
-      method: "acceptClaim",
-      params: [bountyId, 0n],
-    })),
-    "Non-issuer cannot accept claim"
+      method: "createClaim",
+      params: [bountyId, "B's claim", "B tries to accept their own claim", ""],
+    }),
+  );
+  await expectRevert(
+    () =>
+      send(
+        accountB,
+        prepareContractCall({
+          contract,
+          method: "acceptClaim",
+          params: [bountyId, 0n],
+        }),
+      ),
+    "Non-issuer cannot accept claim",
   );
 
   // Non-participant cannot vote
-  await send(accountA, prepareContractCall({
-    contract,
-    method: "createOpenBounty",
-    params: ["Vote Edge Case", "Only participants vote"],
-    value: parseEther("0.001"),
-  }));
+  await send(
+    accountA,
+    prepareContractCall({
+      contract,
+      method: "createOpenBounty",
+      params: ["Vote Edge Case", "Only participants vote"],
+      value: parseEther("0.001"),
+    }),
+  );
   const openBountyId = lengthBefore + 1n;
-  await send(accountB, prepareContractCall({ contract, method: "joinOpenBounty", params: [openBountyId], value: parseEther("0.001") }));
-  await send(accountA, prepareContractCall({ contract, method: "createClaim", params: [openBountyId, "Claim", "Proof", ""] }));
-  await send(accountA, prepareContractCall({ contract, method: "submitClaimForVote", params: [openBountyId, 0n] }));
+  await send(
+    accountB,
+    prepareContractCall({
+      contract,
+      method: "joinOpenBounty",
+      params: [openBountyId],
+      value: parseEther("0.001"),
+    }),
+  );
+  await send(
+    accountA,
+    prepareContractCall({
+      contract,
+      method: "createClaim",
+      params: [openBountyId, "Claim", "Proof", ""],
+    }),
+  );
+  await send(
+    accountA,
+    prepareContractCall({ contract, method: "submitClaimForVote", params: [openBountyId, 0n] }),
+  );
 
   // Create a third account (no contribution) and try to vote — should revert
-  const accountC = privateKeyToAccount({ client, privateKey: "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a" });
+  const accountC = privateKeyToAccount({
+    client,
+    privateKey: "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a",
+  });
   await expectRevert(
-    () => send(accountC, prepareContractCall({ contract, method: "voteClaim", params: [openBountyId, true] })),
-    "Non-participant cannot vote"
+    () =>
+      send(
+        accountC,
+        prepareContractCall({ contract, method: "voteClaim", params: [openBountyId, true] }),
+      ),
+    "Non-participant cannot vote",
   );
 
   // AA wallet edge case — V3 requires msg.sender == tx.origin (EOA only)
   // We cannot deploy a test contract here, but document the behavior:
-  console.log("  ℹ️  AA/Contract wallet note: V3 requires msg.sender == tx.origin for bounty creation.");
-  console.log("      Smart contract wallets (Gnosis Safe, AA) will be blocked at the contract level.");
-  console.log("      This is enforced on-chain — no UI mitigation needed beyond showing a clear error.");
+  console.log(
+    "  ℹ️  AA/Contract wallet note: V3 requires msg.sender == tx.origin for bounty creation.",
+  );
+  console.log(
+    "      Smart contract wallets (Gnosis Safe, AA) will be blocked at the contract level.",
+  );
+  console.log(
+    "      This is enforced on-chain — no UI mitigation needed beyond showing a clear error.",
+  );
 }
 
 // ─── Anvil time helpers ───────────────────────────────────────────────────────
@@ -1342,7 +1700,12 @@ async function advanceAnvilTime(seconds: number) {
     await fetch(RPC_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", method: "evm_increaseTime", params: [seconds], id: 1 }),
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "evm_increaseTime",
+        params: [seconds],
+        id: 1,
+      }),
     });
     await fetch(RPC_URL, {
       method: "POST",
@@ -1351,7 +1714,9 @@ async function advanceAnvilTime(seconds: number) {
     });
     console.log(`  ℹ️  Anvil time advanced by ${seconds}s`);
   } catch {
-    console.log(`  ⚠️  Could not advance time (not running against Anvil?) — skipping time-dependent test`);
+    console.log(
+      `  ⚠️  Could not advance time (not running against Anvil?) — skipping time-dependent test`,
+    );
   }
 }
 
@@ -1390,6 +1755,7 @@ npx tsc --noEmit --allowImportingTsExtensions scripts/test-poidh.ts 2>&1 | head 
 ```
 
 If tsx is not installed:
+
 ```bash
 pnpm add -D tsx
 ```

@@ -1,15 +1,15 @@
 ---
 layout: post
 title: NFT IRL Events - Q2 2022
-description: 
+description:
 date: 2022-03-11 00:00:00 +0000
 permalink: /nft-irl-events/
 author: gami
 image: /images/NFT-IRL-Events.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 NFTs and web3 have undoubtedly changed and shaped my life. The people around me… not so much. You get the feeling, it’s virtually impossible to share the love of NFTs IRL without someone bringing up the “expensive JPEG” or “Right click to save” arguments.

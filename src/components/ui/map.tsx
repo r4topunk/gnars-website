@@ -1,6 +1,6 @@
 "use client";
-/* eslint-disable react-hooks/immutability, react-hooks/refs -- leaflet imperative DOM/handler API incompatible with React Compiler invariants */
 
+/* eslint-disable react-hooks/immutability, react-hooks/refs -- leaflet imperative DOM/handler API incompatible with React Compiler invariants */
 import type { CheckboxItem } from "@radix-ui/react-dropdown-menu";
 import type {
   Circle,

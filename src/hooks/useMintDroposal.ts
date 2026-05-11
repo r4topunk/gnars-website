@@ -2,17 +2,17 @@
 
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
+import { base } from "thirdweb/chains";
 import { parseEther } from "viem";
 import { useSimulateContract } from "wagmi";
 import { base as wagmiBase } from "wagmi/chains";
-import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
-import { base } from "thirdweb/chains";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
-import { useUserAddress } from "@/hooks/use-user-address";
-import { useWriteAccount } from "@/hooks/use-write-account";
-import { zoraNftMintAbi, ZORA_PROTOCOL_REWARD } from "@/utils/abis/zoraNftMintAbi";
+import { ZORA_PROTOCOL_REWARD, zoraNftMintAbi } from "@/utils/abis/zoraNftMintAbi";
 
 const MINT_REFERRAL = DAO_ADDRESSES.treasury as `0x${string}`;
 const MINT_TOAST_ID = "mint-transaction";
@@ -43,9 +43,7 @@ export function useMintDroposal({
 
   const isReady = Boolean(isValidTokenAddress && isConnected && address);
 
-  const simulationPrice = parseEther(
-    (parseFloat(priceEth) + ZORA_PROTOCOL_REWARD).toFixed(18),
-  );
+  const simulationPrice = parseEther((parseFloat(priceEth) + ZORA_PROTOCOL_REWARD).toFixed(18));
 
   const { isError: simulateError } = useSimulateContract({
     abi: zoraNftMintAbi,
@@ -66,9 +64,7 @@ export function useMintDroposal({
     async (quantity: number = 1, comment?: string) => {
       if (!isReady || !tokenAddress || !address) {
         toast.error("Unable to mint", {
-          description: isConnected
-            ? "Sale is not available."
-            : "Please connect your wallet first.",
+          description: isConnected ? "Sale is not available." : "Please connect your wallet first.",
         });
         return;
       }
@@ -157,10 +153,7 @@ export function useMintDroposal({
           toast.error("Insufficient funds", {
             description: "You don't have enough ETH to complete this purchase.",
           });
-        } else if (
-          message.includes("Sale_Inactive") ||
-          message.includes("sale not active")
-        ) {
+        } else if (message.includes("Sale_Inactive") || message.includes("sale not active")) {
           toast.error("Sale not active", {
             description: "The sale is not currently active.",
           });
@@ -184,8 +177,7 @@ export function useMintDroposal({
     [isReady, tokenAddress, address, isConnected, writer, priceEth, onSuccess, onError],
   );
 
-  const isPending =
-    mintStatus === "confirming-wallet" || mintStatus === "pending-tx";
+  const isPending = mintStatus === "confirming-wallet" || mintStatus === "pending-tx";
 
   return {
     isConnected,

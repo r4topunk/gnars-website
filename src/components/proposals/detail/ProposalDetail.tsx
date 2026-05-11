@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { VotingControls } from "@/components/common/VotingControls";
 import { Propdates } from "@/components/proposals/detail/Propdates";
 import { ProposalActions } from "@/components/proposals/detail/ProposalActions";
@@ -11,14 +10,15 @@ import { ProposalVotesList } from "@/components/proposals/detail/ProposalVotesLi
 import { ProposalMetrics } from "@/components/proposals/ProposalMetrics";
 import { ProposalTransactionVisualization } from "@/components/proposals/transaction/ProposalTransactionVisualization";
 import { Proposal, type ProposalVote } from "@/components/proposals/types";
-import type { MultiChainProposal } from "@/services/multi-chain-proposals";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePropdates } from "@/hooks/use-propdates";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useVotes } from "@/hooks/useVotes";
+import { useRouter } from "@/i18n/navigation";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
+import type { MultiChainProposal } from "@/services/multi-chain-proposals";
 
 interface ProposalDetailProps {
   proposal: Proposal | MultiChainProposal;
@@ -52,14 +52,14 @@ export function ProposalDetailSkeleton() {
 export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const router = useRouter();
   const { address } = useUserAddress();
-  
+
   // Detect proposal source for conditional rendering
   const proposalSource = (proposal as MultiChainProposal).source || "base";
   const isSnapshot = proposalSource === "snapshot";
   const isEthereum = proposalSource === "ethereum";
   // Snapshot and Ethereum proposals are read-only (no voting)
   const isReadOnly = isSnapshot || isEthereum;
-  
+
   // Mount flag keeps the initial client render identical to the SSR tree.
   // `address` (thirdweb, synchronous from storage) and `propdates` (async)
   // are undefined on the server, so we must treat them as undefined during
@@ -206,13 +206,13 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
 
   // Show votes tab if there are any votes (for any status: Active, Executed, Defeated, etc.)
   const shouldShowVotesTab = votesList.length > 0;
-  
+
   // Show transactions tab only if proposal has transaction data
   // Snapshot proposals don't have calldatas/targets/values
-  const hasTransactionData = 
-    proposal.calldatas && 
-    proposal.calldatas.length > 0 && 
-    proposal.targets && 
+  const hasTransactionData =
+    proposal.calldatas &&
+    proposal.calldatas.length > 0 &&
+    proposal.targets &&
     proposal.targets.length > 0;
 
   // Count visible tabs to decide whether to render the TabsList.
@@ -300,10 +300,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
             </TabsList>
           </div>
         )}
-        <TabsContent
-          value="details"
-          className={`space-y-6 ${shouldShowTabsList ? "mt-6" : ""}`}
-        >
+        <TabsContent value="details" className={`space-y-6 ${shouldShowTabsList ? "mt-6" : ""}`}>
           <ProposalDescriptionCard description={proposal.description} />
           {hasTransactionData && (
             <Card>

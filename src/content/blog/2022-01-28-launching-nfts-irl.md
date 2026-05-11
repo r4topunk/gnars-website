@@ -1,15 +1,15 @@
 ---
 layout: post
 title: Launching NFTs IRL
-description: 
+description:
 date: 2022-01-28 00:00:00 +0000
 permalink: /launching-nfts-irl/
 author: gami
 image: /images/rocket.png
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 In the past year, [NFTs](/2021-the-year-the-nft-broke/) took off like a rocket. The world is now focused on this epicenter of creativity and wondering what these artists will come up with next. There is an exciting idea on the horizon to connect NFTs to the real world (IRL = In Real Life). That is, attach a physical asset to a digital asset.

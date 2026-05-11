@@ -67,7 +67,13 @@ export async function uploadToPinata(
     let result: PinataUploadResponse;
 
     if (onProgress) {
-      result = await uploadWithProgress(signedUrl, formData, name || file.name, file.size, onProgress);
+      result = await uploadWithProgress(
+        signedUrl,
+        formData,
+        name || file.name,
+        file.size,
+        onProgress,
+      );
     } else {
       result = await uploadWithFetch(signedUrl, formData, name || file.name, file.size);
     }

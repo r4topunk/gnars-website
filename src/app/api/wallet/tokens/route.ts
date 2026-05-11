@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { formatUnits, getAddress, isAddress } from "viem";
 import type { WalletToken } from "@/app/swap/chains";
 
@@ -121,8 +121,7 @@ export async function GET(req: NextRequest) {
   const metaById = new Map(metaResults.map((m) => [m.id, m.result]));
 
   // CoinGecko returns lowercase addresses as keys.
-  const cgPrices: Record<string, { usd?: number }> =
-    cgRes?.ok ? await cgRes.json() : {};
+  const cgPrices: Record<string, { usd?: number }> = cgRes?.ok ? await cgRes.json() : {};
 
   const twChainName = TRUSTWALLET_CHAIN_NAMES[chainId];
 

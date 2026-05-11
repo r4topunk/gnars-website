@@ -7,9 +7,9 @@ permalink: /the-economics-of-authenticity/
 author: gami
 image: /images/the-economics-of-authenticity.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 Economics, like physics, has a few fundamental principles upon which it builds. One is simple, supply and demand determine prices. The more people demand, everything else held constant, the price goes up. The more people supply, keeping other factors constant, the price goes down, and vice versa.

@@ -46,11 +46,11 @@ class PerformanceTracker {
     if (this.loadTimes.length < 3) return "conservative";
 
     const avg = this.getAverageLoadTime();
-    
+
     // Check data saver mode (available on most browsers)
     if (typeof navigator !== "undefined") {
-      const nav = navigator as Navigator & { 
-        connection?: { saveData?: boolean } 
+      const nav = navigator as Navigator & {
+        connection?: { saveData?: boolean };
       };
       if (nav.connection?.saveData) return "conservative";
     }
@@ -94,7 +94,7 @@ const PRELOADER_CONFIG: Record<PerformanceTier, PreloaderConfig> = {
 
 /**
  * Hook to track video load performance and adapt strategy
- * 
+ *
  * Measures the REAL load time: from loadstart event to playing event
  * This gives us actual user-perceived performance metrics
  */
@@ -112,7 +112,7 @@ export function usePerformanceTracking(
   const recordLoadSuccess = () => {
     // Only record once per video load
     if (hasRecordedRef.current || loadStartTimeRef.current === 0) return;
-    
+
     // Calculate actual load time: from loadstart to playing
     const loadTime = performance.now() - loadStartTimeRef.current;
     performanceTracker.recordLoadTime(loadTime);
@@ -125,18 +125,14 @@ export function usePerformanceTracking(
 /**
  * Hook to intelligently preload videos near the active index.
  * Uses <link rel="preload"> for efficient browser-level preloading.
- * 
+ *
  * Performance-first approach:
  * - Learns from actual load times (not unreliable Network API)
  * - Defaults to 2 videos: 1 ahead + 1 behind (TikTok pattern)
  * - Adapts based on real-world performance
  * - Minimal bandwidth waste on slow connections
  */
-export function useVideoPreloader(
-  items: TVItem[],
-  activeIndex: number,
-  enabled = true
-) {
+export function useVideoPreloader(items: TVItem[], activeIndex: number, enabled = true) {
   const preloadedUrlsRef = useRef<Map<string, HTMLLinkElement>>(new Map());
   const [tier, setTier] = useState<PerformanceTier>(() => performanceTracker.getTier());
 
@@ -171,7 +167,7 @@ export function useVideoPreloader(
 
     // Calculate which indices to preload
     const indicesToPreload: number[] = [];
-    
+
     // Add videos ahead (priority)
     for (let i = 1; i <= config.preloadAhead; i++) {
       const idx = activeIndex + i;
@@ -202,7 +198,7 @@ export function useVideoPreloader(
         link.href = toHttpUrl(url);
         // Don't block rendering
         link.setAttribute("fetchpriority", "low");
-        
+
         // Ensure document.head exists (defensive check)
         if (document.head) {
           document.head.appendChild(link);
@@ -215,10 +211,9 @@ export function useVideoPreloader(
 
     // Cleanup old preloads (keep only nearby videos)
     const activeUrl = items[activeIndex]?.videoUrl;
-    const nearbyUrls = new Set([
-      activeUrl,
-      ...indicesToPreload.map((idx) => items[idx]?.videoUrl),
-    ].filter(Boolean));
+    const nearbyUrls = new Set(
+      [activeUrl, ...indicesToPreload.map((idx) => items[idx]?.videoUrl)].filter(Boolean),
+    );
 
     preloadedUrls.forEach((link, url) => {
       if (!nearbyUrls.has(url)) {
@@ -231,7 +226,6 @@ export function useVideoPreloader(
         }
       }
     });
-
   }, [items, activeIndex, enabled, tier]);
 }
 
@@ -240,17 +234,18 @@ export function useVideoPreloader(
  * Conservative default: only render 2 videos total (current + 1 ahead)
  * This is optimal for:
  * - Memory efficiency
- * - Smooth scroll performance  
+ * - Smooth scroll performance
  * - Works great on mobile
  */
 export function useRenderBuffer(): number {
   const tier = performanceTracker.getTier();
   // Always keep render buffer tight - only mount what's visible/next
   switch (tier) {
-    case "aggressive": return 2; // Current + 2 ahead/behind
-    case "balanced": return 1;   // Current + 1 ahead/behind (default)
-    case "conservative": return 1; // Minimal
+    case "aggressive":
+      return 2; // Current + 2 ahead/behind
+    case "balanced":
+      return 1; // Current + 1 ahead/behind (default)
+    case "conservative":
+      return 1; // Minimal
   }
 }
-
-

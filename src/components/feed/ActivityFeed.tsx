@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { LiveFeedView } from "./LiveFeedView";
-import { Card, CardContent } from "@/components/ui/card";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 import type { FeedEvent } from "@/lib/types/feed-events";
+import { LiveFeedView } from "./LiveFeedView";
 
 interface ActivityFeedProps {
   events: FeedEvent[];
@@ -14,7 +14,11 @@ interface ActivityFeedProps {
   singleColumn?: boolean;
 }
 
-export function ActivityFeed({ events, responsive = false, singleColumn = false }: ActivityFeedProps) {
+export function ActivityFeed({
+  events,
+  responsive = false,
+  singleColumn = false,
+}: ActivityFeedProps) {
   return (
     <Card className={responsive ? "h-full flex flex-col" : ""}>
       <SectionHeader

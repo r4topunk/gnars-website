@@ -5,9 +5,8 @@
  */
 
 import { existsSync, readFileSync } from "fs";
-import { resolve } from "path";
 import { createRequire } from "module";
-import path from "path";
+import path, { resolve } from "path";
 
 const TARGET_FID = 20721;
 const GNARS_COIN_ADDRESS = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b";
@@ -53,13 +52,10 @@ async function debugSkateboard() {
   process.env.NODE_PATH = [shimPath, process.env.NODE_PATH].filter(Boolean).join(path.delimiter);
   Module._initPaths();
 
-  const { getFarcasterTVDataUncached } = await import(
-    "../src/services/farcaster-tv-aggregator",
+  const { getFarcasterTVDataUncached } = await import("../src/services/farcaster-tv-aggregator");
+  const { fetchFarcasterProfilesByAddressUncached, fetchFarcasterUserCoinsUncached } = await import(
+    "../src/services/farcaster"
   );
-  const {
-    fetchFarcasterProfilesByAddressUncached,
-    fetchFarcasterUserCoinsUncached,
-  } = await import("../src/services/farcaster");
 
   console.log("1) Calling Farcaster TV aggregator...");
   const data = await getFarcasterTVDataUncached();

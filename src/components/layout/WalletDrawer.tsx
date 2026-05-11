@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ArrowLeftRight, Check, Copy, LogOut, Settings, User } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -10,6 +9,7 @@ import {
   useDisconnect,
   useWalletDetailsModal,
 } from "thirdweb/react";
+import { useViewAccount } from "@/components/layout/ViewAccountContext";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +33,7 @@ import { useDelegationStatus } from "@/hooks/use-delegation-status";
 import { useEoaDelegate } from "@/hooks/use-eoa-delegate";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useUserAddress } from "@/hooks/use-user-address";
-import { useViewAccount } from "@/components/layout/ViewAccountContext";
+import { useRouter } from "@/i18n/navigation";
 import { getThirdwebClient } from "@/lib/thirdweb";
 
 function shortAddress(addr: string | undefined) {
@@ -126,8 +126,7 @@ interface WalletPanelBodyProps {
 
 function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
   const router = useRouter();
-  const { saAddress, adminAddress, isInAppWallet, viewMode, canSwitchView } =
-    useUserAddress();
+  const { saAddress, adminAddress, isInAppWallet, viewMode, canSwitchView } = useUserAddress();
   const { toggleViewMode, clearViewMode } = useViewAccount();
   const wallet = useActiveWallet();
   const connectedWallets = useConnectedWallets();
@@ -312,10 +311,7 @@ function WalletPanelBody({ address, closePanel }: WalletPanelBodyProps) {
               <CopyValue
                 addr={otherAddress}
                 onCopy={() =>
-                  handleCopyAddress(
-                    otherAddress,
-                    viewingEoa ? "Wallet address" : "Admin address",
-                  )
+                  handleCopyAddress(otherAddress, viewingEoa ? "Wallet address" : "Admin address")
                 }
               />
             }

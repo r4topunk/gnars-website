@@ -5,8 +5,8 @@ export const SUPPORTED_CHAINS = {
 } as const;
 
 export const CHAIN_NAMES = {
-  8453: 'Base',
-  42161: 'Arbitrum',
+  8453: "Base",
+  42161: "Arbitrum",
   // 666666666: 'Degen', // Uncomment when POIDH deploys V3 on Degen L3
 } as const;
 
@@ -23,25 +23,25 @@ export const CHAIN_NAMES = {
  *   5. Add explorer URL to getExplorerUrl / getTxUrl
  */
 export const POIDH_CONTRACTS: Record<number, `0x${string}`> = {
-  8453:  '0x5555fa783936c260f77385b4e153b9725fef1719', // Base mainnet V3 ✅
-  42161: '0x5555Fa783936C260f77385b4E153B9725feF1719', // Arbitrum V3 (verify before use)
+  8453: "0x5555fa783936c260f77385b4e153b9725fef1719", // Base mainnet V3 ✅
+  42161: "0x5555Fa783936C260f77385b4E153B9725feF1719", // Arbitrum V3 (verify before use)
   // 666666666: '0x...', // Degen L3 — add once POIDH deploys
 };
 
 export function getExplorerUrl(chainId: number, address: string): string {
   const explorers: Record<number, string> = {
-    8453: 'https://basescan.org',
-    42161: 'https://arbiscan.io',
+    8453: "https://basescan.org",
+    42161: "https://arbiscan.io",
     // 666666666: 'https://explorer.degen.tips',
   };
-  return `${explorers[chainId] || 'https://etherscan.io'}/address/${address}`;
+  return `${explorers[chainId] || "https://etherscan.io"}/address/${address}`;
 }
 
 export function getTxUrl(chainId: number, hash: string): string {
   const explorers: Record<number, string> = {
-    8453: 'https://basescan.org',
-    42161: 'https://arbiscan.io',
+    8453: "https://basescan.org",
+    42161: "https://arbiscan.io",
     // 666666666: 'https://explorer.degen.tips',
   };
-  return `${explorers[chainId] || 'https://etherscan.io'}/tx/${hash}`;
+  return `${explorers[chainId] || "https://etherscan.io"}/tx/${hash}`;
 }

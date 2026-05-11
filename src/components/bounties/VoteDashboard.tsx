@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useReadContract } from 'wagmi';
-import { formatEther } from 'viem';
-import { Clock } from 'lucide-react';
-import { POIDH_ABI } from '@/lib/poidh/abi';
-import { POIDH_CONTRACTS } from '@/lib/poidh/config';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState } from "react";
+import { Clock } from "lucide-react";
+import { formatEther } from "viem";
+import { useReadContract } from "wagmi";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { POIDH_ABI } from "@/lib/poidh/abi";
+import { POIDH_CONTRACTS } from "@/lib/poidh/config";
 
 function useDeadlineCountdown(deadlineSeconds: number): { label: string; expired: boolean } {
   const calc = () => {
-    if (!deadlineSeconds) return { label: '', expired: false };
+    if (!deadlineSeconds) return { label: "", expired: false };
     const diff = deadlineSeconds * 1000 - Date.now();
-    if (diff <= 0) return { label: 'Expired', expired: true };
+    if (diff <= 0) return { label: "Expired", expired: true };
     const hours = Math.floor(diff / 3_600_000);
     const minutes = Math.floor((diff % 3_600_000) / 60_000);
     return { label: hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`, expired: false };
@@ -41,7 +41,7 @@ export function VoteDashboard({ chainId, onChainBountyId }: VoteDashboardProps) 
   const { data: tracker } = useReadContract({
     address: contractAddress,
     abi: POIDH_ABI,
-    functionName: 'bountyVotingTracker',
+    functionName: "bountyVotingTracker",
     args: [BigInt(onChainBountyId)],
     chainId,
     query: {
@@ -56,10 +56,10 @@ export function VoteDashboard({ chainId, onChainBountyId }: VoteDashboardProps) 
   if (!tracker || deadlineSec === 0) return null;
 
   const yesWei = tracker[0];
-  const noWei  = tracker[1];
+  const noWei = tracker[1];
   const yesEth = parseFloat(formatEther(yesWei));
-  const noEth  = parseFloat(formatEther(noWei));
-  const total  = yesEth + noEth;
+  const noEth = parseFloat(formatEther(noWei));
+  const total = yesEth + noEth;
   const yesPercent = total > 0 ? Math.round((yesEth / total) * 100) : 50;
 
   return (
@@ -91,9 +91,7 @@ export function VoteDashboard({ chainId, onChainBountyId }: VoteDashboardProps) 
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1 border-t border-border/50">
           <Clock className="w-3 h-3 shrink-0" />
           <span>
-            {isExpired
-              ? 'Vote period ended — resolve when ready'
-              : `Vote closes in ${deadline}`}
+            {isExpired ? "Vote period ended — resolve when ready" : `Vote closes in ${deadline}`}
           </span>
         </div>
       </CardContent>

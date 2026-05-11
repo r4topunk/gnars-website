@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { ChevronLeftIcon, ChevronRightIcon, ExternalLinkIcon, MapPinIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { ExternalLinkIcon, MapPinIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 
 export interface LocationData {
   position: [number, number];
@@ -75,7 +75,7 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
@@ -128,7 +128,7 @@ export function MapLocationDrawer({ location, open, onOpenChange }: MapLocationD
                 )}
               </div>
               <div className="relative">
-                <div 
+                <div
                   className="relative aspect-video w-full overflow-hidden rounded-lg border"
                   onTouchStart={handleTouchStart}
                   onTouchMove={handleTouchMove}

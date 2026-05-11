@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Coins, FileImage, Send, Settings, Video, ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, Coins, FileImage, Send, Settings, Video } from "lucide-react";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { TransactionCard } from "@/components/proposals/transaction/TransactionCard";
-import { SendEthTransactionDetails } from "@/components/proposals/transaction/SendEthTransactionDetails";
-import { SendUsdcTransactionDetails } from "@/components/proposals/transaction/SendUsdcTransactionDetails";
-import { SendTokensTransactionDetails } from "@/components/proposals/transaction/SendTokensTransactionDetails";
-import { SendNftsTransactionDetails } from "@/components/proposals/transaction/SendNftsTransactionDetails";
+import { TransactionTypeCard } from "@/components/proposals/builder/TransactionTypeCard";
+import { BuyCoinTransactionDetails } from "@/components/proposals/transaction/BuyCoinTransactionDetails";
 import { CustomTransactionDetails } from "@/components/proposals/transaction/CustomTransactionDetails";
 import { DroposalTransactionDetails } from "@/components/proposals/transaction/DroposalTransactionDetails";
-import { BuyCoinTransactionDetails } from "@/components/proposals/transaction/BuyCoinTransactionDetails";
-import { TransactionTypeCard } from "@/components/proposals/builder/TransactionTypeCard";
+import { SendEthTransactionDetails } from "@/components/proposals/transaction/SendEthTransactionDetails";
+import { SendNftsTransactionDetails } from "@/components/proposals/transaction/SendNftsTransactionDetails";
+import { SendTokensTransactionDetails } from "@/components/proposals/transaction/SendTokensTransactionDetails";
+import { SendUsdcTransactionDetails } from "@/components/proposals/transaction/SendUsdcTransactionDetails";
+import { TransactionCard } from "@/components/proposals/transaction/TransactionCard";
 import { Separator } from "@/components/ui/separator";
 import { type ProposalFormValues, type TransactionFormValues } from "../schema";
 import { ActionForms } from "./ActionForms";

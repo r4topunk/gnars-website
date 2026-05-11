@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo } from "react";
-import type { SnapshotProposal } from "@/types/snapshot";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import type { SnapshotProposal } from "@/types/snapshot";
 
 interface SnapshotProposalCardProps {
   proposal: SnapshotProposal;
@@ -61,15 +61,15 @@ export function SnapshotProposalCard({ proposal }: SnapshotProposalCardProps) {
           <h3 className="text-lg font-semibold leading-tight">{proposal.title}</h3>
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>{proposal.votes} voter{proposal.votes !== 1 && "s"}</span>
+            <span>
+              {proposal.votes} voter{proposal.votes !== 1 && "s"}
+            </span>
             <span>·</span>
             <span>{proposal.scores_total.toFixed(0)} votes</span>
             {winningChoice && (
               <>
                 <span>·</span>
-                <span className="font-medium text-foreground">
-                  Leading: {winningChoice}
-                </span>
+                <span className="font-medium text-foreground">Leading: {winningChoice}</span>
               </>
             )}
           </div>
