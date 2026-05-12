@@ -95,6 +95,42 @@ function NogglesRailModel3D({ frameColor }: { frameColor: string }) {
   );
 }
 
+function NogglesCanvas({ frameColor }: { frameColor: string }) {
+  return (
+    <Canvas
+      shadows
+      dpr={[1, 2]}
+      performance={{ min: 0.5 }}
+      gl={{ alpha: true, antialias: true }}
+      style={{ background: "transparent", pointerEvents: "auto" }}
+    >
+      <PerspectiveCamera makeDefault position={[50, 30, 230]} fov={50} />
+      <OrbitControls
+        target={[0, 0, 0]}
+        enableZoom={false}
+        enablePan={false}
+        enableRotate={true}
+        enableDamping
+        dampingFactor={0.05}
+      />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[5, 5, 5]} intensity={2.5} castShadow />
+      <directionalLight position={[-5, 3, 2]} intensity={1.5} color="#ffffff" />
+      <spotLight
+        position={[0, 8, 3]}
+        intensity={3.0}
+        angle={0.4}
+        penumbra={0.5}
+        color="#ffffff"
+      />
+      <spotLight position={[3, 3, 5]} intensity={2.0} angle={0.6} penumbra={1} color="#f0f0ff" />
+      <pointLight position={[-2, 2, 4]} intensity={1.5} color="#ffffff" />
+      <Environment preset="studio" background={false} />
+      <NogglesRailModel3D frameColor={frameColor} />
+    </Canvas>
+  );
+}
+
 export default function NogglesRailsHero() {
   const [frameColor, setFrameColor] = useState(DEFAULT_FRAME_COLOR);
 
@@ -111,6 +147,11 @@ export default function NogglesRailsHero() {
   return (
     <section className="relative overflow-hidden py-8 md:py-10 lg:py-12">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
+        {/* Mobile-only — 3D model in normal flow, above the text */}
+        <div className="relative -mx-4 h-[300px] w-[calc(100%+2rem)] sm:h-[360px] lg:hidden">
+          <NogglesCanvas frameColor={frameColor} />
+        </div>
+
         {/* Left — text */}
         <div className="relative z-10 flex flex-col justify-center space-y-6">
           <div className="space-y-3">
@@ -182,43 +223,7 @@ export default function NogglesRailsHero() {
             transform: "translate(-25%, -50%)",
           }}
         >
-          <Canvas
-            shadows
-            dpr={[1, 2]}
-            performance={{ min: 0.5 }}
-            gl={{ alpha: true, antialias: true }}
-            style={{ background: "transparent", pointerEvents: "auto" }}
-          >
-            <PerspectiveCamera makeDefault position={[50, 30, 230]} fov={50} />
-            <OrbitControls
-              target={[0, 0, 0]}
-              enableZoom={false}
-              enablePan={false}
-              enableRotate={true}
-              enableDamping
-              dampingFactor={0.05}
-            />
-            <ambientLight intensity={0.6} />
-            <directionalLight position={[5, 5, 5]} intensity={2.5} castShadow />
-            <directionalLight position={[-5, 3, 2]} intensity={1.5} color="#ffffff" />
-            <spotLight
-              position={[0, 8, 3]}
-              intensity={3.0}
-              angle={0.4}
-              penumbra={0.5}
-              color="#ffffff"
-            />
-            <spotLight
-              position={[3, 3, 5]}
-              intensity={2.0}
-              angle={0.6}
-              penumbra={1}
-              color="#f0f0ff"
-            />
-            <pointLight position={[-2, 2, 4]} intensity={1.5} color="#ffffff" />
-            <Environment preset="studio" background={false} />
-            <NogglesRailModel3D frameColor={frameColor} />
-          </Canvas>
+          <NogglesCanvas frameColor={frameColor} />
         </div>
       </div>
     </section>
