@@ -40,6 +40,7 @@ const NAV_COLUMNS: ReadonlyArray<{
       { label: "Droposals", href: "/droposals" },
       { label: "NogglesRails", href: "/nogglesrails" },
       { label: "Swap", href: "/swap" },
+      { label: "Boards", href: "https://boards.wtf/", external: true },
     ],
   },
 ];
@@ -70,7 +71,7 @@ function fallbackCopyTextToClipboard(text: string): boolean {
   }
 }
 
-export function HomeFooter({ className }: { className?: string }) {
+export function FooterBar({ className }: { className?: string }) {
   const year = new Date().getFullYear();
 
   const onCopyNoggles = React.useCallback(async () => {
