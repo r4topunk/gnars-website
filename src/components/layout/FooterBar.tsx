@@ -40,6 +40,7 @@ const NAV_COLUMNS: ReadonlyArray<{
       { label: "Droposals", href: "/droposals" },
       { label: "NogglesRails", href: "/nogglesrails" },
       { label: "Swap", href: "/swap" },
+      { label: "Boards", href: "https://boards.wtf/", external: true },
     ],
   },
 ];
