@@ -1,27 +1,27 @@
 {
   "home": {
     "title": "Gnars — DAO de Skate de Propriedade Coletiva",
-    "description": "Gnars é uma DAO de skate de propriedade coletiva que banca a cultura skate pelo mundo por meio de auctions, proposals e grants."
+    "description": "Gnars é uma DAO de skate de propriedade coletiva que banca a cultura skate pelo mundo por meio de leilões, propostas e grants."
   },
   "about": {
     "title": "Sobre o Gnars — Coletivo de Skate de Propriedade Coletiva",
     "description": "Gnars é um coletivo e DAO de skate de propriedade coletiva que financia cultura skate, skatistas e projetos independentes no mundo inteiro."
   },
   "proposals": {
-    "title": "Proposals Gnars — Grants e Financiamento de Skate",
-    "description": "Explore as proposals do Gnars e veja como a comunidade financia grants de skate, mídia e projetos culturais."
+    "title": "Propostas Gnars — Grants e Financiamento de Skate",
+    "description": "Explore as propostas do Gnars e veja como a comunidade financia grants de skate, mídia e projetos culturais."
   },
   "proposalDetail": {
-    "title": "Proposal | Gnars DAO",
-    "description": "Veja este proposal de governance do Gnars DAO."
+    "title": "Proposta | Gnars DAO",
+    "description": "Veja essa proposta de governança do Gnars DAO."
   },
   "auctions": {
-    "title": "Auctions Gnars — Arte de Skate Financiada pela Comunidade",
-    "description": "As auctions do Gnars apoiam a cultura skate financiando projetos comunitários, artistas e mídia de skate."
+    "title": "Leilões Gnars — Arte de Skate Financiada pela Comunidade",
+    "description": "Os leilões do Gnars apoiam a cultura skate financiando projetos comunitários, artistas e mídia de skate."
   },
   "treasury": {
-    "title": "Treasury — Gnars DAO",
-    "description": "Explore o treasury do Gnars DAO: saldo de ETH, tokens ERC-20, NFTs e analytics onchain. Transparência total sobre os fundos da comunidade na Base."
+    "title": "Tesouro — Gnars DAO",
+    "description": "Explore o tesouro do Gnars DAO: saldo de ETH, tokens ERC-20, NFTs e analytics onchain. Transparência total sobre os fundos da comunidade na Base."
   },
   "tv": {
     "title": "Gnar TV — Feed de Creator Coins",
@@ -29,23 +29,23 @@
   },
   "members": {
     "title": "Membros — Gnars DAO",
-    "description": "Navegue por todos os membros do Gnars DAO e seus delegates. Veja quem possui Gnars NFTs e como o poder de governance está distribuído na comunidade."
+    "description": "Navegue por todos os membros do Gnars DAO e seus delegates. Veja quem possui Gnars NFTs e como o poder de governança está distribuído na comunidade."
   },
   "memberDetail": {
     "title": "Membro | Gnars DAO",
     "description": "Veja o perfil deste membro no Gnars DAO."
   },
   "propose": {
-    "title": "Criar Proposal — Gnars DAO",
-    "description": "Envie um novo proposal ao Gnars DAO para votação e financiamento da comunidade."
+    "title": "Criar Proposta — Gnars DAO",
+    "description": "Envie uma nova proposta ao Gnars DAO para votação e financiamento da comunidade."
   },
   "feed": {
     "title": "Feed ao Vivo — Gnars DAO",
-    "description": "Feed de atividade em tempo real com votes de governance, bids de auction e eventos de token do Gnars DAO."
+    "description": "Feed de atividade em tempo real com votos de governança, lances de leilão e eventos de token do Gnars DAO."
   },
   "propdates": {
     "title": "Propdates — Gnars DAO",
-    "description": "Atualizações de progresso e relatórios sobre proposals financiadas pelo Gnars DAO."
+    "description": "Atualizações de progresso e relatórios sobre propostas financiadas pelo Gnars DAO."
   },
   "droposals": {
     "title": "Gnars Drops — Arte e Mídia de Skate da Comunidade",
@@ -56,7 +56,7 @@
     "description": "Faça swap de tokens na Base, Ethereum, Optimism e Arbitrum com melhor execução em mais de 150 DEXes via protocolo 0x."
   },
   "coinProposal": {
-    "title": "Coin Proposal — Gnars DAO",
+    "title": "Proposta de Coin — Gnars DAO",
     "description": "Proponha um novo creator coin para a comunidade Gnars DAO."
   },
   "createCoin": {
@@ -77,7 +77,7 @@
   },
   "blogs": {
     "title": "Blog — Gnars DAO",
-    "description": "Leia as últimas histórias, atualizações e posts da comunidade do Gnars DAO. Cultura skate, governance da DAO e projetos criativos da comunidade Gnars."
+    "description": "Leia as últimas histórias, atualizações e posts da comunidade do Gnars DAO. Cultura skate, governança da DAO e projetos criativos da comunidade Gnars."
   },
   "blogPost": {
     "title": "Post | Blog Gnars",

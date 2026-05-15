@@ -44,7 +44,7 @@
     "gnarsCoinDesc": "Lastreado pelo token da Gnars DAO. Fornece liquidez estabelecida e apoio da comunidade. Cada compra de token vai comprar $GNARS primeiro e depois o coin. Deixando o $GNARS mais forte!",
     "myCreatorCoin": "Meu Creator Coin",
     "myCreatorCoinWithName": "Meu Creator Coin ({name})",
-    "myCreatorCoinDesc": "Lastreado pelo seu creator coin pessoal. Cria uma família de coins dentro do seu ecossistema. O treasury da Gnars também ganha $ZORA rewards!",
+    "myCreatorCoinDesc": "Lastreado pelo seu creator coin pessoal. Cria uma família de coins dentro do seu ecossistema. O tesouro da Gnars também ganha $ZORA rewards!",
     "noCreatorCoin": "Você ainda não tem um creator coin. Só o lastro em $GNARS está disponível. Para usar seu próprio creator coin, deploy um primeiro.",
     "yourWalletAddress": "Seu endereço de wallet:",
     "sdkResolveNote": "O SDK vai resolver isso para o endereço do seu creator coin automaticamente.",

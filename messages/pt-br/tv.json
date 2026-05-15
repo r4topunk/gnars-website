@@ -54,7 +54,7 @@
     "holdersLabel": "Holders",
     "athLabel": "Máxima histórica",
     "contractLabel": "Contrato",
-    "proposalLabel": "Proposal"
+    "proposalLabel": "Proposta"
   },
   "droposal": {
     "total": "Total ({quantity, plural, one {# NFT} other {# NFTs}})",

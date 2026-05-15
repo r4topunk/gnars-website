@@ -1,6 +1,6 @@
 {
   "page": {
-    "title": "Proposals",
+    "title": "Propostas",
     "description": "Como a comunidade banca projetos de skate, mídia e obras públicas.",
     "learnMore": "Saiba mais"
   },
@@ -13,7 +13,7 @@
     "votes": "{count} votos",
     "requested": "Solicitado",
     "noDirectTransfer": "Sem transferência direta de ETH/USDC",
-    "bannerAlt": "Banner do proposal"
+    "bannerAlt": "Banner da proposta"
   },
   "status": {
     "Pending": "Pendente",
@@ -27,19 +27,19 @@
     "Canceled": "Cancelada"
   },
   "filters": {
-    "searchPlaceholder": "Buscar proposals...",
+    "searchPlaceholder": "Buscar propostas...",
     "status": "Status",
     "chain": "Chain",
     "default": "Padrão",
-    "all": "Todos",
-    "none": "Nenhum",
+    "all": "Todas",
+    "none": "Nenhuma",
     "showing": "Mostrando {visible} de {total}"
   },
   "detail": {
-    "proposal": "Proposal {number}",
+    "proposal": "Proposta {number}",
     "openInExplorer": "Abrir no explorer",
     "by": "Por",
-    "historicalProposal": "Proposal histórico — a governance agora acontece na Base L2",
+    "historicalProposal": "Proposta histórica — a governança agora acontece na Base L2",
     "description": "Descrição",
     "proposedTransactions": "Transações Propostas",
     "yourVote": "Seu Voto",
@@ -66,20 +66,20 @@
     "takenAtBlock": "Tirado no bloco"
   },
   "actions": {
-    "queueBeforeExpires": "Colocar esse proposal na fila antes que expire",
-    "queueProposal": "Colocar Proposal na Fila",
+    "queueBeforeExpires": "Colocar essa proposta na fila antes que expire",
+    "queueProposal": "Colocar Proposta na Fila",
     "executionTimelock": "Timelock de Execução",
     "waitingSecurityDelay": "Aguardando atraso de segurança",
-    "timeLeftToExecute": "Resta <time/> para executar esse proposal antes que expire",
-    "executeProposal": "Execute esse proposal",
-    "executeProposalButton": "Executar Proposal"
+    "timeLeftToExecute": "Resta <time/> para executar essa proposta antes que expire",
+    "executeProposal": "Execute essa proposta",
+    "executeProposalButton": "Executar Proposta"
   },
   "gating": {
     "walletNotConnected": "Wallet não conectada.",
     "walletNotConnectedDesc": "Você pode explorar o formulário — conecte quando estiver pronto para enviar.",
     "noGnarFound": "Nenhum NFT Gnars encontrado.",
-    "noGnarFoundDesc": "Ter um Gnar te permite enviar proposals.",
-    "getOneAtAuction": "Pegue um na auction"
+    "noGnarFoundDesc": "Ter um Gnar te permite enviar propostas.",
+    "getOneAtAuction": "Pegue um no leilão"
   },
   "votesList": {
     "defaultTitle": "Votos Individuais",
@@ -100,51 +100,51 @@
     "delegatedFrom": "Delegados de"
   },
   "recent": {
-    "title": "Proposals Recentes",
-    "description": "Proposals de governance e o status da votação",
-    "viewAll": "Ver Todos os Proposals",
-    "noRecentTitle": "Nenhum Proposal Recente",
-    "noRecentDesc": "Volte mais tarde para novos proposals de governance."
+    "title": "Propostas Recentes",
+    "description": "Propostas de governança e o status da votação",
+    "viewAll": "Ver Todas as Propostas",
+    "noRecentTitle": "Nenhuma Proposta Recente",
+    "noRecentDesc": "Volte mais tarde para novas propostas de governança."
   },
   "error": {
     "somethingWentWrong": "Algo deu errado",
-    "unexpectedError": "Ocorreu um erro inesperado ao carregar os proposals.",
+    "unexpectedError": "Ocorreu um erro inesperado ao carregar as propostas.",
     "tryAgain": "Tentar de novo"
   },
   "queue": {
-    "dialogTitle": "Colocar Proposal na Fila",
-    "dialogDesc": "Isso vai colocar o proposal na fila para execução após o atraso do timelock. Essa ação é irreversível.",
+    "dialogTitle": "Colocar Proposta na Fila",
+    "dialogDesc": "Isso vai colocar a proposta na fila para execução após o atraso do timelock. Essa ação é irreversível.",
     "cancel": "Cancelar",
     "continue": "Continuar",
     "queueing": "Colocando na fila...",
     "submitting": "Enviando transação de fila...",
     "waitingConfirmation": "Aguardando confirmação...",
-    "success": "Proposal colocado na fila com sucesso!",
-    "connectError": "Conecte a wallet para colocar proposal na fila",
-    "failedError": "Falha ao colocar proposal na fila: {message}",
+    "success": "Proposta colocada na fila com sucesso!",
+    "connectError": "Conecte a wallet para colocar proposta na fila",
+    "failedError": "Falha ao colocar proposta na fila: {message}",
     "cancelled": "Transação cancelada"
   },
   "execute": {
-    "dialogTitle": "Executar Proposal",
-    "dialogDesc": "Isso vai executar o proposal e realizar todas as transações propostas. Essa ação é irreversível.",
+    "dialogTitle": "Executar Proposta",
+    "dialogDesc": "Isso vai executar a proposta e realizar todas as transações propostas. Essa ação é irreversível.",
     "cancel": "Cancelar",
     "continue": "Continuar",
     "executing": "Executando...",
     "submitting": "Enviando transação de execução...",
     "waitingConfirmation": "Aguardando confirmação...",
-    "success": "Proposal executado com sucesso!",
-    "connectError": "Conecte a wallet para executar proposal",
-    "failedError": "Falha ao executar proposal: {message}",
+    "success": "Proposta executada com sucesso!",
+    "connectError": "Conecte a wallet para executar proposta",
+    "failedError": "Falha ao executar proposta: {message}",
     "cancelled": "Transação cancelada"
   },
   "grid": {
-    "noMatch": "Nenhum proposal corresponde aos filtros selecionados",
+    "noMatch": "Nenhuma proposta corresponde aos filtros selecionados",
     "adjustFilters": "Tente ajustar os filtros de chain ou status"
   },
   "txDetails": {
     "from": "De",
     "to": "Para",
-    "daoTreasury": "Treasury da DAO",
+    "daoTreasury": "Tesouro da DAO",
     "notSet": "Não definido",
     "tokenContract": "Token Contract",
     "tokenNotSpecified": "Token não especificado",

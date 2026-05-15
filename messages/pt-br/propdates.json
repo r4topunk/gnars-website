@@ -1,8 +1,8 @@
 {
   "page": {
     "title": "Propdates",
-    "description": "Atualizações de progresso de proposals bancados. Veja como a comunidade está cumprindo seus compromissos.",
-    "viewProposals": "Ver proposals"
+    "description": "Atualizações de progresso de propostas bancadas. Veja como a comunidade está cumprindo seus compromissos.",
+    "viewProposals": "Ver propostas"
   },
   "feed": {
     "latestUpdate": "Última Atualização",
@@ -10,7 +10,7 @@
     "errorTitle": "Erro",
     "errorDesc": "Falha ao carregar o feed de propdates. Por favor, tente de novo mais tarde.",
     "noPropdatesYet": "Nenhum propdate ainda",
-    "noPropdatesDesc": "Proponentes podem postar atualizações de progresso depois que seus proposals passarem",
+    "noPropdatesDesc": "Proponentes podem postar atualizações de progresso depois que suas propostas passarem",
     "showingOf": "Mostrando {visible} de {total}",
     "viewAll": "Ver tudo →",
     "update": "{count} atualização",
@@ -31,7 +31,7 @@
     "cancel": "Cancelar",
     "errorTitle": "Erro",
     "errorDesc": "Falha ao carregar propdates. Por favor, tente de novo mais tarde.",
-    "noUpdatesYet": "Nenhuma atualização nesse proposal ainda!",
+    "noUpdatesYet": "Nenhuma atualização nessa proposta ainda!",
     "noUpdatesDesc": "O proponente pode postar atualizações de progresso aqui"
   },
   "form": {
@@ -41,7 +41,7 @@
     "replyingTo": "Respondendo a",
     "writeTab": "Escrever",
     "previewTab": "Preview",
-    "writePlaceholder": "Compartilhe uma atualização sobre esse proposal...",
+    "writePlaceholder": "Compartilhe uma atualização sobre essa proposta...",
     "replyPlaceholder": "Escreva sua resposta...",
     "nothingToPreview": "Nada para mostrar",
     "attachFile": "Anexar arquivo",

@@ -6,38 +6,57 @@ Subagents pass this brief to themselves and use it for every PT-BR string.
 
 - Use **`você`**, never `tu` (universal across Brazil).
 - Default register: **informal, friendly, skater-adjacent**.
-- Escalate to **formal/precise** in: governance flows (voting, delegation, treasury, transaction signing, error messages from chain), security-critical UI (wallet connection, key management, AA onboarding).
+- Escalate to **formal/precise** in: governança flows (votação, delegação, tesouro, transaction signing, error messages from chain), security-critical UI (wallet connection, key management, AA onboarding).
 - Marketing/hero copy: leaning toward gírias when natural. The existing `é foda pra caralho!` line in `HOMEPAGE_DESCRIPTIONS` is in the target tone — don't sanitize that energy out.
 
-### Web3 / DAO vocabulary (KEEP IN ENGLISH on both locales)
+### Web3 / DAO vocabulary — translate vs. keep English
 
-Even in PT-BR strings, leave these terms in English (Brazilian Web3 community uses them as English loanwords):
+Translate to PT-BR (the Brazilian skate/DAO community already says these in Portuguese):
 
-`mint`, `bid`, `propose`, `proposal`, `vote`, `delegate`, `delegation`, `gnar`, `gnars`, `droposal`, `wallet`, `gas`, `treasury`, `governance`, `auction`, `airdrop`, `swap`, `bridge`, `stake`, `claim`, `feed`, `coin`, `token`, `holder`, `whale`, `floor`, `op stack`, `base`.
+| English                 | PT-BR                | Notes                                          |
+| ----------------------- | -------------------- | ---------------------------------------------- |
+| proposal / proposals    | proposta / propostas | feminine; agree adjectives + articles          |
+| propose (verb)          | propor               |                                                |
+| bid (noun + verb)       | lance / dar lance    | "Place bid" → "Dar Lance"                      |
+| auction / auctions      | leilão / leilões     | masculine                                      |
+| treasury                | tesouro              | masculine                                      |
+| governance              | governança           |                                                |
+| delegation (noun)       | delegação            |                                                |
+| delegate (verb)         | delegar / delegue    | imperative "Delegue" for instructions          |
+| delegate (person, noun) | delegate             | **keep English** — column headers, list labels |
+| claim (verb + noun)     | resgatar / resgate   | also covers bounty submissions                 |
+| vote (verb + noun)      | votar / voto         |                                                |
 
-Verbs ARE translated when used as plain action labels (e.g., button "Vote" → "Vote", but "Click Vote to cast your ballot" → "Clique em Vote para registrar seu voto"). When in doubt, keep the noun in English and translate the surrounding sentence.
+Keep in English even inside PT-BR strings (BR Web3 community uses these as loanwords):
+
+`mint`, `wallet`, `gas`, `gnar`, `gnars`, `droposal`, `token`, `coin`, `swap`, `bridge`, `stake`, `airdrop`, `feed`, `holder`, `whale`, `floor`, `snapshot`, `op stack`, `base`.
+
+Verbs that derive from kept-English nouns: write them PT-style around the English root when natural — e.g. "mintar", "fazer swap", "dar stake". Don't force.
 
 ### Specific term mapping
 
-| English                  | PT-BR               | Notes                          |
-| ------------------------ | ------------------- | ------------------------------ |
-| Connect wallet           | Conectar wallet     | keep "wallet"                  |
-| Place bid                | Dar bid             | keep "bid"                     |
-| Create proposal          | Criar proposal      | keep "proposal"                |
-| Vote against             | Votar contra        |                                |
-| Vote for                 | Votar a favor       |                                |
-| Abstain                  | Abster              |                                |
-| Loading…                 | Carregando…         |                                |
-| Something went wrong     | Algo deu errado     |                                |
-| Not found                | Não encontrado      |                                |
-| Empty / nothing here yet | Nada por aqui ainda |                                |
-| Skater                   | Skatista            | OK to localize                 |
-| Community                | Comunidade          |                                |
-| Members                  | Membros             |                                |
-| Treasury                 | Treasury            | keep English (governance term) |
-| Coin proposal            | Coin proposal       | wizard label, keep English     |
-| Onchain                  | Onchain             | keep                           |
-| Mainnet / Base           | Mainnet / Base      | keep                           |
+| English                      | PT-BR               | Notes                             |
+| ---------------------------- | ------------------- | --------------------------------- |
+| Connect wallet               | Conectar wallet     | keep "wallet"                     |
+| Place bid                    | Dar Lance           |                                   |
+| Create proposal              | Criar Proposta      |                                   |
+| Vote against                 | Votar contra        |                                   |
+| Vote for                     | Votar a favor       |                                   |
+| Abstain                      | Abster              |                                   |
+| Loading…                     | Carregando…         |                                   |
+| Something went wrong         | Algo deu errado     |                                   |
+| Not found                    | Não encontrado      |                                   |
+| Empty / nothing here yet     | Nada por aqui ainda |                                   |
+| Skater                       | Skatista            | OK to localize                    |
+| Community                    | Comunidade          |                                   |
+| Members                      | Membros             |                                   |
+| Treasury                     | Tesouro             |                                   |
+| Governance                   | Governança          |                                   |
+| Auction                      | Leilão              |                                   |
+| Delegation                   | Delegação           |                                   |
+| Coin proposal (wizard label) | Proposta de Coin    | translate "proposal", keep "coin" |
+| Onchain                      | Onchain             | keep                              |
+| Mainnet / Base               | Mainnet / Base      | keep                              |
 
 ### Style rules
 
@@ -47,14 +66,15 @@ Verbs ARE translated when used as plain action labels (e.g., button "Vote" → "
 - Sentence case for UI buttons and labels matching English casing convention.
 - Capitalize proper nouns (Gnars, Base, Ethereum, Zora, Farcaster).
 - Avoid Portuguese-Portugal phrasings (no `utilizador`, no `telemóvel`, no `ecrã`).
+- Gender agreement: `proposta` is feminine (a proposta, essa proposta, aprovada); `leilão` and `tesouro` are masculine (o leilão, esse tesouro, encerrado).
 
 ### Examples (showing the tone)
 
 | EN                                 | PT-BR (good)                          | PT-BR (bad)                                     |
 | ---------------------------------- | ------------------------------------- | ----------------------------------------------- |
-| Place bid                          | Dar bid                               | Fazer um lance                                  |
+| Place bid                          | Dar Lance                             | Fazer um lance / Dar bid                        |
 | You don't have enough voting power | Você não tem poder de voto suficiente | O senhor não dispõe de poder de voto suficiente |
-| Loading proposals…                 | Carregando proposals…                 | A carregar propostas…                           |
-| No proposals yet                   | Nenhum proposal ainda                 | Não há propostas ainda                          |
-| Connect to bid                     | Conecta a wallet pra dar bid          | Por favor, conecte sua carteira                 |
+| Loading proposals…                 | Carregando propostas…                 | A carregar propostas… / Carregando proposals…   |
+| No proposals yet                   | Nenhuma proposta ainda                | Não há propostas ainda / Nenhum proposal ainda  |
+| Connect to bid                     | Conecta a wallet pra dar lance        | Por favor, conecte sua carteira                 |
 | Funding skate culture worldwide    | Bancando a cultura skate pelo mundo   | Financiando a cultura do skate mundialmente     |

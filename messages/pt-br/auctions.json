@@ -1,24 +1,24 @@
 {
   "page": {
-    "title": "Auctions",
-    "description": "Essas auctions de skate ajudam a financiar a cultura skate, arte skater financiada pela comunidade e projetos apoiados pelo coletivo Gnars.",
+    "title": "Leilões",
+    "description": "Esses leilões de skate ajudam a financiar a cultura skate, arte skater financiada pela comunidade e projetos apoiados pelo coletivo Gnars.",
     "browseCta": "Quer ver o que está sendo financiado? Explore <grantsLink>grants de skate</grantsLink> ou descubra <aboutLink>como o coletivo funciona</aboutLink>."
   },
   "past": {
-    "sectionTitle": "Auctions recentes",
-    "sectionDescription": "Últimas auctions concluídas pela comunidade",
-    "viewAll": "Ver todas as auctions",
-    "empty": "Nenhuma auction passada encontrada."
+    "sectionTitle": "Leilões recentes",
+    "sectionDescription": "Últimos leilões concluídos pela comunidade",
+    "viewAll": "Ver todos os leilões",
+    "empty": "Nenhum leilão passado encontrado."
   },
   "card": {
     "fallbackLabel": "Gnar NFT",
     "imageFallbackLabel": "NFT",
-    "finalBid": "Bid final",
+    "finalBid": "Lance final",
     "winner": "Vencedor"
   },
   "bid": {
-    "placeBid": "Dar Bid",
-    "connectToBid": "Conectar Wallet para Dar Bid",
+    "placeBid": "Dar Lance",
+    "connectToBid": "Conectar Wallet para Dar Lance",
     "switchToBase": "Mudar para Base",
     "minLabel": "Mín:",
     "balLabel": "Saldo:",
@@ -26,22 +26,22 @@
     "wrongNetwork": "Rede errada",
     "comment": "Comentário",
     "commentPlaceholder": "Comentário onchain (registrado permanentemente)…",
-    "connectModalTitle": "Conecte pra dar bid",
-    "confirmed": "Bid confirmado!",
-    "confirmedDescription": "Dados da auction atualizados.",
-    "failed": "Bid falhou",
+    "connectModalTitle": "Conecte pra dar lance",
+    "confirmed": "Lance confirmado!",
+    "confirmedDescription": "Dados do leilão atualizados.",
+    "failed": "Lance falhou",
     "connectFailed": "Conexão falhou",
     "clientNotConfigured": "Cliente Thirdweb não configurado.",
     "connectWalletFirst": "Conecte a wallet primeiro"
   },
   "settle": {
-    "settleAuction": "Encerrar Auction",
+    "settleAuction": "Encerrar Leilão",
     "connectToSettle": "Conectar Wallet para Encerrar",
     "switchToBase": "Mudar para Base",
     "preparing": "Preparando...",
-    "claimGnar": "Claim do seu Gnar e Iniciar Próxima Auction",
+    "claimGnar": "Resgate seu Gnar e Iniciar Próximo Leilão",
     "confirmed": "Encerramento confirmado!",
-    "confirmedDescription": "Carregando nova auction...",
+    "confirmedDescription": "Carregando novo leilão...",
     "failed": "Encerramento falhou",
     "connectFailed": "Conexão falhou",
     "clientNotConfigured": "Cliente Thirdweb não configurado.",
@@ -50,18 +50,18 @@
     "connectModalTitle": "Conecte pra encerrar"
   },
   "status": {
-    "noBidsYet": "Nenhum bid ainda — seja o primeiro!",
+    "noBidsYet": "Nenhum lance ainda — seja o primeiro!",
     "endingSoon": "Acabando · {time}",
     "timeLeft": "{time} restantes",
-    "ended": "Encerrada",
-    "bidCount": "{count, plural, =0 {0 bids} one {# bid} other {# bids}}"
+    "ended": "Encerrado",
+    "bidCount": "{count, plural, =0 {0 lances} one {# lance} other {# lances}}"
   },
   "history": {
-    "title": "Histórico de Bids",
-    "titleForToken": "Bids para Gnar #{tokenId}",
-    "titleForName": "Bids para {tokenName}",
-    "srDescription": "Lista de bids para a auction atual",
-    "loadError": "Falha ao carregar bids",
-    "empty": "Nenhum bid ainda"
+    "title": "Histórico de Lances",
+    "titleForToken": "Lances para Gnar #{tokenId}",
+    "titleForName": "Lances para {tokenName}",
+    "srDescription": "Lista de lances para o leilão atual",
+    "loadError": "Falha ao carregar lances",
+    "empty": "Nenhum lance ainda"
   }
 }

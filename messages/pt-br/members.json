@@ -18,13 +18,13 @@
       "social": "Social",
       "action": "Ação"
     },
-    "treasuryLabel": "Treasury da Gnars",
+    "treasuryLabel": "Tesouro da Gnars",
     "farcasterFollowers": "{username} · {count} seguidores no Farcaster",
-    "delegateButton": "Delegate"
+    "delegateButton": "Delegar"
   },
   "detail": {
     "tabs": {
-      "proposals": "Proposals",
+      "proposals": "Propostas",
       "votes": "Votos",
       "tokens": "Tokens",
       "coins": "Coins Criados",
@@ -49,7 +49,7 @@
       "breakdown": "{eoa} na wallet · {sa} no smart account"
     },
     "delegation": {
-      "title": "Delegation",
+      "title": "Delegação",
       "delegatesTo": "Delega para",
       "delegatedBy": "Delegado por",
       "self": "Auto",
@@ -57,7 +57,7 @@
     },
     "activity": {
       "title": "Atividade",
-      "proposals": "Proposals",
+      "proposals": "Propostas",
       "votes": "Votos"
     },
     "smartAccount": {
@@ -69,21 +69,21 @@
       "copyAddress": "Copiar endereço do smart account",
       "delegated": "Poder de voto delegado para seu smart account",
       "actionRecommended": "Ação recomendada",
-      "actionDescription": "Delegate o poder de voto dos seus {count} {count, plural, one {Gnar} other {Gnars}} para seu smart account pra você poder votar pelo novo fluxo.",
-      "delegateBtn": "Delegate o poder de voto",
+      "actionDescription": "Delegue o poder de voto dos seus {count} {count, plural, one {Gnar} other {Gnars}} para seu smart account pra você poder votar pelo novo fluxo.",
+      "delegateBtn": "Delegar o poder de voto",
       "delegating": "Delegando…",
       "notEnabled": "Votação via smart account ainda não está habilitada."
     }
   },
   "proposals": {
-    "title": "Proposals Feitos",
-    "empty": "Nenhum proposal desse membro."
+    "title": "Propostas Feitas",
+    "empty": "Nenhuma proposta desse membro."
   },
   "votes": {
     "title": "Votos e Comentários",
     "empty": "Nenhum voto desse membro.",
     "table": {
-      "proposal": "Proposal",
+      "proposal": "Proposta",
       "vote": "Voto",
       "weight": "Peso"
     }

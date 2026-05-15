@@ -1,11 +1,11 @@
 {
   "page": {
-    "title": "Criar Proposal",
-    "description": "Crie um novo proposal para a Gnars DAO",
+    "title": "Criar Proposta",
+    "description": "Crie uma nova proposta para a Gnars DAO",
     "useTemplate": "Usar um template"
   },
   "wizard": {
-    "checkingEligibility": "Verificando elegibilidade do proposal...",
+    "checkingEligibility": "Verificando elegibilidade da proposta...",
     "steps": {
       "details": "Detalhes",
       "transactions": "Transações",
@@ -17,22 +17,22 @@
     "backEditTransactions": "Voltar: Editar Transações"
   },
   "details": {
-    "title": "Detalhes do Proposal",
-    "description": "Forneça as informações básicas para o seu proposal",
-    "titleLabel": "Título do Proposal *",
-    "titlePlaceholder": "Insira o título do proposal...",
+    "title": "Detalhes da Proposta",
+    "description": "Forneça as informações básicas para a sua proposta",
+    "titleLabel": "Título da Proposta *",
+    "titlePlaceholder": "Insira o título da proposta...",
     "titleHelper": "Mantenha conciso e descritivo",
     "bannerLabel": "Imagem de Banner",
     "clickToUpload": "Clique para fazer upload da imagem de banner",
     "uploadSizeHint": "PNG, JPG até 10MB",
     "uploadingToIpfs": "Subindo para o IPFS...",
     "descriptionLabel": "Descrição *",
-    "descriptionPlaceholder": "Descreva seu proposal em detalhes...\n\nVocê pode usar formatação **markdown**:\n- **Texto em negrito**\n- *Texto em itálico*\n- `Trechos de código`\n\nExplique o problema, a solução e os resultados esperados.",
-    "descriptionHelper": "Formatação markdown suportada. Seja minucioso e claro sobre o propósito e impacto do seu proposal.",
+    "descriptionPlaceholder": "Descreva sua proposta em detalhes...\n\nVocê pode usar formatação **markdown**:\n- **Texto em negrito**\n- *Texto em itálico*\n- `Trechos de código`\n\nExplique o problema, a solução e os resultados esperados.",
+    "descriptionHelper": "Formatação markdown suportada. Seja minucioso e claro sobre o propósito e impacto da sua proposta.",
     "noDescriptionYet": "Sem descrição ainda",
     "edit": "Editar",
     "preview": "Preview",
-    "templateHelper": "Preencha as seções abaixo. Suas respostas são compiladas no proposal."
+    "templateHelper": "Preencha as seções abaixo. Suas respostas são compiladas na proposta."
   },
   "banner": {
     "uploading": "Subindo imagem para o IPFS...",
@@ -43,12 +43,12 @@
     "fileTooLarge": "O tamanho do arquivo deve ser menor que 10MB"
   },
   "transactions": {
-    "title": "Transações do Proposal",
-    "description": "Adicione uma ou mais transações que serão executadas se esse proposal passar",
+    "title": "Transações da Proposta",
+    "description": "Adicione uma ou mais transações que serão executadas se essa proposta passar",
     "addedTransactions": "Transações Adicionadas",
     "types": {
       "sendEth": "Enviar ETH",
-      "sendEthDesc": "Enviar ETH do treasury",
+      "sendEthDesc": "Enviar ETH do tesouro",
       "sendUsdc": "Enviar USDC",
       "sendUsdcDesc": "Enviar USDC",
       "sendTokens": "Enviar Tokens",
@@ -99,9 +99,9 @@
     "descriptionPlaceholder": "Descreva o propósito dessa transferência de token..."
   },
   "sendNfts": {
-    "selectGnarLabel": "Selecione um Gnar do Treasury *",
-    "failedToLoad": "Falha ao carregar NFTs do treasury: {error}",
-    "noGnarsFound": "Nenhum Gnar encontrado no treasury.",
+    "selectGnarLabel": "Selecione um Gnar do Tesouro *",
+    "failedToLoad": "Falha ao carregar NFTs do tesouro: {error}",
+    "noGnarsFound": "Nenhum Gnar encontrado no tesouro.",
     "toAddressLabel": "Endereço de Destino *",
     "toAddressPlaceholder": "0x... ou nome ENS",
     "pleaseSelectNft": "Por favor, selecione um NFT",
@@ -125,14 +125,14 @@
     "useRevenueSplit": "Usar Revenue Split",
     "useRevenueSplitDesc": "Crie um contrato de split para dividir a receita de vendas de NFTs entre múltiplos destinatários",
     "payoutAddressLabel": "Endereço de Payout",
-    "payoutAddressHelper": "Endereço que recebe receitas de mint e royalties (padrão: treasury da DAO)",
+    "payoutAddressHelper": "Endereço que recebe receitas de mint e royalties (padrão: tesouro da DAO)",
     "splitCreated": "Contrato de Split Criado",
-    "splitCreatedDesc": "Esse endereço vai receber as vendas de NFT e será incluído no proposal.",
+    "splitCreatedDesc": "Esse endereço vai receber as vendas de NFT e será incluído na proposta.",
     "viewOnSplits": "Ver no Splits.org →",
     "advancedOptions": "Opções Avançadas",
     "saleTiming": "Cronograma de Venda",
     "saleStartLabel": "Início da Venda",
-    "saleStartHelper": "Calculado automaticamente baseado no cronograma do proposal: atraso de votação + período de votação + atraso do timelock + 1 dia de buffer.",
+    "saleStartHelper": "Calculado automaticamente baseado no cronograma da proposta: atraso de votação + período de votação + atraso do timelock + 1 dia de buffer.",
     "saleEndLabel": "Fim da Venda",
     "saleEndHelper": "Deixe vazio para sem data de fim (venda indefinida).",
     "editionSettings": "Configurações da Edição",
@@ -152,13 +152,13 @@
     "adminHelper": "Endereço que pode gerenciar a coleção (padrão: wallet conectada)"
   },
   "buyCoin": {
-    "infoDesc": "Essa transação vai usar o Zora Coins SDK para comprar um content ou creator coin a partir do treasury. O swap executa pelo Uniswap v4 com Zora hooks.",
+    "infoDesc": "Essa transação vai usar o Zora Coins SDK para comprar um content ou creator coin a partir do tesouro. O swap executa pelo Uniswap v4 com Zora hooks.",
     "coinAddressLabel": "Endereço do Coin *",
     "coinAddressPlaceholder": "0x...",
     "coinAddressHelper": "Endereço ERC-20 do content ou creator coin",
     "ethAmountLabel": "Quantia em ETH *",
     "ethAmountPlaceholder": "0.1",
-    "ethAmountHelper": "Quantia de ETH a ser gasta do treasury",
+    "ethAmountHelper": "Quantia de ETH a ser gasta do tesouro",
     "slippageLabel": "Tolerância de Slippage (%) *",
     "slippagePlaceholder": "5",
     "slippageHelper": "Slippage máximo aceitável (recomendado: 5%)"
@@ -186,42 +186,42 @@
     "lineAmountAriaLabel": "Quantia da linha de orçamento {index}"
   },
   "preview": {
-    "title": "Preview do Proposal",
-    "description": "Revise seu proposal antes de enviar para a DAO",
-    "bannerAlt": "Banner do proposal",
+    "title": "Preview da Proposta",
+    "description": "Revise sua proposta antes de enviar para a DAO",
+    "bannerAlt": "Banner da proposta",
     "beforeSubmitTitle": "Antes de Enviar",
     "checklist": {
       "transactionDetails": "Garanta que todos os detalhes da transação estão corretos",
-      "ipfsUpload": "Os metadados do seu proposal serão subidos para o IPFS",
-      "governorSubmit": "O proposal será enviado para o contrato Governor",
-      "cannotModify": "Uma vez enviado, o proposal não pode ser modificado",
+      "ipfsUpload": "Os metadados da sua proposta serão subidos para o IPFS",
+      "governorSubmit": "A proposta será enviada para o contrato Governor",
+      "cannotModify": "Uma vez enviada, a proposta não pode ser modificada",
       "votingDelay": "A votação vai começar após um curto período de atraso"
     },
-    "minimumVotes": "Mínimo para criar um proposal: {count} votos. Isso vem do threshold do contrato Governor.",
+    "minimumVotes": "Mínimo para criar uma proposta: {count} votos. Isso vem do threshold do contrato Governor.",
     "connectToCheck": "Conecte sua wallet para verificar elegibilidade e enviar.",
     "checkingVotingPower": "Verificando poder de voto...",
-    "insufficientVotes": "Você precisa de pelo menos {required} votos para criar um proposal.",
+    "insufficientVotes": "Você precisa de pelo menos {required} votos para criar uma proposta.",
     "yourCurrentVotes": "Você tem {votes} votos no momento.",
     "votesAreDelegated": "Seus votos estão delegados a {address}.",
-    "preparingProposal": "Preparando proposal...",
+    "preparingProposal": "Preparando proposta...",
     "walletPending": "Transação pendente... Por favor, confirme na sua wallet.",
     "waitingConfirmation": "Aguardando confirmação da transação...",
     "preparing": "Preparando...",
     "confirming": "Confirmando...",
     "submitting": "Enviando...",
-    "submitProposal": "Enviar Proposal",
-    "submitted": "Proposal Enviado!",
-    "proposalLive": "Proposal #{number} está no ar na Gnars DAO.",
-    "waitingIndex": "Transação confirmada. Aguardando o subgraph indexar seu proposal…",
-    "indexingTimeout": "Transação confirmada. A indexação está demorando mais que o esperado — atualize a página de proposals em um minuto.",
-    "proposalSubmitted": "Seu proposal foi enviado com sucesso para a Gnars DAO.",
-    "viewProposal": "Ver Proposal",
+    "submitProposal": "Enviar Proposta",
+    "submitted": "Proposta Enviada!",
+    "proposalLive": "Proposta #{number} está no ar na Gnars DAO.",
+    "waitingIndex": "Transação confirmada. Aguardando o subgraph indexar sua proposta…",
+    "indexingTimeout": "Transação confirmada. A indexação está demorando mais que o esperado — atualize a página de propostas em um minuto.",
+    "proposalSubmitted": "Sua proposta foi enviada com sucesso para a Gnars DAO.",
+    "viewProposal": "Ver Proposta",
     "viewTransaction": "Ver Transação",
     "insufficientVotingPower": "Poder de voto insuficiente",
     "validationFailed": "Validação Falhou",
-    "failedToSubmit": "Falha ao enviar proposal",
+    "failedToSubmit": "Falha ao enviar proposta",
     "thirdwebNotConfigured": "Cliente Thirdweb não configurado",
-    "connectWalletToSubmit": "Conecte a wallet para enviar um proposal",
+    "connectWalletToSubmit": "Conecte a wallet para enviar uma proposta",
     "pleaseFixErrors": "Por favor, corrija os erros de validação antes de enviar"
   },
   "droposalBuilder": {
@@ -265,13 +265,13 @@
     "bannerPreview": "Pré-visualização do banner"
   },
   "templates": {
-    "pageTitle": "Templates de Proposal",
-    "pageDescription": "Comece a partir de uma estrutura comprovada. Cada template é baseado nos 77 proposals que a Gnars DAO já bancou — escolha o que se encaixa com sua ideia.",
+    "pageTitle": "Templates de Proposta",
+    "pageDescription": "Comece a partir de uma estrutura comprovada. Cada template é baseado nas 77 propostas que a Gnars DAO já bancou — escolha o que se encaixa com sua ideia.",
     "howItWorks": "Como funciona",
     "steps": {
       "pick": {
         "title": "Escolha um template",
-        "description": "Escolha a categoria que combina com seu proposal. Cada uma tem seções e orientação sob medida."
+        "description": "Escolha a categoria que combina com sua proposta. Cada uma tem seções e orientação sob medida."
       },
       "fill": {
         "title": "Preencha as seções",
@@ -279,18 +279,18 @@
       },
       "submit": {
         "title": "Adicione transações e envie",
-        "description": "Configure os pedidos de financiamento, depois faça preview e envie seu proposal onchain."
+        "description": "Configure os pedidos de financiamento, depois faça preview e envie sua proposta onchain."
       }
     },
     "sections": "{count} seções",
-    "blankProposal": "Proposal em Branco",
+    "blankProposal": "Proposta em Branco",
     "blankProposalDesc": "Comece do zero — sem template, total liberdade criativa.",
     "tips": {
       "deliverables": "Seja específico sobre entregas e cronogramas",
       "milestones": "Solicite marcos em vez de pagamentos em lump-sum",
       "links": "Inclua links pra trabalhos passados ou referências"
     },
-    "breadcrumbCreate": "Criar Proposal",
+    "breadcrumbCreate": "Criar Proposta",
     "breadcrumbTemplates": "Templates"
   }
 }

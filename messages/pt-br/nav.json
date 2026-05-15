@@ -12,29 +12,29 @@
     "tv": "TV",
     "dashboard": "Dashboard",
     "governance": {
-      "label": "Governance",
+      "label": "Governança",
       "proposals": {
-        "title": "Proposals",
-        "description": "Veja e vote em proposals da DAO"
+        "title": "Propostas",
+        "description": "Veja e vote em propostas da DAO"
       },
       "delegation": {
-        "title": "Delegation",
-        "description": "Gerencie sua delegation de voto"
+        "title": "Delegação",
+        "description": "Gerencie sua delegação de voto"
       },
       "createProposal": {
-        "title": "Criar Proposal",
-        "description": "Envie um novo proposal para a DAO"
+        "title": "Criar Proposta",
+        "description": "Envie uma nova proposta para a DAO"
       },
       "auctions": {
-        "title": "Auctions",
-        "description": "Dê bid em Gnars NFTs em auctions ativas"
+        "title": "Leilões",
+        "description": "Dê lance em Gnars NFTs em leilões ativos"
       }
     },
     "money": {
       "label": "Dinheiro",
       "treasury": {
-        "title": "Treasury",
-        "description": "ETH, ERC-20s, NFTs e analytics onchain do treasury da DAO"
+        "title": "Tesouro",
+        "description": "ETH, ERC-20s, NFTs e analytics onchain do tesouro da DAO"
       },
       "swap": {
         "title": "Swap",
@@ -57,11 +57,11 @@
       },
       "propdates": {
         "title": "Propdates",
-        "description": "Acompanhe atualizações de progresso de proposals"
+        "description": "Acompanhe atualizações de progresso de propostas"
       },
       "droposals": {
         "title": "Droposals",
-        "description": "Proposals em vídeo da comunidade"
+        "description": "Propostas em vídeo da comunidade"
       },
       "createCoin": {
         "title": "Criar Coin",

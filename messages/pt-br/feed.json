@@ -28,11 +28,11 @@
     },
     "categories": {
       "label": "Categoria do Evento",
-      "governance": "Governance",
-      "auction": "Auctions",
+      "governance": "Governança",
+      "auction": "Leilões",
       "token": "Tokens",
-      "delegation": "Delegation",
-      "treasury": "Treasury",
+      "delegation": "Delegação",
+      "treasury": "Tesouro",
       "admin": "Admin",
       "settings": "Configurações"
     },
@@ -56,7 +56,7 @@
     "recently": "recentemente",
     "votes": "{count, plural, one {# voto} other {# votos}}",
     "voters": "{count, plural, one {# votante} other {# votantes}}",
-    "proposalsFound": "{count, plural, one {# proposal} other {# proposals}} encontrados",
+    "proposalsFound": "{count, plural, one {# proposta} other {# propostas}} encontradas",
     "filterState": "Filtrar estado",
     "stateLabel": "Estado",
     "states": {
@@ -65,22 +65,22 @@
       "pending": "Pendente"
     },
     "default": "Padrão",
-    "all": "Todos",
-    "none": "Nenhum",
-    "empty": "Nenhum proposal encontrado"
+    "all": "Todas",
+    "none": "Nenhuma",
+    "empty": "Nenhuma proposta encontrada"
   },
   "events": {
     "governance": {
-      "newProposal": "Novo Proposal",
-      "voteCast": "Voto no Proposal #{number}",
-      "proposalQueued": "Proposal em Fila",
-      "proposalExecuted": "Proposal Executado",
-      "proposalCanceled": "Proposal Cancelado",
-      "proposalVetoed": "Proposal Vetado",
+      "newProposal": "Nova Proposta",
+      "voteCast": "Voto na Proposta #{number}",
+      "proposalQueued": "Proposta em Fila",
+      "proposalExecuted": "Proposta Executada",
+      "proposalCanceled": "Proposta Cancelada",
+      "proposalVetoed": "Proposta Vetada",
       "votingOpened": "Votação Aberta",
       "votingClosingSoon": "Votação Encerrando em Breve",
-      "proposalUpdated": "Propdate · Proposal #{number}",
-      "viewProposal": "Ver Proposal",
+      "proposalUpdated": "Propdate · Proposta #{number}",
+      "viewProposal": "Ver Proposta",
       "castVote": "Registrar Voto",
       "viewPropdate": "Ver Propdate",
       "votingStarts": "Votação começa {time}",
@@ -92,21 +92,21 @@
       "on": "em"
     },
     "auction": {
-      "auction": "Auction",
-      "auctionWon": "Auction Vencida",
-      "auctionEndingSoon": "Auction Acabando em Breve",
-      "viewAuction": "Ver Auction",
+      "auction": "Leilão",
+      "auctionWon": "Leilão Vencido",
+      "auctionEndingSoon": "Leilão Acabando em Breve",
+      "viewAuction": "Ver Leilão",
       "viewToken": "Ver Token",
-      "placeBid": "Dar Bid",
+      "placeBid": "Dar Lance",
       "onToken": "em #{id}",
-      "bid": "bid",
-      "wonBy": "vencida por",
+      "bid": "lance",
+      "wonBy": "vencido por",
       "for": "por",
       "current": "Atual: {amount}",
       "live": "AO VIVO",
       "ended": "Encerrou {time}",
       "ends": "Encerra {time}",
-      "auctionExtended": "Auction Estendida",
+      "auctionExtended": "Leilão Estendido",
       "unknown": "Desconhecido",
       "minutesLeft": "{count}m restantes!"
     },
@@ -114,7 +114,7 @@
       "tokenMinted": "Token Mintado",
       "tokenBurned": "Token Queimado",
       "tokenTransferred": "Token Transferido",
-      "delegationChanged": "Delegation Alterada",
+      "delegationChanged": "Delegação Alterada",
       "newDroposal": "Novo Droposal",
       "viewToken": "Ver Token",
       "viewMember": "Ver Membro",
@@ -126,7 +126,7 @@
       "votes": "{count, plural, one {# voto} other {# votos}}"
     },
     "admin": {
-      "treasuryTransaction": "Transação do Treasury",
+      "treasuryTransaction": "Transação do Tesouro",
       "settingsUpdated": "Configurações Atualizadas",
       "ownershipTransferred": "Propriedade Transferida",
       "viewTransaction": "Ver Transação",
@@ -134,7 +134,7 @@
       "admin": "Admin",
       "sent": "Enviado",
       "to": "para",
-      "proposal": "Proposal #{number}",
+      "proposal": "Proposta #{number}",
       "updated": "Atualizado: {old} → {new}"
     }
   }

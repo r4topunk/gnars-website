@@ -6,29 +6,29 @@
       "Experimento Nounish Open Source Action Sports Brand",
       "Bancando atletas e criadores de esportes radicais no mundo todo",
       "Construindo o futuro da galera do shred",
-      "Empoderando atletas através de governance coletiva",
+      "Empoderando atletas através de governança coletiva",
       "Já financiou 15 esculturas skatáveis pelo mundo",
       "é foda pra caralho!"
     ],
     "stats": {
       "totalGnars": "Total de Gnars",
       "members": "Membros",
-      "treasury": "Treasury"
+      "treasury": "Tesouro"
     },
-    "latestAuction": "Última Auction"
+    "latestAuction": "Último Leilão"
   },
   "seo": {
     "whatIsGnars": "O que é a Gnars?",
-    "body1": "A Gnars é um coletivo de skate e marca skater de propriedade da comunidade. Apoiamos skatistas, filmmakers, designers e projetos DIY votando em proposals e financiando eles com recursos da comunidade.",
+    "body1": "A Gnars é um coletivo de skate e marca skater de propriedade da comunidade. Apoiamos skatistas, filmmakers, designers e projetos DIY votando em propostas e financiando eles com recursos da comunidade.",
     "body2": "Se você se importa com a cultura skate e quer que ela seja bancada pela galera que vive ela, você está no lugar certo.",
     "linkAbout": "o coletivo de skate Gnars",
     "linkProposals": "grants de skate",
-    "linkAuctions": "auctions de skate"
+    "linkAuctions": "leilões de skate"
   },
   "auction": {
     "outbidTitle": "Você foi superado!",
-    "outbidDescription": "Bid atual: {amount} ETH",
-    "bidAgain": "Dar Bid de novo"
+    "outbidDescription": "Lance atual: {amount} ETH",
+    "bidAgain": "Dar Lance de novo"
   },
   "faq": {
     "title": "F.A.Q.",
@@ -40,8 +40,8 @@
         "answer": "A Gnars é uma marca de esportes radicais de propriedade comunitária. Em vez de um indivíduo ou uma pequena equipe de marketing decidindo o que recebe financiamento por trás de um orçamento fechado, as decisões são tomadas coletivamente e em público. A Gnars também explora maneiras inovadoras de financiar atletas e sustentar sua comunidade aplicando tecnologia blockchain de ponta ao mundo dos esportes radicais — agora na Base."
       },
       {
-        "question": "Como funcionam as auctions?",
-        "answer": "Novos Gnars são leiloados continuamente onchain. Qualquer um pode dar bid; o vencedor minta o Gnar e os fundos vão pro treasury da DAO pra bancar proposals."
+        "question": "Como funcionam os leilões?",
+        "answer": "Novos Gnars são leiloados continuamente onchain. Qualquer um pode dar lance; o vencedor minta o Gnar e os fundos vão pro tesouro da DAO pra bancar propostas."
       },
       {
         "question": "As artes Gnars são livres pra usar?",
@@ -65,7 +65,7 @@
       },
       {
         "question": "Como eu proponho algo pra ser bancado?",
-        "answer": "Tenha 12 Gnars e envie um proposal pela governance; a DAO vota e, se aprovado, banca."
+        "answer": "Tenha 12 Gnars e envie uma proposta pela governança; a DAO vota e, se aprovado, banca."
       },
       {
         "question": "Como eu participo do Gnar TV?",

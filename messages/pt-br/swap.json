@@ -8,7 +8,7 @@
   },
   "editorial": {
     "tagline": "Cada swap é uma pequena aposta no shred",
-    "body": "Com a caixa <highlight>Apoiar o treasury da Gnars</highlight> marcada, 0,5% de cada trade vai direto pro Treasury Coletivo da Gnars — que já está por trás de <highlight>15 esculturas skatáveis</highlight> pelo mundo, patrocínios de embaixadores e infraestrutura pra uma rede de shredders do planeta todo. Você não está só trocando tokens; você está bancando a cultura e financiando a próxima colocada de concreto, o próximo contest, a próxima session."
+    "body": "Com a caixa <highlight>Apoiar o tesouro da Gnars</highlight> marcada, 0,5% de cada trade vai direto pro Tesouro Coletivo da Gnars — que já está por trás de <highlight>15 esculturas skatáveis</highlight> pelo mundo, patrocínios de embaixadores e infraestrutura pra uma rede de shredders do planeta todo. Você não está só trocando tokens; você está bancando a cultura e financiando a próxima colocada de concreto, o próximo contest, a próxima session."
   },
   "tokenPicker": {
     "dialogTitle": "Selecione um token",
@@ -48,8 +48,8 @@
     "approving": "Aprovando {symbol}…"
   },
   "fee": {
-    "label": "Apoiar o treasury da Gnars (0,5%)",
-    "tooltip": "Uma fee de 0,5% no token comprado vai pro treasury da Gnars DAO. Ajuda a financiar proposals, bounties e infraestrutura skate. Desmarque para pular."
+    "label": "Apoiar o tesouro da Gnars (0,5%)",
+    "tooltip": "Uma fee de 0,5% no token comprado vai pro tesouro da Gnars DAO. Ajuda a financiar propostas, bounties e infraestrutura skate. Desmarque para pular."
   },
   "toasts": {
     "switchedTo": "Mudou para {name}",
