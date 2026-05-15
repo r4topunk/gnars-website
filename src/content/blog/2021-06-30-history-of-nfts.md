@@ -7,9 +7,9 @@ permalink: /history-of-nfts/
 author: gami
 image: /images/nft-history.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 We call for the creation of a brand new discipline: The History of NFT Art. The History of NFT Art is a discipline structurally similar to the History of Art, under which it is to be subsumed. The History of NFT Art borrows its tools, frameworks and methods from the Historical study of art. Even though the object of this new discipline is well defined, it has not been given the serious treatment it deserves.

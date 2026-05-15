@@ -1,8 +1,8 @@
 /**
  * Zora Factory ABI
- * 
+ *
  * Minimal ABI for ZoraFactory contract on Base
- * 
+ *
  * @see https://docs.zora.co/coins/contracts/factory
  */
 

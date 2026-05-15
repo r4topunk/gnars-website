@@ -79,5 +79,3 @@ const auctionAbi = [
 ] as const;
 
 export default auctionAbi;
-
-

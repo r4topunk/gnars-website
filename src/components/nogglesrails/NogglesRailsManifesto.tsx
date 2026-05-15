@@ -1,26 +1,25 @@
-import Link from "next/link";
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 
 export function NogglesRailsManifesto() {
+  const t = useTranslations("installations.nogglesrails");
+
   return (
     <section className="space-y-8 border-t py-12">
       <div className="grid gap-6 lg:grid-cols-2">
         <article className="rounded-lg border bg-card p-6 text-card-foreground">
           <div className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            1. Origins
+            {t("manifesto.originsLabel")}
           </div>
-          <h2 className="mb-4 text-2xl font-bold tracking-tight">Where it started</h2>
+          <h2 className="mb-4 text-2xl font-bold tracking-tight">
+            {t("manifesto.originsHeading")}
+          </h2>
           <div className="space-y-4 text-sm leading-7 text-muted-foreground md:text-base">
-            <p>
-              Everything started years ago with a simple but radical proposal by Pharra and Vlad
-              (sktbrd) from the XV Collective. The idea was clear: build skate obstacles rooted in
-              DIY culture, open-source thinking, and real street energy, later becoming one of the
-              earliest onchain-born physical experiments within Gnars DAO.
-            </p>
-            <p>
-              Take a look at this documentary, where the creator explains the origins of the project
-              and the launch of the NogglesDELTA.
-            </p>
+            <p>{t("manifesto.originsP1")}</p>
+            <p>{t("manifesto.originsP2")}</p>
             <p>
               <Link
                 href="https://www.gnars.com/droposals/88"
@@ -28,7 +27,7 @@ export function NogglesRailsManifesto() {
                 rel="noopener noreferrer"
                 className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
               >
-                Full Doc Here
+                {t("manifesto.originsDocLink")}
               </Link>
             </p>
           </div>
@@ -36,16 +35,13 @@ export function NogglesRailsManifesto() {
 
         <article className="rounded-lg border bg-card p-6 text-card-foreground">
           <div className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            2. Open-Source as a Weapon
+            {t("manifesto.openSourceLabel")}
           </div>
-          <h2 className="mb-4 text-2xl font-bold tracking-tight">Build it anywhere</h2>
+          <h2 className="mb-4 text-2xl font-bold tracking-tight">
+            {t("manifesto.openSourceHeading")}
+          </h2>
           <div className="space-y-4 text-sm leading-7 text-muted-foreground md:text-base">
-            <p>
-              One of the first Gnars droposals was an open-source PDF created by Pharra,
-              documenting how to build a Nogglesrail. This document enabled replication across
-              cities and countries, turning a single idea into a global, permissionless skate
-              infrastructure.
-            </p>
+            <p>{t("manifesto.openSourceP1")}</p>
             <p>
               <Link
                 href="https://drive.google.com/drive/folders/1MwAEBKHuFhgDB7HrI1PjMSNq5wkPDvLB"
@@ -53,7 +49,7 @@ export function NogglesRailsManifesto() {
                 rel="noopener noreferrer"
                 className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
               >
-                Open-Source Build Files
+                {t("manifesto.openSourceFilesLink")}
               </Link>
             </p>
           </div>
@@ -61,11 +57,9 @@ export function NogglesRailsManifesto() {
       </div>
 
       <div className="border-t pt-8 text-center">
-        <p className="mx-auto max-w-lg text-muted-foreground">
-          Want to bring a NogglesRail to your city? Submit a proposal and the community will fund it.
-        </p>
+        <p className="mx-auto max-w-lg text-muted-foreground">{t("manifesto.ctaDescription")}</p>
         <Button asChild className="mt-4">
-          <Link href="/propose">Submit a Proposal</Link>
+          <Link href="/propose">{t("actions.submitProposal")}</Link>
         </Button>
       </div>
     </section>

@@ -186,7 +186,9 @@ function mapSummaryToBlogSummary(
   post: z.infer<typeof postSummarySchema>,
   publication: Publication,
 ): BlogSummary {
-  const previewText = toPreviewText(post.subtitle || post.markdown || post.content || post.staticHtml);
+  const previewText = toPreviewText(
+    post.subtitle || post.markdown || post.content || post.staticHtml,
+  );
   return blogSummarySchema.parse({
     id: post.id,
     slug: post.slug,

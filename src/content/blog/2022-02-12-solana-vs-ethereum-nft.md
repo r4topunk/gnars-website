@@ -1,15 +1,15 @@
 ---
 layout: post
 title: Solana Vs Ethereum - The Battle For NFT King
-description: 
+description:
 date: 2022-02-12 00:00:00 +0000
 permalink: /solana-vs-ethereum-nft/
 author: gami
 image: /images/NFT-Blockchain.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 Last month, NFT sales hit a [record high](https://www.theblockcrypto.com/data/nft-non-fungible-tokens/marketplaces) of almost 7.4 billion dollars, an insane amount compared to 2021’s total of $25 billion in NFT sales. As expected, this sales volume did not come from just a single marketplace, or blockchain, alone.

@@ -14,7 +14,7 @@
  * Results saved to scripts/bench-results/client-YYYY-MM-DDTHH-MM-SS.json
  */
 
-import { writeFileSync, mkdirSync } from "fs";
+import { mkdirSync, writeFileSync } from "fs";
 import { resolve } from "path";
 
 const args = process.argv.slice(2);
@@ -35,7 +35,11 @@ interface TimingResult {
   error?: string;
 }
 
-async function timedFetch(label: string, url: string, options?: RequestInit): Promise<TimingResult> {
+async function timedFetch(
+  label: string,
+  url: string,
+  options?: RequestInit,
+): Promise<TimingResult> {
   const start = performance.now();
   try {
     const res = await fetch(url, options);
@@ -125,7 +129,9 @@ async function runBenchmark(): Promise<ClientBenchResult> {
       coinMs: seqCoin.latencyMs,
       feedMs: seqFeed.latencyMs,
     };
-    console.log(`         ${seqTotal}ms (coin: ${seqCoin.latencyMs}ms + feed: ${seqFeed.latencyMs}ms)`);
+    console.log(
+      `         ${seqTotal}ms (coin: ${seqCoin.latencyMs}ms + feed: ${seqFeed.latencyMs}ms)`,
+    );
 
     await new Promise((r) => setTimeout(r, 1000));
 
@@ -143,7 +149,9 @@ async function runBenchmark(): Promise<ClientBenchResult> {
       coinMs: parCoin.latencyMs,
       feedMs: parFeed.latencyMs,
     };
-    console.log(`         ${parTotal}ms (coin: ${parCoin.latencyMs}ms || feed: ${parFeed.latencyMs}ms)`);
+    console.log(
+      `         ${parTotal}ms (coin: ${parCoin.latencyMs}ms || feed: ${parFeed.latencyMs}ms)`,
+    );
 
     improvement = {
       sequentialMs: seqTotal,

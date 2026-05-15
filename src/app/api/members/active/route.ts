@@ -6,11 +6,11 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     // Parse query params with defaults
     const windowParam = searchParams.get("window");
     const thresholdParam = searchParams.get("threshold");
-    
+
     const window = windowParam ? parseInt(windowParam, 10) : 10;
     const threshold = thresholdParam ? parseInt(thresholdParam, 10) : 5;
 
@@ -31,12 +31,14 @@ export async function GET(request: Request) {
 
     const activeMembers: ActiveMember[] = await fetchActiveMembers(window, threshold);
 
-    return NextResponse.json({ activeMembers }, {
-      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
-    });
+    return NextResponse.json(
+      { activeMembers },
+      {
+        headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+      },
+    );
   } catch (error) {
     console.error("Failed to fetch active members:", error);
     return NextResponse.json({ error: "Failed to fetch active members" }, { status: 500 });
   }
 }
-

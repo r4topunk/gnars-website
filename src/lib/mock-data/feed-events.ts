@@ -1,11 +1,11 @@
 /**
  * Mock data generator for live feed events
- * 
+ *
  * Generates realistic event data for development and testing.
  * Replace with actual data fetching in production.
  */
 
-import { FeedEvent, EventPriority } from "@/lib/types/feed-events";
+import { EventPriority, FeedEvent } from "@/lib/types/feed-events";
 
 const SAMPLE_ADDRESSES = [
   "0x1234567890123456789012345678901234567890",
@@ -69,17 +69,17 @@ function randomHash(): string {
 export function generateMockFeedEvents(hours: number = 24): FeedEvent[] {
   const events: FeedEvent[] = [];
   const timeSpan = hours * 3600;
-  
+
   // Generate 30-50 events distributed over the time span
   const eventCount = Math.floor(Math.random() * 20) + 30;
-  
+
   for (let i = 0; i < eventCount; i++) {
     const timestamp = now - Math.floor(Math.random() * timeSpan);
     const blockNumber = 18000000 + Math.floor((now - timestamp) / 12);
-    
+
     // Randomly select event type
     const rand = Math.random();
-    
+
     if (rand < 0.15) {
       // Vote cast event (most common)
       const proposalNumber = Math.floor(Math.random() * 50) + 1;
@@ -88,7 +88,7 @@ export function generateMockFeedEvents(hours: number = 24): FeedEvent[] {
         id: `vote-${eventIdCounter++}`,
         type: "VoteCast",
         category: "governance",
-        priority: hasReason ? "HIGH" : "MEDIUM" as EventPriority,
+        priority: hasReason ? "HIGH" : ("MEDIUM" as EventPriority),
         timestamp,
         blockNumber,
         transactionHash: randomHash(),
@@ -98,7 +98,9 @@ export function generateMockFeedEvents(hours: number = 24): FeedEvent[] {
         voter: randomAddress(),
         support: Math.random() > 0.2 ? "FOR" : Math.random() > 0.5 ? "AGAINST" : "ABSTAIN",
         weight: Math.floor(Math.random() * 50) + 1,
-        reason: hasReason ? SAMPLE_VOTE_REASONS[Math.floor(Math.random() * SAMPLE_VOTE_REASONS.length)] : undefined,
+        reason: hasReason
+          ? SAMPLE_VOTE_REASONS[Math.floor(Math.random() * SAMPLE_VOTE_REASONS.length)]
+          : undefined,
       });
     } else if (rand < 0.25) {
       // Auction bid event
@@ -268,9 +270,7 @@ export function generateMockFeedEvents(hours: number = 24): FeedEvent[] {
       });
     }
   }
-  
+
   // Sort by timestamp descending (newest first)
   return events.sort((a, b) => b.timestamp - a.timestamp);
 }
-
-

@@ -5,11 +5,11 @@ description: So while the DAO is relatively popular amongst many projects, we''r
 date: 2022-04-08 00:00:00 +0000
 permalink: /sub-dao-culture/
 author: gami
-image: '/images/nouniverse.png'
+image: "/images/nouniverse.png"
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 A typical NFT has nothing to offer but pixel art. Bring it up a notch, and perhaps you get some utility out of it, such as staking for passive income. At an even higher level, NFT projects can run a service that` generates profits and distributes them back to the holders.

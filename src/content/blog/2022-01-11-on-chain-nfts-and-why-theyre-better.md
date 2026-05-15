@@ -7,9 +7,9 @@ permalink: /on-chain-nfts-and-why-theyre-better/
 author: gami
 image: /images/on-chain-nfts-better.png
 image_caption:
-video_embed: 
+video_embed:
 tags: [education]
-featured: 
+featured:
 ---
 
 Before the blockchain, NFTs were just copies of digital art. So, I guess it’s safe to say that the creation of blockchains like Ethereum and Polygon helped pave the way for the rise of NFTs. However, not all NFTs “exist” in the same way.
@@ -20,7 +20,7 @@ Likewise, NFTs are created and stored differently as well. In this article, we w
 
 ## What Are On-Chain NFTs?
 
-On-chain NFTs are tokens completely written on the (Ethereum) blockchain, implemented with metadata and smart contract both existing on the blockchain. 
+On-chain NFTs are tokens completely written on the (Ethereum) blockchain, implemented with metadata and smart contract both existing on the blockchain.
 
 Now that… was a confusing definition! Let’s break things down a little bit more.
 
@@ -28,7 +28,7 @@ For starters, on-chain NFTs are written and stored on the blockchain. Basically,
 
 Next, we should take a look at smart contracts. Smart contracts are programs that execute themselves when certain criteria are met, native to the Ethereum blockchain. In most cases, they could be used to generate on-chain NFTs, or could point to locations where the NFTs are stored.
 
-The metadata of NFTs is its core information. Such things as the NFT’s unique traits, where the digital copy is stored, the description of the NFT, and much more. This metadata is integrated with the on-chain NFT itself, so this “information” lives on the blockchain as well. 
+The metadata of NFTs is its core information. Such things as the NFT’s unique traits, where the digital copy is stored, the description of the NFT, and much more. This metadata is integrated with the on-chain NFT itself, so this “information” lives on the blockchain as well.
 
 So this is just the basics of what on-chain NFTs are about. Let’s find out more about the off-chain NFTs, so you can get a better understanding of the underlying differences.
 
@@ -42,15 +42,15 @@ There are many options available for off-chain storage. You could go with storag
 
 ### Challenges Of Off-chain NFTs
 
-Traditionally, people will go with Cloud storage as that is the easiest and cheapest form of storage. However, cloud storage is usually internet-dependent, as your NFTs will technically be stored on the internet. Cloud-based storage is also dependent on the host (let’s say Google), so you don’t get full control of what you’re storing. 
+Traditionally, people will go with Cloud storage as that is the easiest and cheapest form of storage. However, cloud storage is usually internet-dependent, as your NFTs will technically be stored on the internet. Cloud-based storage is also dependent on the host (let’s say Google), so you don’t get full control of what you’re storing.
 
 Another option for serious investors is off-site server storage. When you’re using a Cloud storage system, your host is providing the server storage service for you. With your own servers, you can use it to store the off-chain NFTs. But physical servers are expensive to buy, run, and maintain — it probably isn’t worth it just for a collection of NFTs.
 
-Both of these options have one crucial flaw: security. It’s difficult to put the full trust of your NFT project into a reasonably-hackable Cloud, or centralized servers which could shut down any moment and lose your NFTs. 
+Both of these options have one crucial flaw: security. It’s difficult to put the full trust of your NFT project into a reasonably-hackable Cloud, or centralized servers which could shut down any moment and lose your NFTs.
 
 So that’s where the IPFS (InterPlanetary File System) comes in. As its name should suggest, IPFS is a more secure method of storing data, using a P2P storage network that is distributed and decentralized. So just in case one storage location fails, there is a good chance that you’ll find your NFT distributed to another location.
 
-Back to the on-chain vs off-chain topic… IPFS still isn’t the perfect solution. 
+Back to the on-chain vs off-chain topic… IPFS still isn’t the perfect solution.
 
 One crucial difference between on and off-chain NFTs is the nature of their smart contracts. While on-chain NFTs have in-built smart contracts, off-chain NFTs have smart contracts for the sole purpose of linking people to the storage location of the digital art.
 
@@ -62,7 +62,7 @@ Still, on-chain and off-chain NFTs exist to serve different purposes. Before we 
 
 On-chain NFT projects haven’t been around for a long time… in fact, few NFT collections are part of the on-chain movement yet. Perhaps because storing NFTs directly on the blockchain is expensive, the idea is new, or people just aren’t comfortable with the on-chain concept yet.
 
-Most recently, you may have noticed that LarvaLabs’ Cryptopunks are now officially on-chain! Despite launching off-chain, LarvaLabs have made it a point to integrate Cryptopunks onto the Ethereum blockchain. However, this cost a hefty 73M gas! 
+Most recently, you may have noticed that LarvaLabs’ Cryptopunks are now officially on-chain! Despite launching off-chain, LarvaLabs have made it a point to integrate Cryptopunks onto the Ethereum blockchain. However, this cost a hefty 73M gas!
 
 Nevertheless, more and more NFT projects are coming up with their own versions of on-chain NFT projects. Here are some of them taking things to the next level!
 
@@ -76,7 +76,7 @@ Today, OCM has grown into a solid project with a mission to help communities and
 
 They have ongoing projects like the Monkeyverse (soon to be a metaverse), and Metagood Moments, showing appreciation to those doing good for the community.
 
-With on-chain NFTs in this project, and vibing with a charity-like style, the sky is the limit for OnChain Monkey! 
+With on-chain NFTs in this project, and vibing with a charity-like style, the sky is the limit for OnChain Monkey!
 
 ### Chainrunners
 
@@ -122,7 +122,7 @@ Hopefully, this spreadsheet will turn into the go-to resource for on-chain NFT p
 
 ## So, Are On-chain NFTs The Future?
 
-Yes, I very much believe so. While off-chain NFTs are usually cheaper and more widely used in projects, on-chain NFTs certainly have a brighter future ahead. 
+Yes, I very much believe so. While off-chain NFTs are usually cheaper and more widely used in projects, on-chain NFTs certainly have a brighter future ahead.
 
 Having your metadata, smart contract, and NFT itself all on the Ethereum blockchain, you won’t have to rely on anything else for your NFTs’ survival. As long as the blockchain exists, your NFT collection remains intact.
 

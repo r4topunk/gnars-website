@@ -2,9 +2,9 @@ import { ImageResponse } from "next/og";
 import { formatEther } from "viem";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
-import { subgraphQuery } from "@/lib/subgraph";
 import { toOgImageUrl } from "@/lib/og-images";
-import { MINIAPP_SIZE, OG_COLORS, OG_FONTS, formatEthDisplay, truncateText } from "@/lib/og-utils";
+import { formatEthDisplay, MINIAPP_SIZE, OG_COLORS, OG_FONTS, truncateText } from "@/lib/og-utils";
+import { subgraphQuery } from "@/lib/subgraph";
 
 export const alt = "Gnars DAO Droposal";
 export const size = MINIAPP_SIZE;

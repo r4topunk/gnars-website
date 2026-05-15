@@ -1,0 +1,86 @@
+{
+  "actions": {
+    "connect": "Conectar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "copy": "Copiar",
+    "reset": "Resetar",
+    "save": "Salvar",
+    "submit": "Enviar",
+    "retry": "Tentar de novo",
+    "close": "Fechar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "generating": "Gerando...",
+    "resetToDefault": "Resetar para padrão",
+    "generateAutoThumbnail": "Gerar Thumbnail Automática",
+    "useThisThumbnail": "Usar Essa Thumbnail"
+  },
+  "states": {
+    "loading": "Carregando...",
+    "loadingMore": "Carregando mais...",
+    "noResults": "Sem resultados",
+    "empty": "Nada por aqui ainda"
+  },
+  "wallet": {
+    "connectToGnars": "Conectar à Gnars",
+    "invalidAddress": "Endereço Inválido",
+    "unnamedAddress": "Endereço Sem Nome",
+    "addressCopied": "Endereço copiado para a área de transferência",
+    "addressCopyFailed": "Falha ao copiar endereço",
+    "explorer": "Explorer"
+  },
+  "search": {
+    "placeholder": "Buscar",
+    "cannotFind": "Não foi possível encontrar {query}.",
+    "searchError": "Erro: {message}",
+    "commandPalette": "Paleta de Comandos",
+    "commandDescription": "Buscar um comando para executar..."
+  },
+  "contracts": {
+    "title": "Smart Contracts",
+    "description": "Smart contracts principais da Gnars DAO implantados na rede Base",
+    "columnContract": "Contrato",
+    "columnAddress": "Endereço"
+  },
+  "voting": {
+    "powerAndDelegation": "Poder de Voto e Delegação",
+    "votingPower": "Poder de voto: {power}",
+    "delegatedToAnother": "Delegado para outra wallet",
+    "selfDelegated": "Auto-delegado",
+    "incomingDelegators": "Delegators recebidos: {count}",
+    "incomingDelegatedVotes": "Votos delegados recebidos: {count}",
+    "delegatedTo": "Seus votos estão atualmente delegados a",
+    "delegationsReceived": "Delegações que você recebe atualmente:",
+    "moreCount": "+{count} mais",
+    "closedForProposal": "A votação está encerrada para essa proposta.",
+    "connectToVote": "Conecte sua wallet para votar",
+    "loadingVotingPower": "Carregando poder de voto...",
+    "hasVotes": "Você tem {count} votos (baseado no snapshot)",
+    "zeroVotingPower": "Você tem 0 de poder de voto no snapshot da proposta. Seu voto será registrado onchain como sinal.",
+    "optionalComment": "Comentário opcional (compartilhado onchain)",
+    "shareContext": "Compartilhe o contexto do seu voto",
+    "submittingVote": "Enviando voto...",
+    "waitingConfirmation": "Aguardando confirmação...",
+    "voteConfirmed": "Voto {choice} confirmado",
+    "confirmVote": "Confirmar Voto",
+    "signalVoteOnly": "Apenas voto de sinal",
+    "votingPowerMismatch": "Inconsistência no poder de voto detectada",
+    "signalVoteDescription": "Você tem 0 de poder de voto no momento. Seu voto será registrado onchain como sinal, sem peso na contagem.",
+    "mismatchDescription": "Você tem {count} votos delegados recebidos, mas 0 de poder de voto no snapshot da proposta. Isso pode acontecer se as delegações foram recebidas depois que a proposta foi criada. Quando você votar, o smart contract vai usar seu poder de voto real no bloco do snapshot, que pode ser diferente do que é mostrado aqui.",
+    "for": "A favor",
+    "against": "Contra",
+    "abstain": "Abster",
+    "forDescription": "Apoiar essa proposta",
+    "againstDescription": "Opor-se a essa proposta",
+    "abstainDescription": "Nem apoiar nem se opor"
+  },
+  "video": {
+    "selectThumbnail": "Selecione a Thumbnail do Vídeo",
+    "thumbnailDescription": "Escolha qual momento do seu vídeo usar como imagem de thumbnail",
+    "playbackError": "Erro de Reprodução de Vídeo",
+    "autoThumbnailNote": "Sem problema! Podemos extrair uma thumbnail automaticamente.",
+    "selectThumbnailMoment": "Selecione o Momento da Thumbnail",
+    "current": "Atual: {time}"
+  }
+}

@@ -1,15 +1,15 @@
 ---
 layout: post
 title: Is Arts Patronage in NFTs Dead?
-description: 
+description:
 date: 2022-02-05 00:00:00 +0000
 permalink: /arts-patronage-in-nfts-dead/
 author: gami
 image: /images/pexels-simone-coltri-6317411-1536x1025-1.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [opinion]
-featured: 
+featured:
 ---
 
 Not too long ago, I remember talking about arts patronage in NFTs; with a rather grim tone. What was supposed to be [the solution to middle-class arts patronage](/patrons-of-the-arts/) soon turned into a [mega-hype train](/nft-hype/), and is now at its economic “peak”.

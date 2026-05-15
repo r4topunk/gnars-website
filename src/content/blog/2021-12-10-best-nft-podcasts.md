@@ -7,9 +7,9 @@ permalink: /best-nft-podcasts/
 author: gami
 image: /images/best-nft-podcasts.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [education]
-featured: 
+featured:
 ---
 
 One question we get asked a tonne is, “Do you listen to some podcasts which revolve around NFT, DAO, and Web3 topics?”. Of course! Podcasts are a great way to learn from like-minded individuals, as well as look at things from a different perspective. After all, our community is transitioning to the metaverse!

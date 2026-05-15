@@ -16,11 +16,7 @@ export function TreasuryBalanceClient({ metric, value, error }: TreasuryBalanceC
   const suffix = isUsd ? "" : " ETH";
 
   if (error) {
-    return (
-      <div className="text-2xl font-semibold text-destructive">
-        Error
-      </div>
-    );
+    return <div className="text-2xl font-semibold text-destructive">Error</div>;
   }
 
   if (value === undefined) {

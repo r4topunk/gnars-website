@@ -1,0 +1,171 @@
+{
+  "page": {
+    "title": "Propostas",
+    "description": "Como a comunidade banca projetos de skate, mídia e obras públicas.",
+    "learnMore": "Saiba mais"
+  },
+  "card": {
+    "propNumber": "Prop #{number}",
+    "by": "por",
+    "votingProgress": "Progresso da Votação",
+    "notStarted": "não começou",
+    "noVotesYet": "sem votos ainda",
+    "votes": "{count} votos",
+    "requested": "Solicitado",
+    "noDirectTransfer": "Sem transferência direta de ETH/USDC",
+    "bannerAlt": "Banner da proposta"
+  },
+  "status": {
+    "Pending": "Pendente",
+    "Active": "Ativa",
+    "Succeeded": "Aprovada",
+    "Defeated": "Rejeitada",
+    "Queued": "Em fila",
+    "Executed": "Executada",
+    "Vetoed": "Vetada",
+    "Expired": "Expirada",
+    "Cancelled": "Cancelada"
+  },
+  "filters": {
+    "searchPlaceholder": "Buscar propostas...",
+    "status": "Status",
+    "chain": "Chain",
+    "default": "Padrão",
+    "all": "Todas",
+    "none": "Nenhuma",
+    "showing": "Mostrando {visible} de {total}"
+  },
+  "detail": {
+    "proposal": "Proposta {number}",
+    "openInExplorer": "Abrir no explorer",
+    "by": "Por",
+    "historicalProposal": "Proposta histórica — a governança agora acontece na Base L2",
+    "description": "Descrição",
+    "proposedTransactions": "Transações Propostas",
+    "yourVote": "Seu Voto",
+    "castYourVote": "Registre seu Voto",
+    "details": "Detalhes",
+    "votes": "Votos",
+    "propdatesTab": "Propdates",
+    "readOnly": {
+      "snapshot": "Snapshot",
+      "ethereum": "Ethereum"
+    }
+  },
+  "metrics": {
+    "for": "A favor",
+    "against": "Contra",
+    "abstain": "Abster",
+    "threshold": "Threshold",
+    "currentThreshold": "Threshold atual",
+    "votes": "{count} votos",
+    "starts": "Começa",
+    "ends": "Encerra",
+    "ended": "Encerrou",
+    "snapshot": "Snapshot",
+    "takenAtBlock": "Tirado no bloco"
+  },
+  "actions": {
+    "queueBeforeExpires": "Colocar essa proposta na fila antes que expire",
+    "queueProposal": "Colocar Proposta na Fila",
+    "executionTimelock": "Timelock de Execução",
+    "waitingSecurityDelay": "Aguardando atraso de segurança",
+    "timeLeftToExecute": "Resta <time/> para executar essa proposta antes que expire",
+    "executeProposal": "Execute essa proposta",
+    "executeProposalButton": "Executar Proposta"
+  },
+  "gating": {
+    "walletNotConnected": "Wallet não conectada.",
+    "walletNotConnectedDesc": "Você pode explorar o formulário — conecte quando estiver pronto para enviar.",
+    "noGnarFound": "Nenhum NFT Gnars encontrado.",
+    "noGnarFoundDesc": "Ter um Gnar te permite enviar propostas.",
+    "getOneAtAuction": "Pegue um no leilão"
+  },
+  "votesList": {
+    "defaultTitle": "Votos Individuais",
+    "voted": "votou",
+    "with": "com",
+    "vote": "voto",
+    "votes": "votos",
+    "noVotesCast": "Nenhum voto foi registrado ainda",
+    "loadingMembers": "Carregando membros que ainda não votaram...",
+    "haventVotedYet": "{count} membro{plural} ativo{plural} ainda não votaram",
+    "loading": "Carregando...",
+    "recentVote": "voto recente",
+    "recentVotes": "votos recentes"
+  },
+  "delegation": {
+    "ownVotes": "{count} próprios",
+    "delegated": "{count} delegados",
+    "delegatedFrom": "Delegados de"
+  },
+  "recent": {
+    "title": "Propostas Recentes",
+    "description": "Propostas de governança e o status da votação",
+    "viewAll": "Ver Todas as Propostas",
+    "noRecentTitle": "Nenhuma Proposta Recente",
+    "noRecentDesc": "Volte mais tarde para novas propostas de governança."
+  },
+  "error": {
+    "somethingWentWrong": "Algo deu errado",
+    "unexpectedError": "Ocorreu um erro inesperado ao carregar as propostas.",
+    "tryAgain": "Tentar de novo"
+  },
+  "queue": {
+    "dialogTitle": "Colocar Proposta na Fila",
+    "dialogDesc": "Isso vai colocar a proposta na fila para execução após o atraso do timelock. Essa ação é irreversível.",
+    "cancel": "Cancelar",
+    "continue": "Continuar",
+    "queueing": "Colocando na fila...",
+    "submitting": "Enviando transação de fila...",
+    "waitingConfirmation": "Aguardando confirmação...",
+    "success": "Proposta colocada na fila com sucesso!",
+    "connectError": "Conecte a wallet para colocar proposta na fila",
+    "failedError": "Falha ao colocar proposta na fila: {message}",
+    "cancelled": "Transação cancelada"
+  },
+  "execute": {
+    "dialogTitle": "Executar Proposta",
+    "dialogDesc": "Isso vai executar a proposta e realizar todas as transações propostas. Essa ação é irreversível.",
+    "cancel": "Cancelar",
+    "continue": "Continuar",
+    "executing": "Executando...",
+    "submitting": "Enviando transação de execução...",
+    "waitingConfirmation": "Aguardando confirmação...",
+    "success": "Proposta executada com sucesso!",
+    "connectError": "Conecte a wallet para executar proposta",
+    "failedError": "Falha ao executar proposta: {message}",
+    "cancelled": "Transação cancelada"
+  },
+  "grid": {
+    "noMatch": "Nenhuma proposta corresponde aos filtros selecionados",
+    "adjustFilters": "Tente ajustar os filtros de chain ou status"
+  },
+  "txDetails": {
+    "from": "De",
+    "to": "Para",
+    "daoTreasury": "Tesouro da DAO",
+    "notSet": "Não definido",
+    "tokenContract": "Token Contract",
+    "tokenNotSpecified": "Token não especificado",
+    "targetContract": "Contrato Alvo",
+    "targetNotSpecified": "Alvo não especificado",
+    "value": "Valor",
+    "calldata": "Calldata",
+    "advancedInteraction": "Interação avançada com contrato",
+    "buyCoinLabel": "Comprar Coin",
+    "maxSlippage": "Slippage Máximo",
+    "recipient": "Destinatário",
+    "txDataPending": "Dados da Transação Pendentes",
+    "txDataPendingDesc": "O calldata do router será gerado pelo Zora SDK quando você salvar essa transação",
+    "readyToExecute": "Pronto para Executar",
+    "readyToExecuteDesc": "Transação do router gerada via Zora Coins SDK",
+    "routerAddress": "Endereço do Router:",
+    "gnarsNftCollection": "Coleção Gnars NFT",
+    "nft": "NFT",
+    "transferTo": "Transferir para",
+    "fromLabel": "de",
+    "gnarsNfts": "{count} Gnars NFT{plural}",
+    "tokens": "{amount} tokens"
+  }
+}

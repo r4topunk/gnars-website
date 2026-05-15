@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Info } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -11,6 +14,7 @@ interface Props {
 }
 
 export function CustomTransactionForm({ index }: Props) {
+  const t = useTranslations("propose");
   const {
     register,
     formState: { errors },
@@ -27,17 +31,14 @@ export function CustomTransactionForm({ index }: Props) {
     <div className="space-y-4">
       <Alert>
         <Info className="h-4 w-4" />
-        <AlertDescription>
-          Custom transactions require technical knowledge. Make sure you understand the contract
-          interaction.
-        </AlertDescription>
+        <AlertDescription>{t("custom.infoDesc")}</AlertDescription>
       </Alert>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="target">Contract Address *</Label>
+        <Label htmlFor="target">{t("custom.contractAddressLabel")}</Label>
         <Input
           id="target"
-          placeholder="0x..."
+          placeholder={t("custom.contractAddressPlaceholder")}
           {...register(`transactions.${index}.target` as const)}
         />
         {getErrorMessage("target") && (
@@ -46,12 +47,12 @@ export function CustomTransactionForm({ index }: Props) {
       </div>
 
       <div className="grid w/full max-w-sm items-center gap-2">
-        <Label htmlFor="value">Value (ETH)</Label>
+        <Label htmlFor="value">{t("custom.valueLabel")}</Label>
         <Input
           id="value"
           type="number"
           step="0.001"
-          placeholder="0.0"
+          placeholder={t("custom.valuePlaceholder")}
           {...register(`transactions.${index}.value` as const)}
         />
         {getErrorMessage("value") && (
@@ -60,10 +61,10 @@ export function CustomTransactionForm({ index }: Props) {
       </div>
 
       <div className="grid w/full max-w-sm items-center gap-2">
-        <Label htmlFor="calldata">Calldata</Label>
+        <Label htmlFor="calldata">{t("custom.calldataLabel")}</Label>
         <Textarea
           id="calldata"
-          placeholder="0x... - Transaction calldata"
+          placeholder={t("custom.calldataPlaceholder")}
           {...register(`transactions.${index}.calldata` as const)}
           rows={2}
         />
@@ -73,10 +74,10 @@ export function CustomTransactionForm({ index }: Props) {
       </div>
 
       <div className="grid w/full max-w-sm items-center gap-2">
-        <Label htmlFor="description">Description *</Label>
+        <Label htmlFor="description">{t("custom.descriptionLabel")}</Label>
         <Textarea
           id="description"
-          placeholder="Clearly describe what this transaction does..."
+          placeholder={t("custom.descriptionPlaceholder")}
           {...register(`transactions.${index}.description` as const)}
         />
         {getErrorMessage("description") && (

@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import { useReadContract } from 'wagmi';
-import { formatEther } from 'viem';
-import { Wallet, Loader2, CheckCircle2, ExternalLink, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { POIDH_ABI } from '@/lib/poidh/abi';
-import { POIDH_CONTRACTS, CHAIN_NAMES, getTxUrl, SUPPORTED_CHAINS } from '@/lib/poidh/config';
-import { usePoidhWithdraw } from '@/hooks/usePoidhContract';
-import { useUserAddress } from '@/hooks/use-user-address';
+import { useTranslations } from "next-intl";
+import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Wallet } from "lucide-react";
+import { formatEther } from "viem";
+import { useReadContract } from "wagmi";
+import { Button } from "@/components/ui/button";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { usePoidhWithdraw } from "@/hooks/usePoidhContract";
+import { POIDH_ABI } from "@/lib/poidh/abi";
+import { CHAIN_NAMES, getTxUrl, POIDH_CONTRACTS, SUPPORTED_CHAINS } from "@/lib/poidh/config";
 
 interface ChainBannerProps {
   chainId: number;
@@ -15,6 +16,7 @@ interface ChainBannerProps {
 }
 
 function ChainWithdrawalBanner({ chainId, userAddress }: ChainBannerProps) {
+  const t = useTranslations("bounties");
   const contractAddress = POIDH_CONTRACTS[chainId];
   const chainName = CHAIN_NAMES[chainId as keyof typeof CHAIN_NAMES];
   const { withdraw, isPending, isSuccess, hash, error } = usePoidhWithdraw(chainId);
@@ -22,7 +24,7 @@ function ChainWithdrawalBanner({ chainId, userAddress }: ChainBannerProps) {
   const { data: pending, refetch } = useReadContract({
     address: contractAddress,
     abi: POIDH_ABI,
-    functionName: 'pendingWithdrawals',
+    functionName: "pendingWithdrawals",
     args: [userAddress],
     chainId,
     query: { enabled: !!contractAddress, refetchInterval: 30_000 },
@@ -39,17 +41,17 @@ function ChainWithdrawalBanner({ chainId, userAddress }: ChainBannerProps) {
       <Wallet className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
       <div className="flex-1 min-w-0">
         <span className="font-medium text-amber-300">
-          {ethAmount} ETH claimable on {chainName}
+          {t("pendingWithdrawal.claimable", { amount: ethAmount, chain: chainName })}
         </span>
         <p className="text-xs text-muted-foreground mt-0.5">
-          From bounty winnings or a cancelled open bounty.
+          {t("pendingWithdrawal.fromWinnings")}
         </p>
       </div>
 
       {isSuccess ? (
         <div className="flex items-center gap-1.5 text-emerald-400 text-xs shrink-0">
           <CheckCircle2 className="w-4 h-4" />
-          <span>Withdrawn!</span>
+          <span>{t("pendingWithdrawal.withdrawn")}</span>
           {hash && (
             <a
               href={getTxUrl(chainId, hash)}
@@ -57,7 +59,7 @@ function ChainWithdrawalBanner({ chainId, userAddress }: ChainBannerProps) {
               rel="noopener noreferrer"
               className="flex items-center gap-0.5 hover:underline ml-1"
             >
-              Tx <ExternalLink className="w-3 h-3" />
+              {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
             </a>
           )}
         </div>
@@ -71,15 +73,18 @@ function ChainWithdrawalBanner({ chainId, userAddress }: ChainBannerProps) {
             onClick={() => withdraw()}
           >
             {isPending ? (
-              <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Withdrawing…</>
+              <>
+                <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                {t("detail.withdrawing")}
+              </>
             ) : (
-              'Withdraw'
+              t("pendingWithdrawal.withdraw")
             )}
           </Button>
           {error && (
             <div className="flex items-start gap-1 text-destructive text-xs max-w-[12rem]">
               <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-              <span className="break-words">{error.message.split('\n')[0]}</span>
+              <span className="break-words">{error.message.split("\n")[0]}</span>
             </div>
           )}
         </div>

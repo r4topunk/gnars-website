@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 interface DroposalData {
   id: number;
@@ -49,7 +49,10 @@ export function DroposalEmbed({ droposalId }: { droposalId: number }) {
   if (!data) {
     return (
       <div className="w-full aspect-video bg-muted rounded-xl flex items-center justify-center">
-        <Link href={`/droposals/${droposalId}`} className="text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          href={`/droposals/${droposalId}`}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
           View Droposal #{droposalId} →
         </Link>
       </div>
@@ -92,9 +95,7 @@ export function DroposalEmbed({ droposalId }: { droposalId: number }) {
 
         <div className="flex gap-2">
           <Button asChild size="sm" className="flex-1 bg-primary hover:bg-primary/90">
-            <Link href={`/droposals/${droposalId}`}>
-              🎨 Collect / Mint
-            </Link>
+            <Link href={`/droposals/${droposalId}`}>🎨 Collect / Mint</Link>
           </Button>
           <Button asChild variant="outline" size="sm" className="flex-1">
             <Link href={`/droposals/${droposalId}`} target="_blank">

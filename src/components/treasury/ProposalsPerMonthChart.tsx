@@ -7,14 +7,9 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -32,18 +27,19 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function ProposalsPerMonthChart() {
+  const t = useTranslations("treasury");
   const { data: points = [], isLoading, error } = useProposalsPerMonth(12);
 
   if (error) {
     return (
       <Card className="flex flex-col">
         <CardHeader>
-          <CardTitle>Proposal Activity</CardTitle>
-          <CardDescription>Unable to load proposal data</CardDescription>
+          <CardTitle>{t("charts.proposalActivity.title")}</CardTitle>
+          <CardDescription>{t("charts.proposalActivity.errorDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
           <div className="flex h-[200px] items-center justify-center text-muted-foreground">
-            Failed to load data
+            {t("charts.proposalActivity.loadFailed")}
           </div>
         </CardContent>
       </Card>
@@ -55,8 +51,8 @@ export function ProposalsPerMonthChart() {
       <Card className="flex flex-col">
         <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
           <div className="grid flex-1 gap-1 text-center sm:text-left">
-            <CardTitle>Proposal Activity</CardTitle>
-            <CardDescription>Proposals per month over the last 12 months</CardDescription>
+            <CardTitle>{t("charts.proposalActivity.title")}</CardTitle>
+            <CardDescription>{t("charts.proposalActivity.description")}</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
@@ -70,8 +66,8 @@ export function ProposalsPerMonthChart() {
     <Card className="flex flex-col overflow-hidden">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Proposal Activity</CardTitle>
-          <CardDescription>Proposals per month over the last 12 months</CardDescription>
+          <CardTitle>{t("charts.proposalActivity.title")}</CardTitle>
+          <CardDescription>{t("charts.proposalActivity.description")}</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0 overflow-hidden">
@@ -100,4 +96,3 @@ export function ProposalsPerMonthChart() {
     </Card>
   );
 }
-

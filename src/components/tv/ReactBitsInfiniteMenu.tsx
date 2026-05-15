@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useRef, useEffect, MutableRefObject } from "react";
+import { FC, MutableRefObject, useEffect, useRef } from "react";
 import { mat4, quat, vec2, vec3 } from "gl-matrix";
 import "./ReactBitsInfiniteMenu.css";
 
@@ -259,7 +259,7 @@ class IcosahedronGeometry extends Geometry {
       -1,
       -t,
       0,
-      1
+      1,
     ).addFace(
       0,
       11,
@@ -320,7 +320,7 @@ class IcosahedronGeometry extends Geometry {
       7,
       9,
       8,
-      1
+      1,
     );
   }
 }
@@ -353,7 +353,7 @@ class DiscGeometry extends Geometry {
 function createShader(
   gl: WebGL2RenderingContext,
   type: number,
-  source: string
+  source: string,
 ): WebGLShader | null {
   const shader = gl.createShader(type);
   if (!shader) return null;
@@ -374,7 +374,7 @@ function createProgram(
   gl: WebGL2RenderingContext,
   shaderSources: [string, string],
   transformFeedbackVaryings?: string[] | null,
-  attribLocations?: Record<string, number>
+  attribLocations?: Record<string, number>,
 ): WebGLProgram | null {
   const program = gl.createProgram();
   if (!program) return null;
@@ -413,7 +413,7 @@ function createProgram(
 function makeVertexArray(
   gl: WebGL2RenderingContext,
   bufLocNumElmPairs: Array<[WebGLBuffer, number, number]>,
-  indices?: Uint16Array
+  indices?: Uint16Array,
 ): WebGLVertexArrayObject | null {
   const va = gl.createVertexArray();
   if (!va) return null;
@@ -454,7 +454,7 @@ function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement): boolean {
 function makeBuffer(
   gl: WebGL2RenderingContext,
   sizeOrData: number | ArrayBufferView,
-  usage: number
+  usage: number,
 ): WebGLBuffer {
   const buf = gl.createBuffer();
   if (!buf) {
@@ -477,7 +477,7 @@ function createAndSetupTexture(
   minFilter: number,
   magFilter: number,
   wrapS: number,
-  wrapT: number
+  wrapT: number,
 ): WebGLTexture {
   const texture = gl.createTexture();
   if (!texture) {
@@ -522,22 +522,38 @@ class ArcballControl {
 
     const signal = this.abortController.signal;
 
-    canvas.addEventListener("pointerdown", (e: PointerEvent) => {
-      vec2.set(this.pointerPos, e.clientX, e.clientY);
-      vec2.copy(this.previousPointerPos, this.pointerPos);
-      this.isPointerDown = true;
-    }, { signal });
-    canvas.addEventListener("pointerup", () => {
-      this.isPointerDown = false;
-    }, { signal });
-    canvas.addEventListener("pointerleave", () => {
-      this.isPointerDown = false;
-    }, { signal });
-    canvas.addEventListener("pointermove", (e: PointerEvent) => {
-      if (this.isPointerDown) {
+    canvas.addEventListener(
+      "pointerdown",
+      (e: PointerEvent) => {
         vec2.set(this.pointerPos, e.clientX, e.clientY);
-      }
-    }, { signal });
+        vec2.copy(this.previousPointerPos, this.pointerPos);
+        this.isPointerDown = true;
+      },
+      { signal },
+    );
+    canvas.addEventListener(
+      "pointerup",
+      () => {
+        this.isPointerDown = false;
+      },
+      { signal },
+    );
+    canvas.addEventListener(
+      "pointerleave",
+      () => {
+        this.isPointerDown = false;
+      },
+      { signal },
+    );
+    canvas.addEventListener(
+      "pointermove",
+      (e: PointerEvent) => {
+        if (this.isPointerDown) {
+          vec2.set(this.pointerPos, e.clientX, e.clientY);
+        }
+      },
+      { signal },
+    );
 
     canvas.style.touchAction = "none";
   }
@@ -620,7 +636,7 @@ class ArcballControl {
     a: vec3,
     b: vec3,
     out: quat,
-    angleFactor = 1
+    angleFactor = 1,
   ): { q: quat; axis: vec3; angle: number } {
     const axis = vec3.cross(vec3.create(), a, b);
     vec3.normalize(axis, axis);
@@ -766,7 +782,7 @@ class InfiniteGridMenu {
     private items: MenuItem[],
     private onActiveItemChange: ActiveItemCallback,
     private onMovementChange: MovementChangeCallback,
-    onInit?: InitCallback
+    onInit?: InitCallback,
   ) {
     this.init(onInit);
   }
@@ -810,7 +826,7 @@ class InfiniteGridMenu {
     if (this.idleTimer !== null) {
       clearTimeout(this.idleTimer);
     }
-    
+
     this.idleTimer = window.setTimeout(() => {
       if (!this.control.isPointerDown && Math.abs(this.smoothRotationVelocity) < 0.01) {
         this.isIdle = true;
@@ -824,7 +840,7 @@ class InfiniteGridMenu {
       alpha: false,
     });
     if (!gl) {
-      console.error('[InfiniteGridMenu] Failed to get WebGL2 context!');
+      console.error("[InfiniteGridMenu] Failed to get WebGL2 context!");
       throw new Error("No WebGL 2 context!");
     }
     this.gl = gl;
@@ -832,17 +848,12 @@ class InfiniteGridMenu {
     vec2.set(this.viewportSize, this.canvas.clientWidth, this.canvas.clientHeight);
     vec2.clone(this.drawBufferSize);
 
-    this.discProgram = createProgram(
-      gl,
-      [discVertShaderSource, discFragShaderSource],
-      null,
-      {
-        aModelPosition: 0,
-        aModelNormal: 1,
-        aModelUvs: 2,
-        aInstanceMatrix: 3,
-      }
-    );
+    this.discProgram = createProgram(gl, [discVertShaderSource, discFragShaderSource], null, {
+      aModelPosition: 0,
+      aModelNormal: 1,
+      aModelUvs: 2,
+      aInstanceMatrix: 3,
+    });
 
     this.discLocations = {
       aModelPosition: gl.getAttribLocation(this.discProgram!, "aModelPosition"),
@@ -865,10 +876,14 @@ class InfiniteGridMenu {
     this.discVAO = makeVertexArray(
       gl,
       [
-        [makeBuffer(gl, this.discBuffers.vertices, gl.STATIC_DRAW), this.discLocations.aModelPosition, 3],
+        [
+          makeBuffer(gl, this.discBuffers.vertices, gl.STATIC_DRAW),
+          this.discLocations.aModelPosition,
+          3,
+        ],
         [makeBuffer(gl, this.discBuffers.uvs, gl.STATIC_DRAW), this.discLocations.aModelUvs, 2],
       ],
-      this.discBuffers.indices
+      this.discBuffers.indices,
     );
 
     this.icoGeo = new IcosahedronGeometry();
@@ -887,7 +902,7 @@ class InfiniteGridMenu {
 
     // Handle tab visibility changes to pause/resume rendering
     let resumeOnNextClick = false;
-    
+
     const handleVisibilityChange = () => {
       if (document.hidden) {
         // Tab became hidden - pause rendering to save resources
@@ -900,21 +915,21 @@ class InfiniteGridMenu {
         resumeOnNextClick = true;
       }
     };
-    
+
     const handleCanvasClick = () => {
       if (resumeOnNextClick) {
         resumeOnNextClick = false;
         this.resumeRendering();
       }
     };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    this.canvas.addEventListener('pointerdown', handleCanvasClick);
-    
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    this.canvas.addEventListener("pointerdown", handleCanvasClick);
+
     // Store cleanup function
     this.cleanup = () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      this.canvas.removeEventListener('pointerdown', handleCanvasClick);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      this.canvas.removeEventListener("pointerdown", handleCanvasClick);
       if (this.animationFrameId !== null) {
         cancelAnimationFrame(this.animationFrameId);
         this.animationFrameId = null;
@@ -938,13 +953,16 @@ class InfiniteGridMenu {
 
     const itemCount = Math.max(1, this.items.length);
     this.atlasSize = Math.ceil(Math.sqrt(itemCount));
-    
+
     // Detect mobile or slow connection for smaller textures
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const connection = 'connection' in navigator ? (navigator as { connection?: { effectiveType?: string } }).connection : undefined;
-    const isSlowConnection = connection?.effectiveType === '2g' || 
-                              connection?.effectiveType === 'slow-2g';
-    const cellSize = (isMobile || isSlowConnection) ? 256 : 512;
+    const connection =
+      "connection" in navigator
+        ? (navigator as { connection?: { effectiveType?: string } }).connection
+        : undefined;
+    const isSlowConnection =
+      connection?.effectiveType === "2g" || connection?.effectiveType === "slow-2g";
+    const cellSize = isMobile || isSlowConnection ? 256 : 512;
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d")!;
     canvas.width = this.atlasSize * cellSize;
@@ -957,37 +975,41 @@ class InfiniteGridMenu {
     // Load images progressively instead of all at once
     const loadImageBatch = (startIdx: number, endIdx: number) => {
       const batch = this.items.slice(startIdx, endIdx);
-      
+
       return Promise.all(
         batch.map((item, batchIndex) => {
           const index = startIdx + batchIndex;
-          return new Promise<{ img: HTMLImageElement | null; avatar: HTMLImageElement | null; index: number }>((resolve) => {
+          return new Promise<{
+            img: HTMLImageElement | null;
+            avatar: HTMLImageElement | null;
+            index: number;
+          }>((resolve) => {
             const img = new Image();
             img.crossOrigin = "anonymous";
-            
+
             let loadedImg: HTMLImageElement | null = null;
             let avatarImg: HTMLImageElement | null = null;
             let imgLoaded = false;
             let avatarLoaded = !item.avatar; // If no avatar, consider it loaded
-            
+
             const checkComplete = () => {
               if (imgLoaded && avatarLoaded) {
                 this.loadedImageCount++;
                 resolve({ img: loadedImg, avatar: avatarImg, index });
               }
             };
-            
+
             img.onload = () => {
               loadedImg = img;
               imgLoaded = true;
               checkComplete();
             };
-            
+
             img.onerror = () => {
               imgLoaded = true;
               checkComplete();
             };
-            
+
             // Add timeout to prevent hanging
             setTimeout(() => {
               if (!imgLoaded) {
@@ -995,25 +1017,25 @@ class InfiniteGridMenu {
                 checkComplete();
               }
             }, 5000);
-            
+
             img.src = item.image;
-            
+
             // Load avatar if provided
             if (item.avatar) {
               avatarImg = new Image();
               avatarImg.crossOrigin = "anonymous";
-              
+
               avatarImg.onload = () => {
                 avatarLoaded = true;
                 checkComplete();
               };
-              
+
               avatarImg.onerror = () => {
                 avatarLoaded = true;
                 avatarImg = null;
                 checkComplete();
               };
-              
+
               setTimeout(() => {
                 if (!avatarLoaded) {
                   avatarLoaded = true;
@@ -1021,91 +1043,99 @@ class InfiniteGridMenu {
                   checkComplete();
                 }
               }, 5000);
-              
+
               avatarImg.src = item.avatar;
             }
           });
-        })
+        }),
       );
     };
 
     // Load initial batch (first 20 images for quick start)
     const initialEnd = Math.min(this.INITIAL_LOAD_COUNT, this.items.length);
-    
-    loadImageBatch(0, initialEnd).then((results) => {
-      // Draw initial batch
-      results.forEach(({ img, avatar, index }) => {
-        const x = (index % this.atlasSize) * cellSize;
-        const y = Math.floor(index / this.atlasSize) * cellSize;
-        
-        if (img) {
-          ctx.drawImage(img, x, y, cellSize, cellSize);
-          
-          // Draw avatar overlay on bottom-right if available
-          if (avatar) {
-            this.drawAvatarOverlay(ctx, avatar, x, y, cellSize);
-          }
-        } else {
-          this.drawPlaceholder(ctx, index, x, y, cellSize);
-        }
-      });
 
-      // Upload initial texture
-      gl.bindTexture(gl.TEXTURE_2D, this.tex);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-      gl.generateMipmap(gl.TEXTURE_2D);
+    loadImageBatch(0, initialEnd)
+      .then((results) => {
+        // Draw initial batch
+        results.forEach(({ img, avatar, index }) => {
+          const x = (index % this.atlasSize) * cellSize;
+          const y = Math.floor(index / this.atlasSize) * cellSize;
 
-      // Load remaining images in batches
-      const loadNextBatch = () => {
-        const startIdx = initialEnd + (this.currentBatch * this.BATCH_SIZE);
-        const endIdx = Math.min(startIdx + this.BATCH_SIZE, this.items.length);
-        
-        if (startIdx >= this.items.length) {
-          return;
-        }
-        
-        this.currentBatch++;
-        
-        loadImageBatch(startIdx, endIdx).then((batchResults) => {
-          // Draw newly loaded images
-          batchResults.forEach(({ img, avatar, index }) => {
-            const x = (index % this.atlasSize) * cellSize;
-            const y = Math.floor(index / this.atlasSize) * cellSize;
-            
-            if (img) {
-              ctx.drawImage(img, x, y, cellSize, cellSize);
-              
-              // Draw avatar overlay on bottom-right if available
-              if (avatar) {
-                this.drawAvatarOverlay(ctx, avatar, x, y, cellSize);
-              }
-            } else {
-              this.drawPlaceholder(ctx, index, x, y, cellSize);
+          if (img) {
+            ctx.drawImage(img, x, y, cellSize, cellSize);
+
+            // Draw avatar overlay on bottom-right if available
+            if (avatar) {
+              this.drawAvatarOverlay(ctx, avatar, x, y, cellSize);
             }
-          });
-          
-          // Update texture with new images
-          gl.bindTexture(gl.TEXTURE_2D, this.tex);
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-          gl.generateMipmap(gl.TEXTURE_2D);
-          
-          // Continue loading next batch after short delay
-          setTimeout(loadNextBatch, 200);
+          } else {
+            this.drawPlaceholder(ctx, index, x, y, cellSize);
+          }
         });
-      };
-      
-      // Start loading remaining batches
-      setTimeout(loadNextBatch, 100);
-    }).catch((error) => {
-      console.error("Error loading texture atlas:", error);
-      // Upload the canvas even with errors to prevent blank textures
-      gl.bindTexture(gl.TEXTURE_2D, this.tex);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-      gl.generateMipmap(gl.TEXTURE_2D);
-    });
+
+        // Upload initial texture
+        gl.bindTexture(gl.TEXTURE_2D, this.tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+        gl.generateMipmap(gl.TEXTURE_2D);
+
+        // Load remaining images in batches
+        const loadNextBatch = () => {
+          const startIdx = initialEnd + this.currentBatch * this.BATCH_SIZE;
+          const endIdx = Math.min(startIdx + this.BATCH_SIZE, this.items.length);
+
+          if (startIdx >= this.items.length) {
+            return;
+          }
+
+          this.currentBatch++;
+
+          loadImageBatch(startIdx, endIdx).then((batchResults) => {
+            // Draw newly loaded images
+            batchResults.forEach(({ img, avatar, index }) => {
+              const x = (index % this.atlasSize) * cellSize;
+              const y = Math.floor(index / this.atlasSize) * cellSize;
+
+              if (img) {
+                ctx.drawImage(img, x, y, cellSize, cellSize);
+
+                // Draw avatar overlay on bottom-right if available
+                if (avatar) {
+                  this.drawAvatarOverlay(ctx, avatar, x, y, cellSize);
+                }
+              } else {
+                this.drawPlaceholder(ctx, index, x, y, cellSize);
+              }
+            });
+
+            // Update texture with new images
+            gl.bindTexture(gl.TEXTURE_2D, this.tex);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+            gl.generateMipmap(gl.TEXTURE_2D);
+
+            // Continue loading next batch after short delay
+            setTimeout(loadNextBatch, 200);
+          });
+        };
+
+        // Start loading remaining batches
+        setTimeout(loadNextBatch, 100);
+      })
+      .catch((error) => {
+        console.error("Error loading texture atlas:", error);
+        // Upload the canvas even with errors to prevent blank textures
+        gl.bindTexture(gl.TEXTURE_2D, this.tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+        gl.generateMipmap(gl.TEXTURE_2D);
+      });
   }
 
-  private drawPlaceholder(ctx: CanvasRenderingContext2D, index: number, x: number, y: number, size: number): void {
+  private drawPlaceholder(
+    ctx: CanvasRenderingContext2D,
+    index: number,
+    x: number,
+    y: number,
+    size: number,
+  ): void {
     // Create a gradient placeholder
     const gradient = ctx.createLinearGradient(x, y, x + size, y + size);
     const hue = (index * 137.5) % 360; // Golden ratio for color distribution
@@ -1113,7 +1143,7 @@ class InfiniteGridMenu {
     gradient.addColorStop(1, `hsl(${hue + 60}, 50%, 20%)`);
     ctx.fillStyle = gradient;
     ctx.fillRect(x, y, size, size);
-    
+
     // Add item number
     ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
     ctx.font = "bold 48px sans-serif";
@@ -1122,18 +1152,24 @@ class InfiniteGridMenu {
     ctx.fillText(`#${index + 1}`, x + size / 2, y + size / 2);
   }
 
-  private drawAvatarOverlay(ctx: CanvasRenderingContext2D, avatar: HTMLImageElement, x: number, y: number, cellSize: number): void {
+  private drawAvatarOverlay(
+    ctx: CanvasRenderingContext2D,
+    avatar: HTMLImageElement,
+    x: number,
+    y: number,
+    cellSize: number,
+  ): void {
     // Avatar size is 25% of cell size
     const avatarSize = Math.floor(cellSize * 0.25);
     const radius = avatarSize / 2;
-    
+
     // Position badge in the CENTER of the thumbnail
     const centerX = x + cellSize / 2;
     const centerY = y + cellSize / 2;
-    
+
     const avatarX = centerX - radius;
     const avatarY = centerY - radius;
-    
+
     // Draw dark background circle first for contrast
     ctx.save();
     ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
@@ -1141,7 +1177,7 @@ class InfiniteGridMenu {
     ctx.arc(centerX, centerY, radius + 4, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
-    
+
     // Draw white border
     ctx.save();
     ctx.strokeStyle = "#ffffff";
@@ -1150,7 +1186,7 @@ class InfiniteGridMenu {
     ctx.arc(centerX, centerY, radius + 2, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
-    
+
     // Draw avatar with circular clip
     ctx.save();
     ctx.beginPath();
@@ -1200,7 +1236,7 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     const positions = this.instancePositions.map((p) =>
-      vec3.transformQuat(vec3.create(), p, this.control.orientation)
+      vec3.transformQuat(vec3.create(), p, this.control.orientation),
     );
     const scale = 0.25;
     const SCALE_INTENSITY = 0.6;
@@ -1210,10 +1246,22 @@ class InfiniteGridMenu {
       const finalScale = s * scale;
       const matrix = mat4.create();
 
-      mat4.multiply(matrix, matrix, mat4.fromTranslation(mat4.create(), vec3.negate(vec3.create(), p)));
+      mat4.multiply(
+        matrix,
+        matrix,
+        mat4.fromTranslation(mat4.create(), vec3.negate(vec3.create(), p)),
+      );
       mat4.multiply(matrix, matrix, mat4.targetTo(mat4.create(), [0, 0, 0], p, [0, 1, 0]));
-      mat4.multiply(matrix, matrix, mat4.fromScaling(mat4.create(), [finalScale, finalScale, finalScale]));
-      mat4.multiply(matrix, matrix, mat4.fromTranslation(mat4.create(), [0, 0, -this.SPHERE_RADIUS]));
+      mat4.multiply(
+        matrix,
+        matrix,
+        mat4.fromScaling(mat4.create(), [finalScale, finalScale, finalScale]),
+      );
+      mat4.multiply(
+        matrix,
+        matrix,
+        mat4.fromTranslation(mat4.create(), [0, 0, -this.SPHERE_RADIUS]),
+      );
 
       mat4.copy(this.discInstances.matrices[ndx], matrix);
     });
@@ -1238,19 +1286,23 @@ class InfiniteGridMenu {
 
     gl.uniformMatrix4fv(this.discLocations.uWorldMatrix, false, this.worldMatrix);
     gl.uniformMatrix4fv(this.discLocations.uViewMatrix, false, this.camera.matrices.view);
-    gl.uniformMatrix4fv(this.discLocations.uProjectionMatrix, false, this.camera.matrices.projection);
+    gl.uniformMatrix4fv(
+      this.discLocations.uProjectionMatrix,
+      false,
+      this.camera.matrices.projection,
+    );
     gl.uniform3f(
       this.discLocations.uCameraPosition,
       this.camera.position[0],
       this.camera.position[1],
-      this.camera.position[2]
+      this.camera.position[2],
     );
     gl.uniform4f(
       this.discLocations.uRotationAxisVelocity,
       this.control.rotationAxis[0],
       this.control.rotationAxis[1],
       this.control.rotationAxis[2],
-      this.smoothRotationVelocity * 1.1
+      this.smoothRotationVelocity * 1.1,
     );
 
     gl.uniform1i(this.discLocations.uItemCount, this.items.length);
@@ -1264,7 +1316,13 @@ class InfiniteGridMenu {
     gl.bindTexture(gl.TEXTURE_2D, this.tex);
 
     gl.bindVertexArray(this.discVAO);
-    gl.drawElementsInstanced(gl.TRIANGLES, this.discBuffers.indices.length, gl.UNSIGNED_SHORT, 0, this.DISC_INSTANCE_COUNT);
+    gl.drawElementsInstanced(
+      gl.TRIANGLES,
+      this.discBuffers.indices.length,
+      gl.UNSIGNED_SHORT,
+      0,
+      this.DISC_INSTANCE_COUNT,
+    );
     gl.bindVertexArray(null);
   }
 
@@ -1284,7 +1342,13 @@ class InfiniteGridMenu {
     } else {
       this.camera.fov = 2 * Math.atan(height / this.camera.aspect / distance);
     }
-    mat4.perspective(this.camera.matrices.projection, this.camera.fov, this.camera.aspect, this.camera.near, this.camera.far);
+    mat4.perspective(
+      this.camera.matrices.projection,
+      this.camera.fov,
+      this.camera.aspect,
+      this.camera.near,
+      this.camera.far,
+    );
     mat4.invert(this.camera.matrices.inversProjection, this.camera.matrices.projection);
   }
 
@@ -1298,7 +1362,7 @@ class InfiniteGridMenu {
     if (isMoving !== this.movementActive) {
       this.movementActive = isMoving;
       this.onMovementChange(isMoving);
-      
+
       // Resume rendering on movement
       if (isMoving) {
         this.resumeRendering();
@@ -1312,7 +1376,10 @@ class InfiniteGridMenu {
       const nearestVertexIndex = this.findNearestVertexIndex();
       const itemIndex = nearestVertexIndex % Math.max(1, this.items.length);
       this.onActiveItemChange(itemIndex);
-      const snapDirection = vec3.normalize(vec3.create(), this.getVertexWorldPosition(nearestVertexIndex));
+      const snapDirection = vec3.normalize(
+        vec3.create(),
+        this.getVertexWorldPosition(nearestVertexIndex),
+      );
       this.control.snapTargetDirection = snapDirection;
     } else {
       cameraTargetZ += this.control.rotationVelocity * 80 + 2.5;
@@ -1361,7 +1428,9 @@ interface InfiniteMenuProps {
 }
 
 const ReactBitsInfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], onActiveItemChange }) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null) as MutableRefObject<HTMLCanvasElement | null>;
+  const canvasRef = useRef<HTMLCanvasElement | null>(
+    null,
+  ) as MutableRefObject<HTMLCanvasElement | null>;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1370,7 +1439,7 @@ const ReactBitsInfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], onActiveItem
     const handleActiveItem = (index: number) => {
       if (!items.length) return;
       const itemIndex = index % items.length;
-      
+
       // Call parent callback if provided
       if (onActiveItemChange) {
         onActiveItemChange(itemIndex);
@@ -1384,14 +1453,14 @@ const ReactBitsInfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], onActiveItem
     if (canvas) {
       try {
         sketch = new InfiniteGridMenu(
-          canvas, 
-          items.length ? items : defaultItems, 
-          handleActiveItem, 
-          handleMovementChange, 
-          (sk) => sk.run()
+          canvas,
+          items.length ? items : defaultItems,
+          handleActiveItem,
+          handleMovementChange,
+          (sk) => sk.run(),
         );
       } catch (error) {
-        console.error('[ReactBitsInfiniteMenu] Error initializing:', error);
+        console.error("[ReactBitsInfiniteMenu] Error initializing:", error);
       }
     }
 

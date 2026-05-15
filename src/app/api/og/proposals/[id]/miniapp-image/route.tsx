@@ -1,14 +1,14 @@
 import { ImageResponse } from "next/og";
-import { getProposalByIdOrNumber } from "@/services/proposals";
 import {
+  formatVotes,
+  getStatusColor,
   MINIAPP_SIZE,
   OG_COLORS,
   OG_FONTS,
-  formatVotes,
-  getStatusColor,
   shortenAddress,
   truncateText,
 } from "@/lib/og-utils";
+import { getProposalByIdOrNumber } from "@/services/proposals";
 
 export const alt = "Gnars DAO Proposal";
 export const size = MINIAPP_SIZE;
@@ -57,7 +57,9 @@ export async function GET(_request: Request, { params }: Props) {
           }}
         >
           {/* Header */}
-          <div style={{ display: "flex", alignItems: "baseline", gap: "28px", marginBottom: "40px" }}>
+          <div
+            style={{ display: "flex", alignItems: "baseline", gap: "28px", marginBottom: "40px" }}
+          >
             <div
               style={{
                 fontSize: 52,
@@ -118,9 +120,7 @@ export async function GET(_request: Request, { params }: Props) {
                 justifyContent: "space-between",
               }}
             >
-              <div style={{ fontSize: 24, color: OG_COLORS.muted, marginBottom: "20px" }}>
-                FOR
-              </div>
+              <div style={{ fontSize: 24, color: OG_COLORS.muted, marginBottom: "20px" }}>FOR</div>
               <div style={{ fontSize: 52, fontWeight: 700, color: OG_COLORS.accent }}>
                 {formatVotes(proposal.forVotes)}
               </div>

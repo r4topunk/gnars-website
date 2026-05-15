@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { FileText } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { Markdown } from "@/components/common/Markdown";
 import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "@/i18n/navigation";
+import { getDateFnsLocale } from "@/lib/i18n/format";
 import type { ProposalStatus } from "@/lib/schemas/proposals";
 
 // ---------------------------------------------------------------------------
@@ -52,11 +54,14 @@ interface ProposalUpdateCardProps {
 }
 
 function ProposalUpdateCard({ entry, index }: ProposalUpdateCardProps) {
+  const t = useTranslations("propdates");
+  const locale = useLocale();
   const { proposal, propdates, updateCount, latestUpdate } = entry;
   const latestPropdate = propdates[0];
 
   const timeAgo = formatDistanceToNow(new Date(latestUpdate * 1000), {
     addSuffix: true,
+    locale: getDateFnsLocale(locale),
   });
 
   const proposalHref = `/proposals/base/${proposal.proposalNumber}`;
@@ -104,11 +109,14 @@ function ProposalUpdateCard({ entry, index }: ProposalUpdateCardProps) {
         {/* Latest update content */}
         <CardContent className="px-4 pt-0 pb-3">
           <p className="text-xs text-muted-foreground mb-2">
-            Latest Update&nbsp;·&nbsp;{timeAgo}
+            {t("feed.latestUpdate")}&nbsp;·&nbsp;{timeAgo}
           </p>
 
           {latestPropdate && (
-            <div className="rounded-md border bg-muted/40 p-3 relative overflow-hidden" style={{ maxHeight: 160 }}>
+            <div
+              className="rounded-md border bg-muted/40 p-3 relative overflow-hidden"
+              style={{ maxHeight: 160 }}
+            >
               <Markdown className="prose-sm">{latestPropdate.message}</Markdown>
               <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-card to-transparent" />
             </div>
@@ -121,13 +129,15 @@ function ProposalUpdateCard({ entry, index }: ProposalUpdateCardProps) {
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <FileText className="h-3.5 w-3.5" />
-              {updateCount === 1 ? "1 update" : `${updateCount} updates`}
+              {updateCount === 1
+                ? t("feed.update", { count: 1 })
+                : t("feed.updates", { count: updateCount })}
             </span>
             <Link
               href={allUpdatesHref}
               className="text-xs font-medium text-primary hover:underline transition-colors"
             >
-              View all &rarr;
+              {t("feed.viewAll")}
             </Link>
           </div>
         </CardContent>
@@ -188,6 +198,7 @@ function EnrichedFeedSkeleton({ count = 3 }: { count?: number }) {
 const PAGE_SIZE = 12;
 
 export function PropdatesFeed() {
+  const t = useTranslations("propdates");
   const {
     data: feed,
     isLoading,
@@ -220,9 +231,7 @@ export function PropdatesFeed() {
   }, [entries.length]);
 
   useEffect(() => {
-    setVisibleCount((prev) =>
-      Math.min(Math.max(PAGE_SIZE, prev), entries.length || PAGE_SIZE),
-    );
+    setVisibleCount((prev) => Math.min(Math.max(PAGE_SIZE, prev), entries.length || PAGE_SIZE));
   }, [entries.length]);
 
   if (isLoading) {
@@ -232,10 +241,8 @@ export function PropdatesFeed() {
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Failed to load propdates feed. Please try again later.
-        </AlertDescription>
+        <AlertTitle>{t("feed.errorTitle")}</AlertTitle>
+        <AlertDescription>{t("feed.errorDesc")}</AlertDescription>
       </Alert>
     );
   }
@@ -243,10 +250,8 @@ export function PropdatesFeed() {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-muted-foreground">No propdates yet</p>
-        <p className="mt-1 text-sm text-muted-foreground/70">
-          Proposers can post progress updates after their proposals pass
-        </p>
+        <p className="text-muted-foreground">{t("feed.noPropdatesYet")}</p>
+        <p className="mt-1 text-sm text-muted-foreground/70">{t("feed.noPropdatesDesc")}</p>
       </div>
     );
   }
@@ -271,7 +276,7 @@ export function PropdatesFeed() {
 
       {visibleEntries.length < entries.length && (
         <div className="mt-4 text-center text-sm text-muted-foreground">
-          Showing {visibleEntries.length} of {entries.length}
+          {t("feed.showingOf", { visible: visibleEntries.length, total: entries.length })}
         </div>
       )}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormProvider, useForm, useFormContext, useWatch, type Resolver } from "react-hook-form";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,7 @@ export interface TemplateDetailsFormProps {
 
 export const TemplateDetailsForm = forwardRef<TemplateDetailsFormHandle, TemplateDetailsFormProps>(
   function TemplateDetailsForm({ slug }, ref) {
+    const t = useTranslations("propose");
     const schema = getTemplateSchema(slug);
     const parent = useFormContext<ProposalFormValues>();
 
@@ -80,9 +82,7 @@ export const TemplateDetailsForm = forwardRef<TemplateDetailsFormHandle, Templat
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold mb-1">{schema.title}</h2>
-          <p className="text-muted-foreground">
-            Fill in the sections below. Your answers are compiled into the proposal.
-          </p>
+          <p className="text-muted-foreground">{t("details.templateHelper")}</p>
         </div>
 
         {/* Header uses the parent form (title + banner live on ProposalFormValues). */}

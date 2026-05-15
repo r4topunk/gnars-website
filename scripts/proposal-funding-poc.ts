@@ -6,8 +6,11 @@
  */
 
 import process from "node:process";
-import { getProposalFundingTotals, getProposalRequestedUsdTotal } from "../src/lib/proposal-funding";
 import { GNARS_ADDRESSES, SUBGRAPH } from "../src/lib/config";
+import {
+  getProposalFundingTotals,
+  getProposalRequestedUsdTotal,
+} from "../src/lib/proposal-funding";
 
 type Mode = "current" | "historical" | "compare";
 
@@ -99,10 +102,13 @@ function cgHeaders(): Record<string, string> {
 }
 
 async function fetchCurrentEthUsd(): Promise<EthPricePoint> {
-  const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd", {
-    headers: cgHeaders(),
-    cache: "no-store",
-  });
+  const res = await fetch(
+    "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
+    {
+      headers: cgHeaders(),
+      cache: "no-store",
+    },
+  );
   if (!res.ok) throw new Error(`Failed current ETH price: ${res.status}`);
   const data = (await res.json()) as { ethereum?: { usd?: number } };
   return { usd: Number(data?.ethereum?.usd ?? 0) || 0, source: "current" };
@@ -284,10 +290,17 @@ async function main() {
         historicalPrice.usd > 0
           ? `historical ETH on ${historicalPrice.dateLabel} (${fmtUsd(historicalPrice.usd)})`
           : `historical ETH on ${historicalPrice.dateLabel} (unavailable)`;
-      console.log(`  option A (${priceLabel}): ${historicalPrice.usd > 0 ? fmtUsd(usdHistorical) : "—"}`);
+      console.log(
+        `  option A (${priceLabel}): ${historicalPrice.usd > 0 ? fmtUsd(usdHistorical) : "—"}`,
+      );
     }
 
-    if (options.mode === "compare" && currentEthPrice && historicalPrice && historicalPrice.usd > 0) {
+    if (
+      options.mode === "compare" &&
+      currentEthPrice &&
+      historicalPrice &&
+      historicalPrice.usd > 0
+    ) {
       const diff = usdCurrent - usdHistorical;
       const pct = usdHistorical !== 0 ? (diff / usdHistorical) * 100 : 0;
       const sign = diff >= 0 ? "+" : "";

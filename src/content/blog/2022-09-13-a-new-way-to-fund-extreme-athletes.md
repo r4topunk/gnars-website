@@ -9,7 +9,7 @@ image: /images/gnars-nounish-film.jpeg
 image_caption:
 video_embed: https://www.youtube.com/embed/JQSmfSnRGVk
 tags: [community]
-featured: 
+featured:
 ---
 
 Nouns DAO funds Gnars DAO, a community that celebrates the artistry of extreme athletes.

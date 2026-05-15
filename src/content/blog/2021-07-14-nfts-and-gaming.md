@@ -7,9 +7,9 @@ permalink: /nfts-and-gaming/
 author: gami
 image: /images/nft-gaming-1.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 In my younger years, and perhaps this admission of mine will reveal my age, I was the proud owner of a venerable **Tandy Color Computer 3** with 128KB of RAM. These humble specs did provide countless hours of entertainment (these were simpler times). However, what I saw on-screen really paled in comparison to what I witnessed at my best friend’s place, who was lucky enough to own a **Nintendo Entertainment System** and a **Sega Master System.**

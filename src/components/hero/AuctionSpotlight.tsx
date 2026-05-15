@@ -1,24 +1,26 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useDaoAuction } from "@buildeross/hooks";
+import { toast } from "sonner";
 import { formatEther } from "viem";
 import { useReadContract } from "wagmi";
-import { useDaoAuction } from "@buildeross/hooks";
+import { AuctionBidForm } from "@/components/auction/AuctionBidForm";
+import { AuctionLiveStatus } from "@/components/auction/AuctionLiveStatus";
+import { AuctionSettleButton } from "@/components/auction/AuctionSettleButton";
+import { BidHistoryModal } from "@/components/auction/BidHistoryModal";
 import { GnarImageTile } from "@/components/auctions/GnarImageTile";
 import { Card, CardContent } from "@/components/ui/card";
-import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
-import auctionAbi from "@/utils/abis/auctionAbi";
-import { toast } from "sonner";
-import { BidHistoryModal } from "@/components/auction/BidHistoryModal";
-import { AuctionLiveStatus } from "@/components/auction/AuctionLiveStatus";
-import { AuctionBidForm } from "@/components/auction/AuctionBidForm";
-import { AuctionSettleButton } from "@/components/auction/AuctionSettleButton";
-import { useAuctionLive } from "@/hooks/use-auction-live";
 import { useAuctionBids } from "@/hooks/use-auction-bids";
+import { useAuctionLive } from "@/hooks/use-auction-live";
 import { useBidComments } from "@/hooks/use-bid-comments";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
+import auctionAbi from "@/utils/abis/auctionAbi";
 
 export function AuctionSpotlight() {
+  const t = useTranslations("home");
   const { address } = useUserAddress();
   const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
 
@@ -56,13 +58,10 @@ export function AuctionSpotlight() {
 
   // Fetch comment for the leading bid
   const leadingBidTxHash = bids.length > 0 ? bids[0].transactionHash : undefined;
-  const txHashes = useMemo(
-    () => (leadingBidTxHash ? [leadingBidTxHash] : []),
-    [leadingBidTxHash],
-  );
+  const txHashes = useMemo(() => (leadingBidTxHash ? [leadingBidTxHash] : []), [leadingBidTxHash]);
   const { comments } = useBidComments(txHashes);
   const fetchedComment = leadingBidTxHash
-    ? comments.get(leadingBidTxHash) ?? undefined
+    ? (comments.get(leadingBidTxHash) ?? undefined)
     : undefined;
 
   // Use optimistic comment until real data arrives
@@ -102,7 +101,10 @@ export function AuctionSpotlight() {
   // Determine if auction is live — re-check every second
   const [isLive, setIsLive] = useState(false);
   useEffect(() => {
-    if (!displayEndTime) { setIsLive(false); return; }
+    if (!displayEndTime) {
+      setIsLive(false);
+      return;
+    }
     const check = () => setIsLive(displayEndTime * 1000 > Date.now());
     check();
     const timer = setInterval(check, 1000);
@@ -113,14 +115,12 @@ export function AuctionSpotlight() {
   const { wasOutbid, latestBid, clearOutbid } = auctionLive;
   useEffect(() => {
     if (wasOutbid && latestBid) {
-      toast.warning("You've been outbid!", {
-        description: `Current bid: ${latestBid.amountEth} ETH`,
+      toast.warning(t("auction.outbidTitle"), {
+        description: t("auction.outbidDescription", { amount: latestBid.amountEth }),
         action: {
-          label: "Bid Again",
+          label: t("auction.bidAgain"),
           onClick: () => {
-            const input = document.querySelector<HTMLInputElement>(
-              'input[type="number"]',
-            );
+            const input = document.querySelector<HTMLInputElement>('input[type="number"]');
             input?.focus();
           },
         },
@@ -128,19 +128,22 @@ export function AuctionSpotlight() {
       });
       clearOutbid();
     }
-  }, [wasOutbid, latestBid, clearOutbid]);
+  }, [wasOutbid, latestBid, clearOutbid, t]);
 
-  const handleBidConfirmed = useCallback((comment: string, bidAmount: string) => {
-    bidsCountWhenOptimisticRef.current = bids.length;
-    setOptimistic({ comment, bidAmount });
-  }, [bids.length]);
+  const handleBidConfirmed = useCallback(
+    (comment: string, bidAmount: string) => {
+      bidsCountWhenOptimisticRef.current = bids.length;
+      setOptimistic({ comment, bidAmount });
+    },
+    [bids.length],
+  );
 
   return (
     <Card className="w-full bg-card">
       <CardContent className="py-2">
         <div className="space-y-4">
           <div className="text-xl font-semibold">
-            {tokenName || (tokenId ? `#${tokenId.toString()}` : "Latest Auction")}
+            {tokenName || (tokenId ? `#${tokenId.toString()}` : t("hero.latestAuction"))}
           </div>
 
           <GnarImageTile tokenId={Number(tokenId || 0)} imageUrl={imageUrl} />
@@ -168,7 +171,6 @@ export function AuctionSpotlight() {
             ) : (
               <AuctionSettleButton isWinner={!!isWinner} />
             )}
-
           </div>
 
           <BidHistoryModal

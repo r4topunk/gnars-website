@@ -1,0 +1,76 @@
+{
+  "languageSwitcherLabel": "Mudar idioma",
+  "mobileMenu": {
+    "toggleLabel": "Alternar menu",
+    "sheetTitle": "Navegação"
+  },
+  "switchNetwork": {
+    "label": "Mudar para Base",
+    "switching": "Mudando..."
+  },
+  "items": {
+    "tv": "TV",
+    "dashboard": "Dashboard",
+    "governance": {
+      "label": "Governança",
+      "proposals": {
+        "title": "Propostas",
+        "description": "Veja e vote em propostas da DAO"
+      },
+      "delegation": {
+        "title": "Delegação",
+        "description": "Gerencie sua delegação de voto"
+      },
+      "createProposal": {
+        "title": "Criar Proposta",
+        "description": "Envie uma nova proposta para a DAO"
+      },
+      "auctions": {
+        "title": "Leilões",
+        "description": "Dê lance em Gnars NFTs em leilões ativos"
+      }
+    },
+    "money": {
+      "label": "Dinheiro",
+      "treasury": {
+        "title": "Tesouro",
+        "description": "ETH, ERC-20s, NFTs e analytics onchain do tesouro da DAO"
+      },
+      "swap": {
+        "title": "Swap",
+        "description": "Troque tokens na Base via 0x — melhor preço em mais de 150 DEXes"
+      }
+    },
+    "community": {
+      "label": "Comunidade",
+      "members": {
+        "title": "Membros",
+        "description": "Explore todos os membros e holders da DAO"
+      },
+      "nogglesRails": {
+        "title": "NogglesRails",
+        "description": "Rede global de infraestrutura skate comunitária"
+      },
+      "blogs": {
+        "title": "Blogs",
+        "description": "Leia posts e atualizações do blog da comunidade"
+      },
+      "propdates": {
+        "title": "Propdates",
+        "description": "Acompanhe atualizações de progresso de propostas"
+      },
+      "droposals": {
+        "title": "Droposals",
+        "description": "Propostas em vídeo da comunidade"
+      },
+      "createCoin": {
+        "title": "Criar Coin",
+        "description": "Crie um novo coin na Zora"
+      },
+      "bounties": {
+        "title": "Bounties",
+        "description": "Desafios gnarly da comunidade de esportes radicais"
+      }
+    }
+  }
+}

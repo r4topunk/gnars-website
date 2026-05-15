@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { fetchAllAuctions, type PastAuction } from "@/services/auctions";
 
@@ -88,11 +88,10 @@ export function MuralBackground() {
   const centerY = -(totalHeight / 2 - vh / 2);
 
   return (
-    <div 
-      ref={containerRef} 
+    <div
+      ref={containerRef}
       className="fixed inset-0 z-0 overflow-hidden bg-neutral-100 pointer-events-none"
     >
-
       {/* Drag surface with constraints */}
       <motion.div
         className="cursor-grab active:cursor-grabbing pointer-events-auto"
@@ -115,19 +114,22 @@ export function MuralBackground() {
         }}
       >
         {/* Fixed grid of tiles */}
-        <div className="grid" style={{ gridTemplateColumns: `repeat(${gridCols}, ${tileSize}px)`, gap: `${gap}px` }}>
+        <div
+          className="grid"
+          style={{ gridTemplateColumns: `repeat(${gridCols}, ${tileSize}px)`, gap: `${gap}px` }}
+        >
           {Array.from({ length: gridRows * gridCols }).map((_, idx) => {
             const col = idx % gridCols;
             const row = Math.floor(idx / gridCols);
             const seed = `${col}_${row}`;
             const rand = mulberry32((col * 73856093) ^ (row * 19349663))();
             const bg = `hsl(${Math.floor(rand * 360)} 60% 85%)`;
-            
+
             // Use real NFT images if loaded, otherwise show loading state
             const auction = auctions.length > 0 ? auctions[idx % auctions.length] : null;
             const imageUrl = auction?.imageUrl;
             const tokenId = auction?.tokenId;
-            
+
             return (
               <div
                 key={seed}
@@ -146,10 +148,10 @@ export function MuralBackground() {
                   <img
                     src={imageUrl}
                     alt={`Gnar #${tokenId}`}
-                    style={{ 
-                      width: "100%", 
-                      height: "100%", 
-                      objectFit: "cover" 
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
                     }}
                     loading="lazy"
                     draggable={false}
@@ -162,7 +164,9 @@ export function MuralBackground() {
                     {isLoadingNFTs ? (
                       <div className="text-xs text-muted-foreground opacity-50">...</div>
                     ) : (
-                      <div className="text-xs text-muted-foreground opacity-30">#{tokenId || "?"}</div>
+                      <div className="text-xs text-muted-foreground opacity-30">
+                        #{tokenId || "?"}
+                      </div>
                     )}
                   </div>
                 )}
@@ -182,4 +186,3 @@ export function MuralBackground() {
     </div>
   );
 }
-

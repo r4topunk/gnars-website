@@ -1,15 +1,15 @@
 ---
 layout: post
 title: 2021 - The Year NFTs Broke
-description: 
+description:
 date: 2022-01-12 00:00:00 +0000
 permalink: /2021-the-year-the-nft-broke/
 author: gami
 image: /images/yearinrev.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 While I was a bit too young to live through the grunge era of the early ’90s, I have always loved the music and the culture surrounding the period. Before the explosion of bands like Nirvana, Pearl Jam, and others, there was a sense something new was happening, something significant was changing. A documentary titled ‘[1991: The Year Punk Broke’](https://en.wikipedia.org/wiki/1991:_The_Year_Punk_Broke) really captures this. The documentary followed Nirvana and a few other bands on tour in 1991 as they skyrocketed to fame. Ironically one thing 2021 did not have was a lot of live music (see the Covid pandemic), but there was a similar cultural shift and an explosion of a new art form.

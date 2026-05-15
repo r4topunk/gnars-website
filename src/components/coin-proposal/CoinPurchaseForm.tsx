@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Info, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Info, Loader2 } from "lucide-react";
 
 interface CoinPurchaseFormProps {
   onGenerate: (data: {
@@ -19,6 +20,7 @@ interface CoinPurchaseFormProps {
 }
 
 export function CoinPurchaseForm({ onGenerate, isGenerating, error }: CoinPurchaseFormProps) {
+  const t = useTranslations("coinProposal");
   const [coinAddress, setCoinAddress] = useState("");
   const [coinName, setCoinName] = useState("");
   const [ethAmount, setEthAmount] = useState("0.1");
@@ -40,18 +42,14 @@ export function CoinPurchaseForm({ onGenerate, isGenerating, error }: CoinPurcha
         <Info className="h-4 w-4" />
         <AlertDescription>
           <div className="space-y-2">
-            <p className="font-semibold">Integrated Coin Purchase Proposal</p>
-            <p>
-              This wizard will generate a complete DAO proposal to purchase a content or creator
-              coin using the Zora Coins SDK. The trade executes through the Uniswap v4 router with
-              proper slippage protection.
-            </p>
+            <p className="font-semibold">{t("form.infoTitle")}</p>
+            <p>{t("form.infoBody")}</p>
           </div>
         </AlertDescription>
       </Alert>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="coinAddress">Coin Address *</Label>
+        <Label htmlFor="coinAddress">{t("form.coinAddress")}</Label>
         <Input
           id="coinAddress"
           placeholder="0x..."
@@ -60,13 +58,11 @@ export function CoinPurchaseForm({ onGenerate, isGenerating, error }: CoinPurcha
           disabled={isGenerating}
           required
         />
-        <p className="text-xs text-muted-foreground">
-          The ERC-20 address of the content or creator coin to purchase
-        </p>
+        <p className="text-xs text-muted-foreground">{t("form.coinAddressHelp")}</p>
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="coinName">Coin Name (Optional)</Label>
+        <Label htmlFor="coinName">{t("form.coinName")}</Label>
         <Input
           id="coinName"
           placeholder="e.g., Skateboarding Coin"
@@ -74,13 +70,11 @@ export function CoinPurchaseForm({ onGenerate, isGenerating, error }: CoinPurcha
           onChange={(e) => setCoinName(e.target.value)}
           disabled={isGenerating}
         />
-        <p className="text-xs text-muted-foreground">
-          Display name for the coin (used in proposal title)
-        </p>
+        <p className="text-xs text-muted-foreground">{t("form.coinNameHelp")}</p>
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="ethAmount">ETH Amount *</Label>
+        <Label htmlFor="ethAmount">{t("form.ethAmount")}</Label>
         <Input
           id="ethAmount"
           type="number"
@@ -92,13 +86,11 @@ export function CoinPurchaseForm({ onGenerate, isGenerating, error }: CoinPurcha
           disabled={isGenerating}
           required
         />
-        <p className="text-xs text-muted-foreground">
-          Amount of ETH the DAO treasury will spend
-        </p>
+        <p className="text-xs text-muted-foreground">{t("form.ethAmountHelp")}</p>
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-2">
-        <Label htmlFor="slippage">Slippage Tolerance (%) *</Label>
+        <Label htmlFor="slippage">{t("form.slippage")}</Label>
         <Input
           id="slippage"
           type="number"
@@ -111,9 +103,7 @@ export function CoinPurchaseForm({ onGenerate, isGenerating, error }: CoinPurcha
           disabled={isGenerating}
           required
         />
-        <p className="text-xs text-muted-foreground">
-          Maximum acceptable slippage (recommended: 5%)
-        </p>
+        <p className="text-xs text-muted-foreground">{t("form.slippageHelp")}</p>
       </div>
 
       {error && (
@@ -126,10 +116,10 @@ export function CoinPurchaseForm({ onGenerate, isGenerating, error }: CoinPurcha
         {isGenerating ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Generating Proposal...
+            {t("form.generating")}
           </>
         ) : (
-          "Generate Proposal"
+          t("form.generate")
         )}
       </Button>
     </form>

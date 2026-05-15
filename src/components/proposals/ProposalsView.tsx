@@ -1,8 +1,8 @@
 "use client";
 
-import { Search, SlidersHorizontal, X } from "lucide-react";
-import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ProposalsGrid } from "@/components/proposals/ProposalsGrid";
 import { Proposal } from "@/components/proposals/types";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { useProposalSearch } from "@/hooks/use-proposal-search";
+import { Link } from "@/i18n/navigation";
 import { getProposalStatus, ProposalStatus } from "@/lib/schemas/proposals";
 import { cn } from "@/lib/utils";
 import type { MultiChainProposal, ProposalSource } from "@/services/multi-chain-proposals";
@@ -55,20 +56,26 @@ interface RawSnapshotProposal {
   scores: number[];
 }
 
-const SOURCE_CONFIG: Record<ProposalSource, { label: string; activeClass: string; dotClass: string }> = {
+const SOURCE_CONFIG: Record<
+  ProposalSource,
+  { label: string; activeClass: string; dotClass: string }
+> = {
   base: {
     label: "Base",
-    activeClass: "bg-blue-500/15 text-blue-700 border-blue-300 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40",
+    activeClass:
+      "bg-blue-500/15 text-blue-700 border-blue-300 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40",
     dotClass: "bg-blue-500",
   },
   ethereum: {
     label: "Ethereum",
-    activeClass: "bg-indigo-500/15 text-indigo-700 border-indigo-300 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40",
+    activeClass:
+      "bg-indigo-500/15 text-indigo-700 border-indigo-300 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40",
     dotClass: "bg-indigo-500",
   },
   snapshot: {
     label: "Snapshot",
-    activeClass: "bg-amber-500/15 text-amber-700 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40",
+    activeClass:
+      "bg-amber-500/15 text-amber-700 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40",
     dotClass: "bg-amber-500",
   },
 };
@@ -76,6 +83,7 @@ const SOURCE_CONFIG: Record<ProposalSource, { label: string; activeClass: string
 const ALL_SOURCES: ProposalSource[] = ["base", "ethereum", "snapshot"];
 
 export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
+  const t = useTranslations("proposals");
   const ALL_STATUSES = useMemo(() => Object.values(ProposalStatus) as ProposalStatus[], []);
 
   const [activeStatuses, setActiveStatuses] = useState<Set<ProposalStatus>>(
@@ -125,7 +133,9 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
         transactionHash: "",
         votes: [],
         voteStart: new Date(Number(p.createdTimestamp) * 1000).toISOString(),
-        voteEnd: new Date((Number(p.createdTimestamp) + (Number(p.endBlock) - Number(p.startBlock)) * 12) * 1000).toISOString(),
+        voteEnd: new Date(
+          (Number(p.createdTimestamp) + (Number(p.endBlock) - Number(p.startBlock)) * 12) * 1000,
+        ).toISOString(),
         timeCreated: Number(p.createdTimestamp),
         descriptionHash: "",
         source: "ethereum" as const,
@@ -152,10 +162,15 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
       const data: RawSnapshotProposal[] = await proposalsRes.json();
 
       // Build tx lookup map
-      const txMap = new Map<string, { target: string; value: string; calldata: string; description?: string }[]>();
+      const txMap = new Map<
+        string,
+        { target: string; value: string; calldata: string; description?: string }[]
+      >();
       if (txRes?.ok) {
-        const txData: { proposalId: string; transactions: { target: string; value: string; calldata: string; description?: string }[] }[] =
-          await txRes.json();
+        const txData: {
+          proposalId: string;
+          transactions: { target: string; value: string; calldata: string; description?: string }[];
+        }[] = await txRes.json();
         for (const entry of txData) {
           txMap.set(entry.proposalId, entry.transactions);
         }
@@ -164,33 +179,33 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
       const proposals: MultiChainProposal[] = data.map((p, index) => {
         const txs = txMap.get(p.id);
         return {
-        proposalId: p.id,
-        proposalNumber: data.length - index,
-        title: p.title || `Snapshot Proposal #${data.length - index}`,
-        description: p.body || "",
-        proposer: p.author,
-        status: p.state === "active" ? ProposalStatus.ACTIVE : ProposalStatus.EXECUTED,
-        createdAt: p.created * 1000,
-        endBlock: 0,
-        snapshotBlock: p.snapshot,
-        forVotes: p.scores[0] || 0,
-        againstVotes: p.scores[1] || 0,
-        abstainVotes: p.scores[2] || 0,
-        quorumVotes: 0,
-        calldatas: txs?.map((t) => t.calldata) ?? [],
-        targets: txs?.map((t) => t.target) ?? [],
-        values: txs?.map((t) => t.value) ?? [],
-        txDescriptions: txs?.map((t) => t.description || "") ?? undefined,
-        signatures: [],
-        transactionHash: "",
-        votes: [],
-        voteStart: new Date(p.start * 1000).toISOString(),
-        voteEnd: new Date(p.end * 1000).toISOString(),
-        timeCreated: p.created,
-        descriptionHash: "",
-        source: "snapshot" as const,
-        chainId: 0,
-      };
+          proposalId: p.id,
+          proposalNumber: data.length - index,
+          title: p.title || `Snapshot Proposal #${data.length - index}`,
+          description: p.body || "",
+          proposer: p.author,
+          status: p.state === "active" ? ProposalStatus.ACTIVE : ProposalStatus.EXECUTED,
+          createdAt: p.created * 1000,
+          endBlock: 0,
+          snapshotBlock: p.snapshot,
+          forVotes: p.scores[0] || 0,
+          againstVotes: p.scores[1] || 0,
+          abstainVotes: p.scores[2] || 0,
+          quorumVotes: 0,
+          calldatas: txs?.map((t) => t.calldata) ?? [],
+          targets: txs?.map((t) => t.target) ?? [],
+          values: txs?.map((t) => t.value) ?? [],
+          txDescriptions: txs?.map((t) => t.description || "") ?? undefined,
+          signatures: [],
+          transactionHash: "",
+          votes: [],
+          voteStart: new Date(p.start * 1000).toISOString(),
+          voteEnd: new Date(p.end * 1000).toISOString(),
+          timeCreated: p.created,
+          descriptionHash: "",
+          source: "snapshot" as const,
+          chainId: 0,
+        };
       });
       setSnapshotProposals(proposals);
     } catch (error) {
@@ -275,15 +290,14 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Proposals</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("page.title")}</h1>
         <p className="text-muted-foreground mt-1">
-          How the community funds skateboarding projects, media, and public
-          work.{" "}
+          {t("page.description")}{" "}
           <Link
             href="/about"
             className="text-foreground underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground transition-colors"
           >
-            Learn more
+            {t("page.learnMore")}
           </Link>
         </p>
       </div>
@@ -296,7 +310,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
-              placeholder="Search proposals..."
+              placeholder={t("filters.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={initSearchWorker}
@@ -326,15 +340,11 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
               });
             }}
             onSelectAll={() =>
-              setActiveStatuses(
-                new Set(ALL_STATUSES.filter((s) => availableStatuses.has(s))),
-              )
+              setActiveStatuses(new Set(ALL_STATUSES.filter((s) => availableStatuses.has(s))))
             }
             onClearAll={() => setActiveStatuses(new Set())}
             onSelectDefault={() =>
-              setActiveStatuses(
-                new Set(ALL_STATUSES.filter((s) => s !== ProposalStatus.CANCELLED)),
-              )
+              setActiveStatuses(new Set(ALL_STATUSES.filter((s) => s !== ProposalStatus.CANCELLED)))
             }
           />
         </div>
@@ -342,7 +352,7 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
         {/* Row 2: Chain toggle pills */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider mr-0.5">
-            Chain
+            {t("filters.chain")}
           </span>
           {ALL_SOURCES.map((source) => {
             const config = SOURCE_CONFIG[source];
@@ -376,16 +386,17 @@ export function ProposalsView({ proposals: allProposals }: ProposalsViewProps) {
                   />
                 )}
                 {config.label}
-                {count > 0 && isActive && (
-                  <span className="opacity-60 tabular-nums">{count}</span>
-                )}
+                {count > 0 && isActive && <span className="opacity-60 tabular-nums">{count}</span>}
               </button>
             );
           })}
 
           {filteredProposals.length !== mergedProposals.length && (
             <span className="text-xs text-muted-foreground ml-auto tabular-nums">
-              {filteredProposals.length} of {mergedProposals.length}
+              {t("filters.showing", {
+                visible: filteredProposals.length,
+                total: mergedProposals.length,
+              })}
             </span>
           )}
         </div>
@@ -415,19 +426,17 @@ function StatusFilter({
   onClearAll: () => void;
   onSelectDefault: () => void;
 }) {
+  const t = useTranslations("proposals");
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           size="sm"
-          className={cn(
-            "gap-1.5 shrink-0",
-            isFiltered && "border-foreground/20",
-          )}
+          className={cn("gap-1.5 shrink-0", isFiltered && "border-foreground/20")}
         >
           <SlidersHorizontal className="size-3.5" />
-          Status
+          {t("filters.status")}
           {isFiltered && (
             <Badge
               variant="secondary"
@@ -456,11 +465,8 @@ function StatusFilter({
                       checked={activeStatuses.has(status)}
                       onCheckedChange={() => onToggleStatus(status)}
                     />
-                    <Label
-                      htmlFor={id}
-                      className="text-sm font-normal leading-none cursor-pointer"
-                    >
-                      {status}
+                    <Label htmlFor={id} className="text-sm font-normal leading-none cursor-pointer">
+                      {t(`status.${status}` as `status.${ProposalStatus}`)}
                     </Label>
                   </label>
                 );
@@ -474,23 +480,13 @@ function StatusFilter({
             className="flex-1 h-7 text-xs"
             onClick={onSelectDefault}
           >
-            Default
+            {t("filters.default")}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex-1 h-7 text-xs"
-            onClick={onSelectAll}
-          >
-            All
+          <Button variant="ghost" size="sm" className="flex-1 h-7 text-xs" onClick={onSelectAll}>
+            {t("filters.all")}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex-1 h-7 text-xs"
-            onClick={onClearAll}
-          >
-            None
+          <Button variant="ghost" size="sm" className="flex-1 h-7 text-xs" onClick={onClearAll}>
+            {t("filters.none")}
           </Button>
         </div>
       </PopoverContent>

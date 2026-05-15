@@ -7,9 +7,9 @@ permalink: /patrons-of-the-arts/
 author: gami
 image: /images/primavera.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 There is no doubt that art has played a critical role in shaping the world as we know it today. What other universal language has the power to enlighten, illuminate, inspire? With art’s dark history of catalyzing uprisings, organizing rebellion, and deviating from the cultural norms, we can safely say that art is a disruptive power held by the people.

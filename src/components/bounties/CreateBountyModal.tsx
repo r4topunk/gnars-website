@@ -1,9 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import {
+  AlertCircle,
+  ArrowLeftRight,
+  CheckCircle2,
+  ExternalLink,
+  Loader2,
+  PlusCircle,
+} from "lucide-react";
 import { arbitrum as thirdwebArbitrum, base as thirdwebBase } from "thirdweb/chains";
 import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
-import { ExternalLink, Loader2, CheckCircle2, AlertCircle, PlusCircle, ArrowLeftRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ConnectButton } from "@/components/ui/ConnectButton";
 import {
   Dialog,
   DialogContent,
@@ -12,9 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -23,10 +31,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ConnectButton } from "@/components/ui/ConnectButton";
-import { usePoidhCreateOpenBounty, usePoidhCreateSoloBounty } from "@/hooks/usePoidhContract";
+import { Textarea } from "@/components/ui/textarea";
 import { useUserAddress } from "@/hooks/use-user-address";
-import { getTxUrl, CHAIN_NAMES, SUPPORTED_CHAINS } from "@/lib/poidh/config";
+import { usePoidhCreateOpenBounty, usePoidhCreateSoloBounty } from "@/hooks/usePoidhContract";
+import { CHAIN_NAMES, getTxUrl, SUPPORTED_CHAINS } from "@/lib/poidh/config";
 
 const CHAIN_OPTIONS = [
   { label: "Base", chainId: SUPPORTED_CHAINS.BASE },
@@ -40,6 +48,7 @@ interface CreateBountyModalProps {
 }
 
 export function CreateBountyModal({ children }: CreateBountyModalProps) {
+  const t = useTranslations("bounties");
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"open" | "solo">("open");
   const [name, setName] = useState("");
@@ -65,7 +74,9 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
   };
 
   // Default to wallet's chain if supported, else Base
-  const defaultChain = SUPPORTED_IDS.includes(walletChainId) ? walletChainId : SUPPORTED_CHAINS.BASE;
+  const defaultChain = SUPPORTED_IDS.includes(walletChainId)
+    ? walletChainId
+    : SUPPORTED_CHAINS.BASE;
   const [chainId, setChainId] = useState<number>(defaultChain);
 
   // Keep form chain in sync when wallet switches externally
@@ -115,8 +126,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
   const error = active.error;
 
   const currentWalletChainName =
-    CHAIN_NAMES[walletChainId as keyof typeof CHAIN_NAMES] ??
-    `Chain ${walletChainId}`;
+    CHAIN_NAMES[walletChainId as keyof typeof CHAIN_NAMES] ?? `Chain ${walletChainId}`;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -124,36 +134,32 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
         {children ?? (
           <Button>
             <PlusCircle className="w-4 h-4 mr-2" />
-            Create Bounty
+            {t("cta.createBounty")}
           </Button>
         )}
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create a Bounty</DialogTitle>
-          <DialogDescription>
-            Post a challenge and reward proof of completion with ETH.
-          </DialogDescription>
+          <DialogTitle>{t("createModal.title")}</DialogTitle>
+          <DialogDescription>{t("createModal.description")}</DialogDescription>
         </DialogHeader>
 
         {!isConnected ? (
           <div className="py-6 flex flex-col items-center gap-4 text-center">
             <AlertCircle className="w-10 h-10 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Connect your wallet to create a bounty.</p>
+            <p className="text-sm text-muted-foreground">{t("createModal.connectPrompt")}</p>
             <ConnectButton />
           </div>
         ) : isSuccess ? (
           <div className="py-6 flex flex-col items-center gap-4 text-center">
             <CheckCircle2 className="w-12 h-12 text-emerald-500" />
             <div>
-              <p className="font-semibold">Bounty created on {chainName}!</p>
+              <p className="font-semibold">{t("createModal.successTitle", { chain: chainName })}</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Your bounty is live. Share it with the community to get submissions.
+                {t("createModal.successDescription")}
               </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                It may take a moment for the bounty to appear in the list.
-              </p>
+              <p className="text-xs text-muted-foreground mt-2">{t("createModal.successNote")}</p>
             </div>
             {hash && (
               <a
@@ -162,11 +168,11 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-sm text-primary hover:underline"
               >
-                View transaction <ExternalLink className="w-3 h-3" />
+                {t("createModal.viewTransaction")} <ExternalLink className="w-3 h-3" />
               </a>
             )}
             <Button variant="outline" onClick={() => handleClose(false)}>
-              Close
+              {t("cta.close")}
             </Button>
           </div>
         ) : (
@@ -174,7 +180,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
             {/* Chain + Type */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Chain</Label>
+                <Label>{t("createModal.chainLabel")}</Label>
                 <Select
                   value={String(chainId)}
                   onValueChange={(v) => setChainId(Number(v))}
@@ -185,13 +191,15 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                   </SelectTrigger>
                   <SelectContent>
                     {CHAIN_OPTIONS.map((c) => (
-                      <SelectItem key={c.chainId} value={String(c.chainId)}>{c.label}</SelectItem>
+                      <SelectItem key={c.chainId} value={String(c.chainId)}>
+                        {c.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Type</Label>
+                <Label>{t("createModal.typeLabel")}</Label>
                 <Select
                   value={type}
                   onValueChange={(v) => setType(v as "open" | "solo")}
@@ -201,8 +209,8 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="open">Open (anyone can add funds)</SelectItem>
-                    <SelectItem value="solo">Solo (self-funded)</SelectItem>
+                    <SelectItem value="open">{t("createModal.typeOpen")}</SelectItem>
+                    <SelectItem value="solo">{t("createModal.typeSolo")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -214,8 +222,10 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                 <div className="flex items-start gap-2 text-sm text-yellow-600 dark:text-yellow-400">
                   <ArrowLeftRight className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>
-                    Your wallet is on <strong>{currentWalletChainName}</strong>.
-                    Switch to <strong>{chainName}</strong> to continue.
+                    {t("createModal.wrongNetwork", {
+                      currentChain: currentWalletChainName,
+                      targetChain: chainName,
+                    })}
                   </span>
                 </div>
                 <Button
@@ -229,16 +239,16 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                   {isSwitching ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    `Switch to ${chainName}`
+                    t("createModal.switchTo", { chain: chainName })
                   )}
                 </Button>
               </div>
             )}
 
             <div className="space-y-1.5">
-              <Label>Title</Label>
+              <Label>{t("createModal.titleLabel")}</Label>
               <Input
-                placeholder="e.g. Land a kickflip down the 5-stair"
+                placeholder={t("createModal.titlePlaceholder")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 maxLength={100}
@@ -248,10 +258,10 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Description</Label>
+              <Label>{t("createModal.descriptionLabel")}</Label>
               <Textarea
                 className="min-h-[80px] resize-y"
-                placeholder="Describe the challenge and what counts as valid proof..."
+                placeholder={t("createModal.descriptionPlaceholder")}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={500}
@@ -261,7 +271,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Reward (ETH)</Label>
+              <Label>{t("createModal.rewardLabel")}</Label>
               <Input
                 type="number"
                 step="0.0001"
@@ -275,15 +285,13 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
             </div>
 
             <p className="text-xs text-muted-foreground">
-              {type === "open"
-                ? "Open bounties let anyone add funds to grow the prize pool."
-                : "Solo bounties are self-funded — only you contribute to the prize pool."}
+              {type === "open" ? t("createModal.openNote") : t("createModal.soloNote")}
             </p>
 
             {error && (
               <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{error.message.split('\n')[0]}</span>
+                <span>{error.message.split("\n")[0]}</span>
               </div>
             )}
 
@@ -295,20 +303,24 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                 onClick={() => handleClose(false)}
                 disabled={isPending}
               >
-                Cancel
+                {t("cta.cancel")}
               </Button>
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isPending || wrongNetwork || !name.trim() || !description.trim() || !reward}
+                disabled={
+                  isPending || wrongNetwork || !name.trim() || !description.trim() || !reward
+                }
               >
                 {isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {hash ? "Confirming…" : "Confirm in wallet…"}
+                    {hash ? t("createModal.confirming") : t("createModal.confirmingWallet")}
                   </>
                 ) : (
-                  `Create & fund with ${parseFloat(reward || "0").toFixed(4)} ETH`
+                  t("createModal.createFund", {
+                    amount: parseFloat(reward || "0").toFixed(4),
+                  })
                 )}
               </Button>
             </div>

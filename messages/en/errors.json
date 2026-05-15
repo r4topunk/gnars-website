@@ -1,0 +1,16 @@
+{
+  "generic": "Something went wrong",
+  "network": "Network error",
+  "notFound": "Not found",
+  "required": "Required",
+  "videoNotLoaded": "Video not loaded",
+  "canvasNotSupported": "Canvas not supported",
+  "failedToCaptureFrame": "Failed to capture frame",
+  "videoPlayerNotAvailable": "Video player not available",
+  "failedToLoadVideo": "Failed to load video file",
+  "addressCopyFailed": "Failed to copy address",
+  "budgetLabelRequired": "Label required",
+  "budgetAmountPositive": "Amount must be greater than 0",
+  "fieldRequired": "{field} is required",
+  "budgetMinLine": "{field}: add at least one budget line"
+}

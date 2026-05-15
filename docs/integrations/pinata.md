@@ -12,6 +12,7 @@ This implementation allows users to upload banner images to IPFS via Pinata when
    - Copy the JWT token
 
 2. **Configure Environment Variable:**
+
    ```bash
    # Add to your .env.local file
    PINATA_JWT=your_jwt_token_here

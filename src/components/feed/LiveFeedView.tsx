@@ -8,9 +8,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { FeedEvent, FeedFilters } from "@/lib/types/feed-events";
 import { FeedEventCard } from "./FeedEventCard";
 import { FeedFilters as FeedFiltersComponent } from "./FeedFilters";
@@ -49,6 +51,7 @@ export function LiveFeedView({
   showFilters = true,
   singleColumn = false,
 }: LiveFeedViewProps) {
+  const t = useTranslations("feed");
   const [filters, setFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -191,10 +194,8 @@ export function LiveFeedView({
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error Loading Feed</AlertTitle>
-        <AlertDescription>
-          Failed to load live feed events. Please try again later.
-        </AlertDescription>
+        <AlertTitle>{t("error.title")}</AlertTitle>
+        <AlertDescription>{t("error.description")}</AlertDescription>
       </Alert>
     );
   }
@@ -206,7 +207,7 @@ export function LiveFeedView({
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <FeedFiltersComponent filters={filters} onFiltersChange={setFilters} />
           <div className="text-sm text-muted-foreground">
-            {filteredEvents.length} {filteredEvents.length === 1 ? "event" : "events"}
+            {t("eventCount", { count: filteredEvents.length })}
           </div>
         </div>
       )}
@@ -309,6 +310,9 @@ function SequentialColumns({
 }
 
 function GroupHeader({ dateKey, isWeek }: { dateKey: number; isWeek?: boolean }) {
+  const t = useTranslations("feed");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
   // Calculate label - runs on both server and client
   const now = new Date();
   const nowDayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
@@ -324,17 +328,17 @@ function GroupHeader({ dateKey, isWeek }: { dateKey: number; isWeek?: boolean })
     const weeksDiff = Math.floor(daysDiff / 7);
 
     if (weeksDiff === 1) {
-      label = "Last week";
+      label = t("groups.lastWeek");
     } else if (weeksDiff < 4) {
-      label = `${weeksDiff} weeks ago`;
+      label = t("groups.weeksAgo", { count: weeksDiff });
     } else {
       // Show date range for older weeks
-      const startStr = weekStart.toLocaleDateString("en-US", {
+      const startStr = weekStart.toLocaleDateString(intlLocale, {
         month: "short",
         day: "numeric",
         timeZone: "UTC",
       });
-      const endStr = weekEnd.toLocaleDateString("en-US", {
+      const endStr = weekEnd.toLocaleDateString(intlLocale, {
         month: "short",
         day: "numeric",
         year: weekEnd.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
@@ -345,15 +349,15 @@ function GroupHeader({ dateKey, isWeek }: { dateKey: number; isWeek?: boolean })
   } else {
     // For daily groups (within last 7 days)
     if (daysDiff === 0) {
-      label = "Today";
+      label = t("groups.today");
     } else if (daysDiff === 1) {
-      label = "Yesterday";
+      label = t("groups.yesterday");
     } else if (daysDiff <= 7) {
-      label = `${daysDiff} days ago`;
+      label = t("groups.daysAgo", { count: daysDiff });
     } else {
       // Fallback for edge cases
       const date = new Date(dateKey);
-      label = date.toLocaleDateString("en-US", {
+      label = date.toLocaleDateString(intlLocale, {
         month: "short",
         day: "numeric",
         timeZone: "UTC",
@@ -398,6 +402,7 @@ function LiveFeedSkeleton() {
 }
 
 function EmptyState({ filters }: { filters: FeedFilters }) {
+  const t = useTranslations("feed");
   const hasActiveFilters =
     filters.priorities.length < 3 ||
     filters.categories.length < 7 ||
@@ -407,11 +412,9 @@ function EmptyState({ filters }: { filters: FeedFilters }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-      <h3 className="text-lg font-semibold mb-2">No Events Found</h3>
+      <h3 className="text-lg font-semibold mb-2">{t("empty.title")}</h3>
       <p className="text-sm text-muted-foreground max-w-md">
-        {hasActiveFilters
-          ? "No events match your current filters. Try adjusting your filters to see more events."
-          : "There are no recent events to display. Check back later for new activity."}
+        {hasActiveFilters ? t("empty.withFilters") : t("empty.noFilters")}
       </p>
     </div>
   );

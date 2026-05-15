@@ -1,0 +1,141 @@
+{
+  "title": "Live Feed",
+  "description": "Real-time activity from the Gnars DAO",
+  "infoPanel": "Live events from the Gnars DAO on Base (last 30 days). Data refreshes automatically every 60 seconds.",
+  "viewAll": "View All Activity",
+  "eventCount": "{count, plural, one {# event} other {# events}}",
+  "error": {
+    "title": "Error Loading Feed",
+    "description": "Failed to load live feed events. Please try again later."
+  },
+  "empty": {
+    "title": "No Events Found",
+    "withFilters": "No events match your current filters. Try adjusting your filters to see more events.",
+    "noFilters": "There are no recent events to display. Check back later for new activity."
+  },
+  "filters": {
+    "category": "Category",
+    "priority": "Priority",
+    "withComments": "With Comments",
+    "reset": "Reset",
+    "timeRange": {
+      "label": "Time Range",
+      "1h": "Last Hour",
+      "24h": "Last 24 Hours",
+      "7d": "Last 7 Days",
+      "30d": "Last 30 Days",
+      "all": "All Time"
+    },
+    "categories": {
+      "label": "Event Category",
+      "governance": "Governance",
+      "auction": "Auctions",
+      "token": "Tokens",
+      "delegation": "Delegation",
+      "treasury": "Treasury",
+      "admin": "Admin",
+      "settings": "Settings"
+    },
+    "priorities": {
+      "label": "Event Priority",
+      "HIGH": "High Priority",
+      "MEDIUM": "Medium Priority",
+      "LOW": "Low Priority"
+    }
+  },
+  "groups": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{count} days ago",
+    "lastWeek": "Last week",
+    "weeksAgo": "{count} weeks ago"
+  },
+  "snapshot": {
+    "label": "Snapshot",
+    "leading": "Leading: {choice}",
+    "recently": "recently",
+    "votes": "{count, plural, one {# vote} other {# votes}}",
+    "voters": "{count, plural, one {# voter} other {# voters}}",
+    "proposalsFound": "{count, plural, one {# proposal} other {# proposals}} found",
+    "filterState": "Filter state",
+    "stateLabel": "State",
+    "states": {
+      "active": "Active",
+      "closed": "Closed",
+      "pending": "Pending"
+    },
+    "default": "Default",
+    "all": "All",
+    "none": "None",
+    "empty": "No proposals found"
+  },
+  "events": {
+    "governance": {
+      "newProposal": "New Proposal",
+      "voteCast": "Vote on Proposal #{number}",
+      "proposalQueued": "Proposal Queued",
+      "proposalExecuted": "Proposal Executed",
+      "proposalCanceled": "Proposal Canceled",
+      "proposalVetoed": "Proposal Vetoed",
+      "votingOpened": "Voting Opened",
+      "votingClosingSoon": "Voting Closing Soon",
+      "proposalUpdated": "Propdate · Proposal #{number}",
+      "viewProposal": "View Proposal",
+      "castVote": "Cast Vote",
+      "viewPropdate": "View Propdate",
+      "votingStarts": "Voting starts {time}",
+      "readyForExecution": "Ready for execution {time}",
+      "voted": "voted",
+      "withVotes": "with {count} votes",
+      "updateFrom": "update from",
+      "replyFrom": "reply from",
+      "on": "on"
+    },
+    "auction": {
+      "auction": "Auction",
+      "auctionWon": "Auction Won",
+      "auctionEndingSoon": "Auction Ending Soon",
+      "viewAuction": "View Auction",
+      "viewToken": "View Token",
+      "placeBid": "Place Bid",
+      "onToken": "on #{id}",
+      "bid": "bid",
+      "wonBy": "won by",
+      "for": "for",
+      "current": "Current: {amount}",
+      "live": "LIVE",
+      "ended": "Ended {time}",
+      "ends": "Ends {time}",
+      "auctionExtended": "Auction Extended",
+      "unknown": "Unknown",
+      "minutesLeft": "{count}m left!"
+    },
+    "token": {
+      "tokenMinted": "Token Minted",
+      "tokenBurned": "Token Burned",
+      "tokenTransferred": "Token Transferred",
+      "delegationChanged": "Delegation Changed",
+      "newDroposal": "New Droposal",
+      "viewToken": "View Token",
+      "viewMember": "View Member",
+      "viewDrop": "View Drop",
+      "mintedTo": "minted to",
+      "burned": "burned",
+      "founder": "Founder",
+      "delegatedTo": "delegated to",
+      "votes": "{count, plural, one {# vote} other {# votes}}"
+    },
+    "admin": {
+      "treasuryTransaction": "Treasury Transaction",
+      "settingsUpdated": "Settings Updated",
+      "ownershipTransferred": "Ownership Transferred",
+      "viewTransaction": "View Transaction",
+      "viewDetails": "View Details",
+      "admin": "Admin",
+      "sent": "Sent",
+      "to": "to",
+      "proposal": "Proposal #{number}",
+      "updated": "Updated: {old} → {new}"
+    }
+  }
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -26,18 +27,19 @@ const contracts = [
 ];
 
 export function ContractsList() {
+  const t = useTranslations("common");
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Smart Contracts</CardTitle>
-        <CardDescription>Core Gnars DAO contracts deployed on Base network</CardDescription>
+        <CardTitle>{t("contracts.title")}</CardTitle>
+        <CardDescription>{t("contracts.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Contract</TableHead>
-              <TableHead>Address</TableHead>
+              <TableHead>{t("contracts.columnContract")}</TableHead>
+              <TableHead>{t("contracts.columnAddress")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

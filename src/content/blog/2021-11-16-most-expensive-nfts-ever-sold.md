@@ -7,9 +7,9 @@ permalink: /most-expensive-nfts-ever-sold/
 author: gami
 image: /images/most-expensive-nfts-ever.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 The moment you think you’ve gotten around what an NFT or non-fungible token technically is, you are still left wrestling with their vast diversity and bewildering variety.
@@ -18,7 +18,7 @@ Hate them, criticize them or even buy them; NFTs have exploded in acceptance in 
 
 There is no restriction to the kinds of NFTs you can across in different NFT marketplaces, from art and collectibles to memes and viral media.
 
-The First-ever NFT was Kevin McCoy’s *Quantum*. It was the first cryptographic art associated with NFT certification in May 2014, three years before the term NFT was coined. Despite its place in history, Quantum was closed at auction for a fraction of the cost of “EVERYDAYS” by Beeple for $1,472,000.
+The First-ever NFT was Kevin McCoy’s _Quantum_. It was the first cryptographic art associated with NFT certification in May 2014, three years before the term NFT was coined. Despite its place in history, Quantum was closed at auction for a fraction of the cost of “EVERYDAYS” by Beeple for $1,472,000.
 
 While most people who earlier thought NFTs were a flash in the pan finally realized their [usability](/nft-use-cases/), the prices are still skyrocketing. Here is a couple of NFTs that went for the most cash in the crypto world:
 
@@ -54,9 +54,9 @@ To beginners and those unfamiliar with the evolving crypto industry, the concept
 
 ### 5. “Crossroads” by Beeple ($6,600,000)
 
-Digital artist Mike Winkelman, more popularly known as Beeple, has created many dystopian works of art caricatures of past U.S. presidential candidates like Donald Trump, Hillary Clinton, and Bernie Sanders. However, his work on *Crossroads* is perhaps his most famous.
+Digital artist Mike Winkelman, more popularly known as Beeple, has created many dystopian works of art caricatures of past U.S. presidential candidates like Donald Trump, Hillary Clinton, and Bernie Sanders. However, his work on _Crossroads_ is perhaps his most famous.
 
-*Crossroads* depicts a huge baby who looks like Trump while his body is painted with random scribblings like “Loser.” A bluebird, the symbol of Twitter, sits on the characters’ shoulders, probably to depict the censorship of Donald Trump’s Twitter account in the weeks leading to the election. *Crossroads* visualized the result of the 2020 presidential election and was recently sold on Nifty Gateway.
+_Crossroads_ depicts a huge baby who looks like Trump while his body is painted with random scribblings like “Loser.” A bluebird, the symbol of Twitter, sits on the characters’ shoulders, probably to depict the censorship of Donald Trump’s Twitter account in the weeks leading to the election. _Crossroads_ visualized the result of the 2020 presidential election and was recently sold on Nifty Gateway.
 
 ### 4. CryptoPunk #7804 – 4,200 ETH ($7,570,000)
 

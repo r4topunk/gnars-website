@@ -1,6 +1,6 @@
 "use client";
-/* eslint-disable react-hooks/immutability, react-hooks/purity -- three.js imperative mutation API incompatible with React Compiler invariants */
 
+/* eslint-disable react-hooks/immutability, react-hooks/purity -- three.js imperative mutation API incompatible with React Compiler invariants */
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTexture, useVideoTexture } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";

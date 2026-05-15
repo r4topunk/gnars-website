@@ -15,6 +15,7 @@
 ### Task 1: Create `/api/delegators/[address]` route
 
 **Files:**
+
 - Create: `src/app/api/delegators/[address]/route.ts`
 
 - [ ] **Step 1: Create the API route**
@@ -28,7 +29,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ address: string }> }
+  { params }: { params: Promise<{ address: string }> },
 ) {
   const { address } = await params;
   try {
@@ -65,6 +66,7 @@ git commit -m "feat: add /api/delegators/[address] route"
 ### Task 2: Create `DelegationTooltip`
 
 **Files:**
+
 - Create: `src/components/proposals/detail/DelegationTooltip.tsx`
 
 - [ ] **Step 1: Create the component**
@@ -73,7 +75,7 @@ git commit -m "feat: add /api/delegators/[address] route"
 // src/components/proposals/detail/DelegationTooltip.tsx
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { DelegatorWithCount } from "@/services/members";
@@ -114,7 +116,7 @@ export function DelegationTooltip({ voterAddress, totalVotes, cache }: Delegatio
         setStatus("error");
       }
     },
-    [voterAddress, cache, status]
+    [voterAddress, cache, status],
   );
 
   // Hide only when fetch confirms no delegators (card unchanged per spec)
@@ -144,9 +146,7 @@ export function DelegationTooltip({ voterAddress, totalVotes, cache }: Delegatio
               <span>Loading…</span>
             </div>
           )}
-          {status === "error" && (
-            <div className="px-3 py-2 text-xs opacity-70">Could not load</div>
-          )}
+          {status === "error" && <div className="px-3 py-2 text-xs opacity-70">Could not load</div>}
           {status === "done" && (
             <div className="px-3 py-2">
               <p className="text-[10px] font-semibold uppercase tracking-wide opacity-60 mb-2">
@@ -192,6 +192,7 @@ git commit -m "feat: add DelegationTooltip component"
 ### Task 3: Integrate `DelegationTooltip` into vote cards
 
 **Files:**
+
 - Modify: `src/components/proposals/detail/ProposalVotesList.tsx`
 
 - [ ] **Step 1: Add imports and cache ref**
@@ -200,16 +201,15 @@ Modify the existing React import (line 4 — merge `useRef` in, do NOT add a sec
 
 ```tsx
 // Before:
-import { useState } from "react";
 // After:
-import { useState, useRef } from "react";
+import { useRef, useState, useState } from "react";
 ```
 
 Add after the existing imports block:
 
 ```tsx
-import { DelegationTooltip } from "./DelegationTooltip";
 import type { DelegatorWithCount } from "@/services/members";
+import { DelegationTooltip } from "./DelegationTooltip";
 ```
 
 Add inside the `ProposalVotesList` function body, after the existing `useState` calls:

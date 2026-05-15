@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, ExternalLink, Loader2, AlertCircle } from "lucide-react";
+import { AlertCircle, Check, Copy, ExternalLink, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSplitCreation } from "@/hooks/use-split-creation";
 import type { SplitRecipient } from "@/lib/splits-utils";
 import {
-  validateSplitRecipients,
-  prepareSplitConfigForSDK,
   formatSplitAddress,
   IMMUTABLE_CONTROLLER,
+  prepareSplitConfigForSDK,
+  validateSplitRecipients,
 } from "@/lib/splits-utils";
 
 interface SplitDebugPanelProps {
@@ -39,7 +39,10 @@ export function SplitDebugPanel({
     try {
       const validationErrors = validateSplitRecipients(recipients);
       if (validationErrors.length > 0) {
-        alert("Fix validation errors before creating split:\n" + validationErrors.map((e) => `• ${e.message}`).join("\n"));
+        alert(
+          "Fix validation errors before creating split:\n" +
+            validationErrors.map((e) => `• ${e.message}`).join("\n"),
+        );
         return;
       }
 
@@ -100,19 +103,26 @@ export function SplitDebugPanel({
         <div className="space-y-2 text-sm">
           <div className="font-semibold text-foreground">Configuration:</div>
           <div className="bg-white dark:bg-gray-900 p-3 rounded border space-y-1 font-mono text-xs text-foreground">
-            <div><span className="text-blue-600 dark:text-blue-400 font-semibold">Recipients:</span> {recipients.length}</div>
-            <div><span className="text-blue-600 dark:text-blue-400 font-semibold">Distributor Fee:</span> {distributorFee}%</div>
-            <div><span className="text-blue-600 dark:text-blue-400 font-semibold">Controller:</span> {formatSplitAddress(IMMUTABLE_CONTROLLER)} (Immutable)</div>
+            <div>
+              <span className="text-blue-600 dark:text-blue-400 font-semibold">Recipients:</span>{" "}
+              {recipients.length}
+            </div>
+            <div>
+              <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                Distributor Fee:
+              </span>{" "}
+              {distributorFee}%
+            </div>
+            <div>
+              <span className="text-blue-600 dark:text-blue-400 font-semibold">Controller:</span>{" "}
+              {formatSplitAddress(IMMUTABLE_CONTROLLER)} (Immutable)
+            </div>
           </div>
         </div>
 
         {/* Action Button */}
         {!isSuccess && (
-          <Button
-            onClick={handleCreateSplit}
-            disabled={!isValid || isPending}
-            className="w-full"
-          >
+          <Button onClick={handleCreateSplit} disabled={!isValid || isPending} className="w-full">
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -130,11 +140,15 @@ export function SplitDebugPanel({
             <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
             <AlertDescription>
               <div className="space-y-3">
-                <strong className="text-green-900 dark:text-green-100">Split Created Successfully!</strong>
+                <strong className="text-green-900 dark:text-green-100">
+                  Split Created Successfully!
+                </strong>
 
                 {/* Split Address */}
                 <div className="space-y-1">
-                  <div className="text-xs font-semibold text-green-900 dark:text-green-100">Split Address:</div>
+                  <div className="text-xs font-semibold text-green-900 dark:text-green-100">
+                    Split Address:
+                  </div>
                   <div className="flex items-center gap-2">
                     <code className="flex-1 bg-white dark:bg-gray-900 px-2 py-1 rounded text-xs border text-foreground">
                       {splitAddress}
@@ -157,7 +171,9 @@ export function SplitDebugPanel({
                 {/* Transaction Hash */}
                 {txHash && (
                   <div className="space-y-1">
-                    <div className="text-xs font-semibold text-green-900 dark:text-green-100">Transaction:</div>
+                    <div className="text-xs font-semibold text-green-900 dark:text-green-100">
+                      Transaction:
+                    </div>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 bg-white dark:bg-gray-900 px-2 py-1 rounded text-xs border truncate text-foreground">
                         {txHash}
@@ -174,12 +190,7 @@ export function SplitDebugPanel({
                           <Copy className="h-3 w-3" />
                         )}
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        asChild
-                        className="h-7 w-7 p-0"
-                      >
+                      <Button variant="ghost" size="sm" asChild className="h-7 w-7 p-0">
                         <a
                           href={`https://basescan.org/tx/${txHash}`}
                           target="_blank"
@@ -193,12 +204,7 @@ export function SplitDebugPanel({
                 )}
 
                 {/* View on Splits.org */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="w-full"
-                >
+                <Button variant="outline" size="sm" asChild className="w-full">
                   <a
                     href={`https://app.splits.org/accounts/${splitAddress}/?chainId=8453`}
                     target="_blank"
@@ -210,12 +216,7 @@ export function SplitDebugPanel({
                 </Button>
 
                 {/* Reset Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleReset}
-                  className="w-full"
-                >
+                <Button variant="ghost" size="sm" onClick={handleReset} className="w-full">
                   Test Another Configuration
                 </Button>
               </div>
@@ -245,7 +246,8 @@ export function SplitDebugPanel({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-xs">
-            <strong>Test First:</strong> Create the split contract now to verify your configuration. You can reuse this address or create a new one when submitting the proposal.
+            <strong>Test First:</strong> Create the split contract now to verify your configuration.
+            You can reuse this address or create a new one when submitting the proposal.
           </AlertDescription>
         </Alert>
       </CardContent>

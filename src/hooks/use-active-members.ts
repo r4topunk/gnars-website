@@ -23,7 +23,11 @@ async function fetchActiveMembersFromAPI(
   return json.activeMembers;
 }
 
-export function useActiveMembers(windowSize: number = 10, threshold: number = 5, enabled: boolean = true) {
+export function useActiveMembers(
+  windowSize: number = 10,
+  threshold: number = 5,
+  enabled: boolean = true,
+) {
   return useQuery({
     queryKey: ["active-members", windowSize, threshold],
     queryFn: () => fetchActiveMembersFromAPI(windowSize, threshold),
@@ -32,4 +36,3 @@ export function useActiveMembers(windowSize: number = 10, threshold: number = 5,
     enabled,
   });
 }
-

@@ -80,6 +80,6 @@ export async function GET() {
         </div>
       </div>
     ),
-    { ...size }
+    { ...size },
   );
 }

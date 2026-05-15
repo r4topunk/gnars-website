@@ -1,8 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { getProposals, type Proposal as SdkProposal } from "@buildeross/sdk";
 import { MemberHeader } from "@/components/members/detail/MemberHeader";
 import { MemberQuickStats } from "@/components/members/detail/MemberQuickStats";
@@ -13,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProfileCoins } from "@/hooks/use-profile-coins";
 import { useZoraProfile } from "@/hooks/use-zora-profile";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { resolveENS } from "@/lib/ens";
 import { getProposalStatus } from "@/lib/schemas/proposals";
@@ -25,17 +27,38 @@ import {
   type MemberListItem,
 } from "@/services/members";
 
-const MemberProposalsGrid = dynamic(() => import("@/components/members/detail/MemberProposalsGrid").then(mod => ({ default: mod.MemberProposalsGrid })));
-const MemberVotesTable = dynamic(() => import("@/components/members/detail/MemberVotesTable").then(mod => ({ default: mod.MemberVotesTable })));
-const MemberTokensGrid = dynamic(() => import("@/components/members/detail/MemberTokensGrid").then(mod => ({ default: mod.MemberTokensGrid })));
-const MemberDelegatorsTable = dynamic(() => import("@/components/members/detail/MemberDelegatorsTable").then(mod => ({ default: mod.MemberDelegatorsTable })));
-const MemberCreatedCoinsGrid = dynamic(() => import("@/components/members/detail/MemberCreatedCoinsGrid").then(mod => ({ default: mod.MemberCreatedCoinsGrid })));
+const MemberProposalsGrid = dynamic(() =>
+  import("@/components/members/detail/MemberProposalsGrid").then((mod) => ({
+    default: mod.MemberProposalsGrid,
+  })),
+);
+const MemberVotesTable = dynamic(() =>
+  import("@/components/members/detail/MemberVotesTable").then((mod) => ({
+    default: mod.MemberVotesTable,
+  })),
+);
+const MemberTokensGrid = dynamic(() =>
+  import("@/components/members/detail/MemberTokensGrid").then((mod) => ({
+    default: mod.MemberTokensGrid,
+  })),
+);
+const MemberDelegatorsTable = dynamic(() =>
+  import("@/components/members/detail/MemberDelegatorsTable").then((mod) => ({
+    default: mod.MemberDelegatorsTable,
+  })),
+);
+const MemberCreatedCoinsGrid = dynamic(() =>
+  import("@/components/members/detail/MemberCreatedCoinsGrid").then((mod) => ({
+    default: mod.MemberCreatedCoinsGrid,
+  })),
+);
 
 interface MemberDetailProps {
   address: string;
 }
 
 export function MemberDetail({ address }: MemberDetailProps) {
+  const t = useTranslations("members");
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -126,11 +149,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
         setVotes(vts.votes);
 
         // Load proposals using the same SDK mapping as proposals page, then filter by proposer
-        const { proposals: sdkProposals } = await getProposals(
-          CHAIN.id,
-          DAO_ADDRESSES.token,
-          200,
-        );
+        const { proposals: sdkProposals } = await getProposals(CHAIN.id, DAO_ADDRESSES.token, 200);
         const mapped: UiProposal[] = ((sdkProposals as SdkProposal[] | undefined) ?? [])
           .filter((p) => String(p.proposer).toLowerCase() === address.toLowerCase())
           .map((p) => {
@@ -247,7 +266,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Farcaster</CardTitle>
+            <CardTitle className="text-base">{t("detail.farcaster.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <FarcasterProfileSummary
@@ -261,7 +280,7 @@ export function MemberDetail({ address }: MemberDetailProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Zora</CardTitle>
+            <CardTitle className="text-base">{t("detail.zora.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ZoraProfileSummary profile={zoraProfile} size="md" />
@@ -281,11 +300,11 @@ export function MemberDetail({ address }: MemberDetailProps) {
       {/* Tabs for detail lists */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="proposals">Proposals</TabsTrigger>
-          <TabsTrigger value="votes">Votes</TabsTrigger>
-          <TabsTrigger value="tokens">Tokens</TabsTrigger>
-          <TabsTrigger value="coins">Created Coins</TabsTrigger>
-          <TabsTrigger value="delegates">Delegates</TabsTrigger>
+          <TabsTrigger value="proposals">{t("detail.tabs.proposals")}</TabsTrigger>
+          <TabsTrigger value="votes">{t("detail.tabs.votes")}</TabsTrigger>
+          <TabsTrigger value="tokens">{t("detail.tabs.tokens")}</TabsTrigger>
+          <TabsTrigger value="coins">{t("detail.tabs.coins")}</TabsTrigger>
+          <TabsTrigger value="delegates">{t("detail.tabs.delegates")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="proposals" className="mt-6">

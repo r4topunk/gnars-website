@@ -3,7 +3,6 @@
  * Fetch all historical proposals (Ethereum + Snapshot) and save as static JSON
  * Run once to populate data/ directory
  */
-
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -75,11 +74,11 @@ const SNAPSHOT_QUERY = `
 
 async function fetchAllEthProposals() {
   console.log("🔍 Fetching Ethereum mainnet proposals...");
-  
+
   let allProposals = [];
   let skip = 0;
   const batchSize = 100;
-  
+
   while (true) {
     const response = await fetch(ETH_SUBGRAPH, {
       method: "POST",
@@ -92,14 +91,14 @@ async function fetchAllEthProposals() {
 
     const { data } = await response.json();
     const batch = data?.proposals ?? [];
-    
+
     if (batch.length === 0) break;
-    
+
     allProposals = allProposals.concat(batch);
     console.log(`  ✓ Fetched ${batch.length} proposals (total: ${allProposals.length})`);
-    
+
     skip += batchSize;
-    
+
     // Safety: max 1000 proposals
     if (skip > 1000) break;
   }
@@ -110,11 +109,11 @@ async function fetchAllEthProposals() {
 
 async function fetchAllSnapshotProposals() {
   console.log("🔍 Fetching Snapshot proposals...");
-  
+
   let allProposals = [];
   let skip = 0;
   const batchSize = 100;
-  
+
   while (true) {
     const response = await fetch(SNAPSHOT_GRAPHQL, {
       method: "POST",
@@ -127,14 +126,14 @@ async function fetchAllSnapshotProposals() {
 
     const { data } = await response.json();
     const batch = data?.proposals ?? [];
-    
+
     if (batch.length === 0) break;
-    
+
     allProposals = allProposals.concat(batch);
     console.log(`  ✓ Fetched ${batch.length} proposals (total: ${allProposals.length})`);
-    
+
     skip += batchSize;
-    
+
     // Safety: max 500 proposals
     if (skip > 500) break;
   }
@@ -145,7 +144,7 @@ async function fetchAllSnapshotProposals() {
 
 async function main() {
   const dataDir = path.join(__dirname, "..", "public", "data");
-  
+
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }

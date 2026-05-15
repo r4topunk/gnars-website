@@ -1,0 +1,98 @@
+{
+  "home": {
+    "title": "Gnars — DAO de Skate de Propriedade Coletiva",
+    "description": "Gnars é uma DAO de skate de propriedade coletiva que banca a cultura skate pelo mundo por meio de leilões, propostas e grants."
+  },
+  "about": {
+    "title": "Sobre o Gnars — Coletivo de Skate de Propriedade Coletiva",
+    "description": "Gnars é um coletivo e DAO de skate de propriedade coletiva que financia cultura skate, skatistas e projetos independentes no mundo inteiro."
+  },
+  "proposals": {
+    "title": "Propostas Gnars — Grants e Financiamento de Skate",
+    "description": "Explore as propostas do Gnars e veja como a comunidade financia grants de skate, mídia e projetos culturais."
+  },
+  "proposalDetail": {
+    "title": "Proposta | Gnars DAO",
+    "description": "Veja essa proposta de governança do Gnars DAO."
+  },
+  "auctions": {
+    "title": "Leilões Gnars — Arte de Skate Financiada pela Comunidade",
+    "description": "Os leilões do Gnars apoiam a cultura skate financiando projetos comunitários, artistas e mídia de skate."
+  },
+  "treasury": {
+    "title": "Tesouro — Gnars DAO",
+    "description": "Explore o tesouro do Gnars DAO: saldo de ETH, tokens ERC-20, NFTs e analytics onchain. Transparência total sobre os fundos da comunidade na Base."
+  },
+  "tv": {
+    "title": "Gnar TV — Feed de Creator Coins",
+    "description": "Descubra creator coins pareados com Gnars e conteúdo da comunidade no Gnar TV."
+  },
+  "members": {
+    "title": "Membros — Gnars DAO",
+    "description": "Navegue por todos os membros do Gnars DAO e seus delegates. Veja quem possui Gnars NFTs e como o poder de governança está distribuído na comunidade."
+  },
+  "memberDetail": {
+    "title": "Membro | Gnars DAO",
+    "description": "Veja o perfil deste membro no Gnars DAO."
+  },
+  "propose": {
+    "title": "Criar Proposta — Gnars DAO",
+    "description": "Envie uma nova proposta ao Gnars DAO para votação e financiamento da comunidade."
+  },
+  "feed": {
+    "title": "Feed ao Vivo — Gnars DAO",
+    "description": "Feed de atividade em tempo real com votos de governança, lances de leilão e eventos de token do Gnars DAO."
+  },
+  "propdates": {
+    "title": "Propdates — Gnars DAO",
+    "description": "Atualizações de progresso e relatórios sobre propostas financiadas pelo Gnars DAO."
+  },
+  "droposals": {
+    "title": "Gnars Drops — Arte e Mídia de Skate da Comunidade",
+    "description": "Drops aprovados pela comunidade e mídia de skate criados pelos membros do Gnars DAO."
+  },
+  "swap": {
+    "title": "Swap — Gnars DAO",
+    "description": "Faça swap de tokens na Base, Ethereum, Optimism e Arbitrum com melhor execução em mais de 150 DEXes via protocolo 0x."
+  },
+  "coinProposal": {
+    "title": "Proposta de Coin — Gnars DAO",
+    "description": "Proponha um novo creator coin para a comunidade Gnars DAO."
+  },
+  "createCoin": {
+    "title": "Criar Coin — Gnars DAO",
+    "description": "Lance seu próprio creator coin na Base com respaldo do ecossistema Gnars."
+  },
+  "mural": {
+    "title": "Mural — Gnars DAO",
+    "description": "Mural interativo da comunidade com obras de arte Gnars NFT em uma grade arrastável."
+  },
+  "map": {
+    "title": "Mapa Mundial Gnars",
+    "description": "Descubra spots de skate financiados pelo Gnars pelo mundo. Infraestrutura real de skate, financiada onchain."
+  },
+  "installations": {
+    "title": "Instalações | Gnars",
+    "description": "Explore a rede global do Gnars DAO de instalações de arte skateável — do Rio a Roma, cultura DIY onchain no mundo físico."
+  },
+  "blogs": {
+    "title": "Blog — Gnars DAO",
+    "description": "Leia as últimas histórias, atualizações e posts da comunidade do Gnars DAO. Cultura skate, governança da DAO e projetos criativos da comunidade Gnars."
+  },
+  "blogPost": {
+    "title": "Post | Blog Gnars",
+    "description": "Leia este post no blog da comunidade Gnars DAO."
+  },
+  "community": {
+    "title": "Comunidade — Gnars DAO",
+    "description": "Explore iniciativas comunitárias, grants e challenges do Gnars DAO."
+  },
+  "bounties": {
+    "title": "Grants Gnars",
+    "description": "Construído por skatistas, testado no mundo real. Challenges radicais da comunidade de esportes de ação."
+  },
+  "nogglesrails": {
+    "title": "NogglesRails — Infraestrutura de Skate Comunitária no Mundo Todo",
+    "description": "Rails de skate financiados pela comunidade instalados em spots ao redor do mundo. Aberto, CC0, sem dono — de todos."
+  }
+}

@@ -5,9 +5,8 @@
  */
 
 import { existsSync, readFileSync } from "fs";
-import { resolve } from "path";
 import { createRequire } from "module";
-import path from "path";
+import path, { resolve } from "path";
 
 function loadEnvLocal(): void {
   const envPath = resolve(process.cwd(), ".env.local");
@@ -21,7 +20,7 @@ function loadEnvLocal(): void {
     const key = trimmed.slice(0, idx).trim();
     let value = trimmed.slice(idx + 1).trim();
     if (
-      (value.startsWith("\"") && value.endsWith("\"")) ||
+      (value.startsWith('"') && value.endsWith('"')) ||
       (value.startsWith("'") && value.endsWith("'"))
     ) {
       value = value.slice(1, -1);
@@ -50,7 +49,9 @@ async function testFarcasterTvAggregator() {
     const start = Date.now();
     const data = await getFarcasterTVData();
     const elapsed = Date.now() - start;
-    console.log(`${label}: ${elapsed}ms (cache: ${data.cache.source}, build: ${data.durationMs}ms)`);
+    console.log(
+      `${label}: ${elapsed}ms (cache: ${data.cache.source}, build: ${data.durationMs}ms)`,
+    );
     console.log(
       `  creators: ${data.qualifiedCreators.length}, items: ${data.items.length}, coins: ${data.stats.coins}, nfts: ${data.stats.nfts}`,
     );

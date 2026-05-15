@@ -17,6 +17,7 @@ The Gnars website repo contains a subdirectory `mcp-subgraph/` that implements:
 Both entry points share a single set of tool modules (`src/tools/*.ts`) and a subgraph client targeting the Nouns Builder subgraph on Base. The code is Gnars-specific in naming and defaults only — the underlying logic works for any Nouns Builder DAO on Base. The website itself does not depend on this package at runtime; it is excluded from `tsconfig.json`.
 
 This extraction aims to:
+
 - Decouple the tool from the Gnars website repo.
 - Generalize it for any Nouns Builder DAO.
 - Package it for npm distribution.
@@ -25,6 +26,7 @@ This extraction aims to:
 ## 2. Scope
 
 **In scope**
+
 - Move the entire `mcp-subgraph/` directory into a new standalone git repository as a pnpm workspace monorepo.
 - Split the codebase into two published packages:
   - `@builder-dao/cli` — core (stateless: list/get/votes/vote/ens); exposes CLI binary and MCP server.
@@ -35,6 +37,7 @@ This extraction aims to:
 - Remove `mcp-subgraph/` from `gnars-website` and update the `gnars-cli` Claude skill to consume the published npm package.
 
 **Out of scope (YAGNI)**
+
 - Multi-chain support (Base-only; the Nouns Builder subgraph on Base is the sole data source for v0.1).
 - Built-in DAO preset/alias registry.
 - Web UI.
@@ -44,6 +47,7 @@ This extraction aims to:
 ## 3. Requirements
 
 ### Functional
+
 - CLI and MCP server must function for any Builder DAO token contract on Base given `DAO_ADDRESS` + `GOLDSKY_PROJECT_ID`.
 - Users can run the core without installing the search addon; core commands have no SQLite / HuggingFace dependency footprint.
 - When the search addon is installed alongside the core, its commands appear on the same `builder-dao` binary automatically.
@@ -52,6 +56,7 @@ This extraction aims to:
 - Existing functional behavior of all commands/tools is preserved (same tool signatures, same outputs).
 
 ### Non-functional
+
 - No Gnars-specific defaults in any source file. All Gnars references permitted only in `examples/` and migration docs.
 - TypeScript strict mode, no `any`.
 - Vitest suite must pass on every PR.
@@ -117,15 +122,16 @@ builder-dao-tools/
 export interface DaoConfig {
   daoAddress: `0x${string}`;
   goldskyProjectId: string;
-  chainId: number;               // default 8453 (Base)
-  rpcUrl: string;                // default https://mainnet.base.org
-  privateKey?: `0x${string}`;    // only consumed by `vote`
+  chainId: number; // default 8453 (Base)
+  rpcUrl: string; // default https://mainnet.base.org
+  privateKey?: `0x${string}`; // only consumed by `vote`
 }
 
 export function resolveConfig(argv: string[], env: NodeJS.ProcessEnv): DaoConfig;
 ```
 
 Resolution order (highest wins):
+
 1. CLI flag: `--dao 0x...`, `--subgraph-project <id>`, `--rpc-url <url>`.
 2. Env: `DAO_ADDRESS`, `GOLDSKY_PROJECT_ID`, `BASE_RPC_URL`, `PRIVATE_KEY`.
 3. Optional config file: `$XDG_CONFIG_HOME/builder-dao/config.json` (simple JSON object matching `DaoConfig`).
@@ -140,7 +146,7 @@ No Gnars defaults in config. Example Gnars values live in `examples/gnars.env`.
 export interface RunContext {
   config: DaoConfig;
   subgraph: SubgraphClient;
-  print(data: unknown): void;     // honors --pretty / --toon
+  print(data: unknown): void; // honors --pretty / --toon
 }
 
 export interface CliCommand {
@@ -168,7 +174,7 @@ export function getTools(): McpTool[];
 ```ts
 // cli.ts and server.ts both do:
 try {
-  await import("@builder-dao/cli-search");  // triggers registration side-effects
+  await import("@builder-dao/cli-search"); // triggers registration side-effects
 } catch {
   // addon not installed — continue with core commands only
 }
@@ -196,6 +202,7 @@ Where `daoAddressShort` is the first 10 chars of the address (e.g., `0x880fb3cf.
 ### 4.6 CLI surface (final)
 
 Core (always available):
+
 ```
 builder-dao proposals [--status] [--limit] [--offset] [--order]
 builder-dao proposal <id>
@@ -206,6 +213,7 @@ builder-dao mcp [--sse]                 # launches MCP server
 ```
 
 Addon (requires `@builder-dao/cli-search`):
+
 ```
 builder-dao sync [--full]
 builder-dao index
@@ -238,16 +246,19 @@ Naming is finalized at the start of implementation by checking npm availability;
 ## 7. Documentation
 
 Root-level:
+
 - `README.md` — 30-second pitch, install, 3 canonical examples, links to per-package docs.
 - `CONTRIBUTING.md` — pnpm setup, running tests, release flow via `@changesets`.
 - `LICENSE` — MIT.
 - `CHANGELOG.md` — managed by `@changesets`.
 
 Per-package:
+
 - `packages/core/README.md` — full CLI reference, every env var documented, MCP client setup snippets (Claude Desktop, Cursor), `vote` safety notes.
 - `packages/search/README.md` — install, DB path behavior, embeddings model, first-run performance note.
 
 `docs/`:
+
 - `architecture.md` — component diagram, data flow, subgraph endpoint shape.
 - `plugin-api.md` — how to write a DAO-specific or feature-specific addon.
 - `migrating-from-gnars-mcp.md` — step-by-step for existing Gnars users (env mapping, binary rename).
@@ -255,6 +266,7 @@ Per-package:
 ## 8. Release plan
 
 **Phase 1 — Extract & clean** (single initial commit set in new repo)
+
 - Copy `mcp-subgraph/` → new repo `packages/core/`.
 - Split DB + embeddings + `sync` / `search` / `index` tools into `packages/search/`.
 - Remove all Gnars hardcoded strings and defaults.
@@ -263,33 +275,37 @@ Per-package:
 - All existing tests pass.
 
 **Phase 2 — Polish** (in the new repo)
+
 - Write READMEs, LICENSE, CONTRIBUTING, examples.
 - Add GitHub Actions CI (lint, typecheck, test).
 - Configure `@changesets`.
 
 **Phase 3 — Publish**
+
 - `pnpm -r publish` to npm.
 - Cut GitHub release `v0.1.0`.
 
 **Phase 4 — Gnars website cleanup**
+
 - Remove `mcp-subgraph/` from `gnars-website`.
 - Update `tsconfig.json` to drop the `mcp-subgraph/**/*` exclude line.
 - Update `.claude/skills/gnars-cli/SKILL.md` to reference `builder-dao` binary installed from npm and document the required `DAO_ADDRESS` / `GOLDSKY_PROJECT_ID` env vars for Gnars.
 
 **Phase 5 — Upstream (optional, tracked separately)**
+
 - Open discussion/PR at the Builder DAO GitHub org offering package transfer.
 
 Each phase is implemented as its own PR or commit series and validated before the next begins.
 
 ## 9. Risks & mitigations
 
-| Risk | Mitigation |
-|------|-----------|
-| `@builder-dao` npm namespace unavailable | Fall back to documented alternatives; decide at start of Phase 1. |
-| Dynamic import of addon fails silently | Log at debug level on failure; make resolution observable via `--version` which prints loaded plugins. |
-| Heavy deps leak into core via shared imports | Enforce via package boundaries + CI check that `@builder-dao/cli` has no `better-sqlite3` / `@huggingface/transformers` in its `dependencies`. |
-| Gnars-specific test fixtures break when DAO default changes | Parameterize via `TEST_DAO_ADDRESS`; no test relies on process-wide defaults. |
-| Users of current `gnars` binary broken after cleanup | Ship migration doc + leave a stub shim in the `gnars-cli` skill that wraps `builder-dao` with Gnars env pre-set. |
+| Risk                                                        | Mitigation                                                                                                                                     |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@builder-dao` npm namespace unavailable                    | Fall back to documented alternatives; decide at start of Phase 1.                                                                              |
+| Dynamic import of addon fails silently                      | Log at debug level on failure; make resolution observable via `--version` which prints loaded plugins.                                         |
+| Heavy deps leak into core via shared imports                | Enforce via package boundaries + CI check that `@builder-dao/cli` has no `better-sqlite3` / `@huggingface/transformers` in its `dependencies`. |
+| Gnars-specific test fixtures break when DAO default changes | Parameterize via `TEST_DAO_ADDRESS`; no test relies on process-wide defaults.                                                                  |
+| Users of current `gnars` binary broken after cleanup        | Ship migration doc + leave a stub shim in the `gnars-cli` skill that wraps `builder-dao` with Gnars env pre-set.                               |
 
 ## 10. Open questions
 

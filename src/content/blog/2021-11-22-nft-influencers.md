@@ -7,9 +7,9 @@ permalink: /nft-influencers/
 author: gami
 image: /images/nft-influencer.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [education]
-featured: 
+featured:
 ---
 
 Ever since the boom of crypto and NFTs, more and more influencers have jumped onboard the NFT hype train. Some [influencers](https://en.wikipedia.org/wiki/Internet_celebrity) like Gary Vee and DeeZe built their entire following purely on NFT content. Others such as billionaire Mark Cuban and rapper Jay-Z endorsed NFTs.

@@ -114,7 +114,10 @@ export function getProposalFundingTotals(source: ProposalFundingSource): Proposa
   };
 }
 
-export function getProposalRequestedUsdTotal(totals: ProposalFundingTotals, ethPriceUsd: number): number {
+export function getProposalRequestedUsdTotal(
+  totals: ProposalFundingTotals,
+  ethPriceUsd: number,
+): number {
   const safeEthPrice = Number.isFinite(ethPriceUsd) && ethPriceUsd > 0 ? ethPriceUsd : 0;
   return totals.totalUsdc + totals.totalEth * safeEthPrice;
 }

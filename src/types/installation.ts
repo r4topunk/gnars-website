@@ -15,14 +15,14 @@ export interface Installation {
   proposalUrl?: string;
   activation?: string;
   media: {
-    type: 'youtube' | 'instagram' | 'website' | 'image';
+    type: "youtube" | "instagram" | "website" | "image";
     url: string;
     label?: string;
   }[];
   coverImage?: string;
   description?: string;
   year?: number;
-  status?: 'active' | 'archived';
+  status?: "active" | "archived";
 }
 
 export interface InstallationsData {

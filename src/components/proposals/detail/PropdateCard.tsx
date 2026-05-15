@@ -1,11 +1,13 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import { Markdown } from "@/components/common/Markdown";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { getDateFnsLocale } from "@/lib/i18n/format";
 import { type Propdate } from "@/services/propdates";
 import { PropdateReplyCard } from "./PropdateReplyCard";
 
@@ -28,8 +30,11 @@ export function PropdateCard({
   isReplying = false,
   onReplyClick,
 }: PropdateCardProps) {
+  const t = useTranslations("propdates");
+  const locale = useLocale();
   const timeCreated = formatDistanceToNow(new Date(propdate.timeCreated * 1000), {
     addSuffix: true,
+    locale: getDateFnsLocale(locale),
   });
 
   return (
@@ -48,7 +53,7 @@ export function PropdateCard({
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {propdate.milestoneId != null && propdate.milestoneId >= 0 && (
               <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-xs">
-                Milestone {propdate.milestoneId + 1}
+                {t("card.milestone", { number: propdate.milestoneId + 1 })}
               </Badge>
             )}
             <span>· {timeCreated}</span>
@@ -87,7 +92,7 @@ export function PropdateCard({
             size="sm"
             onClick={() => onReplyClick(propdate)}
           >
-            {isReplying ? "Cancel Reply" : "Reply"}
+            {isReplying ? t("card.cancelReply") : t("card.reply")}
           </Button>
         </CardFooter>
       )}

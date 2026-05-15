@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ExternalLink } from "lucide-react";
 import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Link } from "@/i18n/navigation";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface ProposalHeaderProps {
@@ -21,10 +22,11 @@ export function ProposalHeader({
   status,
   transactionHash,
 }: ProposalHeaderProps) {
+  const t = useTranslations("proposals");
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-md text-muted-foreground">
-        <span>Proposal {proposalNumber}</span>
+        <span>{t("detail.proposal", { number: proposalNumber })}</span>
         <ProposalStatusBadge status={status} />
         {transactionHash ? (
           <Link
@@ -32,7 +34,7 @@ export function ProposalHeader({
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center text-muted-foreground hover:text-foreground"
-            aria-label="Open in explorer"
+            aria-label={t("detail.openInExplorer")}
           >
             <ExternalLink className="h-3.5 w-3.5" />
           </Link>
@@ -40,7 +42,7 @@ export function ProposalHeader({
       </div>
       <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
       <div className="text-sm text-muted-foreground">
-        By{" "}
+        {t("detail.by")}{" "}
         <AddressDisplay
           address={proposer}
           variant="compact"

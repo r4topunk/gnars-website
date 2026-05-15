@@ -13,6 +13,7 @@ Project guide for the Gnars DAO website. Keep terse, keep current.
 ## Project Overview
 
 Next.js 15.5 App Router site for Gnars DAO on Base (chain ID 8453). Built on Nouns Builder architecture. Wallet layer is split:
+
 - **thirdweb v5** — login + writes + account abstraction (`sponsorGas: true`)
 - **wagmi v2 + viem** — reads transport only (connectors array empty)
 
@@ -140,11 +141,11 @@ Secrets never go in client code. `NEXT_PUBLIC_*` is public by definition.
 
 All medium and large tasks MUST be delivered via Pull Request. Do not commit directly to `main`.
 
-| Size | Criteria | PR Required? |
-|------|----------|--------------|
-| **Small** | Single-file fix, typo, config tweak, <20 lines | Optional |
-| **Medium** | Multi-file, new component, 20–100 lines | **Yes** |
-| **Large** | Cross-cutting, refactor, 100+ lines | **Yes** |
+| Size       | Criteria                                       | PR Required? |
+| ---------- | ---------------------------------------------- | ------------ |
+| **Small**  | Single-file fix, typo, config tweak, <20 lines | Optional     |
+| **Medium** | Multi-file, new component, 20–100 lines        | **Yes**      |
+| **Large**  | Cross-cutting, refactor, 100+ lines            | **Yes**      |
 
 When in doubt, create a PR.
 
@@ -159,12 +160,15 @@ When in doubt, create a PR.
 
 ```markdown
 ## Summary
+
 - [1-3 bullets: what changed and why]
 
 ## Changes
+
 - [key files/areas modified]
 
 ## Test plan
+
 - [ ] [how to verify]
 
 Generated with [Claude Code](https://claude.com/claude-code)

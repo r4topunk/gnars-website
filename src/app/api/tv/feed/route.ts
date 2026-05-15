@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCoin, getProfileCoins } from "@zoralabs/coins-sdk";
+import { GNARS_CREATOR_COIN, GNARS_ZORA_HANDLE } from "@/lib/config";
 import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 import { fetchDroposals } from "@/services/droposals";
 import {
@@ -8,7 +9,6 @@ import {
   type QualifiedCreator,
   type TVItemData,
 } from "@/services/farcaster-tv-aggregator";
-import { GNARS_CREATOR_COIN, GNARS_ZORA_HANDLE } from "@/lib/config";
 
 // Dynamic route — never prerendered at build time. CDN handles caching via
 // the Cache-Control header on the response (see GET below). Keeps the build
@@ -197,10 +197,7 @@ function extractImageUrl(coin: CoinNode): string | undefined {
 /**
  * Map coin to TV item
  */
-async function mapCoinToTVItem(
-  coin: CoinNode,
-  creatorHandle: string,
-): Promise<TVItemData | null> {
+async function mapCoinToTVItem(coin: CoinNode, creatorHandle: string): Promise<TVItemData | null> {
   const videoUrl = await extractVideoUrl(coin);
   const imageUrl = extractImageUrl(coin);
 
@@ -438,13 +435,15 @@ export async function GET() {
       fetchCreatorContent(creators, loadedAddresses),
     );
 
-    const [pairedCoins, gnarsContent, droposals, farcasterData, creatorContent] = await Promise.all([
-      fetchPairedCoins(loadedAddresses),
-      fetchGnarsProfileContent(loadedAddresses),
-      fetchDroposals(50).catch(() => []),
-      getFarcasterTVData(),
-      creatorContentPromise,
-    ]);
+    const [pairedCoins, gnarsContent, droposals, farcasterData, creatorContent] = await Promise.all(
+      [
+        fetchPairedCoins(loadedAddresses),
+        fetchGnarsProfileContent(loadedAddresses),
+        fetchDroposals(50).catch(() => []),
+        getFarcasterTVData(),
+        creatorContentPromise,
+      ],
+    );
 
     const qualifiedCreators = farcasterData.qualifiedCreators;
 

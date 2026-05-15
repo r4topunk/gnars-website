@@ -5,9 +5,21 @@ import {
   type DecodedData,
   type PropDate,
 } from "@buildeross/sdk/eas";
-import { encodeAbiParameters, getAddress, isAddress, isHex, parseAbiParameters, zeroHash } from "viem";
+import {
+  encodeAbiParameters,
+  getAddress,
+  isAddress,
+  isHex,
+  parseAbiParameters,
+  zeroHash,
+} from "viem";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
-import { AttestationRequest, PropdateMessageType, PROPDATE_SCHEMA, PROPDATE_SCHEMA_UID } from "@/lib/eas";
+import {
+  AttestationRequest,
+  PROPDATE_SCHEMA,
+  PROPDATE_SCHEMA_UID,
+  PropdateMessageType,
+} from "@/lib/eas";
 
 export type Propdate = PropDate;
 
@@ -245,9 +257,7 @@ function encodePropdateMessage(
   }
 
   const replyTo =
-    originalMessageId && isHex(originalMessageId)
-      ? (originalMessageId as `0x${string}`)
-      : zeroHash;
+    originalMessageId && isHex(originalMessageId) ? (originalMessageId as `0x${string}`) : zeroHash;
 
   return encodeAbiParameters(propdateSchemaParams, [
     trimmedProposalId as `0x${string}`,

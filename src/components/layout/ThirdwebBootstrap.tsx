@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { sdk as farcasterSdk } from "@farcaster/miniapp-sdk";
 import { type ThirdwebClient } from "thirdweb";
-import { EIP1193 } from "thirdweb/wallets";
 import { useAutoConnect, useSetActiveWallet } from "thirdweb/react";
+import { EIP1193 } from "thirdweb/wallets";
 import { getThirdwebClient, THIRDWEB_CHAIN } from "@/lib/thirdweb";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 
@@ -53,9 +53,7 @@ function ThirdwebBootstrapInner({ client }: { client: ThirdwebClient }) {
         // stacking our own SA on top would create a third address with no
         // upside.
         const wallet = EIP1193.fromProvider({
-          provider: provider as Parameters<
-            typeof EIP1193.fromProvider
-          >[0]["provider"],
+          provider: provider as Parameters<typeof EIP1193.fromProvider>[0]["provider"],
         });
 
         await wallet.connect({ client, chain: THIRDWEB_CHAIN });

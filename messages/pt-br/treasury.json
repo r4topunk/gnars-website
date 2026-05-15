@@ -1,0 +1,70 @@
+{
+  "page": {
+    "title": "Tesouro",
+    "description": "Visão geral dos holdings do tesouro da Gnars DAO e da posição financeira",
+    "kpis": {
+      "totalValue": "Valor Total do Tesouro",
+      "ethBalance": "Saldo de ETH",
+      "totalAuctions": "Total de Vendas em Leilão"
+    },
+    "nftSection": {
+      "title": "Holdings de NFT",
+      "description": "Tokens não-fungíveis mantidos no tesouro"
+    }
+  },
+  "tokens": {
+    "title": "Holdings de Tokens",
+    "description": "Tokens ERC-20 mantidos no tesouro",
+    "table": {
+      "token": "Token",
+      "amount": "Quantia",
+      "valueUsd": "Valor (USD)"
+    },
+    "empty": "Nenhum token encontrado",
+    "emptyDescription": "O tesouro não tem tokens ERC-20 no momento",
+    "errorLoading": "Erro ao carregar holdings de tokens: {error}"
+  },
+  "zoraCoin": {
+    "title": "Zora Coins",
+    "description": "Zora coins mantidos no tesouro",
+    "coinCount": "{count, plural, one {# coin} other {# coins}} · Valor total: {value}",
+    "table": {
+      "coin": "Coin",
+      "balance": "Saldo",
+      "valueUsd": "Valor (USD)",
+      "marketCap": "Market Cap",
+      "volume24h": "Volume 24h",
+      "creator": "Criador",
+      "actions": "Ações"
+    },
+    "empty": "Nenhum Zora coin encontrado no tesouro",
+    "view": "Ver"
+  },
+  "nfts": {
+    "title": "Gnars no Tesouro",
+    "count": "{count, plural, one {# Gnar encontrado} other {# Gnars encontrados}}",
+    "empty": "Nenhum NFT encontrado",
+    "emptyDescription": "O tesouro não tem Gnars no momento",
+    "errorLoading": "Erro ao carregar holdings de NFT: {error}"
+  },
+  "charts": {
+    "auctionRevenue": {
+      "title": "Receita de Leilões",
+      "description": "ETH ganho com leilões por mês",
+      "errorDescription": "Não foi possível carregar dados de leilão",
+      "loadFailed": "Falha ao carregar dados"
+    },
+    "proposalActivity": {
+      "title": "Atividade de Propostas",
+      "description": "Propostas por mês nos últimos 12 meses",
+      "errorDescription": "Não foi possível carregar dados de propostas",
+      "loadFailed": "Falha ao carregar dados"
+    },
+    "memberActivity": {
+      "title": "Atividade dos Membros",
+      "description": "Votantes por propostas recentes (excluindo cancelados)",
+      "errorDescription": "Não foi possível carregar dados de atividade dos membros",
+      "loadFailed": "Falha ao carregar dados"
+    }
+  }
+}

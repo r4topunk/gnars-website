@@ -1,0 +1,26 @@
+{
+  "title": "Blogs",
+  "subtitle": "Read the latest posts from Gnars DAO",
+  "searchPlaceholder": "Search blog posts...",
+  "empty": "No blog posts available",
+  "error": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred while loading blog posts.",
+    "retry": "Try again"
+  },
+  "notFound": {
+    "title": "Blog Post Not Found",
+    "description": "The blog post you're looking for doesn't exist or has been removed."
+  },
+  "post": {
+    "by": "by {author}",
+    "publishedOn": "Published {date}",
+    "lastUpdated": "Last updated {date}",
+    "coined": "Coined"
+  },
+  "legacy": {
+    "historicalNotice": "📚 Historical Content: This article is from {year}. Some information may be outdated.",
+    "author": "by {author}",
+    "backToHome": "← Back to Home"
+  }
+}

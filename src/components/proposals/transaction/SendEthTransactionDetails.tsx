@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowRight, AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { AlertCircle, ArrowRight } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { cn, getETHDisplayProps } from "@/lib/utils";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { cn, getETHDisplayProps } from "@/lib/utils";
 import { type TransactionFormValues } from "../schema";
 
 interface SendEthTransactionDetailsProps {
@@ -11,6 +12,7 @@ interface SendEthTransactionDetailsProps {
 }
 
 export function SendEthTransactionDetails({ transaction }: SendEthTransactionDetailsProps) {
+  const t = useTranslations("proposals.txDetails");
   if (transaction.type !== "send-eth") return null;
 
   const { target, value } = transaction;
@@ -21,10 +23,10 @@ export function SendEthTransactionDetails({ transaction }: SendEthTransactionDet
       {/* Transfer Flow Visualization */}
       <div className="flex flex-col md:flex-row md:items-center gap-3">
         <div className="flex-1">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">From</p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{t("from")}</p>
           <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
             <div>
-              <p className="text-sm font-medium">DAO Treasury</p>
+              <p className="text-sm font-medium">{t("daoTreasury")}</p>
               <p className="text-xs text-muted-foreground font-mono">
                 {DAO_ADDRESSES.treasury.slice(0, 6)}...{DAO_ADDRESSES.treasury.slice(-4)}
               </p>
@@ -35,17 +37,14 @@ export function SendEthTransactionDetails({ transaction }: SendEthTransactionDet
         <div className="flex flex-col items-center">
           <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 md:rotate-0" />
           {ethProps && (
-            <div className={cn(
-              "text-sm font-bold font-mono mt-1",
-              ethProps.textColor
-            )}>
+            <div className={cn("text-sm font-bold font-mono mt-1", ethProps.textColor)}>
               {ethProps.formatted}
             </div>
           )}
         </div>
 
         <div className="flex-1">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">To</p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{t("to")}</p>
           {target ? (
             <div className="px-3 py-2 rounded-lg bg-background border min-h-[60px] flex items-center">
               <AddressDisplay
@@ -63,7 +62,9 @@ export function SendEthTransactionDetails({ transaction }: SendEthTransactionDet
             <div className="px-3 py-2 rounded-lg border border-dashed border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20 min-h-[60px] flex items-center">
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Not set</span>
+                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                  {t("notSet")}
+                </span>
               </div>
             </div>
           )}

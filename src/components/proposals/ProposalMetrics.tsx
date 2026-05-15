@@ -1,5 +1,9 @@
+"use client";
+
+import { useLocale, useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface ProposalMetricsProps {
@@ -23,9 +27,12 @@ export function ProposalMetrics({
   startDate,
   endDate,
 }: ProposalMetricsProps) {
+  const t = useTranslations("proposals");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
   const formatVotes = (votes: string) => {
     const num = parseFloat(votes);
-    return num.toLocaleString(undefined, { maximumFractionDigits: 1 });
+    return num.toLocaleString(intlLocale, { maximumFractionDigits: 1 });
   };
 
   const parseVotes = (votes: string) => {
@@ -34,7 +41,7 @@ export function ProposalMetrics({
   };
 
   const formatBlock = (block: number) => {
-    return block.toLocaleString();
+    return block.toLocaleString(intlLocale);
   };
 
   const forNum = parseVotes(forVotes);
@@ -46,7 +53,7 @@ export function ProposalMetrics({
   const abstainPct = Math.min(100, Math.max(0, (abstainNum / totalVotes) * 100));
 
   const isPending = status === ProposalStatus.PENDING;
-  const dateToShow = isPending ? startDate ?? endDate : endDate;
+  const dateToShow = isPending ? (startDate ?? endDate) : endDate;
   // Intentional render-time read: the label reflects current clock on each render.
   // Hydration mismatch is suppressed on the consuming nodes below.
   // eslint-disable-next-line react-hooks/purity
@@ -57,20 +64,28 @@ export function ProposalMetrics({
       {/* Mobile: For | Against, Desktop: For | Against | Abstain */}
       <Card className="py-2 gap-0 md:gap-2">
         <CardHeader className="pb-1 px-4">
-          <CardTitle className="text-md font-semibold text-foreground/90">For</CardTitle>
+          <CardTitle className="text-md font-semibold text-foreground/90">
+            {t("metrics.for")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-1.5 py-1 px-4">
-          <div className="text-xl md:text-2xl font-bold text-green-600">{formatVotes(forVotes)}</div>
+          <div className="text-xl md:text-2xl font-bold text-green-600">
+            {formatVotes(forVotes)}
+          </div>
           <Progress value={forPct} className="h-1.5" indicatorClassName="bg-green-500" />
         </CardContent>
       </Card>
 
       <Card className="py-2 gap-0 md:gap-2">
         <CardHeader className="pb-1 px-4">
-          <CardTitle className="text-md font-semibold text-foreground/90">Against</CardTitle>
+          <CardTitle className="text-md font-semibold text-foreground/90">
+            {t("metrics.against")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-1.5 py-1 px-4">
-          <div className="text-xl md:text-2xl font-bold text-red-600">{formatVotes(againstVotes)}</div>
+          <div className="text-xl md:text-2xl font-bold text-red-600">
+            {formatVotes(againstVotes)}
+          </div>
           <Progress value={againstPct} className="h-1.5" indicatorClassName="bg-red-500" />
         </CardContent>
       </Card>
@@ -78,7 +93,9 @@ export function ProposalMetrics({
       {/* Mobile: Abstain | Threshold, Desktop: Threshold | Ends | Snapshot */}
       <Card className="py-2 gap-0 md:gap-2">
         <CardHeader className="pb-1 px-4">
-          <CardTitle className="text-md font-semibold text-foreground/90">Abstain</CardTitle>
+          <CardTitle className="text-md font-semibold text-foreground/90">
+            {t("metrics.abstain")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-1.5 py-1 px-4">
           <div className="text-xl md:text-2xl font-bold text-muted-foreground">
@@ -94,11 +111,15 @@ export function ProposalMetrics({
 
       <Card className="py-2 gap-0 md:gap-2">
         <CardHeader className="pb-1 px-4">
-          <CardTitle className="text-md font-semibold text-foreground/90">Threshold</CardTitle>
+          <CardTitle className="text-md font-semibold text-foreground/90">
+            {t("metrics.threshold")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="py-1 px-4">
-          <div className="text-xl md:text-2xl font-bold">{formatVotes(quorumVotes)} votes</div>
-          <div className="text-xs text-muted-foreground">Current threshold</div>
+          <div className="text-xl md:text-2xl font-bold">
+            {t("metrics.votes", { count: formatVotes(quorumVotes) })}
+          </div>
+          <div className="text-xs text-muted-foreground">{t("metrics.currentThreshold")}</div>
         </CardContent>
       </Card>
 
@@ -108,22 +129,22 @@ export function ProposalMetrics({
           <CardHeader className="pb-1 px-4">
             <CardTitle className="text-md font-semibold text-foreground/90">
               {isPending
-                ? "Starts"
+                ? t("metrics.starts")
                 : forNum + againstNum + abstainNum > 0 && dateToShow.getTime() < renderNow
-                  ? "Ended"
-                  : "Ends"}
+                  ? t("metrics.ended")
+                  : t("metrics.ends")}
             </CardTitle>
           </CardHeader>
           <CardContent className="py-1 px-4" suppressHydrationWarning>
             <div className="text-xl md:text-2xl font-semibold" suppressHydrationWarning>
-              {dateToShow.toLocaleDateString(undefined, {
+              {dateToShow.toLocaleDateString(intlLocale, {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
               })}
             </div>
             <div className="text-xs text-muted-foreground" suppressHydrationWarning>
-              {dateToShow.toLocaleTimeString(undefined, {
+              {dateToShow.toLocaleTimeString(intlLocale, {
                 hour: "2-digit",
                 minute: "2-digit",
                 second: "2-digit",
@@ -137,11 +158,13 @@ export function ProposalMetrics({
       {snapshotBlock && (
         <Card className="py-2 gap-0 md:gap-2">
           <CardHeader className="pb-1 px-4">
-            <CardTitle className="text-md font-semibold text-foreground/90">Snapshot</CardTitle>
+            <CardTitle className="text-md font-semibold text-foreground/90">
+              {t("metrics.snapshot")}
+            </CardTitle>
           </CardHeader>
           <CardContent className="py-1 px-4">
             <div className="text-xl md:text-2xl font-semibold">#{formatBlock(snapshotBlock)}</div>
-            <div className="text-xs text-muted-foreground">Taken at block</div>
+            <div className="text-xs text-muted-foreground">{t("metrics.takenAtBlock")}</div>
           </CardContent>
         </Card>
       )}

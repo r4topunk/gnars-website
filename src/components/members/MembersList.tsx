@@ -1,7 +1,7 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { ArrowDown, ArrowUp, ArrowUpDown, Search, UserPlus } from "lucide-react";
 import { DelegationModal } from "@/components/layout/DelegationModal";
 import { AddressDisplay } from "@/components/ui/address-display";
@@ -16,7 +16,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Link } from "@/i18n/navigation";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { type MemberListItem } from "@/services/members";
 
 function FarcasterIcon({ className }: { className?: string }) {
@@ -64,6 +66,9 @@ export function MembersList({
   searchTerm: initialSearchTerm = "",
   showSearch = true,
 }: MembersListProps) {
+  const t = useTranslations("members");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
   const [members, setMembers] = useState<MemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
@@ -159,7 +164,7 @@ export function MembersList({
           <div className="flex flex-wrap items-center gap-2">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by address or ENS..."
+              placeholder={t("list.searchPlaceholder")}
               value={searchTerm}
               className="w-full sm:max-w-sm"
               disabled
@@ -167,7 +172,7 @@ export function MembersList({
           </div>
         ) : null}
         <div className="text-center py-8">
-          <div className="text-muted-foreground">Loading members...</div>
+          <div className="text-muted-foreground">{t("list.loading")}</div>
         </div>
       </div>
     );
@@ -179,7 +184,7 @@ export function MembersList({
         <div className="flex flex-wrap items-center gap-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by address or ENS..."
+            placeholder={t("list.searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full sm:max-w-sm"
@@ -191,7 +196,7 @@ export function MembersList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Address/ENS</TableHead>
+              <TableHead>{t("list.table.addressEns")}</TableHead>
               <TableHead
                 className="cursor-pointer select-none"
                 onClick={() => {
@@ -200,7 +205,7 @@ export function MembersList({
                 }}
               >
                 <span className="inline-flex items-center gap-1">
-                  Delegate
+                  {t("list.table.delegate")}
                   {sortBy === "delegate" ? (
                     sortDir === "asc" ? (
                       <ArrowUp className="h-3 w-3" />
@@ -220,7 +225,7 @@ export function MembersList({
                 }}
               >
                 <span className="inline-flex items-center gap-1 justify-end w-full">
-                  Gnars Held
+                  {t("list.table.gnarsHeld")}
                   {sortBy === "tokens" ? (
                     sortDir === "asc" ? (
                       <ArrowUp className="h-3 w-3" />
@@ -242,7 +247,7 @@ export function MembersList({
                 }}
               >
                 <span className="inline-flex items-center gap-1 justify-end w-full">
-                  Active Votes
+                  {t("list.table.activeVotes")}
                   {sortBy === "activeVotes" ? (
                     sortDir === "asc" ? (
                       <ArrowUp className="h-3 w-3" />
@@ -264,7 +269,7 @@ export function MembersList({
                 }}
               >
                 <span className="inline-flex items-center gap-1 justify-end w-full">
-                  Attendance %
+                  {t("list.table.attendance")}
                   {sortBy === "attendancePct" ? (
                     sortDir === "asc" ? (
                       <ArrowUp className="h-3 w-3" />
@@ -276,15 +281,15 @@ export function MembersList({
                   )}
                 </span>
               </TableHead>
-              <TableHead className="text-right">Social</TableHead>
-              <TableHead className="text-right">Action</TableHead>
+              <TableHead className="text-right">{t("list.table.social")}</TableHead>
+              <TableHead className="text-right">{t("list.table.action")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredMembers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  {searchTerm ? "No members found matching your search." : "No members found."}
+                  {searchTerm ? t("list.emptySearch") : t("list.empty")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -296,7 +301,7 @@ export function MembersList({
                         href={`/members/${member.owner}`}
                         className="hover:underline font-medium"
                       >
-                        {"Gnars' treasury"}
+                        {t("list.treasuryLabel")}
                       </Link>
                     ) : (
                       <Link href={`/members/${member.owner}`} className="hover:underline">
@@ -354,7 +359,10 @@ export function MembersList({
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                          @{member.farcaster.username} · {member.farcaster.followerCount.toLocaleString()} followers on Farcaster
+                          {t("list.farcasterFollowers", {
+                            username: `@${member.farcaster.username}`,
+                            count: member.farcaster.followerCount.toLocaleString(intlLocale),
+                          })}
                         </TooltipContent>
                       </Tooltip>
                     ) : (
@@ -372,7 +380,7 @@ export function MembersList({
                       className="gap-1"
                     >
                       <UserPlus className="h-3 w-3" />
-                      Delegate
+                      {t("list.delegateButton")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -386,7 +394,10 @@ export function MembersList({
       <div ref={sentinelRef} className="h-10" />
 
       <div className="text-sm text-muted-foreground">
-        Showing {Math.min(visibleCount, filteredMembers.length)} of {filteredMembers.length} members
+        {t("list.showingCount", {
+          visible: Math.min(visibleCount, filteredMembers.length),
+          total: filteredMembers.length,
+        })}
       </div>
 
       <DelegationModal

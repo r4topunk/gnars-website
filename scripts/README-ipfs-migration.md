@@ -3,6 +3,7 @@
 ## Overview
 
 Snapshot proposals contain IPFS image references using `ipfs://CID` protocol. This script:
+
 1. Tests CID accessibility on `ipfs.snapshot.box` gateway
 2. Pins CIDs to SkateHive IPFS (via Pinata) for redundancy
 3. Updates `snapshot-proposals.json` to use SkateHive gateway
@@ -28,16 +29,19 @@ Snapshot proposals contain IPFS image references using `ipfs://CID` protocol. Th
 ## Usage
 
 ### Dry-run (test without changes)
+
 ```bash
 node scripts/migrate-snapshot-ipfs-images.mjs --dry-run
 ```
 
 ### Execute migration
+
 ```bash
 node scripts/migrate-snapshot-ipfs-images.mjs
 ```
 
 ### Force re-pin (even if already pinned)
+
 ```bash
 node scripts/migrate-snapshot-ipfs-images.mjs --force-pin
 ```
@@ -81,11 +85,13 @@ Failed to pin:        0 ⚠️
 ## Edge Cases
 
 ### Inaccessible CIDs
+
 - CIDs not available on Snapshot gateway won't be migrated
 - Original `ipfs://` URL preserved in proposals
 - Logged in summary for manual review
 
 ### Failed pins
+
 - Network errors, rate limits, invalid CIDs
 - Script exits with error code 1
 - Check logs and retry
@@ -112,9 +118,10 @@ Average IPFS image: ~500 KB
 ## Next Steps After Migration
 
 1. **Update code** (if needed)
+
    ```typescript
    // Change gateway in ProposalDescriptionCard.tsx
-   const SKATEHIVE_GATEWAY = 'https://ipfs.skatehive.app/ipfs/';
+   const SKATEHIVE_GATEWAY = "https://ipfs.skatehive.app/ipfs/";
    ```
 
 2. **Verify images**
@@ -128,15 +135,18 @@ Average IPFS image: ~500 KB
 ## Troubleshooting
 
 **Error: PINATA_JWT not set**
+
 ```bash
 export PINATA_JWT="your_token"
 ```
 
 **Error: Rate limited**
+
 - Script has 100ms delay between requests
 - If still failing, increase delay in code
 
 **Error: Invalid CID**
+
 - Some proposals may have malformed IPFS URLs
 - Check proposal body manually
 - Skip or fix in JSON file

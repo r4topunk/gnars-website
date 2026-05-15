@@ -1,7 +1,7 @@
-import { config } from "dotenv";
 import { resolve } from "path";
 import { Configuration, NeynarAPIClient } from "@neynar/nodejs-sdk";
 import type { Network } from "@neynar/nodejs-sdk/build/api";
+import { config } from "dotenv";
 
 config({ path: resolve(process.cwd(), ".env.local") });
 

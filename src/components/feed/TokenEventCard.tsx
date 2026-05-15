@@ -6,12 +6,13 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
-import Link from "next/link";
 import { ArrowRightLeft, Palette, Sparkles, Users } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 import type { FeedEvent } from "@/lib/types/feed-events";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,7 @@ export interface TokenEventCardProps {
 }
 
 export function TokenEventCard({ event, compact, sequenceNumber }: TokenEventCardProps) {
+  const t = useTranslations("feed");
   // Check if token was burned (minted to zero address)
   const isBurned =
     event.type === "TokenMinted" &&
@@ -29,7 +31,7 @@ export function TokenEventCard({ event, compact, sequenceNumber }: TokenEventCar
       event.recipient === "0x0000000000000000000000000000000000000000" ||
       event.recipient === "0x0");
 
-  const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event, isBurned);
+  const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event, isBurned, t);
 
   return (
     <Card className={cn("transition-shadow hover:shadow-md relative", compact ? "py-3" : "py-4")}>
@@ -83,6 +85,7 @@ export function TokenEventCard({ event, compact, sequenceNumber }: TokenEventCar
 // Subcomponents
 
 function TokenMintedContent({ event }: { event: Extract<FeedEvent, { type: "TokenMinted" }> }) {
+  const t = useTranslations("feed");
   const isZeroAddress =
     !event.recipient ||
     event.recipient === "0x0000000000000000000000000000000000000000" ||
@@ -92,10 +95,10 @@ function TokenMintedContent({ event }: { event: Extract<FeedEvent, { type: "Toke
     <div className="space-y-1.5">
       <p className="text-sm font-semibold">Gnar #{event.tokenId}</p>
       {isZeroAddress ? (
-        <p className="text-xs text-muted-foreground">burned</p>
+        <p className="text-xs text-muted-foreground">{t("events.token.burned")}</p>
       ) : (
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs text-muted-foreground">minted to</span>
+          <span className="text-xs text-muted-foreground">{t("events.token.mintedTo")}</span>
           <AddressDisplay
             address={event.recipient}
             variant="compact"
@@ -107,7 +110,7 @@ function TokenMintedContent({ event }: { event: Extract<FeedEvent, { type: "Toke
           />
           {event.isFounder && (
             <Badge variant="secondary" className="text-xs">
-              Founder
+              {t("events.token.founder")}
             </Badge>
           )}
         </div>
@@ -154,6 +157,7 @@ function DelegateChangedContent({
 }: {
   event: Extract<FeedEvent, { type: "DelegateChanged" }>;
 }) {
+  const t = useTranslations("feed");
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-1.5 flex-wrap">
@@ -166,7 +170,7 @@ function DelegateChangedContent({
           showCopy={false}
           showExplorer={false}
         />
-        <span className="text-xs text-muted-foreground">delegated to</span>
+        <span className="text-xs text-muted-foreground">{t("events.token.delegatedTo")}</span>
         <AddressDisplay
           address={event.toDelegate}
           variant="compact"
@@ -178,7 +182,7 @@ function DelegateChangedContent({
         />
       </div>
       <p className="text-xs text-muted-foreground">
-        {event.tokenCount} {event.tokenCount === 1 ? "vote" : "votes"}
+        {t("events.token.votes", { count: event.tokenCount })}
       </p>
     </div>
   );
@@ -231,9 +235,12 @@ function ZoraDropCreatedContent({
 
 // Helper functions
 
+type TFunc = ReturnType<typeof useTranslations<"feed">>;
+
 function getEventDisplay(
   event: Extract<FeedEvent, { category: "token" | "delegation" }>,
-  isBurned?: boolean,
+  isBurned: boolean,
+  t: TFunc,
 ) {
   switch (event.type) {
     case "TokenMinted":
@@ -241,32 +248,32 @@ function getEventDisplay(
         icon: Palette,
         iconColor: isBurned ? "text-red-600" : "text-purple-600",
         bgColor: isBurned ? "bg-red-50 dark:bg-red-950" : "bg-purple-50 dark:bg-purple-950",
-        title: isBurned ? "Token Burned" : "Token Minted",
-        actionText: "View Token",
+        title: isBurned ? t("events.token.tokenBurned") : t("events.token.tokenMinted"),
+        actionText: t("events.token.viewToken"),
       };
     case "TokenTransferred":
       return {
         icon: ArrowRightLeft,
         iconColor: "text-blue-600",
         bgColor: "bg-blue-50 dark:bg-blue-950",
-        title: "Token Transferred",
-        actionText: "View Token",
+        title: t("events.token.tokenTransferred"),
+        actionText: t("events.token.viewToken"),
       };
     case "DelegateChanged":
       return {
         icon: Users,
         iconColor: "text-indigo-600",
         bgColor: "bg-indigo-50 dark:bg-indigo-950",
-        title: "Delegation Changed",
-        actionText: "View Member",
+        title: t("events.token.delegationChanged"),
+        actionText: t("events.token.viewMember"),
       };
     case "ZoraDropCreated":
       return {
         icon: Sparkles,
         iconColor: "text-pink-600",
         bgColor: "bg-pink-50 dark:bg-pink-950",
-        title: "New Droposal",
-        actionText: "View Drop",
+        title: t("events.token.newDroposal"),
+        actionText: t("events.token.viewDrop"),
       };
   }
 }

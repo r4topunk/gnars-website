@@ -1,8 +1,8 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
 import type { WebGLRenderer } from "three";
 import { TV3DModel } from "./TV3DModel";
 import { useTVTextureControls } from "./TVTextureControls";
@@ -39,7 +39,7 @@ export function Gnar3DTVScene({
         // Consider visible if at least 10% is in viewport
         setIsVisible(entries[0]?.isIntersecting ?? false);
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     observer.observe(container);

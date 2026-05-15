@@ -13,6 +13,7 @@ Add visual differentiation between a voter's own tokens and votes delegated to t
 Single component change: `src/components/proposals/detail/ProposalVotesList.tsx`.
 
 No changes to:
+
 - `ProposalVoteItem` type
 - Subgraph queries
 - Parent components (`ProposalDetail`, `ProposalVotesList` props API)
@@ -36,6 +37,7 @@ r4topunk.eth  voted  FOR  with 41 votes  [20 own]  [21 delegated ↓]  · 2h ago
 Triggered by hover (desktop) or touch (mobile) on the "delegated" tag. Uses shadcn `<Tooltip>` — inherits light/dark mode automatically via `bg-popover border shadow`.
 
 Content:
+
 ```
 DELEGATED FROM
 gnarly.eth        12
@@ -74,7 +76,7 @@ interface DelegationTooltipProps {
 ### Own votes derivation
 
 ```ts
-ownVotes = totalVotes - sum(delegators.map(d => d.tokenCount))
+ownVotes = totalVotes - sum(delegators.map((d) => d.tokenCount));
 ```
 
 Self-delegation artifacts filtered out: `delegators.filter(d => d.owner !== voterAddress)`
@@ -102,14 +104,14 @@ GET /api/delegators/[address]
 
 ## Edge Cases
 
-| Case | Behavior |
-|------|----------|
-| No delegators returned | Tags not rendered — card unchanged |
-| Voter delegated away | `fetchDelegatorsWithCounts` returns empty → no tags |
-| Self-delegation in delegators list | Filter `owner === voterAddress` before sum |
-| Delegation changed since snapshot | Shows current state (not snapshot). Acceptable — noted in code comment |
-| Fetch error | Tooltip shows "Could not load" — no crash |
-| Mobile (touch) | shadcn `<Tooltip>` does not open on tap by default. Acceptable to support desktop hover only in v1 — mobile users see the total vote count without breakdown. |
+| Case                               | Behavior                                                                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No delegators returned             | Tags not rendered — card unchanged                                                                                                                            |
+| Voter delegated away               | `fetchDelegatorsWithCounts` returns empty → no tags                                                                                                           |
+| Self-delegation in delegators list | Filter `owner === voterAddress` before sum                                                                                                                    |
+| Delegation changed since snapshot  | Shows current state (not snapshot). Acceptable — noted in code comment                                                                                        |
+| Fetch error                        | Tooltip shows "Could not load" — no crash                                                                                                                     |
+| Mobile (touch)                     | shadcn `<Tooltip>` does not open on tap by default. Acceptable to support desktop hover only in v1 — mobile users see the total vote count without breakdown. |
 
 ## Styling Reference
 

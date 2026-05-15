@@ -1,12 +1,11 @@
 import "server-only";
-
 import { cache as reactCache } from "react";
 import { unstable_cache } from "next/cache";
 import { getCoin, getCoinHolders, getProfile } from "@zoralabs/coins-sdk";
 import { createPublicClient, http, parseAbi } from "viem";
 import { base } from "viem/chains";
-import { subgraphQuery } from "@/lib/subgraph";
 import { DAO_ADDRESSES, GNARS_CREATOR_ALLOWLIST } from "@/lib/config";
+import { subgraphQuery } from "@/lib/subgraph";
 import {
   assertNeynarApiKey,
   fetchFarcasterProfilesByAddress,
@@ -339,9 +338,7 @@ const MAX_NFT_HOLDER_CANDIDATES = 200;
  * Discover creators by Gnars NFT ownership via Builder DAO subgraph.
  * Resolves NFT holder wallets to Zora profiles.
  */
-async function fetchNftHolderCandidates(
-  excludeHandles: Set<string>,
-): Promise<CandidateCreator[]> {
+async function fetchNftHolderCandidates(excludeHandles: Set<string>): Promise<CandidateCreator[]> {
   const dao = GNARS_NFT_ADDRESS.toLowerCase();
   const PAGE_SIZE = 200;
 
@@ -389,9 +386,7 @@ async function fetchNftHolderCandidates(
           avatar?: { previewImage?: { medium?: string; small?: string } };
         };
         const avatarUrl =
-          avatarRaw.avatar?.previewImage?.medium ||
-          avatarRaw.avatar?.previewImage?.small ||
-          null;
+          avatarRaw.avatar?.previewImage?.medium || avatarRaw.avatar?.previewImage?.small || null;
 
         candidates.push({
           handle,
@@ -645,10 +640,7 @@ function mapCoinToTVItem(coin: CoinNode, creatorHandle: string): TVItemData | nu
   };
 }
 
-function mapFarcasterCoinToTVItem(
-  coin: CoinNode,
-  profile: FarcasterProfile,
-): TVItemData | null {
+function mapFarcasterCoinToTVItem(coin: CoinNode, profile: FarcasterProfile): TVItemData | null {
   const baseItem = mapCoinToTVItem(coin, profile.username);
   if (!baseItem) return null;
 
@@ -770,7 +762,6 @@ async function fetchFarcasterHoldings(
         items.push(item);
         nftCount++;
       }
-
     },
     MAX_CONCURRENT_FARCASTER_FETCHES,
   );

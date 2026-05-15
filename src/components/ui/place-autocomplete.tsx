@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import type { BBox, Feature, FeatureCollection, Point } from "geojson";
 import { MapPinIcon, SearchIcon } from "lucide-react";
 import {
@@ -254,6 +255,7 @@ function PlaceAutocomplete({
   onResultsChange,
   ...props
 }: PlaceAutocompleteProps) {
+  const t = useTranslations("common");
   const [internalValue, setInternalValue] = React.useState(defaultValue);
   const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -289,7 +291,7 @@ function PlaceAutocomplete({
             <SearchIcon />
           </InputGroupAddon>
           <InputGroupInput
-            placeholder="Search"
+            placeholder={t("search.placeholder")}
             value={displayValue}
             onChange={(event) => {
               const newValue = event.target.value;
@@ -318,8 +320,12 @@ function PlaceAutocomplete({
               "data-[state=open]:slide-in-from-top-2 data-[state=closed]:slide-out-to-top-2",
             )}
           >
-            {error && <CommandEmpty>Error: {error.message}</CommandEmpty>}
-            {hasNoResults && <CommandEmpty>Cannot find {displayValue}.</CommandEmpty>}
+            {error && (
+              <CommandEmpty>{t("search.searchError", { message: error.message })}</CommandEmpty>
+            )}
+            {hasNoResults && (
+              <CommandEmpty>{t("search.cannotFind", { query: displayValue })}</CommandEmpty>
+            )}
             {results.length > 0 && (
               <CommandGroup>
                 {results.map((feature) => {

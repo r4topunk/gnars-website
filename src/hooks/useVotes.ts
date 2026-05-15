@@ -133,57 +133,61 @@ export const useVotes = ({
     effectiveSnapshot && !hasSubgraphVoteWeight && !snapshotInFuture,
   );
 
-  const { data, isLoading: contractsLoading, error } = useReadContracts({
+  const {
+    data,
+    isLoading: contractsLoading,
+    error,
+  } = useReadContracts({
     query: {
       enabled: enabled && (!proposalId || !snapshotLoading || hasSubgraphVoteWeight),
       refetchInterval: false,
     },
     contracts: enabled
-      ? (usingSnapshotQuery // Skip getPastVotes if we have subgraph data
-          ? [
-              {
-                address: collectionAddress!,
-                abi: tokenAbi,
-                functionName: "getPastVotes",
-                args: [signerAddress!, effectiveSnapshot!],
-                chainId,
-              },
-              {
-                address: collectionAddress!,
-                abi: tokenAbi,
-                functionName: "delegates",
-                args: [signerAddress!],
-                chainId,
-              },
-              {
-                address: governorAddress!,
-                abi: governorAbi,
-                functionName: "proposalThreshold",
-                chainId,
-              },
-            ]
-          : [
-              {
-                address: collectionAddress!,
-                abi: tokenAbi,
-                functionName: "getVotes",
-                args: [signerAddress!],
-                chainId,
-              },
-              {
-                address: collectionAddress!,
-                abi: tokenAbi,
-                functionName: "delegates",
-                args: [signerAddress!],
-                chainId,
-              },
-              {
-                address: governorAddress!,
-                abi: governorAbi,
-                functionName: "proposalThreshold",
-                chainId,
-              },
-            ])
+      ? usingSnapshotQuery // Skip getPastVotes if we have subgraph data
+        ? [
+            {
+              address: collectionAddress!,
+              abi: tokenAbi,
+              functionName: "getPastVotes",
+              args: [signerAddress!, effectiveSnapshot!],
+              chainId,
+            },
+            {
+              address: collectionAddress!,
+              abi: tokenAbi,
+              functionName: "delegates",
+              args: [signerAddress!],
+              chainId,
+            },
+            {
+              address: governorAddress!,
+              abi: governorAbi,
+              functionName: "proposalThreshold",
+              chainId,
+            },
+          ]
+        : [
+            {
+              address: collectionAddress!,
+              abi: tokenAbi,
+              functionName: "getVotes",
+              args: [signerAddress!],
+              chainId,
+            },
+            {
+              address: collectionAddress!,
+              abi: tokenAbi,
+              functionName: "delegates",
+              args: [signerAddress!],
+              chainId,
+            },
+            {
+              address: governorAddress!,
+              abi: governorAbi,
+              functionName: "proposalThreshold",
+              chainId,
+            },
+          ]
       : [],
   });
 
@@ -194,13 +198,13 @@ export const useVotes = ({
   }
 
   // Debug log for troubleshooting voting power display issues
-  if (process.env.NODE_ENV === 'development' && usingSnapshotQuery) {
-    console.log('[useVotes] Using snapshot query', {
+  if (process.env.NODE_ENV === "development" && usingSnapshotQuery) {
+    console.log("[useVotes] Using snapshot query", {
       snapshotTimestamp: snapshotTimestamp?.toString(),
       snapshotBlockFromSubgraph: snapshotBlock?.toString(),
       effectiveSnapshot: effectiveSnapshot?.toString(),
       signerAddress,
-      data: data.map(d => ({ status: d.status, result: d.result?.toString(), error: d.error })),
+      data: data.map((d) => ({ status: d.status, result: d.result?.toString(), error: d.error })),
       error,
     });
   }
@@ -235,12 +239,17 @@ export const useVotes = ({
   const proposalThresholdResult = data[2];
 
   // Check for errors in contract calls
-  if (votesResult?.status === 'failure' || delegatesResult?.status === 'failure' || proposalThresholdResult?.status === 'failure') {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[useVotes] Contract call failed', {
-        votesError: votesResult?.status === 'failure' ? votesResult.error : null,
-        delegatesError: delegatesResult?.status === 'failure' ? delegatesResult.error : null,
-        thresholdError: proposalThresholdResult?.status === 'failure' ? proposalThresholdResult.error : null,
+  if (
+    votesResult?.status === "failure" ||
+    delegatesResult?.status === "failure" ||
+    proposalThresholdResult?.status === "failure"
+  ) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("[useVotes] Contract call failed", {
+        votesError: votesResult?.status === "failure" ? votesResult.error : null,
+        delegatesError: delegatesResult?.status === "failure" ? delegatesResult.error : null,
+        thresholdError:
+          proposalThresholdResult?.status === "failure" ? proposalThresholdResult.error : null,
       });
     }
   }
@@ -252,14 +261,14 @@ export const useVotes = ({
   // If getPastVotes returns null/undefined, it might mean the snapshot block is invalid or user had 0 votes at snapshot
   // In this case, we return 0 votes (not undefined) so the UI can show "0 voting power" correctly
   if (votes === undefined || delegates === undefined || proposalThreshold === undefined) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[useVotes] Missing contract data', {
-        votes: votes?.toString() ?? 'undefined',
-        delegates: delegates ?? 'undefined',
-        proposalThreshold: proposalThreshold?.toString() ?? 'undefined',
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[useVotes] Missing contract data", {
+        votes: votes?.toString() ?? "undefined",
+        delegates: delegates ?? "undefined",
+        proposalThreshold: proposalThreshold?.toString() ?? "undefined",
         usingSnapshotQuery,
-        snapshotTimestamp: snapshotTimestamp?.toString() ?? 'N/A',
-        effectiveSnapshot: effectiveSnapshot?.toString() ?? 'N/A',
+        snapshotTimestamp: snapshotTimestamp?.toString() ?? "N/A",
+        effectiveSnapshot: effectiveSnapshot?.toString() ?? "N/A",
       });
     }
     return { ...emptyResult, isLoading: false };
@@ -267,13 +276,13 @@ export const useVotes = ({
 
   // Additional validation: if using snapshot query and votes is 0, log for debugging
   // (helps identify RPC cache/stale data issues)
-  if (usingSnapshotQuery && votes === 0n && process.env.NODE_ENV === 'development') {
-    console.info('[useVotes] getPastVotes returned 0 at snapshot', {
+  if (usingSnapshotQuery && votes === 0n && process.env.NODE_ENV === "development") {
+    console.info("[useVotes] getPastVotes returned 0 at snapshot", {
       snapshotTimestamp: snapshotTimestamp?.toString(),
       effectiveSnapshot: effectiveSnapshot?.toString(),
       signerAddress,
       delegates,
-      note: 'If user has delegations, this may indicate the snapshot timestamp was not fetched correctly',
+      note: "If user has delegations, this may indicate the snapshot timestamp was not fetched correctly",
     });
   }
 

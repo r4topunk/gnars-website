@@ -1,15 +1,15 @@
 ---
 layout: post
 title: Are Hardware Wallets Worth It + A Look Into Ledger Nano X
-description: 
+description:
 date: 2022-01-23 00:00:00 +0000
 permalink: /are-hardware-wallets-worth-it/
 author: gami
 image: /images/hardware-wallets.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [education]
-featured: 
+featured:
 ---
 
 <span id="00">When you bought your first cryptocurrency, it was probably through an exchange. Whether it’s Binance for the low fees, Kraken for the top-notch security, or even Coinbase for the free cryptocurrency, these are all centralized crypto exchanges.</span>
@@ -20,28 +20,18 @@ In this article, we will be taking a deep dive into how hardware wallets work, a
 
 So get cozy, this will be a long read.
 
-*Table Of Contents*
+_Table Of Contents_
 
 - [Are Hardware Wallets Worth It + A Look Into Ledger Nano X](#00)
-    - [Should You Choose a Wallet or Exchange?](#01)
-        - [Crypto Exchanges](#02)
-        - [Crypto Wallets](#03)
+  - [Should You Choose a Wallet or Exchange?](#01)
+    - [Crypto Exchanges](#02)
+    - [Crypto Wallets](#03)
 
-- - [Software Vs Hardware Wallets: Why The Latter Triumphs](#04)
-        - [What Is A Hardware Wallet?](#05)
-        - [How Do Hardware Wallets Compare To Software Wallets?](#06)
+- - [Software Vs Hardware Wallets: Why The Latter Triumphs](#04) - [What Is A Hardware Wallet?](#05) - [How Do Hardware Wallets Compare To Software Wallets?](#06)
 
-- - [Ledger Nano X: Features + My Personal Experience](#07)
-        - - [Brand](#08)
-            - [Products](#09)
-            - [Learning and Support](#10)
-        - [Getting My First Hardware Wallet: Ledger Nano X’perience](#11)
-        - [Ledger Nano X vs Ledger Nano S: Defining Differences](#12)
+- - [Ledger Nano X: Features + My Personal Experience](#07) - - [Brand](#08) - [Products](#09) - [Learning and Support](#10) - [Getting My First Hardware Wallet: Ledger Nano X’perience](#11) - [Ledger Nano X vs Ledger Nano S: Defining Differences](#12)
 
-- - [How To Find The Perfect Hardware Wallet For You?](#13)
-        - [Reputation](#14)
-        - [Functionality](#15)
-        - [Community Preference](#16)
+- - [How To Find The Perfect Hardware Wallet For You?](#13) - [Reputation](#14) - [Functionality](#15) - [Community Preference](#16)
 
 - - [Summary: Are Hardware Wallets Worth It?](#17)
 

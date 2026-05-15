@@ -56,10 +56,9 @@ export function useAuctionBids(
       if (isFirstFetch.current) setIsLoading(true);
 
       const auctionId = `${DAO_ADDRESSES.token}:${tokenId}`;
-      const data = await subgraphQuery<{ auctionBids: AuctionBid[] }>(
-        AUCTION_BIDS_QUERY,
-        { auctionId },
-      );
+      const data = await subgraphQuery<{ auctionBids: AuctionBid[] }>(AUCTION_BIDS_QUERY, {
+        auctionId,
+      });
 
       const fetched = data.auctionBids ?? [];
       setBids(fetched);

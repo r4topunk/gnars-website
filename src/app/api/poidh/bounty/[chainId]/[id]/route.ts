@@ -23,9 +23,6 @@ export async function GET(
     return NextResponse.json({ bounty });
   } catch (error) {
     console.error("POIDH bounty API error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch bounty" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch bounty" }, { status: 500 });
   }
 }

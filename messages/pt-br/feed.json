@@ -1,0 +1,141 @@
+{
+  "title": "Feed ao Vivo",
+  "description": "Atividade em tempo real da Gnars DAO",
+  "infoPanel": "Eventos ao vivo da Gnars DAO na Base (últimos 30 dias). Os dados atualizam automaticamente a cada 60 segundos.",
+  "viewAll": "Ver Toda Atividade",
+  "eventCount": "{count, plural, one {# evento} other {# eventos}}",
+  "error": {
+    "title": "Erro ao Carregar o Feed",
+    "description": "Falha ao carregar eventos do feed ao vivo. Por favor, tente de novo mais tarde."
+  },
+  "empty": {
+    "title": "Nenhum Evento Encontrado",
+    "withFilters": "Nenhum evento corresponde aos seus filtros atuais. Tente ajustar os filtros pra ver mais eventos.",
+    "noFilters": "Não há eventos recentes pra mostrar. Volte mais tarde pra novas atividades."
+  },
+  "filters": {
+    "category": "Categoria",
+    "priority": "Prioridade",
+    "withComments": "Com Comentários",
+    "reset": "Resetar",
+    "timeRange": {
+      "label": "Período",
+      "1h": "Última Hora",
+      "24h": "Últimas 24 Horas",
+      "7d": "Últimos 7 Dias",
+      "30d": "Últimos 30 Dias",
+      "all": "Todo o Período"
+    },
+    "categories": {
+      "label": "Categoria do Evento",
+      "governance": "Governança",
+      "auction": "Leilões",
+      "token": "Tokens",
+      "delegation": "Delegação",
+      "treasury": "Tesouro",
+      "admin": "Admin",
+      "settings": "Configurações"
+    },
+    "priorities": {
+      "label": "Prioridade do Evento",
+      "HIGH": "Prioridade Alta",
+      "MEDIUM": "Prioridade Média",
+      "LOW": "Prioridade Baixa"
+    }
+  },
+  "groups": {
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "daysAgo": "há {count} dias",
+    "lastWeek": "Semana passada",
+    "weeksAgo": "há {count} semanas"
+  },
+  "snapshot": {
+    "label": "Snapshot",
+    "leading": "Liderando: {choice}",
+    "recently": "recentemente",
+    "votes": "{count, plural, one {# voto} other {# votos}}",
+    "voters": "{count, plural, one {# votante} other {# votantes}}",
+    "proposalsFound": "{count, plural, one {# proposta} other {# propostas}} encontradas",
+    "filterState": "Filtrar estado",
+    "stateLabel": "Estado",
+    "states": {
+      "active": "Ativa",
+      "closed": "Encerrada",
+      "pending": "Pendente"
+    },
+    "default": "Padrão",
+    "all": "Todas",
+    "none": "Nenhuma",
+    "empty": "Nenhuma proposta encontrada"
+  },
+  "events": {
+    "governance": {
+      "newProposal": "Nova Proposta",
+      "voteCast": "Voto na Proposta #{number}",
+      "proposalQueued": "Proposta em Fila",
+      "proposalExecuted": "Proposta Executada",
+      "proposalCanceled": "Proposta Cancelada",
+      "proposalVetoed": "Proposta Vetada",
+      "votingOpened": "Votação Aberta",
+      "votingClosingSoon": "Votação Encerrando em Breve",
+      "proposalUpdated": "Propdate · Proposta #{number}",
+      "viewProposal": "Ver Proposta",
+      "castVote": "Registrar Voto",
+      "viewPropdate": "Ver Propdate",
+      "votingStarts": "Votação começa {time}",
+      "readyForExecution": "Pronto para execução {time}",
+      "voted": "votou",
+      "withVotes": "com {count} votos",
+      "updateFrom": "atualização de",
+      "replyFrom": "resposta de",
+      "on": "em"
+    },
+    "auction": {
+      "auction": "Leilão",
+      "auctionWon": "Leilão Vencido",
+      "auctionEndingSoon": "Leilão Acabando em Breve",
+      "viewAuction": "Ver Leilão",
+      "viewToken": "Ver Token",
+      "placeBid": "Dar Lance",
+      "onToken": "em #{id}",
+      "bid": "lance",
+      "wonBy": "vencido por",
+      "for": "por",
+      "current": "Atual: {amount}",
+      "live": "AO VIVO",
+      "ended": "Encerrou {time}",
+      "ends": "Encerra {time}",
+      "auctionExtended": "Leilão Estendido",
+      "unknown": "Desconhecido",
+      "minutesLeft": "{count}m restantes!"
+    },
+    "token": {
+      "tokenMinted": "Token Mintado",
+      "tokenBurned": "Token Queimado",
+      "tokenTransferred": "Token Transferido",
+      "delegationChanged": "Delegação Alterada",
+      "newDroposal": "Novo Droposal",
+      "viewToken": "Ver Token",
+      "viewMember": "Ver Membro",
+      "viewDrop": "Ver Drop",
+      "mintedTo": "mintado para",
+      "burned": "queimado",
+      "founder": "Fundador",
+      "delegatedTo": "delegado para",
+      "votes": "{count, plural, one {# voto} other {# votos}}"
+    },
+    "admin": {
+      "treasuryTransaction": "Transação do Tesouro",
+      "settingsUpdated": "Configurações Atualizadas",
+      "ownershipTransferred": "Propriedade Transferida",
+      "viewTransaction": "Ver Transação",
+      "viewDetails": "Ver Detalhes",
+      "admin": "Admin",
+      "sent": "Enviado",
+      "to": "para",
+      "proposal": "Proposta #{number}",
+      "updated": "Atualizado: {old} → {new}"
+    }
+  }
+}

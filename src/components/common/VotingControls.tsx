@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   AlertTriangle,
   Check,
@@ -24,11 +25,11 @@ import {
 } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { useCastVote } from "@/hooks/useCastVote";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { useCastVote } from "@/hooks/useCastVote";
 import { ProposalStatus } from "@/lib/schemas/proposals";
-import { fetchDelegatorsWithCounts, type DelegatorWithCount } from "@/services/members";
 import { cn } from "@/lib/utils";
+import { fetchDelegatorsWithCounts, type DelegatorWithCount } from "@/services/members";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
 
@@ -61,16 +62,19 @@ interface VotingPowerNoticeProps {
   delegatorsLoading: boolean;
 }
 
-const VOTE_LABELS: Record<VoteChoice, string> = {
-  FOR: "For",
-  AGAINST: "Against",
-  ABSTAIN: "Abstain",
+const VOTE_LABEL_KEYS: Record<VoteChoice, "for" | "against" | "abstain"> = {
+  FOR: "for",
+  AGAINST: "against",
+  ABSTAIN: "abstain",
 };
 
-const VOTE_DESCRIPTIONS: Record<VoteChoice, string> = {
-  FOR: "Support this proposal",
-  AGAINST: "Oppose this proposal",
-  ABSTAIN: "Neither support nor oppose",
+const VOTE_DESCRIPTION_KEYS: Record<
+  VoteChoice,
+  "forDescription" | "againstDescription" | "abstainDescription"
+> = {
+  FOR: "forDescription",
+  AGAINST: "againstDescription",
+  ABSTAIN: "abstainDescription",
 };
 
 const VOTE_ICONS: Record<VoteChoice, typeof ThumbsUp> = {
@@ -112,6 +116,7 @@ export function VotingControls({
   isDelegating = false,
   delegatedTo,
 }: VotingControlsProps) {
+  const t = useTranslations("common");
   const { address: accountAddress, isConnected } = useUserAddress();
   const [voteChoice, setVoteChoice] = useState<VoteChoice | null>(existingUserVote ?? null);
   const [reason, setReason] = useState("");
@@ -150,14 +155,14 @@ export function VotingControls({
   }, [existingUserReason, hasVoted]);
 
   const helperText = useMemo(() => {
-    if (!isConnected) return "Connect your wallet to vote";
-    if (votesLoading) return "Loading voting power...";
+    if (!isConnected) return t("voting.connectToVote");
+    if (votesLoading) return t("voting.loadingVotingPower");
     if (votingPower > 0n) {
-      return `You have ${votingPower.toString()} votes (based on snapshot)`;
+      return t("voting.hasVotes", { count: votingPower.toString() });
     }
     // If voting power is 0, explain why (helps debug UI vs contract issues)
-    return "You have 0 voting power at the proposal snapshot. Your vote will be recorded on-chain as a signal.";
-  }, [isConnected, votesLoading, votingPower]);
+    return t("voting.zeroVotingPower");
+  }, [isConnected, votesLoading, votingPower, t]);
 
   useEffect(() => {
     if (!onVoteSuccess || !pendingVote || !pendingHash || !isConfirmed) {
@@ -245,7 +250,7 @@ export function VotingControls({
   if (status !== ProposalStatus.ACTIVE) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">Voting is closed for this proposal.</p>
+        <p className="text-sm text-muted-foreground">{t("voting.closedForProposal")}</p>
       </div>
     );
   }
@@ -276,7 +281,7 @@ export function VotingControls({
         disabled={isDisabled}
         className="grid grid-cols-1 sm:grid-cols-3 gap-3"
       >
-        {(Object.keys(VOTE_LABELS) as VoteChoice[]).map((choice) => {
+        {(Object.keys(VOTE_LABEL_KEYS) as VoteChoice[]).map((choice) => {
           const Icon = VOTE_ICONS[choice];
           const isSelected = voteChoice === choice;
           const colors = VOTE_COLORS[choice];
@@ -294,9 +299,9 @@ export function VotingControls({
                     )}
                   />
                   <div className="flex flex-col gap-0.5">
-                    <FieldTitle>{VOTE_LABELS[choice]}</FieldTitle>
+                    <FieldTitle>{t(`voting.${VOTE_LABEL_KEYS[choice]}`)}</FieldTitle>
                     <FieldDescription className="text-xs">
-                      {VOTE_DESCRIPTIONS[choice]}
+                      {t(`voting.${VOTE_DESCRIPTION_KEYS[choice]}`)}
                     </FieldDescription>
                   </div>
                 </FieldContent>
@@ -308,12 +313,12 @@ export function VotingControls({
       </RadioGroup>
 
       <div className="space-y-2">
-        <FieldDescription className="text-xs">Optional comment (shared on-chain)</FieldDescription>
+        <FieldDescription className="text-xs">{t("voting.optionalComment")}</FieldDescription>
         <Textarea
           id="vote-reason"
           value={reason}
           onChange={(event) => setReason(event.target.value)}
-          placeholder="Share context for your vote"
+          placeholder={t("voting.shareContext")}
           className="min-h-24"
           disabled={isDisabled}
         />
@@ -333,22 +338,22 @@ export function VotingControls({
           {isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Submitting vote...
+              {t("voting.submittingVote")}
             </>
           ) : isConfirming ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Waiting for confirmation...
+              {t("voting.waitingConfirmation")}
             </>
           ) : hasVoted && existingUserVote ? (
             <>
               <Check className="mr-2 h-4 w-4" />
-              Vote {String(existingUserVote).toLowerCase()} confirmed
+              {t("voting.voteConfirmed", { choice: String(existingUserVote).toLowerCase() })}
             </>
           ) : (
             <>
               <Check className="mr-2 h-4 w-4" />
-              Confirm Vote
+              {t("voting.confirmVote")}
             </>
           )}
         </Button>
@@ -366,6 +371,7 @@ export function VotingPowerNotice({
   delegators,
   delegatorsLoading,
 }: VotingPowerNoticeProps) {
+  const t = useTranslations("common");
   const inboundDelegatorsCount = delegators.length;
   const inboundDelegatedVotes = delegators.reduce((acc, curr) => acc + curr.tokenCount, 0);
   const showSignalWarning = isConnected && !votesLoading && votingPower === 0n;
@@ -374,30 +380,34 @@ export function VotingPowerNotice({
   return (
     <Alert className="border-border/80 bg-muted/30">
       <Users className="h-4 w-4" />
-      <AlertTitle>Voting Power & Delegation</AlertTitle>
+      <AlertTitle>{t("voting.powerAndDelegation")}</AlertTitle>
       <AlertDescription className="mt-1 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={votingPower > 0n ? "secondary" : "outline"}>
-            Voting power: {votesLoading ? "..." : votingPower.toString()}
+            {t("voting.votingPower", { power: votesLoading ? "..." : votingPower.toString() })}
           </Badge>
           <Badge variant={delegatedToAnother ? "outline" : "secondary"}>
-            {delegatedToAnother ? "Delegated to another wallet" : "Self delegated"}
+            {delegatedToAnother ? t("voting.delegatedToAnother") : t("voting.selfDelegated")}
           </Badge>
           {(delegatorsLoading || inboundDelegatorsCount > 0) && (
             <Badge variant="outline">
-              Incoming delegators: {delegatorsLoading ? "..." : inboundDelegatorsCount}
+              {t("voting.incomingDelegators", {
+                count: delegatorsLoading ? "..." : inboundDelegatorsCount,
+              })}
             </Badge>
           )}
           {(delegatorsLoading || inboundDelegatedVotes > 0) && (
             <Badge variant="outline">
-              Incoming delegated votes: {delegatorsLoading ? "..." : inboundDelegatedVotes}
+              {t("voting.incomingDelegatedVotes", {
+                count: delegatorsLoading ? "..." : inboundDelegatedVotes,
+              })}
             </Badge>
           )}
         </div>
 
         {delegatedToAnother && delegatedTo ? (
           <div className="text-xs">
-            Your votes are currently delegated to{" "}
+            {t("voting.delegatedTo")}{" "}
             <AddressDisplay
               address={delegatedTo}
               variant="compact"
@@ -413,7 +423,7 @@ export function VotingPowerNotice({
 
         {topDelegators.length > 0 ? (
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Delegations you currently receive:</p>
+            <p className="text-xs text-muted-foreground">{t("voting.delegationsReceived")}</p>
             <div className="flex flex-wrap items-center gap-2">
               {topDelegators.map((item) => (
                 <Badge key={item.owner} variant="outline" className="font-normal">
@@ -429,7 +439,9 @@ export function VotingPowerNotice({
                 </Badge>
               ))}
               {inboundDelegatorsCount > topDelegators.length ? (
-                <Badge variant="outline">+{inboundDelegatorsCount - topDelegators.length} more</Badge>
+                <Badge variant="outline">
+                  {t("voting.moreCount", { count: inboundDelegatorsCount - topDelegators.length })}
+                </Badge>
               ) : null}
             </div>
           </div>
@@ -439,22 +451,14 @@ export function VotingPowerNotice({
           <Alert variant="destructive" className="mt-2">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>
-              {inboundDelegatedVotes > 0 ? "Voting power mismatch detected" : "Signal vote only"}
+              {inboundDelegatedVotes > 0
+                ? t("voting.votingPowerMismatch")
+                : t("voting.signalVoteOnly")}
             </AlertTitle>
             <AlertDescription>
-              {inboundDelegatedVotes > 0 ? (
-                <>
-                  You have {inboundDelegatedVotes} incoming delegated votes, but 0 voting power at
-                  the proposal snapshot. This may happen if delegations were received after the
-                  proposal was created. When you vote, the smart contract will use your actual
-                  voting power at the snapshot block, which may differ from what&apos;s displayed here.
-                </>
-              ) : (
-                <>
-                  You currently have 0 voting power. Your vote will be recorded on-chain as a
-                  signal, with no weight in the tally.
-                </>
-              )}
+              {inboundDelegatedVotes > 0
+                ? t("voting.mismatchDescription", { count: inboundDelegatedVotes })
+                : t("voting.signalVoteDescription")}
             </AlertDescription>
           </Alert>
         ) : null}

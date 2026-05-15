@@ -32,9 +32,7 @@ interface UseAuctionLiveReturn {
   polledEndTime: number | undefined;
 }
 
-export function useAuctionLive(
-  currentTokenId: bigint | undefined,
-): UseAuctionLiveReturn {
+export function useAuctionLive(currentTokenId: bigint | undefined): UseAuctionLiveReturn {
   const { address } = useUserAddress();
   const [bidCount, setBidCount] = useState(0);
   const [latestBid, setLatestBid] = useState<NewBidEvent | undefined>();
@@ -111,15 +109,9 @@ export function useAuctionLive(
 
   const clearOutbid = useCallback(() => setWasOutbid(false), []);
 
-  const polledHighestBid = auctionData
-    ? formatEther(auctionData[1] as bigint)
-    : undefined;
-  const polledHighestBidder = auctionData
-    ? (auctionData[2] as `0x${string}`)
-    : undefined;
-  const polledEndTime = auctionData
-    ? Number(auctionData[4] as unknown as bigint)
-    : undefined;
+  const polledHighestBid = auctionData ? formatEther(auctionData[1] as bigint) : undefined;
+  const polledHighestBidder = auctionData ? (auctionData[2] as `0x${string}`) : undefined;
+  const polledEndTime = auctionData ? Number(auctionData[4] as unknown as bigint) : undefined;
 
   return {
     bidCount,

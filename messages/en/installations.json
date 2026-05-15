@@ -1,0 +1,96 @@
+{
+  "title": "Gnars Installations",
+  "description": "A global network of skateable art installations built through onchain coordination. From DIY handrails to delta ramps, each installation reflects local culture while staying connected through shared Nounish aesthetics and Gnars values.",
+  "stats": {
+    "installations": "Installations",
+    "countries": "Countries",
+    "onchainCoordinated": "Onchain Coordinated"
+  },
+  "notFound": {
+    "title": "Installation Not Found",
+    "description": "The installation you're looking for doesn't exist."
+  },
+  "detail": {
+    "collective": "Collective",
+    "activation": "Activation",
+    "viewProposal": "View Proposal",
+    "media": "Media",
+    "backToMap": "← Back to Map"
+  },
+  "nogglesrails": {
+    "heroDescription": "Community-funded skate rails installed in spots around the world. Open, CC0, owned by no one and everyone.",
+    "stats": {
+      "installations": "Installations",
+      "countries": "Countries",
+      "continents": "Continents"
+    },
+    "actions": {
+      "exploreMap": "Explore Map",
+      "viewAllRails": "View All Rails",
+      "railColor": "Rail Color",
+      "chooseColor": "Choose rail color",
+      "submitProposal": "Submit a Proposal",
+      "wantRailCta": "Want a NogglesRail in your city?"
+    },
+    "mapTabs": {
+      "map": "Map",
+      "globe": "Globe"
+    },
+    "map": {
+      "heading": "Map",
+      "filterAll": "All"
+    },
+    "grid": {
+      "heading": "All Installations",
+      "locationsCount": "{count} locations"
+    },
+    "manifesto": {
+      "originsLabel": "1. Origins",
+      "originsHeading": "Where it started",
+      "originsP1": "Everything started years ago with a simple but radical proposal by Pharra and Vlad (sktbrd) from the XV Collective. The idea was clear: build skate obstacles rooted in DIY culture, open-source thinking, and real street energy, later becoming one of the earliest onchain-born physical experiments within Gnars DAO.",
+      "originsP2": "Take a look at this documentary, where the creator explains the origins of the project and the launch of the NogglesDELTA.",
+      "originsDocLink": "Full Doc Here",
+      "openSourceLabel": "2. Open-Source as a Weapon",
+      "openSourceHeading": "Build it anywhere",
+      "openSourceP1": "One of the first Gnars droposals was an open-source PDF created by Pharra, documenting how to build a Nogglesrail. This document enabled replication across cities and countries, turning a single idea into a global, permissionless skate infrastructure.",
+      "openSourceFilesLink": "Open-Source Build Files",
+      "ctaDescription": "Want to bring a NogglesRail to your city? Submit a proposal and the community will fund it."
+    },
+    "closingBox": {
+      "variationsLabel": "3. Variations & Experiments",
+      "variationsAlt": "Noggles variations and experiments",
+      "variationsHeading": "Beyond the first rails",
+      "variationsP1": "Following the creation of the first Noggles Rails, the expansion of Noggles presence into additional action sports became inevitable, evolving beyond traditional skate handrails into a broader modular obstacle system.",
+      "variationsP2": "This led to the development of fully branded Noggles wakeboard ramps, Megaramp and Thrasher Mag, a snowboard grind tube deployed in Japan, the Noggles Delta selected through an onchain Gnars DAO vote among four proposed obstacle models, and other activations that further nounified physical infrastructure, translating decentralized consensus into tangible cultural impact.",
+      "stillRollingLabel": "4. Still Rolling",
+      "stillRollingHeading": "Onchain-born, still alive",
+      "stillRollingP": "Nogglesrails or Nounstacles prove that onchain coordination can materialize into \"concrete\", skateable infrastructure. Through cash for tricks, events, exposition, Gnars contests, viral Instagram clips, and global replication, the project keeps the DIY spirit alive while spreading Noggles culture in a way no traditional brand or institution could. This is an onchain-born project by Gnars DAO and it's still alive bro, still rolling, and still being built."
+    },
+    "definition": {
+      "frameworkHeading": "Framework: Onchain Spatial Practice",
+      "p1": "How onchain coordination can materialize into tangible, skateable infrastructure operating as a form of living architecture? These interventions function simultaneously as obstacles, public sculptures, and spatial devices that activate parks and urban environments. Through mechanisms such as cash-for-tricks incentives, events, exhibitions, Gnars contests, and viral media distribution, the project translates a DIY ethos into dynamic civic engagement.",
+      "p2": "It operates as a continuously evolving system of collective construction an onchain-native, IRL sculptural practice that integrates architectural thinking, social dynamism, and decentralized coordination, remaining active, adaptive, and in perpetual development. Keep it Gnarly.",
+      "nounstacleTerm": "Nounstacle",
+      "nounstaclePhonetic": "'naun.sta.kal",
+      "nounstacleDefinitionLabel": "Definition:",
+      "nounstacleDefinition": "A skateboarding obstacle, such as a rail or ramp, shaped like noggles, the iconic glasses symbol of Nouns DAO."
+    },
+    "detail": {
+      "allRails": "All Rails",
+      "about": "About",
+      "gallery": "Gallery",
+      "video": "Video",
+      "location": "Location",
+      "city": "City",
+      "country": "Country",
+      "continent": "Continent",
+      "type": "Type",
+      "coordinates": "Coordinates",
+      "funding": "Funding",
+      "viewProposal": "View Proposal",
+      "organicProliferation": "Organic proliferation — no formal proposal.",
+      "wantRailCta": "Want a NogglesRail in your city?",
+      "submitProposal": "Submit a Proposal"
+    }
+  }
+}

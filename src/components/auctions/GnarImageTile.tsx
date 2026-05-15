@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +12,7 @@ interface GnarImageTileProps {
 }
 
 export function GnarImageTile({ imageUrl, tokenId, className }: GnarImageTileProps) {
+  const t = useTranslations("auctions");
   const [errored, setErrored] = useState(false);
   const isDataUri = imageUrl?.startsWith("data:");
 
@@ -41,7 +43,7 @@ export function GnarImageTile({ imageUrl, tokenId, className }: GnarImageTilePro
         <div className="w-full h-full flex items-center justify-center text-muted-foreground">
           <div className="text-center">
             <div className="font-bold mb-1 text-4xl">#{String(tokenId)}</div>
-            <div className="text-muted-foreground text-sm">NFT</div>
+            <div className="text-muted-foreground text-sm">{t("card.imageFallbackLabel")}</div>
           </div>
         </div>
       )}

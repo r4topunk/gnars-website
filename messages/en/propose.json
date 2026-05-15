@@ -1,0 +1,296 @@
+{
+  "page": {
+    "title": "Create Proposal",
+    "description": "Create a new proposal for the Gnars DAO",
+    "useTemplate": "Use a template"
+  },
+  "wizard": {
+    "checkingEligibility": "Checking proposal eligibility...",
+    "steps": {
+      "details": "Details",
+      "transactions": "Transactions",
+      "preview": "Preview"
+    },
+    "nextAddTransactions": "Next: Add Transactions",
+    "backEditDetails": "Back: Edit Details",
+    "nextPreviewSubmit": "Next: Preview & Submit",
+    "backEditTransactions": "Back: Edit Transactions"
+  },
+  "details": {
+    "title": "Proposal Details",
+    "description": "Provide the basic information for your proposal",
+    "titleLabel": "Proposal Title *",
+    "titlePlaceholder": "Enter proposal title...",
+    "titleHelper": "Keep it concise and descriptive",
+    "bannerLabel": "Banner Image",
+    "clickToUpload": "Click to upload banner image",
+    "uploadSizeHint": "PNG, JPG up to 10MB",
+    "uploadingToIpfs": "Uploading to IPFS...",
+    "descriptionLabel": "Description *",
+    "descriptionPlaceholder": "Describe your proposal in detail...\n\nYou can use **markdown** formatting:\n- **Bold text**\n- *Italic text*\n- `Code snippets`\n\nExplain the problem, solution, and expected outcomes.",
+    "descriptionHelper": "Markdown formatting supported. Be thorough and clear about your proposal's purpose and impact.",
+    "noDescriptionYet": "No description yet",
+    "edit": "Edit",
+    "preview": "Preview",
+    "templateHelper": "Fill in the sections below. Your answers are compiled into the proposal."
+  },
+  "banner": {
+    "uploading": "Uploading image to IPFS...",
+    "uploadSuccess": "Image uploaded successfully!",
+    "uploadFailed": "Failed to upload image",
+    "pleaseRetry": "Please try again",
+    "notAnImage": "Please select an image file",
+    "fileTooLarge": "File size must be less than 10MB"
+  },
+  "transactions": {
+    "title": "Proposal Transactions",
+    "description": "Add one or more transactions that will be executed if this proposal passes",
+    "addedTransactions": "Added Transactions",
+    "types": {
+      "sendEth": "Send ETH",
+      "sendEthDesc": "Send ETH from treasury",
+      "sendUsdc": "Send USDC",
+      "sendUsdcDesc": "Send USDC",
+      "sendTokens": "Send Tokens",
+      "sendTokensDesc": "Send ERC-20 tokens",
+      "sendNfts": "Send NFTs",
+      "sendNftsDesc": "Transfer NFTs",
+      "droposal": "Create Droposal",
+      "droposalDesc": "Create a Zora NFT drop",
+      "buyCoin": "Buy Coin",
+      "buyCoinDesc": "Purchase content coin",
+      "custom": "Custom Transaction",
+      "customDesc": "Contract interaction"
+    },
+    "configureDetails": "Configure transaction details",
+    "saveTransaction": "Save Transaction",
+    "cancel": "Cancel",
+    "validationErrors": "Validation errors: {errors}",
+    "creatingSplit": "Creating Split...",
+    "generating": "Generating...",
+    "saving": "Saving...",
+    "unknownType": "Unknown action type"
+  },
+  "sendEth": {
+    "recipientLabel": "Recipient Address *",
+    "recipientPlaceholder": "0x... or ENS name",
+    "amountLabel": "Amount (ETH) *",
+    "amountPlaceholder": "0.0",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe the purpose of this payment..."
+  },
+  "sendUsdc": {
+    "tokenLabel": "Token (fixed)",
+    "recipientLabel": "Recipient Address *",
+    "recipientPlaceholder": "0x... or ENS name",
+    "amountLabel": "Amount (USDC) *",
+    "amountPlaceholder": "0.00",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe the purpose of this USDC transfer..."
+  },
+  "sendTokens": {
+    "tokenAddressLabel": "Token Contract Address *",
+    "tokenAddressPlaceholder": "0x...",
+    "recipientLabel": "Recipient Address *",
+    "recipientPlaceholder": "0x... or ENS name",
+    "amountLabel": "Amount *",
+    "amountPlaceholder": "0.0",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe the purpose of this token transfer..."
+  },
+  "sendNfts": {
+    "selectGnarLabel": "Select a Gnar from Treasury *",
+    "failedToLoad": "Failed to load treasury NFTs: {error}",
+    "noGnarsFound": "No Gnars found in treasury.",
+    "toAddressLabel": "To Address *",
+    "toAddressPlaceholder": "0x... or ENS name",
+    "pleaseSelectNft": "Please select an NFT",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe the purpose of this NFT transfer..."
+  },
+  "droposal": {
+    "title": "Droposal Details",
+    "learnMore": "Learn more",
+    "basicInfo": "Basic Information",
+    "collectionNameLabel": "Collection Name *",
+    "collectionNamePlaceholder": "Gnars Special Edition",
+    "collectionSymbolLabel": "Collection Symbol *",
+    "collectionSymbolPlaceholder": "GNARSSE",
+    "collectionDescLabel": "Collection Description *",
+    "collectionDescPlaceholder": "A special edition drop for the Gnars community...",
+    "pricingSupply": "Pricing & Supply",
+    "priceLabel": "Price per NFT (ETH) *",
+    "pricePlaceholder": "0.01",
+    "priceHelper": "Zora charges 0.000777 ETH per mint as a protocol fee.",
+    "useRevenueSplit": "Use Revenue Split",
+    "useRevenueSplitDesc": "Create a split contract to share NFT sales revenue among multiple recipients",
+    "payoutAddressLabel": "Payout Address",
+    "payoutAddressHelper": "Address that receives mint proceeds and royalties (defaults to DAO treasury)",
+    "splitCreated": "Split Contract Created",
+    "splitCreatedDesc": "This address will receive NFT sales and be included in the proposal.",
+    "viewOnSplits": "View on Splits.org →",
+    "advancedOptions": "Advanced Options",
+    "saleTiming": "Sale Timing",
+    "saleStartLabel": "Sale Start Time",
+    "saleStartHelper": "Auto-calculated based on proposal timeline: voting delay + voting period + timelock delay + 1 day buffer.",
+    "saleEndLabel": "Sale End Time",
+    "saleEndHelper": "Leave empty for no end time (indefinite sale).",
+    "editionSettings": "Edition Settings",
+    "editionTypeLabel": "Edition Type",
+    "openEdition": "Open Edition (Unlimited)",
+    "fixedEdition": "Fixed Edition (Limited Supply)",
+    "editionTypeHelper": "Open edition allows unlimited mints. Fixed edition has a maximum supply.",
+    "editionSizeLabel": "Edition Size *",
+    "editionSizePlaceholder": "100",
+    "royaltySettings": "Royalty Settings",
+    "royaltyLabel": "Royalty (Basis Points)",
+    "royaltyPlaceholder": "5000",
+    "royaltyHelper": "Default: 5000 (50%). Percentage of secondary sales. 10000 = 100%.",
+    "addressConfig": "Address Configuration",
+    "adminLabel": "Admin Address",
+    "adminPlaceholder": "0x... or ENS name",
+    "adminHelper": "Address that can manage the collection (defaults to connected wallet)"
+  },
+  "buyCoin": {
+    "infoDesc": "This transaction will use the Zora Coins SDK to purchase a content or creator coin from the treasury. The swap executes through Uniswap v4 with Zora hooks.",
+    "coinAddressLabel": "Coin Address *",
+    "coinAddressPlaceholder": "0x...",
+    "coinAddressHelper": "ERC-20 address of the content or creator coin",
+    "ethAmountLabel": "ETH Amount *",
+    "ethAmountPlaceholder": "0.1",
+    "ethAmountHelper": "Amount of ETH to spend from treasury",
+    "slippageLabel": "Slippage Tolerance (%) *",
+    "slippagePlaceholder": "5",
+    "slippageHelper": "Maximum acceptable slippage (recommended: 5%)"
+  },
+  "custom": {
+    "infoDesc": "Custom transactions require technical knowledge. Make sure you understand the contract interaction.",
+    "contractAddressLabel": "Contract Address *",
+    "contractAddressPlaceholder": "0x...",
+    "valueLabel": "Value (ETH)",
+    "valuePlaceholder": "0.0",
+    "calldataLabel": "Calldata",
+    "calldataPlaceholder": "0x... - Transaction calldata",
+    "descriptionLabel": "Description *",
+    "descriptionPlaceholder": "Clearly describe what this transaction does..."
+  },
+  "budget": {
+    "noBudgetLines": "No budget lines yet. Add one to request funding.",
+    "labelPlaceholder": "Line item (e.g. Sponsorship fee)",
+    "amountPlaceholder": "Amount",
+    "currencyLabel": "Currency",
+    "addLine": "Add line",
+    "total": "Total:",
+    "removeLineAriaLabel": "Remove budget line {index}",
+    "lineLabelAriaLabel": "Budget line {index} label",
+    "lineAmountAriaLabel": "Budget line {index} amount"
+  },
+  "preview": {
+    "title": "Proposal Preview",
+    "description": "Review your proposal before submitting to the DAO",
+    "bannerAlt": "Proposal banner",
+    "beforeSubmitTitle": "Before You Submit",
+    "checklist": {
+      "transactionDetails": "Ensure all transaction details are correct",
+      "ipfsUpload": "Your proposal metadata will be uploaded to IPFS",
+      "governorSubmit": "The proposal will be submitted to the Governor contract",
+      "cannotModify": "Once submitted, the proposal cannot be modified",
+      "votingDelay": "Voting will begin after a short delay period"
+    },
+    "minimumVotes": "Minimum to create a proposal: {count} votes. This comes from the Governor contract proposal threshold.",
+    "connectToCheck": "Connect your wallet to check eligibility and submit.",
+    "checkingVotingPower": "Checking voting power...",
+    "insufficientVotes": "You need at least {required} votes to create a proposal.",
+    "yourCurrentVotes": "You currently have {votes} votes.",
+    "votesAreDelegated": "Your votes are delegated to {address}.",
+    "preparingProposal": "Preparing proposal...",
+    "walletPending": "Transaction pending... Please confirm in your wallet.",
+    "waitingConfirmation": "Waiting for transaction confirmation...",
+    "preparing": "Preparing...",
+    "confirming": "Confirming...",
+    "submitting": "Submitting...",
+    "submitProposal": "Submit Proposal",
+    "submitted": "Proposal Submitted!",
+    "proposalLive": "Proposal #{number} is live on the Gnars DAO.",
+    "waitingIndex": "Transaction confirmed. Waiting for the subgraph to index your proposal…",
+    "indexingTimeout": "Transaction confirmed. Indexing is taking longer than expected — refresh the proposals page in a minute.",
+    "proposalSubmitted": "Your proposal has been successfully submitted to the Gnars DAO.",
+    "viewProposal": "View Proposal",
+    "viewTransaction": "View Transaction",
+    "insufficientVotingPower": "Insufficient voting power",
+    "validationFailed": "Validation Failed",
+    "failedToSubmit": "Failed to submit proposal",
+    "thirdwebNotConfigured": "Thirdweb client not configured",
+    "connectWalletToSubmit": "Connect wallet to submit a proposal",
+    "pleaseFixErrors": "Please fix validation errors before submitting"
+  },
+  "droposalBuilder": {
+    "media": {
+      "title": "Media",
+      "uploadingToIpfs": "Uploading media to IPFS...",
+      "uploadSuccess": "Media uploaded successfully!",
+      "uploadError": "Failed to upload {kind}",
+      "supportedTypes": "Please upload an image, video, or audio file",
+      "imageTypeUnsupported": "Image type not supported. Please use: JPEG, PNG, GIF, WebP, or SVG",
+      "ipfsUrlsSet": "IPFS URLs set successfully!",
+      "manualInputDialog": "Manual IPFS Input",
+      "mediaUrlLabel": "Media IPFS URL",
+      "mediaUrlHelper": "Enter the IPFS URL for your media file",
+      "coverUrlLabel": "Cover IPFS URL (optional)",
+      "coverUrlHelper": "Enter the IPFS URL for your cover image",
+      "cancel": "Cancel",
+      "setUrls": "Set URLs",
+      "mediaFileLabel": "Media File *",
+      "audioFile": "Audio File",
+      "mediaUploadedBadge": "Media uploaded",
+      "coverImageLabel": "Cover Image",
+      "uploadCoverPrompt": "Upload cover image",
+      "manualInputTitle": "Manually input IPFS CIDs",
+      "alt": {
+        "mediaPreview": "Media preview",
+        "coverPreview": "Cover preview"
+      }
+    },
+    "splits": {
+      "totalAllocated": "Total Allocated:",
+      "remaining": "Remaining: {amount}%",
+      "addressOrEns": "Address or ENS",
+      "addressPlaceholder": "0x... or name.eth",
+      "allocationPercent": "Allocation %",
+      "addRecipient": "Add Recipient",
+      "distributeEvenly": "Distribute Evenly"
+    }
+  },
+  "alt": {
+    "bannerPreview": "Banner preview"
+  },
+  "templates": {
+    "pageTitle": "Proposal Templates",
+    "pageDescription": "Start from a proven structure. Each template is based on the 77 proposals that Gnars DAO has already funded — pick the one that fits your idea.",
+    "howItWorks": "How it works",
+    "steps": {
+      "pick": {
+        "title": "Pick a template",
+        "description": "Choose the category that matches your proposal. Each has tailored sections and guidance."
+      },
+      "fill": {
+        "title": "Fill in the sections",
+        "description": "Replace the placeholder text with your project details. The structure keeps you on track."
+      },
+      "submit": {
+        "title": "Add transactions & submit",
+        "description": "Configure funding requests, then preview and submit your proposal on-chain."
+      }
+    },
+    "sections": "{count} sections",
+    "blankProposal": "Blank Proposal",
+    "blankProposalDesc": "Start from scratch — no template, full creative freedom.",
+    "tips": {
+      "deliverables": "Be specific about deliverables and timelines",
+      "milestones": "Request milestones over lump-sum payments",
+      "links": "Include links to past work or references"
+    },
+    "breadcrumbCreate": "Create Proposal",
+    "breadcrumbTemplates": "Templates"
+  }
+}

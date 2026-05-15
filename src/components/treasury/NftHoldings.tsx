@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { GnarCard } from "@/components/auctions/GnarCard";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { subgraphQuery } from "@/lib/subgraph";
 
 interface NftHoldingsProps {
@@ -54,6 +56,9 @@ const TREASURY_TOKENS_GQL = /* GraphQL */ `
 `;
 
 export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
+  const t = useTranslations("treasury");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
   const PAGE_SIZE = 20;
   const [tokens, setTokens] = useState<
     Array<{
@@ -104,15 +109,16 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
 
         if (ignore) return;
 
-        const mapped = allTokens.map((t) => {
-          const endTime = t.auction?.endTime ? Number(t.auction.endTime) : undefined;
-          const mintedAt = t.mintedAt ? Number(t.mintedAt) : undefined;
+        const mapped = allTokens.map((token) => {
+          const endTime = token.auction?.endTime ? Number(token.auction.endTime) : undefined;
+          const mintedAt = token.mintedAt ? Number(token.mintedAt) : undefined;
           const dateLabel = endTime
-            ? new Date(endTime * 1000).toLocaleDateString()
+            ? new Date(endTime * 1000).toLocaleDateString(intlLocale)
             : mintedAt
-              ? new Date(mintedAt * 1000).toLocaleDateString()
+              ? new Date(mintedAt * 1000).toLocaleDateString(intlLocale)
               : undefined;
-          const finalBidWei = t.auction?.winningBid?.amount ?? t.auction?.highestBid?.amount;
+          const finalBidWei =
+            token.auction?.winningBid?.amount ?? token.auction?.highestBid?.amount;
           const finalBidEth = finalBidWei
             ? (() => {
                 try {
@@ -123,10 +129,10 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
                 }
               })()
             : null;
-          const winner = t.auction?.winningBid?.bidder ?? null;
+          const winner = token.auction?.winningBid?.bidder ?? null;
           return {
-            id: Number(t.tokenId),
-            imageUrl: t.image ?? undefined,
+            id: Number(token.tokenId),
+            imageUrl: token.image ?? undefined,
             dateLabel,
             finalBidEth,
             winnerAddress: finalBidEth ? winner : null,
@@ -144,7 +150,7 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
     return () => {
       ignore = true;
     };
-  }, [treasuryAddress]);
+  }, [treasuryAddress, intlLocale]);
 
   // Reset visible count when tokens change
   useEffect(() => {
@@ -183,7 +189,7 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
     return (
       <Card>
         <CardContent className="pt-6">
-          <div className="text-center text-destructive">Error loading NFT holdings: {error}</div>
+          <div className="text-center text-destructive">{t("nfts.errorLoading", { error })}</div>
         </CardContent>
       </Card>
     );
@@ -194,8 +200,8 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
       <Card>
         <CardContent className="pt-6">
           <div className="text-center text-muted-foreground py-12">
-            <div className="text-lg font-medium mb-2">No NFTs found</div>
-            <div className="text-sm">The treasury currently holds no Gnars</div>
+            <div className="text-lg font-medium mb-2">{t("nfts.empty")}</div>
+            <div className="text-sm">{t("nfts.emptyDescription")}</div>
           </div>
         </CardContent>
       </Card>
@@ -206,22 +212,22 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold">Gnars in Treasury</h3>
+          <h3 className="text-lg font-semibold">{t("nfts.title")}</h3>
           <p className="text-sm text-muted-foreground">
-            {tokens.length} Gnar{tokens.length !== 1 ? "s" : ""} found
+            {t("nfts.count", { count: tokens.length })}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {tokens.slice(0, visibleCount).map((t) => (
+        {tokens.slice(0, visibleCount).map((token) => (
           <GnarCard
-            key={`gnar-${t.id}`}
-            tokenId={t.id}
-            imageUrl={t.imageUrl}
-            dateLabel={t.dateLabel}
-            finalBidEth={t.finalBidEth ?? null}
-            winnerAddress={t.winnerAddress ?? null}
+            key={`gnar-${token.id}`}
+            tokenId={token.id}
+            imageUrl={token.imageUrl}
+            dateLabel={token.dateLabel}
+            finalBidEth={token.finalBidEth ?? null}
+            winnerAddress={token.winnerAddress ?? null}
           />
         ))}
       </div>

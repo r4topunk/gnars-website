@@ -27,6 +27,7 @@ Identify concrete, actionable opportunities to reduce bundle size, improve build
 ### 1. `next.config.ts` — Missing Optimizations
 
 **Current state:**
+
 - `images.remotePatterns` uses a single wildcard `hostname: "**"` (line 56–57). This disables all domain validation.
 - `typescript.ignoreBuildErrors: false` — correct, keep.
 - `experimental.serverActions.bodySizeLimit: "10mb"` — set for video thumbnail uploads (line 64–66).
@@ -44,6 +45,7 @@ Identify concrete, actionable opportunities to reduce bundle size, improve build
 ### 2. `tsconfig.json` — Compiler Options
 
 **Current state:**
+
 - `target: "ES2020"` — slightly behind. Next.js 15 with React 19 supports `ES2022` natively on modern runtimes (V8), which would allow native `await` at top level and object spread without polyfill overhead.
 - `strict: true` — correct.
 - `incremental: true` — correct, speeds up type-check.
@@ -60,18 +62,18 @@ Identify concrete, actionable opportunities to reduce bundle size, improve build
 
 The following packages are in `dependencies` but appear **not used anywhere in `src/`**:
 
-| Package | Version | Evidence | Notes |
-|---------|---------|----------|-------|
-| `@huggingface/transformers` | `^3.8.0` | Zero imports in `src/` | Large ML library (~dozens of MB). Should be devDep or removed entirely. |
-| `leva` | `^0.10.1` | Zero imports in `src/` | Debug GUI for Three.js. Dev-only tool shipped in production bundle. |
-| `import-in-the-middle` | `^1.14.2` | Zero imports in `src/` | OpenTelemetry instrumentation helper, likely leftover from a monitoring experiment. |
-| `require-in-the-middle` | `^7.5.2` | Zero imports in `src/` | Same as above, pair package. |
-| `react-masonry-css` | `^1.0.16` | Zero imports in `src/` | CSS masonry layout component. |
-| `papaparse` + `@types/papaparse` | `^5.5.3` | Zero imports in `src/` | CSV parser. May be used only in `scripts/`. |
-| `better-sqlite3` + `@types/better-sqlite3` | `^12.5.0` | Zero imports in `src/` | Node.js SQLite. Server-side only; should be serverExternalPackages or removed. |
-| `ogl` | `^1.0.11` | Used only in `src/components/tv/FaultyTerminal.tsx:3` | Single-use renderer; consider if component is production-critical. |
-| `gl-matrix` | `^3.4.4` | Used only in `src/components/tv/ReactBitsInfiniteMenu.tsx:4` | Low concern, small lib. |
-| `gsap` | `^3.14.2` | Used only in `src/components/TextType.tsx:4` | Full GSAP bundle for one animation component (~100KB min). |
+| Package                                    | Version   | Evidence                                                     | Notes                                                                               |
+| ------------------------------------------ | --------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `@huggingface/transformers`                | `^3.8.0`  | Zero imports in `src/`                                       | Large ML library (~dozens of MB). Should be devDep or removed entirely.             |
+| `leva`                                     | `^0.10.1` | Zero imports in `src/`                                       | Debug GUI for Three.js. Dev-only tool shipped in production bundle.                 |
+| `import-in-the-middle`                     | `^1.14.2` | Zero imports in `src/`                                       | OpenTelemetry instrumentation helper, likely leftover from a monitoring experiment. |
+| `require-in-the-middle`                    | `^7.5.2`  | Zero imports in `src/`                                       | Same as above, pair package.                                                        |
+| `react-masonry-css`                        | `^1.0.16` | Zero imports in `src/`                                       | CSS masonry layout component.                                                       |
+| `papaparse` + `@types/papaparse`           | `^5.5.3`  | Zero imports in `src/`                                       | CSV parser. May be used only in `scripts/`.                                         |
+| `better-sqlite3` + `@types/better-sqlite3` | `^12.5.0` | Zero imports in `src/`                                       | Node.js SQLite. Server-side only; should be serverExternalPackages or removed.      |
+| `ogl`                                      | `^1.0.11` | Used only in `src/components/tv/FaultyTerminal.tsx:3`        | Single-use renderer; consider if component is production-critical.                  |
+| `gl-matrix`                                | `^3.4.4`  | Used only in `src/components/tv/ReactBitsInfiniteMenu.tsx:4` | Low concern, small lib.                                                             |
+| `gsap`                                     | `^3.14.2` | Used only in `src/components/TextType.tsx:4`                 | Full GSAP bundle for one animation component (~100KB min).                          |
 
 **Heavy packages that ARE used:**
 | Package | Where Used | Approx. Weight | Notes |
@@ -90,6 +92,7 @@ The following packages are in `dependencies` but appear **not used anywhere in `
 ### 4. Tailwind CSS v4 — Purge / Unused Styles
 
 **Current state:**
+
 - Tailwind v4 uses content detection automatically (no explicit `content` array needed).
 - `globals.css` at line 1 uses `@import "tailwindcss"` — correct v4 pattern.
 - The `@layer base` block (lines 116–187) contains **duplicated rules**: every Leaflet override is written twice (e.g., `.leaflet-container` appears at lines 123–126, `@apply` repeated on lines 125 and 124). This is cosmetic but adds CSS noise.
@@ -104,6 +107,7 @@ The following packages are in `dependencies` but appear **not used anywhere in `
 ### 5. Barrel Exports and Tree-Shaking
 
 **Barrel files found:**
+
 - `src/components/tv/index.ts` — exports 20+ symbols including Two wildcard re-exports (`export * from "./types"`, `export * from "./utils"`). However, **no file in `src/` actually imports from this barrel** — all imports go directly to specific files (e.g., `import { Gnar3DTVClient } from "@/components/tv/Gnar3DTVClient"`). The barrel is not causing tree-shaking problems.
 - `src/components/proposals/transaction/index.ts` — named exports only, not wildcard. Not imported via barrel either.
 - `src/components/proposals/builder/forms/index.ts` — named exports only.
@@ -120,16 +124,16 @@ The following packages are in `dependencies` but appear **not used anywhere in `
 
 **Pages with `"use client"` (full-page client boundaries):**
 
-| File | Notes |
-|------|-------|
-| `src/app/auctions/page.tsx` | Entire auctions page is a client component — loses SSR/RSC benefits. |
-| `src/app/lootbox/page.tsx` | Expected — requires wallet interactions throughout. |
-| `src/app/map/page.tsx` | Expected — Leaflet requires DOM. |
-| `src/app/create-coin/page.tsx` | 872 lines of "use client" — large page, no server-side split. |
-| `src/app/demo/voting-power-notice/page.tsx` | Demo page, low priority. |
-| `src/app/demo/proposal-components/page.tsx` | Demo page, low priority. |
-| `src/app/debug/tv/page.tsx` | Debug page, low priority. |
-| Error boundaries (`members/error.tsx`, `proposals/error.tsx`, `blogs/error.tsx`) | Correct — error boundaries must be client components. |
+| File                                                                             | Notes                                                                |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `src/app/auctions/page.tsx`                                                      | Entire auctions page is a client component — loses SSR/RSC benefits. |
+| `src/app/lootbox/page.tsx`                                                       | Expected — requires wallet interactions throughout.                  |
+| `src/app/map/page.tsx`                                                           | Expected — Leaflet requires DOM.                                     |
+| `src/app/create-coin/page.tsx`                                                   | 872 lines of "use client" — large page, no server-side split.        |
+| `src/app/demo/voting-power-notice/page.tsx`                                      | Demo page, low priority.                                             |
+| `src/app/demo/proposal-components/page.tsx`                                      | Demo page, low priority.                                             |
+| `src/app/debug/tv/page.tsx`                                                      | Debug page, low priority.                                            |
+| Error boundaries (`members/error.tsx`, `proposals/error.tsx`, `blogs/error.tsx`) | Correct — error boundaries must be client components.                |
 
 **`src/app/auctions/page.tsx` is the highest-impact concern.** Auctions is a core page. If the top-level component is "use client", the entire page tree hydrates on the client, including any static content that could be server-rendered.
 
@@ -141,21 +145,21 @@ The following packages are in `dependencies` but appear **not used anywhere in `
 
 **Current dynamic imports:**
 
-| File | Lazily loaded module | SSR |
-|------|---------------------|-----|
+| File                                     | Lazily loaded module                       | SSR          |
+| ---------------------------------------- | ------------------------------------------ | ------------ |
 | `src/components/tv/Gnar3DTVClient.tsx:5` | `Gnar3DTV` (wrapper around Three.js scene) | `ssr: false` |
-| `src/components/tv/Gnar3DTV.tsx:8` | `Gnar3DTVScene` (Canvas + Three.js) | `ssr: false` |
+| `src/components/tv/Gnar3DTV.tsx:8`       | `Gnar3DTVScene` (Canvas + Three.js)        | `ssr: false` |
 
 **That is the full extent of dynamic imports.** Only 2 instances in the entire codebase.
 
 **Missing dynamic imports for heavy client-only components:**
 
-| Component | Why It Should Be Dynamic |
-|-----------|--------------------------|
-| `src/components/lootbox/AnimatedChest3D.tsx` | 1514 lines, imports Three.js, but lootbox page is already full-client. Still benefits from splitting the 3D chunk. |
-| `src/components/ui/map.tsx` | 1347 lines, imports Leaflet. Map page is `"use client"` but Leaflet is not lazy. |
-| `src/components/treasury/` recharts components | 4 chart components using Recharts, each "use client". Not deferred. |
-| `src/components/tv/ReactBitsInfiniteMenu.tsx` | 1424 lines, imports `gl-matrix`. Used in TV feature — if the TV route is the only consumer, this is fine, but it's included in all route bundles that import from the TV barrel. |
+| Component                                      | Why It Should Be Dynamic                                                                                                                                                         |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/components/lootbox/AnimatedChest3D.tsx`   | 1514 lines, imports Three.js, but lootbox page is already full-client. Still benefits from splitting the 3D chunk.                                                               |
+| `src/components/ui/map.tsx`                    | 1347 lines, imports Leaflet. Map page is `"use client"` but Leaflet is not lazy.                                                                                                 |
+| `src/components/treasury/` recharts components | 4 chart components using Recharts, each "use client". Not deferred.                                                                                                              |
+| `src/components/tv/ReactBitsInfiniteMenu.tsx`  | 1424 lines, imports `gl-matrix`. Used in TV feature — if the TV route is the only consumer, this is fine, but it's included in all route bundles that import from the TV barrel. |
 
 **However,** since the TV barrel is not actually used externally, `ReactBitsInfiniteMenu` is only loaded on routes that use the TV feature. Still, it's not dynamically imported within the TV page itself.
 
@@ -185,6 +189,7 @@ The following packages are in `dependencies` but appear **not used anywhere in `
 ### 9. Middleware Analysis
 
 `src/middleware.ts` is narrow in scope:
+
 - Only activates for `Accept: text/markdown` requests on `/`, `/proposals`, and `/proposals/:id*`.
 - Very low overhead — no auth, no token validation, no database calls.
 - `matcher` config at line 22–24 is correctly specified.
@@ -196,12 +201,14 @@ The following packages are in `dependencies` but appear **not used anywhere in `
 ### 10. Server Component vs Client Component Boundaries — Summary
 
 **Correct patterns:**
+
 - `src/app/layout.tsx` — Server Component, imports only `"use client"` wrappers.
 - `src/app/page.tsx` — Server Component using `Suspense` with streaming.
 - `src/app/proposals/[id]/page.tsx` — likely server (not marked `"use client"`).
 - Worker files in `src/workers/` — not bundled as app code.
 
 **Problematic patterns:**
+
 - `src/app/auctions/page.tsx` — entire page is a client component.
 - `src/app/create-coin/page.tsx` — 872-line client page.
 - `src/components/layout/DaoHeader.tsx` — 529-line client component for the global header. Static nav links are serialized as client-side JS.
@@ -246,6 +253,7 @@ Estimated bundle savings: `@huggingface/transformers` alone is 10–50MB in node
 **2. Fix image optimization — remove `unoptimized` props on content images**
 
 Files to update:
+
 - `src/components/auctions/GnarCard.tsx:38`
 - `src/components/droposals/DroposalCard.tsx:26`
 - `src/components/feed/AuctionEventCard.tsx` (4 instances)
@@ -258,6 +266,7 @@ Note: IPFS-hosted NFT images may require keeping `unoptimized` if the `hostname:
 **3. Replace wildcard image hostname with explicit domain list**
 
 Change `src/next.config.ts:53–57` from `hostname: "**"` to an explicit list:
+
 - `ipfs.io`, `*.ipfs.io`, `cloudflare-ipfs.com`
 - `zora.co`, `*.zora.co`, `zorb.dev`
 - `warpcast.com`, `imagedelivery.net` (Farcaster CDN)
@@ -302,16 +311,16 @@ Changes `target: "ES2020"` to `"ES2022"`. Marginal benefit for modern runtime en
 
 ## File Path Reference
 
-| Finding | Key Files |
-|---------|-----------|
-| next.config — image wildcard | `/Users/r4to/Script/gnars-website/next.config.ts:52–57` |
-| next.config — missing poweredByHeader | `/Users/r4to/Script/gnars-website/next.config.ts:47` |
-| Unused heavy deps | `/Users/r4to/Script/gnars-website/package.json:17,22,59,60,69,85,88` |
-| framer-motion commented out | `/Users/r4to/Script/gnars-website/src/app/layout.tsx:69` |
-| Three.js dynamic import (correct) | `/Users/r4to/Script/gnars-website/src/components/tv/Gnar3DTVClient.tsx:5` |
-| Leaflet not dynamic | `/Users/r4to/Script/gnars-website/src/components/ui/map.tsx` |
-| Recharts not dynamic | `/Users/r4to/Script/gnars-website/src/components/treasury/` |
-| unoptimized images | `src/components/auctions/GnarCard.tsx:38`, `src/components/droposals/DroposalCard.tsx:26`, `src/components/feed/AuctionEventCard.tsx:132,181,223,251`, `src/components/blogs/BlogCard.tsx:38` |
-| Full-page client components | `src/app/auctions/page.tsx`, `src/app/create-coin/page.tsx` |
-| Duplicate CSS | `src/app/globals.css:123–186` |
-| Barrel wildcard exports | `src/components/tv/index.ts:42–43` (not externally imported — low risk) |
+| Finding                               | Key Files                                                                                                                                                                                     |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| next.config — image wildcard          | `/Users/r4to/Script/gnars-website/next.config.ts:52–57`                                                                                                                                       |
+| next.config — missing poweredByHeader | `/Users/r4to/Script/gnars-website/next.config.ts:47`                                                                                                                                          |
+| Unused heavy deps                     | `/Users/r4to/Script/gnars-website/package.json:17,22,59,60,69,85,88`                                                                                                                          |
+| framer-motion commented out           | `/Users/r4to/Script/gnars-website/src/app/layout.tsx:69`                                                                                                                                      |
+| Three.js dynamic import (correct)     | `/Users/r4to/Script/gnars-website/src/components/tv/Gnar3DTVClient.tsx:5`                                                                                                                     |
+| Leaflet not dynamic                   | `/Users/r4to/Script/gnars-website/src/components/ui/map.tsx`                                                                                                                                  |
+| Recharts not dynamic                  | `/Users/r4to/Script/gnars-website/src/components/treasury/`                                                                                                                                   |
+| unoptimized images                    | `src/components/auctions/GnarCard.tsx:38`, `src/components/droposals/DroposalCard.tsx:26`, `src/components/feed/AuctionEventCard.tsx:132,181,223,251`, `src/components/blogs/BlogCard.tsx:38` |
+| Full-page client components           | `src/app/auctions/page.tsx`, `src/app/create-coin/page.tsx`                                                                                                                                   |
+| Duplicate CSS                         | `src/app/globals.css:123–186`                                                                                                                                                                 |
+| Barrel wildcard exports               | `src/components/tv/index.ts:42–43` (not externally imported — low risk)                                                                                                                       |

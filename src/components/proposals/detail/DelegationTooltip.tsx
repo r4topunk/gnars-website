@@ -1,9 +1,10 @@
 // src/components/proposals/detail/DelegationTooltip.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { DelegatorWithCount } from "@/services/members";
 
 type DelegationStatus = "loading" | "done" | "error";
@@ -15,6 +16,7 @@ interface DelegationTooltipProps {
 }
 
 export function DelegationTooltip({ totalVotes, delegators, status }: DelegationTooltipProps) {
+  const t = useTranslations("proposals");
   // Hide entirely when we know there are no delegators
   if (status === "done" && delegators.length === 0) return null;
 
@@ -25,7 +27,7 @@ export function DelegationTooltip({ totalVotes, delegators, status }: Delegation
     <span className="flex items-center gap-1">
       {ownVotes !== null && (
         <span className="bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded">
-          {ownVotes} own
+          {t("delegation.ownVotes", { count: ownVotes })}
         </span>
       )}
       {status === "loading" && (
@@ -37,13 +39,13 @@ export function DelegationTooltip({ totalVotes, delegators, status }: Delegation
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded border border-border cursor-pointer select-none">
-              {delegatedSum} delegated
+              {t("delegation.delegated", { count: delegatedSum })}
             </span>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="p-0 overflow-hidden min-w-[160px]">
             <div className="px-3 py-2">
               <p className="text-[10px] font-semibold uppercase tracking-wide opacity-60 mb-2">
-                Delegated from
+                {t("delegation.delegatedFrom")}
               </p>
               <div className="space-y-1">
                 {delegators.map((d) => (

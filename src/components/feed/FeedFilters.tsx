@@ -1,24 +1,29 @@
 /**
  * FeedFilters - Event filtering controls
- * 
+ *
  * Provides UI for filtering feed events by category, priority, and time range.
  * Max 7 props per component rule.
  */
 
 "use client";
 
+import { useTranslations } from "next-intl";
+import { Filter, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuCheckboxItem,
+  DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Filter, X } from "lucide-react";
-import { EventCategory, EventPriority, FeedFilters as FeedFiltersType } from "@/lib/types/feed-events";
+import {
+  EventCategory,
+  EventPriority,
+  FeedFilters as FeedFiltersType,
+} from "@/lib/types/feed-events";
 import { DEFAULT_FILTERS } from "./LiveFeedView";
 
 export interface FeedFiltersProps {
@@ -26,53 +31,55 @@ export interface FeedFiltersProps {
   onFiltersChange: (filters: FeedFiltersType) => void;
 }
 
-const CATEGORY_LABELS: Record<EventCategory, string> = {
-  governance: "Governance",
-  auction: "Auctions",
-  token: "Tokens",
-  delegation: "Delegation",
-  treasury: "Treasury",
-  admin: "Admin",
-  settings: "Settings",
-};
-
-const PRIORITY_LABELS: Record<EventPriority, string> = {
-  HIGH: "High Priority",
-  MEDIUM: "Medium Priority",
-  LOW: "Low Priority",
-};
-
-const TIME_RANGE_LABELS = {
-  "1h": "Last Hour",
-  "24h": "Last 24 Hours",
-  "7d": "Last 7 Days",
-  "30d": "Last 30 Days",
-  "all": "All Time",
-} as const;
-
 export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
+  const t = useTranslations("feed");
+
+  const CATEGORY_LABELS: Record<EventCategory, string> = {
+    governance: t("filters.categories.governance"),
+    auction: t("filters.categories.auction"),
+    token: t("filters.categories.token"),
+    delegation: t("filters.categories.delegation"),
+    treasury: t("filters.categories.treasury"),
+    admin: t("filters.categories.admin"),
+    settings: t("filters.categories.settings"),
+  };
+
+  const PRIORITY_LABELS: Record<EventPriority, string> = {
+    HIGH: t("filters.priorities.HIGH"),
+    MEDIUM: t("filters.priorities.MEDIUM"),
+    LOW: t("filters.priorities.LOW"),
+  };
+
+  const TIME_RANGE_LABELS: Record<FeedFiltersType["timeRange"], string> = {
+    "1h": t("filters.timeRange.1h"),
+    "24h": t("filters.timeRange.24h"),
+    "7d": t("filters.timeRange.7d"),
+    "30d": t("filters.timeRange.30d"),
+    all: t("filters.timeRange.all"),
+  };
+
   // Check if current filters match defaults
-  const isDefaultFilters = 
+  const isDefaultFilters =
     filters.priorities.length === DEFAULT_FILTERS.priorities.length &&
-    filters.priorities.every(p => DEFAULT_FILTERS.priorities.includes(p)) &&
+    filters.priorities.every((p) => DEFAULT_FILTERS.priorities.includes(p)) &&
     filters.categories.length === DEFAULT_FILTERS.categories.length &&
-    filters.categories.every(c => DEFAULT_FILTERS.categories.includes(c)) &&
+    filters.categories.every((c) => DEFAULT_FILTERS.categories.includes(c)) &&
     filters.timeRange === DEFAULT_FILTERS.timeRange &&
     filters.showOnlyWithComments === DEFAULT_FILTERS.showOnlyWithComments;
 
   const handleCategoryToggle = (category: EventCategory) => {
     const newCategories = filters.categories.includes(category)
-      ? filters.categories.filter(c => c !== category)
+      ? filters.categories.filter((c) => c !== category)
       : [...filters.categories, category];
-    
+
     onFiltersChange({ ...filters, categories: newCategories });
   };
 
   const handlePriorityToggle = (priority: EventPriority) => {
     const newPriorities = filters.priorities.includes(priority)
-      ? filters.priorities.filter(p => p !== priority)
+      ? filters.priorities.filter((p) => p !== priority)
       : [...filters.priorities, priority];
-    
+
     onFiltersChange({ ...filters, priorities: newPriorities });
   };
 
@@ -91,7 +98,7 @@ export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="h-8 gap-1.5">
             <Filter className="h-3.5 w-3.5" />
-            <span>Category</span>
+            <span>{t("filters.category")}</span>
             {filters.categories.length < 7 && (
               <Badge variant="secondary" className="h-5 px-1 text-xs">
                 {filters.categories.length}
@@ -100,7 +107,7 @@ export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-48">
-          <DropdownMenuLabel>Event Category</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("filters.categories.label")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {(Object.entries(CATEGORY_LABELS) as [EventCategory, string][]).map(([value, label]) => (
             <DropdownMenuCheckboxItem
@@ -118,7 +125,7 @@ export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="h-8 gap-1.5">
-            <span>Priority</span>
+            <span>{t("filters.priority")}</span>
             {filters.priorities.length < 3 && (
               <Badge variant="secondary" className="h-5 px-1 text-xs">
                 {filters.priorities.length}
@@ -127,7 +134,7 @@ export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-48">
-          <DropdownMenuLabel>Event Priority</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("filters.priorities.label")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {(Object.entries(PRIORITY_LABELS) as [EventPriority, string][]).map(([value, label]) => (
             <DropdownMenuCheckboxItem
@@ -149,17 +156,19 @@ export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-40">
-          <DropdownMenuLabel>Time Range</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("filters.timeRange.label")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {(Object.entries(TIME_RANGE_LABELS) as [FeedFiltersType["timeRange"], string][]).map(([value, label]) => (
-            <DropdownMenuCheckboxItem
-              key={value}
-              checked={filters.timeRange === value}
-              onCheckedChange={() => handleTimeRangeChange(value)}
-            >
-              {label}
-            </DropdownMenuCheckboxItem>
-          ))}
+          {(Object.entries(TIME_RANGE_LABELS) as [FeedFiltersType["timeRange"], string][]).map(
+            ([value, label]) => (
+              <DropdownMenuCheckboxItem
+                key={value}
+                checked={filters.timeRange === value}
+                onCheckedChange={() => handleTimeRangeChange(value)}
+              >
+                {label}
+              </DropdownMenuCheckboxItem>
+            ),
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -168,27 +177,23 @@ export function FeedFilters({ filters, onFiltersChange }: FeedFiltersProps) {
         variant={filters.showOnlyWithComments ? "default" : "outline"}
         size="sm"
         className="h-8"
-        onClick={() => onFiltersChange({ 
-          ...filters, 
-          showOnlyWithComments: !filters.showOnlyWithComments 
-        })}
+        onClick={() =>
+          onFiltersChange({
+            ...filters,
+            showOnlyWithComments: !filters.showOnlyWithComments,
+          })
+        }
       >
-        With Comments
+        {t("filters.withComments")}
       </Button>
 
       {/* Reset button - only show if filters differ from defaults */}
       {!isDefaultFilters && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-1"
-          onClick={handleReset}
-        >
+        <Button variant="ghost" size="sm" className="h-8 gap-1" onClick={handleReset}>
           <X className="h-3.5 w-3.5" />
-          Reset
+          {t("filters.reset")}
         </Button>
       )}
     </div>
   );
 }
-

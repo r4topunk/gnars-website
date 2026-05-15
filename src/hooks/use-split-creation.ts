@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { PublicClient, WalletClient } from "viem";
 import { SplitsClient } from "@0xsplits/splits-sdk";
-import { useActiveAccount, useActiveWallet } from "thirdweb/react";
-import { base } from "thirdweb/chains";
 import { viemAdapter } from "thirdweb/adapters/viem";
-import { getThirdwebClient } from "@/lib/thirdweb";
+import { base } from "thirdweb/chains";
+import { useActiveAccount, useActiveWallet } from "thirdweb/react";
+import type { PublicClient, WalletClient } from "viem";
 import type { SplitConfig } from "@/lib/splits-utils";
 import { prepareSplitConfigForSDK } from "@/lib/splits-utils";
+import { getThirdwebClient } from "@/lib/thirdweb";
 
 export interface UseSplitCreationResult {
   createSplit: (config: SplitConfig) => Promise<string | null>;

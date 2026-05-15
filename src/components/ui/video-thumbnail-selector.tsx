@@ -7,6 +7,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, Pause, Play, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ export function VideoThumbnailSelector({
   onThumbnailSelected,
   onCancel,
 }: VideoThumbnailSelectorProps) {
+  const t = useTranslations("common");
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
   const pendingSeekRef = useRef<Promise<void> | null>(null);
 
@@ -178,10 +180,8 @@ export function VideoThumbnailSelector({
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-lg">Select Video Thumbnail</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Choose which moment in your video to use as the thumbnail image
-        </p>
+        <CardTitle className="text-lg">{t("video.selectThumbnail")}</CardTitle>
+        <p className="text-sm text-muted-foreground">{t("video.thumbnailDescription")}</p>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Video Player */}
@@ -189,13 +189,13 @@ export function VideoThumbnailSelector({
           {videoError ? (
             <div className="w-full aspect-video rounded-lg border bg-red-50 flex flex-col items-center justify-center">
               <div className="text-center p-6">
-                <p className="text-red-600 font-medium">Video Playback Error</p>
+                <p className="text-red-600 font-medium">{t("video.playbackError")}</p>
                 <div className="text-red-500 text-sm mt-2 mb-4 whitespace-pre-line">
                   {videoError}
                 </div>
                 <div className="space-y-3">
                   <p className="text-gray-600 text-sm font-medium">
-                    No worries! We can extract a thumbnail automatically.
+                    {t("video.autoThumbnailNote")}
                   </p>
                   <Button
                     onClick={async () => {
@@ -216,7 +216,7 @@ export function VideoThumbnailSelector({
                     size="default"
                     className="min-w-40 bg-blue-600 hover:bg-blue-700"
                   >
-                    {isGenerating ? "Generating..." : "Generate Auto Thumbnail"}
+                    {isGenerating ? t("actions.generating") : t("actions.generateAutoThumbnail")}
                   </Button>
                 </div>
               </div>
@@ -258,7 +258,7 @@ export function VideoThumbnailSelector({
         {/* Scrub Controls */}
         {!videoError && duration > 0 && (
           <div className="space-y-3">
-            <Label>Select Thumbnail Moment</Label>
+            <Label>{t("video.selectThumbnailMoment")}</Label>
             <Slider
               value={[currentTime]}
               onValueChange={handleSliderChange}
@@ -271,11 +271,11 @@ export function VideoThumbnailSelector({
             <div className="flex justify-between items-center">
               <Button variant="outline" size="sm" onClick={resetToDefault}>
                 <RotateCcw className="h-4 w-4 mr-2" />
-                Reset to Default
+                {t("actions.resetToDefault")}
               </Button>
 
               <div className="text-sm text-muted-foreground">
-                Current: {formatTime(currentTime)}
+                {t("video.current", { time: formatTime(currentTime) })}
               </div>
             </div>
           </div>
@@ -284,7 +284,7 @@ export function VideoThumbnailSelector({
         {/* Action Buttons */}
         <div className="flex justify-end gap-2 pt-4">
           <Button variant="outline" onClick={onCancel}>
-            Cancel
+            {t("actions.cancel")}
           </Button>
           <Button
             onClick={handleSelectThumbnail}
@@ -292,11 +292,11 @@ export function VideoThumbnailSelector({
             className="min-w-24"
           >
             {isGenerating ? (
-              "Generating..."
+              t("actions.generating")
             ) : (
               <>
                 <Check className="h-4 w-4 mr-2" />
-                Use This Thumbnail
+                {t("actions.useThisThumbnail")}
               </>
             )}
           </Button>

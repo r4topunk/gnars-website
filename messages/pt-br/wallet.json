@@ -1,0 +1,105 @@
+{
+  "drawer": {
+    "title": "Wallet conectada",
+    "description": "Detalhes da wallet, status de votação e ações da conta"
+  },
+  "labels": {
+    "admin": "Admin",
+    "wallet": "Wallet",
+    "gnars": "Gnars",
+    "voting": "Votação",
+    "gasless": "gasless",
+    "viewing": "visualizando"
+  },
+  "copy": {
+    "adminAddress": "Endereço admin",
+    "walletAddress": "Endereço da wallet",
+    "success": "{label} copiado",
+    "error": "Falha ao copiar"
+  },
+  "voting": {
+    "delegated": "Delegado",
+    "actionNeeded": "Ação necessária",
+    "self": "Auto"
+  },
+  "delegation": {
+    "alertTitle": "Ação necessária",
+    "alertDescription": "Delegue o poder de voto dos seus {balance} {noun} pra você poder votar pelo seu smart account.",
+    "nounSingular": "Gnar",
+    "nounPlural": "Gnars",
+    "inFlight": "Delegando…",
+    "cta": "Delegar o poder de voto",
+    "successToast": "Poder de voto delegado para seu smart account"
+  },
+  "actions": {
+    "switchToWallet": "Mudar para wallet",
+    "switchToAdmin": "Mudar para admin",
+    "profile": "Perfil",
+    "manageAccount": "Gerenciar conta",
+    "disconnect": "Desconectar",
+    "disconnected": "Desconectado",
+    "disconnectError": "Desconexão falhou",
+    "thirdwebNotConfigured": "Cliente Thirdweb não configurado"
+  },
+  "modal": {
+    "title": "Delegação de Voto",
+    "description": "Delegar permite que outra pessoa vote com seus NFTs enquanto você mantém a propriedade. Isso não transfere seus tokens.",
+    "titleNotConnected": "Delegação",
+    "descriptionNotConnected": "Conecte sua wallet para ver e gerenciar sua delegação de voto.",
+    "walletRequired": "Conexão de wallet necessária",
+    "gnarsOwned": "NFTs Gnars Detidos",
+    "votingPower": "Seu Poder de Voto",
+    "voteSingular": "voto",
+    "votePlural": "votos",
+    "nftSingular": "NFT",
+    "nftPlural": "NFTs",
+    "currentDelegate": "Delegate Atual",
+    "selfDelegated": "Auto",
+    "selfDelegatedNote": "Você está votando com seus próprios NFTs",
+    "delegatedNote": "Seus votos estão delegados para outro endereço",
+    "copyAddress": "Copiar endereço",
+    "newDelegateAddress": "Novo Endereço de Delegate",
+    "newDelegatePlaceholder": "0x...",
+    "newDelegateHint": "Insira o endereço Ethereum para o qual você quer delegar seu poder de voto",
+    "cancelDelegation": "Cancelar Delegação",
+    "canceling": "Cancelando...",
+    "changeDelegation": "Mudar Delegate",
+    "cancel": "Cancelar",
+    "updateDelegation": "Atualizar Delegação",
+    "confirming": "Confirmando...",
+    "submitting": "Enviando...",
+    "txConfirming": "Confirmando transação...",
+    "txConfirmed": "✓ Transação confirmada!",
+    "txSubmitted": "Transação enviada",
+    "viewOnBasescan": "Ver transação no Basescan",
+    "learnDelegation": "Saiba mais sobre delegação",
+    "toastSuccess": "Delegação atualizada!",
+    "toastSuccessDescription": "Delegado com sucesso para {address}",
+    "toastInvalidAddress": "Endereço inválido",
+    "toastInvalidAddressDescription": "Por favor, insira um endereço Ethereum válido",
+    "toastNoTokens": "Sem tokens para delegar",
+    "toastNoTokensDescription": "Você não tem nenhum NFT Gnars. A delegação exige possuir pelo menos um token.",
+    "toastAlreadyDelegated": "Já delegado",
+    "toastAlreadyDelegatedDescription": "Você já está delegado para esse endereço.",
+    "toastCancelError": "Não foi possível cancelar a delegação",
+    "toastCancelErrorDescription": "Endereço da wallet não encontrado"
+  },
+  "onboarding": {
+    "title": "Vote sem pagar gas",
+    "alertTitle": "Configuração única",
+    "alertDescription": "Delegue o poder de voto dos seus {noun} para seu smart account pra você poder votar pelo novo fluxo. Você sempre pode fazer isso depois pelo menu da wallet.",
+    "maybeLater": "Talvez depois",
+    "delegate": "Delegar o poder de voto",
+    "delegating": "Delegando…"
+  },
+  "theme": {
+    "toggle": "Alternar tema",
+    "light": "Claro",
+    "dark": "Escuro",
+    "system": "Sistema"
+  },
+  "tv": {
+    "openFullscreen": "Abrir Gnars TV em tela cheia",
+    "closeFullscreen": "Fechar tela cheia"
+  }
+}

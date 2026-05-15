@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { ExternalLink } from 'lucide-react';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useQuery } from "@tanstack/react-query";
+import { ExternalLink } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MediaInfo {
   contentType: string;
@@ -19,9 +19,9 @@ interface MediaEmbedProps {
   className?: string;
 }
 
-export function MediaEmbed({ url, alt = '', className = '' }: MediaEmbedProps) {
+export function MediaEmbed({ url, alt = "", className = "" }: MediaEmbedProps) {
   const { data, isLoading } = useQuery<MediaInfo>({
-    queryKey: ['media-type', url],
+    queryKey: ["media-type", url],
     queryFn: async () => {
       const res = await fetch(`/api/media-type?url=${encodeURIComponent(url)}`);
       return res.json();
@@ -75,11 +75,7 @@ export function MediaEmbed({ url, alt = '', className = '' }: MediaEmbedProps) {
       </DialogTrigger>
       <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={url}
-          alt={alt}
-          className="w-full h-auto max-h-[95vh] object-contain"
-        />
+        <img src={url} alt={alt} className="w-full h-auto max-h-[95vh] object-contain" />
       </DialogContent>
     </Dialog>
   );

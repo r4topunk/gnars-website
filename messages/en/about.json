@@ -1,0 +1,21 @@
+{
+  "title": "About Gnars",
+  "intro": "Gnars is a skateboarding collective and community owned skate brand. We're built by skaters, artists, and builders who want to fund skate culture without corporate gatekeeping. The DAO is just the tool we use to make the decisions together.",
+  "ownership": {
+    "title": "Community ownership in practice",
+    "body": "Members propose ideas, vote, and fund projects that push skateboarding forward—video parts, events, public installations, and the people making them happen. It's a community owned skate brand that stays accountable to the culture."
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "body": "Proposals are the way we decide what to support. Auctions help fund the treasury, and the community directs those resources to skateboarding grants and creative projects."
+  },
+  "links": {
+    "home": "Home",
+    "proposals": "Proposals & grants",
+    "auctions": "Auctions supporting skate culture"
+  },
+  "og": {
+    "heading": "About Gnars",
+    "subheading": "Nounish Open Source Action Sports Brand"
+  }
+}

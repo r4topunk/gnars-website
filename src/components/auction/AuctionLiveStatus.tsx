@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { zeroAddress } from "viem";
-import { Progress } from "@/components/ui/progress";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { Progress } from "@/components/ui/progress";
 
 interface AuctionLiveStatusProps {
   highestBid: string | undefined;
@@ -63,7 +64,8 @@ export function AuctionLiveStatus({
 
   const { progressPercentage, isLive, isEndingSoon } = useMemo(() => {
     const fallbackDuration = 24 * 60 * 60 * 1000;
-    const duration = startTimeMs && endTimeMs ? Math.max(endTimeMs - startTimeMs, 0) : fallbackDuration;
+    const duration =
+      startTimeMs && endTimeMs ? Math.max(endTimeMs - startTimeMs, 0) : fallbackDuration;
     const elapsed = Math.max(0, Math.min(duration, duration - Math.max(timeLeft.total, 0)));
     const progress = Math.min(100, Math.max(0, (elapsed / duration) * 100));
     const live = timeLeft.total > 0;
@@ -72,23 +74,27 @@ export function AuctionLiveStatus({
   }, [startTimeMs, endTimeMs, timeLeft.total]);
 
   const remainingPercent = 100 - progressPercentage;
-  const progressColor = remainingPercent <= 10
-    ? "[&>div]:bg-red-500"
-    : remainingPercent <= 30
-      ? "[&>div]:bg-amber-500"
-      : "[&>div]:bg-green-500";
+  const progressColor =
+    remainingPercent <= 10
+      ? "[&>div]:bg-red-500"
+      : remainingPercent <= 30
+        ? "[&>div]:bg-amber-500"
+        : "[&>div]:bg-green-500";
 
   const timeString = `${timeLeft.hours.toString().padStart(2, "0")}:${timeLeft.minutes.toString().padStart(2, "0")}:${timeLeft.seconds.toString().padStart(2, "0")}`;
 
+  const t = useTranslations("auctions");
   const hasBidder = highestBidder && highestBidder !== zeroAddress;
 
   return (
     <>
       {/* Leading bid card */}
       {hasBidder ? (
-        <div className={`rounded-lg border border-border/60 bg-muted/30 p-3 ${
-          bidAnimating ? "ring-2 ring-primary/30 transition-shadow duration-300" : ""
-        }`}>
+        <div
+          className={`rounded-lg border border-border/60 bg-muted/30 p-3 ${
+            bidAnimating ? "ring-2 ring-primary/30 transition-shadow duration-300" : ""
+          }`}
+        >
           <div className="flex items-center justify-between">
             <AddressDisplay
               address={highestBidder}
@@ -101,9 +107,11 @@ export function AuctionLiveStatus({
               onAddressClick={() => {}}
               className="text-sm font-medium text-foreground pointer-events-none"
             />
-            <span className={`text-lg font-bold ${
-              bidAnimating ? "text-primary transition-colors duration-300" : ""
-            }`}>
+            <span
+              className={`text-lg font-bold ${
+                bidAnimating ? "text-primary transition-colors duration-300" : ""
+              }`}
+            >
               {highestBid ? `${highestBid} ETH` : ""}
             </span>
           </div>
@@ -115,24 +123,27 @@ export function AuctionLiveStatus({
         </div>
       ) : (
         <div className="text-center py-2 text-muted-foreground text-sm">
-          No bids yet — be the first!
+          {t("status.noBidsYet")}
         </div>
       )}
 
       {/* Time + progress + bid count — single compact row */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className={`inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
-          isLive
-            ? isEndingSoon ? "bg-amber-500 animate-pulse" : "bg-green-500"
-            : "bg-muted-foreground"
-        }`} />
+        <span
+          className={`inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
+            isLive
+              ? isEndingSoon
+                ? "bg-amber-500 animate-pulse"
+                : "bg-green-500"
+              : "bg-muted-foreground"
+          }`}
+        />
         <span className="shrink-0">
           {isLive
             ? isEndingSoon
-              ? `Ending soon · ${timeString}`
-              : `${timeString} left`
-            : "Ended"
-          }
+              ? t("status.endingSoon", { time: timeString })
+              : t("status.timeLeft", { time: timeString })
+            : t("status.ended")}
         </span>
         <Progress value={progressPercentage} className={`h-1 flex-1 ${progressColor}`} />
         {bidCount > 0 && (
@@ -141,7 +152,7 @@ export function AuctionLiveStatus({
             onClick={onBidHistoryOpen}
             className="shrink-0 hover:text-foreground transition-colors"
           >
-            {bidCount} {bidCount === 1 ? "bid" : "bids"} →
+            {t("status.bidCount", { count: bidCount })} →
           </button>
         )}
       </div>

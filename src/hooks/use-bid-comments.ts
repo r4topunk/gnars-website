@@ -14,9 +14,7 @@ function decodeComment(input: string): string | null {
   if (commentHex.length === 0) return null;
 
   try {
-    const bytes = new Uint8Array(
-      commentHex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
-    );
+    const bytes = new Uint8Array(commentHex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
     const decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     return decoded.trim() || null;
   } catch {

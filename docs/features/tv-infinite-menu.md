@@ -36,12 +36,14 @@ Integrated the **React Bits Infinite Menu** - a 3D interactive WebGL sphere menu
 ## Features
 
 ### 3D Sphere Interaction
+
 - **Drag to rotate**: Arcball controls for smooth sphere rotation
 - **Snap to nearest**: Automatically snaps to closest video when released
 - **Zoom on drag**: Camera zooms based on rotation velocity
 - **Active tracking**: Highlights currently focused video
 
 ### Integration with TV Feed
+
 - **Video thumbnails**: Uses poster images from TVItem[]
 - **Title + Creator**: Displays video metadata on rotation
 - **Navigation**: Click arrow button to jump to selected video
@@ -49,6 +51,7 @@ Integrated the **React Bits Infinite Menu** - a 3D interactive WebGL sphere menu
 - **Background close**: Click outside canvas to close menu
 
 ### Performance
+
 - **Texture atlas**: Combines all images into single texture (512px cells)
 - **Instanced rendering**: Efficient GPU rendering of multiple discs
 - **RequestAnimationFrame loop**: Smooth 60fps animations
@@ -60,18 +63,20 @@ Integrated the **React Bits Infinite Menu** - a 3D interactive WebGL sphere menu
 import { TVInfiniteMenu } from "@/components/tv";
 
 <TVInfiniteMenu
-  items={videoItems}           // TVItem[] from feed
-  currentIndex={activeIndex}   // Currently playing video
-  onItemClick={(index) => {    // Navigation callback
+  items={videoItems} // TVItem[] from feed
+  currentIndex={activeIndex} // Currently playing video
+  onItemClick={(index) => {
+    // Navigation callback
     setActiveIndex(index);
     scrollToVideo(index);
   }}
-/>
+/>;
 ```
 
 ## Technical Details
 
 ### WebGL Pipeline
+
 1. **Geometry Creation**: IcosahedronGeometry → subdivide → spherize
 2. **Instance Setup**: Create matrix buffer for each disc
 3. **Texture Atlas**: Load all images into 2D canvas atlas
@@ -79,12 +84,14 @@ import { TVInfiniteMenu } from "@/components/tv";
 5. **Animation Loop**: Update matrices, render to canvas
 
 ### Shader Features
+
 - **Vertex Shader**: Applies rotation stretching based on velocity
 - **Fragment Shader**: Texture atlas sampling with aspect fit
 - **Alpha Blending**: Front discs more opaque than back
 - **Depth Testing**: Proper occlusion of back faces
 
 ### Controls
+
 - **Pointer Events**: Down, up, move, leave
 - **Quaternion Math**: Smooth rotations via arcball algorithm
 - **Snap Direction**: Lerps to nearest video position
@@ -93,6 +100,7 @@ import { TVInfiniteMenu } from "@/components/tv";
 ## Color Scheme
 
 All UI elements use golden amber (#FBBF23) to match Gnars branding:
+
 - Close button background
 - Navigate button background
 - Instructions text (with opacity)
@@ -100,12 +108,14 @@ All UI elements use golden amber (#FBBF23) to match Gnars branding:
 ## Browser Support
 
 Requires:
+
 - WebGL 2.0 support
 - ES6+ JavaScript
 - Touch events (mobile)
 - Pointer events (desktop)
 
 Tested on:
+
 - Chrome 90+
 - Firefox 90+
 - Safari 14+

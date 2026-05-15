@@ -1,0 +1,73 @@
+{
+  "title": "Swap",
+  "description": "Troque tokens com a melhor execução em mais de 150 DEXes.",
+  "chain": {
+    "selectLabel": "Selecionar chain",
+    "switchTo": "Mudar para {name}",
+    "switching": "Mudando…"
+  },
+  "editorial": {
+    "tagline": "Cada swap é uma pequena aposta no shred",
+    "body": "Com a caixa <highlight>Apoiar o tesouro da Gnars</highlight> marcada, 0,5% de cada trade vai direto pro Tesouro Coletivo da Gnars — que já está por trás de <highlight>15 esculturas skatáveis</highlight> pelo mundo, patrocínios de embaixadores e infraestrutura pra uma rede de shredders do planeta todo. Você não está só trocando tokens; você está bancando a cultura e financiando a próxima colocada de concreto, o próximo contest, a próxima session."
+  },
+  "tokenPicker": {
+    "dialogTitle": "Selecione um token",
+    "dialogDescription": "Busque por símbolo, nome ou cole um endereço de token contract.",
+    "searchPlaceholder": "Buscar nome ou colar endereço",
+    "popular": "Populares",
+    "nativeAsset": "Ativo nativo",
+    "resolvingToken": "Resolvendo token…",
+    "noErc20Found": "Nenhum token ERC-20 encontrado nesse endereço",
+    "noTokensFound": "Nenhum token encontrado"
+  },
+  "from": {
+    "sellToken": "Token de venda",
+    "balance": "Saldo:",
+    "max": "MAX",
+    "sellAmount": "Quantia de venda",
+    "fetchingPrice": "Buscando preço…"
+  },
+  "to": {
+    "buyToken": "Token de compra",
+    "balance": "Saldo:",
+    "bestExecution": "Melhor em mais de 150 DEXes"
+  },
+  "flipTokens": "Inverter tokens",
+  "captions": {
+    "insufficientBalance": "Saldo de {symbol} insuficiente",
+    "noLiquidity": "Sem liquidez para esse par",
+    "networkFee": "~{amount} ETH de fee de rede",
+    "enterAmount": "Insira uma quantia acima"
+  },
+  "buttons": {
+    "connectToSwap": "Conectar wallet para fazer swap",
+    "enterAmount": "Insira uma quantia",
+    "swap": "Swap {sell} → {buy}",
+    "swapping": "Fazendo swap…",
+    "approve": "Aprovar {symbol}",
+    "approving": "Aprovando {symbol}…"
+  },
+  "fee": {
+    "label": "Apoiar o tesouro da Gnars (0,5%)",
+    "tooltip": "Uma fee de 0,5% no token comprado vai pro tesouro da Gnars DAO. Ajuda a financiar propostas, bounties e infraestrutura skate. Desmarque para pular."
+  },
+  "toasts": {
+    "switchedTo": "Mudou para {name}",
+    "switchFailed": "Falha ao mudar de rede",
+    "approvalSubmitted": "Aprovação enviada",
+    "tokenApproved": "{symbol} aprovado",
+    "approvalCancelled": "Aprovação cancelada",
+    "approvalFailed": "Aprovação falhou",
+    "cannotApprove": "Não foi possível aprovar",
+    "connectOnChain": "Conecte uma wallet em {name}.",
+    "swapSubmitted": "Swap enviado",
+    "swapConfirmed": "Swap confirmado",
+    "swapConfirmedDesc": "Recebido ~{amount} {symbol}",
+    "connectFirst": "Conecte uma wallet primeiro",
+    "noLiquidity": "Sem liquidez para esse par",
+    "quoteUnavailable": "Cotação indisponível",
+    "quoteUnavailableFallback": "A 0x não retornou transação",
+    "swapCancelled": "Swap cancelado",
+    "swapFailed": "Swap falhou"
+  }
+}

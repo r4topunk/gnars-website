@@ -7,6 +7,7 @@ This module provides an integrated workflow for creating DAO proposals to purcha
 ## Features
 
 ### 🎯 Integrated Proposal Creation
+
 - Single workflow from coin selection to proposal submission
 - Automatic transaction data generation using Zora SDK
 - Pre-filled proposal with title, description, and custom transaction
@@ -15,12 +16,14 @@ This module provides an integrated workflow for creating DAO proposals to purcha
 ### 🔄 Two-Step Wizard Flow
 
 #### Step 1: Coin Purchase Configuration
+
 - Coin address input (ERC-20 token to purchase)
 - Optional coin name for display
 - ETH amount to spend from treasury
 - Slippage tolerance configuration
 
 #### Step 2: Review & Submit
+
 - Trade summary display
 - Auto-generated proposal title and description
 - Transaction details preview
@@ -31,28 +34,33 @@ This module provides an integrated workflow for creating DAO proposals to purcha
 ### Components
 
 **CoinProposalWizard.tsx** - Main wizard orchestrator
+
 - Manages two-tab flow (purchase → preview)
 - Integrates Zora Coins SDK via `createTradeCall()`
 - Validates voting power requirements
 - Uses React Hook Form with Zod validation
 
 **CoinPurchaseForm.tsx** - Purchase parameters input
+
 - Form fields for coin details and trade parameters
 - Real-time validation
 - Loading states during SDK calls
 
 **CoinPurchasePreview.tsx** - Trade summary display
+
 - Shows all purchase parameters
 - Treasury sender/recipient confirmation
 - Visual trade details
 
 **CoinProposalGenerator.tsx** (Legacy) - Manual copy/paste flow
+
 - Generates transaction data for manual entry
 - Displays target, value, calldata
 - Copy-to-clipboard functionality
 - Option A instructions for Builder
 
 **TransactionDisplay.tsx** (Legacy) - Transaction data display
+
 - Detailed router transaction breakdown
 - Builder integration instructions
 - Option B fallback guidance
@@ -82,11 +90,13 @@ The wizard automatically creates a proposal with:
 **Title**: `"Buy {CoinName} Content Coin"`
 
 **Description**: Markdown-formatted details including:
+
 - Coin address and trade parameters
 - Technical details (router, value)
 - Treasury information
 
 **Transaction**: Custom transaction type with:
+
 ```typescript
 {
   type: "custom",
@@ -111,6 +121,7 @@ The wizard automatically creates a proposal with:
 ### Schema Validation
 
 Uses existing `proposalSchema` with `customTransactionSchema`:
+
 - Address validation via viem `isAddress()`
 - Hex calldata validation (`/^0x[0-9a-fA-F]*$/`)
 - Numeric string validation for ETH amounts
@@ -118,6 +129,7 @@ Uses existing `proposalSchema` with `customTransactionSchema`:
 ### Transaction Encoding
 
 Leverages existing `encodeTransactions()` from `proposal-utils.ts`:
+
 ```typescript
 targets.push(tx.target);
 values.push(parseEther(tx.value));
@@ -127,6 +139,7 @@ calldatas.push(tx.calldata);
 ### Voting Power Checks
 
 Reuses `useVotes()` hook:
+
 - Validates user has `proposalThreshold` votes
 - Shows delegation status
 - Blocks submission if insufficient votes
@@ -146,24 +159,26 @@ Reuses `useVotes()` hook:
 ### For Developers
 
 Import the wizard:
+
 ```tsx
 import { CoinProposalWizard } from "@/components/coin-proposal/CoinProposalWizard";
 
-<CoinProposalWizard />
+<CoinProposalWizard />;
 ```
 
 Environment requirements:
+
 - `NEXT_PUBLIC_ZORA_API_KEY` - For SDK metadata/routing
 
 ## Key Differences from Manual Flow
 
-| Aspect | Option 1 (Manual) | Option 2 (Integrated) |
-|--------|------------------|----------------------|
-| Steps | Generate data → Copy → Paste → Submit | Configure → Review → Submit |
-| User Input | 6+ copy/paste actions | 3-4 form fields |
-| Proposal Text | User writes manually | Auto-generated |
-| Error Handling | Manual validation | Built-in validation |
-| UX Complexity | High (multi-page) | Low (single wizard) |
+| Aspect         | Option 1 (Manual)                     | Option 2 (Integrated)       |
+| -------------- | ------------------------------------- | --------------------------- |
+| Steps          | Generate data → Copy → Paste → Submit | Configure → Review → Submit |
+| User Input     | 6+ copy/paste actions                 | 3-4 form fields             |
+| Proposal Text  | User writes manually                  | Auto-generated              |
+| Error Handling | Manual validation                     | Built-in validation         |
+| UX Complexity  | High (multi-page)                     | Low (single wizard)         |
 
 ## Router Transaction Details
 
@@ -189,6 +204,7 @@ The SDK's `createTradeCall()` returns:
 ## Future Enhancements
 
 Potential improvements:
+
 - Coin metadata fetching (name, symbol from chain)
 - Price impact estimation
 - Historical trade data

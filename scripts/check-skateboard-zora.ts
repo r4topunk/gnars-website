@@ -15,7 +15,7 @@ async function checkSkateboardZora() {
       console.log("✅ Found Zora profile:");
       console.log("   Handle:", profile.handle);
       console.log("   Public wallet:", profile.publicWallet?.walletAddress || "none");
-      
+
       const linked =
         (
           profile as {

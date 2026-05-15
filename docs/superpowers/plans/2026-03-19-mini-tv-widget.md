@@ -18,20 +18,21 @@
 
 ## File Structure
 
-| File | Responsibility |
-|------|---------------|
-| `src/components/tv/Gnar3DTVScene.tsx` | Modify: add `dpr` and `enableOrbitControls` props |
-| `src/components/tv/MiniTVVisibilityContext.tsx` | New: React context + provider for hero TV visibility |
-| `src/components/tv/HeroTVObserver.tsx` | New: client wrapper that reports hero TV intersection |
-| `src/components/tv/MiniTV.tsx` | New: the mini TV widget with hover/click/fullscreen |
-| `src/app/layout.tsx` | Modify: add MiniTVVisibilityProvider + MiniTV |
-| `src/app/page.tsx` | Modify: wrap hero TV with HeroTVObserver |
+| File                                            | Responsibility                                        |
+| ----------------------------------------------- | ----------------------------------------------------- |
+| `src/components/tv/Gnar3DTVScene.tsx`           | Modify: add `dpr` and `enableOrbitControls` props     |
+| `src/components/tv/MiniTVVisibilityContext.tsx` | New: React context + provider for hero TV visibility  |
+| `src/components/tv/HeroTVObserver.tsx`          | New: client wrapper that reports hero TV intersection |
+| `src/components/tv/MiniTV.tsx`                  | New: the mini TV widget with hover/click/fullscreen   |
+| `src/app/layout.tsx`                            | Modify: add MiniTVVisibilityProvider + MiniTV         |
+| `src/app/page.tsx`                              | Modify: wrap hero TV with HeroTVObserver              |
 
 ---
 
 ### Task 1: Add `dpr` and `enableOrbitControls` props to `Gnar3DTVScene`
 
 **Files:**
+
 - Modify: `src/components/tv/Gnar3DTVScene.tsx`
 
 - [ ] **Step 1: Add props to interface and destructure**
@@ -78,15 +79,17 @@ Replace the hardcoded `dpr={0.6}` with `dpr={dpr}`:
 Replace the unconditional `<OrbitControls>` with:
 
 ```tsx
-{enableOrbitControls && (
-  <OrbitControls
-    enableDamping={false}
-    minDistance={2}
-    maxDistance={8}
-    enablePan={false}
-    enableZoom={false}
-  />
-)}
+{
+  enableOrbitControls && (
+    <OrbitControls
+      enableDamping={false}
+      minDistance={2}
+      maxDistance={8}
+      enablePan={false}
+      enableZoom={false}
+    />
+  );
+}
 ```
 
 - [ ] **Step 4: Verify existing homepage TV still works**
@@ -105,6 +108,7 @@ git commit -m "feat(tv): add dpr and enableOrbitControls props to Gnar3DTVScene"
 ### Task 2: Create `MiniTVVisibilityContext`
 
 **Files:**
+
 - Create: `src/components/tv/MiniTVVisibilityContext.tsx`
 
 - [ ] **Step 1: Create the context file**
@@ -155,6 +159,7 @@ git commit -m "feat(tv): add MiniTVVisibilityContext for homepage scroll awarene
 ### Task 3: Create `HeroTVObserver`
 
 **Files:**
+
 - Create: `src/components/tv/HeroTVObserver.tsx`
 
 - [ ] **Step 1: Create the observer component**
@@ -179,7 +184,7 @@ export function HeroTVObserver({ children }: { children: ReactNode }) {
       (entries) => {
         setHeroTVVisible(entries[0]?.isIntersecting ?? false);
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     observer.observe(el);
@@ -206,6 +211,7 @@ git commit -m "feat(tv): add HeroTVObserver for hero TV intersection tracking"
 ### Task 4: Create `MiniTV` widget
 
 **Files:**
+
 - Create: `src/components/tv/MiniTV.tsx`
 
 - [ ] **Step 1: Create MiniTV component**
@@ -215,16 +221,16 @@ Create `src/components/tv/MiniTV.tsx`:
 ```tsx
 "use client";
 
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { X } from "lucide-react";
-import { useTVFeed } from "./useTVFeed";
 import { useMiniTVVisibility } from "./MiniTVVisibilityContext";
+import { useTVFeed } from "./useTVFeed";
 
-const Gnar3DTVScene = dynamic(
-  () => import("./Gnar3DTVScene").then((mod) => mod.Gnar3DTVScene),
-  { ssr: false, loading: () => null }
-);
+const Gnar3DTVScene = dynamic(() => import("./Gnar3DTVScene").then((mod) => mod.Gnar3DTVScene), {
+  ssr: false,
+  loading: () => null,
+});
 
 export function MiniTV() {
   const [isHovered, setIsHovered] = useState(false);
@@ -352,6 +358,7 @@ git commit -m "feat(tv): add MiniTV widget with hover video and fullscreen"
 ### Task 5: Wire into layout and homepage
 
 **Files:**
+
 - Modify: `src/app/layout.tsx`
 - Modify: `src/app/page.tsx`
 
@@ -360,14 +367,16 @@ git commit -m "feat(tv): add MiniTV widget with hover video and fullscreen"
 In `src/app/layout.tsx`, add imports:
 
 ```tsx
-import { MiniTVVisibilityProvider } from "@/components/tv/MiniTVVisibilityContext";
 import { MiniTV } from "@/components/tv/MiniTV";
+import { MiniTVVisibilityProvider } from "@/components/tv/MiniTVVisibilityContext";
 ```
 
 Wrap existing `<TooltipProvider>` children with the provider and add `<MiniTV />`:
 
 ```tsx
-{/* ...existing ThemeProvider > Providers wrappers remain unchanged... */}
+{
+  /* ...existing ThemeProvider > Providers wrappers remain unchanged... */
+}
 <TooltipProvider>
   <MiniTVVisibilityProvider>
     <MiniAppReady />
@@ -379,7 +388,7 @@ Wrap existing `<TooltipProvider>` children with the provider and add `<MiniTV />
     <Toaster />
     <MiniTV />
   </MiniTVVisibilityProvider>
-</TooltipProvider>
+</TooltipProvider>;
 ```
 
 Note: `MiniTVVisibilityProvider` is a client component. Since `layout.tsx` is a server component, this import works because `MiniTVVisibilityProvider` has `"use client"` directive and accepts `children` as a prop (server components can be passed as children to client components).
@@ -395,17 +404,20 @@ import { HeroTVObserver } from "@/components/tv/HeroTVObserver";
 Wrap the hero TV div (line 59-61):
 
 ```tsx
-{/* Right Column - 3D TV (Client Component) */}
+{
+  /* Right Column - 3D TV (Client Component) */
+}
 <HeroTVObserver>
   <div className="flex items-center justify-center">
     <Gnar3DTVClient autoRotate={true} />
   </div>
-</HeroTVObserver>
+</HeroTVObserver>;
 ```
 
 - [ ] **Step 3: Test the full flow**
 
 Run `pnpm dev` and verify:
+
 1. Homepage: mini TV is hidden while hero TV is visible in viewport
 2. Homepage: scroll down past hero → mini TV appears bottom-left
 3. Homepage: scroll back up → mini TV disappears

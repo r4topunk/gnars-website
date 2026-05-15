@@ -7,7 +7,7 @@
 
 "use client";
 
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertCircle,
@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
+import { getDateFnsLocale } from "@/lib/i18n/format";
 import { extractFirstMedia, stripMarkdown } from "@/lib/markdown-media";
 import type { FeedEvent } from "@/lib/types/feed-events";
 import { cn } from "@/lib/utils";
@@ -34,10 +36,9 @@ export interface GovernanceEventCardProps {
 }
 
 export function GovernanceEventCard({ event, compact, sequenceNumber }: GovernanceEventCardProps) {
-  // Removed: timeAgo is redundant since we have day headers
-
+  const t = useTranslations("feed");
   // Event icon and color based on type
-  const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event);
+  const { icon: Icon, iconColor, bgColor, title, actionText } = getEventDisplay(event, t);
 
   return (
     <Card className={cn("transition-shadow hover:shadow-md relative", compact ? "py-3" : "py-4")}>
@@ -62,13 +63,17 @@ export function GovernanceEventCard({ event, compact, sequenceNumber }: Governan
               <div className="flex-1 min-w-0">
                 {event.type === "VoteCast" ? (
                   <p className="text-sm font-medium">
-                    Vote on{" "}
-                    <Link
-                      href={`/proposals/${event.proposalNumber}`}
-                      className="underline hover:opacity-80"
-                    >
-                      Proposal #{event.proposalNumber}
-                    </Link>
+                    {t.rich("events.governance.voteCast", {
+                      number: event.proposalNumber,
+                      link: (chunks) => (
+                        <Link
+                          href={`/proposals/${event.proposalNumber}`}
+                          className="underline hover:opacity-80"
+                        >
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
                   </p>
                 ) : (
                   <p className="text-sm font-medium">{title}</p>
@@ -113,6 +118,8 @@ function ProposalCreatedContent({
 }: {
   event: Extract<FeedEvent, { type: "ProposalCreated" }>;
 }) {
+  const t = useTranslations("feed");
+  const locale = useLocale();
   return (
     <div className="space-y-1.5">
       <p className="text-sm font-semibold line-clamp-2">{event.title}</p>
@@ -129,7 +136,12 @@ function ProposalCreatedContent({
         />
       </div>
       <div className="text-xs text-muted-foreground" suppressHydrationWarning>
-        Voting starts {formatDistanceToNow(new Date(event.voteStart * 1000), { addSuffix: true })}
+        {t("events.governance.votingStarts", {
+          time: formatDistanceToNow(new Date(event.voteStart * 1000), {
+            addSuffix: true,
+            locale: getDateFnsLocale(locale),
+          }),
+        })}
       </div>
     </div>
   );
@@ -142,6 +154,7 @@ function VoteCastContent({
   event: Extract<FeedEvent, { type: "VoteCast" }>;
   compact?: boolean;
 }) {
+  const t = useTranslations("feed");
   const supportConfig = {
     FOR: { icon: ThumbsUp, color: "text-green-600", bg: "bg-green-50 dark:bg-green-950" },
     AGAINST: { icon: ThumbsDown, color: "text-red-600", bg: "bg-red-50 dark:bg-red-950" },
@@ -163,7 +176,7 @@ function VoteCastContent({
           showCopy={false}
           showExplorer={false}
         />
-        <span className="text-xs text-muted-foreground">voted</span>
+        <span className="text-xs text-muted-foreground">{t("events.governance.voted")}</span>
         <span
           className={cn(
             "flex items-center gap-1 text-xs font-medium",
@@ -174,7 +187,9 @@ function VoteCastContent({
           <SupportIcon className={cn("h-3 w-3", config.color)} />
           {event.support}
         </span>
-        <span className="text-xs text-muted-foreground">with {event.weight} votes</span>
+        <span className="text-xs text-muted-foreground">
+          {t("events.governance.withVotes", { count: event.weight })}
+        </span>
       </div>
       <p className="text-xs font-medium line-clamp-1">{event.proposalTitle}</p>
       {event.reason && !compact && (
@@ -194,6 +209,8 @@ function ProposalStatusContent({
     { type: "ProposalQueued" | "ProposalExecuted" | "ProposalCanceled" | "ProposalVetoed" }
   >;
 }) {
+  const t = useTranslations("feed");
+  const locale = useLocale();
   return (
     <div className="space-y-1">
       <p className="text-sm font-medium">
@@ -201,7 +218,12 @@ function ProposalStatusContent({
       </p>
       {event.type === "ProposalQueued" && (
         <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-          Ready for execution {formatDistanceToNow(new Date(event.eta * 1000), { addSuffix: true })}
+          {t("events.governance.readyForExecution", {
+            time: formatDistanceToNow(new Date(event.eta * 1000), {
+              addSuffix: true,
+              locale: getDateFnsLocale(locale),
+            }),
+          })}
         </p>
       )}
     </div>
@@ -213,6 +235,7 @@ function ProposalUpdatedContent({
 }: {
   event: Extract<FeedEvent, { type: "ProposalUpdated" }>;
 }) {
+  const t = useTranslations("feed");
   // Builder propdate enum: 0 = original/update, 1 = reply. Anything else
   // falls back to "update" wording so future enum additions don't crash.
   const isReply = event.messageType === 1;
@@ -221,7 +244,9 @@ function ProposalUpdatedContent({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-1 text-xs text-muted-foreground">
-        <span>{isReply ? "reply from" : "update from"}</span>
+        <span>
+          {isReply ? t("events.governance.replyFrom") : t("events.governance.updateFrom")}
+        </span>
         <AddressDisplay
           address={event.proposer}
           variant="compact"
@@ -231,7 +256,7 @@ function ProposalUpdatedContent({
           showCopy={false}
           showExplorer={false}
         />
-        <span>on</span>
+        <span>{t("events.governance.on")}</span>
         <Link href={`/proposals/${event.proposalNumber}`} className="underline hover:opacity-80">
           Proposal #{event.proposalNumber}
         </Link>
@@ -270,6 +295,8 @@ function VotingAlertContent({
 }: {
   event: Extract<FeedEvent, { type: "VotingOpened" | "VotingClosingSoon" }>;
 }) {
+  const t = useTranslations("feed");
+  const locale = useLocale();
   return (
     <div className="space-y-1">
       <p className="text-sm font-medium">
@@ -277,8 +304,11 @@ function VotingAlertContent({
       </p>
       <p className="text-xs text-muted-foreground" suppressHydrationWarning>
         {event.type === "VotingOpened"
-          ? `Voting ends ${formatDistanceToNow(new Date(event.voteEnd * 1000), { addSuffix: true })}`
-          : `Only ${event.hoursLeft}h left to vote!`}
+          ? formatDistanceToNow(new Date(event.voteEnd * 1000), {
+              addSuffix: true,
+              locale: getDateFnsLocale(locale),
+            })
+          : t("events.auction.minutesLeft", { count: event.hoursLeft })}
       </p>
     </div>
   );
@@ -286,15 +316,17 @@ function VotingAlertContent({
 
 // Helper functions
 
-function getEventDisplay(event: Extract<FeedEvent, { category: "governance" }>) {
+type TFunc = ReturnType<typeof useTranslations<"feed">>;
+
+function getEventDisplay(event: Extract<FeedEvent, { category: "governance" }>, t: TFunc) {
   switch (event.type) {
     case "ProposalCreated":
       return {
         icon: Target,
         iconColor: "text-blue-600",
         bgColor: "bg-blue-50 dark:bg-blue-950",
-        title: "New Proposal",
-        actionText: "View Proposal",
+        title: t("events.governance.newProposal"),
+        actionText: t("events.governance.viewProposal"),
       };
     case "VoteCast":
       return {
@@ -316,64 +348,64 @@ function getEventDisplay(event: Extract<FeedEvent, { category: "governance" }>) 
             : event.support === "AGAINST"
               ? "bg-red-50 dark:bg-red-950"
               : "bg-gray-50 dark:bg-gray-950",
-        title: `Vote on Proposal #${event.proposalNumber}`,
-        actionText: "View Proposal",
+        title: t("events.governance.voteCast", { number: event.proposalNumber }),
+        actionText: t("events.governance.viewProposal"),
       };
     case "ProposalQueued":
       return {
         icon: Clock,
         iconColor: "text-amber-600",
         bgColor: "bg-amber-50 dark:bg-amber-950",
-        title: "Proposal Queued",
-        actionText: "View Proposal",
+        title: t("events.governance.proposalQueued"),
+        actionText: t("events.governance.viewProposal"),
       };
     case "ProposalExecuted":
       return {
         icon: CheckCircle,
         iconColor: "text-green-600",
         bgColor: "bg-green-50 dark:bg-green-950",
-        title: "Proposal Executed",
-        actionText: "View Proposal",
+        title: t("events.governance.proposalExecuted"),
+        actionText: t("events.governance.viewProposal"),
       };
     case "ProposalCanceled":
       return {
         icon: XCircle,
         iconColor: "text-red-600",
         bgColor: "bg-red-50 dark:bg-red-950",
-        title: "Proposal Canceled",
-        actionText: "View Proposal",
+        title: t("events.governance.proposalCanceled"),
+        actionText: t("events.governance.viewProposal"),
       };
     case "ProposalVetoed":
       return {
         icon: ShieldX,
         iconColor: "text-red-600",
         bgColor: "bg-red-50 dark:bg-red-950",
-        title: "Proposal Vetoed",
-        actionText: "View Proposal",
+        title: t("events.governance.proposalVetoed"),
+        actionText: t("events.governance.viewProposal"),
       };
     case "VotingOpened":
       return {
         icon: AlertCircle,
         iconColor: "text-blue-600",
         bgColor: "bg-blue-50 dark:bg-blue-950",
-        title: "Voting Opened",
-        actionText: "Cast Vote",
+        title: t("events.governance.votingOpened"),
+        actionText: t("events.governance.castVote"),
       };
     case "VotingClosingSoon":
       return {
         icon: AlertCircle,
         iconColor: "text-amber-600",
         bgColor: "bg-amber-50 dark:bg-amber-950",
-        title: "Voting Closing Soon",
-        actionText: "Cast Vote",
+        title: t("events.governance.votingClosingSoon"),
+        actionText: t("events.governance.castVote"),
       };
     case "ProposalUpdated":
       return {
         icon: MessageSquare,
         iconColor: "text-indigo-600",
         bgColor: "bg-indigo-50 dark:bg-indigo-950",
-        title: `Propdate · Proposal #${event.proposalNumber}`,
-        actionText: "View Propdate",
+        title: t("events.governance.proposalUpdated", { number: event.proposalNumber }),
+        actionText: t("events.governance.viewPropdate"),
       };
   }
 }

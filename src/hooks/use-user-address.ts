@@ -82,8 +82,7 @@ export function useUserAddress(): UseUserAddressResult {
   // viewing as their EOA because that's where their Gnars actually live
   // and it's the address they recognize. inAppWallet / pure-EOA users
   // default to the active account. Explicit toggles override the default.
-  const effectiveViewMode: ViewMode =
-    storedViewMode ?? (canSwitchView ? "eoa" : "sa");
+  const effectiveViewMode: ViewMode = storedViewMode ?? (canSwitchView ? "eoa" : "sa");
 
   const effectiveAddress: Address | undefined =
     effectiveViewMode === "eoa" && canSwitchView ? adminAddress : saAddress;

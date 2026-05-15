@@ -7,6 +7,7 @@
 ## Problem
 
 The POIDH bounties feature uses a client-only data fetching pattern that diverges from the rest of the codebase:
+
 - Both pages are `'use client'` — no SSR, no SEO, not CDN-cacheable
 - 200 lines of business logic lives in API routes instead of a service layer
 - Dual caching (Next.js revalidate + React Query) with unclear precedence
@@ -46,6 +47,7 @@ The `cache()` wrapper deduplicates within a single server render pass. External 
 ### 2. List Page: `/community/bounties`
 
 **`page.tsx`** — Server Component:
+
 ```typescript
 export const metadata: Metadata = {
   title: "Challenges — Gnars",
@@ -65,6 +67,7 @@ export default async function BountiesPage() {
 ```
 
 **`BountiesView.tsx`** — Client Component (new file, extracted from current page.tsx):
+
 - Receives `initialBounties: PoidhBounty[]` prop
 - Uses `usePoidhBounties` hook with `initialData` for the "open" status
 - Normal React Query fetches when user switches to voting/closed/all
@@ -74,6 +77,7 @@ export default async function BountiesPage() {
 ### 3. Detail Page: `/community/bounties/[chainId]/[id]`
 
 **`page.tsx`** — Server Component:
+
 ```typescript
 export async function generateMetadata({ params }): Promise<Metadata> {
   const bounty = await fetchPoidhBounty(chainId, id);
@@ -97,6 +101,7 @@ export default async function BountyDetailPage({ params }) {
 ```
 
 **`BountyDetailView.tsx`** — Client Component (new file, extracted from current page.tsx):
+
 - Receives `initialBounty: PoidhBounty`, `chainId: number`, `bountyId: number`
 - Uses React Query with `initialData` for the bounty — enables background refresh
 - Keeps all interactive behavior: voting, claiming, joining, wallet, countdown
@@ -105,18 +110,19 @@ export default async function BountyDetailPage({ params }) {
 ### 4. API Routes (thinned out)
 
 **`src/app/api/poidh/bounties/route.ts`** (~15 lines):
+
 ```typescript
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const status = searchParams.get('status') || 'open';
-  const limit = parseInt(searchParams.get('limit') || '100', 10);
-  const filterGnarly = searchParams.get('filterGnarly') !== 'false';
+  const status = searchParams.get("status") || "open";
+  const limit = parseInt(searchParams.get("limit") || "100", 10);
+  const filterGnarly = searchParams.get("filterGnarly") !== "false";
 
   try {
     const data = await fetchPoidhBounties({ status, limit, filterGnarly });
     return NextResponse.json(data);
   } catch {
-    return NextResponse.json({ error: 'Failed to fetch bounties' }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch bounties" }, { status: 500 });
   }
 }
 ```
@@ -126,6 +132,7 @@ export async function GET(request: NextRequest) {
 ### 5. Hook Changes
 
 **`usePoidhBounties`** — add optional `initialData` parameter:
+
 ```typescript
 export function usePoidhBounties(options: UsePoidhBountiesOptions & {
   initialData?: PoidhBountiesResponse;
@@ -152,16 +159,16 @@ The existing `src/app/community/bounties/layout.tsx` already has metadata. The n
 
 ## File changes summary
 
-| Action | File |
-|--------|------|
-| **Create** | `src/services/poidh.ts` |
-| **Create** | `src/components/bounties/BountiesView.tsx` |
-| **Create** | `src/components/bounties/BountyDetailView.tsx` |
-| **Rewrite** | `src/app/community/bounties/page.tsx` (Server Component) |
+| Action      | File                                                                    |
+| ----------- | ----------------------------------------------------------------------- |
+| **Create**  | `src/services/poidh.ts`                                                 |
+| **Create**  | `src/components/bounties/BountiesView.tsx`                              |
+| **Create**  | `src/components/bounties/BountyDetailView.tsx`                          |
+| **Rewrite** | `src/app/community/bounties/page.tsx` (Server Component)                |
 | **Rewrite** | `src/app/community/bounties/[chainId]/[id]/page.tsx` (Server Component) |
-| **Rewrite** | `src/app/api/poidh/bounties/route.ts` (thin) |
-| **Rewrite** | `src/app/api/poidh/bounty/[chainId]/[id]/route.ts` (thin) |
-| **Edit** | `src/hooks/usePoidhBounties.ts` (add initialData) |
+| **Rewrite** | `src/app/api/poidh/bounties/route.ts` (thin)                            |
+| **Rewrite** | `src/app/api/poidh/bounty/[chainId]/[id]/route.ts` (thin)               |
+| **Edit**    | `src/hooks/usePoidhBounties.ts` (add initialData)                       |
 
 ## Risks
 

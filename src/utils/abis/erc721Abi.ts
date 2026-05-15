@@ -40,4 +40,3 @@ const erc721Abi = [
 ] as const;
 
 export default erc721Abi;
-

@@ -14,13 +14,13 @@ A responsive modal (Dialog on desktop, bottom Drawer on mobile) showing all bids
 
 ## Design Decisions
 
-| Decision | Choice | Why |
-|----------|--------|-----|
-| Container | Responsive Dialog/Drawer | Best UX across devices — Shadcn pattern with Vaul |
-| Trigger | "View X bids" link below highest bid | Discoverable, shows bid count as teaser |
-| Comment source | RPC `eth_getTransactionByHash` | Subgraph doesn't index calldata comments; direct RPC is simplest for MVP |
-| Decoding | Client-side | No new API route needed; decode UTF-8 from calldata suffix |
-| Real-time updates | Poll every 10s + highlight new bids | Active auctions are time-sensitive; highlighting draws attention to changes |
+| Decision          | Choice                               | Why                                                                         |
+| ----------------- | ------------------------------------ | --------------------------------------------------------------------------- |
+| Container         | Responsive Dialog/Drawer             | Best UX across devices — Shadcn pattern with Vaul                           |
+| Trigger           | "View X bids" link below highest bid | Discoverable, shows bid count as teaser                                     |
+| Comment source    | RPC `eth_getTransactionByHash`       | Subgraph doesn't index calldata comments; direct RPC is simplest for MVP    |
+| Decoding          | Client-side                          | No new API route needed; decode UTF-8 from calldata suffix                  |
+| Real-time updates | Poll every 10s + highlight new bids  | Active auctions are time-sensitive; highlighting draws attention to changes |
 
 ## Architecture
 
@@ -58,6 +58,7 @@ Bids are submitted via `createBid(uint256 tokenId)`. Comments are appended as ra
 ```
 
 Decoding:
+
 ```typescript
 const input = tx.input; // hex string with 0x prefix
 const commentHex = input.slice(2 + 8 + 64); // skip 0x + selector + param
@@ -67,6 +68,7 @@ if (commentHex.length > 0) {
 ```
 
 Edge cases:
+
 - Empty `commentHex` = no comment (normal bid)
 - Invalid UTF-8 bytes = skip/ignore comment
 - Excessive length = truncate display at 140 chars (matches input limit)
@@ -75,17 +77,17 @@ Edge cases:
 
 ### New Files
 
-| File | Purpose |
-|------|---------|
-| `src/components/auction/BidHistoryModal.tsx` | Responsive container: Dialog (desktop) / Drawer (mobile). Manages open/close state. |
-| `src/components/auction/BidItem.tsx` | Single bid row: avatar, address/ENS, amount, relative timestamp, optional comment block. |
-| `src/hooks/use-auction-bids.ts` | Fetches bids from subgraph for a given tokenId. Polls every 10s while enabled. |
-| `src/hooks/use-bid-comments.ts` | Takes txHash array, fetches transaction input via RPC, decodes calldata comments. Caches results. |
+| File                                         | Purpose                                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `src/components/auction/BidHistoryModal.tsx` | Responsive container: Dialog (desktop) / Drawer (mobile). Manages open/close state.               |
+| `src/components/auction/BidItem.tsx`         | Single bid row: avatar, address/ENS, amount, relative timestamp, optional comment block.          |
+| `src/hooks/use-auction-bids.ts`              | Fetches bids from subgraph for a given tokenId. Polls every 10s while enabled.                    |
+| `src/hooks/use-bid-comments.ts`              | Takes txHash array, fetches transaction input via RPC, decodes calldata comments. Caches results. |
 
 ### Modified Files
 
-| File | Change |
-|------|--------|
+| File                                       | Change                                                       |
+| ------------------------------------------ | ------------------------------------------------------------ |
 | `src/components/hero/AuctionSpotlight.tsx` | Add "View X bids" trigger link + BidHistoryModal integration |
 
 ### Component Details
@@ -134,25 +136,30 @@ function useBidComments(txHashes: string[]) {
 ## UI Behavior
 
 ### Trigger
+
 - Text link: "View {count} bids" (or "View bids" if count unavailable)
 - Positioned below the current highest bid display in AuctionSpotlight
 - Only shown when auction is active or recently settled
 
 ### Modal State
+
 - Opens: user clicks trigger
 - Closes: click outside, X button, ESC key, swipe down (mobile)
 - While open: polls for new bids every 10s
 
 ### New Bid Highlighting
+
 - When poll returns bids not in previous list:
   - New bids inserted at top of list
   - Brief glow/fade-in animation (~2s)
   - No sound or intrusive notification
 
 ### Empty State
+
 - If no bids yet: centered message "No bids yet" with subtle icon
 
 ### Loading State
+
 - Skeleton loader for bid list while subgraph query loads
 - Comments load independently — bid rows appear first, comments fade in as RPC calls resolve
 
@@ -164,12 +171,12 @@ function useBidComments(txHashes: string[]) {
 
 ## Risks
 
-| Risk | Mitigation |
-|------|------------|
-| RPC rate limiting (many bids = many tx fetches) | Cache decoded comments by txHash; fetch incrementally |
-| Invalid/corrupted calldata comments | Try-catch decode, skip invalid, show bid without comment |
-| Subgraph latency for new bids | 10s poll is best-effort; bids appear when indexed |
-| Vaul/Drawer not installed | Check and install if needed before implementation |
+| Risk                                            | Mitigation                                               |
+| ----------------------------------------------- | -------------------------------------------------------- |
+| RPC rate limiting (many bids = many tx fetches) | Cache decoded comments by txHash; fetch incrementally    |
+| Invalid/corrupted calldata comments             | Try-catch decode, skip invalid, show bid without comment |
+| Subgraph latency for new bids                   | 10s poll is best-effort; bids appear when indexed        |
+| Vaul/Drawer not installed                       | Check and install if needed before implementation        |
 
 ## Out of Scope
 

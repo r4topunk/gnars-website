@@ -1,19 +1,20 @@
 "use client";
 
-import { Timer } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Timer } from "lucide-react";
 import { Countdown } from "@/components/common/Countdown";
 import { ExecuteProposalButton } from "@/components/proposals/ExecuteProposalButton";
 import { QueueProposalButton } from "@/components/proposals/QueueProposalButton";
 import { Proposal } from "@/components/proposals/types";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { useProposalEta } from "@/hooks/useProposalEta";
 // import { useVotes } from "@/hooks/useVotes";
 // import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
-import { useProposalEta } from "@/hooks/useProposalEta";
-import { useUserAddress } from "@/hooks/use-user-address";
 
 interface ProposalActionsProps {
   proposal: Proposal;
@@ -32,6 +33,7 @@ interface ProposalActionsProps {
  */
 export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsProps) {
   const { isConnected } = useUserAddress();
+  const t = useTranslations("proposals");
 
   // Check if user has voting power (at least 1 Gnar)
   // const { hasVotingPower, isLoading: votesLoading } = useVotes({
@@ -41,16 +43,8 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
   //   signerAddress: address ?? undefined,
   // });
 
-  const {
-    proposalId,
-    status,
-    expiresAt,
-    targets,
-    values,
-    calldatas,
-    descriptionHash,
-    proposer,
-  } = proposal;
+  const { proposalId, status, expiresAt, targets, values, calldatas, descriptionHash, proposer } =
+    proposal;
 
   // Fetch the on-chain ETA from the Governor contract
   const { etaDate: contractEta, isLoading: etaLoading } = useProposalEta(proposalId);
@@ -88,14 +82,14 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
         {status === ProposalStatus.SUCCEEDED && (
           <>
             <div>
-              <p className="text-sm text-muted-foreground">Queue this proposal before it expires</p>
+              <p className="text-sm text-muted-foreground">{t("actions.queueBeforeExpires")}</p>
             </div>
             {canPerformAction && (
               <div className="mt-2">
                 <QueueProposalButton
                   args={[proposalId as `0x${string}`]}
                   proposalId={proposalId}
-                  buttonText="Queue Proposal"
+                  buttonText={t("actions.queueProposal")}
                   onSuccess={handleSuccess}
                   className="w-full bg-purple-600 hover:bg-purple-700"
                 />
@@ -112,8 +106,8 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
                 <Timer className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium">Execution Timelock</p>
-                <p className="text-xs text-muted-foreground">Waiting for security delay</p>
+                <p className="text-sm font-medium">{t("actions.executionTimelock")}</p>
+                <p className="text-xs text-muted-foreground">{t("actions.waitingSecurityDelay")}</p>
               </div>
             </div>
 
@@ -130,14 +124,16 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
               <p className="text-sm text-muted-foreground">
                 {expiresAt && (
                   <>
-                    There&apos;s{" "}
-                    <span className="font-semibold text-blue-600 tabular-nums">
-                      <Countdown end={expiresAt} onEnd={handleSuccess} />
-                    </span>{" "}
-                    left to execute this proposal before it expires
+                    {t.rich("actions.timeLeftToExecute", {
+                      time: () => (
+                        <span className="font-semibold text-blue-600 tabular-nums">
+                          <Countdown end={expiresAt} onEnd={handleSuccess} />
+                        </span>
+                      ),
+                    })}
                   </>
                 )}
-                {!expiresAt && "Execute this proposal"}
+                {!expiresAt && t("actions.executeProposal")}
               </p>
             </div>
             {canPerformAction && (
@@ -151,7 +147,7 @@ export function ProposalActions({ proposal, onActionSuccess }: ProposalActionsPr
                     proposer as `0x${string}`,
                   ]}
                   proposalId={proposalId}
-                  buttonText="Execute Proposal"
+                  buttonText={t("actions.executeProposalButton")}
                   onSuccess={handleSuccess}
                   className="w-full bg-blue-600 hover:bg-blue-700"
                 />

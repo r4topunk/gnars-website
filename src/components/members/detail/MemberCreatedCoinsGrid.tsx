@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
-import { Coins, ExternalLink, TrendingDown, TrendingUp, Minus, Plus } from "lucide-react";
+import { Coins, ExternalLink, Minus, Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { FaEthereum } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,9 +14,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { formatEthToUsd, useEthPrice } from "@/hooks/use-eth-price";
 import { useTradeCreatorCoin } from "@/hooks/use-trade-creator-coin";
-import { useEthPrice, formatEthToUsd } from "@/hooks/use-eth-price";
 import { GNARS_CREATOR_COIN } from "@/lib/config";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { cn } from "@/lib/utils";
 
 interface CreatedCoin {
@@ -68,6 +70,8 @@ function formatDelta(delta: string | undefined): { value: string; isPositive: bo
 }
 
 function CoinCard({ coin }: { coin: CreatedCoin }) {
+  const t = useTranslations("members");
+  const locale = useLocale();
   const [isFlipped, setIsFlipped] = useState(false);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [ethAmount, setEthAmount] = useState(0.001);
@@ -117,7 +121,7 @@ function CoinCard({ coin }: { coin: CreatedCoin }) {
       tabIndex={0}
       role="button"
       aria-pressed={isFlipped}
-      aria-label={`Flip card for ${coin.name || "coin"}`}
+      aria-label={t("coins.card.flipLabel", { name: coin.name || "coin" })}
     >
       <div
         className="relative w-full transition-transform duration-700 cursor-pointer"
@@ -242,13 +246,17 @@ function CoinCard({ coin }: { coin: CreatedCoin }) {
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                    <span className="text-xs font-medium text-muted-foreground">Market Cap</span>
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {t("coins.card.marketCap")}
+                    </span>
                     <span className="text-sm font-bold">{formatMarketCap(coin.marketCap)}</span>
                   </div>
 
                   {deltaInfo && (
                     <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                      <span className="text-xs font-medium text-muted-foreground">24h Change</span>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {t("coins.card.change24h")}
+                      </span>
                       <span
                         className={cn(
                           "flex items-center gap-1 text-sm font-bold",
@@ -266,7 +274,9 @@ function CoinCard({ coin }: { coin: CreatedCoin }) {
                   )}
 
                   <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                    <span className="text-xs font-medium text-muted-foreground">Holders</span>
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {t("coins.card.holders")}
+                    </span>
                     <span className="text-sm font-bold">{coin.uniqueHolders || 0}</span>
                   </div>
                 </div>
@@ -281,7 +291,7 @@ function CoinCard({ coin }: { coin: CreatedCoin }) {
                       setShowBuyModal(true);
                     }}
                   >
-                    Buy
+                    {t("coins.card.buy")}
                   </Button>
                 )}
               </div>
@@ -294,9 +304,11 @@ function CoinCard({ coin }: { coin: CreatedCoin }) {
       <Dialog open={showBuyModal} onOpenChange={setShowBuyModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Buy Creator Token</DialogTitle>
+            <DialogTitle>{t("coins.card.modal.title")}</DialogTitle>
             <DialogDescription>
-              Purchase {coin.name || coin.symbol || "this creator"}&apos;s token with ETH
+              {t("coins.card.modal.description", {
+                name: coin.name || coin.symbol || "this creator",
+              })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
@@ -311,7 +323,7 @@ function CoinCard({ coin }: { coin: CreatedCoin }) {
                 >
                   <Minus className="w-5 h-5 text-white" />
                 </button>
-                
+
                 <div className="flex items-center gap-3">
                   <span className="text-4xl font-bold text-white tabular-nums">
                     {ethAmount.toFixed(3)}
@@ -334,11 +346,9 @@ function CoinCard({ coin }: { coin: CreatedCoin }) {
               {/* USD Conversion */}
               <div className="flex items-center justify-between text-sm">
                 <span className="text-zinc-400">
-                  {formatEthToUsd(ethAmount, ethPrice)}
+                  {formatEthToUsd(ethAmount, ethPrice, toIntlLocale(locale))}
                 </span>
-                <span className="text-zinc-500 tabular-nums">
-                  {ethAmount.toFixed(6)} ETH
-                </span>
+                <span className="text-zinc-500 tabular-nums">{ethAmount.toFixed(6)} ETH</span>
               </div>
             </div>
 
@@ -361,20 +371,20 @@ function CoinCard({ coin }: { coin: CreatedCoin }) {
 
             {/* Market Cap Info */}
             <p className="text-xs text-muted-foreground text-center">
-              Market Cap: {formatMarketCap(coin.marketCap)}
+              {t("coins.card.modal.marketCap", { value: formatMarketCap(coin.marketCap) })}
             </p>
 
             {/* Action Buttons */}
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setShowBuyModal(false)} className="flex-1">
-                Cancel
+                {t("coins.card.cancel")}
               </Button>
               <Button
                 onClick={handleBuy}
                 disabled={isTrading || ethAmount <= 0}
                 className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
               >
-                {isTrading ? "Buying..." : "Buy"}
+                {isTrading ? t("coins.card.buying") : t("coins.card.buy")}
               </Button>
             </div>
           </div>
@@ -385,11 +395,13 @@ function CoinCard({ coin }: { coin: CreatedCoin }) {
 }
 
 export function MemberCreatedCoinsGrid({ coins }: MemberCreatedCoinsGridProps) {
+  const t = useTranslations("members");
+
   if (!coins || coins.length === 0) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
-          No coins created yet
+          {t("coins.empty")}
         </CardContent>
       </Card>
     );

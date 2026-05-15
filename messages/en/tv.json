@@ -1,0 +1,178 @@
+{
+  "srOnly": {
+    "feed": "Gnars TV skateboarding video feed",
+    "coinFeed": "Gnars TV skateboarding coin feed"
+  },
+  "header": {
+    "title": "Gnar TV",
+    "newPosts": "{count, plural, one {# new} other {# new}}"
+  },
+  "controls": {
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "play": "Play",
+    "pause": "Pause",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "share": "Share",
+    "openMenu": "Open 3D menu",
+    "closeMenu": "Close menu",
+    "buyAll": "Buy all content"
+  },
+  "loading": {
+    "phase0": "Loading videos...",
+    "phase1": "Finding the best content...",
+    "phase2": "Almost there...",
+    "phase3": "Slow connection - hang tight! 🛹",
+    "fasterNextTime": "Videos will load faster next time",
+    "noVideos": "No videos available",
+    "tryAgain": "Try again",
+    "loadingMore": "Loading more videos...",
+    "endOfFeed": "You've seen all {count} videos 🎬"
+  },
+  "player": {
+    "loading": "Loading",
+    "buffering": "Buffering...",
+    "errorUnable": "Unable to load video",
+    "tapToRetry": "Tap to retry"
+  },
+  "card": {
+    "showInfo": "Show info",
+    "hideInfo": "Hide info",
+    "showDetails": "Show details",
+    "collapseDetails": "Collapse details",
+    "minting": "Minting...",
+    "freeMint": "Free Mint ×{qty}",
+    "mintQty": "Mint ×{qty}",
+    "buying": "Buying...",
+    "buy": "Buy {amount}",
+    "freeMintLabel": "Free Mint",
+    "pricePerNft": "{price} ETH per NFT",
+    "perNft": "per NFT",
+    "typeLabel": "Type",
+    "symbolLabel": "Symbol",
+    "holdersLabel": "Holders",
+    "athLabel": "All-Time High",
+    "contractLabel": "Contract",
+    "proposalLabel": "Proposal"
+  },
+  "droposal": {
+    "total": "Total ({quantity, plural, one {# NFT} other {# NFTs}})",
+    "inclFee": "(incl. fee)"
+  },
+  "menu": {
+    "dragToExplore": "Drag to explore • Click play to watch video"
+  },
+  "gnar3dTV": {
+    "ariaLabel": "Open Gnars TV"
+  },
+  "toast": {
+    "linkCopied": "Link copied to clipboard",
+    "unableToShare": "Unable to share right now",
+    "connectWallet": "Please connect your wallet first",
+    "walletNotReady": "Wallet not ready",
+    "buying": "Buying {title}...",
+    "buySuccess": "Successfully bought {title}!",
+    "buyRejected": "Transaction cancelled",
+    "buyRejectedDesc": "You rejected the transaction in your wallet.",
+    "buyInsufficientFunds": "Insufficient balance",
+    "buyInsufficientFundsDesc": "You don't have enough ETH to complete this purchase.",
+    "buyGasIssue": "Gas issue",
+    "buyGasIssueDesc": "Not enough ETH to pay for gas fees.",
+    "buyNetworkError": "Network error",
+    "buyNetworkErrorDesc": "Unable to connect to network. Please try again.",
+    "buyFailed": "Transaction failed",
+    "buyFailedDesc": "Unable to complete purchase. Please try again.",
+    "thirdwebNotConfigured": "Thirdweb client not configured",
+    "preparingMint": "Preparing to mint {title}...",
+    "switchingNetwork": "Switching to Base network...",
+    "resolvingContract": "Resolving NFT contract...",
+    "nftContractNotFound": "Unable to find NFT contract",
+    "nftContractNotFoundDesc": "This droposal may not be ready for minting yet.",
+    "confirmWallet": "Confirm in your wallet...",
+    "mintingDesc": "Minting {quantity, plural, one {# NFT} other {# NFTs}} for {price} ETH",
+    "waitingConfirmation": "Waiting for confirmation...",
+    "mintSuccess": "Successfully minted {title}!",
+    "mintTxDesc": "Transaction: {hash}",
+    "mintRejected": "Transaction cancelled",
+    "mintInsufficientFunds": "Insufficient funds",
+    "mintInsufficientFundsDesc": "You don't have enough ETH to complete this mint.",
+    "saleNotActive": "Sale not active",
+    "saleNotActiveDesc": "The sale is not currently active.",
+    "mintFailed": "Mint failed"
+  },
+  "buyAll": {
+    "title": {
+      "select": "Buy Content Coins",
+      "confirm": "Confirm Purchase",
+      "executing": "Processing...",
+      "success": "Success!",
+      "error": "Error"
+    },
+    "subtitle": {
+      "select": "Select creators to support with your ETH",
+      "strategy": "{name} strategy",
+      "strategyLabel": "strategy"
+    },
+    "closeModal": "Close modal",
+    "ethInput": "Total ETH to Spend",
+    "ethPerCoin": "≈ {ethPerCoin} ETH per coin ({count} selected)",
+    "selectCreators": "Select Creators ({selected}/{total})",
+    "selectAll": "Select All",
+    "clear": "Clear",
+    "noCoins": "No content coins available in feed",
+    "totalInvestment": "Total Investment",
+    "creatorsSelected": "{count, plural, one {# creator selected} other {# creators selected}}",
+    "ethEach": "≈ {amount} ETH each",
+    "cancel": "Cancel",
+    "reviewPurchase": "Review Purchase",
+    "shareStrategy": "Share Strategy",
+    "back": "Back",
+    "confirmPurchase": "Confirm Purchase",
+    "summary": "Purchase Summary",
+    "selectedCreators": "Selected Creators",
+    "ethPerCreator": "ETH per Creator",
+    "total": "Total",
+    "multicallInfo": "All {count} purchases will execute in a single atomic transaction. One approval, one gas fee.",
+    "executing": {
+      "preparing": "Preparing batch transaction...",
+      "confirming": "Confirming transaction...",
+      "processing": "Processing...",
+      "preparingDesc": "Generating swap data for {count} coins",
+      "confirmingDesc": "Waiting for blockchain confirmation"
+    },
+    "success": {
+      "title": "Purchase Successful!",
+      "description": "You successfully purchased {count} content coins in a single transaction",
+      "viewOnBasescan": "View on Basescan:"
+    },
+    "error": {
+      "title": "Purchase Failed",
+      "fallback": "An error occurred during the purchase",
+      "tryAgain": "Try Again"
+    },
+    "share": {
+      "dialogTitle": "Share Your Strategy",
+      "dialogSubtitle": "Give your selection a name and share it with others!",
+      "placeholder": "e.g., SkateHive Crew, Gnars Squad...",
+      "copyLink": "Copy Link",
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "enterStrategyName": "Please enter a strategy name",
+      "strategyCopied": "Strategy link copied to clipboard!",
+      "selectOneCoin": "Please select at least one coin",
+      "maxCoins": "Maximum 20 coins per batch",
+      "ethRequired": "ETH amount must be greater than 0",
+      "minPerCoin": "Minimum 0.0001 ETH per coin",
+      "failedCopy": "Failed to copy to clipboard"
+    }
+  },
+  "flowChart": {
+    "noCoins": "No coins selected for purchase",
+    "yourWallet": "Your Wallet",
+    "ethTotal": "{amount} ETH total",
+    "contentCoin": "Content Coin",
+    "gnarsPaired": "Gnars Paired"
+  }
+}

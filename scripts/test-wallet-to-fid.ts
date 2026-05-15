@@ -1,6 +1,6 @@
-import { config } from "dotenv";
 import { resolve } from "path";
 import { Configuration, NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { config } from "dotenv";
 
 config({ path: resolve(process.cwd(), ".env.local") });
 

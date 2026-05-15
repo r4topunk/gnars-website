@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Coins, FileImage, Send } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { AddressDisplay } from "@/components/ui/address-display";
-import { cn, getETHDisplayProps } from "@/lib/utils";
-import { subgraphQuery } from "@/lib/subgraph";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { subgraphQuery } from "@/lib/subgraph";
+import { cn, getETHDisplayProps } from "@/lib/utils";
 import { type TransactionFormValues } from "../schema";
 
 // --- Asset extraction helpers ---
@@ -177,6 +178,7 @@ function UsdcRow({ amount }: { amount: string }) {
 }
 
 function TokenRow({ amount, tokenAddress }: { amount: string; tokenAddress: string }) {
+  const t = useTranslations("proposals.txDetails");
   const formatted = parseFloat(amount).toLocaleString(undefined, {
     maximumFractionDigits: 6,
   });
@@ -187,7 +189,7 @@ function TokenRow({ amount, tokenAddress }: { amount: string; tokenAddress: stri
       </div>
       <div className="flex flex-col">
         <span className="text-sm font-bold font-mono text-violet-600 dark:text-violet-400">
-          {formatted} tokens
+          {t("tokens", { amount: formatted })}
         </span>
         <span className="text-[10px] text-muted-foreground font-mono">
           {tokenAddress.slice(0, 6)}...{tokenAddress.slice(-4)}
@@ -197,13 +199,8 @@ function TokenRow({ amount, tokenAddress }: { amount: string; tokenAddress: stri
   );
 }
 
-function NftRow({
-  tokenIds,
-  images,
-}: {
-  tokenIds: string[];
-  images: Record<string, string>;
-}) {
+function NftRow({ tokenIds, images }: { tokenIds: string[]; images: Record<string, string> }) {
+  const t = useTranslations("proposals.txDetails");
   return (
     <div className="px-3 py-2.5 space-y-2">
       <div className="flex items-center gap-3">
@@ -211,7 +208,7 @@ function NftRow({
           <FileImage className="h-3.5 w-3.5 text-fuchsia-600 dark:text-fuchsia-400" />
         </div>
         <span className="text-sm font-bold text-fuchsia-600 dark:text-fuchsia-400">
-          {tokenIds.length} Gnars NFT{tokenIds.length !== 1 ? "s" : ""}
+          {t("gnarsNfts", { count: tokenIds.length, plural: tokenIds.length !== 1 ? "s" : "" })}
         </span>
       </div>
       <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-1.5">
@@ -266,6 +263,7 @@ export function RecipientBundleCard({
   transactions,
   indices,
 }: RecipientBundleCardProps) {
+  const t = useTranslations("proposals.txDetails");
   const assets = extractAssets(transactions);
   const nftAssets = assets.filter((a): a is NftAsset => a.kind === "nft");
   const images = useNftImages(nftAssets);
@@ -297,9 +295,7 @@ export function RecipientBundleCard({
       <CardHeader className="relative pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <h3 className="text-sm font-semibold text-foreground">
-              Transfer to
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground">{t("transferTo")}</h3>
             <AddressDisplay
               address={recipient}
               variant="compact"
@@ -311,14 +307,12 @@ export function RecipientBundleCard({
               className="text-sm font-medium"
             />
           </div>
-          <span className="text-xs text-muted-foreground flex-shrink-0">
-            {rangeLabel}
-          </span>
+          <span className="text-xs text-muted-foreground flex-shrink-0">{rangeLabel}</span>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          from{" "}
+          {t("fromLabel")}{" "}
           {from.toLowerCase() === DAO_ADDRESSES.treasury.toLowerCase()
-            ? "DAO Treasury"
+            ? t("daoTreasury")
             : `${from.slice(0, 6)}...${from.slice(-4)}`}
         </p>
       </CardHeader>
@@ -340,13 +334,7 @@ export function RecipientBundleCard({
                   />
                 );
               case "nft":
-                return (
-                  <NftRow
-                    key={`nft-${i}`}
-                    tokenIds={asset.tokenIds}
-                    images={images}
-                  />
-                );
+                return <NftRow key={`nft-${i}`} tokenIds={asset.tokenIds} images={images} />;
             }
           })}
         </div>

@@ -15,7 +15,7 @@ export function HeroTVObserver({ children }: { children: ReactNode }) {
       (entries) => {
         setHeroTVVisible(entries[0]?.isIntersecting ?? false);
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     observer.observe(el);

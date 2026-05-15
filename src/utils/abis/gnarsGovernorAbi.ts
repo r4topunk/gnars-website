@@ -61,9 +61,7 @@ export const gnarsGovernorAbi = [
   {
     type: "function",
     name: "queue",
-    inputs: [
-      { name: "_proposalId", type: "bytes32", internalType: "bytes32" },
-    ],
+    inputs: [{ name: "_proposalId", type: "bytes32", internalType: "bytes32" }],
     outputs: [{ name: "eta", type: "uint256", internalType: "uint256" }],
     stateMutability: "nonpayable",
   },
@@ -83,18 +81,14 @@ export const gnarsGovernorAbi = [
   {
     type: "function",
     name: "proposalEta",
-    inputs: [
-      { name: "_proposalId", type: "bytes32", internalType: "bytes32" },
-    ],
+    inputs: [{ name: "_proposalId", type: "bytes32", internalType: "bytes32" }],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "getProposal",
-    inputs: [
-      { name: "_proposalId", type: "bytes32", internalType: "bytes32" },
-    ],
+    inputs: [{ name: "_proposalId", type: "bytes32", internalType: "bytes32" }],
     outputs: [
       {
         name: "",
@@ -121,4 +115,3 @@ export const gnarsGovernorAbi = [
 ] as const;
 
 export type GnarsGovernorAbi = typeof gnarsGovernorAbi;
-

@@ -1,19 +1,17 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Wallet } from "lucide-react";
-import {
-  useConnectModal,
-  useConnectedWallets,
-  useDisconnect,
-} from "thirdweb/react";
-import { Button } from "@/components/ui/button";
+import { useConnectedWallets, useConnectModal, useDisconnect } from "thirdweb/react";
 import { useViewAccount } from "@/components/layout/ViewAccountContext";
 import { WalletDrawer } from "@/components/layout/WalletDrawer";
+import { Button } from "@/components/ui/button";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 
 export function ConnectButton() {
+  const t = useTranslations("common");
   const { isConnected } = useUserAddress();
   const { connect, isConnecting } = useConnectModal();
   const connectedWallets = useConnectedWallets();
@@ -37,7 +35,7 @@ export function ConnectButton() {
         wallets: THIRDWEB_WALLETS,
         accountAbstraction: THIRDWEB_AA_CONFIG,
         size: "compact",
-        title: "Connect to Gnars",
+        title: t("wallet.connectToGnars"),
       });
 
       // Clean up any stale wallets left in thirdweb's connection manager
@@ -69,7 +67,7 @@ export function ConnectButton() {
       disabled={isConnecting || !client}
     >
       <Wallet className="mr-2 h-4 w-4" />
-      Connect
+      {t("actions.connect")}
     </Button>
   );
 }

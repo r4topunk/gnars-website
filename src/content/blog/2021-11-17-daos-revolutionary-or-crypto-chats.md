@@ -7,9 +7,9 @@ permalink: /daos-revolutionary-or-crypto-chats/
 author: gami
 image: /images/dao-revulutionary-companies.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 Have you ever considered being part of a fully democratic community? Yes, one where your voice could actually make a difference, or at least where it was equal to others. In our seemingly imperfect physical world, this “utopia” actually exists in the decentralized blockchains of our very own crypto worlds. Welcome to the emergence of DAOs.

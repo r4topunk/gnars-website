@@ -1,6 +1,6 @@
 import { cache } from "react";
-import { matchesGnarsKeywords } from "@/lib/poidh/keywords";
 import { SUPPORTED_CHAINS } from "@/lib/poidh/config";
+import { matchesGnarsKeywords } from "@/lib/poidh/keywords";
 import type { PoidhBounty, PoidhClaim } from "@/types/poidh";
 
 const POIDH_TRPC = "https://poidh.xyz/api/trpc";
@@ -36,10 +36,7 @@ async function fetchFromPoidh(
   return data?.result?.data?.json;
 }
 
-async function fetchBountiesByStatus(
-  status: string,
-  limit: number,
-): Promise<PoidhBounty[]> {
+async function fetchBountiesByStatus(status: string, limit: number): Promise<PoidhBounty[]> {
   const data = await fetchFromPoidh(
     "bounties.fetchAll",
     { status, sortType: "date", limit },
@@ -64,8 +61,7 @@ function normalizeBounties(
     .map((b) => ({
       ...b,
       isOpenBounty: b.isOpenBounty ?? b.isMultiplayer,
-      isCompleted:
-        rawStatus === "all" ? (b.isCompleted ?? false) : rawStatus === "closed",
+      isCompleted: rawStatus === "all" ? (b.isCompleted ?? false) : rawStatus === "closed",
     }));
 }
 
@@ -94,10 +90,7 @@ export const fetchPoidhBounties = cache(
         closed: "past",
         voting: "progress",
       };
-      bounties = await fetchBountiesByStatus(
-        statusMap[status] || "open",
-        clampedLimit,
-      );
+      bounties = await fetchBountiesByStatus(statusMap[status] || "open", clampedLimit);
     }
 
     const normalized = normalizeBounties(bounties, status, filterGnarly);
@@ -136,11 +129,7 @@ export const fetchPoidhBounty = cache(
     if (!SUPPORTED_CHAIN_IDS.includes(chainId)) return null;
     if (isNaN(id) || id < 1) return null;
 
-    const bountyData = await fetchFromPoidh(
-      "bounties.fetch",
-      { id, chainId },
-      DETAIL_CACHE_TTL,
-    );
+    const bountyData = await fetchFromPoidh("bounties.fetch", { id, chainId }, DETAIL_CACHE_TTL);
 
     if (!bountyData) return null;
     const bounty = bountyData as PoidhBounty;

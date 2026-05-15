@@ -1,7 +1,6 @@
 import { spawn } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-
 import { chromium, type BrowserContextOptions } from "@playwright/test";
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3010;
@@ -39,9 +38,7 @@ async function fillWizardToPreview(page: import("@playwright/test").Page) {
   await page
     .locator('input[placeholder="0x..."]')
     .fill("0x0000000000000000000000000000000000000000");
-  await page
-    .locator('textarea[placeholder="0x... - Transaction calldata"]')
-    .fill("0x");
+  await page.locator('textarea[placeholder="0x... - Transaction calldata"]').fill("0x");
   await page
     .locator('textarea[placeholder="Clearly describe what this transaction does..."]')
     .fill("No-op custom transaction for UI testing.");

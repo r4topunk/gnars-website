@@ -1,6 +1,7 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { BlogsGrid } from "@/components/blogs/BlogsGrid";
 import { Input } from "@/components/ui/input";
 import { useBlogSearch } from "@/hooks/use-blog-search";
@@ -11,6 +12,7 @@ interface BlogsViewProps {
 }
 
 export function BlogsView({ blogs: allBlogs }: BlogsViewProps) {
+  const t = useTranslations("blogs");
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const {
@@ -38,13 +40,13 @@ export function BlogsView({ blogs: allBlogs }: BlogsViewProps) {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Blogs</h1>
-          <p className="text-muted-foreground">Read the latest posts from Gnars DAO</p>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Input
             type="text"
-            placeholder="Search blog posts..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={initSearchWorker}

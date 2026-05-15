@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Markdown } from "@/components/common/Markdown";
@@ -10,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useActiveMembers } from "@/hooks/use-active-members";
-import { DelegationTooltip } from "./DelegationTooltip";
+import { getDateFnsLocale } from "@/lib/i18n/format";
 import type { DelegatorWithCount } from "@/services/members";
+import { DelegationTooltip } from "./DelegationTooltip";
 
 type VoteChoice = "FOR" | "AGAINST" | "ABSTAIN";
 
@@ -37,11 +39,10 @@ const voteBadgeClasses: Record<VoteChoice, string> = {
   ABSTAIN: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
 };
 
-export function ProposalVotesList({
-  title = "Individual Votes",
-  votes,
-  isActive = false,
-}: ProposalVotesListProps) {
+export function ProposalVotesList({ title, votes, isActive = false }: ProposalVotesListProps) {
+  const t = useTranslations("proposals");
+  const locale = useLocale();
+  const resolvedTitle = title ?? t("votesList.defaultTitle");
   const hasVotes = Array.isArray(votes) && votes.length > 0;
   const [isOpen, setIsOpen] = useState(false);
 
@@ -54,7 +55,10 @@ export function ProposalVotesList({
     if (!votes || votes.length === 0) return;
 
     // Mark all as loading
-    const initial = new Map<string, { delegators: DelegatorWithCount[]; status: "loading" | "done" | "error" }>();
+    const initial = new Map<
+      string,
+      { delegators: DelegatorWithCount[]; status: "loading" | "done" | "error" }
+    >();
     for (const vote of votes) {
       initial.set(vote.voter.toLowerCase(), { delegators: [], status: "loading" });
     }
@@ -76,7 +80,7 @@ export function ProposalVotesList({
         } catch {
           results.set(key, { delegators: [], status: "error" });
         }
-      })
+      }),
     );
 
     setDelegationMap(results);
@@ -107,7 +111,7 @@ export function ProposalVotesList({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle>{resolvedTitle}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {hasVotes ? (
@@ -127,13 +131,13 @@ export function ProposalVotesList({
                     avatarSize="md"
                   />
                   <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span>voted</span>
+                    <span>{t("votesList.voted")}</span>
                     <Badge className={`${voteBadgeClasses[vote.choice]} text-xs`}>
                       {vote.choice}
                     </Badge>
                     <span>
-                      with <b>{Number(vote.votes).toLocaleString()}</b> vote
-                      {Number(vote.votes) === 1 ? "" : "s"}
+                      {t("votesList.with")} <b>{Number(vote.votes).toLocaleString()}</b>{" "}
+                      {Number(vote.votes) === 1 ? t("votesList.vote") : t("votesList.votes")}
                     </span>
                     <DelegationTooltip
                       totalVotes={Number(vote.votes)}
@@ -142,7 +146,11 @@ export function ProposalVotesList({
                     />
                     {vote.timestamp ? (
                       <span className="text-muted-foreground text-xs">
-                        · {formatDistanceToNow(new Date(vote.timestamp * 1000), { addSuffix: true })}
+                        ·{" "}
+                        {formatDistanceToNow(new Date(vote.timestamp * 1000), {
+                          addSuffix: true,
+                          locale: getDateFnsLocale(locale),
+                        })}
                       </span>
                     ) : null}
                   </div>
@@ -165,19 +173,23 @@ export function ProposalVotesList({
                     disabled={activeMembersLoading}
                   >
                     {activeMembersLoading ? (
-                      <>Loading members who haven&apos;t voted...</>
+                      <>{t("votesList.loadingMembers")}</>
                     ) : (
                       <>
                         {isOpen ? <ChevronUp className="mr-2" /> : <ChevronDown className="mr-2" />}
-                        {nonVoters.length} active member{nonVoters.length === 1 ? "" : "s"}{" "}
-                        haven&apos;t voted yet
+                        {t("votesList.haventVotedYet", {
+                          count: nonVoters.length,
+                          plural: nonVoters.length === 1 ? "" : "s",
+                        })}
                       </>
                     )}
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 mt-2">
                   {activeMembersLoading ? (
-                    <p className="text-center text-muted-foreground py-4 text-sm">Loading...</p>
+                    <p className="text-center text-muted-foreground py-4 text-sm">
+                      {t("votesList.loading")}
+                    </p>
                   ) : (
                     nonVoters.map((member) => (
                       <div
@@ -197,7 +209,10 @@ export function ProposalVotesList({
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <span>•</span>
                               <span className="whitespace-nowrap">
-                                {member.votingPower} vote{member.votingPower === 1 ? "" : "s"}
+                                {member.votingPower}{" "}
+                                {member.votingPower === 1
+                                  ? t("votesList.vote")
+                                  : t("votesList.votes")}
                               </span>
                             </div>
                           </div>
@@ -205,8 +220,10 @@ export function ProposalVotesList({
                             variant="outline"
                             className="text-xs self-start sm:self-center shrink-0"
                           >
-                            {member.votesInWindow} recent vote
-                            {member.votesInWindow === 1 ? "" : "s"}
+                            {member.votesInWindow}{" "}
+                            {member.votesInWindow === 1
+                              ? t("votesList.recentVote")
+                              : t("votesList.recentVotes")}
                           </Badge>
                         </div>
                       </div>
@@ -217,7 +234,7 @@ export function ProposalVotesList({
             )}
           </>
         ) : (
-          <p className="text-center text-muted-foreground py-8">No votes have been cast yet</p>
+          <p className="text-center text-muted-foreground py-8">{t("votesList.noVotesCast")}</p>
         )}
       </CardContent>
     </Card>

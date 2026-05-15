@@ -1,11 +1,11 @@
-import { fetchAllDroposals } from "@/services/droposals";
+import { getPostMetadata } from "@/lib/posts";
+import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 import { getAllBlogs } from "@/services/blogs";
+import { fetchAllDroposals } from "@/services/droposals";
+import { getAllInstallations } from "@/services/installations";
 import { fetchAllMembers } from "@/services/members";
 import { listDaoPropdates } from "@/services/propdates";
 import { listProposals } from "@/services/proposals";
-import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
-import { getPostMetadata } from "@/lib/posts";
-import { getAllInstallations } from "@/services/installations";
 
 export const revalidate = 3600;
 export const dynamic = "force-dynamic";
@@ -15,6 +15,8 @@ type SitemapEntry = {
   lastModified: Date;
   changeFrequency: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority: number;
+  /** Alternate locale URLs for hreflang tags */
+  alternates?: { hreflang: string; href: string }[];
 };
 
 type ProposalList = Awaited<ReturnType<typeof listProposals>>;
@@ -30,8 +32,29 @@ const MAX_COIN_PAGES = 50;
 const COIN_PAGE_SIZE = 200;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com";
+const BASE = SITE_URL.replace(/\/+$/, "");
 
-const toUrl = (path: string) => new URL(path, `${SITE_URL.replace(/\/+$/, "")}/`).toString();
+const toUrl = (path: string) => new URL(path, `${BASE}/`).toString();
+
+/** Build a SitemapEntry for a public route with hreflang alternates for EN and PT-BR. */
+const toLocalizedEntry = (
+  path: string,
+  lastModified: Date,
+  changeFrequency: SitemapEntry["changeFrequency"],
+  priority: number,
+): SitemapEntry[] => {
+  const enUrl = toUrl(path);
+  const ptUrl = toUrl(`/pt-br${path === "/" ? "" : path}`);
+  const alternates = [
+    { hreflang: "en", href: enUrl },
+    { hreflang: "pt-br", href: ptUrl },
+    { hreflang: "x-default", href: enUrl },
+  ];
+  return [
+    { url: enUrl, lastModified, changeFrequency, priority, alternates },
+    { url: ptUrl, lastModified, changeFrequency, priority: priority - 0.1, alternates },
+  ];
+};
 
 const safe = async <T>(label: string, fn: () => Promise<T>, fallback: T): Promise<T> => {
   try {
@@ -94,7 +117,8 @@ async function fetchAllGnarsPairedCoins(): Promise<CoinList> {
 function buildSitemap(entries: SitemapEntry[]): string {
   const lines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+    '        xmlns:xhtml="http://www.w3.org/1999/xhtml">',
   ];
 
   for (const entry of entries) {
@@ -103,6 +127,13 @@ function buildSitemap(entries: SitemapEntry[]): string {
     lines.push(`    <lastmod>${entry.lastModified.toISOString()}</lastmod>`);
     lines.push(`    <changefreq>${entry.changeFrequency}</changefreq>`);
     lines.push(`    <priority>${entry.priority.toFixed(1)}</priority>`);
+    if (entry.alternates) {
+      for (const alt of entry.alternates) {
+        lines.push(
+          `    <xhtml:link rel="alternate" hreflang="${escapeXml(alt.hreflang)}" href="${escapeXml(alt.href)}"/>`,
+        );
+      }
+    }
     lines.push("  </url>");
   }
 
@@ -113,15 +144,17 @@ function buildSitemap(entries: SitemapEntry[]): string {
 export async function GET(): Promise<Response> {
   const now = new Date();
 
-  const [proposals, droposals, blogs, members, propdates, coins, installations] = await Promise.all([
-    safe("proposals", fetchAllProposals, [] as ProposalList),
-    safe("droposals", fetchAllDroposals, [] as DroposalList),
-    safe("blogs", getAllBlogs, [] as BlogList),
-    safe("members", fetchAllMembers, [] as MemberList),
-    safe("propdates", listDaoPropdates, [] as PropdateList),
-    safe("tv coins", fetchAllGnarsPairedCoins, [] as CoinList),
-    safe("installations", getAllInstallations, []),
-  ]);
+  const [proposals, droposals, blogs, members, propdates, coins, installations] = await Promise.all(
+    [
+      safe("proposals", fetchAllProposals, [] as ProposalList),
+      safe("droposals", fetchAllDroposals, [] as DroposalList),
+      safe("blogs", getAllBlogs, [] as BlogList),
+      safe("members", fetchAllMembers, [] as MemberList),
+      safe("propdates", listDaoPropdates, [] as PropdateList),
+      safe("tv coins", fetchAllGnarsPairedCoins, [] as CoinList),
+      safe("installations", getAllInstallations, []),
+    ],
+  );
 
   const proposalLastMod = maxDate(
     proposals.map((proposal) => {
@@ -163,183 +196,97 @@ export async function GET(): Promise<Response> {
   );
 
   const staticEntries: SitemapEntry[] = [
-    {
-      url: toUrl("/"),
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 1,
-    },
-    {
-      url: toUrl("/about"),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: toUrl("/auctions"),
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: toUrl("/proposals"),
-      lastModified: proposalLastMod,
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: toUrl("/propose"),
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.6,
-    },
-    {
-      url: toUrl("/treasury"),
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.8,
-    },
-    {
-      url: toUrl("/members"),
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: toUrl("/droposals"),
-      lastModified: droposalLastMod,
-      changeFrequency: "weekly",
-      priority: 0.7,
-    },
-    {
-      url: toUrl("/propdates"),
-      lastModified: propdateLastMod,
-      changeFrequency: "daily",
-      priority: 0.6,
-    },
-    {
-      url: toUrl("/blogs"),
-      lastModified: blogLastMod,
-      changeFrequency: "weekly",
-      priority: 0.7,
-    },
-    {
-      url: toUrl("/feed"),
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.6,
-    },
-    {
-      url: toUrl("/tv"),
-      lastModified: tvLastMod,
-      changeFrequency: "daily",
-      priority: 0.7,
-    },
-    {
-      url: toUrl("/map"),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: toUrl("/installations"),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: toUrl("/mural"),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.4,
-    },
-    {
-      url: toUrl("/coin-proposal"),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.4,
-    },
-    {
-      url: toUrl("/create-coin"),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.4,
-    },
+    ...toLocalizedEntry("/", now, "daily", 1),
+    ...toLocalizedEntry("/about", now, "monthly", 0.7),
+    ...toLocalizedEntry("/auctions", now, "daily", 0.9),
+    ...toLocalizedEntry("/proposals", proposalLastMod, "daily", 0.9),
+    ...toLocalizedEntry("/propose", now, "weekly", 0.6),
+    ...toLocalizedEntry("/treasury", now, "daily", 0.8),
+    ...toLocalizedEntry("/members", now, "weekly", 0.8),
+    ...toLocalizedEntry("/droposals", droposalLastMod, "weekly", 0.7),
+    ...toLocalizedEntry("/propdates", propdateLastMod, "daily", 0.6),
+    ...toLocalizedEntry("/blogs", blogLastMod, "weekly", 0.7),
+    ...toLocalizedEntry("/feed", now, "hourly", 0.6),
+    ...toLocalizedEntry("/tv", tvLastMod, "daily", 0.7),
+    ...toLocalizedEntry("/map", now, "monthly", 0.5),
+    ...toLocalizedEntry("/installations", now, "monthly", 0.8),
+    ...toLocalizedEntry("/mural", now, "monthly", 0.4),
+    ...toLocalizedEntry("/coin-proposal", now, "monthly", 0.4),
+    ...toLocalizedEntry("/create-coin", now, "monthly", 0.4),
+    ...toLocalizedEntry("/nogglesrails", now, "monthly", 0.6),
+    ...toLocalizedEntry("/community/bounties", now, "weekly", 0.6),
+    ...toLocalizedEntry("/swap", now, "monthly", 0.5),
   ];
 
   // Dynamic markdown blog post entries (all posts in root)
   const blogMetadata = getPostMetadata("blog");
-  const markdownPostEntries: SitemapEntry[] = blogMetadata.map((post) => {
+  const markdownPostEntries: SitemapEntry[] = blogMetadata.flatMap((post) => {
     const postYear = new Date(post.date).getFullYear();
     const isHistorical = postYear < 2023;
-    
-    return {
-      url: toUrl(`/${post.slug}`),
-      lastModified: toDate(post.date) || now,
-      changeFrequency: isHistorical ? "yearly" : "weekly",
-      priority: isHistorical ? 0.6 : 0.8,
-    };
+    const lastMod = toDate(post.date) || now;
+    const freq: SitemapEntry["changeFrequency"] = isHistorical ? "yearly" : "weekly";
+    const prio = isHistorical ? 0.6 : 0.8;
+    return toLocalizedEntry(`/${post.slug}`, lastMod, freq, prio);
   });
 
-
-
-  const proposalEntries: SitemapEntry[] = proposals.map((proposal) => ({
-    url: toUrl(`/proposals/base/${proposal.proposalNumber}`),
-    lastModified:
+  const proposalEntries: SitemapEntry[] = proposals.flatMap((proposal) =>
+    toLocalizedEntry(
+      `/proposals/base/${proposal.proposalNumber}`,
       toDate(proposal.executedAt) ||
-      toDate(proposal.queuedAt) ||
-      toDate(proposal.expiresAt) ||
-      toDate(proposal.voteEnd) ||
-      toDate(proposal.voteStart) ||
-      new Date(proposal.createdAt),
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+        toDate(proposal.queuedAt) ||
+        toDate(proposal.expiresAt) ||
+        toDate(proposal.voteEnd) ||
+        toDate(proposal.voteStart) ||
+        new Date(proposal.createdAt),
+      "weekly",
+      0.7,
+    ),
+  );
 
-  const droposalEntries: SitemapEntry[] = droposals.map((droposal) => ({
-    url: toUrl(`/droposals/${droposal.proposalNumber}`),
-    lastModified: new Date(droposal.executedAt ?? droposal.createdAt),
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
+  const droposalEntries: SitemapEntry[] = droposals.flatMap((droposal) =>
+    toLocalizedEntry(
+      `/droposals/${droposal.proposalNumber}`,
+      new Date(droposal.executedAt ?? droposal.createdAt),
+      "monthly",
+      0.6,
+    ),
+  );
 
-  const blogEntries: SitemapEntry[] = blogs.map((blog) => ({
-    url: toUrl(`/blogs/${blog.slug.replace(/[×✕✖✗✘]/g, "x")}`),
-    lastModified: toDate(blog.updatedAt) || toDate(blog.publishedAt) || now,
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
+  const blogEntries: SitemapEntry[] = blogs.flatMap((blog) =>
+    toLocalizedEntry(
+      `/blogs/${blog.slug.replace(/[×✕✖✗✘]/g, "x")}`,
+      toDate(blog.updatedAt) || toDate(blog.publishedAt) || now,
+      "monthly",
+      0.6,
+    ),
+  );
 
-  const memberEntries: SitemapEntry[] = members.map((member) => ({
-    url: toUrl(`/members/${member.owner}`),
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.5,
-  }));
+  const memberEntries: SitemapEntry[] = members.flatMap((member) =>
+    toLocalizedEntry(`/members/${member.owner}`, now, "weekly", 0.5),
+  );
 
-  const propdateEntries: SitemapEntry[] = propdates.map((propdate) => ({
-    url: toUrl(`/propdates/${propdate.txid}`),
-    lastModified: propdate.timeCreated ? new Date(propdate.timeCreated * 1000) : now,
-    changeFrequency: "monthly",
-    priority: 0.5,
-  }));
+  const propdateEntries: SitemapEntry[] = propdates.flatMap((propdate) =>
+    toLocalizedEntry(
+      `/propdates/${propdate.txid}`,
+      propdate.timeCreated ? new Date(propdate.timeCreated * 1000) : now,
+      "monthly",
+      0.5,
+    ),
+  );
 
-  const tvEntries: SitemapEntry[] = coins.map((coin) => {
+  const tvEntries: SitemapEntry[] = coins.flatMap((coin) => {
     const ts = Number(coin.blockTimestamp || 0);
-    return {
-      url: toUrl(`/tv/${coin.coin}`),
-      lastModified: ts ? new Date(ts * 1000) : now,
-      changeFrequency: "weekly",
-      priority: 0.5,
-    };
+    return toLocalizedEntry(`/tv/${coin.coin}`, ts ? new Date(ts * 1000) : now, "weekly", 0.5);
   });
 
-  const installationEntries: SitemapEntry[] = installations.map((installation) => ({
-    url: toUrl(`/installations/${installation.slug}`),
-    lastModified: installation.year ? new Date(installation.year, 0, 1) : now,
-    changeFrequency: "monthly",
-    priority: 0.7,
-  }));
+  const installationEntries: SitemapEntry[] = installations.flatMap((installation) =>
+    toLocalizedEntry(
+      `/installations/${installation.slug}`,
+      installation.year ? new Date(installation.year, 0, 1) : now,
+      "monthly",
+      0.7,
+    ),
+  );
 
   const xml = buildSitemap([
     ...staticEntries,

@@ -1,15 +1,15 @@
 ---
 layout: post
 title: BAYC x CryptoPunks - Merge of The Giants
-description: 
+description:
 date: 2022-03-17 00:00:00 +0000
 permalink: /bayc-x-cryptopunks-merge-of-the-giants/
 author: gami
 image: /images/BAYC-CryptoPunks.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 Just last Friday, Yuga Labs made a huge announcement: They will be acquiring CryptoPunks and Meebits from Larva Labs. Off the top of my head, that already sounds like a multi-million, even billion-dollar investment!? (ok, maybe that’s an exaggeration)

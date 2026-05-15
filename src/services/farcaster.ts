@@ -1,5 +1,4 @@
 import "server-only";
-
 import { unstable_cache } from "next/cache";
 
 const apiKey = process.env.NEYNAR_API_KEY;
@@ -18,7 +17,6 @@ type NeynarUser = {
 
 const MAX_ADDRESSES_PER_REQUEST = 350;
 const CACHE_REVALIDATE_SECONDS = 60 * 15;
-
 
 export type FarcasterProfile = {
   fid: number;
@@ -81,9 +79,7 @@ function mapUserToProfile(user: NeynarUser): FarcasterProfile {
 function selectBestUser(users: NeynarUser[], address: string): NeynarUser | null {
   if (users.length === 0) return null;
   const normalized = normalizeAddress(address);
-  const custodyMatch = users.find(
-    (user) => normalizeAddress(user.custody_address) === normalized,
-  );
+  const custodyMatch = users.find((user) => normalizeAddress(user.custody_address) === normalized);
   if (custodyMatch) return custodyMatch;
 
   const verifiedMatch = users.find((user) => {

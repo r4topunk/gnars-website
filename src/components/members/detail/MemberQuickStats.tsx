@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { AddressDisplay } from "@/components/ui/address-display";
@@ -45,6 +46,7 @@ export function MemberQuickStats({
   proposalsCount,
   votesCount,
 }: MemberQuickStatsProps) {
+  const t = useTranslations("members");
   const isSelfDelegating = overview.delegate.toLowerCase() === address.toLowerCase();
   // Also treat "delegated to own smart account" as a form of self-delegation
   // for display purposes — it's still the same user.
@@ -61,7 +63,7 @@ export function MemberQuickStats({
 
   const eoaDelegate = useEoaDelegate({
     onSuccess: () => {
-      toast.success("Voting power delegated to your smart account");
+      toast.success(t("detail.smartAccount.delegated"));
     },
   });
   const isDelegating = eoaDelegate.isPending || eoaDelegate.isConfirming;
@@ -90,11 +92,8 @@ export function MemberQuickStats({
     overview.smartAccount && overview.smartAccount.tokenCount > 0,
   );
   const showSmartAccountCardFromSession =
-    isOwnProfile &&
-    Boolean(adminAddress) &&
-    Boolean(delegationStatus.smartAccountAddress);
-  const showSmartAccountCard =
-    showSmartAccountCardFromOverview || showSmartAccountCardFromSession;
+    isOwnProfile && Boolean(adminAddress) && Boolean(delegationStatus.smartAccountAddress);
+  const showSmartAccountCard = showSmartAccountCardFromOverview || showSmartAccountCardFromSession;
 
   const smartAccountAddress =
     overview.smartAccount?.address ?? delegationStatus.smartAccountAddress;
@@ -105,23 +104,23 @@ export function MemberQuickStats({
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="@container/card">
           <CardHeader>
-            <CardDescription>Gnars Held</CardDescription>
+            <CardDescription>{t("detail.gnarsHeld.label")}</CardDescription>
             <CardTitle className="text-3xl font-semibold tabular-nums">{totalGnars}</CardTitle>
           </CardHeader>
           {showBreakdown ? (
             <CardFooter className="text-sm text-muted-foreground">
-              {eoaCount} at wallet · {saCountFromOverview} at smart account
+              {t("detail.gnarsHeld.breakdown", { eoa: eoaCount, sa: saCountFromOverview })}
             </CardFooter>
           ) : null}
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Delegation</CardTitle>
+            <CardTitle className="text-base">{t("detail.delegation.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Delegates to</span>
+              <span className="text-muted-foreground">{t("detail.delegation.delegatesTo")}</span>
               <span className="font-medium">
                 {delegatedToAnother ? (
                   <AddressDisplay
@@ -133,14 +132,14 @@ export function MemberQuickStats({
                     avatarSize="sm"
                   />
                 ) : isDelegatedToOwnSmartAccount ? (
-                  "Smart account"
+                  t("detail.delegation.smartAccount")
                 ) : (
-                  "Self"
+                  t("detail.delegation.self")
                 )}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Delegated by</span>
+              <span className="text-muted-foreground">{t("detail.delegation.delegatedBy")}</span>
               <span className="font-medium tabular-nums">{delegatorsCount}</span>
             </div>
           </CardContent>
@@ -148,15 +147,15 @@ export function MemberQuickStats({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Activity</CardTitle>
+            <CardTitle className="text-base">{t("detail.activity.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Proposals</span>
+              <span className="text-muted-foreground">{t("detail.activity.proposals")}</span>
               <span className="font-medium tabular-nums">{proposalsCount}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Votes</span>
+              <span className="text-muted-foreground">{t("detail.activity.votes")}</span>
               <span className="font-medium tabular-nums">{votesCount}</span>
             </div>
           </CardContent>
@@ -167,14 +166,11 @@ export function MemberQuickStats({
         <Card className="mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              Smart account
+              {t("detail.smartAccount.title")}
             </CardTitle>
-            <CardDescription>
-              An onchain account that signs Gnars transactions on behalf of the wallet. Gas is
-              sponsored by the DAO.
-            </CardDescription>
+            <CardDescription>{t("detail.smartAccount.description")}</CardDescription>
             <CardAction>
-              <Badge variant="secondary">gasless</Badge>
+              <Badge variant="secondary">{t("detail.smartAccount.badge")}</Badge>
             </CardAction>
           </CardHeader>
 
@@ -188,10 +184,10 @@ export function MemberQuickStats({
                 variant="ghost"
                 size="icon"
                 className="size-7 shrink-0"
-                onClick={() => handleCopy(smartAccountAddress, "Smart account address")}
+                onClick={() => handleCopy(smartAccountAddress, t("detail.smartAccount.title"))}
               >
                 <Copy className="size-3.5" />
-                <span className="sr-only">Copy smart account address</span>
+                <span className="sr-only">{t("detail.smartAccount.copyAddress")}</span>
               </Button>
             </div>
 
@@ -199,15 +195,17 @@ export function MemberQuickStats({
             <div className="grid grid-cols-2 gap-3">
               <Card className="bg-muted/30 shadow-none">
                 <CardHeader className="gap-1">
-                  <CardDescription className="text-xs">Gnars at wallet</CardDescription>
-                  <CardTitle className="text-2xl font-semibold tabular-nums">
-                    {eoaCount}
-                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    {t("detail.smartAccount.eoaWallet")}
+                  </CardDescription>
+                  <CardTitle className="text-2xl font-semibold tabular-nums">{eoaCount}</CardTitle>
                 </CardHeader>
               </Card>
               <Card className="bg-muted/30 shadow-none">
                 <CardHeader className="gap-1">
-                  <CardDescription className="text-xs">Gnars at smart account</CardDescription>
+                  <CardDescription className="text-xs">
+                    {t("detail.smartAccount.saWallet")}
+                  </CardDescription>
                   <CardTitle className="text-2xl font-semibold tabular-nums">
                     {smartAccountTokenCount}
                   </CardTitle>
@@ -223,19 +221,18 @@ export function MemberQuickStats({
             delegationStatus.isDelegatedToSmartAccount ? (
               <CardFooter className="flex items-center gap-2 border-t pt-4 text-sm">
                 <Check className="size-4 text-muted-foreground" />
-                <span className="text-muted-foreground">
-                  Voting power delegated to your smart account
-                </span>
+                <span className="text-muted-foreground">{t("detail.smartAccount.delegated")}</span>
               </CardFooter>
             ) : delegationStatus.needsSmartAccountDelegation ? (
               <CardFooter className="flex-col items-stretch gap-3 border-t pt-4">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Action recommended</p>
+                  <p className="text-sm font-medium">
+                    {t("detail.smartAccount.actionRecommended")}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    Delegate the voting power of your{" "}
-                    {delegationStatus.eoaTokenBalance?.toString() ?? "0"}{" "}
-                    {delegationStatus.eoaTokenBalance === 1n ? "Gnar" : "Gnars"} to your smart
-                    account so you can vote through the new flow.
+                    {t("detail.smartAccount.actionDescription", {
+                      count: Number(delegationStatus.eoaTokenBalance ?? 0n),
+                    })}
                   </p>
                 </div>
                 <Button
@@ -244,12 +241,14 @@ export function MemberQuickStats({
                   onClick={handleDelegateToSmart}
                   disabled={isDelegating || !delegationStatus.smartAccountAddress}
                 >
-                  {isDelegating ? "Delegating…" : "Delegate voting power"}
+                  {isDelegating
+                    ? t("detail.smartAccount.delegating")
+                    : t("detail.smartAccount.delegateBtn")}
                 </Button>
               </CardFooter>
             ) : (
               <CardFooter className="border-t pt-4 text-xs text-muted-foreground">
-                Voting via smart account is not enabled yet.
+                {t("detail.smartAccount.notEnabled")}
               </CardFooter>
             )
           ) : null}

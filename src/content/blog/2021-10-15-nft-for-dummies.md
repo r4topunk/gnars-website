@@ -7,9 +7,9 @@ permalink: /nft-for-dummies/
 author: gami
 image: /images/nft-for-dummies.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [education]
-featured: 
+featured:
 ---
 
 NFTs. When Satoshi Nakamoto was programming the first Bitcoins and heralding the birth of cryptocurrency, certainly, he never envisaged the World would trade digital art using cryptos. Alas! The year is 2021, and the World is raving about Non-Fungible Tokens, more popular in the crypto-verse as NFTs. Here, we roll out a beginner’s guide for persons interested in the NFT market, or I would prefer to call it: **NFT for Dummies.**

@@ -7,9 +7,9 @@ permalink: /nfts-music-industry-second-life/
 author: gami
 image: /images/nfts-music-1.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 In a much cited interview with the [Wall Street Journal](https://www.wsj.com/articles/for-taylor-swift-the-future-of-music-is-a-love-story-1404763219), Taylor Swift stated the following: “Music is Art, and Art is important and rare. Important rare things are valuable. Valuable things should be paid for.” As a music lover, I found it extremely tempting to nod and agree with her on all points – however there are a few glaring issues with her argumentation.

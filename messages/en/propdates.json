@@ -1,0 +1,55 @@
+{
+  "page": {
+    "title": "Propdates",
+    "description": "Progress updates from funded proposals. See how the community is delivering on their commitments.",
+    "viewProposals": "View proposals"
+  },
+  "feed": {
+    "latestUpdate": "Latest Update",
+    "loadingAriaLabel": "Loading propdates feed",
+    "errorTitle": "Error",
+    "errorDesc": "Failed to load propdates feed. Please try again later.",
+    "noPropdatesYet": "No propdates yet",
+    "noPropdatesDesc": "Proposers can post progress updates after their proposals pass",
+    "showingOf": "Showing {visible} of {total}",
+    "viewAll": "View all →",
+    "update": "{count} update",
+    "updates": "{count} updates"
+  },
+  "card": {
+    "milestone": "Milestone {number}",
+    "reply": "Reply",
+    "cancelReply": "Cancel Reply"
+  },
+  "detail": {
+    "backToPropdates": "Back to Propdates"
+  },
+  "section": {
+    "title": "Propdates",
+    "loadingAriaLabel": "Loading propdates",
+    "createPropdate": "Create Propdate",
+    "cancel": "Cancel",
+    "errorTitle": "Error",
+    "errorDesc": "Failed to load propdates. Please try again later.",
+    "noUpdatesYet": "No updates on this proposal yet!",
+    "noUpdatesDesc": "The proposer can post progress updates here"
+  },
+  "form": {
+    "createTitle": "Create a Propdate",
+    "replyTitle": "Reply to Propdate",
+    "cancel": "Cancel",
+    "replyingTo": "Replying to",
+    "writeTab": "Write",
+    "previewTab": "Preview",
+    "writePlaceholder": "Share an update on this proposal...",
+    "replyPlaceholder": "Write your reply...",
+    "nothingToPreview": "Nothing to preview",
+    "attachFile": "Attach file",
+    "uploading": "Uploading... {progress}%",
+    "submit": "Submit",
+    "submitReply": "Submit Reply",
+    "confirmingWallet": "Confirm in wallet...",
+    "pendingTx": "Waiting for confirmation...",
+    "syncing": "Syncing..."
+  }
+}

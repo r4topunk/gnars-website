@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, MessageSquare, Wallet } from "lucide-react";
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ export function AuctionBidForm({
   minBidIncrementPct,
   onBidConfirmed,
 }: AuctionBidFormProps) {
+  const t = useTranslations("auctions");
   const { address, isConnected } = useUserAddress();
   const activeChain = useActiveWalletChain();
   const writer = useWriteAccount();
@@ -122,7 +124,7 @@ export function AuctionBidForm({
       }
     },
     onConfirmed: () => {
-      toast.success("Bid confirmed!", { description: "Auction data updated." });
+      toast.success(t("bid.confirmed"), { description: t("bid.confirmedDescription") });
       invalidateAuctionData();
       if (pendingBidRef.current) {
         const multiplier = 1 + minBidIncrementPct / 100;
@@ -137,7 +139,7 @@ export function AuctionBidForm({
     onError: () => {
       pendingBidRef.current = null;
       onBidConfirmed?.("", "");
-      toast.error("Bid failed");
+      toast.error(t("bid.failed"));
     },
   });
 
@@ -145,7 +147,7 @@ export function AuctionBidForm({
     if (isConnected) return;
     const client = getThirdwebClient();
     if (!client) {
-      toast.error("Connect failed", { description: "Thirdweb client not configured." });
+      toast.error(t("bid.connectFailed"), { description: t("bid.clientNotConfigured") });
       return;
     }
     try {
@@ -154,7 +156,7 @@ export function AuctionBidForm({
         wallets: THIRDWEB_WALLETS,
         accountAbstraction: THIRDWEB_AA_CONFIG,
         size: "compact",
-        title: "Connect to bid",
+        title: t("bid.connectModalTitle"),
       });
     } catch {
       // User dismissed the modal
@@ -169,13 +171,13 @@ export function AuctionBidForm({
     if (!bidAmountWei || !tokenId || !isValidBid || insufficientBalance) return;
 
     if (!writer) {
-      toast.error("Connect wallet first");
+      toast.error(t("bid.connectWalletFirst"));
       return;
     }
 
     const client = getThirdwebClient();
     if (!client) {
-      toast.error("Bid failed", { description: "Thirdweb client not configured." });
+      toast.error(t("bid.failed"), { description: t("bid.clientNotConfigured") });
       return;
     }
 
@@ -236,7 +238,7 @@ export function AuctionBidForm({
       return (
         <>
           <Spinner />
-          {bidTx.buttonLabel("Place Bid")}
+          {bidTx.buttonLabel(t("bid.placeBid"))}
         </>
       );
     }
@@ -244,14 +246,14 @@ export function AuctionBidForm({
       return (
         <>
           <Wallet className="h-4 w-4" />
-          Connect Wallet to Bid
+          {t("bid.connectToBid")}
         </>
       );
     }
     if (isWrongNetwork) {
-      return "Switch to Base";
+      return t("bid.switchToBase");
     }
-    return "Place Bid";
+    return t("bid.placeBid");
   };
 
   const handleButtonClick = async () => {
@@ -303,15 +305,20 @@ export function AuctionBidForm({
 
       <div className="flex items-center justify-between text-xs">
         <div className="text-muted-foreground flex items-center gap-2">
-          <span>Min: {minBidDisplay} ETH</span>
+          <span>
+            {t("bid.minLabel")} {minBidDisplay} ETH
+          </span>
           {isConnected && insufficientBalance ? (
             <span className="text-destructive">
-              · Insufficient{balanceEth !== undefined ? ` (${balanceEth.toFixed(4)})` : ""}
+              · {t("bid.insufficient")}
+              {balanceEth !== undefined ? ` (${balanceEth.toFixed(4)})` : ""}
             </span>
           ) : isConnected && balanceEth !== undefined ? (
-            <span>· Bal: {balanceEth.toFixed(4)}</span>
+            <span>
+              · {t("bid.balLabel")} {balanceEth.toFixed(4)}
+            </span>
           ) : isWrongNetwork ? (
-            <span className="text-amber-500">· Wrong network</span>
+            <span className="text-amber-500">· {t("bid.wrongNetwork")}</span>
           ) : null}
         </div>
         <Collapsible open={isCommentOpen} onOpenChange={setIsCommentOpen}>
@@ -322,7 +329,7 @@ export function AuctionBidForm({
               className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
             >
               <MessageSquare className="h-3 w-3" />
-              <span>Comment</span>
+              <span>{t("bid.comment")}</span>
               <ChevronDown
                 className={`h-3 w-3 transition-transform duration-200 ${isCommentOpen ? "rotate-180" : ""}`}
               />
@@ -340,7 +347,7 @@ export function AuctionBidForm({
               value={bidComment}
               onChange={(e) => setBidComment(e.target.value)}
               disabled={bidTx.isActive}
-              placeholder="On-chain comment (recorded permanently)…"
+              placeholder={t("bid.commentPlaceholder")}
               className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             />
             <div className="text-right text-xs text-muted-foreground">{bidComment.length}/140</div>

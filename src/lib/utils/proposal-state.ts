@@ -7,7 +7,6 @@ export function isProposalSuccessful(status: ProposalStatus): boolean {
   return [ProposalStatus.SUCCEEDED, ProposalStatus.QUEUED].includes(status);
 }
 
-
 /**
  * Parse a blockchain timestamp (can be Unix seconds or ISO string) to Date
  */
@@ -24,7 +23,7 @@ export function parseBlockchainTimestamp(timestamp: string | number): Date {
       return new Date(numericTimestamp * 1000);
     }
   }
-  
+
   if (typeof timestamp === "number") {
     // If timestamp is in seconds, convert to milliseconds
     return new Date(timestamp * 1000);
@@ -67,4 +66,3 @@ export function formatTimeRemaining(targetDate: Date): string {
 
   return parts.join(" ");
 }
-

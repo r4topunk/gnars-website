@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { AlertCircle, ArrowLeftRight, CheckCircle2, ExternalLink, Loader2 } from "lucide-react";
 import { arbitrum as thirdwebArbitrum, base as thirdwebBase } from "thirdweb/chains";
 import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
-import { ExternalLink, Loader2, CheckCircle2, AlertCircle, ArrowLeftRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ConnectButton } from "@/components/ui/ConnectButton";
 import {
   Dialog,
   DialogContent,
@@ -12,14 +15,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ConnectButton } from "@/components/ui/ConnectButton";
-import { usePoidhCreateClaim } from "@/hooks/usePoidhContract";
+import { Textarea } from "@/components/ui/textarea";
 import { useUserAddress } from "@/hooks/use-user-address";
-import { getTxUrl, CHAIN_NAMES, SUPPORTED_CHAINS } from "@/lib/poidh/config";
+import { usePoidhCreateClaim } from "@/hooks/usePoidhContract";
+import { CHAIN_NAMES, getTxUrl, SUPPORTED_CHAINS } from "@/lib/poidh/config";
 import type { PoidhBounty } from "@/types/poidh";
 
 interface ClaimBountyModalProps {
@@ -29,6 +30,7 @@ interface ClaimBountyModalProps {
 }
 
 export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyModalProps) {
+  const t = useTranslations("bounties");
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -83,25 +85,23 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Submit Your Proof</DialogTitle>
-          <DialogDescription>
-            Claim this bounty on {chainName} by submitting your proof of completion.
-          </DialogDescription>
+          <DialogTitle>{t("claimModal.title")}</DialogTitle>
+          <DialogDescription>{t("claimModal.description", { chain: chainName })}</DialogDescription>
         </DialogHeader>
 
         {!isConnected ? (
           <div className="py-6 flex flex-col items-center gap-4 text-center">
             <AlertCircle className="w-10 h-10 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Connect your wallet to submit a claim.</p>
+            <p className="text-sm text-muted-foreground">{t("claimModal.connectPrompt")}</p>
             <ConnectButton />
           </div>
         ) : isSuccess ? (
           <div className="py-6 flex flex-col items-center gap-4 text-center">
             <CheckCircle2 className="w-12 h-12 text-emerald-500" />
             <div>
-              <p className="font-semibold">Claim submitted!</p>
+              <p className="font-semibold">{t("claimModal.successTitle")}</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Your proof is on-chain. The bounty issuer will review it.
+                {t("claimModal.successDescription")}
               </p>
             </div>
             {hash && (
@@ -111,11 +111,11 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-sm text-primary hover:underline"
               >
-                View transaction <ExternalLink className="w-3 h-3" />
+                {t("claimModal.viewTransaction")} <ExternalLink className="w-3 h-3" />
               </a>
             )}
             <Button variant="outline" onClick={() => handleClose(false)}>
-              Close
+              {t("cta.close")}
             </Button>
           </div>
         ) : (
@@ -125,8 +125,10 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
                 <div className="flex items-start gap-2 text-sm text-yellow-600 dark:text-yellow-400">
                   <ArrowLeftRight className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>
-                    Your wallet is on <strong>{currentWalletChainName}</strong>.
-                    Switch to <strong>{chainName}</strong> to submit.
+                    {t("claimModal.wrongNetwork", {
+                      currentChain: currentWalletChainName,
+                      targetChain: chainName,
+                    })}
                   </span>
                 </div>
                 <Button
@@ -140,16 +142,16 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
                   {isSwitching ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    `Switch to ${chainName}`
+                    t("claimModal.switchTo", { chain: chainName })
                   )}
                 </Button>
               </div>
             )}
 
             <div className="space-y-1.5">
-              <Label>Claim title</Label>
+              <Label>{t("claimModal.claimTitleLabel")}</Label>
               <Input
-                placeholder="e.g. Kickflip down the 5-stair"
+                placeholder={t("claimModal.claimTitlePlaceholder")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 maxLength={100}
@@ -159,10 +161,10 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
             </div>
 
             <div className="space-y-1.5">
-              <Label>Proof / description</Label>
+              <Label>{t("claimModal.proofLabel")}</Label>
               <Textarea
                 className="min-h-[100px] resize-y"
-                placeholder="Describe your proof and include links to photos/videos..."
+                placeholder={t("claimModal.proofPlaceholder")}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={500}
@@ -173,9 +175,9 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
             </div>
 
             <div className="space-y-1.5">
-              <Label>Media URL (optional)</Label>
+              <Label>{t("claimModal.mediaUrlLabel")}</Label>
               <Input
-                placeholder="https://... link to your video or photo"
+                placeholder={t("claimModal.mediaUrlPlaceholder")}
                 value={mediaUrl}
                 onChange={(e) => setMediaUrl(e.target.value)}
                 disabled={isPending}
@@ -186,7 +188,7 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
             {error && (
               <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{error.message.split('\n')[0]}</span>
+                <span>{error.message.split("\n")[0]}</span>
               </div>
             )}
 
@@ -198,7 +200,7 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
                 onClick={() => handleClose(false)}
                 disabled={isPending}
               >
-                Cancel
+                {t("cta.cancel")}
               </Button>
               <Button
                 type="submit"
@@ -208,10 +210,10 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
                 {isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {hash ? "Confirming…" : "Confirm in wallet…"}
+                    {hash ? t("claimModal.confirming") : t("claimModal.confirmingWallet")}
                   </>
                 ) : (
-                  "Submit Claim"
+                  t("detail.submitYourProof")
                 )}
               </Button>
             </div>

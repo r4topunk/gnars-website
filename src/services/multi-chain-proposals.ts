@@ -1,8 +1,8 @@
 import { cache } from "react";
 import type { Proposal } from "@/components/proposals/types";
-import { listProposals as listBaseProposals, getProposalByIdOrNumber } from "./proposals";
 import { getProposalStatus, ProposalStatus } from "@/lib/schemas/proposals";
 import type { SnapshotProposal } from "@/types/snapshot";
+import { getProposalByIdOrNumber, listProposals as listBaseProposals } from "./proposals";
 
 export type ProposalSource = "base" | "ethereum" | "snapshot";
 
@@ -41,7 +41,7 @@ interface EthProposalRaw {
 async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainProposal[]> {
   try {
     let ethereumProposalsData: EthProposalRaw[];
-    
+
     // Try filesystem first (for build time), then fetch (for runtime)
     try {
       const fs = await import("fs");
@@ -52,15 +52,18 @@ async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainPropos
     } catch (fsError) {
       // Fallback to fetch if file system access fails (e.g., in serverless)
       console.log("[loadEthProposals] Filesystem failed, trying fetch:", fsError);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://gnars.com'}/data/ethereum-proposals.json`, {
-        next: { revalidate: 3600 }
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com"}/data/ethereum-proposals.json`,
+        {
+          next: { revalidate: 3600 },
+        },
+      );
       if (!response.ok) {
         throw new Error(`Failed to fetch ethereum proposals: ${response.status}`);
       }
       ethereumProposalsData = await response.json();
     }
-    
+
     const proposals = ethereumProposalsData.slice(skip, skip + limit);
 
     return proposals.map((p) => {
@@ -91,7 +94,9 @@ async function loadEthProposals(limit = 100, skip = 0): Promise<MultiChainPropos
         transactionHash: "",
         votes: [],
         voteStart: new Date(Number(p.createdTimestamp) * 1000).toISOString(),
-        voteEnd: new Date((Number(p.createdTimestamp) + (Number(p.endBlock) - Number(p.startBlock)) * 12) * 1000).toISOString(),
+        voteEnd: new Date(
+          (Number(p.createdTimestamp) + (Number(p.endBlock) - Number(p.startBlock)) * 12) * 1000,
+        ).toISOString(),
         expiresAt: p.executionETA
           ? new Date(Number(p.executionETA) * 1000).toISOString()
           : undefined,
@@ -128,7 +133,7 @@ interface SnapshotTransaction {
 async function loadSnapshotTransactions(): Promise<Map<string, SnapshotTransaction>> {
   try {
     let txData: SnapshotTransaction[];
-    
+
     try {
       const fs = await import("fs");
       const path = await import("path");
@@ -136,14 +141,17 @@ async function loadSnapshotTransactions(): Promise<Map<string, SnapshotTransacti
       const fileContents = fs.readFileSync(filePath, "utf8");
       txData = JSON.parse(fileContents);
     } catch {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://gnars.com'}/data/snapshot-transactions.json`, {
-        next: { revalidate: 3600 }
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com"}/data/snapshot-transactions.json`,
+        {
+          next: { revalidate: 3600 },
+        },
+      );
       if (!response.ok) return new Map();
       txData = await response.json();
     }
-    
-    return new Map(txData.map(tx => [tx.proposalId, tx]));
+
+    return new Map(txData.map((tx) => [tx.proposalId, tx]));
   } catch (error) {
     console.error("[loadSnapshotTransactions] Failed:", error);
     return new Map();
@@ -153,7 +161,7 @@ async function loadSnapshotTransactions(): Promise<Map<string, SnapshotTransacti
 async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainProposal[]> {
   try {
     let snapshotProposalsData: SnapshotProposal[];
-    
+
     // Try filesystem first (for build time), then fetch (for runtime)
     try {
       const fs = await import("fs");
@@ -164,24 +172,27 @@ async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainP
     } catch (fsError) {
       // Fallback to fetch if file system access fails (e.g., in serverless)
       console.log("[loadSnapshotProposals] Filesystem failed, trying fetch:", fsError);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://gnars.com'}/data/snapshot-proposals.json`, {
-        next: { revalidate: 3600 }
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com"}/data/snapshot-proposals.json`,
+        {
+          next: { revalidate: 3600 },
+        },
+      );
       if (!response.ok) {
         throw new Error(`Failed to fetch snapshot proposals: ${response.status}`);
       }
       snapshotProposalsData = await response.json();
     }
-    
+
     // Load transaction data
     const txMap = await loadSnapshotTransactions();
-    
+
     const proposals = snapshotProposalsData.slice(skip, skip + limit);
 
     return proposals.map((p, index) => {
       const proposalNumber = snapshotProposalsData.length - skip - index;
       const createdAt = p.created * 1000;
-      
+
       // Map Snapshot state to ProposalStatus
       let status: ProposalStatus;
       switch (p.state) {
@@ -200,10 +211,10 @@ async function loadSnapshotProposals(limit = 100, skip = 0): Promise<MultiChainP
 
       // Check if we have transaction data for this proposal
       const txData = txMap.get(p.id);
-      const targets = txData?.transactions.map(tx => tx.target) || [];
-      const values = txData?.transactions.map(tx => tx.value) || [];
-      const calldatas = txData?.transactions.map(tx => tx.calldata) || [];
-      const txDescriptions = txData?.transactions.map(tx => tx.description || "") || [];
+      const targets = txData?.transactions.map((tx) => tx.target) || [];
+      const values = txData?.transactions.map((tx) => tx.value) || [];
+      const calldatas = txData?.transactions.map((tx) => tx.calldata) || [];
+      const txDescriptions = txData?.transactions.map((tx) => tx.description || "") || [];
 
       return {
         proposalId: p.id,
@@ -304,9 +315,7 @@ export const getMultiChainProposal = cache(
     if (source === "ethereum") {
       const ethProposals = await loadEthProposals(1000);
       const proposal = ethProposals.find(
-        (p) =>
-          p.proposalId === idOrNumber ||
-          p.proposalNumber === Number.parseInt(idOrNumber, 10),
+        (p) => p.proposalId === idOrNumber || p.proposalNumber === Number.parseInt(idOrNumber, 10),
       );
       return proposal ?? null;
     }
@@ -314,9 +323,7 @@ export const getMultiChainProposal = cache(
     if (source === "snapshot") {
       const snapshotProposals = await loadSnapshotProposals(1000);
       const proposal = snapshotProposals.find(
-        (p) =>
-          p.proposalId === idOrNumber ||
-          p.proposalNumber === Number.parseInt(idOrNumber, 10),
+        (p) => p.proposalId === idOrNumber || p.proposalNumber === Number.parseInt(idOrNumber, 10),
       );
       return proposal ?? null;
     }
@@ -325,9 +332,7 @@ export const getMultiChainProposal = cache(
     const allProposals = await listMultiChainProposals(1000, true, true);
     return (
       allProposals.find(
-        (p) =>
-          p.proposalId === idOrNumber ||
-          p.proposalNumber === Number.parseInt(idOrNumber, 10),
+        (p) => p.proposalId === idOrNumber || p.proposalNumber === Number.parseInt(idOrNumber, 10),
       ) ?? null
     );
   },

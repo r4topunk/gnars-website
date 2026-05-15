@@ -94,7 +94,7 @@ export function validateSplitRecipients(recipients: SplitRecipient[]): SplitVali
   // Validate percentages sum to 100
   const totalPercent = recipients.reduce((sum, r) => sum + r.percentAllocation, 0);
   const percentDiff = Math.abs(totalPercent - 100);
-  
+
   // Allow for small floating point errors (0.0001%)
   if (percentDiff > 0.0001) {
     errors.push({
@@ -141,7 +141,10 @@ export function prepareSplitConfigForSDK(config: SplitConfig): {
 /**
  * Creates a default split configuration with DAO treasury
  */
-export function createDefaultSplitConfig(treasuryAddress: string, userAddress?: string): SplitConfig {
+export function createDefaultSplitConfig(
+  treasuryAddress: string,
+  userAddress?: string,
+): SplitConfig {
   const recipients: SplitRecipient[] = [
     {
       address: treasuryAddress,
@@ -183,19 +186,19 @@ export function calculateRemainingPercentage(recipients: SplitRecipient[]): numb
  */
 export function autoAdjustPercentages(recipients: SplitRecipient[]): SplitRecipient[] {
   if (recipients.length === 0) return [];
-  
+
   // Helper to round to 4 decimal places
   const roundTo4Decimals = (num: number) => Math.round(num * 10000) / 10000;
-  
+
   // Calculate base share and round it
   const baseShare = Math.floor((100 / recipients.length) * 10000) / 10000;
-  
+
   // Calculate how much we've allocated so far
   const allocatedToOthers = baseShare * (recipients.length - 1);
-  
+
   // Last recipient gets the remainder to ensure exactly 100%
   const lastShare = roundTo4Decimals(100 - allocatedToOthers);
-  
+
   return recipients.map((recipient, index) => ({
     ...recipient,
     percentAllocation: index === recipients.length - 1 ? lastShare : baseShare,

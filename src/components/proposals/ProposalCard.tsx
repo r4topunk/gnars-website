@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
-import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
 import { Proposal } from "@/components/proposals/types";
@@ -11,18 +11,19 @@ import { AddressDisplay } from "@/components/ui/address-display";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "@/i18n/navigation";
+import { getDateFnsLocale, toIntlLocale } from "@/lib/i18n/format";
 import { getProposalFundingTotals } from "@/lib/proposal-funding";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { cn } from "@/lib/utils";
+import type { MultiChainProposal, ProposalSource } from "@/services/multi-chain-proposals";
 
-function formatAssetAmount(value: number, maxFractionDigits = 4): string {
-  return new Intl.NumberFormat("en-US", {
+function formatAssetAmount(value: number, locale: string, maxFractionDigits = 4): string {
+  return new Intl.NumberFormat(toIntlLocale(locale), {
     minimumFractionDigits: 0,
     maximumFractionDigits: maxFractionDigits,
   }).format(value);
 }
-
-import type { MultiChainProposal, ProposalSource } from "@/services/multi-chain-proposals";
 
 const CHAIN_INDICATOR_CONFIG: Record<string, { label: string; className: string }> = {
   ethereum: {
@@ -60,6 +61,8 @@ export function ProposalCard({
   showBanner?: boolean;
   showRequested?: boolean;
 }) {
+  const t = useTranslations("proposals");
+  const locale = useLocale();
   const totalVotes =
     (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
 
@@ -73,6 +76,7 @@ export function ProposalCard({
 
   const timeCreated = formatDistanceToNow(new Date(proposal.timeCreated * 1000), {
     addSuffix: true,
+    locale: getDateFnsLocale(locale),
   });
   const isPending = proposal.status === ProposalStatus.PENDING;
 
@@ -95,10 +99,14 @@ export function ProposalCard({
 
   const requestedLines = hasFundingRequest
     ? [
-        fundingTotals.totalEthWei > 0n ? `${formatAssetAmount(fundingTotals.totalEth)} ETH` : null,
-        fundingTotals.totalUsdcRaw > 0n ? `${formatAssetAmount(fundingTotals.totalUsdc, 2)} USDC` : null,
+        fundingTotals.totalEthWei > 0n
+          ? `${formatAssetAmount(fundingTotals.totalEth, locale)} ETH`
+          : null,
+        fundingTotals.totalUsdcRaw > 0n
+          ? `${formatAssetAmount(fundingTotals.totalUsdc, locale, 2)} USDC`
+          : null,
       ].filter((line): line is string => Boolean(line))
-    : ["No direct ETH/USDC transfer"];
+    : [t("card.noDirectTransfer")];
 
   useEffect(() => {
     setBannerSrc(currentBannerSrc);
@@ -117,7 +125,7 @@ export function ProposalCard({
               {!isImageLoaded && <Skeleton className="absolute inset-0" />}
               <Image
                 src={bannerSrc}
-                alt="Proposal banner"
+                alt={t("card.bannerAlt")}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className={`object-cover transition-opacity duration-300 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
@@ -140,9 +148,7 @@ export function ProposalCard({
                     <span className="text-sm font-medium text-muted-foreground">
                       Prop #{proposal.proposalNumber}
                     </span>
-                    {source !== "base" && (
-                      <ChainIndicator source={source} />
-                    )}
+                    {source !== "base" && <ChainIndicator source={source} />}
                   </div>
                   <div className="flex-shrink-0">
                     <ProposalStatusBadge status={proposal.status} className="text-xs" />
@@ -152,7 +158,7 @@ export function ProposalCard({
                   {proposal.title}
                 </h4>
                 <div className="text-xs text-muted-foreground mt-1">
-                  by{" "}
+                  {t("card.by")}{" "}
                   <AddressDisplay
                     address={proposal.proposer}
                     variant="compact"
@@ -168,13 +174,13 @@ export function ProposalCard({
 
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Voting Progress</span>
+                <span>{t("card.votingProgress")}</span>
                 <span className={cn(isPending && "italic")}>
                   {isPending
-                    ? "not started"
+                    ? t("card.notStarted")
                     : totalVotes === 0
-                      ? "no votes yet"
-                      : `${totalVotes} votes`}
+                      ? t("card.noVotesYet")
+                      : t("card.votes", { count: totalVotes })}
                 </span>
               </div>
               <div className="space-y-1">
@@ -220,12 +226,14 @@ export function ProposalCard({
             {showRequested && (
               <div className="space-y-1 border-t border-border/60 pt-2">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-muted-foreground">Requested</span>
+                  <span className="text-xs text-muted-foreground">{t("card.requested")}</span>
                   <div className="flex items-center gap-2 font-medium text-foreground tabular-nums text-sm">
                     {requestedLines.map((line, idx) => (
                       <span key={line}>
                         {line}
-                        {idx < requestedLines.length - 1 && <span className="text-muted-foreground mx-1">+</span>}
+                        {idx < requestedLines.length - 1 && (
+                          <span className="text-muted-foreground mx-1">+</span>
+                        )}
                       </span>
                     ))}
                   </div>

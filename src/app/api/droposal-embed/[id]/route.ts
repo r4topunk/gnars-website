@@ -17,10 +17,7 @@ const PROPOSALS_BY_NUMBER_GQL = /* GraphQL */ `
   }
 `;
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const num = Number.parseInt(id, 10);
   if (Number.isNaN(num)) {

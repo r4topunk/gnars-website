@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { ChevronDown, Eye, EyeOff, Info } from "lucide-react";
 import { FaEthereum } from "react-icons/fa";
@@ -52,6 +53,7 @@ export function TVVideoCardInfo({
   onAmountSelect,
   onQuantitySelect,
 }: TVVideoCardProps) {
+  const t = useTranslations("tv");
   const [isHidden, setIsHidden] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -71,7 +73,7 @@ export function TVVideoCardInfo({
       <button
         onClick={() => setIsHidden(false)}
         className="pointer-events-auto absolute left-3 md:left-5 bottom-3 md:bottom-5 p-2.5 md:p-3 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white/60 hover:text-white hover:bg-black/70 transition-all shadow-lg"
-        aria-label="Show info"
+        aria-label={t("card.showInfo")}
       >
         <Eye className="w-5 h-5 md:w-6 md:h-6" />
       </button>
@@ -79,7 +81,9 @@ export function TVVideoCardInfo({
   }
 
   return (
-    <div className={`pointer-events-none absolute left-3 right-3 md:left-6 md:right-6 bottom-3 md:bottom-6 bg-black/50 md:bg-black/60 p-3 md:p-5 rounded-2xl backdrop-blur-lg border border-white/10 shadow-2xl transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+    <div
+      className={`pointer-events-none absolute left-3 right-3 md:left-6 md:right-6 bottom-3 md:bottom-6 bg-black/50 md:bg-black/60 p-3 md:p-5 rounded-2xl backdrop-blur-lg border border-white/10 shadow-2xl transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
+    >
       {/* Buy/Mint button - positioned at top-right inside card */}
       <div className="pointer-events-auto absolute top-2 right-2 md:top-3 md:right-3">
         {/* Droposal Mint Button */}
@@ -110,13 +114,17 @@ export function TVVideoCardInfo({
                 {isBuying ? (
                   <div className="flex items-center gap-1.5 md:gap-2">
                     <div className="h-3.5 w-3.5 md:h-4 md:w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    <span>Minting...</span>
+                    <span>{t("card.minting")}</span>
                   </div>
                 ) : isFreeDroposal ? (
-                  <span className="whitespace-nowrap">Free Mint ×{mintQuantity}</span>
+                  <span className="whitespace-nowrap">
+                    {t("card.freeMint", { qty: mintQuantity })}
+                  </span>
                 ) : (
                   <>
-                    <span className="whitespace-nowrap">Mint ×{mintQuantity}</span>
+                    <span className="whitespace-nowrap">
+                      {t("card.mintQty", { qty: mintQuantity })}
+                    </span>
                     <FaEthereum className="w-3.5 h-3.5 md:w-4 md:h-4" />
                   </>
                 )}
@@ -159,11 +167,13 @@ export function TVVideoCardInfo({
                 {isBuying ? (
                   <div className="flex items-center gap-1.5 md:gap-2">
                     <div className="h-3.5 w-3.5 md:h-4 md:w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
-                    <span>Buying...</span>
+                    <span>{t("card.buying")}</span>
                   </div>
                 ) : (
                   <>
-                    <span className="whitespace-nowrap">Buy {supportAmount}</span>
+                    <span className="whitespace-nowrap">
+                      {t("card.buy", { amount: supportAmount })}
+                    </span>
                     <FaEthereum className="w-3.5 h-3.5 md:w-4 md:h-4" />
                   </>
                 )}
@@ -221,7 +231,9 @@ export function TVVideoCardInfo({
       {isDroposalItem && (
         <div className="mb-3">
           <span className="text-indigo-300 text-xs md:text-sm font-bold">
-            {isFreeDroposal ? "Free Mint" : `${droposalPrice.toFixed(4)} ETH per NFT`}
+            {isFreeDroposal
+              ? t("card.freeMintLabel")
+              : t("card.pricePerNft", { price: droposalPrice.toFixed(4) })}
           </span>
         </div>
       )}
@@ -259,7 +271,7 @@ export function TVVideoCardInfo({
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-1.5 md:p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
-            aria-label={isExpanded ? "Collapse details" : "Show details"}
+            aria-label={isExpanded ? t("card.collapseDetails") : t("card.showDetails")}
           >
             {isExpanded ? (
               <ChevronDown className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -270,7 +282,7 @@ export function TVVideoCardInfo({
           <button
             onClick={() => setIsHidden(true)}
             className="p-1.5 md:p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
-            aria-label="Hide info"
+            aria-label={t("card.hideInfo")}
           >
             <EyeOff className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </button>
@@ -303,7 +315,7 @@ export function TVVideoCardInfo({
           <div className="mt-2 pt-2 border-t border-white/10 space-y-1.5">
             {/* Token Standard */}
             <div className="flex items-center justify-between text-xs">
-              <span className="text-white/50">Type</span>
+              <span className="text-white/50">{t("card.typeLabel")}</span>
               {isDroposalItem ? (
                 <span className="text-indigo-300 font-medium">🎨 NFT (ERC-721)</span>
               ) : item.coinAddress ? (
@@ -315,14 +327,14 @@ export function TVVideoCardInfo({
             {/* Symbol */}
             {item.symbol && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white/50">Symbol</span>
+                <span className="text-white/50">{t("card.symbolLabel")}</span>
                 <span className="text-white font-medium">${item.symbol}</span>
               </div>
             )}
             {/* Token Holders (coins only) */}
             {!isDroposalItem && item.uniqueHolders !== undefined && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white/50">Holders</span>
+                <span className="text-white/50">{t("card.holdersLabel")}</span>
                 <span className="text-white font-medium">
                   {item.uniqueHolders.toLocaleString()}
                 </span>
@@ -331,7 +343,7 @@ export function TVVideoCardInfo({
             {/* ATH (coins only) */}
             {!isDroposalItem && item.allTimeHigh !== undefined && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white/50">All-Time High</span>
+                <span className="text-white/50">{t("card.athLabel")}</span>
                 <span className="text-white font-medium">
                   ${Math.round(item.allTimeHigh).toLocaleString()}
                 </span>
@@ -340,7 +352,7 @@ export function TVVideoCardInfo({
             {/* Contract Address */}
             {(item.coinAddress || item.tokenAddress) && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white/50">Contract</span>
+                <span className="text-white/50">{t("card.contractLabel")}</span>
                 <a
                   href={`https://basescan.org/address/${item.coinAddress || item.tokenAddress}`}
                   target="_blank"
@@ -355,7 +367,7 @@ export function TVVideoCardInfo({
             {/* Proposal Number (droposals) */}
             {isDroposalItem && item.proposalNumber && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white/50">Proposal</span>
+                <span className="text-white/50">{t("card.proposalLabel")}</span>
                 <a
                   href={`/droposals/${item.proposalNumber}`}
                   className="pointer-events-auto text-indigo-400 hover:text-indigo-300 transition-colors"
@@ -423,27 +435,29 @@ interface DroposalPriceInfoProps {
 }
 
 function DroposalPriceInfo({ priceEth, quantity, totalPrice, isFree }: DroposalPriceInfoProps) {
+  const t = useTranslations("tv");
+
   return (
     <div className="space-y-1 md:space-y-1.5">
       <div className="flex items-center gap-1.5 md:gap-2">
         {isFree ? (
-          <span className="text-indigo-300 text-xs md:text-sm font-bold">Free Mint</span>
+          <span className="text-indigo-300 text-xs md:text-sm font-bold">
+            {t("card.freeMintLabel")}
+          </span>
         ) : (
           <>
             <span className="text-indigo-300 text-xs md:text-sm font-bold">
               {priceEth.toFixed(4)} ETH
             </span>
-            <span className="text-white/50 text-[10px] md:text-xs">per NFT</span>
+            <span className="text-white/50 text-[10px] md:text-xs">{t("card.perNft")}</span>
           </>
         )}
       </div>
       <div className="flex items-center justify-between text-[10px] md:text-xs">
-        <span className="text-white/50">
-          Total ({quantity} NFT{quantity > 1 ? "s" : ""})
-        </span>
+        <span className="text-white/50">{t("droposal.total", { quantity })}</span>
         <span className="text-white font-semibold flex items-center gap-1">
           {totalPrice.toFixed(5)} ETH
-          <span className="text-white/40 text-[9px]">(incl. fee)</span>
+          <span className="text-white/40 text-[9px]">{t("droposal.inclFee")}</span>
         </span>
       </div>
     </div>

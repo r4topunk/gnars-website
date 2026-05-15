@@ -1,8 +1,10 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import { Markdown } from "@/components/common/Markdown";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { getDateFnsLocale } from "@/lib/i18n/format";
 import { type Propdate } from "@/services/propdates";
 
 interface PropdateReplyCardProps {
@@ -10,8 +12,10 @@ interface PropdateReplyCardProps {
 }
 
 export function PropdateReplyCard({ reply }: PropdateReplyCardProps) {
+  const locale = useLocale();
   const timeCreated = formatDistanceToNow(new Date(reply.timeCreated * 1000), {
     addSuffix: true,
+    locale: getDateFnsLocale(locale),
   });
 
   return (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -16,22 +17,22 @@ interface MemberDelegatorsTableProps {
 }
 
 export function MemberDelegatorsTable({ delegators }: MemberDelegatorsTableProps) {
+  const t = useTranslations("members");
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Delegators</CardTitle>
+        <CardTitle>{t("delegators.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {delegators.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No one delegated to this member.
-          </div>
+          <div className="text-center py-8 text-muted-foreground">{t("delegators.empty")}</div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Address/ENS</TableHead>
-                <TableHead className="text-right">Gnars Delegated</TableHead>
+                <TableHead>{t("delegators.table.addressEns")}</TableHead>
+                <TableHead className="text-right">{t("delegators.table.gnarsDelegated")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -1,8 +1,10 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
-import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { DroposalListItem } from "@/services/droposals";
 
 interface DroposalCardProps {
@@ -10,6 +12,8 @@ interface DroposalCardProps {
 }
 
 export function DroposalCard({ item }: DroposalCardProps) {
+  const t = useTranslations("droposals");
+  const locale = useLocale();
   const href = `/droposals/${item.proposalNumber}`;
   return (
     <Link href={href} className="group block">
@@ -32,11 +36,12 @@ export function DroposalCard({ item }: DroposalCardProps) {
           <h3 className="line-clamp-1 font-semibold">{item.name || item.title}</h3>
           <div className="text-xs text-muted-foreground mt-1 flex items-center justify-between">
             <span>
-              #{item.proposalNumber} · {new Date(item.createdAt).toLocaleDateString()}
+              #{item.proposalNumber} ·{" "}
+              {new Date(item.createdAt).toLocaleDateString(toIntlLocale(locale))}
             </span>
             {item.priceEth && (
               <span className="font-medium text-foreground">
-                {Number(item.priceEth) === 0 ? "Free" : `${item.priceEth} ETH`}
+                {Number(item.priceEth) === 0 ? t("card.free") : `${item.priceEth} ETH`}
               </span>
             )}
           </div>

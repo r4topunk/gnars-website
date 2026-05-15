@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { FuzzyText } from "./FuzzyText";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { FaultyTerminal } from "./FaultyTerminal";
+import { FuzzyText } from "./FuzzyText";
 
 /**
  * Loading and status indicators for the TV feed
  */
 export function TVEmptyState({ loading, error }: { loading: boolean; error: string | null }) {
+  const t = useTranslations("tv");
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [showContent, setShowContent] = useState(false);
 
@@ -16,13 +18,8 @@ export function TVEmptyState({ loading, error }: { loading: boolean; error: stri
 
   // Loading state with phases
   const loadingMessages = useMemo(
-    () => [
-      "Loading videos...",
-      "Finding the best content...",
-      "Almost there...",
-      "Slow connection - hang tight! 🛹",
-    ],
-    []
+    () => [t("loading.phase0"), t("loading.phase1"), t("loading.phase2"), t("loading.phase3")],
+    [t],
   );
 
   // Progress through loading phases to give user feedback on slow connections
@@ -37,13 +34,13 @@ export function TVEmptyState({ loading, error }: { loading: boolean; error: stri
     const contentTimer = setTimeout(() => setShowContent(true), 100);
 
     const phases = [
-      { delay: 2000, phase: 1 },  // After 2s: "Finding videos..."
-      { delay: 5000, phase: 2 },  // After 5s: "Almost there..."
+      { delay: 2000, phase: 1 }, // After 2s: "Finding videos..."
+      { delay: 5000, phase: 2 }, // After 5s: "Almost there..."
       { delay: 10000, phase: 3 }, // After 10s: "Slow connection detected..."
     ];
 
     const timers = phases.map(({ delay, phase }) =>
-      setTimeout(() => setLoadingPhase(phase), delay)
+      setTimeout(() => setLoadingPhase(phase), delay),
     );
 
     return () => {
@@ -55,7 +52,7 @@ export function TVEmptyState({ loading, error }: { loading: boolean; error: stri
   if (!loading && !error) {
     return (
       <div className="flex h-screen w-full items-center justify-center text-sm text-white/70">
-        No videos available
+        {t("loading.noVideos")}
       </div>
     );
   }
@@ -69,7 +66,7 @@ export function TVEmptyState({ loading, error }: { loading: boolean; error: stri
             onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors"
           >
-            Try again
+            {t("loading.tryAgain")}
           </button>
         </div>
       </div>
@@ -127,9 +124,7 @@ export function TVEmptyState({ loading, error }: { loading: boolean; error: stri
               {loadingMessages[loadingPhase]}
             </FuzzyText>
             {loadingPhase >= 3 && (
-              <p className="text-white/50 text-xs mt-2">
-                Videos will load faster next time
-              </p>
+              <p className="text-white/50 text-xs mt-2">{t("loading.fasterNextTime")}</p>
             )}
           </div>
         </>
@@ -139,6 +134,8 @@ export function TVEmptyState({ loading, error }: { loading: boolean; error: stri
 }
 
 export function TVLoadingMore() {
+  const t = useTranslations("tv");
+
   return (
     <div className="flex h-24 w-full items-center justify-center text-sm text-white/70">
       <div className="flex items-center gap-2">
@@ -150,7 +147,7 @@ export function TVLoadingMore() {
           baseIntensity={0.3}
           enableHover={false}
         >
-          Loading more videos...
+          {t("loading.loadingMore")}
         </FuzzyText>
       </div>
     </div>
@@ -158,6 +155,8 @@ export function TVLoadingMore() {
 }
 
 export function TVEndOfFeed({ totalVideos }: { totalVideos: number }) {
+  const t = useTranslations("tv");
+
   return (
     <div className="flex h-24 w-full items-center justify-center text-sm text-white/50">
       <FuzzyText
@@ -167,7 +166,7 @@ export function TVEndOfFeed({ totalVideos }: { totalVideos: number }) {
         baseIntensity={0.25}
         enableHover={false}
       >
-        You&apos;ve seen all {totalVideos} videos 🎬
+        {t("loading.endOfFeed", { count: totalVideos })}
       </FuzzyText>
     </div>
   );

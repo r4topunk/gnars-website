@@ -7,7 +7,12 @@ interface NftGridSkeletonProps {
 
 export function NftGridSkeleton({ className }: NftGridSkeletonProps) {
   return (
-    <div className={cn("my-6 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 pr-2", className)}>
+    <div
+      className={cn(
+        "my-6 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 pr-2",
+        className,
+      )}
+    >
       {Array.from({ length: 18 }).map((_, index) => (
         <div
           key={`skeleton-${index}`}

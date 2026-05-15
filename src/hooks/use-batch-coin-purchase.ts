@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { createTradeCall, type TradeParameters } from "@zoralabs/coins-sdk";
-import { type Address, encodeFunctionData, type Hex, type PublicClient } from "viem";
 import { prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
-import { base } from "thirdweb/chains";
 import { viemAdapter } from "thirdweb/adapters/viem";
-import { getThirdwebClient } from "@/lib/thirdweb";
+import { base } from "thirdweb/chains";
+import { encodeFunctionData, type Address, type Hex, type PublicClient } from "viem";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useWriteAccount } from "@/hooks/use-write-account";
+import { getThirdwebClient } from "@/lib/thirdweb";
 
 const MULTICALL3: Address = "0xcA11bde05977b3631167028862bE2a173976CA11";
 

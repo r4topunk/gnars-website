@@ -1,0 +1,296 @@
+{
+  "page": {
+    "title": "Criar Proposta",
+    "description": "Crie uma nova proposta para a Gnars DAO",
+    "useTemplate": "Usar um template"
+  },
+  "wizard": {
+    "checkingEligibility": "Verificando elegibilidade da proposta...",
+    "steps": {
+      "details": "Detalhes",
+      "transactions": "Transações",
+      "preview": "Preview"
+    },
+    "nextAddTransactions": "Próximo: Adicionar Transações",
+    "backEditDetails": "Voltar: Editar Detalhes",
+    "nextPreviewSubmit": "Próximo: Preview e Enviar",
+    "backEditTransactions": "Voltar: Editar Transações"
+  },
+  "details": {
+    "title": "Detalhes da Proposta",
+    "description": "Forneça as informações básicas para a sua proposta",
+    "titleLabel": "Título da Proposta *",
+    "titlePlaceholder": "Insira o título da proposta...",
+    "titleHelper": "Mantenha conciso e descritivo",
+    "bannerLabel": "Imagem de Banner",
+    "clickToUpload": "Clique para fazer upload da imagem de banner",
+    "uploadSizeHint": "PNG, JPG até 10MB",
+    "uploadingToIpfs": "Subindo para o IPFS...",
+    "descriptionLabel": "Descrição *",
+    "descriptionPlaceholder": "Descreva sua proposta em detalhes...\n\nVocê pode usar formatação **markdown**:\n- **Texto em negrito**\n- *Texto em itálico*\n- `Trechos de código`\n\nExplique o problema, a solução e os resultados esperados.",
+    "descriptionHelper": "Formatação markdown suportada. Seja minucioso e claro sobre o propósito e impacto da sua proposta.",
+    "noDescriptionYet": "Sem descrição ainda",
+    "edit": "Editar",
+    "preview": "Preview",
+    "templateHelper": "Preencha as seções abaixo. Suas respostas são compiladas na proposta."
+  },
+  "banner": {
+    "uploading": "Subindo imagem para o IPFS...",
+    "uploadSuccess": "Imagem subida com sucesso!",
+    "uploadFailed": "Falha ao subir a imagem",
+    "pleaseRetry": "Por favor, tente de novo",
+    "notAnImage": "Por favor, selecione um arquivo de imagem",
+    "fileTooLarge": "O tamanho do arquivo deve ser menor que 10MB"
+  },
+  "transactions": {
+    "title": "Transações da Proposta",
+    "description": "Adicione uma ou mais transações que serão executadas se essa proposta passar",
+    "addedTransactions": "Transações Adicionadas",
+    "types": {
+      "sendEth": "Enviar ETH",
+      "sendEthDesc": "Enviar ETH do tesouro",
+      "sendUsdc": "Enviar USDC",
+      "sendUsdcDesc": "Enviar USDC",
+      "sendTokens": "Enviar Tokens",
+      "sendTokensDesc": "Enviar tokens ERC-20",
+      "sendNfts": "Enviar NFTs",
+      "sendNftsDesc": "Transferir NFTs",
+      "droposal": "Criar Droposal",
+      "droposalDesc": "Criar um Zora NFT drop",
+      "buyCoin": "Comprar Coin",
+      "buyCoinDesc": "Comprar content coin",
+      "custom": "Transação Customizada",
+      "customDesc": "Interação com contrato"
+    },
+    "configureDetails": "Configure os detalhes da transação",
+    "saveTransaction": "Salvar Transação",
+    "cancel": "Cancelar",
+    "validationErrors": "Erros de validação: {errors}",
+    "creatingSplit": "Criando Split...",
+    "generating": "Gerando...",
+    "saving": "Salvando...",
+    "unknownType": "Tipo de ação desconhecido"
+  },
+  "sendEth": {
+    "recipientLabel": "Endereço do Destinatário *",
+    "recipientPlaceholder": "0x... ou nome ENS",
+    "amountLabel": "Quantia (ETH) *",
+    "amountPlaceholder": "0.0",
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "Descreva o propósito desse pagamento..."
+  },
+  "sendUsdc": {
+    "tokenLabel": "Token (fixo)",
+    "recipientLabel": "Endereço do Destinatário *",
+    "recipientPlaceholder": "0x... ou nome ENS",
+    "amountLabel": "Quantia (USDC) *",
+    "amountPlaceholder": "0.00",
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "Descreva o propósito dessa transferência de USDC..."
+  },
+  "sendTokens": {
+    "tokenAddressLabel": "Endereço do Token Contract *",
+    "tokenAddressPlaceholder": "0x...",
+    "recipientLabel": "Endereço do Destinatário *",
+    "recipientPlaceholder": "0x... ou nome ENS",
+    "amountLabel": "Quantia *",
+    "amountPlaceholder": "0.0",
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "Descreva o propósito dessa transferência de token..."
+  },
+  "sendNfts": {
+    "selectGnarLabel": "Selecione um Gnar do Tesouro *",
+    "failedToLoad": "Falha ao carregar NFTs do tesouro: {error}",
+    "noGnarsFound": "Nenhum Gnar encontrado no tesouro.",
+    "toAddressLabel": "Endereço de Destino *",
+    "toAddressPlaceholder": "0x... ou nome ENS",
+    "pleaseSelectNft": "Por favor, selecione um NFT",
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "Descreva o propósito dessa transferência de NFT..."
+  },
+  "droposal": {
+    "title": "Detalhes do Droposal",
+    "learnMore": "Saiba mais",
+    "basicInfo": "Informações Básicas",
+    "collectionNameLabel": "Nome da Coleção *",
+    "collectionNamePlaceholder": "Gnars Special Edition",
+    "collectionSymbolLabel": "Símbolo da Coleção *",
+    "collectionSymbolPlaceholder": "GNARSSE",
+    "collectionDescLabel": "Descrição da Coleção *",
+    "collectionDescPlaceholder": "Um drop edição especial para a comunidade Gnars...",
+    "pricingSupply": "Preço e Supply",
+    "priceLabel": "Preço por NFT (ETH) *",
+    "pricePlaceholder": "0.01",
+    "priceHelper": "A Zora cobra 0.000777 ETH por mint como fee de protocolo.",
+    "useRevenueSplit": "Usar Revenue Split",
+    "useRevenueSplitDesc": "Crie um contrato de split para dividir a receita de vendas de NFTs entre múltiplos destinatários",
+    "payoutAddressLabel": "Endereço de Payout",
+    "payoutAddressHelper": "Endereço que recebe receitas de mint e royalties (padrão: tesouro da DAO)",
+    "splitCreated": "Contrato de Split Criado",
+    "splitCreatedDesc": "Esse endereço vai receber as vendas de NFT e será incluído na proposta.",
+    "viewOnSplits": "Ver no Splits.org →",
+    "advancedOptions": "Opções Avançadas",
+    "saleTiming": "Cronograma de Venda",
+    "saleStartLabel": "Início da Venda",
+    "saleStartHelper": "Calculado automaticamente baseado no cronograma da proposta: atraso de votação + período de votação + atraso do timelock + 1 dia de buffer.",
+    "saleEndLabel": "Fim da Venda",
+    "saleEndHelper": "Deixe vazio para sem data de fim (venda indefinida).",
+    "editionSettings": "Configurações da Edição",
+    "editionTypeLabel": "Tipo de Edição",
+    "openEdition": "Edição Aberta (Ilimitada)",
+    "fixedEdition": "Edição Fixa (Supply Limitado)",
+    "editionTypeHelper": "Edição aberta permite mints ilimitados. Edição fixa tem um supply máximo.",
+    "editionSizeLabel": "Tamanho da Edição *",
+    "editionSizePlaceholder": "100",
+    "royaltySettings": "Configurações de Royalty",
+    "royaltyLabel": "Royalty (Basis Points)",
+    "royaltyPlaceholder": "5000",
+    "royaltyHelper": "Padrão: 5000 (50%). Porcentagem de vendas secundárias. 10000 = 100%.",
+    "addressConfig": "Configuração de Endereço",
+    "adminLabel": "Endereço Admin",
+    "adminPlaceholder": "0x... ou nome ENS",
+    "adminHelper": "Endereço que pode gerenciar a coleção (padrão: wallet conectada)"
+  },
+  "buyCoin": {
+    "infoDesc": "Essa transação vai usar o Zora Coins SDK para comprar um content ou creator coin a partir do tesouro. O swap executa pelo Uniswap v4 com Zora hooks.",
+    "coinAddressLabel": "Endereço do Coin *",
+    "coinAddressPlaceholder": "0x...",
+    "coinAddressHelper": "Endereço ERC-20 do content ou creator coin",
+    "ethAmountLabel": "Quantia em ETH *",
+    "ethAmountPlaceholder": "0.1",
+    "ethAmountHelper": "Quantia de ETH a ser gasta do tesouro",
+    "slippageLabel": "Tolerância de Slippage (%) *",
+    "slippagePlaceholder": "5",
+    "slippageHelper": "Slippage máximo aceitável (recomendado: 5%)"
+  },
+  "custom": {
+    "infoDesc": "Transações customizadas exigem conhecimento técnico. Tenha certeza de que você entende a interação com o contrato.",
+    "contractAddressLabel": "Endereço do Contrato *",
+    "contractAddressPlaceholder": "0x...",
+    "valueLabel": "Valor (ETH)",
+    "valuePlaceholder": "0.0",
+    "calldataLabel": "Calldata",
+    "calldataPlaceholder": "0x... - Calldata da transação",
+    "descriptionLabel": "Descrição *",
+    "descriptionPlaceholder": "Descreva claramente o que essa transação faz..."
+  },
+  "budget": {
+    "noBudgetLines": "Sem linhas de orçamento ainda. Adicione uma para solicitar financiamento.",
+    "labelPlaceholder": "Item de linha (ex.: Fee de patrocínio)",
+    "amountPlaceholder": "Quantia",
+    "currencyLabel": "Moeda",
+    "addLine": "Adicionar linha",
+    "total": "Total:",
+    "removeLineAriaLabel": "Remover linha de orçamento {index}",
+    "lineLabelAriaLabel": "Rótulo da linha de orçamento {index}",
+    "lineAmountAriaLabel": "Quantia da linha de orçamento {index}"
+  },
+  "preview": {
+    "title": "Preview da Proposta",
+    "description": "Revise sua proposta antes de enviar para a DAO",
+    "bannerAlt": "Banner da proposta",
+    "beforeSubmitTitle": "Antes de Enviar",
+    "checklist": {
+      "transactionDetails": "Garanta que todos os detalhes da transação estão corretos",
+      "ipfsUpload": "Os metadados da sua proposta serão subidos para o IPFS",
+      "governorSubmit": "A proposta será enviada para o contrato Governor",
+      "cannotModify": "Uma vez enviada, a proposta não pode ser modificada",
+      "votingDelay": "A votação vai começar após um curto período de atraso"
+    },
+    "minimumVotes": "Mínimo para criar uma proposta: {count} votos. Isso vem do threshold do contrato Governor.",
+    "connectToCheck": "Conecte sua wallet para verificar elegibilidade e enviar.",
+    "checkingVotingPower": "Verificando poder de voto...",
+    "insufficientVotes": "Você precisa de pelo menos {required} votos para criar uma proposta.",
+    "yourCurrentVotes": "Você tem {votes} votos no momento.",
+    "votesAreDelegated": "Seus votos estão delegados a {address}.",
+    "preparingProposal": "Preparando proposta...",
+    "walletPending": "Transação pendente... Por favor, confirme na sua wallet.",
+    "waitingConfirmation": "Aguardando confirmação da transação...",
+    "preparing": "Preparando...",
+    "confirming": "Confirmando...",
+    "submitting": "Enviando...",
+    "submitProposal": "Enviar Proposta",
+    "submitted": "Proposta Enviada!",
+    "proposalLive": "Proposta #{number} está no ar na Gnars DAO.",
+    "waitingIndex": "Transação confirmada. Aguardando o subgraph indexar sua proposta…",
+    "indexingTimeout": "Transação confirmada. A indexação está demorando mais que o esperado — atualize a página de propostas em um minuto.",
+    "proposalSubmitted": "Sua proposta foi enviada com sucesso para a Gnars DAO.",
+    "viewProposal": "Ver Proposta",
+    "viewTransaction": "Ver Transação",
+    "insufficientVotingPower": "Poder de voto insuficiente",
+    "validationFailed": "Validação Falhou",
+    "failedToSubmit": "Falha ao enviar proposta",
+    "thirdwebNotConfigured": "Cliente Thirdweb não configurado",
+    "connectWalletToSubmit": "Conecte a wallet para enviar uma proposta",
+    "pleaseFixErrors": "Por favor, corrija os erros de validação antes de enviar"
+  },
+  "droposalBuilder": {
+    "media": {
+      "title": "Mídia",
+      "uploadingToIpfs": "Enviando mídia ao IPFS...",
+      "uploadSuccess": "Mídia enviada com sucesso!",
+      "uploadError": "Falha ao enviar {kind}",
+      "supportedTypes": "Envie um arquivo de imagem, vídeo ou áudio",
+      "imageTypeUnsupported": "Tipo de imagem não suportado. Use: JPEG, PNG, GIF, WebP ou SVG",
+      "ipfsUrlsSet": "URLs do IPFS configuradas com sucesso!",
+      "manualInputDialog": "Inserir IPFS manualmente",
+      "mediaUrlLabel": "URL IPFS da mídia",
+      "mediaUrlHelper": "Informe a URL IPFS do seu arquivo de mídia",
+      "coverUrlLabel": "URL IPFS da capa (opcional)",
+      "coverUrlHelper": "Informe a URL IPFS da sua imagem de capa",
+      "cancel": "Cancelar",
+      "setUrls": "Salvar URLs",
+      "mediaFileLabel": "Arquivo de mídia *",
+      "audioFile": "Arquivo de áudio",
+      "mediaUploadedBadge": "Mídia enviada",
+      "coverImageLabel": "Imagem de capa",
+      "uploadCoverPrompt": "Enviar imagem de capa",
+      "manualInputTitle": "Inserir CIDs IPFS manualmente",
+      "alt": {
+        "mediaPreview": "Pré-visualização da mídia",
+        "coverPreview": "Pré-visualização da capa"
+      }
+    },
+    "splits": {
+      "totalAllocated": "Total alocado:",
+      "remaining": "Restante: {amount}%",
+      "addressOrEns": "Endereço ou ENS",
+      "addressPlaceholder": "0x... ou name.eth",
+      "allocationPercent": "Alocação %",
+      "addRecipient": "Adicionar destinatário",
+      "distributeEvenly": "Distribuir igualmente"
+    }
+  },
+  "alt": {
+    "bannerPreview": "Pré-visualização do banner"
+  },
+  "templates": {
+    "pageTitle": "Templates de Proposta",
+    "pageDescription": "Comece a partir de uma estrutura comprovada. Cada template é baseado nas 77 propostas que a Gnars DAO já bancou — escolha o que se encaixa com sua ideia.",
+    "howItWorks": "Como funciona",
+    "steps": {
+      "pick": {
+        "title": "Escolha um template",
+        "description": "Escolha a categoria que combina com sua proposta. Cada uma tem seções e orientação sob medida."
+      },
+      "fill": {
+        "title": "Preencha as seções",
+        "description": "Substitua o texto placeholder pelos detalhes do seu projeto. A estrutura te mantém no caminho."
+      },
+      "submit": {
+        "title": "Adicione transações e envie",
+        "description": "Configure os pedidos de financiamento, depois faça preview e envie sua proposta onchain."
+      }
+    },
+    "sections": "{count} seções",
+    "blankProposal": "Proposta em Branco",
+    "blankProposalDesc": "Comece do zero — sem template, total liberdade criativa.",
+    "tips": {
+      "deliverables": "Seja específico sobre entregas e cronogramas",
+      "milestones": "Solicite marcos em vez de pagamentos em lump-sum",
+      "links": "Inclua links pra trabalhos passados ou referências"
+    },
+    "breadcrumbCreate": "Criar Proposta",
+    "breadcrumbTemplates": "Templates"
+  }
+}

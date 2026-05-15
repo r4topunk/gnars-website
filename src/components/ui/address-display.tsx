@@ -1,12 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Copy, ExternalLink, User } from "lucide-react";
 import { toast } from "sonner";
 import { Address, isAddress } from "viem";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useENSOptimistic } from "@/hooks/use-ens";
+import { useRouter } from "@/i18n/navigation";
 
 export interface AddressDisplayProps {
   address: string | Address;
@@ -38,6 +39,7 @@ export function AddressDisplay({
   customExplorerUrl,
   onAddressClick,
 }: AddressDisplayProps) {
+  const t = useTranslations("common");
   const normalizedAddress = String(address).toLowerCase() as Address;
   const { data: ensData, isLoading } = useENSOptimistic(normalizedAddress);
   const router = useRouter();
@@ -48,7 +50,7 @@ export function AddressDisplay({
     return (
       <div className={`inline-flex items-center gap-2 text-muted-foreground ${className}`}>
         <User className="h-4 w-4" />
-        <span>Invalid Address</span>
+        <span>{t("wallet.invalidAddress")}</span>
       </div>
     );
   }
@@ -57,9 +59,9 @@ export function AddressDisplay({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(normalizedAddress);
-      toast.success("Address copied to clipboard");
+      toast.success(t("wallet.addressCopied"));
     } catch {
-      toast.error("Failed to copy address");
+      toast.error(t("wallet.addressCopyFailed"));
     }
   };
 
@@ -141,7 +143,7 @@ export function AddressDisplay({
               className="font-medium cursor-pointer hover:text-primary"
               onClick={handleAddressClick}
             >
-              {showENS && ensData?.name ? ensData.name : "Unnamed Address"}
+              {showENS && ensData?.name ? ensData.name : t("wallet.unnamedAddress")}
             </span>
             {isLoading && (
               <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -197,7 +199,7 @@ export function AddressDisplay({
                 className="font-semibold truncate cursor-pointer hover:text-primary"
                 onClick={handleAddressClick}
               >
-                {showENS && ensData?.name ? ensData.name : "Unnamed Address"}
+                {showENS && ensData?.name ? ensData.name : t("wallet.unnamedAddress")}
               </span>
               {isLoading && (
                 <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -214,14 +216,14 @@ export function AddressDisplay({
           {showCopy && (
             <Button variant="outline" size="sm" onClick={handleCopy} className="flex-1">
               <Copy className="h-4 w-4 mr-2" />
-              Copy
+              {t("actions.copy")}
             </Button>
           )}
 
           {showExplorer && (
             <Button variant="outline" size="sm" onClick={handleExplorerClick} className="flex-1">
               <ExternalLink className="h-4 w-4 mr-2" />
-              Explorer
+              {t("wallet.explorer")}
             </Button>
           )}
         </div>
@@ -274,7 +276,6 @@ export function AddressDisplay({
     </div>
   );
 }
-
 
 /**
  * Address display with loading skeleton

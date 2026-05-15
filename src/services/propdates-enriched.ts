@@ -13,9 +13,9 @@
  */
 
 import { zeroHash } from "viem";
+import type { ProposalStatus } from "@/lib/schemas/proposals";
 import { listDaoPropdates, type Propdate } from "./propdates";
 import { listProposals as listBaseProposals } from "./proposals";
-import type { ProposalStatus } from "@/lib/schemas/proposals";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -56,9 +56,7 @@ let enrichedPromise: Promise<ProposalWithPropdates[]> | null = null;
 
 /** Returns true when `originalMessageId` indicates a reply (not a root propdate). */
 function isReply(propdate: Propdate): boolean {
-  return (
-    Boolean(propdate.originalMessageId) && propdate.originalMessageId !== zeroHash
-  );
+  return Boolean(propdate.originalMessageId) && propdate.originalMessageId !== zeroHash;
 }
 
 async function buildEnrichedFeed(): Promise<ProposalWithPropdates[]> {
@@ -173,4 +171,3 @@ export async function getEnrichedPropdatesFeed(): Promise<ProposalWithPropdates[
     return [];
   }
 }
-

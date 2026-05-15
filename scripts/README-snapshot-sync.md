@@ -13,11 +13,13 @@ Fetches ALL proposals from Snapshot.org GraphQL API for `gnars.eth` space and sa
 ## Usage
 
 ### Dry-run (test without writing)
+
 ```bash
 node scripts/sync-snapshot-proposals.mjs --dry-run
 ```
 
 ### Execute sync
+
 ```bash
 node scripts/sync-snapshot-proposals.mjs
 ```
@@ -52,7 +54,7 @@ node scripts/sync-snapshot-proposals.mjs
 Old proposals:     101
 New proposals:     101
 Added:             0 ✨
-Removed:           0 
+Removed:           0
 Unchanged:         101
 ============================================================
 
@@ -75,6 +77,7 @@ Unchanged:         101
 ## Data Structure
 
 Each proposal includes:
+
 - `id` - Unique hash
 - `title` - Proposal title
 - `body` - Markdown description
@@ -93,14 +96,17 @@ Each proposal includes:
 ## Troubleshooting
 
 **Error: GraphQL errors**
+
 - Check Snapshot API status: https://status.snapshot.org
 - Verify query syntax in script
 
 **Error: Failed to fetch**
+
 - Network issue, retry
 - Check if Snapshot.org is accessible
 
 **Warning: Removed proposals**
+
 - Review changes before committing
 - Snapshot proposals should never be removed
 - Likely API issue or data corruption
@@ -114,11 +120,13 @@ Each proposal includes:
 ## Next Steps After Sync
 
 1. **Review changes**
+
    ```bash
    git diff public/data/snapshot-proposals.json
    ```
 
 2. **Commit if valid**
+
    ```bash
    git add public/data/snapshot-proposals.json
    git commit -m "chore: sync Snapshot proposals"

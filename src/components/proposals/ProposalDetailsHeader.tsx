@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Loader2, Upload, X } from "lucide-react";
 import { useFormContext } from "react-hook-form";
@@ -12,6 +13,7 @@ import { ipfsToGatewayUrl, uploadToPinata } from "@/lib/pinata";
 import type { ProposalFormValues } from "./schema";
 
 export function ProposalDetailsHeader() {
+  const t = useTranslations("propose");
   const {
     register,
     setValue,
@@ -29,21 +31,21 @@ export function ProposalDetailsHeader() {
     try {
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
-      toast.loading("Uploading image to IPFS...", { id: "image-upload" });
+      toast.loading(t("banner.uploading"), { id: "image-upload" });
       const result = await uploadToPinata(file, `proposal-banner-${Date.now()}`);
       if (!result.success || !result.data) {
         throw new Error(result.error || "Upload failed");
       }
       setValue("bannerImage", result.data.ipfsUrl);
       setImagePreview(result.data.gatewayUrl);
-      toast.success("Image uploaded successfully!", { id: "image-upload" });
+      toast.success(t("banner.uploadSuccess"), { id: "image-upload" });
     } catch (error) {
       console.error("Upload error:", error);
       setImagePreview(null);
       setValue("bannerImage", undefined);
-      toast.error("Failed to upload image", {
+      toast.error(t("banner.uploadFailed"), {
         id: "image-upload",
-        description: error instanceof Error ? error.message : "Please try again",
+        description: error instanceof Error ? error.message : t("banner.pleaseRetry"),
       });
     } finally {
       setIsUploading(false);
@@ -54,12 +56,12 @@ export function ProposalDetailsHeader() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
+      toast.error(t("banner.notAnImage"));
       return;
     }
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error("File size must be less than 10MB");
+      toast.error(t("banner.fileTooLarge"));
       return;
     }
     handleImageUpload(file);
@@ -82,26 +84,31 @@ export function ProposalDetailsHeader() {
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="title">Proposal Title *</Label>
+        <Label htmlFor="title">{t("details.titleLabel")}</Label>
         <Input
           id="title"
-          placeholder="Enter proposal title..."
+          placeholder={t("details.titlePlaceholder")}
           {...register("title")}
           className="mt-1"
         />
         {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>}
-        <p className="text-xs text-muted-foreground mt-1">Keep it concise and descriptive</p>
+        <p className="text-xs text-muted-foreground mt-1">{t("details.titleHelper")}</p>
       </div>
 
       <div>
-        <Label htmlFor="banner">Banner Image</Label>
+        <Label htmlFor="banner">{t("details.bannerLabel")}</Label>
         <div className="mt-2">
           {displayImageUrl ? (
             <div
               className="relative rounded-lg border overflow-hidden"
               style={{ aspectRatio: "16 / 9" }}
             >
-              <Image src={displayImageUrl} alt="Banner preview" fill className="object-cover" />
+              <Image
+                src={displayImageUrl}
+                alt={t("alt.bannerPreview")}
+                fill
+                className="object-cover"
+              />
               <Button
                 size="sm"
                 variant="destructive"
@@ -120,13 +127,15 @@ export function ProposalDetailsHeader() {
               {isUploading ? (
                 <>
                   <Loader2 className="h-8 w-8 mx-auto mb-2 text-muted-foreground animate-spin" />
-                  <p className="text-sm text-muted-foreground">Uploading to IPFS...</p>
+                  <p className="text-sm text-muted-foreground">{t("details.uploadingToIpfs")}</p>
                 </>
               ) : (
                 <>
                   <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Click to upload banner image</p>
-                  <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 10MB</p>
+                  <p className="text-sm text-muted-foreground">{t("details.clickToUpload")}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("details.uploadSizeHint")}
+                  </p>
                 </>
               )}
             </div>

@@ -7,9 +7,9 @@ permalink: /what-are-nft-rarity-rankings/
 author: gami
 image: /images/what-are-nft-rarity-rankings.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [education]
-featured: 
+featured:
 ---
 
 Just like humans, all NFTs are unique in their own rights. Of course, trollers can simply “right-click to save” NFTs, but only the NFT holder owns the original. With your ownership of work set in the blockchain, NFTs are uniquely yours. Akin to physical artwork, you also own a copyright to the NFT, and have exclusive rights to its reproduction.

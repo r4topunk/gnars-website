@@ -1,0 +1,76 @@
+{
+  "languageSwitcherLabel": "Change language",
+  "mobileMenu": {
+    "toggleLabel": "Toggle menu",
+    "sheetTitle": "Navigation"
+  },
+  "switchNetwork": {
+    "label": "Switch to Base",
+    "switching": "Switching..."
+  },
+  "items": {
+    "tv": "TV",
+    "dashboard": "Dashboard",
+    "governance": {
+      "label": "Governance",
+      "proposals": {
+        "title": "Proposals",
+        "description": "View and vote on DAO proposals"
+      },
+      "delegation": {
+        "title": "Delegation",
+        "description": "Manage your voting delegation"
+      },
+      "createProposal": {
+        "title": "Create Proposal",
+        "description": "Submit a new proposal to the DAO"
+      },
+      "auctions": {
+        "title": "Auctions",
+        "description": "Bid on Gnars NFTs in active auctions"
+      }
+    },
+    "money": {
+      "label": "Money",
+      "treasury": {
+        "title": "Treasury",
+        "description": "ETH, ERC-20s, NFTs, and onchain analytics for the DAO treasury"
+      },
+      "swap": {
+        "title": "Swap",
+        "description": "Trade tokens on Base via 0x — best price across 150+ DEXes"
+      }
+    },
+    "community": {
+      "label": "Community",
+      "members": {
+        "title": "Members",
+        "description": "Browse all DAO members and holders"
+      },
+      "nogglesRails": {
+        "title": "NogglesRails",
+        "description": "Global network of community skate infrastructure"
+      },
+      "blogs": {
+        "title": "Blogs",
+        "description": "Read community blog posts and updates"
+      },
+      "propdates": {
+        "title": "Propdates",
+        "description": "Follow proposal progress updates"
+      },
+      "droposals": {
+        "title": "Droposals",
+        "description": "Video proposals from the community"
+      },
+      "createCoin": {
+        "title": "Create Coin",
+        "description": "Create a new coin on Zora"
+      },
+      "bounties": {
+        "title": "Bounties",
+        "description": "Gnarly challenges from the action sports community"
+      }
+    }
+  }
+}

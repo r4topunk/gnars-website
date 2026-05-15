@@ -10,8 +10,7 @@
 import { unstable_cache } from "next/cache";
 
 // Subgraph URL - set after deploying to Goldsky
-const ZORA_COINS_SUBGRAPH_URL =
-  process.env.NEXT_PUBLIC_ZORA_COINS_SUBGRAPH_URL || "";
+const ZORA_COINS_SUBGRAPH_URL = process.env.NEXT_PUBLIC_ZORA_COINS_SUBGRAPH_URL || "";
 
 /**
  * GNARS-paired coin from the subgraph
@@ -47,13 +46,10 @@ interface SubgraphMeta {
   };
 }
 
-async function querySubgraph<T>(
-  query: string,
-  variables?: Record<string, unknown>
-): Promise<T> {
+async function querySubgraph<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
   if (!ZORA_COINS_SUBGRAPH_URL) {
     throw new Error(
-      "NEXT_PUBLIC_ZORA_COINS_SUBGRAPH_URL is not configured. Deploy the subgraph first."
+      "NEXT_PUBLIC_ZORA_COINS_SUBGRAPH_URL is not configured. Deploy the subgraph first.",
     );
   }
 
@@ -71,9 +67,7 @@ async function querySubgraph<T>(
   const json = (await response.json()) as SubgraphResponse<T>;
 
   if (json.errors?.length) {
-    throw new Error(
-      `Subgraph query error: ${json.errors.map((e) => e.message).join(", ")}`
-    );
+    throw new Error(`Subgraph query error: ${json.errors.map((e) => e.message).join(", ")}`);
   }
 
   return json.data as T;
@@ -138,7 +132,7 @@ export const fetchGnarsPairedCoins = unstable_cache(
  * Get a specific coin by its address
  */
 export async function getGnarsPairedCoinByAddress(
-  coinAddress: string
+  coinAddress: string,
 ): Promise<GnarsPairedCoin | null> {
   const query = `
     query GnarsPairedCoinByAddress($coin: Bytes!) {
@@ -167,7 +161,6 @@ export async function getGnarsPairedCoinByAddress(
   return result.gnarsPairedCoins?.[0] ?? null;
 }
 
-
 /**
  * Get subgraph sync status
  */
@@ -193,4 +186,3 @@ export async function getSubgraphStatus(): Promise<{
     hasIndexingErrors: result._meta.hasIndexingErrors || false,
   };
 }
-

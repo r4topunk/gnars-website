@@ -24,7 +24,7 @@ export function formatETH(value: string | number | undefined): string {
   if (numValue >= 1000) {
     return `${numValue.toLocaleString(undefined, {
       minimumFractionDigits: 0,
-      maximumFractionDigits: 5
+      maximumFractionDigits: 5,
     })} ETH`;
   } else if (numValue >= 0.00001) {
     // Use parseFloat to remove trailing zeros
@@ -38,14 +38,17 @@ export function formatETH(value: string | number | undefined): string {
  * Get ETH amount display with semantic styling
  */
 export function getETHDisplayProps(value: string | number | undefined) {
-  const numValue = typeof value === "string" ? parseFloat(value || "0") : (value || 0);
+  const numValue = typeof value === "string" ? parseFloat(value || "0") : value || 0;
 
   return {
     formatted: formatETH(value),
     isSignificant: numValue >= 0.01,
     isLarge: numValue >= 100,
-    textColor: numValue >= 1 ? "text-green-600 dark:text-green-400" :
-               numValue >= 0.01 ? "text-amber-600 dark:text-amber-400" :
-               "text-muted-foreground"
+    textColor:
+      numValue >= 1
+        ? "text-green-600 dark:text-green-400"
+        : numValue >= 0.01
+          ? "text-amber-600 dark:text-amber-400"
+          : "text-muted-foreground",
   };
 }

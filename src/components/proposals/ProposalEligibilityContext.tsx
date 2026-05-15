@@ -22,8 +22,9 @@ export function ProposalEligibilityProvider({
 export function useProposalEligibilityContext(): ProposalEligibilityResult {
   const ctx = useContext(ProposalEligibilityContext);
   if (!ctx) {
-    throw new Error("useProposalEligibilityContext must be used within ProposalEligibilityProvider");
+    throw new Error(
+      "useProposalEligibilityContext must be used within ProposalEligibilityProvider",
+    );
   }
   return ctx;
 }
-

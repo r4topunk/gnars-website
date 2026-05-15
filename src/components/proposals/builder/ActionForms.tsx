@@ -1,27 +1,60 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { Address, formatEther, parseEther } from "viem";
+import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
+import { createTradeCall, setApiKey, type TradeParameters } from "@zoralabs/coins-sdk";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useFormContext } from "react-hook-form";
-import { createTradeCall, setApiKey, type TradeParameters } from "@zoralabs/coins-sdk";
-import { DAO_ADDRESSES } from "@/lib/config";
+import { Address, formatEther, parseEther } from "viem";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { type ProposalFormValues, type TransactionFormValues } from "../schema";
 import { useSplitCreation } from "@/hooks/use-split-creation";
-import { validateSplitRecipients, prepareSplitConfigForSDK, IMMUTABLE_CONTROLLER } from "@/lib/splits-utils";
+import { DAO_ADDRESSES } from "@/lib/config";
+import {
+  IMMUTABLE_CONTROLLER,
+  prepareSplitConfigForSDK,
+  validateSplitRecipients,
+} from "@/lib/splits-utils";
+import { type ProposalFormValues, type TransactionFormValues } from "../schema";
 
-const CustomTransactionForm = dynamic(() => import("@/components/proposals/builder/forms/custom-transaction-form").then(mod => ({ default: mod.CustomTransactionForm })));
-const DroposalForm = dynamic(() => import("@/components/proposals/builder/forms/droposal-form").then(mod => ({ default: mod.DroposalForm })));
-const SendEthForm = dynamic(() => import("@/components/proposals/builder/forms/send-eth-form").then(mod => ({ default: mod.SendEthForm })));
-const SendNFTsForm = dynamic(() => import("@/components/proposals/builder/forms/send-nfts-form").then(mod => ({ default: mod.SendNFTsForm })));
-const SendTokensForm = dynamic(() => import("@/components/proposals/builder/forms/send-tokens-form").then(mod => ({ default: mod.SendTokensForm })));
-const SendUsdcForm = dynamic(() => import("@/components/proposals/builder/forms/send-usdc-form").then(mod => ({ default: mod.SendUsdcForm })));
-const BuyCoinForm = dynamic(() => import("@/components/proposals/builder/forms/buy-coin-form").then(mod => ({ default: mod.BuyCoinForm })));
+const CustomTransactionForm = dynamic(() =>
+  import("@/components/proposals/builder/forms/custom-transaction-form").then((mod) => ({
+    default: mod.CustomTransactionForm,
+  })),
+);
+const DroposalForm = dynamic(() =>
+  import("@/components/proposals/builder/forms/droposal-form").then((mod) => ({
+    default: mod.DroposalForm,
+  })),
+);
+const SendEthForm = dynamic(() =>
+  import("@/components/proposals/builder/forms/send-eth-form").then((mod) => ({
+    default: mod.SendEthForm,
+  })),
+);
+const SendNFTsForm = dynamic(() =>
+  import("@/components/proposals/builder/forms/send-nfts-form").then((mod) => ({
+    default: mod.SendNFTsForm,
+  })),
+);
+const SendTokensForm = dynamic(() =>
+  import("@/components/proposals/builder/forms/send-tokens-form").then((mod) => ({
+    default: mod.SendTokensForm,
+  })),
+);
+const SendUsdcForm = dynamic(() =>
+  import("@/components/proposals/builder/forms/send-usdc-form").then((mod) => ({
+    default: mod.SendUsdcForm,
+  })),
+);
+const BuyCoinForm = dynamic(() =>
+  import("@/components/proposals/builder/forms/buy-coin-form").then((mod) => ({
+    default: mod.BuyCoinForm,
+  })),
+);
 
 interface ActionFormsProps {
   index: number;
@@ -31,10 +64,11 @@ interface ActionFormsProps {
 }
 
 export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFormsProps) {
+  const t = useTranslations("propose");
   const { handleSubmit, setValue, getValues } = useFormContext<ProposalFormValues>();
   const [isGenerating, setIsGenerating] = useState(false);
   const [sdkError, setSDKError] = useState<string | null>(null);
-  
+
   // Add split creation hook
   const { createSplit } = useSplitCreation();
 
@@ -46,19 +80,23 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
   // Handle form validation errors
   const onError = (errors: Record<string, unknown>) => {
     console.error("Form validation errors:", errors);
-    if (errors.transactions && typeof errors.transactions === 'object' && errors.transactions !== null) {
+    if (
+      errors.transactions &&
+      typeof errors.transactions === "object" &&
+      errors.transactions !== null
+    ) {
       const transactions = errors.transactions as Record<number, Record<string, unknown>>;
       const txErrors = transactions[index];
       if (txErrors) {
         const errorMessages = Object.entries(txErrors)
           .map(([field, error]: [string, unknown]) => {
-            if (error && typeof error === 'object' && error !== null && 'message' in error) {
+            if (error && typeof error === "object" && error !== null && "message" in error) {
               return `${field}: ${(error as { message: string }).message}`;
             }
             return `${field}: Unknown error`;
           })
           .join(", ");
-        setSDKError(`Validation errors: ${errorMessages}`);
+        setSDKError(t("transactions.validationErrors", { errors: errorMessages }));
       }
     }
   };
@@ -142,7 +180,9 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
     // Validate split configuration
     const validationErrors = validateSplitRecipients(splitRecipients);
     if (validationErrors.length > 0) {
-      setSDKError(`Split configuration invalid: ${validationErrors.map(e => e.message).join(', ')}`);
+      setSDKError(
+        `Split configuration invalid: ${validationErrors.map((e) => e.message).join(", ")}`,
+      );
       return;
     }
 
@@ -150,8 +190,8 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
     setSDKError(null);
 
     try {
-      console.log('🔄 Creating split contract...');
-      
+      console.log("🔄 Creating split contract...");
+
       // Create split contract
       const splitConfig = {
         recipients: splitRecipients,
@@ -199,22 +239,21 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
       case "custom":
         return <CustomTransactionForm index={index} />;
       default:
-        return <div>Unknown action type</div>;
+        return <div>{t("transactions.unknownType")}</div>;
     }
   };
 
-  const getTitle = () => {
-    const titles = {
-      "send-eth": "Send ETH",
-      "send-usdc": "Send USDC",
-      "send-tokens": "Send Tokens",
-      "send-nfts": "Send NFTs",
-      droposal: "Create Droposal",
-      "buy-coin": "Buy Coin",
-      custom: "Custom Transaction",
-    } as const;
-    return titles[actionType as keyof typeof titles] || "Transaction";
+  const titleKeys: Record<string, Parameters<typeof t>[0]> = {
+    "send-eth": "transactions.types.sendEth",
+    "send-usdc": "transactions.types.sendUsdc",
+    "send-tokens": "transactions.types.sendTokens",
+    "send-nfts": "transactions.types.sendNfts",
+    droposal: "transactions.types.droposal",
+    "buy-coin": "transactions.types.buyCoin",
+    custom: "transactions.types.custom",
   };
+
+  const getTitle = () => t(titleKeys[actionType] ?? "transactions.types.custom");
 
   return (
     <Card>
@@ -225,7 +264,9 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
           </Button>
           <div>
             <CardTitle>{getTitle()}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Configure transaction details</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t("transactions.configureDetails")}
+            </p>
           </div>
         </div>
       </CardHeader>
@@ -242,26 +283,30 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
 
         <div className="flex justify-end space-x-3">
           <Button variant="outline" onClick={onCancel} disabled={isGenerating}>
-            Cancel
+            {t("transactions.cancel")}
           </Button>
           <Button
             onClick={handleSubmit(
-              actionType === 'droposal' ? handleDroposalSubmit : 
-              actionType === 'buy-coin' ? handleBuyCoinSubmit : 
-              onSubmit,
-              onError
+              actionType === "droposal"
+                ? handleDroposalSubmit
+                : actionType === "buy-coin"
+                  ? handleBuyCoinSubmit
+                  : onSubmit,
+              onError,
             )}
             disabled={isGenerating}
           >
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {actionType === 'droposal' ? 'Creating Split...' : 
-                 actionType === 'buy-coin' ? 'Generating...' : 
-                 'Saving...'}
+                {actionType === "droposal"
+                  ? t("transactions.creatingSplit")
+                  : actionType === "buy-coin"
+                    ? t("transactions.generating")
+                    : t("transactions.saving")}
               </>
             ) : (
-              "Save Transaction"
+              t("transactions.saveTransaction")
             )}
           </Button>
         </div>

@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
-import Link from "next/link";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "@/i18n/navigation";
 import type { BlogSummary } from "@/lib/schemas/blogs";
 import { formatSafeDistanceToNow } from "@/lib/utils/date";
 
 const CROSS_CHAR_REGEX = /[×✕✖✗✘]/g;
 
 export function BlogCard({ blog }: { blog: BlogSummary }) {
+  const t = useTranslations("blogs");
   const currentBannerSrc = blog.imageUrl || "/logo-banner.jpg";
   const [bannerSrc, setBannerSrc] = useState<string>(currentBannerSrc);
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
@@ -55,7 +57,7 @@ export function BlogCard({ blog }: { blog: BlogSummary }) {
             </div>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>by {blog.publication.name}</span>
+              <span>{t("post.by", { author: blog.publication.name })}</span>
               <span>{publishedDate}</span>
             </div>
           </div>

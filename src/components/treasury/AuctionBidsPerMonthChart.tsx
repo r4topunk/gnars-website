@@ -7,14 +7,9 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -32,18 +27,19 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function AuctionBidsPerMonthChart() {
+  const t = useTranslations("treasury");
   const { data: points = [], isLoading, error } = useAuctionBidsPerMonth(12);
 
   if (error) {
     return (
       <Card className="flex flex-col">
         <CardHeader>
-          <CardTitle>Auction Revenue</CardTitle>
-          <CardDescription>Unable to load auction data</CardDescription>
+          <CardTitle>{t("charts.auctionRevenue.title")}</CardTitle>
+          <CardDescription>{t("charts.auctionRevenue.errorDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
           <div className="flex h-[200px] items-center justify-center text-muted-foreground">
-            Failed to load data
+            {t("charts.auctionRevenue.loadFailed")}
           </div>
         </CardContent>
       </Card>
@@ -55,8 +51,8 @@ export function AuctionBidsPerMonthChart() {
       <Card className="flex flex-col">
         <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
           <div className="grid flex-1 gap-1 text-center sm:text-left">
-            <CardTitle>Auction Revenue</CardTitle>
-            <CardDescription>ETH earned from auctions per month</CardDescription>
+            <CardTitle>{t("charts.auctionRevenue.title")}</CardTitle>
+            <CardDescription>{t("charts.auctionRevenue.description")}</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
@@ -70,8 +66,8 @@ export function AuctionBidsPerMonthChart() {
     <Card className="flex flex-col overflow-hidden">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Auction Revenue</CardTitle>
-          <CardDescription>ETH earned from auctions per month</CardDescription>
+          <CardTitle>{t("charts.auctionRevenue.title")}</CardTitle>
+          <CardDescription>{t("charts.auctionRevenue.description")}</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0 overflow-hidden">
@@ -103,12 +99,7 @@ export function AuctionBidsPerMonthChart() {
                   />
                 }
               />
-              <Bar
-                dataKey="value"
-                name="ETH"
-                fill="var(--color-value)"
-                radius={[4, 4, 0, 0]}
-              />
+              <Bar dataKey="value" name="ETH" fill="var(--color-value)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ChartContainer>
         </div>

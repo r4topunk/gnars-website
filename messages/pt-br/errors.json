@@ -1,0 +1,16 @@
+{
+  "generic": "Algo deu errado",
+  "network": "Erro de rede",
+  "notFound": "Não encontrado",
+  "required": "Obrigatório",
+  "videoNotLoaded": "Vídeo não carregado",
+  "canvasNotSupported": "Canvas não suportado",
+  "failedToCaptureFrame": "Falha ao capturar frame",
+  "videoPlayerNotAvailable": "Player de vídeo indisponível",
+  "failedToLoadVideo": "Falha ao carregar arquivo de vídeo",
+  "addressCopyFailed": "Falha ao copiar endereço",
+  "budgetLabelRequired": "Rótulo obrigatório",
+  "budgetAmountPositive": "O valor deve ser maior que 0",
+  "fieldRequired": "{field} é obrigatório",
+  "budgetMinLine": "{field}: adicione pelo menos uma linha de orçamento"
+}

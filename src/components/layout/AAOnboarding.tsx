@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -116,33 +117,31 @@ function AAWelcomeModal({
   eoaTokenBalance,
   isDelegating,
 }: AAWelcomeModalProps) {
+  const t = useTranslations("wallet");
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
   const balanceLabel = eoaTokenBalance !== undefined ? eoaTokenBalance.toString() : "your";
-  const noun = eoaTokenBalance === 1n ? "Gnar" : "Gnars";
+  const noun = eoaTokenBalance === 1n ? t("delegation.nounSingular") : t("delegation.nounPlural");
 
-  const title = "Vote without paying gas";
+  const title = t("onboarding.title");
   const description = `Your ${balanceLabel} ${noun} stay in your wallet. A smart account signs your votes and the DAO covers gas.`;
 
   const body = (
     <Alert>
-      <AlertTitle>One-time setup</AlertTitle>
-      <AlertDescription>
-        Delegate the voting power of your {noun} to your smart account so you can vote through the
-        new flow. You can always do this later from the wallet menu.
-      </AlertDescription>
+      <AlertTitle>{t("onboarding.alertTitle")}</AlertTitle>
+      <AlertDescription>{t("onboarding.alertDescription", { noun })}</AlertDescription>
     </Alert>
   );
 
   const actions = (
     <>
       <Button variant="outline" onClick={onDismiss} disabled={isDelegating}>
-        Maybe later
+        {t("onboarding.maybeLater")}
       </Button>
       <Button onClick={() => void onDelegate()} disabled={isDelegating}>
-        {isDelegating ? "Delegating…" : "Delegate voting power"}
+        {isDelegating ? t("onboarding.delegating") : t("onboarding.delegate")}
       </Button>
     </>
   );
@@ -185,4 +184,3 @@ function AAWelcomeModal({
     </Drawer>
   );
 }
-

@@ -12,6 +12,7 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/architecture/thirdweb-wallet-layer.md` — provider tree, reads/writes split, view-mode toggle (EOA/SA), AA config, known escape hatches
 - `docs/architecture/exploration-progress.md`
 - `docs/architecture/refactor-audit.md`
+- `docs/i18n/tone-brief.md` — PT-BR translation tone brief
 
 ## Features
 
@@ -31,6 +32,7 @@ This is the canonical entry point for project documentation. Everything below sh
 
 - `docs/superpowers/specs/2026-03-16-vote-card-delegation-breakdown-design.md` — vote card own vs delegated breakdown
 - `docs/superpowers/specs/2026-04-24-proposal-template-fields-design.md` — structured input fields per proposal template (replaces markdown skeleton)
+- `docs/superpowers/specs/2026-05-11-i18n-en-ptbr-design.md` — i18n EN + PT-BR design
 
 ## Research
 

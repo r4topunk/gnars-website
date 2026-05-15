@@ -1,6 +1,10 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
+import { ExternalLink } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -9,9 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ExternalLink } from "lucide-react";
+import { toIntlLocale } from "@/lib/i18n/format";
 
 export interface ZoraCoin {
   id: string;
@@ -35,19 +37,19 @@ interface ZoraCoinHoldingsClientProps {
   error?: string;
 }
 
-function formatNumber(value: number, decimals: number = 2): string {
+function formatNumber(value: number, intlLocale: string, decimals: number = 2): string {
   if (value === 0) return "0";
   if (value < 0.01) return "<0.01";
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(intlLocale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(value);
 }
 
-function formatUSD(value: number): string {
+function formatUSD(value: number, intlLocale: string): string {
   if (value === 0) return "$0.00";
   if (value < 0.01) return "<$0.01";
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(intlLocale, {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
@@ -55,26 +57,32 @@ function formatUSD(value: number): string {
   }).format(value);
 }
 
-function formatCompactNumber(value: number): string {
+function formatCompactNumber(value: number, intlLocale: string): string {
   if (value === 0) return "0";
-  if (value < 1000) return formatNumber(value);
-  if (value < 1_000_000) return `${formatNumber(value / 1000, 1)}K`;
-  if (value < 1_000_000_000) return `${formatNumber(value / 1_000_000, 1)}M`;
-  return `${formatNumber(value / 1_000_000_000, 1)}B`;
+  if (value < 1000) return formatNumber(value, intlLocale);
+  if (value < 1_000_000) return `${formatNumber(value / 1000, intlLocale, 1)}K`;
+  if (value < 1_000_000_000) return `${formatNumber(value / 1_000_000, intlLocale, 1)}M`;
+  return `${formatNumber(value / 1_000_000_000, intlLocale, 1)}B`;
 }
 
 export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientProps) {
+  const t = useTranslations("treasury");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
   const totalValue = coins.reduce((sum, coin) => sum + coin.usdValue, 0);
 
   // Log coin images for debugging
-  console.log("Frontend coins:", coins.map(c => ({ name: c.name, image: c.image })));
+  console.log(
+    "Frontend coins:",
+    coins.map((c) => ({ name: c.name, image: c.image })),
+  );
 
   if (error) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Zora Coins</CardTitle>
-          <CardDescription>Zora coins held in the treasury</CardDescription>
+          <CardTitle>{t("zoraCoin.title")}</CardTitle>
+          <CardDescription>{t("zoraCoin.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Alert variant="destructive">
@@ -89,11 +97,11 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Zora Coins</CardTitle>
-          <CardDescription>Zora coins held in the treasury</CardDescription>
+          <CardTitle>{t("zoraCoin.title")}</CardTitle>
+          <CardDescription>{t("zoraCoin.description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No Zora coins found in treasury</p>
+          <p className="text-sm text-muted-foreground">{t("zoraCoin.empty")}</p>
         </CardContent>
       </Card>
     );
@@ -102,9 +110,12 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Zora Coins</CardTitle>
+        <CardTitle>{t("zoraCoin.title")}</CardTitle>
         <CardDescription>
-          {coins.length} {coins.length === 1 ? "coin" : "coins"} · Total value: {formatUSD(totalValue)}
+          {t("zoraCoin.coinCount", {
+            count: coins.length,
+            value: formatUSD(totalValue, intlLocale),
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -112,13 +123,13 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Coin</TableHead>
-                <TableHead className="text-right">Balance</TableHead>
-                <TableHead className="text-right">Value (USD)</TableHead>
-                <TableHead className="text-right">Market Cap</TableHead>
-                <TableHead className="text-right">24h Volume</TableHead>
-                <TableHead className="text-right">Creator</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("zoraCoin.table.coin")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.balance")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.valueUsd")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.marketCap")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.volume24h")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.creator")}</TableHead>
+                <TableHead className="text-right">{t("zoraCoin.table.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -148,19 +159,22 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
                     </div>
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    {formatCompactNumber(coin.balance)}
+                    {formatCompactNumber(coin.balance, intlLocale)}
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    {formatUSD(coin.usdValue)}
+                    {formatUSD(coin.usdValue, intlLocale)}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
-                    {formatUSD(coin.marketCap)}
+                    {formatUSD(coin.marketCap, intlLocale)}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
-                    {formatUSD(coin.volume24h)}
+                    {formatUSD(coin.volume24h, intlLocale)}
                   </TableCell>
                   <TableCell className="text-right text-sm text-muted-foreground">
-                    {coin.creatorName || (coin.creatorAddress ? `${coin.creatorAddress.slice(0, 6)}...${coin.creatorAddress.slice(-4)}` : "—")}
+                    {coin.creatorName ||
+                      (coin.creatorAddress
+                        ? `${coin.creatorAddress.slice(0, 6)}...${coin.creatorAddress.slice(-4)}`
+                        : "—")}
                   </TableCell>
                   <TableCell className="text-right">
                     <a
@@ -169,7 +183,7 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
                     >
-                      View
+                      {t("zoraCoin.view")}
                       <ExternalLink className="h-3 w-3" />
                     </a>
                   </TableCell>

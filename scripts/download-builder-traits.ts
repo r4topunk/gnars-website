@@ -1,9 +1,7 @@
 #!/usr/bin/env tsx
-
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-
 import { GNARS_ADDRESSES } from "../src/lib/config";
 
 type PropertyItem = {
@@ -366,7 +364,7 @@ async function downloadTraitItem(
   traitDir: string,
   traitName: string,
   index: number,
-  options: Options
+  options: Options,
 ): Promise<DownloadedItem> {
   const candidates = toGatewayCandidates(item.uri, options.gateways);
   if (candidates.length === 0) {

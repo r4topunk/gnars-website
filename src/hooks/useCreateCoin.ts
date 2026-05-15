@@ -11,11 +11,6 @@
 "use client";
 
 import { useState } from "react";
-import { type Address, decodeEventLog, encodeFunctionData, type Hex, keccak256, toBytes } from "viem";
-import { prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
-import { base } from "thirdweb/chains";
-import { useUserAddress } from "@/hooks/use-user-address";
-import { useWriteAccount } from "@/hooks/use-write-account";
 import {
   createCoinCall,
   createMetadataBuilder,
@@ -24,11 +19,23 @@ import {
   setApiKey,
   type CreateCoinArgs,
 } from "@zoralabs/coins-sdk";
+import { prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
+import { base } from "thirdweb/chains";
+import {
+  decodeEventLog,
+  encodeFunctionData,
+  keccak256,
+  toBytes,
+  type Address,
+  type Hex,
+} from "viem";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { GNARS_CREATOR_COIN, PLATFORM_REFERRER } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
-import { zoraFactoryAbi, ZORA_FACTORY_ADDRESS } from "@/lib/zora/factoryAbi";
-import { encodeContentPoolConfigForCreator } from "@/lib/zora/poolConfig";
 import { generateVideoThumbnail } from "@/lib/video-thumbnail";
+import { ZORA_FACTORY_ADDRESS, zoraFactoryAbi } from "@/lib/zora/factoryAbi";
+import { encodeContentPoolConfigForCreator } from "@/lib/zora/poolConfig";
 
 // Type definitions for getProfile response
 interface ProfileResponse {
@@ -288,9 +295,7 @@ export function useCreateCoin() {
       } else {
         const poolConfig = encodeContentPoolConfigForCreator(GNARS_CREATOR_COIN);
 
-        const coinSalt = keccak256(
-          toBytes(`${userAddress}-${name}-${symbol}-${Date.now()}`),
-        );
+        const coinSalt = keccak256(toBytes(`${userAddress}-${name}-${symbol}-${Date.now()}`));
 
         const ownersArray: Address[] = additionalOwners
           ? [userAddress, ...additionalOwners]

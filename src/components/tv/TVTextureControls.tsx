@@ -4,11 +4,7 @@
 function hexToRgb(hex: string): [number, number, number] {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result
-    ? [
-        parseInt(result[1], 16) / 255,
-        parseInt(result[2], 16) / 255,
-        parseInt(result[3], 16) / 255,
-      ]
+    ? [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255]
     : [0, 0, 0];
 }
 
@@ -52,7 +48,7 @@ const PRESETS = {
       yellowing: 0.6,
     },
   },
-  "Realistic": {
+  Realistic: {
     wood: {
       pixelSize: 0.01,
       grainIntensity: 0.8,
@@ -85,7 +81,7 @@ const PRESETS = {
     },
     controlPanel: {
       baseColor: "#4a2e18",
-      pixelSize: 0.10,
+      pixelSize: 0.1,
       noise: 0.12,
       yellowing: 0.8,
     },

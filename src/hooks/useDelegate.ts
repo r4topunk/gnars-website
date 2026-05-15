@@ -2,13 +2,13 @@
 
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { type Address, type Hex, isAddress } from "viem";
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
+import { isAddress, type Address, type Hex } from "viem";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
-import { useWriteAccount } from "@/hooks/use-write-account";
 
 export interface UseDelegateArgs {
   onSubmitted?: (txHash: Hex) => void;

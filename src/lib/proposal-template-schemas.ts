@@ -504,12 +504,19 @@ export function compileTemplate(slug: string, values: TemplateValues): string {
   return sections.join("\n");
 }
 
+// TODO i18n: Zod error messages here are English-only. They map to keys
+// errors.budgetLabelRequired and errors.budgetAmountPositive in messages/en/errors.json.
+// To translate: pass a translated message string from the calling component using t().
 const budgetRowSchema = z.object({
   label: z.string().min(1, "Label required"),
   amount: z.number().positive("Amount must be greater than 0"),
   currency: z.enum(["ETH", "USDC"]),
 });
 
+// TODO i18n: buildTemplateValidator generates Zod error messages with field.label
+// interpolated at runtime. These map to keys errors.fieldRequired and errors.budgetMinLine
+// in messages/en/errors.json. To translate, accept a translate function parameter and pass
+// translated messages: buildTemplateValidator(slug, t) where t comes from useTranslations("errors").
 export function buildTemplateValidator(slug: string): ZodType<TemplateValues> {
   const schema = TEMPLATE_SCHEMAS[slug];
   if (!schema) return z.record(z.string(), z.unknown()) as unknown as ZodType<TemplateValues>;

@@ -1,18 +1,20 @@
 "use client";
 
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
-import { useTVFeed } from "./useTVFeed";
+import { usePathname } from "@/i18n/navigation";
 import { useMiniTVVisibility } from "./MiniTVVisibilityContext";
+import { useTVFeed } from "./useTVFeed";
 
-const Gnar3DTVScene = dynamic(
-  () => import("./Gnar3DTVScene").then((mod) => mod.Gnar3DTVScene),
-  { ssr: false, loading: () => null }
-);
+const Gnar3DTVScene = dynamic(() => import("./Gnar3DTVScene").then((mod) => mod.Gnar3DTVScene), {
+  ssr: false,
+  loading: () => null,
+});
 
 export function MiniTV() {
+  const t = useTranslations("wallet");
   const [isHovered, setIsHovered] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -77,7 +79,7 @@ export function MiniTV() {
         <button
           onClick={handleClose}
           className="absolute right-4 top-20 z-[61] rounded-lg bg-black/60 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
-          aria-label="Close fullscreen"
+          aria-label={t("tv.closeFullscreen")}
         >
           <X className="h-6 w-6" />
         </button>
@@ -103,16 +105,16 @@ export function MiniTV() {
     <div
       role="button"
       tabIndex={0}
-      aria-label="Open Gnars TV fullscreen"
+      aria-label={t("tv.openFullscreen")}
       className={`fixed bottom-4 left-4 z-40 h-[120px] w-[120px] cursor-pointer transition-opacity duration-700 ease-in-out ${
-        isLoaded && !heroTVVisible && !isOnTVPage
-          ? "opacity-100"
-          : "opacity-0 pointer-events-none"
+        isLoaded && !heroTVVisible && !isOnTVPage ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleClick(); }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") handleClick();
+      }}
     >
       <div className="h-full w-full overflow-hidden">
         <Gnar3DTVScene

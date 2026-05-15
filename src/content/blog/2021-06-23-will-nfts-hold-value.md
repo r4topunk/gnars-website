@@ -7,9 +7,9 @@ permalink: /will-nfts-hold-value/
 author: gami
 image: /images/nft-hold-value-1.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 Being worried about the ever-present potential of an NFTs value to decline in the future is a valid concern.
@@ -44,4 +44,4 @@ DeFi lenders such as NFTFI, which specialises in NFT Lending, Hoard Exchange, a 
 
 **These are oftentimes the NFTs that investors seek.** These NFTs, thanks to their Scarcity expressed in AR and TR terms, and thanks to the fact that they can be used in various DeFi protocols, may “hold their value” and could be the most likely appreciate in value due to increased demand.
 
-<span style="color: #bababa;">*Not financial advice, do your own research ([disclaimer](/disclaimer/)).*</span>
+<span style="color: #bababa;">_Not financial advice, do your own research ([disclaimer](/disclaimer/))._</span>

@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Code2, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
-import { ipfsToGatewayUrl } from "@/lib/pinata";
-import { DROPOSAL_DEFAULT_MINT_LIMIT } from "@/lib/config";
 import type { StartTimeCalculation } from "@/hooks/use-dao-settings";
+import { DROPOSAL_DEFAULT_MINT_LIMIT } from "@/lib/config";
+import { ipfsToGatewayUrl } from "@/lib/pinata";
 
 interface DroposalDebugPanelProps {
   formData: {
@@ -61,11 +61,7 @@ export function DroposalDebugPanel({ formData, startTimeCalculation }: DroposalD
             <Code2 className="h-5 w-5 text-purple-500" />
             <CardTitle className="text-lg">Debug: Droposal Transaction Data</CardTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)}>
             {isExpanded ? (
               <>
                 <ChevronUp className="h-4 w-4 mr-1" />
@@ -98,12 +94,16 @@ export function DroposalDebugPanel({ formData, startTimeCalculation }: DroposalD
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Edition Size:</span>
                 <span className="font-mono">
-                  {formData.editionSize === "0" ? "∞ (Open Edition)" : formData.editionSize || "Not set"}
+                  {formData.editionSize === "0"
+                    ? "∞ (Open Edition)"
+                    : formData.editionSize || "Not set"}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Mint Limit/Address:</span>
-                <span className="font-mono text-green-600">{DROPOSAL_DEFAULT_MINT_LIMIT.toLocaleString()}</span>
+                <span className="font-mono text-green-600">
+                  {DROPOSAL_DEFAULT_MINT_LIMIT.toLocaleString()}
+                </span>
               </div>
             </div>
           </div>
@@ -121,9 +121,7 @@ export function DroposalDebugPanel({ formData, startTimeCalculation }: DroposalD
                   <Copy className="h-3 w-3" />
                 </Button>
               </div>
-              <div className="bg-muted p-3 rounded-md text-sm">
-                {formData.description}
-              </div>
+              <div className="bg-muted p-3 rounded-md text-sm">{formData.description}</div>
             </div>
           )}
 
@@ -150,11 +148,18 @@ export function DroposalDebugPanel({ formData, startTimeCalculation }: DroposalD
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs text-muted-foreground font-semibold">Media Gateway URL:</p>
+                      <p className="text-xs text-muted-foreground font-semibold">
+                        Media Gateway URL:
+                      </p>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyToClipboard(ipfsToGatewayUrl(formData.animationURI!), "Media Gateway URL")}
+                        onClick={() =>
+                          copyToClipboard(
+                            ipfsToGatewayUrl(formData.animationURI!),
+                            "Media Gateway URL",
+                          )
+                        }
                       >
                         <Copy className="h-3 w-3" />
                       </Button>
@@ -186,11 +191,15 @@ export function DroposalDebugPanel({ formData, startTimeCalculation }: DroposalD
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs text-muted-foreground font-semibold">Cover Gateway URL:</p>
+                      <p className="text-xs text-muted-foreground font-semibold">
+                        Cover Gateway URL:
+                      </p>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyToClipboard(ipfsToGatewayUrl(formData.imageURI!), "Cover Gateway URL")}
+                        onClick={() =>
+                          copyToClipboard(ipfsToGatewayUrl(formData.imageURI!), "Cover Gateway URL")
+                        }
                       >
                         <Copy className="h-3 w-3" />
                       </Button>
@@ -210,13 +219,15 @@ export function DroposalDebugPanel({ formData, startTimeCalculation }: DroposalD
             <div className="bg-muted p-3 rounded-md space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Price:</span>
-                <span className="font-mono">{formData.price ? `${formData.price} ETH` : "Not set"}</span>
+                <span className="font-mono">
+                  {formData.price ? `${formData.price} ETH` : "Not set"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Royalty:</span>
                 <span className="font-mono">
-                  {formData.royalty 
-                    ? `${Number(formData.royalty) / 100}% (${formData.royalty} basis points)` 
+                  {formData.royalty
+                    ? `${Number(formData.royalty) / 100}% (${formData.royalty} basis points)`
                     : "Not set"}
                 </span>
               </div>
@@ -240,24 +251,30 @@ export function DroposalDebugPanel({ formData, startTimeCalculation }: DroposalD
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">1. Voting Delay (Inactive):</span>
                     <span className="font-mono">
-                      {startTimeCalculation.votingDelayBlocks.toLocaleString()} blocks = {formatDays(startTimeCalculation.votingDelayDays)}
+                      {startTimeCalculation.votingDelayBlocks.toLocaleString()} blocks ={" "}
+                      {formatDays(startTimeCalculation.votingDelayDays)}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">2. Voting Period (Active):</span>
                     <span className="font-mono">
-                      {startTimeCalculation.votingPeriodBlocks.toLocaleString()} blocks = {formatDays(startTimeCalculation.votingPeriodDays)}
+                      {startTimeCalculation.votingPeriodBlocks.toLocaleString()} blocks ={" "}
+                      {formatDays(startTimeCalculation.votingPeriodDays)}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">3. Timelock Delay (Queued):</span>
                     <span className="font-mono">
-                      {startTimeCalculation.timelockDelaySeconds.toLocaleString()}s = {formatDays(startTimeCalculation.timelockDelayDays)}
+                      {startTimeCalculation.timelockDelaySeconds.toLocaleString()}s ={" "}
+                      {formatDays(startTimeCalculation.timelockDelayDays)}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">4. Execution Buffer:</span>
-                    <span className="font-mono">{startTimeCalculation.executionBufferDays} {startTimeCalculation.executionBufferDays === 1 ? 'day' : 'days'}</span>
+                    <span className="font-mono">
+                      {startTimeCalculation.executionBufferDays}{" "}
+                      {startTimeCalculation.executionBufferDays === 1 ? "day" : "days"}
+                    </span>
                   </div>
                 </div>
                 <div className="pt-2 border-t border-border">
@@ -313,7 +330,9 @@ export function DroposalDebugPanel({ formData, startTimeCalculation }: DroposalD
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => copyToClipboard(formData.transactionDescription!, "Transaction Description")}
+                  onClick={() =>
+                    copyToClipboard(formData.transactionDescription!, "Transaction Description")
+                  }
                 >
                   <Copy className="h-3 w-3" />
                 </Button>

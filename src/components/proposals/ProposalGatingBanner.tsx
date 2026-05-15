@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useReadContract } from "wagmi";
 import { ConnectButton } from "@/components/ui/ConnectButton";
 import { useUserAddress } from "@/hooks/use-user-address";
+import { Link } from "@/i18n/navigation";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 
 const balanceOfAbi = [
@@ -20,6 +21,7 @@ type BannerVariant = "disconnected" | "no-nft" | null;
 
 export function ProposalGatingBanner() {
   const { address, isConnected } = useUserAddress();
+  const t = useTranslations("proposals");
 
   const { data: nftBalance, isLoading } = useReadContract({
     address: DAO_ADDRESSES.token,
@@ -55,18 +57,18 @@ export function ProposalGatingBanner() {
 
           {variant === "disconnected" ? (
             <p className="text-sm leading-relaxed text-foreground/80">
-              <span className="font-medium text-foreground">Wallet not connected.</span>{" "}
-              You can explore the form — connect when you&apos;re ready to submit.
+              <span className="font-medium text-foreground">{t("gating.walletNotConnected")}</span>{" "}
+              {t("gating.walletNotConnectedDesc")}
             </p>
           ) : (
             <p className="text-sm leading-relaxed text-foreground/80">
-              <span className="font-medium text-foreground">No Gnars NFT found.</span>{" "}
-              Holding a Gnar lets you submit proposals.{" "}
+              <span className="font-medium text-foreground">{t("gating.noGnarFound")}</span>{" "}
+              {t("gating.noGnarFoundDesc")}{" "}
               <Link
                 href="/"
                 className="font-medium text-amber-600 underline decoration-amber-600/40 underline-offset-2 transition-colors hover:text-amber-500 hover:decoration-amber-500 dark:text-amber-400 dark:decoration-amber-400/40 dark:hover:text-amber-300"
               >
-                Get one at the auction
+                {t("gating.getOneAtAuction")}
               </Link>
             </p>
           )}

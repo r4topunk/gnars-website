@@ -1,15 +1,16 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Paperclip } from "lucide-react";
+import { Markdown } from "@/components/common/Markdown";
+import { AddressDisplay } from "@/components/ui/address-display";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Markdown } from "@/components/common/Markdown";
-import { AddressDisplay } from "@/components/ui/address-display";
+import { Textarea } from "@/components/ui/textarea";
 import { usePropdates } from "@/hooks/use-propdates";
 import { uploadToPinata } from "@/lib/pinata";
 import { type Propdate } from "@/services/propdates";
@@ -22,6 +23,7 @@ interface PropdateFormProps {
 }
 
 export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: PropdateFormProps) {
+  const t = useTranslations("propdates");
   const [messageText, setMessageText] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -72,14 +74,14 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
 
   const buttonLabel =
     submissionPhase === "confirming-wallet"
-      ? "Confirm in wallet..."
+      ? t("form.confirmingWallet")
       : submissionPhase === "pending-tx"
-        ? "Waiting for confirmation..."
+        ? t("form.pendingTx")
         : submissionPhase === "syncing"
-          ? "Syncing..."
+          ? t("form.syncing")
           : replyTo
-            ? "Submit Reply"
-            : "Submit";
+            ? t("form.submitReply")
+            : t("form.submit");
 
   const isSubmitting = isCreating;
 
@@ -87,10 +89,10 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
     <Card className="border-2 border-dashed">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>{replyTo ? "Reply to Propdate" : "Create a Propdate"}</CardTitle>
+          <CardTitle>{replyTo ? t("form.replyTitle") : t("form.createTitle")}</CardTitle>
           {onCancel && (
             <Button variant="ghost" size="sm" onClick={onCancel}>
-              Cancel
+              {t("form.cancel")}
             </Button>
           )}
         </div>
@@ -99,7 +101,7 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
         {replyTo && (
           <div className="mb-4 rounded-md border bg-muted/40 p-3 border-l-2 border-primary/30">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-              <span>Replying to</span>
+              <span>{t("form.replyingTo")}</span>
               <AddressDisplay
                 address={replyTo.attester}
                 variant="compact"
@@ -114,14 +116,14 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
         <form onSubmit={handleSubmit} className="space-y-4">
           <Tabs defaultValue="write" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="write">Write</TabsTrigger>
-              <TabsTrigger value="preview">Preview</TabsTrigger>
+              <TabsTrigger value="write">{t("form.writeTab")}</TabsTrigger>
+              <TabsTrigger value="preview">{t("form.previewTab")}</TabsTrigger>
             </TabsList>
             <TabsContent value="write">
               <Textarea
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
-                placeholder={replyTo ? "Write your reply..." : "Share an update on this proposal..."}
+                placeholder={replyTo ? t("form.replyPlaceholder") : t("form.writePlaceholder")}
                 required
                 rows={6}
               />
@@ -131,7 +133,7 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
                 {messageText.trim() ? (
                   <Markdown>{messageText}</Markdown>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Nothing to preview</p>
+                  <p className="text-sm text-muted-foreground">{t("form.nothingToPreview")}</p>
                 )}
               </div>
             </TabsContent>
@@ -156,18 +158,16 @@ export function PropdateForm({ proposalId, replyTo, onSuccess, onCancel }: Propd
               {uploading ? (
                 <>
                   <Spinner className="mr-1.5" />
-                  Uploading... {uploadProgress}%
+                  {t("form.uploading", { progress: uploadProgress })}
                 </>
               ) : (
                 <>
                   <Paperclip className="mr-1.5 size-4" />
-                  Attach file
+                  {t("form.attachFile")}
                 </>
               )}
             </Button>
-            {uploadError && (
-              <span className="text-sm text-destructive">{uploadError}</span>
-            )}
+            {uploadError && <span className="text-sm text-destructive">{uploadError}</span>}
           </div>
 
           <div className={replyTo ? "flex items-center justify-end gap-2" : ""}>

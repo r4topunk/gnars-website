@@ -1,0 +1,18 @@
+{
+  "srHeading": "Gnars skateboarding community map",
+  "drawer": {
+    "photos": "Photos",
+    "imageCounter": "{current} / {total}",
+    "about": "About",
+    "installationDetails": "Installation Details",
+    "viewFullInstallation": "View Full Installation",
+    "fundingProposal": "Funding Proposal",
+    "viewProposal": "View Proposal",
+    "coordinates": "Coordinates",
+    "latitude": "Latitude:",
+    "longitude": "Longitude:",
+    "prevImage": "Previous image",
+    "nextImage": "Next image",
+    "goToImage": "Go to image {index}"
+  }
+}

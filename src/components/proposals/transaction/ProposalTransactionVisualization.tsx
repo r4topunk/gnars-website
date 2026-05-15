@@ -10,15 +10,15 @@ import {
   type Address,
   type Hex,
 } from "viem";
-import { TransactionVisualization } from "./TransactionVisualization";
-import { RecipientBundleCard, getRecipient } from "./RecipientBundleCard";
-import { type TransactionFormValues } from "../schema";
 import {
-  DROPOSAL_TARGET,
   DAO_ADDRESSES,
+  DROPOSAL_TARGET,
   GNARS_ADDRESSES_ETH,
   TREASURY_TOKEN_ALLOWLIST,
 } from "@/lib/config";
+import { type TransactionFormValues } from "../schema";
+import { getRecipient, RecipientBundleCard } from "./RecipientBundleCard";
+import { TransactionVisualization } from "./TransactionVisualization";
 
 // Ethereum mainnet USDC address (different from Base USDC)
 const USDC_ETH_MAINNET = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
@@ -449,9 +449,7 @@ export function ProposalTransactionVisualization({
 }: ProposalTransactionVisualizationProps) {
   if (targets.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        No transaction calls attached.
-      </div>
+      <div className="text-center py-8 text-muted-foreground">No transaction calls attached.</div>
     );
   }
 
@@ -545,10 +543,7 @@ export function ProposalTransactionVisualization({
         emittedRecipients.add(recipient);
         const group = recipientGroups.get(recipient)!;
         const nftTx = group.find((g) => g.transaction.type === "send-nfts");
-        const from =
-          nftTx && nftTx.transaction.type === "send-nfts"
-            ? nftTx.transaction.from
-            : "";
+        const from = nftTx && nftTx.transaction.type === "send-nfts" ? nftTx.transaction.from : "";
         renderItems.push({ kind: "bundle", txs: group, recipient, from });
       }
       // Skip — already emitted as part of a bundle

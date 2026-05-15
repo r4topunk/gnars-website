@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useSimulateContract } from "wagmi";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { Button } from "@/components/ui/button";
+import { useSimulateContract } from "wagmi";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,12 +18,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
+import { Button } from "@/components/ui/button";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
-import { useWriteAccount } from "@/hooks/use-write-account";
-import { toast } from "sonner";
+import { gnarsGovernorAbi } from "@/utils/abis/gnarsGovernorAbi";
 
 export interface ExecuteProposalButtonProps {
   args: readonly [
@@ -50,6 +51,7 @@ export function ExecuteProposalButton({
   const [isPending, setIsPending] = useState(false);
   const [open, setOpen] = useState(false);
   const writer = useWriteAccount();
+  const t = useTranslations("proposals");
 
   const { data: simulateData, isError: simulateError } = useSimulateContract({
     address: DAO_ADDRESSES.governor as `0x${string}`,
@@ -73,13 +75,13 @@ export function ExecuteProposalButton({
       return;
     }
     if (!writer) {
-      toast.error("Connect wallet to execute proposal", { id: proposalId });
+      toast.error(t("execute.connectError"), { id: proposalId });
       return;
     }
 
     try {
       setIsPending(true);
-      toast.loading("Submitting execute transaction...", { id: proposalId });
+      toast.loading(t("execute.submitting"), { id: proposalId });
 
       await ensureOnChain(writer.wallet, base);
 
@@ -102,10 +104,10 @@ export function ExecuteProposalButton({
       });
       const txHash = result.transactionHash as `0x${string}`;
 
-      toast.loading("Waiting for confirmation...", { id: proposalId });
+      toast.loading(t("execute.waitingConfirmation"), { id: proposalId });
       await waitForReceipt({ client, chain: base, transactionHash: txHash });
 
-      toast.success("Proposal executed successfully!", { id: proposalId });
+      toast.success(t("execute.success"), { id: proposalId });
       setIsPending(false);
       setOpen(false);
 
@@ -115,12 +117,12 @@ export function ExecuteProposalButton({
       setIsPending(false);
       const { category, message } = normalizeTxError(err);
       if (category === "user-rejected") {
-        toast.error("Transaction cancelled", { id: proposalId });
+        toast.error(t("execute.cancelled"), { id: proposalId });
       } else {
-        toast.error(`Failed to execute proposal: ${message}`, { id: proposalId });
+        toast.error(t("execute.failedError", { message }), { id: proposalId });
       }
     }
-  }, [writer, args, proposalId, onSuccess]);
+  }, [writer, args, proposalId, onSuccess, t]);
 
   const isDisabled = disabled || isPending || simulateError || !simulateData;
 
@@ -131,7 +133,7 @@ export function ExecuteProposalButton({
           {isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Executing...
+              {t("execute.executing")}
             </>
           ) : (
             buttonText
@@ -140,22 +142,19 @@ export function ExecuteProposalButton({
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Execute Proposal</AlertDialogTitle>
-          <AlertDialogDescription>
-            This will execute the proposal and perform all proposed transactions. This action is
-            irreversible.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t("execute.dialogTitle")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("execute.dialogDesc")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t("execute.cancel")}</AlertDialogCancel>
           <AlertDialogAction onClick={handleConfirm} disabled={isPending}>
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Executing...
+                {t("execute.executing")}
               </>
             ) : (
-              "Continue"
+              t("execute.continue")
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -1,15 +1,18 @@
 "use client";
 
-import { Installation } from "@/types/installation";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
-import Link from "next/link";
-import { ExternalLink, MapPin, Users, Calendar } from "lucide-react";
+import { Calendar, ExternalLink, MapPin, Users } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { Installation } from "@/types/installation";
 
 interface InstallationDetailProps {
   installation: Installation;
 }
 
 export function InstallationDetail({ installation }: InstallationDetailProps) {
+  const t = useTranslations("installations");
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
@@ -57,7 +60,7 @@ export function InstallationDetail({ installation }: InstallationDetailProps) {
         <div className="border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold">Collective</h3>
+            <h3 className="font-semibold">{t("detail.collective")}</h3>
           </div>
           <p className="text-sm text-muted-foreground">{installation.collective}</p>
         </div>
@@ -65,7 +68,7 @@ export function InstallationDetail({ installation }: InstallationDetailProps) {
         {/* Activation */}
         {installation.activation && (
           <div className="border rounded-lg p-4">
-            <h3 className="font-semibold mb-2">Activation</h3>
+            <h3 className="font-semibold mb-2">{t("detail.activation")}</h3>
             <p className="text-sm text-muted-foreground">{installation.activation}</p>
           </div>
         )}
@@ -80,7 +83,7 @@ export function InstallationDetail({ installation }: InstallationDetailProps) {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-primary hover:underline"
           >
-            <span>View Proposal</span>
+            <span>{t("detail.viewProposal")}</span>
             <ExternalLink className="w-4 h-4" />
           </Link>
         </div>
@@ -89,7 +92,7 @@ export function InstallationDetail({ installation }: InstallationDetailProps) {
       {/* Media Section */}
       {installation.media.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Media</h2>
+          <h2 className="text-2xl font-bold mb-4">{t("detail.media")}</h2>
           <div className="grid grid-cols-1 gap-4">
             {installation.media.map((media, index) => (
               <Link
@@ -110,7 +113,7 @@ export function InstallationDetail({ installation }: InstallationDetailProps) {
       {/* Back to Map */}
       <div className="mt-12 pt-6 border-t">
         <Link href="/map" className="text-primary hover:underline">
-          ← Back to Map
+          {t("detail.backToMap")}
         </Link>
       </div>
     </div>

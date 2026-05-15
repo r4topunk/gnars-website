@@ -7,9 +7,9 @@ permalink: /solana-nft-tools/
 author: gami
 image: /images/solana-nft-tools.png
 image_caption:
-video_embed: 
+video_embed:
 tags: [education]
-featured: 
+featured:
 ---
 
 Unlike cryptocurrency markets where price action and support levels make sense, the NFT marketplace doesn’t work that way. We’re still in the era of FOMO and FUD, where volatility and unpredictability is a normal circumstance.

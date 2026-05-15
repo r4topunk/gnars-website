@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
-import type { PoidhBounty } from '@/types/poidh';
+import { useQuery } from "@tanstack/react-query";
+import type { PoidhBounty } from "@/types/poidh";
 
 interface UsePoidhBountiesOptions {
-  status?: 'open' | 'closed' | 'voting' | 'all';
+  status?: "open" | "closed" | "voting" | "all";
   limit?: number;
   filterGnarly?: boolean;
   initialData?: PoidhBountiesResponse;
@@ -14,10 +14,10 @@ interface PoidhBountiesResponse {
 }
 
 export function usePoidhBounties(options: UsePoidhBountiesOptions = {}) {
-  const { status = 'open', limit = 100, filterGnarly = false, initialData } = options;
+  const { status = "open", limit = 100, filterGnarly = false, initialData } = options;
 
   return useQuery<PoidhBountiesResponse, Error>({
-    queryKey: ['poidh-bounties', status, limit, filterGnarly],
+    queryKey: ["poidh-bounties", status, limit, filterGnarly],
     queryFn: async () => {
       const params = new URLSearchParams({
         status,
@@ -29,7 +29,7 @@ export function usePoidhBounties(options: UsePoidhBountiesOptions = {}) {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.details || 'Failed to fetch bounties');
+        throw new Error(error.details || "Failed to fetch bounties");
       }
 
       return res.json();

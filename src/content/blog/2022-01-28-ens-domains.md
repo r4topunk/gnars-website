@@ -1,15 +1,15 @@
 ---
 layout: post
 title: ENS Domains - DNS of Web3.0?
-description: 
+description:
 date: 2022-01-28 00:00:00 +0000
 permalink: /ens-domains/
 author: gami
 image: /images/ENS-domains.jpeg
 image_caption:
-video_embed: 
+video_embed:
 tags: [research]
-featured: 
+featured:
 ---
 
 What is yours but your friends use more than you? Your name!
@@ -44,7 +44,7 @@ At the moment, ENS is primarily focused on making wallet addresses shorter and n
 
 As you should know, all crypto wallets have at least one public address and one private key. Public keys identify your wallet, while private keys are the passwords to your wallet. Pro tip: Never, under any circumstance, reveal your private keys to strangers! If you’re interested in the security aspects of crypto, have a look at this [article](/are-hardware-wallets-worth-it/).
 
-Now, public keys are what others type in to send crypto and other digital assets to you. Here’s the public key of an Ethereum wallet created just for this article: *0x72F024d71A705A39a65a0f631654c364488878FA*
+Now, public keys are what others type in to send crypto and other digital assets to you. Here’s the public key of an Ethereum wallet created just for this article: _0x72F024d71A705A39a65a0f631654c364488878FA_
 
 Boasting a grand total of 42 hexadecimals, I doubt many people can memorize this by heart. To send crypto to wallets like mine, you would have to copy-paste the address.
 

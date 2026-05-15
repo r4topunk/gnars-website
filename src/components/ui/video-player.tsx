@@ -145,18 +145,18 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           // Set canvas size - scale down to reasonable thumbnail size to prevent payload too large errors
           const videoWidth = video.videoWidth || 640;
           const videoHeight = video.videoHeight || 480;
-          
+
           // Max dimensions for thumbnail (1280x720 should be plenty for a thumbnail)
           const maxWidth = 1280;
           const maxHeight = 720;
-          
+
           let canvasWidth = videoWidth;
           let canvasHeight = videoHeight;
-          
+
           // Scale down if needed while maintaining aspect ratio
           if (canvasWidth > maxWidth || canvasHeight > maxHeight) {
             const aspectRatio = videoWidth / videoHeight;
-            
+
             if (aspectRatio > maxWidth / maxHeight) {
               // Width is the limiting factor
               canvasWidth = maxWidth;
@@ -167,7 +167,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               canvasWidth = Math.round(maxHeight * aspectRatio);
             }
           }
-          
+
           canvas.width = canvasWidth;
           canvas.height = canvasHeight;
 

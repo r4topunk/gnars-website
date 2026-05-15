@@ -1,7 +1,9 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { GnarCard } from "@/components/auctions/GnarCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toIntlLocale } from "@/lib/i18n/format";
 
 interface TokenLike {
   id: string | number;
@@ -17,21 +19,25 @@ interface MemberTokensGridProps {
 }
 
 export function MemberTokensGrid({ tokens }: MemberTokensGridProps) {
+  const t = useTranslations("members");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gnars Held</CardTitle>
+        <CardTitle>{t("tokens.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {tokens.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">No tokens held.</div>
+          <div className="text-center py-8 text-muted-foreground">{t("tokens.empty")}</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {tokens.map((t) => {
               const dateLabel = t.endTime
-                ? new Date(t.endTime * 1000).toLocaleDateString()
+                ? new Date(t.endTime * 1000).toLocaleDateString(intlLocale)
                 : t.mintedAt
-                  ? new Date(t.mintedAt * 1000).toLocaleDateString()
+                  ? new Date(t.mintedAt * 1000).toLocaleDateString(intlLocale)
                   : undefined;
               const finalEth: string | null = (() => {
                 if (!t.finalBidWei) return null;

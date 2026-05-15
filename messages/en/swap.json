@@ -1,0 +1,73 @@
+{
+  "title": "Swap",
+  "description": "Trade tokens with best execution across 150+ DEXes.",
+  "chain": {
+    "selectLabel": "Select chain",
+    "switchTo": "Switch to {name}",
+    "switching": "Switching…"
+  },
+  "editorial": {
+    "tagline": "Every swap is a small bet on shredding",
+    "body": "With the <highlight>Support Gnars treasury</highlight> box ticked, 0.5% of every trade routes straight to the Gnars Collective Treasury — already behind <highlight>15 skatable sculptures</highlight> around the world, ambassador sponsorships, and infrastructure for a network of shredders from across the planet. You're not just swapping tokens; you're backing the culture and funding the next concrete pour, the next contest, the next session."
+  },
+  "tokenPicker": {
+    "dialogTitle": "Select a token",
+    "dialogDescription": "Search by symbol, name, or paste a token contract address.",
+    "searchPlaceholder": "Search name or paste address",
+    "popular": "Popular",
+    "nativeAsset": "Native asset",
+    "resolvingToken": "Resolving token…",
+    "noErc20Found": "No ERC-20 token found at this address",
+    "noTokensFound": "No tokens found"
+  },
+  "from": {
+    "sellToken": "Sell token",
+    "balance": "Balance:",
+    "max": "MAX",
+    "sellAmount": "Sell amount",
+    "fetchingPrice": "Fetching price…"
+  },
+  "to": {
+    "buyToken": "Buy token",
+    "balance": "Balance:",
+    "bestExecution": "Best across 150+ DEXes"
+  },
+  "flipTokens": "Flip tokens",
+  "captions": {
+    "insufficientBalance": "Insufficient {symbol} balance",
+    "noLiquidity": "No liquidity for this pair",
+    "networkFee": "~{amount} ETH network fee",
+    "enterAmount": "Enter an amount above"
+  },
+  "buttons": {
+    "connectToSwap": "Connect wallet to swap",
+    "enterAmount": "Enter an amount",
+    "swap": "Swap {sell} → {buy}",
+    "swapping": "Swapping…",
+    "approve": "Approve {symbol}",
+    "approving": "Approving {symbol}…"
+  },
+  "fee": {
+    "label": "Support Gnars treasury (0.5%)",
+    "tooltip": "A 0.5% fee on the bought token routes to the Gnars DAO treasury. Helps fund proposals, bounties, and skate infrastructure. Untick to skip."
+  },
+  "toasts": {
+    "switchedTo": "Switched to {name}",
+    "switchFailed": "Failed to switch network",
+    "approvalSubmitted": "Approval submitted",
+    "tokenApproved": "{symbol} approved",
+    "approvalCancelled": "Approval cancelled",
+    "approvalFailed": "Approval failed",
+    "cannotApprove": "Cannot approve",
+    "connectOnChain": "Connect a wallet on {name}.",
+    "swapSubmitted": "Swap submitted",
+    "swapConfirmed": "Swap confirmed",
+    "swapConfirmedDesc": "Received ~{amount} {symbol}",
+    "connectFirst": "Connect a wallet first",
+    "noLiquidity": "No liquidity for this pair",
+    "quoteUnavailable": "Quote unavailable",
+    "quoteUnavailableFallback": "0x returned no transaction",
+    "swapCancelled": "Swap cancelled",
+    "swapFailed": "Swap failed"
+  }
+}
