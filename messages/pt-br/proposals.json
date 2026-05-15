@@ -24,7 +24,7 @@
     "Executed": "Executada",
     "Vetoed": "Vetada",
     "Expired": "Expirada",
-    "Canceled": "Cancelada"
+    "Cancelled": "Cancelada"
   },
   "filters": {
     "searchPlaceholder": "Buscar propostas...",

@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-const TIMEOUT = 30000;
+// Data-fetching pages like /proposals can take 60s+ on a cold Turbopack dev
+// server; production preview is fast. Pad accordingly.
+const TIMEOUT = 90000;
 
 test.describe("i18n routing", () => {
   test("EN root renders with html lang=en (no prefix)", async ({ page }) => {
@@ -16,11 +18,11 @@ test.describe("i18n routing", () => {
   test("EN proposals page exposes hreflang alternates for en + pt-br + x-default", async ({
     page,
   }) => {
-    await page.goto("/proposals", { waitUntil: "domcontentloaded", timeout: TIMEOUT });
-    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(
-      "href",
-      /\/proposals$/,
-    );
+    // /proposals is data-heavy; let Turbopack/server finish before asserting head links.
+    await page.goto("/proposals", { waitUntil: "load", timeout: TIMEOUT });
+    const enAlt = page.locator('link[rel="alternate"][hreflang="en"]');
+    await enAlt.waitFor({ state: "attached", timeout: TIMEOUT });
+    await expect(enAlt).toHaveAttribute("href", /\/proposals$/);
     await expect(page.locator('link[rel="alternate"][hreflang="pt-br"]')).toHaveAttribute(
       "href",
       /\/pt-br\/proposals$/,
@@ -34,11 +36,10 @@ test.describe("i18n routing", () => {
   test("PT-BR proposals page exposes hreflang alternates with reversed canonical", async ({
     page,
   }) => {
-    await page.goto("/pt-br/proposals", { waitUntil: "domcontentloaded", timeout: TIMEOUT });
-    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(
-      "href",
-      /\/proposals$/,
-    );
+    await page.goto("/pt-br/proposals", { waitUntil: "load", timeout: TIMEOUT });
+    const enAlt = page.locator('link[rel="alternate"][hreflang="en"]');
+    await enAlt.waitFor({ state: "attached", timeout: TIMEOUT });
+    await expect(enAlt).toHaveAttribute("href", /\/proposals$/);
     await expect(page.locator('link[rel="alternate"][hreflang="pt-br"]')).toHaveAttribute(
       "href",
       /\/pt-br\/proposals$/,
@@ -97,13 +98,17 @@ test.describe("i18n routing", () => {
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
 
     // Open the locale switcher dropdown (aria-label = "Change language" in EN,
-    // "Mudar idioma" in PT-BR — match either).
+    // "Mudar idioma" in PT-BR — match either). Radix renders the menu in a
+    // portal; wait for the menu role to appear before clicking the item.
     const trigger = page.getByRole("button", { name: /change language|mudar idioma/i }).first();
-    await trigger.waitFor({ state: "visible", timeout: 5000 });
+    await trigger.waitFor({ state: "visible", timeout: 10000 });
     await trigger.click();
 
-    // Pick Portuguese (BR).
-    const ptItem = page.getByRole("menuitem", { name: /português/i }).first();
+    const menu = page.getByRole("menu");
+    await menu.waitFor({ state: "visible", timeout: 10000 });
+
+    // Pick Portuguese (BR) — DropdownMenuItem label is "Português (BR)".
+    const ptItem = menu.getByRole("menuitem", { name: /português/i }).first();
     await ptItem.click();
 
     await page.waitForURL(/\/pt-br(\/|$)/, { timeout: TIMEOUT });
