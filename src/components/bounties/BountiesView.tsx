@@ -114,17 +114,7 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-            <p className="text-muted-foreground mt-1">
-              {t("description")}{" "}
-              <a
-                href="https://poidh.xyz"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground transition-colors"
-              >
-                {t("poweredBy")}
-              </a>
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">{t("description")}</p>
           </div>
           <CreateBountyModal>
             <Button className="shrink-0">
@@ -239,6 +229,19 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
                 <p className="text-foreground">{t("manifesto.howItWorksLabel")}</p>
                 <p>{t("manifesto.howItWorksBody")}</p>
               </div>
+              <p className="pt-2 text-xs text-muted-foreground/80">
+                Powered by{" "}
+                <a
+                  href="https://poidh.xyz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground transition-colors"
+                >
+                  POIDH
+                </a>{" "}
+                — Pics or it didn&apos;t happen. Bounties are escrowed onchain by the POIDH V3
+                contract.
+              </p>
             </div>
           </div>
         </div>

@@ -81,6 +81,7 @@ const POIDH_ERROR_MESSAGES: Record<string, string> = {
   WrongCaller: "You are not allowed to perform this action.",
   IssuerCannotClaim: "The bounty creator cannot submit a claim.",
   IssuerCannotWithdraw: "The bounty creator cannot withdraw as a contributor.",
+  IssuerCannotWithdrawFromOpenBounty: "The bounty creator can't withdraw as a contributor.",
   NotActiveParticipant: "You are not a participant in this bounty.",
   NotOpenBounty: "This action is only available for open bounties.",
   NotSoloBounty: "This action is only available for solo bounties.",
@@ -89,17 +90,43 @@ const POIDH_ERROR_MESSAGES: Record<string, string> = {
   MaxParticipantsReached: "This bounty has reached its maximum number of participants.",
   NotCancelledOpenBounty: "This bounty has not been cancelled.",
   VoteWouldPass: "Cannot reset — the vote would pass. Resolve it instead.",
-  MinimumBountyNotMet: "Amount is below the minimum required to create a bounty.",
-  MinimumContributionNotMet: "Amount is below the minimum required to contribute.",
-  NoEther: "No ETH sent.",
-  ContractsCannotCreateBounties: "Smart contracts cannot create bounties directly.",
-  TransferFailed: "ETH transfer failed.",
-  InsufficientBalance: "Insufficient balance.",
+  MinimumBountyNotMet: "Reward is below the minimum required by POIDH to create a bounty.",
+  MinimumContributionNotMet: "Contribution is below the minimum required by POIDH.",
+  NoEther: "You need to send some ETH with this transaction.",
+  ContractsCannotCreateBounties:
+    "Smart wallets can't create bounties directly. Switch to your EOA in the wallet drawer.",
+  TransferFailed: "ETH transfer failed. Try again in a moment.",
+  InsufficientBalance: "Not enough ETH in your wallet to cover this transaction.",
 };
+
+const USER_REJECTION_PATTERNS = [
+  "user rejected",
+  "user denied",
+  "rejected the request",
+  "userrejectedrequesterror",
+  "request rejected",
+  "transaction rejected",
+  "user cancelled",
+];
+
+const INSUFFICIENT_FUNDS_PATTERNS = [
+  "insufficient funds",
+  "exceeds the balance",
+  "insufficient balance for transfer",
+];
 
 function decodePoidhError(err: unknown): Error {
   if (!(err instanceof Error)) return new Error(String(err));
   const msg = err.message;
+  const lower = msg.toLowerCase();
+
+  if (USER_REJECTION_PATTERNS.some((p) => lower.includes(p))) {
+    return new Error("Transaction cancelled in wallet.");
+  }
+  if (INSUFFICIENT_FUNDS_PATTERNS.some((p) => lower.includes(p))) {
+    return new Error("Not enough ETH in your wallet to cover gas and the reward.");
+  }
+
   for (const [name, friendly] of Object.entries(POIDH_ERROR_MESSAGES)) {
     if (msg.includes(name)) return new Error(friendly);
   }

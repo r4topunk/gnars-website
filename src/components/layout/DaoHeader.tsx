@@ -125,6 +125,13 @@ function buildNavigationItems(t: NavTranslations) {
           description: t("items.money.treasury.description"),
         },
         {
+          title: t("items.money.bounties.title"),
+          href: "/community/bounties",
+          icon: Gift,
+          description: t("items.money.bounties.description"),
+          badge: "NEW!",
+        },
+        {
           title: t("items.money.swap.title"),
           href: "/swap",
           icon: ArrowLeftRight,
@@ -173,13 +180,6 @@ function buildNavigationItems(t: NavTranslations) {
           href: "/create-coin",
           icon: Coins,
           description: t("items.community.createCoin.description"),
-          badge: "NEW!",
-        },
-        {
-          title: t("items.community.bounties.title"),
-          href: "/community/bounties",
-          icon: Gift,
-          description: t("items.community.bounties.description"),
           badge: "NEW!",
         },
       ],
