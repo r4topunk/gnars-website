@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ExternalLink, Minus, Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { FaEthereum } from "react-icons/fa";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,6 +17,7 @@ import {
 import { formatEthToUsd, useEthPrice } from "@/hooks/use-eth-price";
 import { useTradeCreatorCoin } from "@/hooks/use-trade-creator-coin";
 import type { ZoraProfile } from "@/hooks/use-zora-profile";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { cn } from "@/lib/utils";
 
 interface ZoraProfileSummaryProps {
@@ -59,6 +60,7 @@ export function ZoraProfileSummary({
   className,
 }: ZoraProfileSummaryProps) {
   const t = useTranslations("members");
+  const locale = useLocale();
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [ethAmount, setEthAmount] = useState(0.001);
   const { buyCreatorCoin, isTrading } = useTradeCreatorCoin();
@@ -211,7 +213,9 @@ export function ZoraProfileSummary({
                 </button>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-zinc-400">{formatEthToUsd(ethAmount, ethPrice)}</span>
+                <span className="text-zinc-400">
+                  {formatEthToUsd(ethAmount, ethPrice, toIntlLocale(locale))}
+                </span>
                 <span className="text-zinc-500 tabular-nums">{ethAmount.toFixed(6)} ETH</span>
               </div>
             </div>

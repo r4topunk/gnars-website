@@ -1,9 +1,11 @@
 // src/components/auction/BidItem.tsx
 "use client";
 
+import { useLocale } from "next-intl";
 import { formatDistanceToNowStrict } from "date-fns";
 import { formatEther } from "viem";
 import { AddressDisplay } from "@/components/ui/address-display";
+import { getDateFnsLocale } from "@/lib/i18n/format";
 import { cn } from "@/lib/utils";
 
 interface BidItemProps {
@@ -21,7 +23,11 @@ function formatEth(weiStr: string): string {
 }
 
 export function BidItem({ bidder, amount, bidTime, comment, isNew }: BidItemProps) {
-  const timeAgo = formatDistanceToNowStrict(new Date(bidTime * 1000), { addSuffix: true });
+  const locale = useLocale();
+  const timeAgo = formatDistanceToNowStrict(new Date(bidTime * 1000), {
+    addSuffix: true,
+    locale: getDateFnsLocale(locale),
+  });
 
   return (
     <div

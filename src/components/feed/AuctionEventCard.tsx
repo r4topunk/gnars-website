@@ -7,7 +7,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import { Clock, DollarSign, Palette, Radio, Trophy } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TokenImage } from "@/components/ui/token-image";
 import { useBidComments } from "@/hooks/use-bid-comments";
 import { Link } from "@/i18n/navigation";
+import { getDateFnsLocale } from "@/lib/i18n/format";
 import type { FeedEvent } from "@/lib/types/feed-events";
 import { cn, formatETH } from "@/lib/utils";
 
@@ -106,6 +107,7 @@ function AuctionCreatedContent({
   event: Extract<FeedEvent, { type: "AuctionCreated" }>;
 }) {
   const t = useTranslations("feed");
+  const locale = useLocale();
   // Intentional render-time clock read for relative-time label (hydration suppressed).
   // eslint-disable-next-line react-hooks/purity
   const now = Math.floor(Date.now() / 1000);
@@ -117,10 +119,16 @@ function AuctionCreatedContent({
       <p className="text-xs text-muted-foreground" suppressHydrationWarning>
         {hasEnded
           ? t("events.auction.ended", {
-              time: formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true }),
+              time: formatDistanceToNow(new Date(event.endTime * 1000), {
+                addSuffix: true,
+                locale: getDateFnsLocale(locale),
+              }),
             })
           : t("events.auction.ends", {
-              time: formatDistanceToNow(new Date(event.endTime * 1000), { addSuffix: true }),
+              time: formatDistanceToNow(new Date(event.endTime * 1000), {
+                addSuffix: true,
+                locale: getDateFnsLocale(locale),
+              }),
             })}
       </p>
       {event.imageUrl && <TokenImage src={event.imageUrl} tokenId={event.tokenId} size={96} />}

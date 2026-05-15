@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { FileText } from "lucide-react";
@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
+import { getDateFnsLocale } from "@/lib/i18n/format";
 import type { ProposalStatus } from "@/lib/schemas/proposals";
 
 // ---------------------------------------------------------------------------
@@ -54,11 +55,13 @@ interface ProposalUpdateCardProps {
 
 function ProposalUpdateCard({ entry, index }: ProposalUpdateCardProps) {
   const t = useTranslations("propdates");
+  const locale = useLocale();
   const { proposal, propdates, updateCount, latestUpdate } = entry;
   const latestPropdate = propdates[0];
 
   const timeAgo = formatDistanceToNow(new Date(latestUpdate * 1000), {
     addSuffix: true,
+    locale: getDateFnsLocale(locale),
   });
 
   const proposalHref = `/proposals/base/${proposal.proposalNumber}`;

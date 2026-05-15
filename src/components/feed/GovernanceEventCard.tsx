@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertCircle,
@@ -24,6 +24,7 @@ import {
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
+import { getDateFnsLocale } from "@/lib/i18n/format";
 import { extractFirstMedia, stripMarkdown } from "@/lib/markdown-media";
 import type { FeedEvent } from "@/lib/types/feed-events";
 import { cn } from "@/lib/utils";
@@ -118,6 +119,7 @@ function ProposalCreatedContent({
   event: Extract<FeedEvent, { type: "ProposalCreated" }>;
 }) {
   const t = useTranslations("feed");
+  const locale = useLocale();
   return (
     <div className="space-y-1.5">
       <p className="text-sm font-semibold line-clamp-2">{event.title}</p>
@@ -135,7 +137,10 @@ function ProposalCreatedContent({
       </div>
       <div className="text-xs text-muted-foreground" suppressHydrationWarning>
         {t("events.governance.votingStarts", {
-          time: formatDistanceToNow(new Date(event.voteStart * 1000), { addSuffix: true }),
+          time: formatDistanceToNow(new Date(event.voteStart * 1000), {
+            addSuffix: true,
+            locale: getDateFnsLocale(locale),
+          }),
         })}
       </div>
     </div>
@@ -205,6 +210,7 @@ function ProposalStatusContent({
   >;
 }) {
   const t = useTranslations("feed");
+  const locale = useLocale();
   return (
     <div className="space-y-1">
       <p className="text-sm font-medium">
@@ -213,7 +219,10 @@ function ProposalStatusContent({
       {event.type === "ProposalQueued" && (
         <p className="text-xs text-muted-foreground" suppressHydrationWarning>
           {t("events.governance.readyForExecution", {
-            time: formatDistanceToNow(new Date(event.eta * 1000), { addSuffix: true }),
+            time: formatDistanceToNow(new Date(event.eta * 1000), {
+              addSuffix: true,
+              locale: getDateFnsLocale(locale),
+            }),
           })}
         </p>
       )}
@@ -287,6 +296,7 @@ function VotingAlertContent({
   event: Extract<FeedEvent, { type: "VotingOpened" | "VotingClosingSoon" }>;
 }) {
   const t = useTranslations("feed");
+  const locale = useLocale();
   return (
     <div className="space-y-1">
       <p className="text-sm font-medium">
@@ -294,7 +304,10 @@ function VotingAlertContent({
       </p>
       <p className="text-xs text-muted-foreground" suppressHydrationWarning>
         {event.type === "VotingOpened"
-          ? formatDistanceToNow(new Date(event.voteEnd * 1000), { addSuffix: true })
+          ? formatDistanceToNow(new Date(event.voteEnd * 1000), {
+              addSuffix: true,
+              locale: getDateFnsLocale(locale),
+            })
           : t("events.auction.minutesLeft", { count: event.hoursLeft })}
       </p>
     </div>

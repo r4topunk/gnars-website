@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale } from "next-intl";
+import { toIntlLocale } from "@/lib/i18n/format";
 
 type CountUpProps = {
   value: number;
@@ -10,6 +12,7 @@ type CountUpProps = {
 };
 
 export function CountUp({ value, durationMs = 1200, decimals = 0, className }: CountUpProps) {
+  const locale = useLocale();
   const [display, setDisplay] = useState<number>(0);
   const startRef = useRef<number | null>(null);
   const fromRef = useRef<number>(0);
@@ -37,7 +40,7 @@ export function CountUp({ value, durationMs = 1200, decimals = 0, className }: C
     return () => cancelAnimationFrame(raf);
   }, [value, durationMs]);
 
-  const formatter = new Intl.NumberFormat("en-US", {
+  const formatter = new Intl.NumberFormat(toIntlLocale(locale), {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });

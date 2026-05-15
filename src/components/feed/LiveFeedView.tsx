@@ -8,10 +8,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { FeedEvent, FeedFilters } from "@/lib/types/feed-events";
 import { FeedEventCard } from "./FeedEventCard";
 import { FeedFilters as FeedFiltersComponent } from "./FeedFilters";
@@ -310,6 +311,8 @@ function SequentialColumns({
 
 function GroupHeader({ dateKey, isWeek }: { dateKey: number; isWeek?: boolean }) {
   const t = useTranslations("feed");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
   // Calculate label - runs on both server and client
   const now = new Date();
   const nowDayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
@@ -330,12 +333,12 @@ function GroupHeader({ dateKey, isWeek }: { dateKey: number; isWeek?: boolean })
       label = t("groups.weeksAgo", { count: weeksDiff });
     } else {
       // Show date range for older weeks
-      const startStr = weekStart.toLocaleDateString("en-US", {
+      const startStr = weekStart.toLocaleDateString(intlLocale, {
         month: "short",
         day: "numeric",
         timeZone: "UTC",
       });
-      const endStr = weekEnd.toLocaleDateString("en-US", {
+      const endStr = weekEnd.toLocaleDateString(intlLocale, {
         month: "short",
         day: "numeric",
         year: weekEnd.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
@@ -354,7 +357,7 @@ function GroupHeader({ dateKey, isWeek }: { dateKey: number; isWeek?: boolean })
     } else {
       // Fallback for edge cases
       const date = new Date(dateKey);
-      label = date.toLocaleDateString("en-US", {
+      label = date.toLocaleDateString(intlLocale, {
         month: "short",
         day: "numeric",
         timeZone: "UTC",

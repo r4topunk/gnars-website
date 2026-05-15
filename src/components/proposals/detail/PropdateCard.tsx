@@ -1,12 +1,13 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import { Markdown } from "@/components/common/Markdown";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { getDateFnsLocale } from "@/lib/i18n/format";
 import { type Propdate } from "@/services/propdates";
 import { PropdateReplyCard } from "./PropdateReplyCard";
 
@@ -30,8 +31,10 @@ export function PropdateCard({
   onReplyClick,
 }: PropdateCardProps) {
   const t = useTranslations("propdates");
+  const locale = useLocale();
   const timeCreated = formatDistanceToNow(new Date(propdate.timeCreated * 1000), {
     addSuffix: true,
+    locale: getDateFnsLocale(locale),
   });
 
   return (

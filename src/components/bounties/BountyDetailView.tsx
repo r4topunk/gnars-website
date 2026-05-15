@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
@@ -44,6 +44,7 @@ import {
   usePoidhVoteClaim,
 } from "@/hooks/usePoidhContract";
 import { Link } from "@/i18n/navigation";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { POIDH_ABI } from "@/lib/poidh/abi";
 import { CHAIN_NAMES, getExplorerUrl, getTxUrl, POIDH_CONTRACTS } from "@/lib/poidh/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
@@ -190,6 +191,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   const queryClient = useQueryClient();
 
   const { ethPrice } = useEthPrice();
+  const locale = useLocale();
   const [joinAmount, setJoinAmount] = useState("0.001");
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [showConnectDialog, setShowConnectDialog] = useState(false);
@@ -353,7 +355,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   const chainName = CHAIN_NAMES[chainId as keyof typeof CHAIN_NAMES] || "Unknown";
   const amountEth = formatEther(BigInt(bounty.amount));
   const ethAmount = parseFloat(amountEth);
-  const usdValue = formatEthToUsd(ethAmount, ethPrice);
+  const usdValue = formatEthToUsd(ethAmount, ethPrice, toIntlLocale(locale));
   const explorerUrl = getExplorerUrl(chainId, bounty.issuer);
   const createdDate = new Date(bounty.createdAt * 1000);
   const deadlineDate = bounty.deadline ? new Date(bounty.deadline * 1000) : null;
@@ -680,7 +682,11 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         {claim.createdAt > 0 && (
                           <>
                             <span>•</span>
-                            <span>{new Date(claim.createdAt * 1000).toLocaleDateString()}</span>
+                            <span>
+                              {new Date(claim.createdAt * 1000).toLocaleDateString(
+                                toIntlLocale(locale),
+                              )}
+                            </span>
                           </>
                         )}
                       </div>
@@ -1196,7 +1202,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                   <span className="font-medium">{t("detail.created")}</span>
                 </div>
                 <p className="text-xs">
-                  {createdDate.toLocaleDateString("en-US", {
+                  {createdDate.toLocaleDateString(toIntlLocale(locale), {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
@@ -1211,7 +1217,7 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                     <span className="font-medium">{t("detail.deadline")}</span>
                   </div>
                   <p className="text-xs">
-                    {deadlineDate.toLocaleDateString("en-US", {
+                    {deadlineDate.toLocaleDateString(toIntlLocale(locale), {
                       year: "numeric",
                       month: "long",
                       day: "numeric",

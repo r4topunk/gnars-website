@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toIntlLocale } from "@/lib/i18n/format";
 
 export interface EnrichedToken {
   contractAddress: string;
@@ -29,16 +30,18 @@ interface TokenHoldingsClientProps {
 
 export function TokenHoldingsClient({ tokens, error }: TokenHoldingsClientProps) {
   const t = useTranslations("treasury");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
 
   const formatBalance = (balance: number, decimals: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(intlLocale, {
       minimumFractionDigits: decimals > 6 ? 2 : Math.min(decimals, 4),
       maximumFractionDigits: decimals > 6 ? 2 : Math.min(decimals, 4),
     }).format(balance);
   };
 
   const formatUsdValue = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(intlLocale, {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 2,

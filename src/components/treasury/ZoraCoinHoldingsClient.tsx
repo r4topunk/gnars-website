@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toIntlLocale } from "@/lib/i18n/format";
 
 export interface ZoraCoin {
   id: string;
@@ -36,19 +37,19 @@ interface ZoraCoinHoldingsClientProps {
   error?: string;
 }
 
-function formatNumber(value: number, decimals: number = 2): string {
+function formatNumber(value: number, intlLocale: string, decimals: number = 2): string {
   if (value === 0) return "0";
   if (value < 0.01) return "<0.01";
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(intlLocale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(value);
 }
 
-function formatUSD(value: number): string {
+function formatUSD(value: number, intlLocale: string): string {
   if (value === 0) return "$0.00";
   if (value < 0.01) return "<$0.01";
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(intlLocale, {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
@@ -56,16 +57,18 @@ function formatUSD(value: number): string {
   }).format(value);
 }
 
-function formatCompactNumber(value: number): string {
+function formatCompactNumber(value: number, intlLocale: string): string {
   if (value === 0) return "0";
-  if (value < 1000) return formatNumber(value);
-  if (value < 1_000_000) return `${formatNumber(value / 1000, 1)}K`;
-  if (value < 1_000_000_000) return `${formatNumber(value / 1_000_000, 1)}M`;
-  return `${formatNumber(value / 1_000_000_000, 1)}B`;
+  if (value < 1000) return formatNumber(value, intlLocale);
+  if (value < 1_000_000) return `${formatNumber(value / 1000, intlLocale, 1)}K`;
+  if (value < 1_000_000_000) return `${formatNumber(value / 1_000_000, intlLocale, 1)}M`;
+  return `${formatNumber(value / 1_000_000_000, intlLocale, 1)}B`;
 }
 
 export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientProps) {
   const t = useTranslations("treasury");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
   const totalValue = coins.reduce((sum, coin) => sum + coin.usdValue, 0);
 
   // Log coin images for debugging
@@ -109,7 +112,10 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
       <CardHeader>
         <CardTitle>{t("zoraCoin.title")}</CardTitle>
         <CardDescription>
-          {t("zoraCoin.coinCount", { count: coins.length, value: formatUSD(totalValue) })}
+          {t("zoraCoin.coinCount", {
+            count: coins.length,
+            value: formatUSD(totalValue, intlLocale),
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -153,16 +159,16 @@ export function ZoraCoinHoldingsClient({ coins, error }: ZoraCoinHoldingsClientP
                     </div>
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    {formatCompactNumber(coin.balance)}
+                    {formatCompactNumber(coin.balance, intlLocale)}
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    {formatUSD(coin.usdValue)}
+                    {formatUSD(coin.usdValue, intlLocale)}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
-                    {formatUSD(coin.marketCap)}
+                    {formatUSD(coin.marketCap, intlLocale)}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
-                    {formatUSD(coin.volume24h)}
+                    {formatUSD(coin.volume24h, intlLocale)}
                   </TableCell>
                   <TableCell className="text-right text-sm text-muted-foreground">
                     {coin.creatorName ||

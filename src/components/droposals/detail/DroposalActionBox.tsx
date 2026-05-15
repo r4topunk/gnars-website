@@ -5,7 +5,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { AlertTriangle, Check, Loader2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMintDroposal } from "@/hooks/useMintDroposal";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { ZORA_PROTOCOL_REWARD } from "@/utils/abis/zoraNftMintAbi";
 import { useDroposalMint } from "./DroposalMintContext";
 
@@ -38,6 +39,8 @@ export function DroposalActionBox({
   tokenAddress,
 }: DroposalActionBoxProps) {
   const t = useTranslations("droposals");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
   const [quantity, setQuantity] = useState(1);
   const [comment, setComment] = useState("");
   const { triggerRefresh } = useDroposalMint();
@@ -132,13 +135,15 @@ export function DroposalActionBox({
           {saleNotStarted && saleStart ? (
             <span>
               {t("detail.saleStarts", {
-                date: new Date(saleStart).toLocaleString(),
+                date: new Date(saleStart).toLocaleString(intlLocale),
                 countdown: formatCountdown(saleStart),
               })}
             </span>
           ) : null}
           {saleEnded && saleEnd ? (
-            <span>{t("detail.saleEnded", { date: new Date(saleEnd).toLocaleString() })}</span>
+            <span>
+              {t("detail.saleEnded", { date: new Date(saleEnd).toLocaleString(intlLocale) })}
+            </span>
           ) : null}
           {!hasDecoded && (
             <span className="inline-flex items-center gap-2">

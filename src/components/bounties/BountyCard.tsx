@@ -1,10 +1,11 @@
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { formatEther } from "viem";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { formatEthToUsd, useEthPrice } from "@/hooks/use-eth-price";
 import { Link } from "@/i18n/navigation";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { CHAIN_NAMES } from "@/lib/poidh/config";
 import type { PoidhBounty } from "@/types/poidh";
 
@@ -40,6 +41,7 @@ const CHAIN_DOT_COLORS: Record<number, string> = {
 
 export function BountyCard({ bounty }: BountyCardProps) {
   const t = useTranslations("bounties");
+  const locale = useLocale();
   const chainName = CHAIN_NAMES[bounty.chainId as keyof typeof CHAIN_NAMES] || "Unknown";
   const amountEth = formatEther(BigInt(bounty.amount));
   // eslint-disable-next-line react-hooks/purity -- intentional render-time clock read for "Xd ago" label
@@ -65,7 +67,7 @@ export function BountyCard({ bounty }: BountyCardProps) {
   const cleanDescription = stripMarkdownImages(bounty.description);
   const { ethPrice } = useEthPrice();
   const ethAmount = parseFloat(amountEth);
-  const usdValue = formatEthToUsd(ethAmount, ethPrice);
+  const usdValue = formatEthToUsd(ethAmount, ethPrice, toIntlLocale(locale));
 
   const statusLabel = (() => {
     if (status === "Canceled") return t("status.canceled");

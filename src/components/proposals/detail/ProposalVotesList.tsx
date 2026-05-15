@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Markdown } from "@/components/common/Markdown";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useActiveMembers } from "@/hooks/use-active-members";
+import { getDateFnsLocale } from "@/lib/i18n/format";
 import type { DelegatorWithCount } from "@/services/members";
 import { DelegationTooltip } from "./DelegationTooltip";
 
@@ -40,6 +41,7 @@ const voteBadgeClasses: Record<VoteChoice, string> = {
 
 export function ProposalVotesList({ title, votes, isActive = false }: ProposalVotesListProps) {
   const t = useTranslations("proposals");
+  const locale = useLocale();
   const resolvedTitle = title ?? t("votesList.defaultTitle");
   const hasVotes = Array.isArray(votes) && votes.length > 0;
   const [isOpen, setIsOpen] = useState(false);
@@ -145,7 +147,10 @@ export function ProposalVotesList({ title, votes, isActive = false }: ProposalVo
                     {vote.timestamp ? (
                       <span className="text-muted-foreground text-xs">
                         ·{" "}
-                        {formatDistanceToNow(new Date(vote.timestamp * 1000), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(vote.timestamp * 1000), {
+                          addSuffix: true,
+                          locale: getDateFnsLocale(locale),
+                        })}
                       </span>
                     ) : null}
                   </div>

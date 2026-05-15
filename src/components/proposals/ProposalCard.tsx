@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { ProposalStatusBadge } from "@/components/proposals/ProposalStatusBadge";
@@ -12,13 +12,14 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
+import { getDateFnsLocale, toIntlLocale } from "@/lib/i18n/format";
 import { getProposalFundingTotals } from "@/lib/proposal-funding";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { cn } from "@/lib/utils";
 import type { MultiChainProposal, ProposalSource } from "@/services/multi-chain-proposals";
 
-function formatAssetAmount(value: number, maxFractionDigits = 4): string {
-  return new Intl.NumberFormat("en-US", {
+function formatAssetAmount(value: number, locale: string, maxFractionDigits = 4): string {
+  return new Intl.NumberFormat(toIntlLocale(locale), {
     minimumFractionDigits: 0,
     maximumFractionDigits: maxFractionDigits,
   }).format(value);
@@ -61,6 +62,7 @@ export function ProposalCard({
   showRequested?: boolean;
 }) {
   const t = useTranslations("proposals");
+  const locale = useLocale();
   const totalVotes =
     (proposal.forVotes ?? 0) + (proposal.againstVotes ?? 0) + (proposal.abstainVotes ?? 0);
 
@@ -74,6 +76,7 @@ export function ProposalCard({
 
   const timeCreated = formatDistanceToNow(new Date(proposal.timeCreated * 1000), {
     addSuffix: true,
+    locale: getDateFnsLocale(locale),
   });
   const isPending = proposal.status === ProposalStatus.PENDING;
 
@@ -96,9 +99,11 @@ export function ProposalCard({
 
   const requestedLines = hasFundingRequest
     ? [
-        fundingTotals.totalEthWei > 0n ? `${formatAssetAmount(fundingTotals.totalEth)} ETH` : null,
+        fundingTotals.totalEthWei > 0n
+          ? `${formatAssetAmount(fundingTotals.totalEth, locale)} ETH`
+          : null,
         fundingTotals.totalUsdcRaw > 0n
-          ? `${formatAssetAmount(fundingTotals.totalUsdc, 2)} USDC`
+          ? `${formatAssetAmount(fundingTotals.totalUsdc, locale, 2)} USDC`
           : null,
       ].filter((line): line is string => Boolean(line))
     : [t("card.noDirectTransfer")];

@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { GnarCard } from "@/components/auctions/GnarCard";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { subgraphQuery } from "@/lib/subgraph";
 
 interface NftHoldingsProps {
@@ -56,6 +57,8 @@ const TREASURY_TOKENS_GQL = /* GraphQL */ `
 
 export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
   const t = useTranslations("treasury");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
   const PAGE_SIZE = 20;
   const [tokens, setTokens] = useState<
     Array<{
@@ -110,9 +113,9 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
           const endTime = token.auction?.endTime ? Number(token.auction.endTime) : undefined;
           const mintedAt = token.mintedAt ? Number(token.mintedAt) : undefined;
           const dateLabel = endTime
-            ? new Date(endTime * 1000).toLocaleDateString()
+            ? new Date(endTime * 1000).toLocaleDateString(intlLocale)
             : mintedAt
-              ? new Date(mintedAt * 1000).toLocaleDateString()
+              ? new Date(mintedAt * 1000).toLocaleDateString(intlLocale)
               : undefined;
           const finalBidWei =
             token.auction?.winningBid?.amount ?? token.auction?.highestBid?.amount;
@@ -147,7 +150,7 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
     return () => {
       ignore = true;
     };
-  }, [treasuryAddress]);
+  }, [treasuryAddress, intlLocale]);
 
   // Reset visible count when tokens change
   useEffect(() => {

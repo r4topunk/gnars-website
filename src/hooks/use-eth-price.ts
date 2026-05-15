@@ -33,12 +33,20 @@ export function useEthPrice() {
 }
 
 /**
- * Format ETH amount to USD string
+ * Format ETH amount to USD string.
+ *
+ * `intlLocale` is a BCP-47 tag (e.g. "en-US", "pt-BR"). Defaults to "en-US"
+ * so non-localized callers stay unchanged; pass the user's locale via
+ * `toIntlLocale(useLocale())` from `@/lib/i18n/format` for localized output.
  */
-export function formatEthToUsd(ethAmount: number, ethPrice: number): string {
+export function formatEthToUsd(
+  ethAmount: number,
+  ethPrice: number,
+  intlLocale: string = "en-US",
+): string {
   if (!ethPrice || ethPrice === 0) return "—";
   const usd = ethAmount * ethPrice;
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(intlLocale, {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,

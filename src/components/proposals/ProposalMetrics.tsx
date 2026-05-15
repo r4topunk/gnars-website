@@ -1,8 +1,9 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 
 interface ProposalMetricsProps {
@@ -27,9 +28,11 @@ export function ProposalMetrics({
   endDate,
 }: ProposalMetricsProps) {
   const t = useTranslations("proposals");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
   const formatVotes = (votes: string) => {
     const num = parseFloat(votes);
-    return num.toLocaleString(undefined, { maximumFractionDigits: 1 });
+    return num.toLocaleString(intlLocale, { maximumFractionDigits: 1 });
   };
 
   const parseVotes = (votes: string) => {
@@ -38,7 +41,7 @@ export function ProposalMetrics({
   };
 
   const formatBlock = (block: number) => {
-    return block.toLocaleString();
+    return block.toLocaleString(intlLocale);
   };
 
   const forNum = parseVotes(forVotes);
@@ -134,14 +137,14 @@ export function ProposalMetrics({
           </CardHeader>
           <CardContent className="py-1 px-4" suppressHydrationWarning>
             <div className="text-xl md:text-2xl font-semibold" suppressHydrationWarning>
-              {dateToShow.toLocaleDateString(undefined, {
+              {dateToShow.toLocaleDateString(intlLocale, {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
               })}
             </div>
             <div className="text-xs text-muted-foreground" suppressHydrationWarning>
-              {dateToShow.toLocaleTimeString(undefined, {
+              {dateToShow.toLocaleTimeString(intlLocale, {
                 hour: "2-digit",
                 minute: "2-digit",
                 second: "2-digit",

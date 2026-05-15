@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toIntlLocale } from "@/lib/i18n/format";
 
 interface VoteItem {
   id: string | number;
@@ -28,6 +29,8 @@ interface MemberVotesTableProps {
 
 export function MemberVotesTable({ votes }: MemberVotesTableProps) {
   const t = useTranslations("members");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
 
   return (
     <Card>
@@ -65,7 +68,7 @@ export function MemberVotesTable({ votes }: MemberVotesTableProps) {
                         </span>
                       ) : null}
                       <span className="text-xs text-muted-foreground">
-                        {new Date(v.timestamp).toLocaleString()}
+                        {new Date(v.timestamp).toLocaleString(intlLocale)}
                       </span>
                     </div>
                   </TableCell>

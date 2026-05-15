@@ -1,11 +1,10 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { cn } from "@/lib/utils";
 import type { FarcasterProfile } from "@/services/farcaster";
-
-const numberFormatter = new Intl.NumberFormat("en-US");
 
 interface FarcasterProfileSummaryProps {
   profile?: FarcasterProfile | null;
@@ -28,10 +27,6 @@ const sizeStyles = {
   },
 };
 
-function formatCount(value: number | undefined | null) {
-  return numberFormatter.format(value ?? 0);
-}
-
 export function FarcasterProfileSummary({
   profile,
   size = "sm",
@@ -40,6 +35,9 @@ export function FarcasterProfileSummary({
   className,
 }: FarcasterProfileSummaryProps) {
   const t = useTranslations("members");
+  const locale = useLocale();
+  const numberFormatter = new Intl.NumberFormat(toIntlLocale(locale));
+  const formatCount = (value: number | undefined | null) => numberFormatter.format(value ?? 0);
 
   if (loading) {
     return (

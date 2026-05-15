@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { Link } from "@/i18n/navigation";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { getPostBySlug, getPostMetadata } from "@/lib/posts";
 
 export async function generateStaticParams() {
@@ -102,7 +103,7 @@ export default async function BlogPostPage({
         <h1 className="text-4xl font-bold mb-4">{metadata.title}</h1>
         <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
           <time>
-            {new Date(metadata.date).toLocaleDateString("en-US", {
+            {new Date(metadata.date).toLocaleDateString(toIntlLocale(locale), {
               year: "numeric",
               month: "long",
               day: "numeric",

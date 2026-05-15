@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { PlusCircle, Search, X } from "lucide-react";
 import { formatEther } from "viem";
 import { BountyGrid } from "@/components/bounties/BountyGrid";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatEthToUsd, useEthPrice } from "@/hooks/use-eth-price";
 import { usePoidhBounties } from "@/hooks/usePoidhBounties";
+import { toIntlLocale } from "@/lib/i18n/format";
 import type { PoidhBounty } from "@/types/poidh";
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
@@ -42,6 +43,7 @@ interface BountiesViewProps {
 
 export function BountiesView({ initialBounties }: BountiesViewProps) {
   const t = useTranslations("bounties");
+  const locale = useLocale();
   const [status, setStatus] = useState<"open" | "closed" | "voting" | "all">("open");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterGnarly] = useState(false);
@@ -86,9 +88,9 @@ export function BountiesView({ initialBounties }: BountiesViewProps) {
       return sum + BigInt(bounty.amount ?? 0);
     }, 0n);
     const totalEth = parseFloat(formatEther(totalWei));
-    const totalUsd = formatEthToUsd(totalEth, ethPrice);
+    const totalUsd = formatEthToUsd(totalEth, ethPrice, toIntlLocale(locale));
     return { eth: totalEth.toFixed(4), usd: totalUsd, count: filteredBounties.length };
-  }, [filteredBounties, ethPrice]);
+  }, [filteredBounties, ethPrice, locale]);
 
   const poolLabel = (() => {
     if (status === "open") return t("stats.openPool");

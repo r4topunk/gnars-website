@@ -1,7 +1,7 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ArrowDown, ArrowUp, ArrowUpDown, Search, UserPlus } from "lucide-react";
 import { DelegationModal } from "@/components/layout/DelegationModal";
 import { AddressDisplay } from "@/components/ui/address-display";
@@ -18,6 +18,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "@/i18n/navigation";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { toIntlLocale } from "@/lib/i18n/format";
 import { type MemberListItem } from "@/services/members";
 
 function FarcasterIcon({ className }: { className?: string }) {
@@ -66,6 +67,8 @@ export function MembersList({
   showSearch = true,
 }: MembersListProps) {
   const t = useTranslations("members");
+  const locale = useLocale();
+  const intlLocale = toIntlLocale(locale);
   const [members, setMembers] = useState<MemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
@@ -358,7 +361,7 @@ export function MembersList({
                         <TooltipContent>
                           {t("list.farcasterFollowers", {
                             username: `@${member.farcaster.username}`,
-                            count: member.farcaster.followerCount.toLocaleString(),
+                            count: member.farcaster.followerCount.toLocaleString(intlLocale),
                           })}
                         </TooltipContent>
                       </Tooltip>
