@@ -10,12 +10,25 @@ export const size = {
 export const contentType = "image/png";
 
 interface Props {
-  params: Promise<{ address: string }>;
+  params: Promise<{ address: string; locale: string }>;
 }
 
 export default async function Image({ params }: Props) {
-  const { address } = await params;
+  const { address, locale } = await params;
   const isValidAddress = isAddress(address);
+  const isPt = locale === "pt-br";
+  const labels = {
+    invalidAddress: isPt ? "Endereço Inválido" : "Invalid Address",
+    gnarsHeld: isPt ? "Gnars Detidos" : "Gnars Held",
+    delegation: isPt ? "Delegação" : "Delegation",
+    delegatesTo: isPt ? "Delega para" : "Delegates to",
+    self: isPt ? "Si mesmo" : "Self",
+    delegatedBy: isPt ? "Delegado por" : "Delegated by",
+    activity: isPt ? "Atividade" : "Activity",
+    votes: isPt ? "Votos" : "Votes",
+    creatorCoin: "Creator Coin",
+    fallback: isPt ? "Membro da Gnars DAO" : "Gnars DAO Member",
+  };
 
   try {
     // Fetch member data from API route to avoid edge runtime issues
@@ -28,7 +41,7 @@ export default async function Image({ params }: Props) {
     let data = {
       displayName: isValidAddress
         ? `${address.slice(0, 6)}...${address.slice(-4)}`
-        : "Invalid Address",
+        : labels.invalidAddress,
       avatar: null,
       tokenCount: 0,
       delegatorCount: 0,
@@ -141,7 +154,7 @@ export default async function Image({ params }: Props) {
               }}
             >
               <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "16px" }}>
-                Gnars Held
+                {labels.gnarsHeld}
               </div>
               <div style={{ display: "flex", fontSize: 72, fontWeight: 700, color: "#fff" }}>
                 {tokenCount}
@@ -162,17 +175,21 @@ export default async function Image({ params }: Props) {
               }}
             >
               <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "24px" }}>
-                Delegation
+                {labels.delegation}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", fontSize: 22, color: "#aaa" }}>Delegates to</div>
+                  <div style={{ display: "flex", fontSize: 22, color: "#aaa" }}>
+                    {labels.delegatesTo}
+                  </div>
                   <div style={{ display: "flex", fontSize: 22, color: "#fff", fontWeight: 600 }}>
-                    Self
+                    {labels.self}
                   </div>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", fontSize: 22, color: "#aaa" }}>Delegated by</div>
+                  <div style={{ display: "flex", fontSize: 22, color: "#aaa" }}>
+                    {labels.delegatedBy}
+                  </div>
                   <div style={{ display: "flex", fontSize: 22, color: "#fff", fontWeight: 600 }}>
                     {delegatorCount}
                   </div>
@@ -194,11 +211,11 @@ export default async function Image({ params }: Props) {
               }}
             >
               <div style={{ display: "flex", fontSize: 24, color: "#888", marginBottom: "24px" }}>
-                Activity
+                {labels.activity}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", fontSize: 22, color: "#aaa" }}>Votes</div>
+                  <div style={{ display: "flex", fontSize: 22, color: "#aaa" }}>{labels.votes}</div>
                   <div style={{ display: "flex", fontSize: 22, color: "#fff", fontWeight: 600 }}>
                     {voteCount}
                   </div>
@@ -221,7 +238,9 @@ export default async function Image({ params }: Props) {
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div style={{ display: "flex", fontSize: 24, color: "#888" }}>Creator Coin</div>
+                  <div style={{ display: "flex", fontSize: 24, color: "#888" }}>
+                    {labels.creatorCoin}
+                  </div>
                   <div
                     style={{
                       display: "flex",
@@ -284,7 +303,7 @@ export default async function Image({ params }: Props) {
             fontFamily: "system-ui",
           }}
         >
-          Gnars DAO Member
+          {labels.fallback}
         </div>
       ),
       { ...size },

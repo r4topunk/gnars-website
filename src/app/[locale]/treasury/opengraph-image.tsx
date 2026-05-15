@@ -137,21 +137,33 @@ async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
-export default async function Image() {
+export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isPt = locale === "pt-br";
+
   let treasuryData: Awaited<ReturnType<typeof fetchTreasurySnapshot>>;
   try {
     treasuryData = await fetchTreasurySnapshot();
   } catch (error) {
     console.error("[treasury OG] error:", error);
-    return renderFallback("Error generating image");
+    return renderFallback(isPt ? "Erro ao gerar imagem" : "Error generating image");
   }
 
   if (!treasuryData) {
-    return renderFallback("Treasury Data Unavailable");
+    return renderFallback(isPt ? "Dados do Tesouro Indisponíveis" : "Treasury Data Unavailable");
   }
 
   const ethBalance = treasuryData.ethBalance;
   const usdTotal = formatUsdDisplay(treasuryData.usdTotal);
+  const labels = {
+    title: isPt ? "TESOURO" : "TREASURY",
+    subtitle: isPt ? "Visão Geral Financeira da Gnars DAO" : "Gnars DAO Financial Overview",
+    ethBalance: isPt ? "Saldo de ETH" : "ETH Balance",
+    ethereum: "Ethereum",
+    totalValue: isPt ? "Valor Total" : "Total Value",
+    usdTreasuryValue: isPt ? "Valor do Tesouro em USD" : "USD Treasury Value",
+  };
+  const footerPath = isPt ? "gnars.com/pt-br/treasury" : "gnars.com/treasury";
 
   return new ImageResponse(
     (
@@ -174,9 +186,11 @@ export default async function Image() {
             marginBottom: "64px",
           }}
         >
-          <div style={{ fontSize: 48, fontWeight: 700, color: OG_COLORS.foreground }}>TREASURY</div>
+          <div style={{ fontSize: 48, fontWeight: 700, color: OG_COLORS.foreground }}>
+            {labels.title}
+          </div>
           <div style={{ fontSize: 28, color: OG_COLORS.muted, marginTop: "8px" }}>
-            Gnars DAO Financial Overview
+            {labels.subtitle}
           </div>
         </div>
 
@@ -202,13 +216,13 @@ export default async function Image() {
             }}
           >
             <div style={{ fontSize: 24, color: OG_COLORS.muted, marginBottom: "16px" }}>
-              ETH Balance
+              {labels.ethBalance}
             </div>
             <div style={{ fontSize: 64, fontWeight: 700, color: OG_COLORS.accent }}>
               {ethBalance}
             </div>
             <div style={{ fontSize: 18, color: OG_COLORS.mutedLight, marginTop: "16px" }}>
-              Ethereum
+              {labels.ethereum}
             </div>
           </div>
 
@@ -226,11 +240,11 @@ export default async function Image() {
             }}
           >
             <div style={{ fontSize: 24, color: OG_COLORS.muted, marginBottom: "16px" }}>
-              Total Value
+              {labels.totalValue}
             </div>
             <div style={{ fontSize: 64, fontWeight: 700, color: OG_COLORS.blue }}>{usdTotal}</div>
             <div style={{ fontSize: 18, color: OG_COLORS.mutedLight, marginTop: "16px" }}>
-              USD Treasury Value
+              {labels.usdTreasuryValue}
             </div>
           </div>
         </div>
@@ -248,7 +262,7 @@ export default async function Image() {
           }}
         >
           <div>Gnars DAO</div>
-          <div>gnars.com/treasury</div>
+          <div>{footerPath}</div>
         </div>
       </div>
     ),

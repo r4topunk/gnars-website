@@ -51,17 +51,20 @@ async function fetchLatestAuction(): Promise<AuctionData | null> {
   }
 }
 
-export default async function Image() {
+export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isPt = locale === "pt-br";
+
   let auction: AuctionData | null;
   try {
     auction = await fetchLatestAuction();
   } catch (error) {
     console.error("[auctions OG] error:", error);
-    return renderFallback("Error generating image");
+    return renderFallback(isPt ? "Erro ao gerar imagem" : "Error generating image");
   }
 
   if (!auction) {
-    return renderFallback("No Auctions Found");
+    return renderFallback(isPt ? "Nenhum Leilão Encontrado" : "No Auctions Found");
   }
 
   const tokenId = auction.token.tokenId;
@@ -75,8 +78,16 @@ export default async function Image() {
     fit: "cover",
   });
   const isSettled = auction.settled;
-  const status = isSettled ? "Ended" : "Active";
+  const status = isSettled ? (isPt ? "Encerrado" : "Ended") : isPt ? "Ativo" : "Active";
   const statusColor = isSettled ? OG_COLORS.muted : OG_COLORS.accent;
+  const labels = {
+    section: isPt ? "LEILÕES" : "AUCTIONS",
+    tagline: isPt ? "Leilões de NFT da Gnars DAO" : "Gnars DAO NFT Auctions",
+    current: isPt ? "Leilão Atual" : "Current Auction",
+    gnar: "Gnar",
+    highestBid: isPt ? "Maior Lance" : "Highest Bid",
+  };
+  const footerPath = isPt ? "gnars.com/pt-br/auctions" : "gnars.com/auctions";
 
   return new ImageResponse(
     (
@@ -151,8 +162,8 @@ export default async function Image() {
               gap: "16px",
             }}
           >
-            <div style={{ fontSize: 28, color: OG_COLORS.muted }}>AUCTIONS</div>
-            <div style={{ fontSize: 36, color: OG_COLORS.mutedLight }}>Gnars DAO NFT Auctions</div>
+            <div style={{ fontSize: 28, color: OG_COLORS.muted }}>{labels.section}</div>
+            <div style={{ fontSize: 36, color: OG_COLORS.mutedLight }}>{labels.tagline}</div>
           </div>
 
           {/* Status and Current Auction */}
@@ -172,7 +183,7 @@ export default async function Image() {
                 color: OG_COLORS.muted,
               }}
             >
-              <div>Current Auction</div>
+              <div>{labels.current}</div>
               <div
                 style={{
                   fontSize: 18,
@@ -196,7 +207,7 @@ export default async function Image() {
                 color: OG_COLORS.mutedLight,
               }}
             >
-              <div>Gnar</div>
+              <div>{labels.gnar}</div>
               <div style={{ fontSize: 48, fontWeight: 700, color: OG_COLORS.foreground }}>
                 {`#${tokenId}`}
               </div>
@@ -211,7 +222,7 @@ export default async function Image() {
                 color: OG_COLORS.mutedLight,
               }}
             >
-              <div>Highest Bid</div>
+              <div>{labels.highestBid}</div>
               <div style={{ fontSize: 48, fontWeight: 700, color: OG_COLORS.accent }}>
                 {`${bidEth} ETH`}
               </div>
@@ -226,7 +237,7 @@ export default async function Image() {
               marginTop: "auto",
             }}
           >
-            gnars.com/auctions
+            {footerPath}
           </div>
         </div>
       </div>

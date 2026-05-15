@@ -12,7 +12,7 @@ export const contentType = "image/png";
 export const revalidate = 300;
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 }
 
 type ProposalData = {
@@ -105,20 +105,21 @@ async function fetchDroposal(id: string): Promise<{
 }
 
 export default async function Image({ params }: Props) {
-  const { id } = await params;
+  const { id, locale } = await params;
+  const isPt = locale === "pt-br";
 
   let fetched: Awaited<ReturnType<typeof fetchDroposal>>;
   try {
     fetched = await fetchDroposal(id);
   } catch (error) {
     console.error("[droposals OG] error:", error);
-    return renderFallback("Error generating image");
+    return renderFallback(isPt ? "Erro ao gerar imagem" : "Error generating image");
   }
 
   const { proposal, decoded } = fetched;
 
   if (!proposal) {
-    return renderFallback("Droposal Not Found");
+    return renderFallback(isPt ? "Droposal Não Encontrado" : "Droposal Not Found");
   }
 
   const title = decoded?.name || proposal.title || `Droposal #${proposal.proposalNumber}`;
@@ -131,9 +132,17 @@ export default async function Image({ params }: Props) {
   });
   const priceEth = decoded?.saleConfig?.publicSalePrice
     ? formatEthDisplay(formatEther(decoded.saleConfig.publicSalePrice))
-    : "Free";
-  const editionSize = decoded?.editionSize || "Unlimited";
-  const description = decoded?.collectionDescription || proposal.description || "NFT Drop";
+    : isPt
+      ? "Grátis"
+      : "Free";
+  const editionSize = decoded?.editionSize || (isPt ? "Ilimitado" : "Unlimited");
+  const description =
+    decoded?.collectionDescription || proposal.description || (isPt ? "Drop de NFT" : "NFT Drop");
+  const labels = {
+    price: isPt ? "Preço" : "Price",
+    editionSize: isPt ? "Tamanho da Edição" : "Edition Size",
+  };
+  const footerPath = isPt ? "gnars.com/pt-br/droposals" : "gnars.com/droposals";
 
   return new ImageResponse(
     (
@@ -250,7 +259,7 @@ export default async function Image({ params }: Props) {
                 color: OG_COLORS.muted,
               }}
             >
-              <div>Price</div>
+              <div>{labels.price}</div>
               <div style={{ fontSize: 24, fontWeight: 600, color: OG_COLORS.accent }}>
                 {`${priceEth} ETH`}
               </div>
@@ -263,7 +272,7 @@ export default async function Image({ params }: Props) {
                 color: OG_COLORS.muted,
               }}
             >
-              <div>Edition Size</div>
+              <div>{labels.editionSize}</div>
               <div style={{ fontSize: 24, fontWeight: 600, color: OG_COLORS.foreground }}>
                 {editionSize}
               </div>
@@ -279,7 +288,7 @@ export default async function Image({ params }: Props) {
               paddingTop: "32px",
             }}
           >
-            gnars.com/droposals
+            {footerPath}
           </div>
         </div>
       </div>

@@ -9,12 +9,16 @@ export const contentType = "image/png";
 export default async function Image({
   params,
 }: {
-  params: Promise<{ chainId: string; id: string }>;
+  params: Promise<{ chainId: string; id: string; locale: string }>;
 }) {
-  const { chainId, id } = await params;
+  const { chainId, id, locale } = await params;
+  const isPt = locale === "pt-br";
+  const fallbackTitle = isPt ? "Desafio" : "Challenge";
+  const headerLabel = isPt ? "DESAFIO GNARS" : "GNARS CHALLENGE";
+  const footerPath = isPt ? "gnars.com/pt-br/community/bounties" : "gnars.com/community/bounties";
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://gnars.com";
-  let bountyTitle = "Challenge";
+  let bountyTitle = fallbackTitle;
   let bountyAmount = "";
 
   try {
@@ -23,7 +27,7 @@ export default async function Image({
     });
     if (res.ok) {
       const data = await res.json();
-      bountyTitle = data.bounty?.title || data.bounty?.name || "Challenge";
+      bountyTitle = data.bounty?.title || data.bounty?.name || fallbackTitle;
       const amount = data.bounty?.amount;
       if (amount) {
         const ethAmount = (parseFloat(amount) / 1e18).toFixed(4);
@@ -57,7 +61,7 @@ export default async function Image({
             letterSpacing: "0.1em",
           }}
         >
-          GNARS CHALLENGE
+          {headerLabel}
         </div>
         <div
           style={{
@@ -90,7 +94,7 @@ export default async function Image({
             marginTop: "48px",
           }}
         >
-          gnars.com/community/bounties
+          {footerPath}
         </div>
       </div>
     ),
