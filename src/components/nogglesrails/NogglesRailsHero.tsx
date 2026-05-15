@@ -117,13 +117,7 @@ function NogglesCanvas({ frameColor }: { frameColor: string }) {
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 5, 5]} intensity={2.5} castShadow />
       <directionalLight position={[-5, 3, 2]} intensity={1.5} color="#ffffff" />
-      <spotLight
-        position={[0, 8, 3]}
-        intensity={3.0}
-        angle={0.4}
-        penumbra={0.5}
-        color="#ffffff"
-      />
+      <spotLight position={[0, 8, 3]} intensity={3.0} angle={0.4} penumbra={0.5} color="#ffffff" />
       <spotLight position={[3, 3, 5]} intensity={2.0} angle={0.6} penumbra={1} color="#f0f0ff" />
       <pointLight position={[-2, 2, 4]} intensity={1.5} color="#ffffff" />
       <Environment preset="studio" background={false} />
