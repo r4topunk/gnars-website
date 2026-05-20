@@ -76,7 +76,7 @@
     "recipientPlaceholder": "0x... or ENS name",
     "amountLabel": "Amount (ETH) *",
     "amountPlaceholder": "0.0",
-    "descriptionLabel": "Description",
+    "descriptionLabel": "Description (optional)",
     "descriptionPlaceholder": "Describe the purpose of this payment..."
   },
   "sendUsdc": {
@@ -85,7 +85,7 @@
     "recipientPlaceholder": "0x... or ENS name",
     "amountLabel": "Amount (USDC) *",
     "amountPlaceholder": "0.00",
-    "descriptionLabel": "Description",
+    "descriptionLabel": "Description (optional)",
     "descriptionPlaceholder": "Describe the purpose of this USDC transfer..."
   },
   "sendTokens": {
@@ -95,7 +95,7 @@
     "recipientPlaceholder": "0x... or ENS name",
     "amountLabel": "Amount *",
     "amountPlaceholder": "0.0",
-    "descriptionLabel": "Description",
+    "descriptionLabel": "Description (optional)",
     "descriptionPlaceholder": "Describe the purpose of this token transfer..."
   },
   "sendNfts": {
@@ -105,7 +105,7 @@
     "toAddressLabel": "To Address *",
     "toAddressPlaceholder": "0x... or ENS name",
     "pleaseSelectNft": "Please select an NFT",
-    "descriptionLabel": "Description",
+    "descriptionLabel": "Description (optional)",
     "descriptionPlaceholder": "Describe the purpose of this NFT transfer..."
   },
   "droposal": {
@@ -171,7 +171,7 @@
     "valuePlaceholder": "0.0",
     "calldataLabel": "Calldata",
     "calldataPlaceholder": "0x... - Transaction calldata",
-    "descriptionLabel": "Description *",
+    "descriptionLabel": "Description (optional)",
     "descriptionPlaceholder": "Clearly describe what this transaction does..."
   },
   "budget": {
