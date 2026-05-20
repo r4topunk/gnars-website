@@ -99,13 +99,16 @@
     "descriptionPlaceholder": "Describe the purpose of this token transfer..."
   },
   "sendNfts": {
-    "selectGnarLabel": "Select a Gnar from Treasury *",
+    "selectGnarLabel": "Select Gnars from Treasury *",
     "failedToLoad": "Failed to load treasury NFTs: {error}",
     "noGnarsFound": "No Gnars found in treasury.",
     "toAddressLabel": "To Address *",
     "toAddressPlaceholder": "0x... or ENS name",
-    "pleaseSelectNft": "Please select an NFT",
-    "descriptionLabel": "Description",
+    "pleaseSelectNft": "Please select at least one NFT",
+    "selectedCount": "{count} selected",
+    "multiSelectHint": "Each NFT will be added as a separate transaction.",
+    "addNTransactions": "Add {count} transactions",
+    "descriptionLabel": "Description (optional)",
     "descriptionPlaceholder": "Describe the purpose of this NFT transfer..."
   },
   "droposal": {
