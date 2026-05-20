@@ -155,6 +155,8 @@ export function ProposalPreview() {
     }
   }, [data]);
 
+  const isDryRun = process.env.NEXT_PUBLIC_PROPOSAL_DRY_RUN === "true";
+
   const handleFormSubmit = async (formData: ProposalFormValues) => {
     console.log("handleFormSubmit called with data:", formData);
     setValidationError(null);
@@ -162,6 +164,27 @@ export function ProposalPreview() {
     setIsConfirming(false);
     setIsSuccess(false);
     setOnchainProposalId(undefined);
+
+    // Dry-run mode: simulate the full flow without touching the blockchain.
+    // Enable with NEXT_PUBLIC_PROPOSAL_DRY_RUN=true in .env.local
+    if (isDryRun) {
+      startTransition(async () => {
+        try {
+          const preparedTx = await createProposalAction(formData);
+          console.log("[DRY RUN] Prepared transaction — would send to governor:", preparedTx);
+          toast.info("[DRY Run] Proposta simulada com sucesso. Nenhuma transação foi enviada.", {
+            description: `Targets: ${preparedTx.targets.length} | Description length: ${preparedTx.description.length} chars`,
+            duration: 8000,
+          });
+          setIsSuccess(true);
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : "Erro desconhecido";
+          setValidationError(`[DRY RUN] ${msg}`);
+          toast.error("[DRY RUN] Falha ao preparar proposta", { description: msg });
+        }
+      });
+      return;
+    }
 
     startTransition(async () => {
       console.log("Inside startTransition");
@@ -328,15 +351,18 @@ export function ProposalPreview() {
     });
   };
 
-  const canSubmit =
-    isConnected &&
-    eligibility.hasThreshold === true &&
-    Boolean(data.title) &&
-    (data.transactions?.length ?? 0) > 0 &&
-    !isActionPending &&
-    !isWalletPending &&
-    !isConfirming &&
-    !eligibility.isLoading;
+  const canSubmit = isDryRun
+    ? Boolean(data.title) &&
+      (data.transactions?.length ?? 0) > 0 &&
+      !isActionPending
+    : isConnected &&
+      eligibility.hasThreshold === true &&
+      Boolean(data.title) &&
+      (data.transactions?.length ?? 0) > 0 &&
+      !isActionPending &&
+      !isWalletPending &&
+      !isConfirming &&
+      !eligibility.isLoading;
 
   // Debug logging
   useEffect(() => {
@@ -447,6 +473,17 @@ export function ProposalPreview() {
       {/* Submit Section */}
       <Card>
         <CardContent className="p-6">
+          {isDryRun && (
+            <Alert className="mb-4 border-orange-400/60 bg-orange-50/60 dark:border-orange-500/40 dark:bg-orange-950/20">
+              <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              <AlertDescription className="text-orange-900/90 dark:text-orange-100/90 font-medium">
+                Modo dry-run ativo — o submit vai simular o fluxo completo sem enviar nenhuma
+                transação para a blockchain. Desative removendo{" "}
+                <code className="font-mono text-xs">NEXT_PUBLIC_PROPOSAL_DRY_RUN=true</code> do seu{" "}
+                <code className="font-mono text-xs">.env.local</code>.
+              </AlertDescription>
+            </Alert>
+          )}
           <div className="flex items-start space-x-3 mb-4">
             <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
             <div>
@@ -531,27 +568,32 @@ export function ProposalPreview() {
             </Alert>
           )}
 
-          {isConnected && eligibility.hasThreshold === true && (
+          {(isDryRun || (isConnected && eligibility.hasThreshold === true)) && (
             <Button
               onClick={(e) => {
-                console.log("Submit button clicked!");
-                console.log("canSubmit:", canSubmit);
-                console.log("Form errors:", errors);
                 handleSubmit(handleFormSubmit, onValidationError)(e);
               }}
               disabled={!canSubmit}
               size="lg"
               className="w-full"
             >
-              {isActionPending || isWalletPending || isConfirming ? (
+              {isActionPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  {isActionPending
-                    ? t("preview.preparing")
-                    : isWalletPending
-                      ? t("preview.confirming")
-                      : t("preview.submitting")}
+                  {isDryRun ? "[DRY RUN] Simulando..." : t("preview.preparing")}
                 </>
+              ) : isWalletPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  {t("preview.confirming")}
+                </>
+              ) : isConfirming ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  {t("preview.submitting")}
+                </>
+              ) : isDryRun ? (
+                "[DRY RUN] Simular proposta"
               ) : (
                 t("preview.submitProposal")
               )}
