@@ -23,6 +23,10 @@
     "title": "Treasury — Gnars DAO",
     "description": "Explore the Gnars DAO treasury: ETH holdings, ERC-20 tokens, NFT assets, and on-chain analytics. Full transparency into community-owned funds on Base."
   },
+  "rounds": {
+    "title": "Rounds — Gnars DAO",
+    "description": "Community contests, submissions, and voting rounds for Gnars projects."
+  },
   "tv": {
     "title": "Gnar TV — Creator Coins Feed",
     "description": "Discover Gnars-paired creator coins and community content on Gnar TV."

@@ -36,6 +36,10 @@
         "title": "Treasury",
         "description": "ETH, ERC-20s, NFTs, and onchain analytics for the DAO treasury"
       },
+      "rounds": {
+        "title": "Rounds",
+        "description": "Community contests and voting rounds for Gnars projects"
+      },
       "bounties": {
         "title": "Bounties",
         "description": "Gnarly challenges from the action sports community"
