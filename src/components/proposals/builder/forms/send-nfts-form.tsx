@@ -18,9 +18,10 @@ import { type ProposalFormValues } from "../../schema";
 
 interface Props {
   index: number;
+  onSelectionChange?: (ids: number[], imageMap: Record<number, string | undefined>) => void;
 }
 
-export function SendNFTsForm({ index }: Props) {
+export function SendNFTsForm({ index, onSelectionChange }: Props) {
   const t = useTranslations("propose");
   const {
     register,
@@ -32,7 +33,7 @@ export function SendNFTsForm({ index }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tokens, setTokens] = useState<Array<{ id: number; imageUrl?: string }>>([]);
-  const [selectedTokenId, setSelectedTokenId] = useState<number | null>(null);
+  const [selectedTokenIds, setSelectedTokenIds] = useState<Set<number>>(new Set());
   const [visibleTokensCount, setVisibleTokensCount] = useState(60);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -117,31 +118,56 @@ export function SendNFTsForm({ index }: Props) {
     return () => observer.disconnect();
   }, [visibleTokensCount, tokens.length]);
 
-  // Initialize selected state from form if already present
+  // Initialize selected state from form if already present (single-token edit path)
   useEffect(() => {
     const current = watch(`transactions.${index}.tokenId` as const);
     const parsed = current ? parseInt(String(current), 10) : NaN;
     if (!Number.isNaN(parsed)) {
-      setSelectedTokenId(parsed);
+      setSelectedTokenIds(new Set([parsed]));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index]);
 
   const handleSelect = (id: number) => {
-    setSelectedTokenId(id);
-    const token = tokens.find((t) => t.id === id);
-    setValue(`transactions.${index}.contractAddress` as const, DAO_ADDRESSES.token);
-    setValue(`transactions.${index}.from` as const, DAO_ADDRESSES.treasury);
-    setValue(`transactions.${index}.tokenId` as const, String(id));
-    if (token?.imageUrl) {
-      setValue(`transactions.${index}.nftImage` as const, token.imageUrl);
-    }
+    setSelectedTokenIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      // Keep the form field in sync with the first selected token so
+      // validation still passes (multi-submit handled by ActionForms/TransactionBuilder)
+      const first = next.size > 0 ? [...next][0] : null;
+      if (first !== null) {
+        const token = tokens.find((t) => t.id === first);
+        setValue(`transactions.${index}.contractAddress` as const, DAO_ADDRESSES.token);
+        setValue(`transactions.${index}.from` as const, DAO_ADDRESSES.treasury);
+        setValue(`transactions.${index}.tokenId` as const, String(first));
+        if (token?.imageUrl) {
+          setValue(`transactions.${index}.nftImage` as const, token.imageUrl);
+        }
+      } else {
+        setValue(`transactions.${index}.tokenId` as const, "");
+        setValue(`transactions.${index}.nftImage` as const, "");
+      }
+      const imageMap = Object.fromEntries([...next].map((id) => [id, tokens.find((t) => t.id === id)?.imageUrl]));
+      onSelectionChange?.([...next], imageMap);
+      return next;
+    });
   };
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>{t("sendNfts.selectGnarLabel")}</Label>
+        <div className="flex items-center justify-between">
+          <Label>{t("sendNfts.selectGnarLabel")}</Label>
+          {selectedTokenIds.size > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {t("sendNfts.selectedCount", { count: selectedTokenIds.size })}
+            </span>
+          )}
+        </div>
         <Card className="py-0">
           <CardContent>
             <ScrollArea className="h-80" viewportRef={viewportRef}>
@@ -156,7 +182,7 @@ export function SendNFTsForm({ index }: Props) {
               ) : (
                 <div className="my-6 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 pr-2">
                   {tokens.slice(0, visibleTokensCount).map((t) => {
-                    const isSelected = selectedTokenId === t.id;
+                    const isSelected = selectedTokenIds.has(t.id);
                     return (
                       <button
                         key={`gnar-${t.id}`}
@@ -164,8 +190,8 @@ export function SendNFTsForm({ index }: Props) {
                         onClick={() => handleSelect(t.id)}
                         className={cn(
                           "cursor-pointer relative aspect-square overflow-hidden rounded-lg bg-muted",
-                          "border-1 border-transparent hover:border-primary transition focus:outline-none",
-                          isSelected && "border-2 border-primary shadow",
+                          "border-2 border-transparent hover:border-primary/60 transition focus:outline-none",
+                          isSelected && "border-yellow-400 ring-1 ring-yellow-400",
                         )}
                         aria-pressed={isSelected}
                       >
@@ -189,7 +215,7 @@ export function SendNFTsForm({ index }: Props) {
                         <div className="absolute top-1.5 left-1.5">
                           <Badge
                             variant={isSelected ? "default" : "secondary"}
-                            className="font-mono text-[10px]"
+                            className={cn("font-mono text-[10px]", isSelected && "bg-yellow-400 text-yellow-950 border-yellow-400")}
                           >
                             #{String(t.id)}
                           </Badge>
@@ -205,6 +231,11 @@ export function SendNFTsForm({ index }: Props) {
             </ScrollArea>
           </CardContent>
         </Card>
+        {selectedTokenIds.size > 1 && (
+          <p className="text-xs text-muted-foreground">
+            {t("sendNfts.multiSelectHint")}
+          </p>
+        )}
         {errors.transactions?.[index] && "tokenId" in (errors.transactions?.[index] as object) && (
           <p className="text-xs text-red-500">{t("sendNfts.pleaseSelectNft")}</p>
         )}

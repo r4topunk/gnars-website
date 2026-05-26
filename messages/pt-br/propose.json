@@ -99,13 +99,16 @@
     "descriptionPlaceholder": "Descreva o propósito dessa transferência de token..."
   },
   "sendNfts": {
-    "selectGnarLabel": "Selecione um Gnar do Tesouro *",
+    "selectGnarLabel": "Selecione Gnars do Tesouro *",
     "failedToLoad": "Falha ao carregar NFTs do tesouro: {error}",
     "noGnarsFound": "Nenhum Gnar encontrado no tesouro.",
     "toAddressLabel": "Endereço de Destino *",
     "toAddressPlaceholder": "0x... ou nome ENS",
-    "pleaseSelectNft": "Por favor, selecione um NFT",
-    "descriptionLabel": "Descrição",
+    "pleaseSelectNft": "Por favor, selecione pelo menos um NFT",
+    "selectedCount": "{count} selecionado(s)",
+    "multiSelectHint": "Cada NFT será adicionado como uma transação separada.",
+    "addNTransactions": "Adicionar {count} transações",
+    "descriptionLabel": "Descrição (opcional)",
     "descriptionPlaceholder": "Descreva o propósito dessa transferência de NFT..."
   },
   "droposal": {

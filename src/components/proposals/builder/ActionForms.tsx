@@ -61,13 +61,16 @@ interface ActionFormsProps {
   actionType: string;
   onSubmit: () => void;
   onCancel: () => void;
+  onNftMultiSubmit?: (selectedIds: number[], imageMap: Record<number, string | undefined>) => void;
 }
 
-export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFormsProps) {
+export function ActionForms({ index, actionType, onSubmit, onCancel, onNftMultiSubmit }: ActionFormsProps) {
   const t = useTranslations("propose");
   const { handleSubmit, setValue, getValues } = useFormContext<ProposalFormValues>();
   const [isGenerating, setIsGenerating] = useState(false);
   const [sdkError, setSDKError] = useState<string | null>(null);
+  const [nftSelectedIds, setNftSelectedIds] = useState<number[]>([]);
+  const [nftImageMap, setNftImageMap] = useState<Record<number, string | undefined>>({});
 
   // Add split creation hook
   const { createSplit } = useSplitCreation();
@@ -222,6 +225,14 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
     }
   };
 
+  const handleNftSubmit = () => {
+    if (onNftMultiSubmit && nftSelectedIds.length > 1) {
+      onNftMultiSubmit(nftSelectedIds, nftImageMap);
+    } else {
+      onSubmit();
+    }
+  };
+
   const renderForm = () => {
     switch (actionType) {
       case "send-eth":
@@ -231,7 +242,15 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
       case "send-tokens":
         return <SendTokensForm index={index} />;
       case "send-nfts":
-        return <SendNFTsForm index={index} />;
+        return (
+          <SendNFTsForm
+            index={index}
+            onSelectionChange={(ids, imageMap) => {
+              setNftSelectedIds(ids);
+              setNftImageMap(imageMap);
+            }}
+          />
+        );
       case "droposal":
         return <DroposalForm index={index} />;
       case "buy-coin":
@@ -291,7 +310,9 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
                 ? handleDroposalSubmit
                 : actionType === "buy-coin"
                   ? handleBuyCoinSubmit
-                  : onSubmit,
+                  : actionType === "send-nfts"
+                    ? handleNftSubmit
+                    : onSubmit,
               onError,
             )}
             disabled={isGenerating}
@@ -305,6 +326,8 @@ export function ActionForms({ index, actionType, onSubmit, onCancel }: ActionFor
                     ? t("transactions.generating")
                     : t("transactions.saving")}
               </>
+            ) : actionType === "send-nfts" && nftSelectedIds.length > 1 ? (
+              t("sendNfts.addNTransactions", { count: nftSelectedIds.length })
             ) : (
               t("transactions.saveTransaction")
             )}

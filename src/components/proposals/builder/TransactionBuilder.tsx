@@ -73,8 +73,6 @@ export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuild
   };
 
   const handleTransactionSubmit = () => {
-    // Values are already bound to useFieldArray via nested registration
-    // Parent callbacks can still be notified for external side-effects
     if (editingTransactionIndex !== null) {
       const currentValues = getValues();
       const updatedTx = currentValues.transactions[
@@ -82,7 +80,41 @@ export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuild
       ] as unknown as TransactionFormValues;
       update(editingTransactionIndex, updatedTx);
     }
-    // For new items, onAddTransaction already handled on append
+    setShowActionForms(false);
+    setSelectedActionType("");
+    setEditingTransactionIndex(null);
+    onFormsVisibilityChange?.(false);
+    setIsCreatingNew(false);
+  };
+
+  // Called by ActionForms when the user selects multiple NFTs.
+  // Replaces the stub at editingTransactionIndex with the first NFT and
+  // appends one additional send-nfts transaction per remaining token.
+  const handleNftMultiSubmit = (selectedIds: number[], imageMap: Record<number, string | undefined>) => {
+    if (editingTransactionIndex === null || selectedIds.length === 0) return;
+    const currentValues = getValues();
+    const baseTx = currentValues.transactions[editingTransactionIndex] as unknown as Extract<
+      TransactionFormValues,
+      { type: "send-nfts" }
+    >;
+
+    // Update the existing stub with the first selected token
+    const [firstId, ...restIds] = selectedIds;
+    update(editingTransactionIndex, {
+      ...baseTx,
+      tokenId: String(firstId),
+      nftImage: imageMap[firstId] ?? baseTx.nftImage,
+    } as unknown as TransactionFormValues);
+
+    // Append one transaction per additional token, each with its own image
+    for (const id of restIds) {
+      append({
+        ...baseTx,
+        tokenId: String(id),
+        nftImage: imageMap[id],
+      } as unknown as TransactionFormValues);
+    }
+
     setShowActionForms(false);
     setSelectedActionType("");
     setEditingTransactionIndex(null);
@@ -220,6 +252,7 @@ export function TransactionBuilder({ onFormsVisibilityChange }: TransactionBuild
           actionType={selectedActionType}
           onSubmit={handleTransactionSubmit}
           onCancel={handleCancel}
+          onNftMultiSubmit={handleNftMultiSubmit}
         />
       )}
     </div>
