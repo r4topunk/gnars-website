@@ -188,8 +188,8 @@ export function SendNFTsForm({ index, onSelectionChange }: Props) {
                         onClick={() => handleSelect(t.id)}
                         className={cn(
                           "cursor-pointer relative aspect-square overflow-hidden rounded-lg bg-muted",
-                          "border-1 border-transparent hover:border-primary transition focus:outline-none",
-                          isSelected && "border-2 border-primary shadow",
+                          "border-2 border-transparent hover:border-primary/60 transition focus:outline-none",
+                          isSelected && "border-yellow-400 shadow-[0_0_0_1px_theme(colors.yellow.400)]",
                         )}
                         aria-pressed={isSelected}
                       >
@@ -213,7 +213,7 @@ export function SendNFTsForm({ index, onSelectionChange }: Props) {
                         <div className="absolute top-1.5 left-1.5">
                           <Badge
                             variant={isSelected ? "default" : "secondary"}
-                            className="font-mono text-[10px]"
+                            className={cn("font-mono text-[10px]", isSelected && "bg-yellow-400 text-yellow-950 border-yellow-400")}
                           >
                             #{String(t.id)}
                           </Badge>
