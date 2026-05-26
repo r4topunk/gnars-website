@@ -18,7 +18,7 @@ import { type ProposalFormValues } from "../../schema";
 
 interface Props {
   index: number;
-  onSelectionChange?: (ids: number[]) => void;
+  onSelectionChange?: (ids: number[], imageMap: Record<number, string | undefined>) => void;
 }
 
 export function SendNFTsForm({ index, onSelectionChange }: Props) {
@@ -150,7 +150,8 @@ export function SendNFTsForm({ index, onSelectionChange }: Props) {
       } else {
         setValue(`transactions.${index}.tokenId` as const, "");
       }
-      onSelectionChange?.([...next]);
+      const imageMap = Object.fromEntries([...next].map((id) => [id, tokens.find((t) => t.id === id)?.imageUrl]));
+      onSelectionChange?.([...next], imageMap);
       return next;
     });
   };

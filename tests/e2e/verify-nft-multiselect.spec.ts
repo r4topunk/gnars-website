@@ -1,11 +1,9 @@
 import { test, expect } from "@playwright/test";
 import path from "path";
 import fs from "fs";
+import os from "os";
 
-const SCREENSHOTS_DIR = path.join(
-  process.env.TEMP || "C:/Users/MATHEU~1/AppData/Local/Temp",
-  "verify-nft-multiselect",
-);
+const SCREENSHOTS_DIR = path.join(os.tmpdir(), "verify-nft-multiselect");
 
 test.beforeAll(() => {
   if (!fs.existsSync(SCREENSHOTS_DIR)) fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
@@ -101,7 +99,6 @@ test("multi-NFT select in proposal builder", async ({ page }) => {
   await screenshot(page, "09-after-submit");
 
   // ── 12. Verify transaction list shows 2 send-nfts entries ─────────────────
-  const txCards = page.locator('[class*="TransactionCard"], .space-y-3 > *').all();
   const nftTxEntries = page.locator('text=/Send NFTs/i');
   const nftTxCount = await nftTxEntries.count();
   console.log(`Send-NFTs entries in list: ${nftTxCount}`);
