@@ -1,4 +1,5 @@
 export type RoundStatus = "draft" | "published" | "archived";
+export type RoundRequestStatus = "pending" | "approved" | "rejected";
 export type RoundSubmissionStatus = "pending" | "approved" | "rejected" | "hidden";
 export type RoundVotingStrategy = "one_per_wallet" | "one_per_nft" | "fixed_per_wallet";
 
@@ -19,6 +20,42 @@ export interface RoundAward {
   value: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface RoundAwardInput {
+  position: number;
+  title: string;
+  description?: string;
+  value: string;
+}
+
+export interface RoundRequest {
+  id: string;
+  walletAddress: string;
+  requesterName: string;
+  requesterEmail: string;
+  requestedSlug: string;
+  title: string;
+  description: string;
+  content: string;
+  image: string;
+  url: string;
+  timeline: string;
+  startsAt: string;
+  submissionsOpenAt: string;
+  votingStartsAt: string;
+  votingEndsAt: string;
+  endsAt: string;
+  votingStrategy: RoundVotingStrategy;
+  votesPerWallet: number;
+  winnerCount: number;
+  maxSubmissionsPerWallet: number;
+  awards: RoundAwardInput[];
+  status: RoundRequestStatus;
+  createdAt: string;
+  updatedAt: string;
+  reviewedAt: string | null;
+  deletedAt: string | null;
 }
 
 export interface RoundSubmission {
@@ -85,6 +122,27 @@ export interface RoundSubmissionInput {
   description: string;
   image: string;
   url?: string;
+}
+
+export interface RoundRequestInput {
+  walletAddress: string;
+  requesterName: string;
+  requesterEmail: string;
+  requestedSlug?: string;
+  title: string;
+  description: string;
+  content: string;
+  image: string;
+  url?: string;
+  timeline?: string;
+  submissionsOpenAt: string;
+  votingStartsAt: string;
+  votingEndsAt: string;
+  votingStrategy: RoundVotingStrategy;
+  votesPerWallet: number;
+  winnerCount: number;
+  maxSubmissionsPerWallet: number;
+  awards: RoundAwardInput[];
 }
 
 export interface RoundVoteAllocationInput {

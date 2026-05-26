@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Settings } from "lucide-react";
+import { PlusCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { isRoundAdminAddress } from "@/features/rounds/admin";
 import { getRoundState } from "@/features/rounds/state";
@@ -44,14 +44,22 @@ export function RoundsIndexView({
               the open window, then the DAO votes on what should get attention next.
             </p>
           </div>
-          {isAdmin && (
-            <Button asChild className="w-fit">
-              <Link href="/rounds/admin">
-                <Settings className="size-4" />
-                Admin Dashboard
+          <div className="flex flex-wrap gap-3">
+            <Button asChild variant="outline" className="w-fit">
+              <Link href="/rounds/request">
+                <PlusCircle className="size-4" />
+                Request a round
               </Link>
             </Button>
-          )}
+            {isAdmin && (
+              <Button asChild className="w-fit">
+                <Link href="/rounds/admin">
+                  <Settings className="size-4" />
+                  Admin Dashboard
+                </Link>
+              </Button>
+            )}
+          </div>
         </section>
 
         {error && (

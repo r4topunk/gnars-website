@@ -1,6 +1,6 @@
 import { RoundsAdminDashboard } from "@/components/rounds/RoundsAdminDashboard";
-import type { Round } from "@/features/rounds/types";
-import { isRoundsDatabaseConfigured, listPublicRounds } from "@/services/rounds";
+import type { Round, RoundRequest } from "@/features/rounds/types";
+import { isRoundsDatabaseConfigured, listPublicRounds, listRoundRequests } from "@/services/rounds";
 
 export const metadata = {
   title: "Rounds Admin | Gnars DAO",
@@ -9,12 +9,19 @@ export const metadata = {
 
 export default async function RoundsAdminPage() {
   let rounds: Round[] = [];
+  let requests: RoundRequest[] = [];
 
   try {
-    rounds = await listPublicRounds();
+    [rounds, requests] = await Promise.all([listPublicRounds(), listRoundRequests()]);
   } catch (error) {
     console.error("[rounds] admin load failed", error);
   }
 
-  return <RoundsAdminDashboard rounds={rounds} databaseConfigured={isRoundsDatabaseConfigured()} />;
+  return (
+    <RoundsAdminDashboard
+      rounds={rounds}
+      requests={requests}
+      databaseConfigured={isRoundsDatabaseConfigured()}
+    />
+  );
 }

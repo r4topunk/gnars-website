@@ -4,15 +4,17 @@ import { ArrowLeft, Database, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { isRoundAdminAddress } from "@/features/rounds/admin";
 import { getRoundState } from "@/features/rounds/state";
-import type { Round } from "@/features/rounds/types";
+import type { Round, RoundRequest } from "@/features/rounds/types";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { Link } from "@/i18n/navigation";
 
 export function RoundsAdminDashboard({
   rounds,
+  requests,
   databaseConfigured,
 }: {
   rounds: Round[];
+  requests: RoundRequest[];
   databaseConfigured: boolean;
 }) {
   const { address, adminAddress, isConnected } = useUserAddress();
@@ -63,34 +65,67 @@ export function RoundsAdminDashboard({
             body="This wallet is not on the approved Rounds admin list."
           />
         ) : (
-          <section className="overflow-hidden rounded-lg border border-border bg-card">
-            <div className="border-b border-border px-5 py-4">
-              <h2 className="text-lg font-semibold tracking-tight">Rounds</h2>
-            </div>
-            <div className="divide-y divide-border">
-              {rounds.length > 0 ? (
-                rounds.map((round) => (
-                  <div
-                    key={round.id}
-                    className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_auto_auto] md:items-center"
-                  >
-                    <div className="min-w-0">
-                      <div className="font-medium">{round.title}</div>
-                      <div className="mt-1 truncate text-sm text-muted-foreground">
-                        /{round.slug}
+          <>
+            <section className="overflow-hidden rounded-lg border border-border bg-card">
+              <div className="border-b border-border px-5 py-4">
+                <h2 className="text-lg font-semibold tracking-tight">Round requests</h2>
+              </div>
+              <div className="divide-y divide-border">
+                {requests.length > 0 ? (
+                  requests.map((request) => (
+                    <div
+                      key={request.id}
+                      className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_auto_auto] md:items-center"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-medium">{request.title}</div>
+                        <div className="mt-1 truncate text-sm text-muted-foreground">
+                          /{request.requestedSlug} by {request.requesterName}
+                        </div>
                       </div>
+                      <div className="text-sm capitalize text-muted-foreground">
+                        {request.status}
+                      </div>
+                      <Button asChild variant="outline" size="sm">
+                        <a href={`mailto:${request.requesterEmail}`}>Email</a>
+                      </Button>
                     </div>
-                    <div className="text-sm text-muted-foreground">{getRoundState(round)}</div>
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/rounds/${round.slug}`}>View</Link>
-                    </Button>
-                  </div>
-                ))
-              ) : (
-                <div className="p-5 text-sm text-muted-foreground">No rounds found.</div>
-              )}
-            </div>
-          </section>
+                  ))
+                ) : (
+                  <div className="p-5 text-sm text-muted-foreground">No round requests found.</div>
+                )}
+              </div>
+            </section>
+
+            <section className="overflow-hidden rounded-lg border border-border bg-card">
+              <div className="border-b border-border px-5 py-4">
+                <h2 className="text-lg font-semibold tracking-tight">Rounds</h2>
+              </div>
+              <div className="divide-y divide-border">
+                {rounds.length > 0 ? (
+                  rounds.map((round) => (
+                    <div
+                      key={round.id}
+                      className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_auto_auto] md:items-center"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-medium">{round.title}</div>
+                        <div className="mt-1 truncate text-sm text-muted-foreground">
+                          /{round.slug}
+                        </div>
+                      </div>
+                      <div className="text-sm text-muted-foreground">{getRoundState(round)}</div>
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/rounds/${round.slug}`}>View</Link>
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-5 text-sm text-muted-foreground">No rounds found.</div>
+                )}
+              </div>
+            </section>
+          </>
         )}
       </div>
     </main>

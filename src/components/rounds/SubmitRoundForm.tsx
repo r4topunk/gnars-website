@@ -10,6 +10,7 @@ import { getRoundState } from "@/features/rounds/state";
 import type { Round } from "@/features/rounds/types";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { Link } from "@/i18n/navigation";
+import { RoundImageField } from "./RoundImageField";
 
 const initialValues = {
   title: "",
@@ -128,8 +129,8 @@ export function SubmitRoundForm({
               placeholder="https://example.com"
             />
           </div>
-          <FormField
-            label="Image URL"
+          <RoundImageField
+            label="Project image"
             value={values.image}
             onChange={(value) => updateValue("image", value)}
             placeholder="https://example.com/image.jpg"

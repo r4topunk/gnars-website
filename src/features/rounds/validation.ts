@@ -1,4 +1,10 @@
-import type { Round, RoundSubmissionInput, RoundVoteAllocationInput } from "./types";
+import type {
+  Round,
+  RoundAwardInput,
+  RoundRequestInput,
+  RoundSubmissionInput,
+  RoundVoteAllocationInput,
+} from "./types";
 
 export function validateRoundSubmission(round: Round, input: RoundSubmissionInput) {
   const title = input.title.trim();
@@ -62,6 +68,150 @@ export function validateRoundVoteAllocation({
     return `You can allocate up to ${votingPower} vote${votingPower === 1 ? "" : "s"}.`;
 
   return undefined;
+}
+
+export function validateRoundRequest(input: RoundRequestInput) {
+  const title = input.title.trim();
+  const description = input.description.trim();
+  const content = input.content.trim();
+  const requesterName = input.requesterName.trim();
+  const requesterEmail = input.requesterEmail.trim();
+  const requestedSlug = normalizeSlug(input.requestedSlug || input.title);
+  const image = input.image.trim();
+  const timeline = input.timeline?.trim() || "";
+
+  if (!input.walletAddress.startsWith("0x") || input.walletAddress.length !== 42) {
+    return "Connect a valid wallet before requesting a round.";
+  }
+
+  if (requesterName.length < 2 || requesterName.length > 120) {
+    return "Your name must be between 2 and 120 characters.";
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(requesterEmail)) {
+    return "Use a valid email address.";
+  }
+
+  if (title.length < 3 || title.length > 120) {
+    return "Round title must be between 3 and 120 characters.";
+  }
+
+  if (!requestedSlug || !/^[a-z0-9-]+$/.test(requestedSlug)) {
+    return "Use a valid round slug.";
+  }
+
+  if (description.length < 20 || description.length > 2000) {
+    return "Round summary must be between 20 and 2000 characters.";
+  }
+
+  if (content.length < 20 || content.length > 4000) {
+    return "Round details must be between 20 and 4000 characters.";
+  }
+
+  if (!isSafeUrl(image, { allowDataImages: true })) {
+    return "Use a valid image URL or uploaded image.";
+  }
+
+  if (input.url && !isSafeUrl(input.url)) {
+    return "Use a valid reference URL.";
+  }
+
+  if (timeline.length > 1000) {
+    return "Timeline notes must be 1000 characters or fewer.";
+  }
+
+  if (!isValidVotingStrategy(input.votingStrategy)) {
+    return "Use a valid voting strategy.";
+  }
+
+  if (!Number.isInteger(input.votesPerWallet) || input.votesPerWallet < 1) {
+    return "Votes per wallet must be a positive whole number.";
+  }
+
+  if (!Number.isInteger(input.winnerCount) || input.winnerCount < 1 || input.winnerCount > 10) {
+    return "Winner count must be between 1 and 10.";
+  }
+
+  if (
+    !Number.isInteger(input.maxSubmissionsPerWallet) ||
+    input.maxSubmissionsPerWallet < 1 ||
+    input.maxSubmissionsPerWallet > 20
+  ) {
+    return "Submission limit must be between 1 and 20.";
+  }
+
+  const submissionsOpenAt = parseDate(input.submissionsOpenAt);
+  const votingStartsAt = parseDate(input.votingStartsAt);
+  const votingEndsAt = parseDate(input.votingEndsAt);
+
+  if (!submissionsOpenAt || !votingStartsAt || !votingEndsAt) {
+    return "Use valid timeline dates.";
+  }
+
+  if (submissionsOpenAt >= votingStartsAt) {
+    return "Voting must start after submissions open.";
+  }
+
+  if (votingStartsAt >= votingEndsAt) {
+    return "Voting must end after voting starts.";
+  }
+
+  return validateRoundAwards(input.awards, input.winnerCount);
+}
+
+export function normalizeRoundRequestSlug(value: string) {
+  return normalizeSlug(value);
+}
+
+function validateRoundAwards(awards: RoundAwardInput[], winnerCount: number) {
+  if (!Array.isArray(awards) || awards.length !== winnerCount) {
+    return `Add ${winnerCount} award${winnerCount === 1 ? "" : "s"}.`;
+  }
+
+  const seenPositions = new Set<number>();
+
+  for (const award of awards) {
+    if (!Number.isInteger(award.position) || award.position < 1) {
+      return "Award positions must be positive whole numbers.";
+    }
+
+    if (seenPositions.has(award.position)) {
+      return "Award positions must be unique.";
+    }
+
+    if (!award.title.trim() || award.title.trim().length > 120) {
+      return "Each award needs a title under 120 characters.";
+    }
+
+    if (!award.value.trim() || award.value.trim().length > 120) {
+      return "Each award needs a value under 120 characters.";
+    }
+
+    if ((award.description || "").trim().length > 500) {
+      return "Award descriptions must be 500 characters or fewer.";
+    }
+
+    seenPositions.add(award.position);
+  }
+
+  return undefined;
+}
+
+function isValidVotingStrategy(value: string) {
+  return value === "fixed_per_wallet" || value === "one_per_wallet" || value === "one_per_nft";
+}
+
+function normalizeSlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function parseDate(value: string) {
+  const time = new Date(value).getTime();
+  return Number.isFinite(time) ? time : null;
 }
 
 function isSafeUrl(value: string, options: { allowDataImages?: boolean } = {}) {

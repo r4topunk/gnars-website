@@ -1,6 +1,6 @@
 import { keccak256, toBytes, verifyMessage } from "viem";
 
-export type RoundSignedAction = "submit" | "vote";
+export type RoundSignedAction = "request" | "submit" | "vote";
 
 export interface RoundSignatureMessageInput {
   action: RoundSignedAction;

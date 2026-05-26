@@ -6,13 +6,21 @@ import { getRoundState } from "@/features/rounds/state";
 import type {
   Round,
   RoundAward,
+  RoundAwardInput,
+  RoundRequest,
+  RoundRequestInput,
   RoundSubmission,
   RoundSubmissionInput,
   RoundVoteActivity,
   RoundVoteAllocationInput,
   RoundWithSubmissions,
 } from "@/features/rounds/types";
-import { validateRoundSubmission, validateRoundVoteAllocation } from "@/features/rounds/validation";
+import {
+  normalizeRoundRequestSlug,
+  validateRoundRequest,
+  validateRoundSubmission,
+  validateRoundVoteAllocation,
+} from "@/features/rounds/validation";
 
 let pool: Pool | null = null;
 let tablesReady: Promise<void> | null = null;
@@ -118,10 +126,45 @@ async function ensureTables() {
         CONSTRAINT round_awards_unique_position UNIQUE (round_id, award_position)
       );
 
+      CREATE TABLE IF NOT EXISTS round_requests (
+        id text PRIMARY KEY,
+        wallet_address text NOT NULL,
+        requester_name text NOT NULL,
+        requester_email text NOT NULL,
+        requested_slug text NOT NULL,
+        title text NOT NULL,
+        description text NOT NULL,
+        content text NOT NULL DEFAULT '',
+        image text NOT NULL DEFAULT '',
+        url text NOT NULL DEFAULT '',
+        timeline text NOT NULL DEFAULT '',
+        starts_at timestamptz NOT NULL,
+        submissions_open_at timestamptz NOT NULL,
+        voting_starts_at timestamptz NOT NULL,
+        voting_ends_at timestamptz NOT NULL,
+        ends_at timestamptz NOT NULL,
+        voting_strategy text NOT NULL DEFAULT 'fixed_per_wallet',
+        votes_per_wallet integer NOT NULL DEFAULT 1,
+        winner_count integer NOT NULL DEFAULT 1,
+        max_submissions_per_wallet integer NOT NULL DEFAULT 1,
+        awards jsonb NOT NULL DEFAULT '[]',
+        status text NOT NULL DEFAULT 'pending',
+        created_at timestamptz NOT NULL DEFAULT now(),
+        updated_at timestamptz NOT NULL DEFAULT now(),
+        reviewed_at timestamptz,
+        deleted_at timestamptz,
+        CONSTRAINT round_requests_status_check CHECK (status IN ('pending', 'approved', 'rejected')),
+        CONSTRAINT round_requests_voting_strategy_check CHECK (voting_strategy IN ('one_per_wallet', 'one_per_nft', 'fixed_per_wallet')),
+        CONSTRAINT round_requests_votes_per_wallet_check CHECK (votes_per_wallet > 0),
+        CONSTRAINT round_requests_winner_count_check CHECK (winner_count > 0),
+        CONSTRAINT round_requests_submission_limit_check CHECK (max_submissions_per_wallet > 0)
+      );
+
       CREATE INDEX IF NOT EXISTS rounds_public_idx ON rounds(status, active, deleted_at);
       CREATE INDEX IF NOT EXISTS round_submissions_round_status_idx ON round_submissions(round_id, status);
       CREATE INDEX IF NOT EXISTS round_votes_round_wallet_idx ON round_votes(round_id, wallet_address);
       CREATE INDEX IF NOT EXISTS round_awards_round_position_idx ON round_awards(round_id, award_position);
+      CREATE INDEX IF NOT EXISTS round_requests_status_idx ON round_requests(status, deleted_at);
     `,
       )
       .then(() => undefined);
@@ -192,6 +235,35 @@ const voteTotalsJoin = `
   ) vote_totals ON true
 `;
 
+const requestSelectFields = `
+  id,
+  wallet_address,
+  requester_name,
+  requester_email,
+  requested_slug,
+  title,
+  description,
+  content,
+  image,
+  url,
+  timeline,
+  starts_at,
+  submissions_open_at,
+  voting_starts_at,
+  voting_ends_at,
+  ends_at,
+  voting_strategy,
+  votes_per_wallet,
+  winner_count,
+  max_submissions_per_wallet,
+  awards,
+  status,
+  created_at,
+  updated_at,
+  reviewed_at,
+  deleted_at
+`;
+
 function mapRound(row: Record<string, unknown>): Round {
   return {
     id: String(row.id),
@@ -249,6 +321,42 @@ function mapAward(row: Record<string, unknown>): RoundAward {
     createdAt: new Date(String(row.created_at)).toISOString(),
     updatedAt: new Date(String(row.updated_at)).toISOString(),
   };
+}
+
+function mapRoundRequest(row: Record<string, unknown>): RoundRequest {
+  return {
+    id: String(row.id),
+    walletAddress: String(row.wallet_address),
+    requesterName: String(row.requester_name),
+    requesterEmail: String(row.requester_email),
+    requestedSlug: String(row.requested_slug),
+    title: String(row.title),
+    description: String(row.description || ""),
+    content: String(row.content || ""),
+    image: String(row.image || ""),
+    url: String(row.url || ""),
+    timeline: String(row.timeline || ""),
+    startsAt: new Date(String(row.starts_at)).toISOString(),
+    submissionsOpenAt: new Date(String(row.submissions_open_at)).toISOString(),
+    votingStartsAt: new Date(String(row.voting_starts_at)).toISOString(),
+    votingEndsAt: new Date(String(row.voting_ends_at)).toISOString(),
+    endsAt: new Date(String(row.ends_at)).toISOString(),
+    votingStrategy: row.voting_strategy as RoundRequest["votingStrategy"],
+    votesPerWallet: Number(row.votes_per_wallet || 1),
+    winnerCount: Number(row.winner_count || 1),
+    maxSubmissionsPerWallet: Number(row.max_submissions_per_wallet || 1),
+    awards: parseJson<RoundAwardInput[]>(row.awards || []),
+    status: row.status as RoundRequest["status"],
+    createdAt: new Date(String(row.created_at)).toISOString(),
+    updatedAt: new Date(String(row.updated_at)).toISOString(),
+    reviewedAt: row.reviewed_at ? new Date(String(row.reviewed_at)).toISOString() : null,
+    deletedAt: row.deleted_at ? new Date(String(row.deleted_at)).toISOString() : null,
+  };
+}
+
+function parseJson<T>(value: unknown): T {
+  if (typeof value === "string") return JSON.parse(value) as T;
+  return value as T;
 }
 
 async function hydrateAwards(rounds: Round[]) {
@@ -374,6 +482,148 @@ export async function getRoundVoteUsage(
   );
 
   return Number(result.rows[0]?.used_votes || 0);
+}
+
+export async function listRoundRequests(): Promise<RoundRequest[]> {
+  if (!isRoundsDatabaseConfigured()) return [];
+
+  await ensureTables();
+  const result = await getPool().query(`
+    SELECT ${requestSelectFields}
+    FROM round_requests
+    WHERE deleted_at IS NULL
+    ORDER BY
+      CASE status
+        WHEN 'pending' THEN 0
+        WHEN 'approved' THEN 1
+        ELSE 2
+      END,
+      created_at DESC
+  `);
+
+  return result.rows.map(mapRoundRequest);
+}
+
+export async function createRoundRequest(input: RoundRequestInput) {
+  if (!isRoundsDatabaseConfigured()) throw new Error("Rounds database is not configured.");
+
+  const normalized = normalizeRoundRequest(input);
+  const validationError = validateRoundRequest(normalized);
+  if (validationError) throw new Error(validationError);
+
+  await ensureTables();
+  const result = await getPool().query(
+    `
+      INSERT INTO round_requests (
+        id,
+        wallet_address,
+        requester_name,
+        requester_email,
+        requested_slug,
+        title,
+        description,
+        content,
+        image,
+        url,
+        timeline,
+        starts_at,
+        submissions_open_at,
+        voting_starts_at,
+        voting_ends_at,
+        ends_at,
+        voting_strategy,
+        votes_per_wallet,
+        winner_count,
+        max_submissions_per_wallet,
+        awards
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+      RETURNING ${requestSelectFields}
+    `,
+    [
+      randomUUID(),
+      normalized.walletAddress,
+      normalized.requesterName,
+      normalized.requesterEmail,
+      normalized.requestedSlug,
+      normalized.title,
+      normalized.description,
+      normalized.content,
+      normalized.image,
+      normalized.url || "",
+      normalized.timeline || "",
+      normalized.submissionsOpenAt,
+      normalized.submissionsOpenAt,
+      normalized.votingStartsAt,
+      normalized.votingEndsAt,
+      normalized.votingEndsAt,
+      normalized.votingStrategy,
+      normalized.votesPerWallet,
+      normalized.winnerCount,
+      normalized.maxSubmissionsPerWallet,
+      JSON.stringify(normalized.awards),
+    ],
+  );
+
+  return mapRoundRequest(result.rows[0]);
+}
+
+function normalizeRoundRequest(input: RoundRequestInput): RoundRequestInput {
+  const title = input.title.trim();
+  const winnerCount = toPositiveInteger(input.winnerCount, 1);
+
+  return {
+    walletAddress: isAddress(input.walletAddress)
+      ? getAddress(input.walletAddress)
+      : input.walletAddress,
+    requesterName: input.requesterName.trim(),
+    requesterEmail: input.requesterEmail.trim(),
+    requestedSlug: normalizeRoundRequestSlug(input.requestedSlug || title),
+    title,
+    description: input.description.trim(),
+    content: input.content.trim(),
+    image: input.image.trim(),
+    url: input.url?.trim() || "",
+    timeline: input.timeline?.trim() || "",
+    submissionsOpenAt: toIsoDate(input.submissionsOpenAt),
+    votingStartsAt: toIsoDate(input.votingStartsAt),
+    votingEndsAt: toIsoDate(input.votingEndsAt),
+    votingStrategy: input.votingStrategy || "fixed_per_wallet",
+    votesPerWallet: toPositiveInteger(input.votesPerWallet, 1),
+    winnerCount,
+    maxSubmissionsPerWallet: toPositiveInteger(input.maxSubmissionsPerWallet, 1),
+    awards: normalizeRoundAwards(input.awards, winnerCount),
+  };
+}
+
+function normalizeRoundAwards(awards: RoundAwardInput[], winnerCount: number) {
+  const nextAwards = Array.from({ length: winnerCount }, (_, index) => {
+    const existing = awards.find((award) => Number(award.position) === index + 1) || awards[index];
+    return {
+      position: index + 1,
+      title: existing?.title?.trim() || `${ordinal(index + 1)} place`,
+      description: existing?.description?.trim() || "",
+      value: existing?.value?.trim() || "",
+    };
+  });
+
+  return nextAwards;
+}
+
+function toIsoDate(value: string) {
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : value;
+}
+
+function toPositiveInteger(value: number, fallback: number) {
+  return Number.isInteger(value) && value > 0 ? value : fallback;
+}
+
+function ordinal(value: number) {
+  if (value === 1) return "1st";
+  if (value === 2) return "2nd";
+  if (value === 3) return "3rd";
+  return `${value}th`;
 }
 
 export async function createRoundSubmission(slug: string, input: RoundSubmissionInput) {
