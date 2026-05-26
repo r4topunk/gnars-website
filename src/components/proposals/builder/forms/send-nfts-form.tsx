@@ -149,6 +149,7 @@ export function SendNFTsForm({ index, onSelectionChange }: Props) {
         }
       } else {
         setValue(`transactions.${index}.tokenId` as const, "");
+        setValue(`transactions.${index}.nftImage` as const, "");
       }
       const imageMap = Object.fromEntries([...next].map((id) => [id, tokens.find((t) => t.id === id)?.imageUrl]));
       onSelectionChange?.([...next], imageMap);
@@ -190,7 +191,7 @@ export function SendNFTsForm({ index, onSelectionChange }: Props) {
                         className={cn(
                           "cursor-pointer relative aspect-square overflow-hidden rounded-lg bg-muted",
                           "border-2 border-transparent hover:border-primary/60 transition focus:outline-none",
-                          isSelected && "border-yellow-400 shadow-[0_0_0_1px_theme(colors.yellow.400)]",
+                          isSelected && "border-yellow-400 ring-1 ring-yellow-400",
                         )}
                         aria-pressed={isSelected}
                       >
