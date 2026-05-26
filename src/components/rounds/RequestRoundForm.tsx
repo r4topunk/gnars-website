@@ -94,9 +94,7 @@ export function RequestRoundForm({ databaseConfigured }: { databaseConfigured: b
     setValues((current) => ({
       ...current,
       title,
-      requestedSlug: current.requestedSlug
-        ? current.requestedSlug
-        : normalizeRoundRequestSlug(title),
+      requestedSlug: normalizeRoundRequestSlug(title),
     }));
   };
 
@@ -215,20 +213,12 @@ export function RequestRoundForm({ databaseConfigured }: { databaseConfigured: b
             />
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
-            <FormField
-              label="Round title"
-              value={values.title}
-              onChange={updateTitle}
-              placeholder="DIY spot check"
-            />
-            <FormField
-              label="Round slug"
-              value={values.requestedSlug || ""}
-              onChange={(value) => updateValue("requestedSlug", normalizeRoundRequestSlug(value))}
-              placeholder="diy-spot-check"
-            />
-          </div>
+          <FormField
+            label="Round title"
+            value={values.title}
+            onChange={updateTitle}
+            placeholder="DIY spot check"
+          />
 
           <RoundImageField
             label="Round image"
@@ -284,7 +274,7 @@ export function RequestRoundForm({ databaseConfigured }: { databaseConfigured: b
             />
           </div>
 
-          <div className="grid gap-5 md:grid-cols-4">
+          <div className="grid gap-5 md:grid-cols-3">
             <div className="space-y-2">
               <label htmlFor="round-request-voting-strategy" className="text-sm font-medium">
                 Voting
@@ -309,13 +299,6 @@ export function RequestRoundForm({ databaseConfigured }: { databaseConfigured: b
               min={1}
             />
             <NumberField
-              label="Winners"
-              value={values.winnerCount}
-              onChange={updateWinnerCount}
-              min={1}
-              max={10}
-            />
-            <NumberField
               label="Submissions per wallet"
               value={values.maxSubmissionsPerWallet}
               onChange={(value) => updateValue("maxSubmissionsPerWallet", value)}
@@ -325,7 +308,18 @@ export function RequestRoundForm({ databaseConfigured }: { databaseConfigured: b
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-sm font-medium">Awards</h2>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <h2 className="text-sm font-medium">Awards</h2>
+              <div className="w-full sm:w-44">
+                <NumberField
+                  label="Winners"
+                  value={values.winnerCount}
+                  onChange={updateWinnerCount}
+                  min={1}
+                  max={10}
+                />
+              </div>
+            </div>
             <div className="space-y-4">
               {values.awards.map((award) => (
                 <div

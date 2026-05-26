@@ -121,6 +121,7 @@ export function RoundDetailView({
                 ))}
               </div>
             )}
+            {round.awards && round.awards.length > 0 && <RoundPrizes round={round} />}
             <div className="flex flex-wrap gap-3">
               {state === "submissions_open" && (
                 <Button asChild>
@@ -147,11 +148,13 @@ export function RoundDetailView({
 
         <RoundTimeline round={round} />
 
-        <section className="grid gap-4 rounded-lg border border-border bg-card p-5 md:grid-cols-4">
-          <RoundStat label="Status" value={getRoundStateLabel(state)} />
-          <RoundStat label="Voting" value={getVotingStrategyLabel(round)} />
-          <RoundStat label="Winners" value={`${round.winnerCount}`} />
-          <RoundStat label="Votes" value={`${round.totalVotes || 0}`} />
+        <section className="space-y-4 rounded-lg border border-border bg-card p-5">
+          <div className="grid gap-4 md:grid-cols-4">
+            <RoundStat label="Status" value={getRoundStateLabel(state)} />
+            <RoundStat label="Voting" value={getVotingStrategyLabel(round)} />
+            <RoundStat label="Winners" value={`${round.winnerCount}`} />
+            <RoundStat label="Votes" value={`${round.totalVotes || 0}`} />
+          </div>
         </section>
 
         {!databaseConfigured && (
@@ -244,6 +247,34 @@ function RoundStat({ label, value }: { label: string; value: string }) {
   );
 }
 
+function RoundPrizes({ round }: { round: RoundWithSubmissions }) {
+  return (
+    <div className="border-t border-border pt-5" style={{ maxWidth: "34rem" }}>
+      <div className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        Prizes
+      </div>
+      <div className="divide-y divide-border rounded-md bg-background/70">
+        {round.awards
+          ?.slice()
+          .sort((a, b) => a.position - b.position)
+          .map((award) => (
+            <div
+              key={award.id}
+              className="grid items-center gap-4 px-4 py-3"
+              style={{ gridTemplateColumns: "5rem 5.5rem minmax(0, 1fr)" }}
+            >
+              <div className="text-sm font-semibold">{award.title}</div>
+              <div className="text-sm font-bold">{award.value}</div>
+              <div className="min-w-0 text-sm text-muted-foreground">
+                {award.description || "Prize"}
+              </div>
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+}
+
 function SubmissionCard({
   submission,
   rank,
@@ -263,8 +294,16 @@ function SubmissionCard({
     <article
       className={cn(
         "flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm",
-        submission.winnerPosition && "border-emerald-500/40",
+        submission.winnerPosition && "border",
       )}
+      style={
+        submission.winnerPosition
+          ? {
+              borderColor: "rgba(16, 185, 129, 0.8)",
+              boxShadow: "0 0 0 1.5px rgba(16, 185, 129, 0.8), 0 0 12px rgba(16, 185, 129, 0.18)",
+            }
+          : undefined
+      }
     >
       <div className="aspect-[16/10] overflow-hidden bg-muted">
         {submission.image ? (
