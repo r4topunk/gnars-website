@@ -102,11 +102,7 @@ const tokenGetVotesAbi = [
 export function ProposalPreview() {
   const t = useTranslations("propose");
   const eligibility = useProposalEligibilityContext();
-  const {
-    getValues,
-    handleSubmit,
-    formState: { errors },
-  } = useFormContext<ProposalFormValues>();
+  const { getValues, handleSubmit } = useFormContext<ProposalFormValues>();
   const [isActionPending, startTransition] = useTransition();
   const [preparedDescription, setPreparedDescription] = useState<string>("");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -352,9 +348,7 @@ export function ProposalPreview() {
   };
 
   const canSubmit = isDryRun
-    ? Boolean(data.title) &&
-      (data.transactions?.length ?? 0) > 0 &&
-      !isActionPending
+    ? Boolean(data.title) && (data.transactions?.length ?? 0) > 0 && !isActionPending
     : isConnected &&
       eligibility.hasThreshold === true &&
       Boolean(data.title) &&
@@ -451,11 +445,14 @@ export function ProposalPreview() {
           )}
           <h1 className="text-3xl font-bold mb-4">{data.title}</h1>
           <div className="prose prose-gray max-w-none">
-            {(data.description ?? "").split("\n\n").map((paragraph, i) => (
-              <p key={i} className="mb-4 last:mb-0">
-                {paragraph}
-              </p>
-            ))}
+            {(data.description ?? "")
+              .replace(/^!\[[^\]]*\]\([^)]+\)\n\n/, "")
+              .split("\n\n")
+              .map((paragraph, i) => (
+                <p key={i} className="mb-4 last:mb-0">
+                  {paragraph}
+                </p>
+              ))}
           </div>
         </CardContent>
       </Card>
