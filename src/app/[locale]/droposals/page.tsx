@@ -53,18 +53,15 @@ export default async function DroposalsPage({ params }: { params: Promise<{ loca
         <h1 className="text-3xl font-bold">{t("title")}</h1>
         <p className="text-muted-foreground mt-1">{t("description")}</p>
         <p className="text-muted-foreground mt-2">
-          {t.rich("linkDescription", {
-            fundingLink: (chunks) => (
-              <Link href="/proposals" className="text-foreground underline underline-offset-4">
-                {chunks}
-              </Link>
-            ),
-            aboutLink: (chunks) => (
-              <Link href="/about" className="text-foreground underline underline-offset-4">
-                {chunks}
-              </Link>
-            ),
-          })}
+          {t("linkDescriptionPrefix")} {" "}
+          <Link href="/proposals" className="text-foreground underline underline-offset-4">
+            {t("fundingDecisions")}
+          </Link>{" "}
+          {t("linkDescriptionMiddle")} {" "}
+          <Link href="/about" className="text-foreground underline underline-offset-4">
+            {t("howGnarsWorks")}
+          </Link>
+          .
         </p>
       </div>
       <DroposalsGrid items={items} />

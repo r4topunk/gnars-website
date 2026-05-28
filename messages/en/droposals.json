@@ -2,6 +2,8 @@
   "title": "Gnars Drops",
   "description": "Drops are Gnarly Highquality videos or assets created and approved by the community. In order to create a Drop you need to create a droposal.",
   "linkDescription": "Droposals are community proposals that green-light new drops and skate media. See {fundingLink} or learn {aboutLink}.",
+  "linkDescriptionPrefix": "Droposals are community proposals that green-light new drops and skate media. See",
+  "linkDescriptionMiddle": "or learn",
   "fundingDecisions": "funding decisions",
   "howGnarsWorks": "how Gnars works",
   "empty": "No droposals found.",
