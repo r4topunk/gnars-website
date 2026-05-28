@@ -163,6 +163,23 @@ export function normalizeRoundRequestSlug(value: string) {
   return normalizeSlug(value);
 }
 
+/**
+ * Resolve a unique round slug from a base string given the slugs already taken.
+ * Returns the normalized base when free, otherwise the first free
+ * `${base}-${n}` suffix. Pure so it can be unit-tested without a database.
+ */
+export function resolveRoundSlug(base: string, existingSlugs: Iterable<string>): string {
+  const root = normalizeSlug(base) || "round";
+  const taken = new Set(existingSlugs);
+  if (!taken.has(root)) return root;
+
+  let suffix = 2;
+  while (taken.has(`${root}-${suffix}`)) {
+    suffix += 1;
+  }
+  return `${root}-${suffix}`;
+}
+
 function validateRoundAwards(awards: RoundAwardInput[], winnerCount: number) {
   if (!Array.isArray(awards) || awards.length !== winnerCount) {
     return `Add ${winnerCount} award${winnerCount === 1 ? "" : "s"}.`;

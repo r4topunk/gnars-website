@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Database, ShieldCheck } from "lucide-react";
 import { useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ export function RoundsAdminDashboard({
   rounds: Round[];
   databaseConfigured: boolean;
 }) {
+  const router = useRouter();
   const { address, adminAddress, isConnected, isInAppWallet } = useUserAddress();
   const account = useActiveAccount();
   const wallet = useActiveWallet();
@@ -29,33 +31,41 @@ export function RoundsAdminDashboard({
   const [requests, setRequests] = useState<RoundRequest[]>([]);
   const [requestsState, setRequestsState] = useState<RequestsState>("idle");
   const [requestsError, setRequestsError] = useState("");
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
+
+  // Build a signed admin auth envelope for a given route + payload. Signs with
+  // the admin EOA for external wallets (the allowlist is keyed by EOA); in-app
+  // sessions fall back to the smart account.
+  const buildAdminAuth = async (path: string, payload: Record<string, unknown>) => {
+    if (!connectedAdminAddress) throw new Error("Connect an approved admin wallet.");
+    const signer = (!isInAppWallet ? wallet?.getAdminAccount?.() : undefined) ?? account;
+    if (!signer) throw new Error("No signer available for this wallet.");
+
+    const issuedAt = new Date().toISOString();
+    const message = createRoundActionMessage({
+      action: "admin",
+      method: "POST",
+      path,
+      walletAddress: connectedAdminAddress,
+      payload,
+      issuedAt,
+    });
+    const signature = await signer.signMessage({ message });
+    return { walletAddress: connectedAdminAddress, issuedAt, signature };
+  };
 
   const loadRequests = async () => {
     if (!connectedAdminAddress) return;
-    // Sign with the admin EOA for external wallets (the allowlist is keyed by
-    // EOA); in-app sessions fall back to the smart account.
-    const signer = (!isInAppWallet ? wallet?.getAdminAccount?.() : undefined) ?? account;
-    if (!signer) return;
-
     setRequestsState("loading");
     setRequestsError("");
 
     try {
       const path = "/api/rounds/admin/requests";
-      const issuedAt = new Date().toISOString();
-      const message = createRoundActionMessage({
-        action: "admin",
-        method: "POST",
-        path,
-        walletAddress: connectedAdminAddress,
-        payload: { walletAddress: connectedAdminAddress },
-        issuedAt,
-      });
-      const signature = await signer.signMessage({ message });
+      const auth = await buildAdminAuth(path, { walletAddress: connectedAdminAddress });
       const response = await fetch(path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walletAddress: connectedAdminAddress, issuedAt, signature }),
+        body: JSON.stringify(auth),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Unable to load round requests.");
@@ -65,6 +75,35 @@ export function RoundsAdminDashboard({
     } catch (error) {
       setRequestsError(error instanceof Error ? error.message : "Unable to load round requests.");
       setRequestsState("error");
+    }
+  };
+
+  const reviewRequest = async (requestId: string, decision: "approve" | "reject") => {
+    setReviewingId(requestId);
+    setRequestsError("");
+
+    try {
+      const path = "/api/rounds/admin/request-review";
+      const auth = await buildAdminAuth(path, {
+        walletAddress: connectedAdminAddress,
+        requestId,
+        decision,
+      });
+      const response = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...auth, requestId, decision }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Unable to review round request.");
+
+      await loadRequests();
+      // Approving creates a published round — refresh the server-rendered list.
+      if (decision === "approve") router.refresh();
+    } catch (error) {
+      setRequestsError(error instanceof Error ? error.message : "Unable to review round request.");
+    } finally {
+      setReviewingId(null);
     }
   };
 
@@ -89,9 +128,10 @@ export function RoundsAdminDashboard({
                 Rounds Dashboard
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Review live rounds and database status. Round requests contain requester contact
-                details and are loaded only after an approved admin wallet signs in — they are never
-                sent to unapproved visitors.
+                Review and approve round requests, and review live rounds. Approving a request
+                publishes a new round. Requests contain requester contact details and are loaded
+                only after an approved admin wallet signs in — they are never sent to unapproved
+                visitors.
               </p>
             </div>
             <div className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm">
@@ -139,25 +179,49 @@ export function RoundsAdminDashboard({
                 ) : requestsState === "loaded" && requests.length === 0 ? (
                   <div className="p-5 text-sm text-muted-foreground">No round requests found.</div>
                 ) : (
-                  requests.map((request) => (
-                    <div
-                      key={request.id}
-                      className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_auto_auto] md:items-center"
-                    >
-                      <div className="min-w-0">
-                        <div className="font-medium">{request.title}</div>
-                        <div className="mt-1 truncate text-sm text-muted-foreground">
-                          /{request.requestedSlug} by {request.requesterName}
+                  <>
+                    {requestsError && (
+                      <div className="px-5 py-3 text-sm text-destructive">{requestsError}</div>
+                    )}
+                    {requests.map((request) => (
+                      <div
+                        key={request.id}
+                        className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_auto] md:items-center"
+                      >
+                        <div className="min-w-0">
+                          <div className="font-medium">{request.title}</div>
+                          <div className="mt-1 truncate text-sm text-muted-foreground">
+                            /{request.requestedSlug} by {request.requesterName} ·{" "}
+                            <span className="capitalize">{request.status}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {request.status === "pending" && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => reviewRequest(request.id, "approve")}
+                                disabled={reviewingId === request.id}
+                              >
+                                {reviewingId === request.id ? "Working..." : "Approve"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => reviewRequest(request.id, "reject")}
+                                disabled={reviewingId === request.id}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          <Button asChild variant="ghost" size="sm">
+                            <a href={`mailto:${request.requesterEmail}`}>Email</a>
+                          </Button>
                         </div>
                       </div>
-                      <div className="text-sm capitalize text-muted-foreground">
-                        {request.status}
-                      </div>
-                      <Button asChild variant="outline" size="sm">
-                        <a href={`mailto:${request.requesterEmail}`}>Email</a>
-                      </Button>
-                    </div>
-                  ))
+                    ))}
+                  </>
                 )}
               </div>
             </section>

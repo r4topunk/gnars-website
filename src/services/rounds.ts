@@ -17,6 +17,7 @@ import type {
 } from "@/features/rounds/types";
 import {
   normalizeRoundRequestSlug,
+  resolveRoundSlug,
   validateRoundRequest,
   validateRoundSubmission,
   validateRoundVoteAllocation,
@@ -749,5 +750,118 @@ export async function castRoundVotes({
     throw error;
   } finally {
     client.release();
+  }
+}
+
+/**
+ * Approve a pending round request: create a published, active round (and its
+ * awards) from the request's already-validated fields, and mark the request
+ * approved. Transactional. Admin-gated at the API layer.
+ */
+export async function approveRoundRequest(requestId: string): Promise<Round> {
+  if (!isRoundsDatabaseConfigured()) throw new Error("Rounds database is not configured.");
+
+  await ensureTables();
+  const client = await getPool().connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const requestResult = await client.query(
+      `SELECT ${requestSelectFields} FROM round_requests WHERE id = $1 AND deleted_at IS NULL LIMIT 1 FOR UPDATE`,
+      [requestId],
+    );
+    const requestRow = requestResult.rows[0];
+    if (!requestRow) throw new Error("Round request not found.");
+
+    const request = mapRoundRequest(requestRow);
+    if (request.status !== "pending") {
+      throw new Error("This request has already been reviewed.");
+    }
+
+    const root = normalizeRoundRequestSlug(request.requestedSlug || request.title) || "round";
+    const existing = await client.query(
+      `SELECT slug FROM rounds WHERE slug = $1 OR slug LIKE $1 || '-%'`,
+      [root],
+    );
+    const slug = resolveRoundSlug(
+      request.requestedSlug || request.title,
+      existing.rows.map((row: Record<string, unknown>) => String(row.slug)),
+    );
+
+    const roundId = randomUUID();
+    const roundResult = await client.query(
+      `
+        INSERT INTO rounds (
+          id, slug, title, description, content, image,
+          starts_at, submissions_open_at, voting_starts_at, voting_ends_at, ends_at,
+          active, featured, status,
+          voting_strategy, votes_per_wallet, winner_count, max_submissions_per_wallet
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true, false, 'published', $12, $13, $14, $15)
+        RETURNING *
+      `,
+      [
+        roundId,
+        slug,
+        request.title,
+        request.description,
+        request.content,
+        request.image,
+        request.startsAt,
+        request.submissionsOpenAt,
+        request.votingStartsAt,
+        request.votingEndsAt,
+        request.endsAt,
+        request.votingStrategy,
+        request.votesPerWallet,
+        request.winnerCount,
+        request.maxSubmissionsPerWallet,
+      ],
+    );
+
+    for (const award of request.awards) {
+      await client.query(
+        `
+          INSERT INTO round_awards (id, round_id, award_position, title, description, award_value)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `,
+        [randomUUID(), roundId, award.position, award.title, award.description || "", award.value],
+      );
+    }
+
+    await client.query(
+      `UPDATE round_requests SET status = 'approved', reviewed_at = now(), updated_at = now() WHERE id = $1`,
+      [requestId],
+    );
+
+    await client.query("COMMIT");
+
+    const round = mapRound(roundResult.rows[0]);
+    return (await hydrateAwards([round]))[0];
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+/** Reject a pending round request. Admin-gated at the API layer. */
+export async function rejectRoundRequest(requestId: string): Promise<void> {
+  if (!isRoundsDatabaseConfigured()) throw new Error("Rounds database is not configured.");
+
+  await ensureTables();
+  const result = await getPool().query(
+    `
+      UPDATE round_requests
+      SET status = 'rejected', reviewed_at = now(), updated_at = now()
+      WHERE id = $1 AND status = 'pending' AND deleted_at IS NULL
+    `,
+    [requestId],
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error("Round request not found or already reviewed.");
   }
 }
