@@ -36,6 +36,10 @@
         "title": "Tesouro",
         "description": "ETH, ERC-20s, NFTs e analytics onchain do tesouro da DAO"
       },
+      "rounds": {
+        "title": "Rounds",
+        "description": "Concursos e votacoes comunitarias para projetos Gnars"
+      },
       "bounties": {
         "title": "Bounties",
         "description": "Desafios gnarly da comunidade de esportes radicais"

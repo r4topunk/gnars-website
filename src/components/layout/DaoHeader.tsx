@@ -33,6 +33,7 @@ import {
   Menu,
   Newspaper,
   PlusCircle,
+  Trophy,
   Tv,
   UserCheck,
   Users,
@@ -123,6 +124,13 @@ function buildNavigationItems(t: NavTranslations) {
           href: "/treasury",
           icon: Wallet,
           description: t("items.money.treasury.description"),
+        },
+        {
+          title: t("items.money.rounds.title"),
+          href: "/rounds",
+          icon: Trophy,
+          description: t("items.money.rounds.description"),
+          badge: "NEW!",
         },
         {
           title: t("items.money.bounties.title"),

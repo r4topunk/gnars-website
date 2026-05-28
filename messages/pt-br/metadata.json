@@ -23,6 +23,10 @@
     "title": "Tesouro — Gnars DAO",
     "description": "Explore o tesouro do Gnars DAO: saldo de ETH, tokens ERC-20, NFTs e analytics onchain. Transparência total sobre os fundos da comunidade na Base."
   },
+  "rounds": {
+    "title": "Rounds — Gnars DAO",
+    "description": "Concursos, inscricoes e votacoes comunitarias para projetos Gnars."
+  },
   "tv": {
     "title": "Gnar TV — Feed de Creator Coins",
     "description": "Descubra creator coins pareados com Gnars e conteúdo da comunidade no Gnar TV."
