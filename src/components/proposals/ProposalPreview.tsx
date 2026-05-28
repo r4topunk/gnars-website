@@ -15,6 +15,7 @@ import {
 } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { parseEventLogs } from "viem";
+import { Markdown } from "@/components/common/Markdown";
 import { TransactionsSummaryList } from "@/components/proposals/preview/TransactionsSummaryList";
 import { ProposalDebugPanel } from "@/components/proposals/ProposalDebugPanel";
 import { useProposalEligibilityContext } from "@/components/proposals/ProposalEligibilityContext";
@@ -425,11 +426,7 @@ export function ProposalPreview() {
           )}
           <h1 className="text-3xl font-bold mb-4">{data.title}</h1>
           <div className="prose prose-gray max-w-none">
-            {(data.description ?? "").split("\n\n").map((paragraph, i) => (
-              <p key={i} className="mb-4 last:mb-0">
-                {paragraph}
-              </p>
-            ))}
+            <Markdown>{data.description ?? ""}</Markdown>
           </div>
         </CardContent>
       </Card>
