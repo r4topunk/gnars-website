@@ -52,13 +52,17 @@ export function SubmitRoundForm({
 
     try {
       const path = `/api/rounds/${round.slug}/submit`;
-      const payload = { walletAddress: address, submission: values };
+      // Sign and submit under the active (smart) account address — that is the
+      // account that actually signs (`account.signMessage`), so the verifier
+      // must check the signature against this address, not the EOA view address.
+      const signerAddress = account.address;
+      const payload = { walletAddress: signerAddress, submission: values };
       const issuedAt = new Date().toISOString();
       const messageToSign = createRoundActionMessage({
         action: "submit",
         method: "POST",
         path,
-        walletAddress: address,
+        walletAddress: signerAddress,
         payload,
         issuedAt,
       });

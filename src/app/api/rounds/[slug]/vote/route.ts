@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { verifyRoundActionSignature } from "@/features/rounds/signature";
 import type { RoundVoteAllocationInput } from "@/features/rounds/types";
+import { verifyRoundActionSignature } from "@/features/rounds/verify-signature";
 import { castRoundVotes } from "@/services/rounds";
 
 type VoteBody = {

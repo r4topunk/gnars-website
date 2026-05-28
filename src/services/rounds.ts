@@ -444,15 +444,17 @@ export async function getPublicRoundBySlug(slug: string): Promise<RoundWithSubmi
   ]);
 
   const submissions = submissionsResult.rows.map(mapSubmission);
-  const voteActivity: RoundVoteActivity[] = activityResult.rows.map((row) => ({
-    id: String(row.id),
-    walletAddress: String(row.wallet_address),
-    submissionId: String(row.submission_id),
-    submissionTitle: String(row.submission_title),
-    voteCount: Number(row.vote_count || 0),
-    createdAt: new Date(String(row.created_at)).toISOString(),
-    updatedAt: new Date(String(row.updated_at)).toISOString(),
-  }));
+  const voteActivity: RoundVoteActivity[] = activityResult.rows.map(
+    (row: Record<string, unknown>) => ({
+      id: String(row.id),
+      walletAddress: String(row.wallet_address),
+      submissionId: String(row.submission_id),
+      submissionTitle: String(row.submission_title),
+      voteCount: Number(row.vote_count || 0),
+      createdAt: new Date(String(row.created_at)).toISOString(),
+      updatedAt: new Date(String(row.updated_at)).toISOString(),
+    }),
+  );
 
   return { ...round, submissions, voteActivity };
 }

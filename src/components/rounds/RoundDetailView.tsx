@@ -60,13 +60,16 @@ export function RoundDetailView({
         .map(([submissionId, voteCount]) => ({ submissionId, voteCount }))
         .filter((vote) => vote.voteCount > 0);
       const path = `/api/rounds/${round.slug}/vote`;
-      const payload = { walletAddress: address, votes };
+      // Sign and submit under the active (smart) account address — that is the
+      // account that actually signs, so the server verifies against it.
+      const signerAddress = account.address;
+      const payload = { walletAddress: signerAddress, votes };
       const issuedAt = new Date().toISOString();
       const messageToSign = createRoundActionMessage({
         action: "vote",
         method: "POST",
         path,
-        walletAddress: address,
+        walletAddress: signerAddress,
         payload,
         issuedAt,
       });

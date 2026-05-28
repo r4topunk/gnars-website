@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyRoundActionSignature } from "@/features/rounds/signature";
+import { verifyRoundActionSignature } from "@/features/rounds/verify-signature";
 import { createRoundSubmission } from "@/services/rounds";
 
 type SubmitBody = {

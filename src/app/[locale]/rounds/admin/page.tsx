@@ -1,6 +1,6 @@
 import { RoundsAdminDashboard } from "@/components/rounds/RoundsAdminDashboard";
-import type { Round, RoundRequest } from "@/features/rounds/types";
-import { isRoundsDatabaseConfigured, listPublicRounds, listRoundRequests } from "@/services/rounds";
+import type { Round } from "@/features/rounds/types";
+import { isRoundsDatabaseConfigured, listPublicRounds } from "@/services/rounds";
 
 export const metadata = {
   title: "Rounds Admin | Gnars DAO",
@@ -9,19 +9,17 @@ export const metadata = {
 
 export default async function RoundsAdminPage() {
   let rounds: Round[] = [];
-  let requests: RoundRequest[] = [];
 
   try {
-    [rounds, requests] = await Promise.all([listPublicRounds(), listRoundRequests()]);
+    rounds = await listPublicRounds();
   } catch (error) {
     console.error("[rounds] admin load failed", error);
   }
 
-  return (
-    <RoundsAdminDashboard
-      rounds={rounds}
-      requests={requests}
-      databaseConfigured={isRoundsDatabaseConfigured()}
-    />
-  );
+  // Round requests carry requester PII (name + email) and are intentionally
+  // NOT fetched here: props from a Server Component are serialized into the
+  // RSC payload sent to every visitor, and the client `isAdmin` check only
+  // hides DOM. Requests are loaded client-side from a signature-gated admin
+  // API route after an approved wallet authenticates.
+  return <RoundsAdminDashboard rounds={rounds} databaseConfigured={isRoundsDatabaseConfigured()} />;
 }

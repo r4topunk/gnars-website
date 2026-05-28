@@ -1,25 +1,72 @@
 "use client";
 
+import { useState } from "react";
 import { ArrowLeft, Database, ShieldCheck } from "lucide-react";
+import { useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { isRoundAdminAddress } from "@/features/rounds/admin";
+import { createRoundActionMessage } from "@/features/rounds/signature";
 import { getRoundState } from "@/features/rounds/state";
 import type { Round, RoundRequest } from "@/features/rounds/types";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { Link } from "@/i18n/navigation";
 
+type RequestsState = "idle" | "loading" | "loaded" | "error";
+
 export function RoundsAdminDashboard({
   rounds,
-  requests,
   databaseConfigured,
 }: {
   rounds: Round[];
-  requests: RoundRequest[];
   databaseConfigured: boolean;
 }) {
-  const { address, adminAddress, isConnected } = useUserAddress();
+  const { address, adminAddress, isConnected, isInAppWallet } = useUserAddress();
+  const account = useActiveAccount();
+  const wallet = useActiveWallet();
   const connectedAdminAddress = adminAddress ?? address;
   const isAdmin = isRoundAdminAddress(connectedAdminAddress);
+
+  const [requests, setRequests] = useState<RoundRequest[]>([]);
+  const [requestsState, setRequestsState] = useState<RequestsState>("idle");
+  const [requestsError, setRequestsError] = useState("");
+
+  const loadRequests = async () => {
+    if (!connectedAdminAddress) return;
+    // Sign with the admin EOA for external wallets (the allowlist is keyed by
+    // EOA); in-app sessions fall back to the smart account.
+    const signer = (!isInAppWallet ? wallet?.getAdminAccount?.() : undefined) ?? account;
+    if (!signer) return;
+
+    setRequestsState("loading");
+    setRequestsError("");
+
+    try {
+      const path = "/api/rounds/admin/requests";
+      const issuedAt = new Date().toISOString();
+      const message = createRoundActionMessage({
+        action: "admin",
+        method: "POST",
+        path,
+        walletAddress: connectedAdminAddress,
+        payload: { walletAddress: connectedAdminAddress },
+        issuedAt,
+      });
+      const signature = await signer.signMessage({ message });
+      const response = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletAddress: connectedAdminAddress, issuedAt, signature }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Unable to load round requests.");
+
+      setRequests((result.requests as RoundRequest[]) ?? []);
+      setRequestsState("loaded");
+    } catch (error) {
+      setRequestsError(error instanceof Error ? error.message : "Unable to load round requests.");
+      setRequestsState("error");
+    }
+  };
 
   return (
     <main className="container mx-auto max-w-6xl px-4 py-8">
@@ -42,9 +89,9 @@ export function RoundsAdminDashboard({
                 Rounds Dashboard
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Review live rounds and database status. Creation and moderation APIs are
-                intentionally kept server-side; this page exposes the admin entry point without
-                showing controls to unapproved wallets.
+                Review live rounds and database status. Round requests contain requester contact
+                details and are loaded only after an approved admin wallet signs in — they are never
+                sent to unapproved visitors.
               </p>
             </div>
             <div className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm">
@@ -67,11 +114,31 @@ export function RoundsAdminDashboard({
         ) : (
           <>
             <section className="overflow-hidden rounded-lg border border-border bg-card">
-              <div className="border-b border-border px-5 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
                 <h2 className="text-lg font-semibold tracking-tight">Round requests</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadRequests}
+                  disabled={requestsState === "loading"}
+                >
+                  {requestsState === "loading"
+                    ? "Verifying..."
+                    : requestsState === "loaded"
+                      ? "Refresh"
+                      : "Load round requests"}
+                </Button>
               </div>
               <div className="divide-y divide-border">
-                {requests.length > 0 ? (
+                {requestsState === "error" ? (
+                  <div className="p-5 text-sm text-destructive">{requestsError}</div>
+                ) : requestsState === "idle" ? (
+                  <div className="p-5 text-sm text-muted-foreground">
+                    Sign with your admin wallet to load round requests.
+                  </div>
+                ) : requestsState === "loaded" && requests.length === 0 ? (
+                  <div className="p-5 text-sm text-muted-foreground">No round requests found.</div>
+                ) : (
                   requests.map((request) => (
                     <div
                       key={request.id}
@@ -91,8 +158,6 @@ export function RoundsAdminDashboard({
                       </Button>
                     </div>
                   ))
-                ) : (
-                  <div className="p-5 text-sm text-muted-foreground">No round requests found.</div>
                 )}
               </div>
             </section>

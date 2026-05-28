@@ -55,15 +55,18 @@ export function RequestRoundForm({ databaseConfigured }: { databaseConfigured: b
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // The active (smart) account is what signs, so bind the request to its
+  // address rather than the EOA view address.
+  const signerAddress = account?.address;
   const requestPayload = useMemo(
     () => ({
       ...values,
-      walletAddress: address || "",
+      walletAddress: signerAddress || "",
       submissionsOpenAt: toIsoOrValue(values.submissionsOpenAt),
       votingStartsAt: toIsoOrValue(values.votingStartsAt),
       votingEndsAt: toIsoOrValue(values.votingEndsAt),
     }),
-    [address, values],
+    [signerAddress, values],
   );
 
   const canSubmit =
@@ -136,13 +139,13 @@ export function RequestRoundForm({ databaseConfigured }: { databaseConfigured: b
 
     try {
       const path = "/api/rounds/request";
-      const payload = { walletAddress: address, request: requestPayload };
+      const payload = { walletAddress: account.address, request: requestPayload };
       const issuedAt = new Date().toISOString();
       const messageToSign = createRoundActionMessage({
         action: "request",
         method: "POST",
         path,
-        walletAddress: address,
+        walletAddress: account.address,
         payload,
         issuedAt,
       });

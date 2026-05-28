@@ -1,6 +1,6 @@
-import { keccak256, toBytes, verifyMessage } from "viem";
+import { keccak256, toBytes } from "viem";
 
-export type RoundSignedAction = "request" | "submit" | "vote";
+export type RoundSignedAction = "request" | "submit" | "vote" | "admin";
 
 export interface RoundSignatureMessageInput {
   action: RoundSignedAction;
@@ -34,34 +34,8 @@ export function createRoundActionMessage({
   ].join("\n");
 }
 
-export async function verifyRoundActionSignature({
-  action,
-  method,
-  path,
-  walletAddress,
-  payload,
-  issuedAt,
-  signature,
-}: RoundSignatureMessageInput & { signature: `0x${string}` }) {
-  const issuedAtTime = new Date(issuedAt).getTime();
-  if (!Number.isFinite(issuedAtTime) || Math.abs(Date.now() - issuedAtTime) > 10 * 60 * 1000) {
-    return false;
-  }
-
-  const message = createRoundActionMessage({
-    action,
-    method,
-    path,
-    walletAddress,
-    payload,
-    issuedAt,
-  });
-  return verifyMessage({
-    address: walletAddress as `0x${string}`,
-    message,
-    signature,
-  });
-}
+/** Issued-at window (ms) within which a signed action message is accepted. */
+export const ROUND_SIGNATURE_MAX_AGE_MS = 10 * 60 * 1000;
 
 function stableStringify(value: unknown): string {
   if (value === null || typeof value !== "object") return JSON.stringify(value);

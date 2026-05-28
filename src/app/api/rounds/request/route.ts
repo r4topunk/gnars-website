@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { verifyRoundActionSignature } from "@/features/rounds/signature";
 import type { RoundRequestInput } from "@/features/rounds/types";
+import { verifyRoundActionSignature } from "@/features/rounds/verify-signature";
 import { createRoundRequest } from "@/services/rounds";
 
 type RequestBody = {
