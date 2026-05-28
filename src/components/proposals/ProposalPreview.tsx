@@ -425,9 +425,7 @@ export function ProposalPreview() {
             </div>
           )}
           <h1 className="text-3xl font-bold mb-4">{data.title}</h1>
-          <div className="prose prose-gray max-w-none">
-            <Markdown>{data.description ?? ""}</Markdown>
-          </div>
+          <Markdown>{data.description ?? ""}</Markdown>
         </CardContent>
       </Card>
 
