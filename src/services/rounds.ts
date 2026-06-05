@@ -22,6 +22,7 @@ import {
   validateRoundSubmission,
   validateRoundVoteAllocation,
 } from "@/features/rounds/validation";
+import { getDelegatedGnarsVotingPower } from "./round-voting-power";
 
 let pool: Pool | null = null;
 let tablesReady: Promise<void> | null = null;
@@ -462,12 +463,12 @@ export async function getPublicRoundBySlug(slug: string): Promise<RoundWithSubmi
 
 export async function getRoundVotingPower(round: Round, walletAddress?: string | null) {
   if (!walletAddress || !isAddress(walletAddress)) return 0;
+  const delegatedVotingPower = await getDelegatedGnarsVotingPower(walletAddress);
+  if (delegatedVotingPower <= 0) return 0;
+
   if (round.votingStrategy === "fixed_per_wallet") return round.votesPerWallet;
   if (round.votingStrategy === "one_per_wallet") return 1;
-
-  // The Yellow feature supported NFT-weighted voting. Gnars keeps this safe by
-  // defaulting to one wallet vote until an onchain snapshot indexer is configured.
-  return 1;
+  return delegatedVotingPower;
 }
 
 export async function getRoundVoteUsage(
