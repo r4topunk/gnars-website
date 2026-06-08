@@ -74,6 +74,15 @@ import { cn } from "@/lib/utils";
 
 type NavTranslations = ReturnType<typeof useTranslations<"nav">>;
 
+// Badge color by kind: BETA → orange, SOON (not live yet) → amber, default → green
+function badgeClassName(badge: string) {
+  if (badge === "BETA")
+    return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200";
+  if (badge === "SOON")
+    return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200";
+  return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200";
+}
+
 // Navigation structure — built as a function so titles/descriptions come from t()
 function buildNavigationItems(t: NavTranslations) {
   return [
@@ -126,13 +135,6 @@ function buildNavigationItems(t: NavTranslations) {
           description: t("items.money.treasury.description"),
         },
         {
-          title: t("items.money.rounds.title"),
-          href: "/rounds",
-          icon: Trophy,
-          description: t("items.money.rounds.description"),
-          badge: "NEW!",
-        },
-        {
           title: t("items.money.bounties.title"),
           href: "/community/bounties",
           icon: Gift,
@@ -145,6 +147,13 @@ function buildNavigationItems(t: NavTranslations) {
           icon: ArrowLeftRight,
           description: t("items.money.swap.description"),
           badge: "NEW!",
+        },
+        {
+          title: t("items.money.rounds.title"),
+          href: "/rounds",
+          icon: Trophy,
+          description: t("items.money.rounds.description"),
+          badge: "SOON",
         },
       ],
     },
@@ -319,11 +328,9 @@ function DesktopNav() {
                                     {"badge" in subItem && subItem.badge && (
                                       <Badge
                                         variant="secondary"
-                                        className={`h-4 px-1.5 text-[10px] ${
-                                          (subItem.badge as string) === "BETA"
-                                            ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
-                                            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
-                                        }`}
+                                        className={`h-4 px-1.5 text-[10px] ${badgeClassName(
+                                          subItem.badge as string,
+                                        )}`}
                                       >
                                         {subItem.badge as string}
                                       </Badge>
@@ -467,11 +474,9 @@ function MobileNav() {
                           {"badge" in subItem && subItem.badge && (
                             <Badge
                               variant="secondary"
-                              className={`h-4 px-1.5 text-[10px] ${
-                                (subItem.badge as string) === "BETA"
-                                  ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200"
-                                  : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
-                              }`}
+                              className={`h-4 px-1.5 text-[10px] ${badgeClassName(
+                                subItem.badge as string,
+                              )}`}
                             >
                               {subItem.badge as string}
                             </Badge>

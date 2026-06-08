@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { PlusCircle, Settings } from "lucide-react";
+import { Construction, PlusCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { isRoundAdminAddress } from "@/features/rounds/admin";
 import { getRoundState } from "@/features/rounds/state";
@@ -10,13 +10,7 @@ import { useUserAddress } from "@/hooks/use-user-address";
 import { Link } from "@/i18n/navigation";
 import { RoundCard } from "./RoundCard";
 
-export function RoundsIndexView({
-  rounds,
-  error,
-}: {
-  rounds: Round[];
-  error?: string;
-}) {
+export function RoundsIndexView({ rounds, error }: { rounds: Round[]; error?: string }) {
   const { address, adminAddress } = useUserAddress();
   const connectedAdminAddress = adminAddress ?? address;
   const isAdmin = isRoundAdminAddress(connectedAdminAddress);
@@ -33,6 +27,20 @@ export function RoundsIndexView({
   return (
     <main className="container mx-auto max-w-7xl px-4 py-8">
       <div className="space-y-8">
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200"
+        >
+          <Construction className="mt-0.5 size-5 shrink-0" />
+          <div>
+            <p className="font-semibold">Rounds is coming soon</p>
+            <p className="mt-0.5 leading-6">
+              This feature isn&apos;t live yet — we&apos;re still finishing development and the
+              backend isn&apos;t deployed. It&apos;s on the roadmap; check back soon.
+            </p>
+          </div>
+        </div>
+
         <section className="flex flex-col gap-5 rounded-lg border border-border bg-muted/30 p-6 md:flex-row md:items-end md:justify-between md:p-8">
           <div className="max-w-3xl">
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
