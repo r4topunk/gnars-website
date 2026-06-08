@@ -46,7 +46,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { toIntlLocale } from "@/lib/i18n/format";
 import { POIDH_ABI } from "@/lib/poidh/abi";
-import { CHAIN_NAMES, getExplorerUrl, getTxUrl, POIDH_CONTRACTS } from "@/lib/poidh/config";
+import { CHAIN_NAMES, getTxUrl, POIDH_CONTRACTS } from "@/lib/poidh/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 import type { PoidhBounty, PoidhClaim } from "@/types/poidh";
@@ -356,7 +356,6 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   const amountEth = formatEther(BigInt(bounty.amount));
   const ethAmount = parseFloat(amountEth);
   const usdValue = formatEthToUsd(ethAmount, ethPrice, toIntlLocale(locale));
-  const explorerUrl = getExplorerUrl(chainId, bounty.issuer);
   const createdDate = new Date(bounty.createdAt * 1000);
   const deadlineDate = bounty.deadline ? new Date(bounty.deadline * 1000) : null;
   const status = getStatus(bounty);
@@ -670,14 +669,6 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                           showCopy={false}
                           showExplorer={false}
                           avatarSize="xs"
-                          customExplorerUrl={getExplorerUrl(chainId, claim.issuer)}
-                          onAddressClick={() =>
-                            window.open(
-                              getExplorerUrl(chainId, claim.issuer),
-                              "_blank",
-                              "noopener,noreferrer",
-                            )
-                          }
                         />
                         {claim.createdAt > 0 && (
                           <>
@@ -1189,10 +1180,8 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                   variant="compact"
                   showAvatar={true}
                   showCopy={false}
-                  showExplorer={true}
+                  showExplorer={false}
                   avatarSize="xs"
-                  customExplorerUrl={explorerUrl}
-                  onAddressClick={() => window.open(explorerUrl, "_blank", "noopener,noreferrer")}
                 />
               </div>
 
