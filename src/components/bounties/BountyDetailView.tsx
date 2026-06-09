@@ -109,6 +109,48 @@ function isIpfsCid(url: string | undefined): boolean {
   return false;
 }
 
+/** YouTube / Vimeo URL → embeddable iframe src. Returns null for other hosts.
+ *  The output host is always youtube.com/vimeo, so it's safe to drop into an iframe. */
+function getVideoEmbedUrl(raw: string | undefined | null): string | null {
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.replace(/^www\./, "");
+    if (host === "youtu.be") {
+      const id = u.pathname.slice(1);
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      if (u.pathname.startsWith("/embed/")) return `https://www.youtube.com${u.pathname}`;
+      if (u.pathname.startsWith("/shorts/")) {
+        const id = u.pathname.split("/")[2];
+        return id ? `https://www.youtube.com/embed/${id}` : null;
+      }
+      const v = u.searchParams.get("v");
+      return v ? `https://www.youtube.com/embed/${v}` : null;
+    }
+    if (host === "vimeo.com") {
+      const id = u.pathname.split("/").filter(Boolean)[0];
+      return id && /^\d+$/.test(id) ? `https://player.vimeo.com/video/${id}` : null;
+    }
+    if (host === "player.vimeo.com") return raw;
+  } catch {
+    /* invalid URL */
+  }
+  return null;
+}
+
+/** Direct image/video file URL (decidable by extension). */
+const MEDIA_FILE_RE = /\.(jpg|jpeg|png|gif|webp|avif|mov|mp4|webm|ogg|m4v)(\?.*)?$/i;
+function isDirectMediaUrl(url: string): boolean {
+  return MEDIA_FILE_RE.test(url);
+}
+
+/** All http(s) URLs in free text, with trailing punctuation trimmed. */
+function extractUrls(text: string): string[] {
+  return (text.match(/https?:\/\/[^\s)<>"']+/gi) ?? []).map((u) => u.replace(/[.,;!?]+$/, ""));
+}
+
 const STATUS_STYLES = {
   Canceled: "bg-red-500/10 text-red-400 border-red-500/20",
   Voting: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
@@ -558,19 +600,52 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                       )}
                     </div>
 
-                    {/* Claim media */}
-                    {claim.url && (
-                      <div>
-                        <MediaEmbed url={claim.url} alt={claim.name} />
-                      </div>
-                    )}
+                    {/* Claim media — prefer an embeddable video (YouTube/Vimeo found in the
+                        description, or a direct video in claim.url); otherwise show the image
+                        from claim.url, falling back to the first media link in the description */}
+                    {(() => {
+                      const descUrls = extractUrls(claim.description);
+                      const videoSrc =
+                        getVideoEmbedUrl(claim.url) ??
+                        descUrls.map(getVideoEmbedUrl).find(Boolean) ??
+                        null;
+                      if (videoSrc) {
+                        return (
+                          <div className="aspect-video w-full overflow-hidden rounded-md bg-black">
+                            <iframe
+                              src={videoSrc}
+                              title={claim.name}
+                              className="h-full w-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                            />
+                          </div>
+                        );
+                      }
+                      const mediaUrl = claim.url || descUrls.find(isDirectMediaUrl) || null;
+                      return mediaUrl ? (
+                        <div>
+                          <MediaEmbed url={mediaUrl} alt={claim.name} />
+                        </div>
+                      ) : null;
+                    })()}
 
                     {/* Claim description (markdown with auto-linked URLs) */}
                     {(() => {
-                      // Strip the media URL from description to avoid duplicate "View media" links
-                      const desc = claim.url
-                        ? claim.description.replace(claim.url, "").trim()
-                        : claim.description;
+                      // Strip any URL we already rendered as media (claim.url, the embedded
+                      // video source, or the fallback media link) to avoid duplicate links.
+                      const descUrls = extractUrls(claim.description);
+                      const videoSourceUrl = getVideoEmbedUrl(claim.url)
+                        ? claim.url
+                        : (descUrls.find((u) => getVideoEmbedUrl(u)) ?? null);
+                      const fallbackMedia = !claim.url
+                        ? (descUrls.find(isDirectMediaUrl) ?? null)
+                        : null;
+                      let desc = claim.description;
+                      for (const m of [claim.url, videoSourceUrl, fallbackMedia]) {
+                        if (m) desc = desc.replaceAll(m, "");
+                      }
+                      desc = desc.trim();
                       if (!desc) return null;
                       return (
                         <div className="text-sm text-muted-foreground prose prose-invert prose-sm max-w-none">
