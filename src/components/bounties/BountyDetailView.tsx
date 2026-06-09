@@ -46,7 +46,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { toIntlLocale } from "@/lib/i18n/format";
 import { POIDH_ABI } from "@/lib/poidh/abi";
-import { CHAIN_NAMES, getExplorerUrl, getTxUrl, POIDH_CONTRACTS } from "@/lib/poidh/config";
+import { CHAIN_NAMES, getTxUrl, POIDH_CONTRACTS } from "@/lib/poidh/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 import type { PoidhBounty, PoidhClaim } from "@/types/poidh";
@@ -107,6 +107,48 @@ function isIpfsCid(url: string | undefined): boolean {
     /* invalid URL */
   }
   return false;
+}
+
+/** YouTube / Vimeo URL → embeddable iframe src. Returns null for other hosts.
+ *  The output host is always youtube.com/vimeo, so it's safe to drop into an iframe. */
+function getVideoEmbedUrl(raw: string | undefined | null): string | null {
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.replace(/^www\./, "");
+    if (host === "youtu.be") {
+      const id = u.pathname.slice(1);
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      if (u.pathname.startsWith("/embed/")) return `https://www.youtube.com${u.pathname}`;
+      if (u.pathname.startsWith("/shorts/")) {
+        const id = u.pathname.split("/")[2];
+        return id ? `https://www.youtube.com/embed/${id}` : null;
+      }
+      const v = u.searchParams.get("v");
+      return v ? `https://www.youtube.com/embed/${v}` : null;
+    }
+    if (host === "vimeo.com") {
+      const id = u.pathname.split("/").filter(Boolean)[0];
+      return id && /^\d+$/.test(id) ? `https://player.vimeo.com/video/${id}` : null;
+    }
+    if (host === "player.vimeo.com") return raw;
+  } catch {
+    /* invalid URL */
+  }
+  return null;
+}
+
+/** Direct image/video file URL (decidable by extension). */
+const MEDIA_FILE_RE = /\.(jpg|jpeg|png|gif|webp|avif|mov|mp4|webm|ogg|m4v)(\?.*)?$/i;
+function isDirectMediaUrl(url: string): boolean {
+  return MEDIA_FILE_RE.test(url);
+}
+
+/** All http(s) URLs in free text, with trailing punctuation trimmed. */
+function extractUrls(text: string): string[] {
+  return (text.match(/https?:\/\/[^\s)<>"']+/gi) ?? []).map((u) => u.replace(/[.,;!?]+$/, ""));
 }
 
 const STATUS_STYLES = {
@@ -340,6 +382,11 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   });
   const participants = participantsData?.[0] as `0x${string}`[] | undefined;
   const participantAmounts = participantsData?.[1] as bigint[] | undefined;
+  // Withdrawn participants leave a zeroed slot (address(0)) in the array — drop
+  // them so the contributors list doesn't render "invalid address" entries.
+  const activeContributors = (participants ?? [])
+    .map((addr, i) => ({ addr, amount: participantAmounts?.[i] }))
+    .filter((c) => c.addr && !/^0x0+$/i.test(c.addr));
 
   const { data: hadExternalContributor } = useReadContract({
     address: POIDH_CONTRACTS[chainId],
@@ -356,12 +403,16 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   const amountEth = formatEther(BigInt(bounty.amount));
   const ethAmount = parseFloat(amountEth);
   const usdValue = formatEthToUsd(ethAmount, ethPrice, toIntlLocale(locale));
-  const explorerUrl = getExplorerUrl(chainId, bounty.issuer);
   const createdDate = new Date(bounty.createdAt * 1000);
   const deadlineDate = bounty.deadline ? new Date(bounty.deadline * 1000) : null;
   const status = getStatus(bounty);
   const isCreator = address?.toLowerCase() === bounty.issuer.toLowerCase();
   const isActive = !bounty.isCanceled && !bounty.isVoting && !bounty.isCompleted;
+  // Only active contributors (excluding the issuer, who auto-votes YES on submit)
+  // can cast a vote. Non-participants revert with NotActiveParticipant on-chain.
+  const isVotingParticipant = Boolean(
+    address && !isCreator && participants?.some((p) => p.toLowerCase() === address.toLowerCase()),
+  );
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -549,19 +600,52 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                       )}
                     </div>
 
-                    {/* Claim media */}
-                    {claim.url && (
-                      <div>
-                        <MediaEmbed url={claim.url} alt={claim.name} />
-                      </div>
-                    )}
+                    {/* Claim media — prefer an embeddable video (YouTube/Vimeo found in the
+                        description, or a direct video in claim.url); otherwise show the image
+                        from claim.url, falling back to the first media link in the description */}
+                    {(() => {
+                      const descUrls = extractUrls(claim.description);
+                      const videoSrc =
+                        getVideoEmbedUrl(claim.url) ??
+                        descUrls.map(getVideoEmbedUrl).find(Boolean) ??
+                        null;
+                      if (videoSrc) {
+                        return (
+                          <div className="aspect-video w-full overflow-hidden rounded-md bg-black">
+                            <iframe
+                              src={videoSrc}
+                              title={claim.name}
+                              className="h-full w-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                            />
+                          </div>
+                        );
+                      }
+                      const mediaUrl = claim.url || descUrls.find(isDirectMediaUrl) || null;
+                      return mediaUrl ? (
+                        <div>
+                          <MediaEmbed url={mediaUrl} alt={claim.name} />
+                        </div>
+                      ) : null;
+                    })()}
 
                     {/* Claim description (markdown with auto-linked URLs) */}
                     {(() => {
-                      // Strip the media URL from description to avoid duplicate "View media" links
-                      const desc = claim.url
-                        ? claim.description.replace(claim.url, "").trim()
-                        : claim.description;
+                      // Strip any URL we already rendered as media (claim.url, the embedded
+                      // video source, or the fallback media link) to avoid duplicate links.
+                      const descUrls = extractUrls(claim.description);
+                      const videoSourceUrl = getVideoEmbedUrl(claim.url)
+                        ? claim.url
+                        : (descUrls.find((u) => getVideoEmbedUrl(u)) ?? null);
+                      const fallbackMedia = !claim.url
+                        ? (descUrls.find(isDirectMediaUrl) ?? null)
+                        : null;
+                      let desc = claim.description;
+                      for (const m of [claim.url, videoSourceUrl, fallbackMedia]) {
+                        if (m) desc = desc.replaceAll(m, "");
+                      }
+                      desc = desc.trim();
                       if (!desc) return null;
                       return (
                         <div className="text-sm text-muted-foreground prose prose-invert prose-sm max-w-none">
@@ -670,14 +754,6 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                           showCopy={false}
                           showExplorer={false}
                           avatarSize="xs"
-                          customExplorerUrl={getExplorerUrl(chainId, claim.issuer)}
-                          onAddressClick={() =>
-                            window.open(
-                              getExplorerUrl(chainId, claim.issuer),
-                              "_blank",
-                              "noopener,noreferrer",
-                            )
-                          }
                         />
                         {claim.createdAt > 0 && (
                           <>
@@ -740,12 +816,13 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                       </div>
                     )}
 
-                    {/* Submit for Vote — show for contributors/creator when bounty is not yet in voting */}
+                    {/* Submit for Vote — issuer only (contract: submitClaimForVote reverts
+                        WrongCaller for non-issuers) and only on open bounties with contributors */}
                     {!bounty.isVoting &&
                       !bounty.isCanceled &&
                       isConnected &&
-                      (isCreator ||
-                        participants?.some((p) => p.toLowerCase() === address?.toLowerCase())) && (
+                      isCreator &&
+                      hadExternalContributor && (
                         <div className="pt-1">
                           <Button
                             size="sm"
@@ -782,54 +859,59 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                     {/* Voting controls — Vote Yes/No and Resolve when bounty.isVoting */}
                     {bounty.isVoting && isConnected && (
                       <div className="pt-1 space-y-2">
-                        {/* Vote Yes / Vote No */}
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
-                            disabled={voteClaimHook.isPending}
-                            onClick={() => voteClaimHook.vote(bounty.onChainId, true)}
-                          >
-                            {voteClaimHook.isPending ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              t("detail.voteYes")
+                        {/* Vote Yes / Vote No — active contributors only (issuer auto-voted
+                            YES at submit; non-participants revert NotActiveParticipant) */}
+                        {isVotingParticipant && (
+                          <>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
+                                disabled={voteClaimHook.isPending}
+                                onClick={() => voteClaimHook.vote(bounty.onChainId, true)}
+                              >
+                                {voteClaimHook.isPending ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  t("detail.voteYes")
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 border-red-500/30 text-red-500 hover:bg-red-500/10"
+                                disabled={voteClaimHook.isPending}
+                                onClick={() => voteClaimHook.vote(bounty.onChainId, false)}
+                              >
+                                {voteClaimHook.isPending ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  t("detail.voteNo")
+                                )}
+                              </Button>
+                            </div>
+                            {voteClaimHook.error && (
+                              <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1.5 text-xs text-destructive">
+                                <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
+                                <span>{voteClaimHook.error.message.split("\n")[0]}</span>
+                              </div>
                             )}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 border-red-500/30 text-red-500 hover:bg-red-500/10"
-                            disabled={voteClaimHook.isPending}
-                            onClick={() => voteClaimHook.vote(bounty.onChainId, false)}
-                          >
-                            {voteClaimHook.isPending ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              t("detail.voteNo")
+                            {voteClaimHook.isSuccess && voteClaimHook.hash && (
+                              <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
+                                <CheckCircle2 className="w-3 h-3 shrink-0" />
+                                <span>{t("detail.voteCast")}</span>
+                                <a
+                                  href={getTxUrl(chainId, voteClaimHook.hash)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="ml-auto flex items-center gap-1 hover:underline"
+                                >
+                                  {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </div>
                             )}
-                          </Button>
-                        </div>
-                        {voteClaimHook.error && (
-                          <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1.5 text-xs text-destructive">
-                            <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                            <span>{voteClaimHook.error.message.split("\n")[0]}</span>
-                          </div>
-                        )}
-                        {voteClaimHook.isSuccess && voteClaimHook.hash && (
-                          <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
-                            <CheckCircle2 className="w-3 h-3 shrink-0" />
-                            <span>{t("detail.voteCast")}</span>
-                            <a
-                              href={getTxUrl(chainId, voteClaimHook.hash)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="ml-auto flex items-center gap-1 hover:underline"
-                            >
-                              {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </div>
+                          </>
                         )}
                         {/* Resolve vote */}
                         <Button
@@ -1189,10 +1271,8 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                   variant="compact"
                   showAvatar={true}
                   showCopy={false}
-                  showExplorer={true}
+                  showExplorer={false}
                   avatarSize="xs"
-                  customExplorerUrl={explorerUrl}
-                  onAddressClick={() => window.open(explorerUrl, "_blank", "noopener,noreferrer")}
                 />
               </div>
 
@@ -1257,16 +1337,15 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                 </div>
               </div>
 
-              {isJoinable && participants && participants.length > 0 && (
+              {isJoinable && activeContributors.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Users className="w-4 h-4" />
                     <span className="font-medium">{t("detail.contributors")}</span>
                   </div>
                   <div className="space-y-2 mt-2">
-                    {participants.slice(0, 5).map((addr, i) => {
-                      const amt = participantAmounts?.[i];
-                      const eth = amt !== undefined ? (Number(amt) / 1e18).toFixed(4) : null;
+                    {activeContributors.slice(0, 5).map(({ addr, amount }) => {
+                      const eth = amount !== undefined ? (Number(amount) / 1e18).toFixed(4) : null;
                       return (
                         <div key={addr} className="flex items-center justify-between gap-2">
                           <AddressDisplay
@@ -1285,9 +1364,9 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         </div>
                       );
                     })}
-                    {participants.length > 5 && (
+                    {activeContributors.length > 5 && (
                       <p className="text-xs text-muted-foreground">
-                        {t("detail.moreContributors", { count: participants.length - 5 })}
+                        {t("detail.moreContributors", { count: activeContributors.length - 5 })}
                       </p>
                     )}
                   </div>

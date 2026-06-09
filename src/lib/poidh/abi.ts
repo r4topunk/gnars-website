@@ -5,7 +5,7 @@ export const POIDH_ABI = [
       { internalType: "uint256", name: "bountyId", type: "uint256" },
       { internalType: "string", name: "name", type: "string" },
       { internalType: "string", name: "description", type: "string" },
-      { internalType: "string", name: "imageUri", type: "string" },
+      { internalType: "string", name: "uri", type: "string" },
     ],
     name: "createClaim",
     outputs: [],
@@ -129,11 +129,14 @@ export const POIDH_ABI = [
   {
     inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     name: "bounties",
+    // Matches the public getter for `Bounty[] public bounties` — fields are
+    // returned in struct declaration order (see PoidhV3.sol `struct Bounty`).
     outputs: [
+      { internalType: "uint256", name: "id", type: "uint256" },
+      { internalType: "address", name: "issuer", type: "address" },
       { internalType: "string", name: "name", type: "string" },
       { internalType: "string", name: "description", type: "string" },
       { internalType: "uint256", name: "amount", type: "uint256" },
-      { internalType: "address", name: "issuer", type: "address" },
       { internalType: "address", name: "claimer", type: "address" },
       { internalType: "uint256", name: "createdAt", type: "uint256" },
       { internalType: "uint256", name: "claimId", type: "uint256" },

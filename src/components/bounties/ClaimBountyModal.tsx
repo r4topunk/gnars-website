@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertCircle, ArrowLeftRight, CheckCircle2, ExternalLink, Loader2 } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeftRight,
+  CheckCircle2,
+  ExternalLink,
+  Loader2,
+  Upload,
+  X,
+} from "lucide-react";
 import { arbitrum as thirdwebArbitrum, base as thirdwebBase } from "thirdweb/chains";
 import { useActiveWallet, useActiveWalletChain } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
@@ -35,6 +43,10 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { isConnected } = useUserAddress();
   const activeChain = useActiveWalletChain();
   const activeWallet = useActiveWallet();
@@ -59,6 +71,44 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
   const currentWalletChainName =
     CHAIN_NAMES[walletChainId as keyof typeof CHAIN_NAMES] ?? `Chain ${walletChainId}`;
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadError(null);
+
+    const isVideo = file.type.startsWith("video/");
+    const maxSize = isVideo ? 500 * 1024 * 1024 : 100 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setUploadError(t("claimModal.fileTooLarge"));
+      e.target.value = "";
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/pinata/upload", { method: "POST", body: formData });
+      const json = await res.json();
+      if (!res.ok || !json?.data?.gatewayUrl) {
+        throw new Error(json?.error ?? "upload_failed");
+      }
+      setMediaUrl(json.data.gatewayUrl);
+      setUploadedFileName(file.name);
+    } catch {
+      setUploadError(t("claimModal.uploadError"));
+    } finally {
+      setIsUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const clearUpload = () => {
+    setMediaUrl("");
+    setUploadedFileName(null);
+    setUploadError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !description.trim()) return;
@@ -75,6 +125,9 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
       setName("");
       setDescription("");
       setMediaUrl("");
+      setUploadedFileName(null);
+      setUploadError(null);
+      setIsUploading(false);
       reset();
     }
     setOpen(val);
@@ -174,15 +227,74 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
               <p className="text-xs text-muted-foreground text-right">{description.length}/500</p>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>{t("claimModal.mediaUrlLabel")}</Label>
-              <Input
-                placeholder={t("claimModal.mediaUrlPlaceholder")}
-                value={mediaUrl}
-                onChange={(e) => setMediaUrl(e.target.value)}
-                disabled={isPending}
-                type="url"
+            <div className="space-y-2">
+              <Label>{t("claimModal.mediaLabel")}</Label>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={handleFileChange}
+                disabled={isPending || isUploading}
               />
+
+              {uploadedFileName ? (
+                <div className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm">
+                  <span className="flex items-center gap-2 min-w-0">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span className="truncate">{uploadedFileName}</span>
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 shrink-0"
+                    onClick={clearUpload}
+                    disabled={isPending}
+                  >
+                    <X className="w-4 h-4" />
+                    <span className="sr-only">{t("claimModal.removeFile")}</span>
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isPending || isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {t("claimModal.uploading")}
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      {t("claimModal.uploadButton")}
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {!uploadedFileName && (
+                <>
+                  <p className="text-xs text-muted-foreground text-center">
+                    {t("claimModal.mediaUrlOr")}
+                  </p>
+                  <Input
+                    placeholder={t("claimModal.mediaUrlPlaceholder")}
+                    value={mediaUrl}
+                    onChange={(e) => setMediaUrl(e.target.value)}
+                    disabled={isPending || isUploading}
+                    type="url"
+                  />
+                </>
+              )}
+
+              {uploadError && <p className="text-xs text-destructive">{uploadError}</p>}
             </div>
 
             {error && (
@@ -205,7 +317,9 @@ export function ClaimBountyModal({ bounty, children, onSuccess }: ClaimBountyMod
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isPending || wrongNetwork || !name.trim() || !description.trim()}
+                disabled={
+                  isPending || isUploading || wrongNetwork || !name.trim() || !description.trim()
+                }
               >
                 {isPending ? (
                   <>

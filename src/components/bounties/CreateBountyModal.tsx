@@ -54,7 +54,13 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [reward, setReward] = useState("");
-  const { isConnected } = useUserAddress();
+  const { isConnected, viewMode, canSwitchView, isInAppWallet } = useUserAddress();
+  // POIDH's createSoloBounty/createOpenBounty require msg.sender == tx.origin
+  // (EOA only). The write only signs from a real EOA when the user is in "eoa"
+  // view mode AND has a distinct admin EOA; otherwise it goes through the SA
+  // and reverts with ContractsCannotCreateBounties.
+  const canSignEoa = viewMode === "eoa" && canSwitchView;
+  const needsEoa = isConnected && !canSignEoa;
   const activeChain = useActiveWalletChain();
   const activeWallet = useActiveWallet();
   const walletChainId = activeChain?.id ?? SUPPORTED_CHAINS.BASE;
@@ -95,7 +101,7 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !description.trim() || !reward || wrongNetwork) return;
+    if (!name.trim() || !description.trim() || !reward || wrongNetwork || needsEoa) return;
     try {
       if (type === "open") {
         await openBounty.create(name.trim(), description.trim(), reward);
@@ -245,6 +251,16 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
               </div>
             )}
 
+            {/* EOA-required notice — POIDH blocks smart-account bounty creation */}
+            {needsEoa && (
+              <div className="flex items-start gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>
+                  {isInAppWallet ? t("createModal.eoaRequiredInApp") : t("createModal.eoaRequired")}
+                </span>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label>{t("createModal.titleLabel")}</Label>
               <Input
@@ -309,7 +325,12 @@ export function CreateBountyModal({ children }: CreateBountyModalProps) {
                 type="submit"
                 className="flex-1"
                 disabled={
-                  isPending || wrongNetwork || !name.trim() || !description.trim() || !reward
+                  isPending ||
+                  wrongNetwork ||
+                  needsEoa ||
+                  !name.trim() ||
+                  !description.trim() ||
+                  !reward
                 }
               >
                 {isPending ? (

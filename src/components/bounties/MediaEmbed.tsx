@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { ExternalLink } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -20,6 +21,7 @@ interface MediaEmbedProps {
 }
 
 export function MediaEmbed({ url, alt = "", className = "" }: MediaEmbedProps) {
+  const t = useTranslations("bounties");
   const { data, isLoading } = useQuery<MediaInfo>({
     queryKey: ["media-type", url],
     queryFn: async () => {
@@ -43,7 +45,7 @@ export function MediaEmbed({ url, alt = "", className = "" }: MediaEmbedProps) {
         className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-border text-sm text-primary hover:bg-muted transition-colors"
       >
         <ExternalLink className="w-4 h-4" />
-        View media
+        {t("detail.viewMedia")}
       </a>
     );
   }
