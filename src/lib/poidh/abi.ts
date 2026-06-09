@@ -5,7 +5,7 @@ export const POIDH_ABI = [
       { internalType: "uint256", name: "bountyId", type: "uint256" },
       { internalType: "string", name: "name", type: "string" },
       { internalType: "string", name: "description", type: "string" },
-      { internalType: "string", name: "imageUri", type: "string" },
+      { internalType: "string", name: "uri", type: "string" },
     ],
     name: "createClaim",
     outputs: [],

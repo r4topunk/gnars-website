@@ -81,7 +81,6 @@ const POIDH_ERROR_MESSAGES: Record<string, string> = {
   WrongCaller: "You are not allowed to perform this action.",
   IssuerCannotClaim: "The bounty creator cannot submit a claim.",
   IssuerCannotWithdraw: "The bounty creator cannot withdraw as a contributor.",
-  IssuerCannotWithdrawFromOpenBounty: "The bounty creator can't withdraw as a contributor.",
   NotActiveParticipant: "You are not a participant in this bounty.",
   NotOpenBounty: "This action is only available for open bounties.",
   NotSoloBounty: "This action is only available for solo bounties.",
