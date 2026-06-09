@@ -340,6 +340,11 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   });
   const participants = participantsData?.[0] as `0x${string}`[] | undefined;
   const participantAmounts = participantsData?.[1] as bigint[] | undefined;
+  // Withdrawn participants leave a zeroed slot (address(0)) in the array — drop
+  // them so the contributors list doesn't render "invalid address" entries.
+  const activeContributors = (participants ?? [])
+    .map((addr, i) => ({ addr, amount: participantAmounts?.[i] }))
+    .filter((c) => c.addr && !/^0x0+$/i.test(c.addr));
 
   const { data: hadExternalContributor } = useReadContract({
     address: POIDH_CONTRACTS[chainId],
@@ -361,6 +366,11 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
   const status = getStatus(bounty);
   const isCreator = address?.toLowerCase() === bounty.issuer.toLowerCase();
   const isActive = !bounty.isCanceled && !bounty.isVoting && !bounty.isCompleted;
+  // Only active contributors (excluding the issuer, who auto-votes YES on submit)
+  // can cast a vote. Non-participants revert with NotActiveParticipant on-chain.
+  const isVotingParticipant = Boolean(
+    address && !isCreator && participants?.some((p) => p.toLowerCase() === address.toLowerCase()),
+  );
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -731,12 +741,13 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                       </div>
                     )}
 
-                    {/* Submit for Vote — show for contributors/creator when bounty is not yet in voting */}
+                    {/* Submit for Vote — issuer only (contract: submitClaimForVote reverts
+                        WrongCaller for non-issuers) and only on open bounties with contributors */}
                     {!bounty.isVoting &&
                       !bounty.isCanceled &&
                       isConnected &&
-                      (isCreator ||
-                        participants?.some((p) => p.toLowerCase() === address?.toLowerCase())) && (
+                      isCreator &&
+                      hadExternalContributor && (
                         <div className="pt-1">
                           <Button
                             size="sm"
@@ -773,54 +784,59 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                     {/* Voting controls — Vote Yes/No and Resolve when bounty.isVoting */}
                     {bounty.isVoting && isConnected && (
                       <div className="pt-1 space-y-2">
-                        {/* Vote Yes / Vote No */}
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
-                            disabled={voteClaimHook.isPending}
-                            onClick={() => voteClaimHook.vote(bounty.onChainId, true)}
-                          >
-                            {voteClaimHook.isPending ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              t("detail.voteYes")
+                        {/* Vote Yes / Vote No — active contributors only (issuer auto-voted
+                            YES at submit; non-participants revert NotActiveParticipant) */}
+                        {isVotingParticipant && (
+                          <>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
+                                disabled={voteClaimHook.isPending}
+                                onClick={() => voteClaimHook.vote(bounty.onChainId, true)}
+                              >
+                                {voteClaimHook.isPending ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  t("detail.voteYes")
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 border-red-500/30 text-red-500 hover:bg-red-500/10"
+                                disabled={voteClaimHook.isPending}
+                                onClick={() => voteClaimHook.vote(bounty.onChainId, false)}
+                              >
+                                {voteClaimHook.isPending ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  t("detail.voteNo")
+                                )}
+                              </Button>
+                            </div>
+                            {voteClaimHook.error && (
+                              <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1.5 text-xs text-destructive">
+                                <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
+                                <span>{voteClaimHook.error.message.split("\n")[0]}</span>
+                              </div>
                             )}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 border-red-500/30 text-red-500 hover:bg-red-500/10"
-                            disabled={voteClaimHook.isPending}
-                            onClick={() => voteClaimHook.vote(bounty.onChainId, false)}
-                          >
-                            {voteClaimHook.isPending ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              t("detail.voteNo")
+                            {voteClaimHook.isSuccess && voteClaimHook.hash && (
+                              <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
+                                <CheckCircle2 className="w-3 h-3 shrink-0" />
+                                <span>{t("detail.voteCast")}</span>
+                                <a
+                                  href={getTxUrl(chainId, voteClaimHook.hash)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="ml-auto flex items-center gap-1 hover:underline"
+                                >
+                                  {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </div>
                             )}
-                          </Button>
-                        </div>
-                        {voteClaimHook.error && (
-                          <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1.5 text-xs text-destructive">
-                            <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                            <span>{voteClaimHook.error.message.split("\n")[0]}</span>
-                          </div>
-                        )}
-                        {voteClaimHook.isSuccess && voteClaimHook.hash && (
-                          <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
-                            <CheckCircle2 className="w-3 h-3 shrink-0" />
-                            <span>{t("detail.voteCast")}</span>
-                            <a
-                              href={getTxUrl(chainId, voteClaimHook.hash)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="ml-auto flex items-center gap-1 hover:underline"
-                            >
-                              {t("detail.viewTx")} <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </div>
+                          </>
                         )}
                         {/* Resolve vote */}
                         <Button
@@ -1246,16 +1262,15 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                 </div>
               </div>
 
-              {isJoinable && participants && participants.length > 0 && (
+              {isJoinable && activeContributors.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Users className="w-4 h-4" />
                     <span className="font-medium">{t("detail.contributors")}</span>
                   </div>
                   <div className="space-y-2 mt-2">
-                    {participants.slice(0, 5).map((addr, i) => {
-                      const amt = participantAmounts?.[i];
-                      const eth = amt !== undefined ? (Number(amt) / 1e18).toFixed(4) : null;
+                    {activeContributors.slice(0, 5).map(({ addr, amount }) => {
+                      const eth = amount !== undefined ? (Number(amount) / 1e18).toFixed(4) : null;
                       return (
                         <div key={addr} className="flex items-center justify-between gap-2">
                           <AddressDisplay
@@ -1274,9 +1289,9 @@ export function BountyDetailView({ initialBounty, chainId, bountyId }: BountyDet
                         </div>
                       );
                     })}
-                    {participants.length > 5 && (
+                    {activeContributors.length > 5 && (
                       <p className="text-xs text-muted-foreground">
-                        {t("detail.moreContributors", { count: participants.length - 5 })}
+                        {t("detail.moreContributors", { count: activeContributors.length - 5 })}
                       </p>
                     )}
                   </div>

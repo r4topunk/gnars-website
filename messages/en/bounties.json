@@ -152,6 +152,8 @@
     "wrongNetwork": "Your wallet is on {currentChain}. Switch to {targetChain} to continue.",
     "switchTo": "Switch to {chain}",
     "switching": "Switching…",
+    "eoaRequired": "Creating a bounty must be signed by your wallet (EOA). Open the wallet panel, switch to EOA mode, then try again.",
+    "eoaRequiredInApp": "Creating a bounty isn't supported with social/email login. Connect an external wallet (e.g. MetaMask) to create one.",
     "titleLabel": "Title",
     "titlePlaceholder": "e.g. Land a kickflip down the 5-stair",
     "descriptionLabel": "Description",
