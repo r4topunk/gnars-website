@@ -12,7 +12,7 @@ Project guide for the Gnars DAO website. Keep terse, keep current.
 
 ## Project Overview
 
-Next.js 15.5 App Router site for Gnars DAO on Base (chain ID 8453). Built on Nouns Builder architecture. Wallet layer is split:
+Next.js 16 App Router site (React 19) for Gnars DAO on Base (chain ID 8453). Built on Nouns Builder architecture. Wallet layer is split:
 
 - **thirdweb v5** — login + writes + account abstraction (`sponsorGas: true`)
 - **wagmi v2 + viem** — reads transport only (connectors array empty)
@@ -26,21 +26,23 @@ pnpm start         # prod server
 pnpm lint          # eslint — run before PR
 pnpm format        # prettier write
 pnpm format:check  # prettier check
+pnpm test          # vitest unit tests (src/**/*.test.ts)
 pnpm exec playwright test  # e2e tests (tests/e2e/)
 ```
 
-No unit test runner; Playwright e2e only. `tests/e2e/propdates.spec.ts`, `tests/e2e/gnars-gov.spec.ts`.
+Unit tests via vitest (`test`, `test:watch`, `test:coverage`) — currently cover `src/lib/proposal-*`. Playwright e2e specs in `tests/e2e/`: `propdates`, `gnars-gov`, `i18n`, `verify-nft-multiselect`.
 
 ## Source Layout
 
 ```
 src/
-├── app/              # App Router — 25+ routes incl. /auctions /proposals /propose /tv /members /treasury /feed /propdates /droposals /installations /blogs /coin-proposal /community/bounties /map /mural
-│   ├── api/          # 18 route groups (alchemy, coins, ens, og, pinata, propdates, proposals, treasury, tv, …)
+├── app/              # App Router routes incl. /auctions /proposals /propose /tv /members /treasury /feed /propdates /droposals /installations /blogs /coin-proposal /community/bounties /map /mural /swap /rounds
+│   ├── api/          # ~21 route groups (alchemy, coins, ens, og, pinata, propdates, proposals, treasury, tv, 0x, rounds, …)
 │   └── md/           # markdown content-negotiation target (see proxy.ts)
-├── components/       # 24 feature dirs + ui/ (shadcn)
-├── hooks/            # 40 hooks — see naming note below
-├── services/         # 16 data-layer modules (auctions, proposals, treasury, feed, members, farcaster, poidh, snapshot, …)
+├── components/       # ~24 feature dirs + ui/ (shadcn)
+├── hooks/            # ~38 hooks — see naming note below
+├── i18n/             # next-intl config (routing, request, navigation)
+├── services/         # 17 data-layer modules (auctions, proposals, treasury, feed, members, farcaster, poidh, snapshot, rounds, …)
 ├── lib/              # config.ts, thirdweb.ts, wagmi.ts, subgraph.ts, ipfs.ts, zora-*, proposal-*, og-*, schemas/, types/
 ├── data/             # static JSON (installations.json)
 ├── types/            # shared TS interfaces
@@ -51,7 +53,7 @@ src/
 
 ### Hook naming (drift to be aware of)
 
-31 files use `use-kebab-case.ts`, 9 use `useCamelCase.ts` (`useCastVote`, `useCreateCoin`, `useDelegate`, `useMintDroposal`, `usePoidhBounties`, `useVotes`, etc.). Prefer kebab-case for new hooks; don't rename existing ones speculatively.
+Most files use `use-kebab-case.ts`; 9 use `useCamelCase.ts` (`useCastVote`, `useCreateCoin`, `useDelegate`, `useMintDroposal`, `usePoidhBounties`, `useVotes`, etc.). Prefer kebab-case for new hooks; don't rename existing ones speculatively.
 
 ## Key Config Files
 
@@ -84,6 +86,13 @@ src/
 - Mobile-first; all DAO features must work on mobile.
 - Dark mode via `next-themes`.
 
+## i18n (next-intl)
+
+- Locales: EN + PT-BR. Messages in `messages/{en,pt-br}/*.json` (one namespace per file); config in `src/i18n/`.
+- Never mix EN and PT in one string ("Proposals recentes" → "Propostas recentes"). New UI strings go through next-intl, both locales, same change.
+- PT-BR glossary: bid → lance, auction → leilão, treasury → **tesouro** (not "tesouraria"), governance → governança, proposal → proposta, claim → resgate, delegation → delegação ("delegate" as a person stays "delegate").
+- Tone guide: `docs/i18n/tone-brief.md` — update it in the same change as any glossary/tone decision.
+
 ## Environment Variables
 
 Full list in `env.example`. Summary:
@@ -113,6 +122,7 @@ NEXT_PUBLIC_ZORA_API_KEY
 COINGECKO_API_KEY
 PINATA_JWT
 NEYNAR_API_KEY
+ZEROX_API_KEY        # 0x Swap API (server-only)
 
 # Optional
 USDC_BASE
@@ -128,6 +138,7 @@ Secrets never go in client code. `NEXT_PUBLIC_*` is public by definition.
 - 3D / viz: `three`, `@react-three/fiber`, `@react-three/drei`, `react-globe.gl`, `ogl`, `gsap`, `recharts`
 - Maps: `leaflet`, `react-leaflet`, `leaflet-draw`, `leaflet.markercluster`
 - Forms: `react-hook-form`, `zod`
+- Data/UX: `@tanstack/react-query`, `next-intl`, `sonner` (toasts), `framer-motion`, `minisearch`, `pg` (rounds)
 - `@rainbow-me/rainbowkit` is in `package.json` but unused in `src/` — slated for removal.
 
 ## Important Notes
@@ -136,6 +147,15 @@ Secrets never go in client code. `NEXT_PUBLIC_*` is public by definition.
 - Deploy target: Vercel.
 - Do not run `pnpm build` unless explicitly asked.
 - Before PR: `pnpm lint` + `pnpm format:check`.
+
+## Definition of Done (rules from past mistakes)
+
+- **Verify UI changes at runtime.** Any UI change: run `pnpm dev`, exercise the changed flow (and its mobile layout) before declaring done or pushing. Reviewing a PR means running it, not just reading the diff. Past misses: missing cursor-pointer, broken media rendering, wrong links — all found by the user clicking around.
+- **Address displays link to the internal profile** `/members/[address]`, never Basescan.
+- **Never invent user-facing status copy** ("coming soon", "beta", "unstable") from code state — confirm the feature's real status with the user first.
+- **Format + lint before every commit**, not after CI flags it: `pnpm format` on touched files, then `pnpm lint`. Pre-existing lint errors outside your diff: report, don't fix.
+- **End every change report with explicit git state**: branch, commit hash, pushed or not, PR URL. Never commit or push without explicit instruction.
+- **Continuing an existing PR**: `git fetch origin pull/<N>/head:pr-<N>` and commit on that branch — don't create a new one. Fresh worktrees need `pnpm install` first (or invoke binaries from the main repo's `node_modules/.bin/`).
 
 ## Pull Request Protocol
 
