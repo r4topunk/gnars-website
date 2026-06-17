@@ -23,7 +23,7 @@ export default async function Image({
 
   try {
     const res = await fetch(`${baseUrl}/api/poidh/bounty/${chainId}/${id}`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 300 },
     });
     if (res.ok) {
       const data = await res.json();

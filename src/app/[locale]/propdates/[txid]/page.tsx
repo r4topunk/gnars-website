@@ -5,7 +5,7 @@ import { PropdateDetail } from "@/components/propdates/PropdateDetail";
 import { PropdateDetailSkeleton } from "@/components/propdates/PropdateDetailSkeleton";
 import { getPropdateByTxid } from "@/services/propdates";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ txid: string; locale: string }>;

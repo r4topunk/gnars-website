@@ -13,7 +13,7 @@ import { getProposalByIdOrNumber } from "@/services/proposals";
 export const alt = "Gnars DAO Proposal";
 export const size = MINIAPP_SIZE;
 export const contentType = "image/png";
-export const revalidate = 60;
+export const revalidate = 1800;
 export const runtime = "nodejs";
 
 interface Props {

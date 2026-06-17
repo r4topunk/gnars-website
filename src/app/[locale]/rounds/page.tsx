@@ -3,7 +3,7 @@ import { RoundsIndexView } from "@/components/rounds/RoundsIndexView";
 import type { Round } from "@/features/rounds/types";
 import { listPublicRounds } from "@/services/rounds";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

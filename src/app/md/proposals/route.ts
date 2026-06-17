@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { listProposals } from "@/services/proposals";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 const ORDER: ProposalStatus[] = [
   ProposalStatus.ACTIVE,

@@ -53,14 +53,21 @@ export async function GET(
         }
       : null;
 
-    return NextResponse.json({
-      displayName,
-      avatar,
-      tokenCount,
-      delegatorCount,
-      voteCount,
-      creatorCoin,
-    });
+    return NextResponse.json(
+      {
+        displayName,
+        avatar,
+        tokenCount,
+        delegatorCount,
+        voteCount,
+        creatorCoin,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600",
+        },
+      },
+    );
   } catch (error) {
     console.error("Error fetching member OG data:", error);
     return NextResponse.json(

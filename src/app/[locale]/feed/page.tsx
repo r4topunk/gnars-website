@@ -46,7 +46,7 @@ export async function generateMetadata({
 }
 
 // Revalidate every 60 seconds for fresh data
-export const revalidate = 60;
+export const revalidate = 300;
 
 /**
  * Fetch feed events from The Graph subgraph

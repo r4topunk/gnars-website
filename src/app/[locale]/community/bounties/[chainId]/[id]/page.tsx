@@ -5,7 +5,7 @@ import { BountyDetailView } from "@/components/bounties/BountyDetailView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchPoidhBounty } from "@/services/poidh";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ chainId: string; id: string }>;

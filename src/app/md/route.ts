@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { DAO_ADDRESSES, DAO_DESCRIPTION } from "@/lib/config";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export async function GET() {
   const md = `# Gnars DAO

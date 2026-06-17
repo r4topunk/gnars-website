@@ -5,7 +5,7 @@ import { ProposalsGridSkeleton } from "@/components/proposals/ProposalsGrid";
 import { ProposalsView } from "@/components/proposals/ProposalsView";
 import { listMultiChainProposals } from "@/services/multi-chain-proposals";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,

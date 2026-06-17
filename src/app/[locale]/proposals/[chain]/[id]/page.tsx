@@ -16,7 +16,7 @@ import {
 } from "@/services/multi-chain-proposals";
 import { listProposals } from "@/services/proposals";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   try {

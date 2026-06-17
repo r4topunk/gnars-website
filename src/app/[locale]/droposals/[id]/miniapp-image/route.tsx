@@ -1,5 +1,5 @@
 export const runtime = "edge";
-export const revalidate = 300;
+export const revalidate = 1800;
 
 interface Props {
   params: Promise<{ id: string }>;

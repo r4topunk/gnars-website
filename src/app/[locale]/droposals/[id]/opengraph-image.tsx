@@ -9,7 +9,7 @@ import { subgraphQuery } from "@/lib/subgraph";
 export const alt = "Gnars DAO Droposal";
 export const size = OG_SIZE;
 export const contentType = "image/png";
-export const revalidate = 300;
+export const revalidate = 1800;
 
 interface Props {
   params: Promise<{ id: string; locale: string }>;

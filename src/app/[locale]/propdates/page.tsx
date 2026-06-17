@@ -39,7 +39,7 @@ export async function generateMetadata({
   };
 }
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 interface PropdatesPageProps {
   params: Promise<{ locale: string }>;

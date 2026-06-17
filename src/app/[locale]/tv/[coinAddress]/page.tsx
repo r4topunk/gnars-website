@@ -6,7 +6,7 @@ import { GnarsTVFeed } from "@/components/tv/GnarsTVFeed";
 import { BASE_URL } from "@/lib/config";
 import { TV_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 
-export const revalidate = 120;
+export const revalidate = 300;
 
 type Props = {
   params: Promise<{ coinAddress: string; locale: string }>;

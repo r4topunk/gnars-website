@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { listSnapshotProposals } from "@/services/snapshot";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Snapshot Proposals — Gnars DAO",
