@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProposalByIdOrNumber } from "@/services/proposals";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

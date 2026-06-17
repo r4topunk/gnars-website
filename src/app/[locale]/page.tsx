@@ -18,7 +18,7 @@ import { Gnar3DTVClient } from "@/components/tv/Gnar3DTVClient";
 import { HeroTVObserver } from "@/components/tv/HeroTVObserver";
 import { Link } from "@/i18n/navigation";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,

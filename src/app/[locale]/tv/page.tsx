@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { GnarsTVFeed } from "@/components/tv/GnarsTVFeed";
 
-export const revalidate = 120;
+export const revalidate = 300;
 
 type Props = {
   params: Promise<{ locale: string }>;

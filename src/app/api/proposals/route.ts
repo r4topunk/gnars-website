@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { listProposals } from "@/services/proposals";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 60; // Revalidate every 60 seconds
+// Dynamic (reads search params), so `revalidate` is ignored — the response is
+// cached at the Vercel CDN via the Cache-Control header on the success response.
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +15,11 @@ export async function GET(request: NextRequest) {
 
     const proposals = await listProposals(limit, page);
 
-    return NextResponse.json(proposals);
+    return NextResponse.json(proposals, {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
   } catch (error) {
     console.error("Failed to fetch proposals:", error);
     return NextResponse.json({ error: "Failed to fetch proposals" }, { status: 500 });

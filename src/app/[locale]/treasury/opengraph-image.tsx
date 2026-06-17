@@ -7,8 +7,11 @@ import { formatEthDisplay, formatUsdDisplay, OG_COLORS, OG_FONTS, OG_SIZE } from
 export const alt = "Gnars DAO Treasury";
 export const size = OG_SIZE;
 export const contentType = "image/png";
-export const revalidate = 300;
-export const dynamic = "force-dynamic";
+// Route is dynamic (reads request headers to build its API base URL), so it
+// can't be ISR-cached. Instead the rendered PNG is cached at the Vercel CDN via
+// the Cache-Control header on each ImageResponse below — repeat crawler hits are
+// served from the edge with zero function CPU. Keeps us under Hobby CPU/transfer.
+const OG_CACHE_CONTROL = "public, max-age=0, s-maxage=1800, stale-while-revalidate=3600";
 
 type TokenBalance = {
   contractAddress?: string;
@@ -266,7 +269,7 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
         </div>
       </div>
     ),
-    { ...size },
+    { ...size, headers: { "Cache-Control": OG_CACHE_CONTROL } },
   );
 }
 
@@ -301,6 +304,6 @@ function renderFallback(message: string) {
         </div>
       </div>
     ),
-    { ...size },
+    { ...size, headers: { "Cache-Control": OG_CACHE_CONTROL } },
   );
 }

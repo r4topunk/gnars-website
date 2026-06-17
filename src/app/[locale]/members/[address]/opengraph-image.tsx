@@ -9,6 +9,11 @@ export const size = {
 };
 export const contentType = "image/png";
 
+// Per-address OG image. The route is dynamic (reads request headers), so instead
+// of ISR (one write per address — explodes on Hobby) the rendered PNG is cached
+// at the Vercel CDN via Cache-Control. Repeat crawler hits cost zero function CPU.
+const OG_CACHE_CONTROL = "public, max-age=0, s-maxage=1800, stale-while-revalidate=3600";
+
 interface Props {
   params: Promise<{ address: string; locale: string }>;
 }
@@ -35,7 +40,7 @@ export default async function Image({ params }: Props) {
     const baseUrl =
       (await getOriginFromHeaders()) || process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com";
     const response = await fetch(`${baseUrl}/api/member-og-data/${address}`, {
-      cache: "no-store",
+      next: { revalidate: 1800 },
     });
 
     let data = {
@@ -283,6 +288,7 @@ export default async function Image({ params }: Props) {
       ),
       {
         ...size,
+        headers: { "Cache-Control": OG_CACHE_CONTROL },
       },
     );
   } catch (error) {
@@ -306,7 +312,7 @@ export default async function Image({ params }: Props) {
           {labels.fallback}
         </div>
       ),
-      { ...size },
+      { ...size, headers: { "Cache-Control": OG_CACHE_CONTROL } },
     );
   }
 }

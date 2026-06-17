@@ -8,8 +8,7 @@ import { subgraphQuery } from "@/lib/subgraph";
 export const alt = "Gnars DAO Auctions";
 export const size = OG_SIZE;
 export const contentType = "image/png";
-export const revalidate = 60;
-export const dynamic = "force-dynamic";
+export const revalidate = 1800;
 
 type AuctionData = {
   token: { tokenId: string; image: string };
