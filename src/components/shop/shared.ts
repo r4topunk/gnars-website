@@ -4,6 +4,8 @@ export interface ShopCardLabels {
   soldOut: string;
   comingSoon: string;
   featured: string;
+  revealSoon: string;
+  preview: string;
 }
 
 export function formatPrice(priceUSD?: number) {

@@ -106,10 +106,59 @@
       "vendor": "KeepKey",
       "tags": ["apparel", "crypto", "merch"],
       "status": "active"
+    },
+    {
+      "id": "gnars-tee",
+      "slug": "gnars-tee",
+      "title": "Gnars Tee",
+      "description": "Official Gnars tee. Print-on-demand, shipped worldwide. Reveal soon.",
+      "images": ["/gnars.webp"],
+      "priceUSD": 32,
+      "type": "native",
+      "vendor": "Gnars",
+      "tags": ["apparel", "gnars"],
+      "status": "coming-soon",
+      "featured": true
+    },
+    {
+      "id": "gnars-deck",
+      "slug": "gnars-deck",
+      "title": "Gnars Deck",
+      "description": "Official Gnars skate deck. Reveal soon.",
+      "images": ["/gnars.webp"],
+      "priceUSD": 70,
+      "type": "native",
+      "vendor": "Gnars",
+      "tags": ["skate", "deck", "gnars"],
+      "status": "coming-soon"
+    },
+    {
+      "id": "gnars-hoodie",
+      "slug": "gnars-hoodie",
+      "title": "Gnars Hoodie",
+      "description": "Official Gnars hoodie. Print-on-demand, shipped worldwide. Reveal soon.",
+      "images": ["/gnars.webp"],
+      "priceUSD": 60,
+      "type": "native",
+      "vendor": "Gnars",
+      "tags": ["apparel", "gnars"],
+      "status": "coming-soon"
+    },
+    {
+      "id": "gnars-beanie",
+      "slug": "gnars-beanie",
+      "title": "Gnars Beanie",
+      "description": "Official Gnars beanie. Reveal soon.",
+      "images": ["/gnars.webp"],
+      "priceUSD": 28,
+      "type": "native",
+      "vendor": "Gnars",
+      "tags": ["apparel", "gnars"],
+      "status": "coming-soon"
     }
   ],
   "meta": {
-    "total": 8,
-    "lastUpdated": "2026-06-20"
+    "total": 12,
+    "lastUpdated": "2026-06-21"
   }
 }

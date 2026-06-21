@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import type { ShopItem } from "@/types/shop";
 import { formatPrice } from "./shared";
+import { SimulatePurchaseDialog } from "./SimulatePurchaseDialog";
 
 export function ShopDetail({ item }: { item: ShopItem }) {
   const t = useTranslations("shop");
@@ -66,9 +67,7 @@ export function ShopDetail({ item }: { item: ShopItem }) {
                 </a>
               </Button>
             ) : (
-              <Button size="lg" disabled>
-                {t("detail.checkoutComingSoon")}
-              </Button>
+              <SimulatePurchaseDialog item={item} />
             )}
           </div>
         </div>

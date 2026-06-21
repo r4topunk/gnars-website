@@ -13,11 +13,28 @@
     "viewDetails": "View details",
     "soldOut": "Sold out",
     "comingSoon": "Coming soon",
-    "featured": "Featured"
+    "featured": "Featured",
+    "revealSoon": "Reveal soon",
+    "preview": "Preview"
   },
   "detail": {
     "backToShop": "Back to shop",
     "checkoutComingSoon": "Checkout coming soon"
+  },
+  "simulate": {
+    "cta": "Simulate purchase (test)",
+    "title": "Simulated checkout",
+    "disclaimer": "This is a test flow — no payment is taken and no order is placed.",
+    "fullName": "Full name",
+    "email": "Email",
+    "country": "Country",
+    "shippingNote": "Worldwide shipping is included in the price.",
+    "pay": "Pay {price} (simulated)",
+    "processing": "Processing payment…",
+    "successTitle": "Order placed (simulated)",
+    "successBody": "The purchase flow works. No payment was taken.",
+    "orderId": "Order",
+    "done": "Done"
   },
   "notFound": {
     "title": "Product Not Found",

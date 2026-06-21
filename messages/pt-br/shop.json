@@ -13,11 +13,28 @@
     "viewDetails": "Ver detalhes",
     "soldOut": "Esgotado",
     "comingSoon": "Em breve",
-    "featured": "Destaque"
+    "featured": "Destaque",
+    "revealSoon": "Em breve",
+    "preview": "Prévia"
   },
   "detail": {
     "backToShop": "Voltar à loja",
     "checkoutComingSoon": "Finalização de compra em breve"
+  },
+  "simulate": {
+    "cta": "Simular compra (teste)",
+    "title": "Checkout simulado",
+    "disclaimer": "Este é um fluxo de teste — nenhum pagamento é cobrado e nenhum pedido é feito.",
+    "fullName": "Nome completo",
+    "email": "E-mail",
+    "country": "País",
+    "shippingNote": "O frete internacional está incluso no preço.",
+    "pay": "Pagar {price} (simulado)",
+    "processing": "Processando pagamento…",
+    "successTitle": "Pedido realizado (simulado)",
+    "successBody": "O fluxo de compra funciona. Nenhum pagamento foi cobrado.",
+    "orderId": "Pedido",
+    "done": "Concluir"
   },
   "notFound": {
     "title": "Produto não encontrado",

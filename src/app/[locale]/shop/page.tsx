@@ -53,6 +53,8 @@ export default async function ShopPage({ params }: { params: Promise<{ locale: s
     soldOut: t("card.soldOut"),
     comingSoon: t("card.comingSoon"),
     featured: t("card.featured"),
+    revealSoon: t("card.revealSoon"),
+    preview: t("card.preview"),
   };
 
   return (
