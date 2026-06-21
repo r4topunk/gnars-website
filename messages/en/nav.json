@@ -47,6 +47,10 @@
       "swap": {
         "title": "Swap",
         "description": "Trade tokens on Base via 0x — best price across 150+ DEXes"
+      },
+      "shop": {
+        "title": "Shop",
+        "description": "Gear and gnar from the community and partner stores — coming soon, not available yet"
       }
     },
     "community": {
