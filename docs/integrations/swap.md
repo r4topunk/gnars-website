@@ -36,11 +36,11 @@ parameters can be injected without exposing the recipient address in the client 
 
 ## Configuration
 
-| Setting         | Source                                       | Notes                                                                                                      |
-| --------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `ZEROX_API_KEY` | env (server-only)                            | 0x API key. Required — proxy returns `500` without it.                                                     |
-| Fee recipient   | `getSwapFeeRecipient` in `src/lib/config.ts` | Base swaps route fees to the Gnars split contract. Non-Base swaps route to the multichain custody address. |
-| Fee rate        | `SWAP_FEE_BPS` in `src/lib/config.ts`        | Defaults to `50` (0.5%). Edit the constant to change.                                                      |
+| Setting         | Source                                       | Notes                                                                                                     |
+| --------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `ZEROX_API_KEY` | env (server-only)                            | 0x API key. Required — proxy returns `500` without it.                                                    |
+| Fee recipient   | `getSwapFeeRecipient` in `src/lib/config.ts` | Base swaps route fees to the Gnars split contract. Non-Base swaps route to the cross-chain fee recipient. |
+| Fee rate        | `SWAP_FEE_BPS` in `src/lib/config.ts`        | Defaults to `50` (0.5%). Edit the constant to change.                                                     |
 
 Only `ZEROX_API_KEY` is read from the environment. Everything else ships with the
 code so the fee destination and rate are auditable in git rather than hidden in

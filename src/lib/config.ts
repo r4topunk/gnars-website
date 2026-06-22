@@ -58,15 +58,14 @@ export const DROPOSAL_DEFAULT_MINT_LIMIT = 1000000 as const;
 // /swap (0x Swap API) — affiliate fee taken on the bought token when the
 // user keeps the "Support Gnars treasury" checkbox checked.
 // Recipient depends on chain: Base swaps land in the Gnars split contract;
-// other chains route to a multichain custody address that the DAO bridges
-// back periodically.
+// other chains route to the cross-chain fee recipient wallet.
 export const SWAP_FEE_BPS = 50 as const; // 0.5%
 
 export const SWAP_FEE_RECIPIENT_BASE =
   "0x15E69fD67DcC17E061Ceeb93DaC791e0f5aF0Eae" as `0x${string}`;
 
 export const SWAP_FEE_RECIPIENT_MULTICHAIN =
-  "0xa642b91ff941fb68919d1877e9937f3e369dfd68" as `0x${string}`;
+  "0x96C37393B79aD7EABdF9Ccf82C2EDAd3d3c0eEA2" as `0x${string}`;
 
 export function getSwapFeeRecipient(chainId: number): `0x${string}` {
   return chainId === CHAIN.id ? SWAP_FEE_RECIPIENT_BASE : SWAP_FEE_RECIPIENT_MULTICHAIN;
