@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { DroposalEmbed } from "@/components/nogglesrails/DroposalEmbed";
+import { RailPropdates } from "@/components/nogglesrails/RailPropdates";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getRailBySlug, NOGGLES_RAILS } from "@/content/nogglesrails";
@@ -145,6 +146,9 @@ export default async function NogglesRailDetailPage({ params }: PageProps) {
             <h2 className="mb-2 text-lg font-semibold">{t("nogglesrails.detail.about")}</h2>
             <p className="leading-relaxed text-muted-foreground">{rail.description}</p>
           </div>
+
+          {/* Onchain updates (auto-linked from the funding proposal's propdates) */}
+          {rail.proposalNumber != null && <RailPropdates proposalNumber={rail.proposalNumber} />}
 
           {/* Gallery */}
           {gallery.length > 0 && (
