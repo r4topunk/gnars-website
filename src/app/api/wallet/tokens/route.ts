@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { formatUnits, getAddress, isAddress } from "viem";
 import type { WalletToken } from "@/app/[locale]/swap/chains";
+import { isBelowMinimumZoraMarketCap } from "@/lib/zora-market-cap";
 
 const ALCHEMY_RPC_BASES: Record<string, string> = {
   "8453": "https://base-mainnet.g.alchemy.com/v2",
@@ -30,6 +32,35 @@ type AlchemyMetaResult = {
   decimals: number | null;
   logo: string | null;
 };
+
+type ZoraCoinSummary = {
+  marketCap?: string | number | null;
+};
+
+async function fetchZoraCoinsByAddress(
+  chainId: string,
+  tokens: { contractAddress: string }[],
+): Promise<Map<string, ZoraCoinSummary>> {
+  if (chainId !== "8453" || tokens.length === 0) return new Map();
+
+  const key = process.env.NEXT_PUBLIC_ZORA_API_KEY;
+  if (key) setApiKey(key);
+
+  const entries = await Promise.all(
+    tokens.map(async (token) => {
+      try {
+        const address = getAddress(token.contractAddress);
+        const res = await getCoin({ address, chain: 8453 });
+        const coin = res?.data?.zora20Token as ZoraCoinSummary | null | undefined;
+        return coin ? ([address.toLowerCase(), coin] as const) : null;
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  return new Map(entries.filter((entry): entry is readonly [string, ZoraCoinSummary] => !!entry));
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -98,7 +129,7 @@ export async function GET(req: NextRequest) {
     ? `https://api.coingecko.com/api/v3/simple/token_price/${cgPlatform}?contract_addresses=${cgAddresses}&vs_currencies=usd`
     : null;
 
-  const [metaRes, cgRes] = await Promise.all([
+  const [metaRes, cgRes, zoraCoinsByAddress] = await Promise.all([
     fetch(rpcUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -111,6 +142,7 @@ export async function GET(req: NextRequest) {
           next: { revalidate: 300 }, // prices: 5-min cache
         })
       : Promise.resolve(null),
+    fetchZoraCoinsByAddress(chainId, nonZero),
   ]);
 
   if (!metaRes.ok) {
@@ -131,6 +163,9 @@ export async function GET(req: NextRequest) {
       if (!meta?.symbol || !meta?.name || meta.decimals == null) return null;
 
       const checksumAddr = getAddress(t.contractAddress);
+      const zoraCoin = zoraCoinsByAddress.get(checksumAddr.toLowerCase());
+      if (zoraCoin && isBelowMinimumZoraMarketCap(zoraCoin.marketCap)) return null;
+
       const rawValue = BigInt(t.tokenBalance);
       const displayBalance = formatUnits(rawValue, meta.decimals);
 
