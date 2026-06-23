@@ -90,7 +90,10 @@
       "viewProposal": "Ver Proposta",
       "organicProliferation": "Proliferação orgânica — sem proposta formal.",
       "wantRailCta": "Quer um NogglesRail na sua cidade?",
-      "submitProposal": "Enviar uma Proposta"
+      "submitProposal": "Enviar uma Proposta",
+      "updates": "Atualizações",
+      "updatesSubtitle": "Atualizações de progresso onchain publicadas na proposta de financiamento.",
+      "viewAllUpdates": "Ver todas as atualizações"
     }
   }
 }
