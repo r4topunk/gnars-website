@@ -1,0 +1,26 @@
+{
+  "title": "Loja Gnars",
+  "description": "Equipamentos, roupas e gnar da comunidade Gnars e de lojas parceiras. Seleções que apoiam a cultura do skate.",
+  "empty": {
+    "title": "Ainda não há nada na loja",
+    "description": "Novos produtos estão a caminho. Volte em breve."
+  },
+  "featuredHeading": "Destaques",
+  "allHeading": "Todos os produtos",
+  "filterAll": "Todos",
+  "card": {
+    "shopNow": "Comprar agora",
+    "viewDetails": "Ver detalhes",
+    "soldOut": "Esgotado",
+    "comingSoon": "Em breve",
+    "featured": "Destaque"
+  },
+  "detail": {
+    "backToShop": "Voltar à loja",
+    "checkoutComingSoon": "Finalização de compra em breve"
+  },
+  "notFound": {
+    "title": "Produto não encontrado",
+    "description": "O produto que você procura não existe."
+  }
+}
