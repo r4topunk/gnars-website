@@ -5,7 +5,7 @@ description:
 date: 2021-12-01 00:00:00 +0000
 permalink: /cheers-to-the-metaverse/
 author: gami
-image: /images/cheers-metaverse.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreifkioqwnpqe25ustuydxcef5qslwshuk56ycjfrd5cvd5flk6e4rq
 image_caption:
 video_embed:
 tags: [research]

@@ -5,7 +5,7 @@ description:
 date: 2021-12-29 00:00:00 +0000
 permalink: /unicef-connecting-with-the-metaverse/
 author: gami
-image: /images/unicef.png
+image: https://ipfs.skatehive.app/ipfs/bafkreifemikjrnobtgs623h2jkk4ovwot4eghqgcsxfxfnfinu5z2kegmi
 image_caption:
 video_embed:
 tags: [research]

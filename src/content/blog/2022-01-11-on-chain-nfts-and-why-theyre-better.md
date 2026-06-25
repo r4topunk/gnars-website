@@ -5,7 +5,7 @@ description: On-chain NFTs are tokens completely written on the (Ethereum) block
 date: 2022-01-11 00:00:00 +0000
 permalink: /on-chain-nfts-and-why-theyre-better/
 author: gami
-image: /images/on-chain-nfts-better.png
+image: https://ipfs.skatehive.app/ipfs/bafkreid2niepj4slt3r2tu3esqpo7rdt5yhzn3ha4rk5pyuxalnrxko3fe
 image_caption:
 video_embed:
 tags: [education]

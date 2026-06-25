@@ -5,7 +5,7 @@ description:
 date: 2022-02-05 00:00:00 +0000
 permalink: /arts-patronage-in-nfts-dead/
 author: gami
-image: /images/pexels-simone-coltri-6317411-1536x1025-1.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafybeia5352siyry5vwf2z7upd5233mrbmj3efihoiv6fkzcwk3kjzouvy
 image_caption:
 video_embed:
 tags: [opinion]

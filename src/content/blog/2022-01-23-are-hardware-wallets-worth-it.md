@@ -5,7 +5,7 @@ description:
 date: 2022-01-23 00:00:00 +0000
 permalink: /are-hardware-wallets-worth-it/
 author: gami
-image: /images/hardware-wallets.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreib23zexq47szgd2gfiwwnadqccxgyg5qecfqif7kp7s54tsdvtesa
 image_caption:
 video_embed:
 tags: [education]

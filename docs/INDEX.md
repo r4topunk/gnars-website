@@ -21,6 +21,7 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/features/feed.md` — live feed components and integration notes
 - `docs/features/coin-proposal.md` — coin proposal wizard
 - `docs/features/buy-coin-transaction.md` — proposal transaction type for buy-coin
+- `docs/features/blog-archive.md` — historical blog archive, IPFS image migration, and the Drive→IPFS curation pipeline proposal
 
 ## Integrations
 
