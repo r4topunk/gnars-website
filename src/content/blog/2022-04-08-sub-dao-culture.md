@@ -5,7 +5,7 @@ description: So while the DAO is relatively popular amongst many projects, we''r
 date: 2022-04-08 00:00:00 +0000
 permalink: /sub-dao-culture/
 author: gami
-image: "/images/nouniverse.png"
+image: "https://ipfs.skatehive.app/ipfs/bafkreig4yp4nwcmr6aivgprdcmdgefjbtwytkvv5om267jmztg7bl53gqu"
 image_caption:
 video_embed:
 tags: [research]

@@ -5,7 +5,7 @@ description:
 date: 2021-08-18 00:00:00 +0000
 permalink: /nfts-music-industry-second-life/
 author: gami
-image: /images/nfts-music-1.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreicxxlx3etgl6bqxrmbx2b5m353ell4idxykskdkmhzau4ipt7tkxy
 image_caption:
 video_embed:
 tags: [research]
@@ -16,13 +16,13 @@ In a much cited interview with the [Wall Street Journal](https://www.wsj.com/art
 
 **Music is not scarce –** quite the opposite! David Bowie predicted a future in which music would be as common and as valuable as water or electricity: “[Music itself is going to become like running water or electricity](https://www.fastcompany.com/3055340/david-bowie-predicted-the-future-of-music-in-2002).” This is exactly the situation in which we find ourselves today.
 
-![How NFTs Could Help the Music Industry](/images/nfts-music-2.jpeg)
+![How NFTs Could Help the Music Industry](https://ipfs.skatehive.app/ipfs/bafkreiatv7v673ypnknq5326za4bttaw7nhpnlso2kagmnee5nvtz5zx6y)
 
 Music, a capital and time intensive activity, is not scarce – and it is now being priced accordingly. On streaming platforms, every play is priced in pennies while singles and albums fetch very low prices on platforms such as Google Play and iTunes. It is not rare to see Music being offered for free on discussion forums and social media.
 
 According to Taylor Swift’s argumentation, rare things are valuable. It follows from the premise that things which are not scarce, such as music, are not valuable. This brings us to the hair-raising conclusion that non-valuable things should not be paid for.
 
-![How NFTs Could Help the Music Industry](/images/nfts-music-3.jpeg)
+![How NFTs Could Help the Music Industry](https://ipfs.skatehive.app/ipfs/bafkreihze3u53sz6ofn35gwqbdomjh6sevgdraghqqxjgm3ftgo3l76cim)
 
 **What is the solution to Music’s Scarcity and Pricing problems?** How do we price a time and capital intensive activity which produces non-scarce outputs?
 
@@ -32,7 +32,7 @@ It is not my goal here to present Non-Fungible tokens as a sort of Deus Ex Machi
 
 **Scarcity:** Albums and Singles released in very limited numbers and minted as NFTs could be a step in the right direction. These albums and singles could become collectibles and as NFTs fetch a pretty price on secondary markets such as Rarible and OpenSea.
 
-![How NFTs Could Help the Music Industry](/images/nfts-music-4.jpeg)
+![How NFTs Could Help the Music Industry](https://ipfs.skatehive.app/ipfs/bafkreihgdk3awtl2yl7crkvx25jz7gm33kszyuipjmxpw43ita7bcozmam)
 
 **Pricing:** The pricing of Music is a somewhat complex problem. **As we can see today, Aesthetic Value, Capital and Time invested alone are not enough to have a significant effect on price.** Scarcity, on the other hand, has a positive effect on price (this is something that is easy to notice in the vinyl market with colored versions of singles, for example). **Utility,** and by this we mean the things that can be done with Music minted as NFTs, really could give the Music Industry a “Second Life”.
 

@@ -5,7 +5,7 @@ description:
 date: 2021-06-16 00:00:00 +0000
 permalink: /nft-use-cases/
 author: gami
-image: /images/nft-use-cases-1.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreig7d4irlgbro44vslo7bbjuiyojz73fby4325l4ng7wcdozracmim
 image_caption:
 video_embed:
 tags: [education]
@@ -16,7 +16,7 @@ featured:
 
 NFTs swiftly entered the realm of polite conversation: artists and collectors obviously acknowledged the sale as an important event, but tempers quickly flared and the conversations mushroomed on social media often without an authentic understanding of NFTs, of the aesthetics of Crypto Art, and of the massive impact of NFTs on the Art World.
 
-![NFT Use Cases](/images/nft-use-cases-2.jpeg)
+![NFT Use Cases](https://ipfs.skatehive.app/ipfs/bafkreihflnqmxi5dfuipntzex2yt7zpq3q7zdiimugbsrdkxnsq35rwc6u)
 
 Let us not commit the same sin and immediately define the object of this article. It is clear that most people associate NFTs with digital art, as it is the most visible and perhaps the most lucrative use case of NFTs, for which the demand rose by 299% in 2020 alone.
 
@@ -26,7 +26,7 @@ By non-fungible we mean that such a token cannot be exchanged for something else
 
 An NFT is linked with an asset, digital or physical. The token’s **metadata** contains vital information such as the timestamp of its creation, the crypto wallet address of the creator, and specifics about the asset that is linked with the token. **When we come to understand that an NFT is a cryptographic token linked with an asset, we can appreciate the sheer scale of what is possible.**
 
-![NFT Use Cases](/images/nft-use-cases-3.jpeg)
+![NFT Use Cases](https://ipfs.skatehive.app/ipfs/bafkreicmkbhk6mroipoupljfj7dafcomsxarh7vk4cza3vk6uwiq45fjvi)
 
 _The linked asset need not be Digital Art._
 
@@ -42,7 +42,7 @@ Digital art is only one type of asset that can be linked with a cryptographic to
 
 **NFTs and Memberships:** NFTs can be used to represent memberships. Data about the membership can be recorded in an immutable manner on a blockchain.
 
-![NFT Use Cases](/images/nft-use-cases-4-1536x864-1.jpeg)
+![NFT Use Cases](https://ipfs.skatehive.app/ipfs/bafkreial3dumt6gd7ybpiwlnad55gs3xvgeuyw4zo7teuzug5xhbn4hqnm)
 
 ## Closing thought
 

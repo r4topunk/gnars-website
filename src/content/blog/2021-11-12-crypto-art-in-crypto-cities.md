@@ -5,7 +5,7 @@ description:
 date: 2021-11-12 00:00:00 +0000
 permalink: /crypto-art-in-crypto-cities/
 author: gami
-image: /images/crypto-cities.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreieljj6mxasuljdspwwab7t5om46qprumyarelhcrkyixrgtfz5lne
 image_caption:
 video_embed:
 tags: [research]

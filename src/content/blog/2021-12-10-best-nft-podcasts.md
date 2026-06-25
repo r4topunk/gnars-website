@@ -5,7 +5,7 @@ description:
 date: 2021-12-10 00:00:00 +0000
 permalink: /best-nft-podcasts/
 author: gami
-image: /images/best-nft-podcasts.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreiggmaii5ef27c43lagdlg2vdvz67the45hmvvbdmdigsvji5i56ae
 image_caption:
 video_embed:
 tags: [education]

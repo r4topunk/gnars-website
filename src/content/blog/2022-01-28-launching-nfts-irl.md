@@ -5,7 +5,7 @@ description:
 date: 2022-01-28 00:00:00 +0000
 permalink: /launching-nfts-irl/
 author: gami
-image: /images/rocket.png
+image: https://ipfs.skatehive.app/ipfs/bafybeidyjvdpcn6sknibvjftft5vxrtjiotmfbzrh2o2foymyfkwlkp7jq
 image_caption:
 video_embed:
 tags: [research]
