@@ -63,6 +63,7 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -410,6 +411,9 @@ function MobileNav() {
         <SheetContent side="left" className="w-[300px] sm:w-[400px]">
           <SheetHeader>
             <SheetTitle className="text-left">{t("mobileMenu.sheetTitle")}</SheetTitle>
+            <SheetDescription className="sr-only">
+              {t("mobileMenu.sheetDescription")}
+            </SheetDescription>
           </SheetHeader>
           <nav className="flex flex-col gap-4 mt-8 flex-1 overflow-y-auto">
             {navigationItems.map((item) => {
@@ -498,10 +502,11 @@ function MobileNav() {
                 {isPending ? t("switchNetwork.switching") : t("switchNetwork.label")}
               </Badge>
             )}
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-center gap-1">
+              <ThemeToggle />
               <LocaleSwitcher />
-              <ConnectButton />
             </div>
+            <ConnectButton />
           </SheetFooter>
         </SheetContent>
       </Sheet>
