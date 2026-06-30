@@ -2,7 +2,8 @@
   "languageSwitcherLabel": "Mudar idioma",
   "mobileMenu": {
     "toggleLabel": "Alternar menu",
-    "sheetTitle": "Navegação"
+    "sheetTitle": "Navegação",
+    "sheetDescription": "Navegue pelas seções da Gnars DAO e conecte sua carteira."
   },
   "switchNetwork": {
     "label": "Mudar para Base",
