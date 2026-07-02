@@ -28,6 +28,11 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/integrations/splits.md` — 0xSplits droposal revenue sharing
 - `docs/integrations/swap.md` — 0x Swap API v2 integration powering /swap, including affiliate-fee config
 
+## Strategy
+
+- `docs/strategy/gnars-token-migration.md` — GNARS token migration from Zora to Clanker: decisions, codebase impact audit (63 files), 3-phase plan, blockers, and open questions
+- `docs/strategy/gnars-migration-decisions.md` — Decision checklist (7 areas) to review with Vlad before any proposal or technical work
+
 ## Specs
 
 - `docs/superpowers/specs/2026-03-16-vote-card-delegation-breakdown-design.md` — vote card own vs delegated breakdown
