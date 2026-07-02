@@ -3,7 +3,14 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FormProvider, useForm, useFormContext, useWatch, type Resolver } from "react-hook-form";
+import {
+  FormProvider,
+  useForm,
+  useFormContext,
+  useFormState,
+  useWatch,
+  type Resolver,
+} from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -43,6 +50,10 @@ export const TemplateDetailsForm = forwardRef<TemplateDetailsFormHandle, Templat
     });
 
     const watchedValues = useWatch({ control: templateForm.control }) as TemplateValues;
+    // Subscribe to errors via useFormState (useSyncExternalStore-backed) so inline
+    // validation messages re-render under React Compiler. Reading
+    // templateForm.formState.errors lazily inside JSX gets memoized and never updates.
+    const { errors: templateErrors } = useFormState({ control: templateForm.control });
 
     // useWatch returns a fresh object reference on every render even when values
     // are unchanged. Guard setValue with a serialized snapshot so the effect is a
@@ -67,7 +78,15 @@ export const TemplateDetailsForm = forwardRef<TemplateDetailsFormHandle, Templat
           if (!ok) {
             const firstError = Object.keys(templateForm.formState.errors)[0];
             if (firstError) {
+              // setFocus works for textarea fields; budget is a field array with no
+              // focusable ref, so scroll its label into view as a fallback.
               templateForm.setFocus(firstError as keyof TemplateValues);
+              if (typeof document !== "undefined") {
+                const el =
+                  document.getElementById(firstError) ??
+                  document.querySelector(`label[for="${firstError}"]`);
+                el?.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
             }
           }
           return ok;
@@ -91,9 +110,7 @@ export const TemplateDetailsForm = forwardRef<TemplateDetailsFormHandle, Templat
         <FormProvider {...templateForm}>
           <div className="space-y-5">
             {schema.fields.map((field) => {
-              const error = templateForm.formState.errors[field.id] as
-                | { message?: string }
-                | undefined;
+              const error = templateErrors[field.id] as { message?: string } | undefined;
               return (
                 <div key={field.id}>
                   <Label htmlFor={field.id}>
@@ -114,7 +131,7 @@ export const TemplateDetailsForm = forwardRef<TemplateDetailsFormHandle, Templat
                       name={field.id}
                       topLevelError={error?.message}
                       getRowError={(index) => {
-                        const arrErrors = templateForm.formState.errors[field.id] as
+                        const arrErrors = templateErrors[field.id] as
                           | Record<
                               number,
                               {
