@@ -5,7 +5,7 @@ description:
 date: 2021-07-28 00:00:00 +0000
 permalink: /what-are-nfts/
 author: gami
-image: /images/what-are-nfts-digital.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreiaso2lhxsbhor4h3pfdjbtxrr6rz42f67r3ihmuo2wm6wgob4cdvm
 image_caption:
 video_embed:
 tags: [education]
@@ -24,7 +24,7 @@ Most of these Ethereum tokens share certain characteristics, including **divisib
 
 But now imagine a $10 bill that had been signed by Beeple, whose digital collage Everydays: The First 5000 Days was recently [sold as an NFT by Christie’s for $69 million](https://www.christies.com/features/Monumental-collage-by-Beeple-is-first-purely-digital-artwork-NFT-to-come-to-auction-11510-7.aspx). Suddenly, that note is unique, or non-fungible, and very likely worth a lot more than $10.
 
-![What Are NFTs](/images/beeple-5000-days.jpeg)  
+![What Are NFTs](https://ipfs.skatehive.app/ipfs/bafkreicr6zmvjnxawsvlrce6mviekyactvi25qaf23cr7jf2vyf4dgquxi)  
 _Beeple’s Everydays was the first purely digital work to be sold by Christie’s._
 
 In the same way, Non-Fungible Tokens modify the rules of standard Ethereum tokens in two key ways:
@@ -52,7 +52,7 @@ Thanks to these benefits, NFTs have proven extremely attractive to artists and c
 
 The first NFTs were created just four years ago, in June 2017. [CryptoPunks](https://www.larvalabs.com/cryptopunks) are a series of 10,000 unique characters, generated in 8-bit style as 24×24-pixel images. While “Punks”, as they are now known, could originally be claimed for free, they were quickly snapped up and these pieces of digital art history have become some of the hottest property on the blockchain. On June 10, 2021, a [rare CryptoPunk was sold by Sotheby’s for $11.8 million](https://twitter.com/Sothebys/status/1402996062474760193).
 
-![What Are NFTs](/images/rare-punk-sale.png)  
+![What Are NFTs](https://ipfs.skatehive.app/ipfs/bafkreibnei2m5lei6zyjyiqvvdsc6dap4ftwjex4p4nf653wtgkefp5pzy)  
 _Punk #7523, dubbed “Covid Alien”, is the only CryptoPunk depicted with a mask._
 
 While celebrated auction houses like Christie’s and Sotheby’s lend legitimacy to the emerging NFT phenomenon, these gatekeepers of the traditional art market are by no means necessary when dealing with digital art and the global blockchain. Online NFT marketplaces like [OpenSea](https://opensea.io/) and [Rarible](https://rarible.com/) do a brisk trade in virtual collectibles of all kinds, with sales ranging from just a few dollars to many millions. NFT news and information site [NonFungible.com](https://nonfungible.com/market/history) puts total monthly trading volumes for digital art NFTs alone at around $20 million, which is likely an underestimate given the active private market.

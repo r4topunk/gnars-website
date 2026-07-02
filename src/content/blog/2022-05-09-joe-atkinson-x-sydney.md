@@ -5,7 +5,7 @@ description:
 date: 2022-05-09 09:27:38 +0000
 permalink: /joe-atkinson-x-sydney/
 author: gami
-image: "/images/joe-x-sydney.jpeg"
+image: "https://ipfs.skatehive.app/ipfs/bafkreidxm3izm2ellupeezbpk4kh2wxch2n4jhran4lnlbojsiyca3gcxq"
 image_caption:
 video_embed: https://www.youtube.com/embed/g-L-wQVYEkI
 tags: [inline skating]

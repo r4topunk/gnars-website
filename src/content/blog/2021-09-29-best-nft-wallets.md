@@ -5,7 +5,7 @@ description:
 date: 2021-09-29 00:00:00 +0000
 permalink: /best-nft-wallets/
 author: gami
-image: /images/af8f9f4537a77e3ab3b8a9295f01234c.png
+image: https://ipfs.skatehive.app/ipfs/bafkreiahinyyvlvftkbfd4rjecwawtktkw6lalyquh7tzgjfp36v7autzm
 image_caption:
 video_embed:
 tags: [education]
@@ -24,7 +24,7 @@ Hardware wallets, such as Ledger or Trezor, are truly a collector’s best optio
 
 ### Metamask
 
-![Best NFT Wallets](/images/metamask.jpeg)
+![Best NFT Wallets](https://ipfs.skatehive.app/ipfs/bafkreihrsv7abucj45hs32s5gl562syusfeishm4iz6p3wnaigb6f2by6a)
 
 Designed in 2016 by Consensys, [Metamask](https://metamask.io/) is a household name in the Crypto Sector, and it is not a stretch to say that most Crypto users have heard the name or locked eyes with the polygonal fox. Metamask’s life started as a browser extension. In 2020, much to the enthusiasm of crypto users, a mobile application was released. The mobile application and the extension facilitate the management, the transfer and the interaction of NFTs with decentralized applications.
 
@@ -36,7 +36,7 @@ Overall, Metamask is a great solution for storing and managing Non-Fungible Toke
 
 ### Rainbow Wallet
 
-![Best NFT Wallets](/images/rainbow-logo-large-1536x366-1.png)
+![Best NFT Wallets](https://ipfs.skatehive.app/ipfs/bafkreif4d5fbrppyc3ls2rjbm6aozg3d5jyaauxt66emuezp5nupla4epu)
 
 Rainbow Wallet is a fun, mobile first (iOS and in Beta on Android), non-custodial Ethereum wallet with a brilliant user interface. It is obvious that a tremendous amount of time and effort has been spent to maximize the user experience. Rainbow wallet has all the bells and whistles we have come to expect from a modern Ethereum wallet, such as swapping functionality (via Uniswap), asset tracking, and Wallet Connect integration.
 
@@ -44,13 +44,13 @@ The iOS iteration of Rainbow Wallet allows users to store their private key and/
 
 What truly distinguishes Rainbow wallet from the competition is its user interface, more specifically how individual NFTs and collections are organized and presented.
 
-![Best NFT Wallets](/images/clarity.jpeg)
+![Best NFT Wallets](https://ipfs.skatehive.app/ipfs/bafkreie5z45wip6tyzt2wyxorqxcgez24k4ztepl4udnbb3av3jmyvo5um)
 
 This wallet is particularly well suited to collectors who possess a large amount of NFTs. The graphical space is optimized for clarity and readability, with categories on the left hand side, and the amount of NFTs in each category on the right hand side of Category names. This view makes it easy to jump from collection to collection and provides overall a better experience, in our humble opinion, than Metamask’s NFT view.
 
 ### Coinbase Wallet
 
-![Best NFT Wallets](/images/gods-unchained-coinbase-wallet-5.jpeg)
+![Best NFT Wallets](https://ipfs.skatehive.app/ipfs/bafkreifkoleozieiox26udbravz55emrsytongq5m7h6nt6jmeec6yjta4)
 
 Coinbase is a known name, as it recently became a publicly listed company. It makes perfect sense for Coinbase, given the sheer size of the NFT Market, to allow users to store and manage NFTs from the confines of their Coinbase wallet, perhaps the best wallet one could recommend for complete beginners.
 
@@ -60,7 +60,7 @@ The only downside of the Coinbase wallet, compared to a solution such as Metamas
 
 ### AlphaWallet
 
-![Best NFT Wallets](/images/The-Best-Crypto-Wallets-for-NFT-Collecting.jpeg)
+![Best NFT Wallets](https://ipfs.skatehive.app/ipfs/bafkreifxegbvbraavmre34b366hqa4hsf2dm7rpbdct7zc6s4lp2mmvbui)
 
 [AlphaWallet](https://alphawallet.com/) is a notable addition to our list as it allows users to mint NFTs, in addition to storing them and transferring them. Of all the wallets we have looked into, AlphaWallet is the only one that provides this function. A number of popular decentralized applications, such as Crypto Kitties, OpenSea and ChainZ Arena can also be accessed directly from this mobile-only wallet.
 
@@ -70,7 +70,7 @@ Collectors who own a very large amount of NFTs will find this wallet useful, sin
 
 ### Enjin Wallet
 
-![Best NFT Wallets](/images/The-Best-Crypto-Wallets-for-NFT-Collecting-3.jpeg)
+![Best NFT Wallets](https://ipfs.skatehive.app/ipfs/bafkreidxq47ajyqbblgnm5x72zzc52udgg7gzh5ug25j4csmujxag2742u)
 
 Enjin is a Singapore based company that has for the longest time been associated with blockchain gaming. The Enjin wallet, a mobile-only wallet with a very rich user interface, empowers users and gamers by allowing the collection of in-game NFTs, as well as other collectibles. A fully-fledged NT marketplace is also available within the wallet.
 
@@ -78,7 +78,7 @@ Enjin is a Singapore based company that has for the longest time been associated
 
 ### Math Wallet
 
-![Best NFT Wallets](/images/ER23R2uUwAExeo1.jpeg)
+![Best NFT Wallets](https://ipfs.skatehive.app/ipfs/bafkreicy5qp62k25skmn4qx2ro7o36slxcon4wwda3nyewgx6xmfcmngba)
 
 [Math Wallet](https://mathwallet.org/), available as a web app and as a mobile application, provides support for 65 public blockchains, which is impressive. This wallet is ideal for collectors who own assets on multiple networks, and who wish to have a very wide view of what they own in the palm of their hand.
 

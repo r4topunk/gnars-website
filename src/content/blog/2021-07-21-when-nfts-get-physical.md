@@ -5,7 +5,7 @@ description:
 date: 2021-07-21 00:00:00 +0000
 permalink: /when-nfts-get-physical/
 author: gami
-image: /images/when-nfts-get-physical-1.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreiaxc6fn735mtwayn62oavlim74bvxnc4dqqebeb5qzeml6pktocb4
 image_caption:
 video_embed:
 tags: [research]
@@ -16,7 +16,7 @@ Brick-and-Mortar Art Galleries and Museums, taking bold steps into the unknown (
 
 In addition to traditional spaces including NFTs in their collections and organizing events, **galleries fully dedicated to NFTs,** such as Superchief, the world’s first NFT gallery, are also popping up. Superchief is currently showing the works of 300 artists on high-resolution screens (at a 4K and 60 frames per second, no less).
 
-![When NFTs get Physical](/images/when-nfts-get-physical-2.jpeg)
+![When NFTs get Physical](https://ipfs.skatehive.app/ipfs/bafkreih4ced2vz3ejcw4r2h2jt5b3quci6vpdkpfouonhbdfwtnp7wqq7a)
 
 The rate at which such specialized spaces are appearing is increasing so quickly that it is difficult, even for insiders, to keep up.
 
@@ -26,7 +26,7 @@ In March, Atlanta’s ABV Gallery collaborated with Nifty Gateway, a well-known 
 
 In Germany, Kenny Schachter, a vocal advocate of NFTs, is curating a show, **Breadcrumbs,** at Galerie Nagel Draxler in Cologne, showcasing a group of early and present NFT adopters, with the aim of exploring what NFTs really mean for both digital and physical art.
 
-![When NFTs get Physical](/images/when-nfts-get-physical-3.jpeg)
+![When NFTs get Physical](https://ipfs.skatehive.app/ipfs/bafkreidikekuanspjrwrsuva56cauqiurw25pgahfljmsjgmf5md2ta5me)
 
 Most recently, the largest Bitcoin event ever to take place, the Bitcoin 2021 conference, featured a peer to peer pop-up NFT art gallery with artwork from more than 30 Crypto Artists.
 
@@ -34,7 +34,7 @@ But why, you might ask, do artists feel the need to expose NFTs in spaces tradit
 
 **The first and most obvious reason is that traditional galleries have failed to meet the specific needs of NFT artists, both in terms of technology and collector interest.**
 
-![When NFTs get Physical](/images/when-nfts-get-physical-4.jpeg)
+![When NFTs get Physical](https://ipfs.skatehive.app/ipfs/bafkreianz67lhmbydxyyacsn6jc5uwiba43epdpxu3jci3olbbyqjajura)
 
 The second reason is that featuring NFTs in traditional spaces such as galleries and museums provides a much richer experience than seeing the artwork on a laptop or on a mobile phone. We agree with **Edward Zipco,** the director of Superchief, when he states that “one aspect of the NFT Market that was severely lacking was physical presentation”. It is crucial to show the works in full resolutions, just as the artist intended.
 

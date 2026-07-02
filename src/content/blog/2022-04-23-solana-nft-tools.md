@@ -5,7 +5,7 @@ description:
 date: 2022-04-23 00:00:00 +0000
 permalink: /solana-nft-tools/
 author: gami
-image: /images/solana-nft-tools.png
+image: https://ipfs.skatehive.app/ipfs/bafkreidf5obyoariifcyj5dasdazjbcoiaxoa3q5agllj7gfrtxivnpfcm
 image_caption:
 video_embed:
 tags: [education]

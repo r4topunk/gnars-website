@@ -5,7 +5,7 @@ description:
 date: 2021-10-15 00:00:00 +0000
 permalink: /nft-for-dummies/
 author: gami
-image: /images/nft-for-dummies.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreidblf3fq4qffzuzmtop2yv2fzxakjkfpomxlnzoqn246u4ekybfie
 image_caption:
 video_embed:
 tags: [education]

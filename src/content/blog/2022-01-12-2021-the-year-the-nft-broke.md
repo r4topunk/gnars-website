@@ -5,7 +5,7 @@ description:
 date: 2022-01-12 00:00:00 +0000
 permalink: /2021-the-year-the-nft-broke/
 author: gami
-image: /images/yearinrev.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreibj6nff5bumimac74awpvqpoqpn734dmbc3qxz2gnjxfuieqdwxkm
 image_caption:
 video_embed:
 tags: [research]

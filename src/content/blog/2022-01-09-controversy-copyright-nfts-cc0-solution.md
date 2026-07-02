@@ -5,7 +5,7 @@ description:
 date: 2022-01-09 00:00:00 +0000
 permalink: /controversy-copyright-nfts-cc0-solution/
 author: gami
-image: /images/statute-of-noun.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreidjlxp5gapnbfikihmwsau47agavrwsvdlvwbpvsiabdiota2zh7a
 image_caption:
 video_embed:
 tags: [research]

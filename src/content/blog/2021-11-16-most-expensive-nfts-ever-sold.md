@@ -5,7 +5,7 @@ description:
 date: 2021-11-16 00:00:00 +0000
 permalink: /most-expensive-nfts-ever-sold/
 author: gami
-image: /images/most-expensive-nfts-ever.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreierccdicupw5wqv35pqkotkawrbu6t3sph43v5kb2q2dfatat7aye
 image_caption:
 video_embed:
 tags: [research]
