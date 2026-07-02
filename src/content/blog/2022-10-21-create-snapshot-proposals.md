@@ -5,7 +5,7 @@ description:
 date: 2022-10-21 00:00:00 +0000
 permalink: /create-snapshot-proposals/
 author: gami
-image: /images/create-snapshot-proposals.jpg
+image: https://ipfs.skatehive.app/ipfs/bafkreichquk3ryfmx4ntp7jirdbu4ooqmjc5jom6khziak6iyhgqclpfke
 image_caption:
 video_embed:
 tags: [tutorial]

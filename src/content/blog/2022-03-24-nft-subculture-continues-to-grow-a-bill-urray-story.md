@@ -5,7 +5,7 @@ description:
 date: 2022-03-24 00:00:00 +0000
 permalink: /nft-subculture-continues-to-grow-a-bill-urray-story/
 author: gami
-image: /images/uzaidh3sorx71.webp
+image: https://ipfs.skatehive.app/ipfs/bafkreib7akpcq2jdfhzushsmbboea7t5eg4bpbzsy6poy5ubdzol76h43a
 image_caption:
 video_embed:
 tags: [research]

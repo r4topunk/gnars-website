@@ -5,7 +5,7 @@ description:
 date: 2021-09-18 00:00:00 +0000
 permalink: /nft-marketplace-list/
 author: gami
-image: /images/nft-marketplace-list-feat.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreie4q2jdneteclmopcjcw6hjg6vcdqew2zk5yjj4x72eisqcuxoz4y
 image_caption:
 video_embed:
 tags: [research]

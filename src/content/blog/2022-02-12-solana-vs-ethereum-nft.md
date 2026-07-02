@@ -5,7 +5,7 @@ description:
 date: 2022-02-12 00:00:00 +0000
 permalink: /solana-vs-ethereum-nft/
 author: gami
-image: /images/NFT-Blockchain.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreia3uxytec5dv3nra3drmgnngj4iexshhziyqohzxed2s2fre2ja6i
 image_caption:
 video_embed:
 tags: [research]
