@@ -1,4 +1,5 @@
 import { RecentProposals } from "@/components/proposals/recent/RecentProposals";
+import { toListProposal } from "@/lib/proposal-list-payload";
 import { ProposalStatus } from "@/lib/schemas/proposals";
 import { listProposals } from "@/services/proposals";
 
@@ -12,7 +13,7 @@ export async function RecentProposalsSection({
   excludeStatuses = [ProposalStatus.CANCELLED],
 }: RecentProposalsSectionProps) {
   // Fetch a few extra to account for filtered statuses
-  const proposals = await listProposals(limit + 5);
+  const proposals = (await listProposals(limit + 5)).map(toListProposal);
 
   return (
     <RecentProposals
