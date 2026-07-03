@@ -10,6 +10,7 @@ This is the canonical entry point for project documentation. Everything below sh
 ## Architecture
 
 - `docs/architecture/thirdweb-wallet-layer.md` — provider tree, reads/writes split, view-mode toggle (EOA/SA), AA config, known escape hatches
+- `docs/architecture/vercel-quota-strategy.md` — Hobby quota playbook: billing mechanics, data cadence → cache strategy, fix backlog, traps
 - `docs/architecture/exploration-progress.md`
 - `docs/architecture/refactor-audit.md`
 - `docs/i18n/tone-brief.md` — PT-BR translation tone brief
