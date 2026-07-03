@@ -12,12 +12,15 @@ TL;DR: the site exceeds Vercel Hobby quotas because immutable or slow-moving DAO
 
 Bot traffic (Googlebot, OpenAI, Baiduspider — ~12–14K req/12h each) hits mostly-unique paths, so per-path caches don't amortize; every crawl of an expired path is a full render + ISR write.
 
-## Billing mechanics (measured on this project)
+## Billing mechanics (measured here + confirmed against Vercel/Next docs, 2026-07)
 
-- ISR writes are billed in **units per cache entry** (~8KB granularity). One page revalidation in Next 16 writes **~3 entries** (page + `_full.segment` + `__PAGE__.segment`), and `[locale]` doubles everything → one route at `revalidate = 300` costs up to `12/h × 3 × 2 = 72` write units/hour **per KB-bucket of payload**. `/en/proposals` alone measured ~70 units _per write_ before slimming (1.3MB embedded JSON).
-- Writes are traffic-triggered (revalidate-on-request after expiry). No traffic → no writes. Bots count as traffic.
+- **1 ISR write unit = 8KB** of data written to the ISR cache, compressed, billed per stored representation ([pricing doc](https://vercel.com/docs/incremental-static-regeneration/limits-and-pricing)). One page revalidation in Next 16 writes the HTML **plus N `.segment` entries** (`__PAGE__`, `_tree`, `_head`, `_full`), and `[locale]` doubles everything. `/en/proposals` alone measured ~70 units _per write_ before slimming (1.3MB embedded JSON). The segment-cache write multiplication is architectural — **it cannot be disabled in Next 16.2** (`clientSegmentCache` flag removed in 16.1; `cacheComponents` doesn't reduce it — [vercel/next.js#93210](https://github.com/vercel/next.js/issues/93210)).
+- Writes are traffic-triggered (revalidate-on-request after expiry). No traffic → no writes; unchanged bytes → 0 units. Bots count as traffic — **including `<Link>` viewport prefetches**, which write detail-page segments without a real pageview.
+- **Dynamic route + `Cache-Control: public, s-maxage` = zero ISR writes.** The CDN cache is free; the route only burns FOT + edge requests ([CDN usage doc](https://vercel.com/docs/manage-cdn-usage)). For routes hit mostly on unique paths by bots, dynamic+CDN beats ISR (ISR wastes a durable write per never-revisited path). `s-maxage` also moves repeat traffic from Fast Origin Transfer (10GB) to Fast Data Transfer (100GB on Hobby).
+- **Fluid Active CPU bills only actual compute, not I/O wait** ([Vercel blog](https://vercel.com/blog/introducing-active-cpu-pricing-for-fluid-compute)). Slow subgraph/RPC fetches are ~free on the CPU meter; `JSON.parse`/RSC serialization of big payloads is what burns it — another reason slimming beats TTL-raising.
 - `react.cache()` dedupes **within one render pass only**. It does not persist across revalidations or across routes. Only `unstable_cache` / fetch `next.revalidate` hit the shared data cache.
 - `export const dynamic = "force-dynamic"` **overrides** `export const revalidate` on the same route (see the sitemap bug below).
+- next-intl: 2 locales = 2 cache entries, unavoidable at runtime. The real lever is full static prerender (`setRequestLocale` in every layout+page + `generateStaticParams` for `[en, pt-br]`, no `revalidate`) → 0 runtime ISR writes, refreshed via on-demand `revalidateTag` or redeploy ([next-intl doc](https://next-intl.dev/docs/getting-started/app-router/with-i18n-routing)).
 
 ## Data type × real cadence → correct strategy
 
@@ -43,23 +46,36 @@ The core principle: **DAO data is mostly append-only and terminal.** Once a prop
 2. **`force-dynamic` + `revalidate` on the same route = fully dynamic.** The sitemap has both; every crawler hit re-runs the full fan-out (all proposals + coins + members + blogs + droposals).
 3. **Slimming beats TTL-raising.** PR #120 raised TTLs (60→300) and barely moved the needle; PR #127 cut the payload 68% — write units scale with payload size × entry count, not just frequency.
 4. **`src/lib/subgraph.ts` hardcodes `cache: "no-store"`** — every caller re-fetches origin on every regen regardless of route TTL.
+5. **robots.txt is not enforcement.** GPTBot mostly honors it; most AI crawlers ignore or spoof it (Baiduspider UA is widely forged). The real tool is the Vercel WAF at the edge — a Deny there runs **before** functions, so blocked requests cost no invocation, CPU, ISR write or FOT.
 
 ## Fix backlog (impact ÷ effort, merged from route sweep + data-cadence audit)
 
-| #   | Fix                                                                                                                                                                                              | Quota hit    | Status           |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ | ---------------- |
-| 1   | Slim `/proposals` + home payloads (`toListProposal`)                                                                                                                                             | ISR + FOT    | ✅ PR #127       |
-| 2   | Cache member OG metadata (`unstable_cache` 30min)                                                                                                                                                | CPU          | ✅ PR #127       |
-| 3   | Sitemap: remove `force-dynamic` (one line)                                                                                                                                                       | CPU + FOT    | todo             |
-| 4   | Skip `governor.state()` RPC for terminal proposals; `listMultiChainProposals` fetches 1000 → fetch what's needed                                                                                 | CPU          | todo             |
-| 5   | Status-aware revalidate on `/proposals/[chain]/[id]`                                                                                                                                             | ISR          | todo             |
-| 6   | `images.minimumCacheTTL: 2592000` (banners/media are immutable)                                                                                                                                  | FOT + CPU    | todo             |
-| 7   | Batch-add `Cache-Control: public, s-maxage, stale-while-revalidate` to API GETs without it (`md/*`, `api/proposals/per-month`, `api/members`, `api/coins/gnars-paired`, `api/poidh/bounties`, …) | CPU + FOT    | todo             |
-| 8   | `/api/alchemy`: 9.9% error rate — only `eth_getBalance` has RPC fallback; add fallback/retry + micro-cache for read methods                                                                      | CPU + errors | todo             |
-| 9   | Immutable content → static (`Snapshot`/ETH-era proposals, installations `[slug]`, executed droposals, closed rounds)                                                                             | ISR          | todo             |
-| 10  | Align `/blogs` route TTL to data TTL (300 → 3600)                                                                                                                                                | ISR          | todo             |
-| 11  | Replace `no-store` in `subgraph.ts` with per-caller `next.revalidate`                                                                                                                            | CPU + FOT    | todo             |
-| 12  | Bot mitigation: tighten robots.txt (Baiduspider/AI crawlers), reconsider member URLs in sitemap                                                                                                  | all          | decide with team |
+| #   | Fix                                                                                                                                                                                              | Quota hit    | Status        |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ | ------------- |
+| 1   | Slim `/proposals` + home payloads (`toListProposal`)                                                                                                                                             | ISR + FOT    | ✅ PR #127    |
+| 2   | Cache member OG metadata (`unstable_cache` 30min)                                                                                                                                                | CPU          | ✅ PR #127    |
+| 3   | Sitemap: remove `force-dynamic` (one line)                                                                                                                                                       | CPU + FOT    | todo          |
+| 4   | Skip `governor.state()` RPC for terminal proposals; `listMultiChainProposals` fetches 1000 → fetch what's needed                                                                                 | CPU          | todo          |
+| 5   | Status-aware revalidate on `/proposals/[chain]/[id]`                                                                                                                                             | ISR          | todo          |
+| 6   | `images.minimumCacheTTL: 2592000` (banners/media are immutable)                                                                                                                                  | FOT + CPU    | todo          |
+| 7   | Batch-add `Cache-Control: public, s-maxage, stale-while-revalidate` to API GETs without it (`md/*`, `api/proposals/per-month`, `api/members`, `api/coins/gnars-paired`, `api/poidh/bounties`, …) | CPU + FOT    | todo          |
+| 8   | `/api/alchemy`: 9.9% error rate — only `eth_getBalance` has RPC fallback; add fallback/retry + micro-cache for read methods                                                                      | CPU + errors | todo          |
+| 9   | Immutable content → static (`Snapshot`/ETH-era proposals, installations `[slug]`, executed droposals, closed rounds)                                                                             | ISR          | todo          |
+| 10  | Align `/blogs` route TTL to data TTL (300 → 3600)                                                                                                                                                | ISR          | todo          |
+| 11  | Replace `no-store` in `subgraph.ts` with per-caller `next.revalidate`                                                                                                                            | CPU + FOT    | todo          |
+| 12  | `prefetch={false}` on high-fan-out `<Link>` grids (proposal cards, members, auctions) — each card in viewport prefetches detail-page segments                                                    | ISR          | todo          |
+| 13  | Audit `router.refresh()` after mutations (`ProposalDetail.tsx:117`, `RoundsAdminDashboard.tsx:102`) — refresh after revalidate is a known segment-write multiplier                               | ISR          | todo          |
+| 14  | Fully static prerender for stable pages (`setRequestLocale` + `generateStaticParams`, drop `revalidate`, on-demand `revalidateTag`)                                                              | ISR + CPU    | todo (larger) |
+
+### #0 — no-code, do first: WAF bot blocking (dashboard only)
+
+Vercel → project → Firewall:
+
+1. Enable the free **"AI Bots" managed ruleset** → **Deny** (one toggle, available on Hobby, doesn't consume the custom-rule budget — [changelog](https://vercel.com/changelog/new-one-click-ai-bot-managed-ruleset)). Blocks GPTBot, ClaudeBot, Bytespider, PerplexityBot, etc. at the edge.
+2. Use the **3 free custom WAF rules** for named offenders the ruleset misses — e.g. User-Agent contains `Baiduspider` → Deny ([WAF doc](https://vercel.com/docs/vercel-firewall/vercel-waf)).
+3. Keep **Attack Challenge Mode** in mind for traffic spikes (free, blocked requests don't count as usage).
+
+With ~1/3 of identifiable traffic being AI/foreign crawlers hitting unique expensive paths, this is the single highest-leverage action and requires zero code. Decide with the team whether OpenAI/Claude crawler visibility matters for the DAO before denying (SEO via Googlebot is unaffected — it's not in the AI ruleset).
 
 ## How to verify (after each deploy)
 
