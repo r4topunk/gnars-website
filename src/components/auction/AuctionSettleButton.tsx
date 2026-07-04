@@ -16,6 +16,7 @@ import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useWriteAccount } from "@/hooks/use-write-account";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
+import { requestRevalidation } from "@/lib/request-revalidation";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
@@ -87,6 +88,7 @@ export function AuctionSettleButton({ isWinner }: AuctionSettleButtonProps) {
         description: t("settle.confirmedDescription"),
       });
       invalidateAuctionData();
+      requestRevalidation(["auction", "auctions", "feed", "treasury"]);
       resetTimerRef.current = setTimeout(() => settleTx.reset(), 1500);
     },
     onError: (error) => {
