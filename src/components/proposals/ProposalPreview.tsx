@@ -29,6 +29,7 @@ import { useWriteAccount } from "@/hooks/use-write-account";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { ipfsToGatewayUrl } from "@/lib/pinata";
 import { encodeTransactions } from "@/lib/proposal-utils";
+import { requestRevalidation } from "@/lib/request-revalidation";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { type ProposalFormValues } from "./schema";
@@ -127,6 +128,16 @@ export function ProposalPreview() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [onchainProposalId, setOnchainProposalId] = useState<`0x${string}` | undefined>(undefined);
   const indexing = useProposalIndexing(onchainProposalId);
+
+  // Once the subgraph has indexed the new proposal, revalidate again —
+  // this is the deterministic pass (the receipt-time kick may have run
+  // before the subgraph could serve the proposal).
+  useEffect(() => {
+    if (indexing.status !== "ready") return;
+    const tags = ["proposals", "feed"];
+    if (indexing.proposalNumber != null) tags.push(`proposal:${indexing.proposalNumber}`);
+    requestRevalidation(tags);
+  }, [indexing.status, indexing.proposalNumber]);
 
   // Watch form values for reactive preview
   const watchedData = useWatch<ProposalFormValues>();
@@ -267,6 +278,10 @@ export function ProposalPreview() {
         } catch (parseErr) {
           console.warn("Could not decode ProposalCreated event:", parseErr);
         }
+
+        // Early kick for other users' caches; /api/revalidate runs a
+        // delayed second pass internally to cover subgraph indexing lag.
+        requestRevalidation(["proposals", "feed"]);
 
         setIsSuccess(true);
       } catch (error) {

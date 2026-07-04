@@ -8,7 +8,6 @@ import { listDaoPropdates } from "@/services/propdates";
 import { listProposals } from "@/services/proposals";
 
 export const revalidate = 3600;
-export const dynamic = "force-dynamic";
 
 type SitemapEntry = {
   url: string;
