@@ -300,11 +300,16 @@ export function MembersList({
                       <Link
                         href={`/members/${member.owner}`}
                         className="hover:underline font-medium"
+                        prefetch={false}
                       >
                         {t("list.treasuryLabel")}
                       </Link>
                     ) : (
-                      <Link href={`/members/${member.owner}`} className="hover:underline">
+                      <Link
+                        href={`/members/${member.owner}`}
+                        className="hover:underline"
+                        prefetch={false}
+                      >
                         <AddressDisplay
                           address={member.owner}
                           variant="compact"
@@ -322,7 +327,11 @@ export function MembersList({
                     {member.delegate.toLowerCase() === member.owner.toLowerCase() ? (
                       <span className="text-muted-foreground">-</span>
                     ) : (
-                      <Link href={`/members/${member.delegate}`} className="hover:underline">
+                      <Link
+                        href={`/members/${member.delegate}`}
+                        className="hover:underline"
+                        prefetch={false}
+                      >
                         <AddressDisplay
                           address={member.delegate}
                           variant="compact"

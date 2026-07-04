@@ -8,7 +8,8 @@ import {
 import { getInstallationBySlug } from "@/services/installations";
 import { Installation } from "@/types/installation";
 
-export const revalidate = 300;
+// Static JSON source — data changes rarely, no need for a short TTL.
+export const revalidate = 3600;
 
 async function fetchInstallationData(slug: string): Promise<Installation | null> {
   try {

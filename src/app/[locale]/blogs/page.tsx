@@ -40,7 +40,8 @@ export async function generateMetadata({
   };
 }
 
-export const revalidate = 300;
+// Data layer (getCachedPublication) already caches 3600s — match route TTL to it.
+export const revalidate = 3600;
 
 async function getBlogs() {
   try {
