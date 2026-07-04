@@ -48,6 +48,10 @@
       "swap": {
         "title": "Swap",
         "description": "Troque tokens na Base via 0x — melhor preço em mais de 150 DEXes"
+      },
+      "shop": {
+        "title": "Loja",
+        "description": "Equipamentos e gnar da comunidade e de lojas parceiras — em breve, ainda não disponível"
       }
     },
     "community": {

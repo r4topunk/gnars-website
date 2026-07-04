@@ -26,6 +26,7 @@ const NAMESPACES = [
   "installations",
   "bounties",
   "blogs",
+  "shop",
   "errors",
   "metadata",
 ] as const;
@@ -57,6 +58,7 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "en/installations": () => import("../../messages/en/installations.json"),
   "en/bounties": () => import("../../messages/en/bounties.json"),
   "en/blogs": () => import("../../messages/en/blogs.json"),
+  "en/shop": () => import("../../messages/en/shop.json"),
   "en/errors": () => import("../../messages/en/errors.json"),
   "en/metadata": () => import("../../messages/en/metadata.json"),
   "pt-br/common": () => import("../../messages/pt-br/common.json"),
@@ -82,6 +84,7 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "pt-br/installations": () => import("../../messages/pt-br/installations.json"),
   "pt-br/bounties": () => import("../../messages/pt-br/bounties.json"),
   "pt-br/blogs": () => import("../../messages/pt-br/blogs.json"),
+  "pt-br/shop": () => import("../../messages/pt-br/shop.json"),
   "pt-br/errors": () => import("../../messages/pt-br/errors.json"),
   "pt-br/metadata": () => import("../../messages/pt-br/metadata.json"),
 };
