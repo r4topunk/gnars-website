@@ -156,6 +156,9 @@ function buildNavigationItems(t: NavTranslations) {
           description: t("items.money.rounds.description"),
           badge: "SOON",
         },
+        // TODO(store): re-add the Store nav entry (icon: ShoppingBag, href: "/store")
+        // once the storefront is ready to launch. Route + i18n strings already exist;
+        // it is intentionally unlinked for now so /store stays hidden.
       ],
     },
     {

@@ -1,0 +1,29 @@
+{
+  "title": "Loja Gnars",
+  "description": "Produtos oficiais da Gnars e de marcas parceiras. Comprados na Gnars, enviados pelos nossos parceiros de fulfillment.",
+  "empty": {
+    "title": "Ainda não há nada na loja",
+    "description": "Novos produtos estão a caminho. Volte em breve."
+  },
+  "featuredHeading": "Destaques",
+  "allHeading": "Todos os produtos",
+  "filterAll": "Todos",
+  "card": {
+    "buy": "Comprar",
+    "viewDetails": "Ver detalhes",
+    "outOfStock": "Esgotado",
+    "preorder": "Pré-venda",
+    "comingSoon": "Em breve",
+    "featured": "Destaque"
+  },
+  "detail": {
+    "backToStore": "Voltar à loja",
+    "checkoutComingSoon": "Finalização de compra em breve",
+    "viewOnBrand": "Ver na {brand}",
+    "fulfilledBy": "Enviado pela {brand}."
+  },
+  "notFound": {
+    "title": "Produto não encontrado",
+    "description": "O produto que você procura não existe."
+  }
+}

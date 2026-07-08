@@ -48,6 +48,10 @@
       "swap": {
         "title": "Swap",
         "description": "Troque tokens na Base via 0x — melhor preço em mais de 150 DEXes"
+      },
+      "store": {
+        "title": "Loja",
+        "description": "Produtos oficiais da Gnars e de marcas parceiras — finalização de compra em breve"
       }
     },
     "community": {

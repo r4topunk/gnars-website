@@ -1,0 +1,56 @@
+{
+  "products": [
+    {
+      "id": "keepkey-hardware-wallet",
+      "slug": "keepkey-hardware-wallet",
+      "title": "KeepKey Hardware Wallet",
+      "description": "Open-source crypto hardware wallet. Keeps your private keys offline with on-device confirmation for every transaction. Self-custody your gnar with a big, readable screen and a simple recovery flow.",
+      "price": 59.95,
+      "currency": "USD",
+      "images": ["/store/keepkey-hardware-wallet.png"],
+      "category": "Hardware",
+      "brand": "KeepKey",
+      "availability": "in_stock",
+      "fulfillmentProvider": "keepkey",
+      "fulfillmentSku": "KK-HW-001",
+      "externalProductUrl": "https://keepkey.com/products/keepkey",
+      "metaCatalogEligible": true,
+      "featured": true
+    },
+    {
+      "id": "keepkey-laser-eyes-tee",
+      "slug": "keepkey-laser-eyes-tee",
+      "title": "KeepKey Laser Eyes Tee",
+      "description": "American Apparel laser-eyes KeepKey t-shirt. Print-on-demand crypto merch for the self-custody crowd.",
+      "price": 30,
+      "currency": "USD",
+      "images": ["/store/keepkey-laser-eyes-tee.png"],
+      "category": "Apparel",
+      "brand": "KeepKey",
+      "availability": "in_stock",
+      "fulfillmentProvider": "keepkey",
+      "fulfillmentSku": "KK-TEE-LASER",
+      "metaCatalogEligible": true,
+      "featured": true
+    },
+    {
+      "id": "keepkey-ethdenver-tee",
+      "slug": "keepkey-ethdenver-tee",
+      "title": "KeepKey ETHDenver Tee",
+      "description": "KeepKey ETHDenver t-shirt. Print-on-demand crypto merch — soft cotton, unisex fit, built for the conference floor and the skate park.",
+      "price": 30,
+      "currency": "USD",
+      "images": ["/store/keepkey-ethdenver-tee.png"],
+      "category": "Apparel",
+      "brand": "KeepKey",
+      "availability": "preorder",
+      "fulfillmentProvider": "keepkey",
+      "fulfillmentSku": "KK-TEE-ETHDEN",
+      "metaCatalogEligible": true
+    }
+  ],
+  "meta": {
+    "total": 3,
+    "lastUpdated": "2026-07-08"
+  }
+}

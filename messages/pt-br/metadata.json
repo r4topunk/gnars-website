@@ -98,5 +98,10 @@
   "nogglesrails": {
     "title": "NogglesRails — Infraestrutura de Skate Comunitária no Mundo Todo",
     "description": "Rails de skate financiados pela comunidade instalados em spots ao redor do mundo. Aberto, CC0, sem dono — de todos."
+  },
+  "store": {
+    "title": "Loja — Gnars DAO",
+    "description": "Produtos oficiais da Gnars e de marcas parceiras. Comprados na Gnars, enviados pelos nossos parceiros de fulfillment.",
+    "notFoundTitle": "Produto não encontrado | Loja Gnars"
   }
 }
