@@ -1,8 +1,8 @@
-import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 import type { Product } from "@/types/store";
+import { ProductVisual } from "./ProductVisual";
 import { formatPrice, type StoreCardLabels } from "./shared";
 
 function availabilityBadge(product: Product, labels: StoreCardLabels) {
@@ -19,7 +19,6 @@ function availabilityBadge(product: Product, labels: StoreCardLabels) {
 }
 
 export function ProductCard({ product, labels }: { product: Product; labels: StoreCardLabels }) {
-  const cover = product.images[0];
   const badge = availabilityBadge(product, labels);
 
   return (
@@ -27,17 +26,14 @@ export function ProductCard({ product, labels }: { product: Product; labels: Sto
       <div className="group flex h-full flex-col">
         <div className="relative aspect-square w-full">
           <div className="pointer-events-none absolute inset-0 hidden dark:block [background:radial-gradient(circle_at_center,rgba(255,255,255,0.10),transparent_65%)]" />
-          {cover && (
-            <Image
-              src={cover}
-              alt={product.title}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-2 drop-shadow-sm transition-transform duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-105"
-            />
-          )}
+          <ProductVisual
+            product={product}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="transition-transform duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-105"
+            imageClassName="object-contain p-2 drop-shadow-sm transition-transform duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-105"
+          />
           {badge && (
-            <Badge className="absolute right-1 top-1" variant="secondary">
+            <Badge className="absolute right-1 top-1 z-10" variant="secondary">
               {badge}
             </Badge>
           )}

@@ -15,7 +15,45 @@
       "fulfillmentSku": "KK-HW-001",
       "externalProductUrl": "https://keepkey.com/products/keepkey",
       "metaCatalogEligible": true,
-      "featured": true
+      "featured": true,
+      "device3d": "keepkey",
+      "variants": [
+        {
+          "id": "kk-hw-classic",
+          "title": "Classic",
+          "colorHex": "#1a1a2e",
+          "fulfillmentSku": "KK-HW-001-CLASSIC",
+          "availability": "in_stock"
+        },
+        {
+          "id": "kk-hw-red",
+          "title": "Red",
+          "colorHex": "#c0392b",
+          "fulfillmentSku": "KK-HW-001-RED",
+          "availability": "in_stock"
+        },
+        {
+          "id": "kk-hw-green",
+          "title": "Green",
+          "colorHex": "#27ae60",
+          "fulfillmentSku": "KK-HW-001-GREEN",
+          "availability": "in_stock"
+        },
+        {
+          "id": "kk-hw-gold",
+          "title": "Gold",
+          "colorHex": "#c8a75c",
+          "fulfillmentSku": "KK-HW-001-GOLD",
+          "availability": "preorder"
+        },
+        {
+          "id": "kk-hw-silver",
+          "title": "Silver",
+          "colorHex": "#95a5a6",
+          "fulfillmentSku": "KK-HW-001-SILVER",
+          "availability": "in_stock"
+        }
+      ]
     },
     {
       "id": "keepkey-laser-eyes-tee",

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { FeaturedStore } from "@/components/store/FeaturedStore";
-import { ProductGrid } from "@/components/store/ProductGrid";
 import type { StoreCardLabels } from "@/components/store/shared";
-import { getAllProducts, getFeaturedProducts } from "@/services/store";
+import { StoreBanner } from "@/components/store/StoreBanner";
+import { StoreCatalog } from "@/components/store/StoreCatalog";
+import { getAllProducts } from "@/services/store";
 
 export async function generateMetadata({
   params,
@@ -49,9 +49,11 @@ export default async function StorePage({ params }: { params: Promise<{ locale: 
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "store" });
-  const [products, featured] = await Promise.all([getAllProducts(), getFeaturedProducts()]);
+  const products = await getAllProducts();
+  // Hero = the featured device product if present, else the first product.
+  const heroProduct = products.find((p) => p.device3d && p.featured) ?? products[0];
 
-  const labels: StoreCardLabels = {
+  const cardLabels: StoreCardLabels = {
     buy: t("card.buy"),
     viewDetails: t("card.viewDetails"),
     outOfStock: t("card.outOfStock"),
@@ -63,25 +65,32 @@ export default async function StorePage({ params }: { params: Promise<{ locale: 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold tracking-tight md:text-5xl">{t("title")}</h1>
-          <p className="mt-3 max-w-2xl text-lg text-muted-foreground">{t("description")}</p>
-        </div>
+        {heroProduct && (
+          <StoreBanner
+            breadcrumb={t("banner.breadcrumb")}
+            title={t("banner.title")}
+            subtitle={t("banner.subtitle")}
+            product={heroProduct}
+          />
+        )}
 
         {products.length === 0 ? (
-          <div className="rounded-xl border border-dashed py-20 text-center">
+          <div className="mt-10 rounded-xl border border-dashed py-20 text-center">
             <p className="text-lg font-semibold">{t("empty.title")}</p>
             <p className="mt-2 text-muted-foreground">{t("empty.description")}</p>
           </div>
         ) : (
-          <>
-            <FeaturedStore products={featured} labels={labels} heading={t("featuredHeading")} />
-
-            <section>
-              <h2 className="mb-4 text-2xl font-bold">{t("allHeading")}</h2>
-              <ProductGrid products={products} labels={labels} allLabel={t("filterAll")} />
-            </section>
-          </>
+          <div className="mt-12">
+            <StoreCatalog
+              products={products}
+              labels={{
+                card: cardLabels,
+                categoriesHeading: t("categoriesHeading"),
+                allHeading: t("allHeading"),
+                allLabel: t("filterAll"),
+              }}
+            />
+          </div>
         )}
       </div>
     </div>

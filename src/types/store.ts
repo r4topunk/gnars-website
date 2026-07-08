@@ -25,6 +25,35 @@ export type Availability = "in_stock" | "out_of_stock" | "preorder" | "coming_so
  */
 export type FulfillmentProvider = "keepkey" | "gnars" | "external";
 
+/**
+ * Which animated 3D device (if any) renders in place of a static image.
+ * Products without this fall back to `images`. See src/components/store/KeepKeyDevice3D.tsx.
+ */
+export type Device3D = "keepkey";
+
+/**
+ * A purchasable color/finish variant of a product. Each variant carries its own
+ * SKU (and optional price override) so it maps cleanly to a fulfillment provider
+ * and, later, to real checkout line items.
+ */
+export interface ProductVariant {
+  /** Stable id, unique within the product. */
+  id: string;
+  /**
+   * Display name of the finish. For `device3d: "keepkey"` products this MUST be one
+   * of the KeepKeyDevice3D variant keys (Classic, Red, Green, Gold, Silver) so the
+   * animation recolors correctly.
+   */
+  title: string;
+  /** Hex color for the selector swatch and the stage glow. */
+  colorHex: string;
+  /** SKU handed to the fulfillment provider for this specific finish. */
+  fulfillmentSku: string;
+  availability: Availability;
+  /** Optional per-variant price; falls back to the product `price` when absent. */
+  price?: number;
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -47,6 +76,10 @@ export interface Product {
   metaCatalogEligible: boolean;
   /** Surfaced in the featured highlights row at the top of /store. */
   featured?: boolean;
+  /** Render an animated 3D device instead of `images` (card, banner, detail stage). */
+  device3d?: Device3D;
+  /** Selectable color/finish variants. When present, the detail page shows a color selector. */
+  variants?: ProductVariant[];
 }
 
 export interface StoreData {

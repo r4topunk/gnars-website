@@ -1,6 +1,12 @@
 {
   "title": "Loja Gnars",
   "description": "Produtos oficiais da Gnars e de marcas parceiras. Comprados na Gnars, enviados pelos nossos parceiros de fulfillment.",
+  "banner": {
+    "breadcrumb": "Loja",
+    "title": "Todos os Produtos",
+    "subtitle": "Produtos oficiais da Gnars e de marcas parceiras."
+  },
+  "categoriesHeading": "Categorias de Produtos",
   "empty": {
     "title": "Ainda não há nada na loja",
     "description": "Novos produtos estão a caminho. Volte em breve."
@@ -11,6 +17,7 @@
   "card": {
     "buy": "Comprar",
     "viewDetails": "Ver detalhes",
+    "inStock": "Em estoque",
     "outOfStock": "Esgotado",
     "preorder": "Pré-venda",
     "comingSoon": "Em breve",
@@ -18,6 +25,7 @@
   },
   "detail": {
     "backToStore": "Voltar à loja",
+    "finish": "Acabamento",
     "checkoutComingSoon": "Finalização de compra em breve",
     "viewOnBrand": "Ver na {brand}",
     "fulfilledBy": "Enviado pela {brand}."

@@ -1,6 +1,12 @@
 {
   "title": "Gnars Store",
   "description": "Official gear from Gnars and partner brands. Bought on Gnars, shipped by our fulfillment partners.",
+  "banner": {
+    "breadcrumb": "Store",
+    "title": "All Products",
+    "subtitle": "Official gear from Gnars and partner brands."
+  },
+  "categoriesHeading": "Product Categories",
   "empty": {
     "title": "Nothing in the store yet",
     "description": "New products are on the way. Check back soon."
@@ -11,6 +17,7 @@
   "card": {
     "buy": "Buy",
     "viewDetails": "View details",
+    "inStock": "In stock",
     "outOfStock": "Out of stock",
     "preorder": "Pre-order",
     "comingSoon": "Coming soon",
@@ -18,6 +25,7 @@
   },
   "detail": {
     "backToStore": "Back to store",
+    "finish": "Finish",
     "checkoutComingSoon": "Checkout coming soon",
     "viewOnBrand": "View on {brand}",
     "fulfilledBy": "Fulfilled and shipped by {brand}."
