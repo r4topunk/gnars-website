@@ -16,12 +16,13 @@ import { BASE_URL, DAO_ADDRESSES, DAO_DESCRIPTION } from "./config";
 export const MINIAPP_CONFIG = {
   // Account association - MUST be filled in after signing at base.dev/preview
   // Leave empty strings until you've signed the manifest
+  // Signed for the Gnars custody account (fid 3757, domain gnars.com).
   accountAssociation: {
     header:
-      "eyJmaWQiOjUzODgzOSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDk3Yjc4ZDdCM2M2NmMyZmZiOTYxYWEwQURCNmNlNjcyQTM3MTZEOEMifQ",
+      "eyJmaWQiOjM3NTcsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhjQzI5YjVFNmZhOWM1OGU3QzRGMWQ3ZTAzMzExRjMxNjE0M0ZkNWZmIn0",
     payload: "eyJkb21haW4iOiJnbmFycy5jb20ifQ",
     signature:
-      "qm+dqd4UcCOzjAYvNCDaoQOp1A4PoXAm9B6Qv6D4iJ9kzFZ4zjVpoL3s21y2UckqPC+QPO2/HkKuRzoU8GmV4xs=",
+      "j7zi5DsViINJnAaGbXCA36xMmKDtgZ72oRVjAbVCDKsawCrrDnbXR58dD420FxQsQQnFBRFv2bw0K7yCPrzCGRs=",
   },
 
   // Base builder configuration - add your Base account address
