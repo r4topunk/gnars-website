@@ -30,7 +30,10 @@ const PROPOSAL_PAGE_SIZE = 200;
 const MAX_COIN_PAGES = 50;
 const COIN_PAGE_SIZE = 200;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com";
+// Canonical host is www.gnars.com (matches metadataBase in [locale]/layout.tsx
+// and BASE_URL in lib/config.ts). A non-www default here emitted 2,564 URLs that
+// all 307-redirected to www, so Google dropped them — keep this on www.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.gnars.com";
 const BASE = SITE_URL.replace(/\/+$/, "");
 
 const toUrl = (path: string) => new URL(path, `${BASE}/`).toString();
