@@ -80,7 +80,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) {
     return (
-      <div className="py-8 text-center">
+      <div className="py-16 text-center">
         <h2 className="text-2xl font-bold text-muted-foreground">{t("notFound.title")}</h2>
         <p className="mt-2 text-muted-foreground">{t("notFound.description")}</p>
       </div>
@@ -88,7 +88,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   return (
-    <div className="py-8">
+    <div className="py-12">
       <Suspense fallback={<ProductDetailSkeleton />}>
         <ProductDetail product={product} />
       </Suspense>

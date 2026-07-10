@@ -1,12 +1,19 @@
 {
   "title": "Gnars Store",
   "description": "Official gear from Gnars and partner brands. Bought on Gnars, shipped by our fulfillment partners.",
-  "banner": {
-    "breadcrumb": "Store",
-    "title": "All Products",
-    "subtitle": "Official gear from Gnars and partner brands."
+  "hero": {
+    "eyebrow": "The Gnars Store",
+    "headline": "Gear for people who shred.",
+    "subtitle": "Official hardware and apparel from Gnars and partner brands — designed in the open, shipped worldwide.",
+    "browse": "Browse all products",
+    "featuredDrop": "Featured drop",
+    "stats": {
+      "products": "Products",
+      "categories": "Categories",
+      "openBrandValue": "CC0",
+      "openBrandLabel": "Open brand"
+    }
   },
-  "categoriesHeading": "Product Categories",
   "empty": {
     "title": "Nothing in the store yet",
     "description": "New products are on the way. Check back soon."

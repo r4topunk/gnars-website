@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { StoreCardLabels } from "@/components/store/shared";
-import { StoreBanner } from "@/components/store/StoreBanner";
 import { StoreCatalog } from "@/components/store/StoreCatalog";
+import { StoreHero, type HeroStat } from "@/components/store/StoreHero";
 import { getAllProducts } from "@/services/store";
 
 export async function generateMetadata({
@@ -52,6 +52,7 @@ export default async function StorePage({ params }: { params: Promise<{ locale: 
   const products = await getAllProducts();
   // Hero = the featured device product if present, else the first product.
   const heroProduct = products.find((p) => p.device3d && p.featured) ?? products[0];
+  const categoryCount = new Set(products.map((p) => p.category)).size;
 
   const cardLabels: StoreCardLabels = {
     buy: t("card.buy"),
@@ -62,35 +63,40 @@ export default async function StorePage({ params }: { params: Promise<{ locale: 
     featured: t("card.featured"),
   };
 
+  const stats: HeroStat[] = [
+    { value: String(products.length), label: t("hero.stats.products") },
+    { value: String(categoryCount), label: t("hero.stats.categories") },
+    { value: t("hero.stats.openBrandValue"), label: t("hero.stats.openBrandLabel"), accent: true },
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mx-auto max-w-6xl">
-        {heroProduct && (
-          <StoreBanner
-            breadcrumb={t("banner.breadcrumb")}
-            title={t("banner.title")}
-            subtitle={t("banner.subtitle")}
-            product={heroProduct}
-          />
-        )}
+    <div className="bg-background text-foreground">
+      <div className="container mx-auto max-w-6xl px-4 py-12 md:py-16">
+        <StoreHero
+          eyebrow={t("hero.eyebrow")}
+          headline={t("hero.headline")}
+          subtitle={t("hero.subtitle")}
+          browseLabel={t("hero.browse")}
+          featuredDropLabel={t("hero.featuredDrop")}
+          featuredLabel={t("card.featured")}
+          stats={stats}
+          product={heroProduct}
+        />
 
         {products.length === 0 ? (
-          <div className="mt-10 rounded-xl border border-dashed py-20 text-center">
+          <div className="mt-16 rounded-xl border border-dashed border-border py-20 text-center">
             <p className="text-lg font-semibold">{t("empty.title")}</p>
             <p className="mt-2 text-muted-foreground">{t("empty.description")}</p>
           </div>
         ) : (
-          <div className="mt-12">
-            <StoreCatalog
-              products={products}
-              labels={{
-                card: cardLabels,
-                categoriesHeading: t("categoriesHeading"),
-                allHeading: t("allHeading"),
-                allLabel: t("filterAll"),
-              }}
-            />
-          </div>
+          <StoreCatalog
+            products={products}
+            labels={{
+              card: cardLabels,
+              allHeading: t("allHeading"),
+              allLabel: t("filterAll"),
+            }}
+          />
         )}
       </div>
     </div>

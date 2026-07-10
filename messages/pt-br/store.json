@@ -1,12 +1,19 @@
 {
   "title": "Loja Gnars",
   "description": "Produtos oficiais da Gnars e de marcas parceiras. Comprados na Gnars, enviados pelos nossos parceiros de fulfillment.",
-  "banner": {
-    "breadcrumb": "Loja",
-    "title": "Todos os Produtos",
-    "subtitle": "Produtos oficiais da Gnars e de marcas parceiras."
+  "hero": {
+    "eyebrow": "A Loja Gnars",
+    "headline": "Equipamento para quem manda ver.",
+    "subtitle": "Hardware e vestuário oficiais da Gnars e de marcas parceiras — feitos de forma aberta, enviados para o mundo todo.",
+    "browse": "Ver todos os produtos",
+    "featuredDrop": "Drop em destaque",
+    "stats": {
+      "products": "Produtos",
+      "categories": "Categorias",
+      "openBrandValue": "CC0",
+      "openBrandLabel": "Marca aberta"
+    }
   },
-  "categoriesHeading": "Categorias de Produtos",
   "empty": {
     "title": "Ainda não há nada na loja",
     "description": "Novos produtos estão a caminho. Volte em breve."
