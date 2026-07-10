@@ -30,7 +30,7 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/integrations/pinata.md` — IPFS upload integration
 - `docs/integrations/splits.md` — 0xSplits droposal revenue sharing
 - `docs/integrations/swap.md` — 0x Swap API v2 integration powering /swap, including affiliate-fee config
-- `docs/integrations/keepkey-fulfillment.md` — /store dropship flow + the fulfillment API spec requested from KeepKey
+- `docs/integrations/keepkey-fulfillment.md` — KeepKey dropship fulfillment: implemented client + API routes + webhook, money flow, sandbox, env
 
 ## Strategy
 
