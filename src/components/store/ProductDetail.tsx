@@ -10,6 +10,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { Availability, Product, ProductVariant } from "@/types/store";
 import { ProductVisual } from "./ProductVisual";
+import { SandboxOrderTester } from "./SandboxOrderTester";
 import { formatPrice } from "./shared";
 
 function BackLink({ label }: { label: string }) {
@@ -78,7 +79,13 @@ function AvailabilityBadge({ availability }: { availability: Availability }) {
 }
 
 /** Two-panel layout for a 3D-device product with a color/finish selector. */
-function DeviceProductDetail({ product }: { product: Product }) {
+function DeviceProductDetail({
+  product,
+  sandboxTools,
+}: {
+  product: Product;
+  sandboxTools: boolean;
+}) {
   const t = useTranslations("store");
   const variants = product.variants ?? [];
   const [selected, setSelected] = useState<ProductVariant>(variants[0]);
@@ -161,6 +168,8 @@ function DeviceProductDetail({ product }: { product: Product }) {
           </div>
 
           <PurchaseActions product={product} soldOut={soldOut} />
+
+          {sandboxTools && <SandboxOrderTester />}
         </div>
       </div>
     </div>
@@ -245,9 +254,16 @@ function StaticProductDetail({ product }: { product: Product }) {
   );
 }
 
-export function ProductDetail({ product }: { product: Product }) {
+export function ProductDetail({
+  product,
+  sandboxTools = false,
+}: {
+  product: Product;
+  /** Show the sandbox order tester (server passes true only when dropship is in test mode). */
+  sandboxTools?: boolean;
+}) {
   if (product.device3d && product.variants && product.variants.length > 0) {
-    return <DeviceProductDetail product={product} />;
+    return <DeviceProductDetail product={product} sandboxTools={sandboxTools} />;
   }
   return <StaticProductDetail product={product} />;
 }

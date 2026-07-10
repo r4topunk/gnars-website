@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ProductDetail, ProductDetailSkeleton } from "@/components/store/ProductDetail";
+import { isDropshipConfigured, isSandbox } from "@/services/keepkey-dropship";
 import { getProductBySlug } from "@/services/store";
 import type { Product } from "@/types/store";
 
@@ -90,7 +91,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <div className="py-12">
       <Suspense fallback={<ProductDetailSkeleton />}>
-        <ProductDetail product={product} />
+        <ProductDetail product={product} sandboxTools={isSandbox() && isDropshipConfigured()} />
       </Suspense>
     </div>
   );
