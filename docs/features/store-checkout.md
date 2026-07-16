@@ -117,8 +117,9 @@ a working checkout on gnars.com fastest.
 
 ### Environment
 
-`NEXT_PUBLIC_STORE_CHECKOUT_ADDRESS` — dedicated store wallet that receives USDC. Leave unset
-in sandbox (payment skipped); **required before live** or checkout errors out.
+`NEXT_PUBLIC_STORE_CHECKOUT_ADDRESS` — dedicated store wallet that receives USDC. Defaults to
+the Gnars store wallet hardcoded in `src/lib/config.ts` (`STORE_CHECKOUT.recipient`); set the
+env var only to override per-deploy. Only used in live mode (sandbox skips payment).
 
 ## Open decisions for Vlad
 
