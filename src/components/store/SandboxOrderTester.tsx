@@ -10,21 +10,31 @@ import { Button } from "@/components/ui/button";
  * detail page only while KEEPKEY_DROPSHIP_MODE=test (the server passes `enabled`), so it
  * disappears automatically in live mode. Never ships, never draws credit.
  */
+interface TesterOrder {
+  keepKeyOrderId: string;
+  externalOrderId: string;
+  status: string;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  carrier?: string | null;
+}
+
 export function SandboxOrderTester() {
   const [loading, setLoading] = useState(false);
-  const [order, setOrder] = useState<{ keepKeyOrderId: string; status: string } | null>(null);
+  const [order, setOrder] = useState<TesterOrder | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function placeOrder() {
     setLoading(true);
     setError(null);
     setOrder(null);
+    const externalOrderId = `gnars-sandbox-${Date.now()}`;
     try {
       const res = await fetch("/api/store/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          externalOrderId: `gnars-sandbox-${Date.now()}`,
+          externalOrderId,
           customerName: "Gnars Sandbox",
           customerEmail: "sandbox@gnars.com",
           shippingAddress: {
@@ -39,7 +49,7 @@ export function SandboxOrderTester() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error?.message || `HTTP ${res.status}`);
-      setOrder({ keepKeyOrderId: data.keepKeyOrderId, status: data.status });
+      setOrder({ keepKeyOrderId: data.keepKeyOrderId, externalOrderId, status: data.status });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to place order");
     } finally {
@@ -47,15 +57,26 @@ export function SandboxOrderTester() {
     }
   }
 
+  // Polls by externalOrderId — the same path a live order uses to learn its shipment status
+  // (KeepKey's order.shipped webhook doesn't fire yet).
   async function refreshStatus() {
     if (!order) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/store/orders/${order.keepKeyOrderId}`);
+      const res = await fetch(
+        `/api/store/orders?externalOrderId=${encodeURIComponent(order.externalOrderId)}`,
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error?.message || `HTTP ${res.status}`);
-      setOrder({ keepKeyOrderId: data.keepKeyOrderId, status: data.status });
+      setOrder({
+        keepKeyOrderId: data.keepKeyOrderId,
+        externalOrderId: data.externalOrderId,
+        status: data.status,
+        trackingNumber: data.trackingNumber,
+        trackingUrl: data.trackingUrl,
+        carrier: data.carrier,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch status");
     } finally {
@@ -88,9 +109,29 @@ export function SandboxOrderTester() {
       </div>
 
       {order && (
-        <p className="mt-3 font-mono text-xs text-foreground">
-          {order.keepKeyOrderId} — <span className="text-[#e08968]">{order.status}</span>
-        </p>
+        <div className="mt-3 space-y-1 font-mono text-xs text-foreground">
+          <p>
+            {order.keepKeyOrderId} — <span className="text-[#e08968]">{order.status}</span>
+          </p>
+          {order.trackingNumber && (
+            <p className="text-muted-foreground">
+              {order.carrier ?? "tracking"}: {order.trackingNumber}
+              {order.trackingUrl ? (
+                <>
+                  {" "}
+                  <a
+                    href={order.trackingUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#e08968] underline"
+                  >
+                    track
+                  </a>
+                </>
+              ) : null}
+            </p>
+          )}
+        </div>
       )}
       {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
     </div>

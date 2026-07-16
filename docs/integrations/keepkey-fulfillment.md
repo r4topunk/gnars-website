@@ -26,16 +26,19 @@ drawn against a **$500 credit line**. Sandbox orders return `settlement: null`. 
 ## Codebase map
 
 - Client — `src/services/keepkey-dropship.ts` (server-only; `listDropshipProducts`,
-  `getDropshipProduct`, `createDropshipOrder`, `getDropshipOrder`, `verifyWebhookSignature`,
-  `isSandbox`, `isDropshipConfigured`, `DROPSHIP_SANDBOX_SKU`).
+  `getDropshipProduct`, `createDropshipOrder`, `getDropshipOrder`,
+  `getDropshipOrderByExternalId`, `verifyWebhookSignature`, `isSandbox`,
+  `isDropshipConfigured`, `DROPSHIP_SANDBOX_SKU`).
 - Types + zod — `src/lib/schemas/dropship.ts`.
 - Routes:
   - `POST /api/store/orders` — forward a paid order (live creation gated, see below).
+  - `GET  /api/store/orders?externalOrderId=…` — poll status/tracking + settlement by our id.
   - `GET  /api/store/orders/[id]` — fulfillment status by `keepKeyOrderId`.
   - `POST /api/store/keepkey-webhook` — signed status webhook.
+- Tests — `src/services/keepkey-dropship.test.ts` (signature verification + externalOrderId lookup).
 - Product model — `src/types/store.ts`; catalog `src/data/store.json` via `src/services/store.ts`.
 - Still TODO: `TODO(checkout)` (`ProductDetail.tsx`), `TODO(inventory)` (order persistence /
-  customer notification in the webhook), `TODO(keepkey-webhook)` (confirm exact signing string).
+  customer notification in the webhook).
 
 ## API (as built)
 
@@ -101,7 +104,7 @@ address → `invalid_address`). Response:
 }
 ```
 
-### Order status — `GET /orders/{keepKeyOrderId}`
+### Order status — `GET /orders/{keepKeyOrderId}` and `GET /orders?externalOrderId=…`
 
 ```json
 {
@@ -111,29 +114,49 @@ address → `invalid_address`). Response:
   "trackingNumber": null,
   "trackingUrl": null,
   "carrier": null,
-  "shippedAt": null
+  "shippedAt": null,
+  "settlement": { "amountDue": 49, "status": "unpaid", "...": "..." }
 }
 ```
 
 `status`: `received | processing | shipped | cancelled | failed`.
 
+**Tracking today is poll-only.** Per the go-live handoff (2026-07-15), KeepKey's
+`order.shipped` webhook **does not fire yet** — poll `GET /orders?externalOrderId=…` a few
+times a day and read `status` / `trackingNumber` / `trackingUrl` / `carrier`. That endpoint
+also re-returns the order's `settlement` block, so a lost create-order response is
+recoverable. When tracking-sync ships upstream, `order.shipped` starts arriving on the
+existing webhook with no change on our side. `getDropshipOrderByExternalId` /
+`GET /api/store/orders?externalOrderId=…` implement this.
+
 ### Webhooks — `POST` to our `/api/store/keepkey-webhook`
 
-Events: `order.received | order.processing | order.shipped | order.cancelled | order.failed`.
-Signed with **HMAC-SHA256** via the `X-KeepKey-Signature` header (timestamped) using
-`KEEPKEY_DROPSHIP_WEBHOOK_SECRET`. Payload: `eventType, keepKeyOrderId, externalOrderId,
-status, trackingNumber?, trackingUrl?, carrier?, timestamp`.
-
-> `TODO(keepkey-webhook)`: the exact signed-payload string (`${t}.${rawBody}` vs `rawBody`)
-> is not yet confirmed from the docs; `verifyWebhookSignature` tries both. Confirm against a
-> real event, then drop the fallback. With no secret set, webhooks are accepted **only in
-> sandbox** (logged as unverified) and rejected in live.
+Events: `order.received | order.processing | order.shipped | order.cancelled | order.failed`
+(only `order.received` fires today). Signed **Stripe-style**: `X-KeepKey-Signature:
+t=<unix>,v1=<hex>`, where `v1 = HMAC-SHA256(secret, "${t}.${rawBody}")` computed over the
+**raw** request body. `verifyWebhookSignature` recomputes that and **rejects timestamps
+outside a 5-minute window** (replay defense; `WEBHOOK_TIMESTAMP_TOLERANCE_SECONDS`). Payload:
+`eventType, keepKeyOrderId, externalOrderId, status, trackingNumber?, trackingUrl?, carrier?,
+timestamp`. With no secret set, webhooks are accepted **only in sandbox** (logged as
+unverified) and rejected in live.
 
 ### Errors
 
 `{ "error": { "code": "...", "message": "..." } }` with codes like `invalid_request`,
-`invalid_address`, `out_of_stock`, `insufficient_credit`, plus `401` (bad/missing token).
+`invalid_address`, `out_of_stock`, `insufficient_credit`, `account_suspended` (an overdue
+settlement blocks new orders until it clears), plus `401` (bad/missing token).
 `DropshipApiError` carries the HTTP status + code; routes surface them unchanged.
+
+## Settlement (live orders)
+
+Each live order response carries a `settlement` block — the wholesale owed to KeepKey as a
+crypto deposit (`amountDue` in USD, `chainAmount` in BTC to a unique per-order
+`depositAddress`, `dueAt` ≈ 30 days), drawn against the $500 credit line. Send **exactly
+`chainAmount`** to that order's `depositAddress` before `dueAt`; detection is automatic
+(~15 min, 1 confirmation) and restores credit. **Store or recover the settlement** — the
+create-order response has it, and `GET /orders?externalOrderId=…` re-returns it. An overdue
+settlement suspends the account (`account_suspended`). At $49/unit the $500 line is ≈10
+unsettled orders in flight; settle roughly weekly. Sandbox orders return `settlement: null`.
 
 ## Sandbox
 
@@ -158,7 +181,13 @@ Set real values in Vercel env / `.env.local`; they are gitignored and never comm
 
 1. Build Gnars checkout + payment; only call `POST /api/store/orders` **after** payment settles.
 2. Set `KEEPKEY_DROPSHIP_LIVE_TOKEN`, `KEEPKEY_DROPSHIP_WEBHOOK_SECRET`,
-   `KEEPKEY_DROPSHIP_INTERNAL_SECRET` in Vercel; flip `KEEPKEY_DROPSHIP_MODE=live`.
-3. Register the webhook URL with KeepKey; confirm the signing string and remove the fallback.
-4. Persist orders + surface tracking to the customer (`TODO(inventory)`).
-5. Fund/monitor the crypto settlement against the $500 credit line.
+   `KEEPKEY_DROPSHIP_INTERNAL_SECRET` in Vercel; flip `KEEPKEY_DROPSHIP_MODE=live`. Order the
+   real SKU `KK-HW-001` (not `KK-TEST-001`); pass the color finish in `notes`.
+3. Do one **recommended first live order** (1× `KK-HW-001` to a real address via the
+   internal-secret gate), confirm `sandbox:false` + a non-null `settlement`, verify the
+   signed `order.received` webhook arrives, then pay the settlement early to prove the BTC
+   flow and restore credit.
+4. Poll `GET /orders?externalOrderId=…` until `shipped` (the `order.shipped` webhook is not
+   live yet); then wire storefront traffic.
+5. Persist orders + surface tracking to the customer (`TODO(inventory)`).
+6. Fund/monitor the crypto settlement against the $500 credit line.
