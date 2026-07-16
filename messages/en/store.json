@@ -65,8 +65,9 @@
       "line1": "Enter your street address",
       "city": "Enter your city",
       "postalCode": "Enter your postal code",
-      "country": "Use a 2-letter country code (e.g. US)",
-      "state": "State is required for US addresses",
+      "country": "Select your country",
+      "state": "State / province is required",
+      "address": "That shipping address was rejected. Check the street, city, postal code, and state/province.",
       "notConfigured": "Checkout isn't available yet — the store wallet isn't configured.",
       "generic": "Something went wrong. Please try again."
     },
