@@ -34,8 +34,60 @@
     "backToStore": "Back to store",
     "finish": "Finish",
     "checkoutComingSoon": "Checkout coming soon",
+    "buyNow": "Buy now",
     "viewOnBrand": "View on {brand}",
     "fulfilledBy": "Fulfilled and shipped by {brand}."
+  },
+  "checkout": {
+    "title": "Checkout",
+    "optional": "optional",
+    "sandboxNotice": "Sandbox mode — no payment is taken and nothing ships. This places a test order so you can try the full flow.",
+    "sandboxFootnote": "Test order only. Never charged, never shipped.",
+    "payFootnote": "You'll pay in USDC on Base. Fulfilled and shipped by KeepKey.",
+    "placeSandbox": "Place test order",
+    "connectToPay": "Connect wallet to pay",
+    "payAmount": "Pay {amount} in USDC",
+    "connectTitle": "Connect to pay",
+    "paid": "Payment confirmed",
+    "fields": {
+      "name": "Full name",
+      "email": "Email",
+      "line1": "Address",
+      "line2": "Apartment, suite, etc.",
+      "city": "City",
+      "state": "State / Province",
+      "postalCode": "Postal code",
+      "country": "Country (ISO code)"
+    },
+    "errors": {
+      "name": "Enter your name",
+      "email": "Enter a valid email",
+      "line1": "Enter your street address",
+      "city": "Enter your city",
+      "postalCode": "Enter your postal code",
+      "country": "Use a 2-letter country code (e.g. US)",
+      "state": "State is required for US addresses",
+      "notConfigured": "Checkout isn't available yet — the store wallet isn't configured.",
+      "generic": "Something went wrong. Please try again."
+    },
+    "status": {
+      "received": "Received",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "cancelled": "Cancelled",
+      "failed": "Failed"
+    },
+    "success": {
+      "title": "Order placed",
+      "subtitle": "Your {title} order is in. We'll update the status below.",
+      "orderId": "Order ID",
+      "status": "Status",
+      "tracking": "Tracking",
+      "sandboxNote": "Sandbox order — nothing ships. Status stays \"received\".",
+      "liveNote": "You'll get tracking here once KeepKey ships it.",
+      "refresh": "Refresh status",
+      "backToStore": "Back to store"
+    }
   },
   "notFound": {
     "title": "Product Not Found",

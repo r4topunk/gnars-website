@@ -23,7 +23,7 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/features/feed.md` — live feed components and integration notes
 - `docs/features/coin-proposal.md` — coin proposal wizard
 - `docs/features/buy-coin-transaction.md` — proposal transaction type for buy-coin
-- `docs/features/store-checkout.md` — /store checkout & payment design (crypto-on-Base recommended) + build plan
+- `docs/features/store-checkout.md` — /store checkout (USDC on Base, built Phase 1, real payment gated to live) + build plan
 - `docs/features/blog-archive.md` — historical blog archive, IPFS image migration, and the Drive→IPFS curation pipeline proposal
 
 ## Integrations

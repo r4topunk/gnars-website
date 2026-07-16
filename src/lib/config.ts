@@ -97,4 +97,16 @@ export const TREASURY_TOKEN_ALLOWLIST = {
 
 export const TREASURY_TOKEN_ADDRESSES = Object.values(TREASURY_TOKEN_ALLOWLIST);
 
+/**
+ * /store checkout config. Customers pay USDC on Base to `CHECKOUT_RECIPIENT`; the server
+ * verifies that transfer before forwarding the order to the fulfillment provider (KeepKey).
+ * `CHECKOUT_RECIPIENT` is a dedicated store wallet set via env — leave unset until going
+ * live (sandbox orders skip payment). USDC on Base has 6 decimals.
+ */
+export const STORE_CHECKOUT = {
+  usdc: TREASURY_TOKEN_ALLOWLIST.USDC as `0x${string}`,
+  usdcDecimals: 6,
+  recipient: (process.env.NEXT_PUBLIC_STORE_CHECKOUT_ADDRESS || "") as `0x${string}` | "",
+} as const;
+
 export const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.gnars.com";
