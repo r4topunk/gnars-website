@@ -112,16 +112,13 @@ export const STORE_CHECKOUT = {
 } as const;
 
 /**
- * KeepKey dropship fulfillment mode. `test` (sandbox) draws no credit and never ships;
- * `live` places real orders that draw the credit line and owe crypto settlement.
+ * KeepKey dropship fulfillment mode — the single control for going live.
  *
- * Default stays `test` on purpose — going live is a deliberate act, never a side effect of
- * a deploy. The env var (`KEEPKEY_DROPSHIP_MODE`, NOT `NEXT_PUBLIC_`) overrides it in Vercel.
- * Read only server-side via `isSandbox()` — do not branch on this in client code (the env
- * value is not exposed to the browser, so it would always read `test` there).
+ * `test` (sandbox) draws no credit and never ships; `live` places real orders that draw the
+ * credit line and owe crypto settlement. **To go live, change this to `"live"` and ship it**
+ * — it is not read from any env var, so no Vercel change is needed (or possible). Consumed
+ * server-side via `isSandbox()`.
  */
-export const KEEPKEY_DROPSHIP_MODE = (process.env.KEEPKEY_DROPSHIP_MODE || "test") as
-  | "test"
-  | "live";
+export const KEEPKEY_DROPSHIP_MODE: "test" | "live" = "test";
 
 export const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.gnars.com";

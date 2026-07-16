@@ -6,6 +6,15 @@ import {
   WEBHOOK_TIMESTAMP_TOLERANCE_SECONDS,
 } from "./keepkey-dropship";
 
+// The dropship mode now lives in config (not env). Mock it with a mutable holder so tests
+// can drive isSandbox() by setting `mode.value` instead of an env var.
+const mode = vi.hoisted(() => ({ value: "test" as "test" | "live" }));
+vi.mock("@/lib/config", () => ({
+  get KEEPKEY_DROPSHIP_MODE() {
+    return mode.value;
+  },
+}));
+
 const SECRET = "whsec_test_secret";
 const NOW_MS = 1_800_000_000_000; // fixed clock for deterministic timestamp checks
 const NOW_S = Math.floor(NOW_MS / 1000);
@@ -19,12 +28,12 @@ describe("verifyWebhookSignature", () => {
   const body = JSON.stringify({ eventType: "order.received", keepKeyOrderId: "kk_1" });
 
   beforeEach(() => {
-    process.env.KEEPKEY_DROPSHIP_MODE = "live";
+    mode.value = "live";
     process.env.KEEPKEY_DROPSHIP_WEBHOOK_SECRET = SECRET;
   });
   afterEach(() => {
     delete process.env.KEEPKEY_DROPSHIP_WEBHOOK_SECRET;
-    delete process.env.KEEPKEY_DROPSHIP_MODE;
+    mode.value = "test";
   });
 
   it("accepts a correctly signed, fresh payload", () => {
@@ -83,7 +92,7 @@ describe("verifyWebhookSignature", () => {
 
   it("allows (unverified) in sandbox mode when no secret is configured", () => {
     delete process.env.KEEPKEY_DROPSHIP_WEBHOOK_SECRET;
-    process.env.KEEPKEY_DROPSHIP_MODE = "test";
+    mode.value = "test";
     expect(verifyWebhookSignature(body, null, NOW_MS)).toEqual({
       valid: true,
       reason: "unverified-sandbox-no-secret",
@@ -93,24 +102,21 @@ describe("verifyWebhookSignature", () => {
 
 describe("getDropshipOrderByExternalId", () => {
   beforeEach(() => {
-    process.env.KEEPKEY_DROPSHIP_MODE = "test";
+    mode.value = "test";
     process.env.KEEPKEY_DROPSHIP_TEST_TOKEN = "kk_ds_test_x";
   });
   afterEach(() => {
     vi.restoreAllMocks();
     delete process.env.KEEPKEY_DROPSHIP_TEST_TOKEN;
-    delete process.env.KEEPKEY_DROPSHIP_MODE;
   });
 
   function mockFetch(json: unknown) {
-    return vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValue(
-        new Response(JSON.stringify(json), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
-      );
+    return vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(json), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
   }
 
   it("unwraps a single-record response and encodes the query", async () => {
