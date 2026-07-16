@@ -169,14 +169,14 @@ Use the `kk_ds_test_…` token against the same base URL. Every write is flagged
 
 ## Environment (server-only — never `NEXT_PUBLIC_`)
 
-| Var                                | Purpose                                                  |
-| ---------------------------------- | -------------------------------------------------------- |
-| `KEEPKEY_DROPSHIP_MODE`            | `test` (default) or `live` — selects which token is used |
-| `KEEPKEY_DROPSHIP_TEST_TOKEN`      | sandbox bearer token                                     |
-| `KEEPKEY_DROPSHIP_LIVE_TOKEN`      | live bearer token                                        |
-| `KEEPKEY_DROPSHIP_BASE_URL`        | optional override (defaults to the base URL above)       |
-| `KEEPKEY_DROPSHIP_WEBHOOK_SECRET`  | HMAC secret for verifying webhooks                       |
-| `KEEPKEY_DROPSHIP_INTERNAL_SECRET` | gates live order creation until checkout exists          |
+| Var                                | Purpose                                                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `KEEPKEY_DROPSHIP_MODE`            | `test` (default) or `live` — selects which token is used; default lives in `config.ts` (`KEEPKEY_DROPSHIP_MODE`), env overrides |
+| `KEEPKEY_DROPSHIP_TEST_TOKEN`      | sandbox bearer token                                                                                                            |
+| `KEEPKEY_DROPSHIP_LIVE_TOKEN`      | live bearer token                                                                                                               |
+| `KEEPKEY_DROPSHIP_BASE_URL`        | optional override (defaults to the base URL above)                                                                              |
+| `KEEPKEY_DROPSHIP_WEBHOOK_SECRET`  | HMAC secret for verifying webhooks                                                                                              |
+| `KEEPKEY_DROPSHIP_INTERNAL_SECRET` | gates live order creation until checkout exists                                                                                 |
 
 Set real values in Vercel env / `.env.local`; they are gitignored and never committed.
 
