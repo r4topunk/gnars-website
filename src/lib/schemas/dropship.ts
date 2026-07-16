@@ -68,6 +68,13 @@ export interface DropshipOrderRecord {
   trackingUrl: string | null;
   carrier: string | null;
   shippedAt: string | null;
+  estimatedShippingDate?: string | null;
+  /**
+   * The order's crypto settlement, re-returned by `GET /orders?externalOrderId=…`.
+   * Lets us recover an order's `depositAddress` / `amountDue` / `dueAt` if the
+   * create-order response was lost. Null/absent in sandbox.
+   */
+  settlement?: DropshipSettlement | null;
 }
 
 export const shippingAddressSchema = z.object({

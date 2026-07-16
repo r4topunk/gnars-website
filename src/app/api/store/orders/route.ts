@@ -3,12 +3,60 @@ import { dropshipOrderInputSchema } from "@/lib/schemas/dropship";
 import {
   createDropshipOrder,
   DropshipApiError,
+  getDropshipOrderByExternalId,
   isDropshipConfigured,
   isSandbox,
 } from "@/services/keepkey-dropship";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/**
+ * Poll fulfillment status/tracking for an order by our own `externalOrderId`.
+ *
+ * This is the supported way to track a live order until KeepKey's `order.shipped` webhook
+ * ships (it doesn't fire yet). The response also carries the `settlement` block, so an
+ * order's crypto deposit details are recoverable here.
+ */
+export async function GET(request: NextRequest) {
+  if (!isDropshipConfigured()) {
+    return NextResponse.json(
+      { error: { code: "not_configured", message: "KeepKey dropship token is not set" } },
+      { status: 503 },
+    );
+  }
+
+  const externalOrderId = request.nextUrl.searchParams.get("externalOrderId");
+  if (!externalOrderId) {
+    return NextResponse.json(
+      { error: { code: "invalid_request", message: "externalOrderId query param is required" } },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const order = await getDropshipOrderByExternalId(externalOrderId);
+    if (!order) {
+      return NextResponse.json(
+        { error: { code: "not_found", message: "No order for that externalOrderId" } },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json(order);
+  } catch (error) {
+    if (error instanceof DropshipApiError) {
+      return NextResponse.json(
+        { error: { code: error.code, message: error.message } },
+        { status: error.httpStatus },
+      );
+    }
+    console.error("getDropshipOrderByExternalId failed:", error);
+    return NextResponse.json(
+      { error: { code: "server_error", message: "Failed to fetch order" } },
+      { status: 502 },
+    );
+  }
+}
 
 /**
  * Forward a paid order to KeepKey for fulfillment.

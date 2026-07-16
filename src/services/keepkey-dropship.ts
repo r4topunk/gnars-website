@@ -112,17 +112,43 @@ export function getDropshipOrder(keepKeyOrderId: string): Promise<DropshipOrderR
 }
 
 /**
- * Verify an inbound webhook's `X-KeepKey-Signature` (HMAC-SHA256 over the raw body,
- * keyed by KEEPKEY_DROPSHIP_WEBHOOK_SECRET). KeepKey signs with a timestamp, so we
- * accept the Stripe-style `t=<ts>,v1=<hex>` header and a bare `<hex>` fallback.
+ * Look up an order by our own `externalOrderId` (the idempotency key we set on creation).
  *
- * TODO(keepkey-webhook): confirm the exact signed-payload string against the docs'
- * Webhooks section (whether it's `${t}.${rawBody}` or just `rawBody`) and drop the
- * fallback once verified end-to-end with a real event.
+ * This is the ONLY way to learn a live order's shipment status today: per the 2026-07-15
+ * go-live handoff, KeepKey's `order.shipped` webhook does not fire yet, so callers poll
+ * this a few times a day and read `status` / `trackingNumber` / `trackingUrl` / `carrier`.
+ * The live response also carries the order's `settlement` block, so a lost create-order
+ * response is recoverable here. Returns null when no order matches that id.
+ */
+export async function getDropshipOrderByExternalId(
+  externalOrderId: string,
+): Promise<DropshipOrderRecord | null> {
+  const res = await request<DropshipOrderRecord | { orders: DropshipOrderRecord[] }>(
+    `/orders?externalOrderId=${encodeURIComponent(externalOrderId)}`,
+  );
+  // The filtered endpoint may return the record directly or wrapped as { orders: [...] }.
+  if (res && typeof res === "object" && "orders" in res) {
+    return res.orders[0] ?? null;
+  }
+  return (res as DropshipOrderRecord) ?? null;
+}
+
+/** Max clock skew tolerated on a webhook's signed timestamp before it's treated as a replay. */
+export const WEBHOOK_TIMESTAMP_TOLERANCE_SECONDS = 5 * 60;
+
+/**
+ * Verify an inbound webhook's `X-KeepKey-Signature`. Per the go-live handoff, KeepKey signs
+ * Stripe-style: the header is `t=<unix>,v1=<hex>`, and `v1` is the HMAC-SHA256 of
+ * `${t}.${rawBody}` keyed by KEEPKEY_DROPSHIP_WEBHOOK_SECRET, computed over the **raw**
+ * request body. We also reject deliveries whose timestamp is older (or newer) than
+ * WEBHOOK_TIMESTAMP_TOLERANCE_SECONDS to defeat replays.
+ *
+ * `nowMs` is injectable for tests; it defaults to the current time.
  */
 export function verifyWebhookSignature(
   rawBody: string,
   signatureHeader: string | null,
+  nowMs: number = Date.now(),
 ): { valid: boolean; reason: string } {
   const secret = process.env.KEEPKEY_DROPSHIP_WEBHOOK_SECRET;
   if (!secret) {
@@ -140,16 +166,17 @@ export function verifyWebhookSignature(
     }),
   );
   const ts = parts["t"];
-  const provided = parts["v1"] ?? (signatureHeader.includes("=") ? undefined : signatureHeader);
+  const provided = parts["v1"];
+  if (!ts || !provided) return { valid: false, reason: "malformed-signature" };
 
-  const candidates = ts ? [`${ts}.${rawBody}`, rawBody] : [rawBody];
-
-  for (const payload of candidates) {
-    const expected = createHmac("sha256", secret).update(payload).digest("hex");
-    if (provided && safeEqualHex(expected, provided)) {
-      return { valid: true, reason: "verified" };
-    }
+  const tsSeconds = Number(ts);
+  if (!Number.isFinite(tsSeconds)) return { valid: false, reason: "malformed-timestamp" };
+  if (Math.abs(nowMs / 1000 - tsSeconds) > WEBHOOK_TIMESTAMP_TOLERANCE_SECONDS) {
+    return { valid: false, reason: "stale-timestamp" };
   }
+
+  const expected = createHmac("sha256", secret).update(`${ts}.${rawBody}`).digest("hex");
+  if (safeEqualHex(expected, provided)) return { valid: true, reason: "verified" };
   return { valid: false, reason: "signature-mismatch" };
 }
 
