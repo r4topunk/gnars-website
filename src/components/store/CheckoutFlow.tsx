@@ -206,7 +206,15 @@ export function CheckoutFlow({
         </div>
       )}
 
-      <div className="mt-6 space-y-4">
+      {/* A real <form> with autocomplete tokens so the browser/password-manager can autofill
+          name, email and the full shipping address. */}
+      <form
+        className="mt-6 space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
+        }}
+      >
         {finishes.length > 1 && (
           <Field label={t("detail.finish")}>
             <Select value={finish} onValueChange={setFinish}>
@@ -228,6 +236,8 @@ export function CheckoutFlow({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t("checkout.fields.name")}>
             <Input
+              name="name"
+              autoComplete="name"
               value={form.customerName}
               onChange={(e) => set("customerName", e.target.value)}
             />
@@ -235,6 +245,8 @@ export function CheckoutFlow({
           <Field label={t("checkout.fields.email")}>
             <Input
               type="email"
+              name="email"
+              autoComplete="email"
               value={form.customerEmail}
               onChange={(e) => set("customerEmail", e.target.value)}
             />
@@ -242,42 +254,69 @@ export function CheckoutFlow({
         </div>
 
         <Field label={t("checkout.fields.line1")}>
-          <Input value={form.line1} onChange={(e) => set("line1", e.target.value)} />
+          <Input
+            name="address-line1"
+            autoComplete="address-line1"
+            value={form.line1}
+            onChange={(e) => set("line1", e.target.value)}
+          />
         </Field>
         <Field label={t("checkout.fields.line2")} optional>
-          <Input value={form.line2} onChange={(e) => set("line2", e.target.value)} />
+          <Input
+            name="address-line2"
+            autoComplete="address-line2"
+            value={form.line2}
+            onChange={(e) => set("line2", e.target.value)}
+          />
         </Field>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label={t("checkout.fields.city")}>
-            <Input value={form.city} onChange={(e) => set("city", e.target.value)} />
+            <Input
+              name="city"
+              autoComplete="address-level2"
+              value={form.city}
+              onChange={(e) => set("city", e.target.value)}
+            />
           </Field>
           <Field label={t("checkout.fields.state")}>
-            <Input value={form.state} onChange={(e) => set("state", e.target.value)} />
+            <Input
+              name="state"
+              autoComplete="address-level1"
+              value={form.state}
+              onChange={(e) => set("state", e.target.value)}
+            />
           </Field>
           <Field label={t("checkout.fields.postalCode")}>
-            <Input value={form.postalCode} onChange={(e) => set("postalCode", e.target.value)} />
+            <Input
+              name="postal-code"
+              autoComplete="postal-code"
+              value={form.postalCode}
+              onChange={(e) => set("postalCode", e.target.value)}
+            />
           </Field>
         </div>
 
         <Field label={t("checkout.fields.country")}>
           <Input
+            name="country"
+            autoComplete="country"
             value={form.country}
             maxLength={2}
             onChange={(e) => set("country", e.target.value.toUpperCase())}
             className="w-24"
           />
         </Field>
-      </div>
 
-      <Button size="lg" className="mt-6 w-full" onClick={onSubmit} disabled={busy}>
-        {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {payLabel}
-      </Button>
+        <Button type="submit" size="lg" className="mt-2 w-full" disabled={busy}>
+          {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {payLabel}
+        </Button>
 
-      <p className="mt-3 text-center text-xs text-muted-foreground">
-        {sandbox ? t("checkout.sandboxFootnote") : t("checkout.payFootnote")}
-      </p>
+        <p className="text-center text-xs text-muted-foreground">
+          {sandbox ? t("checkout.sandboxFootnote") : t("checkout.payFootnote")}
+        </p>
+      </form>
     </div>
   );
 }
