@@ -19,6 +19,7 @@ import {
 import { useUsdcPayment } from "@/hooks/use-usdc-payment";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { STORE_CHECKOUT } from "@/lib/config";
+import { COUNTRIES } from "@/lib/store/countries";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 import type { Currency } from "@/types/store";
@@ -95,8 +96,8 @@ export function CheckoutFlow({
     if (!form.city.trim()) return t("checkout.errors.city");
     if (!form.postalCode.trim()) return t("checkout.errors.postalCode");
     if (form.country.trim().length !== 2) return t("checkout.errors.country");
-    if (form.country.toUpperCase() === "US" && !form.state.trim())
-      return t("checkout.errors.state");
+    // KeepKey requires a non-empty state/province on every address, regardless of country.
+    if (!form.state.trim()) return t("checkout.errors.state");
     return null;
   }
 
@@ -121,7 +122,12 @@ export function CheckoutFlow({
       }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data?.error?.message || `HTTP ${res.status}`);
+    if (!res.ok) {
+      // KeepKey's invalid_address message ("Invalid input") is useless — make it actionable.
+      const code = data?.error?.code;
+      if (code === "invalid_address") throw new Error(t("checkout.errors.address"));
+      throw new Error(data?.error?.message || `HTTP ${res.status}`);
+    }
     setOrder({
       keepKeyOrderId: data.keepKeyOrderId,
       externalOrderId: data.externalOrderId,
@@ -298,14 +304,18 @@ export function CheckoutFlow({
         </div>
 
         <Field label={t("checkout.fields.country")}>
-          <Input
-            name="country"
-            autoComplete="country"
-            value={form.country}
-            maxLength={2}
-            onChange={(e) => set("country", e.target.value.toUpperCase())}
-            className="w-24"
-          />
+          <Select value={form.country} onValueChange={(v) => set("country", v)}>
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {COUNTRIES.map((c) => (
+                <SelectItem key={c.code} value={c.code}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
 
         <Button type="submit" size="lg" className="mt-2 w-full" disabled={busy}>
