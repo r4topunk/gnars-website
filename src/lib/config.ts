@@ -97,4 +97,18 @@ export const TREASURY_TOKEN_ALLOWLIST = {
 
 export const TREASURY_TOKEN_ADDRESSES = Object.values(TREASURY_TOKEN_ALLOWLIST);
 
+/**
+ * /store checkout config. Customers pay USDC on Base to `recipient`; the server verifies that
+ * transfer before forwarding the order to the fulfillment provider (KeepKey). `recipient` is
+ * the dedicated Gnars store wallet — hardcoded here (public address, safe to commit) with an
+ * env override for other deploys. Secrets (KeepKey tokens/webhook) stay in env. USDC on Base
+ * has 6 decimals. Sandbox orders skip payment, so this is only used in live mode.
+ */
+export const STORE_CHECKOUT = {
+  usdc: TREASURY_TOKEN_ALLOWLIST.USDC as `0x${string}`,
+  usdcDecimals: 6,
+  recipient: (process.env.NEXT_PUBLIC_STORE_CHECKOUT_ADDRESS ||
+    "0x8Bf5941d27176242745B716251943Ae4892a3C26") as `0x${string}`,
+} as const;
+
 export const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.gnars.com";

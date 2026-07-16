@@ -7,6 +7,7 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { isDropshipFulfillable } from "@/lib/store/fulfillment";
 import { cn } from "@/lib/utils";
 import type { Availability, Product, ProductVariant } from "@/types/store";
 import { ProductVisual } from "./ProductVisual";
@@ -25,20 +26,24 @@ function BackLink({ label }: { label: string }) {
   );
 }
 
-/** Purchase CTA + fulfillment note, shared by both layouts. Checkout is not built yet. */
+/** Purchase CTA + fulfillment note, shared by both layouts. */
 function PurchaseActions({ product, soldOut }: { product: Product; soldOut: boolean }) {
   const t = useTranslations("store");
+  // Only SKUs actually in KeepKey's dropship catalog can be ordered. The tees are marked
+  // `keepkey` but are print-on-demand elsewhere, so they stay "coming soon".
+  const canCheckout = isDropshipFulfillable(product.fulfillmentSku);
   return (
     <>
-      {/*
-        TODO(checkout): wire the primary CTA to a real checkout flow.
-        Flow: Gnars checkout → fulfillment provider API (e.g. KeepKey) → provider ships.
-        See docs/integrations/keepkey-fulfillment.md. Disabled until payment exists.
-      */}
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-        <Button size="lg" disabled>
-          {soldOut ? t("card.outOfStock") : t("detail.checkoutComingSoon")}
-        </Button>
+        {canCheckout && !soldOut ? (
+          <Button asChild size="lg">
+            <Link href={`/store/${product.slug}/checkout`}>{t("detail.buyNow")}</Link>
+          </Button>
+        ) : (
+          <Button size="lg" disabled>
+            {soldOut ? t("card.outOfStock") : t("detail.checkoutComingSoon")}
+          </Button>
+        )}
         {product.externalProductUrl && (
           <Button asChild size="lg" variant="outline">
             <a href={product.externalProductUrl} target="_blank" rel="noopener noreferrer">

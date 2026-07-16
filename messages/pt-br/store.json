@@ -34,8 +34,60 @@
     "backToStore": "Voltar à loja",
     "finish": "Acabamento",
     "checkoutComingSoon": "Finalização de compra em breve",
+    "buyNow": "Comprar agora",
     "viewOnBrand": "Ver na {brand}",
     "fulfilledBy": "Enviado pela {brand}."
+  },
+  "checkout": {
+    "title": "Finalizar compra",
+    "optional": "opcional",
+    "sandboxNotice": "Modo sandbox — nenhum pagamento é cobrado e nada é enviado. Isso cria um pedido de teste para você experimentar o fluxo completo.",
+    "sandboxFootnote": "Apenas pedido de teste. Nunca cobrado, nunca enviado.",
+    "payFootnote": "Você paga em USDC na Base. Enviado pela KeepKey.",
+    "placeSandbox": "Criar pedido de teste",
+    "connectToPay": "Conecte a carteira para pagar",
+    "payAmount": "Pagar {amount} em USDC",
+    "connectTitle": "Conectar para pagar",
+    "paid": "Pagamento confirmado",
+    "fields": {
+      "name": "Nome completo",
+      "email": "E-mail",
+      "line1": "Endereço",
+      "line2": "Apartamento, bloco, etc.",
+      "city": "Cidade",
+      "state": "Estado / Província",
+      "postalCode": "CEP",
+      "country": "País (código ISO)"
+    },
+    "errors": {
+      "name": "Informe seu nome",
+      "email": "Informe um e-mail válido",
+      "line1": "Informe seu endereço",
+      "city": "Informe sua cidade",
+      "postalCode": "Informe seu CEP",
+      "country": "Use um código de país de 2 letras (ex.: US)",
+      "state": "O estado é obrigatório para endereços nos EUA",
+      "notConfigured": "A finalização ainda não está disponível — a carteira da loja não está configurada.",
+      "generic": "Algo deu errado. Tente novamente."
+    },
+    "status": {
+      "received": "Recebido",
+      "processing": "Em processamento",
+      "shipped": "Enviado",
+      "cancelled": "Cancelado",
+      "failed": "Falhou"
+    },
+    "success": {
+      "title": "Pedido realizado",
+      "subtitle": "Seu pedido de {title} foi registrado. Vamos atualizar o status abaixo.",
+      "orderId": "ID do pedido",
+      "status": "Status",
+      "tracking": "Rastreamento",
+      "sandboxNote": "Pedido sandbox — nada é enviado. O status permanece \"recebido\".",
+      "liveNote": "O rastreamento aparecerá aqui assim que a KeepKey enviar.",
+      "refresh": "Atualizar status",
+      "backToStore": "Voltar à loja"
+    }
   },
   "notFound": {
     "title": "Produto não encontrado",

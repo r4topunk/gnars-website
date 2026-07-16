@@ -3,17 +3,19 @@
 Status: **implemented, sandbox-verified.** The server-side fulfillment layer (client +
 API routes + webhook) is built and tested end-to-end against the KeepKey sandbox. It
 runs in **test mode by default** (`KEEPKEY_DROPSHIP_MODE=test`) — no real orders, credit,
-or shipments until that flips to `live`. The customer-facing **checkout/payment step is
-still not built**, so nothing calls the live order path in production yet.
+or shipments until that flips to `live`. The customer-facing **checkout is now built**
+(USDC on Base, `/store/[slug]/checkout`, real payment gated to live mode) — see
+`docs/features/store-checkout.md`.
 
 Docs (partner, auth-gated): https://affiliates.keepkey.com/dropship/docs
 
 ## Target flow
 
-Instagram Shop / Meta catalog → Gnars product page (`/store/[slug]`) → **Gnars checkout
-(payment — TODO)** → `POST /api/store/orders` → KeepKey Dropship API → KeepKey ships,
-then POSTs status webhooks back. The customer relationship stays entirely under Gnars;
-KeepKey is the dropship fulfiller.
+Instagram Shop / Meta catalog → Gnars product page (`/store/[slug]`) → **Gnars checkout**
+(`/store/[slug]/checkout`, USDC on Base) → `POST /api/store/checkout` (verifies payment) →
+`createDropshipOrder` → KeepKey Dropship API → KeepKey ships, then POSTs status webhooks
+back. The customer relationship stays entirely under Gnars; KeepKey is the dropship
+fulfiller.
 
 ## Money flow (important)
 
@@ -37,8 +39,9 @@ drawn against a **$500 credit line**. Sandbox orders return `settlement: null`. 
   - `POST /api/store/keepkey-webhook` — signed status webhook.
 - Tests — `src/services/keepkey-dropship.test.ts` (signature verification + externalOrderId lookup).
 - Product model — `src/types/store.ts`; catalog `src/data/store.json` via `src/services/store.ts`.
-- Still TODO: `TODO(checkout)` (`ProductDetail.tsx`), `TODO(inventory)` (order persistence /
-  customer notification in the webhook).
+- Checkout — `/store/[slug]/checkout` + `POST /api/store/checkout` (payment gate). See
+  `docs/features/store-checkout.md`.
+- Still TODO: `TODO(inventory)` (order persistence / customer notification in the webhook).
 
 ## API (as built)
 
@@ -179,7 +182,8 @@ Set real values in Vercel env / `.env.local`; they are gitignored and never comm
 
 ## Going live (checklist)
 
-1. Build Gnars checkout + payment; only call `POST /api/store/orders` **after** payment settles.
+1. ✅ Checkout + payment built (`/store/[slug]/checkout` → `POST /api/store/checkout`, USDC
+   on Base). Set `NEXT_PUBLIC_STORE_CHECKOUT_ADDRESS` (the store wallet) before going live.
 2. Set `KEEPKEY_DROPSHIP_LIVE_TOKEN`, `KEEPKEY_DROPSHIP_WEBHOOK_SECRET`,
    `KEEPKEY_DROPSHIP_INTERNAL_SECRET` in Vercel; flip `KEEPKEY_DROPSHIP_MODE=live`. Order the
    real SKU `KK-HW-001` (not `KK-TEST-001`); pass the color finish in `notes`.

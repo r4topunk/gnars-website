@@ -1,8 +1,11 @@
-# Store Checkout & Payment (design)
+# Store Checkout & Payment
 
-Status: **design / not built.** Fulfillment (KeepKey dropship) is live in sandbox; the
-missing piece is collecting money from the customer and triggering the order. This doc
-picks a payment approach and lays out the build.
+Status: **Phase 1 built (USDC on Base), sandbox-verified.** The customer-facing checkout
+exists at `/store/[slug]/checkout`: shipping form → payment → order → confirmation with
+polled status. Real payment is **gated to live mode** — in sandbox (`KEEPKEY_DROPSHIP_MODE=test`)
+the flow skips payment and places a free `KK-TEST-001` order so the whole UX is testable.
+Phase 2 (receipts, buyer order lookup) and Phase 3 (settlement automation, cards) are still
+open. This doc records the chosen approach and what's left.
 
 ## The flow we're completing
 
@@ -61,37 +64,75 @@ a working checkout on gnars.com fastest.
 
 ## Build plan
 
-**Phase 1 — MVP checkout (USDC → sandbox order)**
+**Phase 1 — MVP checkout (USDC → order) — BUILT**
 
-1. Checkout form on `/store/[slug]` (or `/store/checkout`): shipping address + email + finish.
-2. Pay: thirdweb `sendTransaction` — USDC transfer of the retail amount to a Gnars checkout
-   address (treasury or a dedicated wallet). Capture `txHash`.
-3. Server verifies the tx with viem (recipient, token = `USDC_BASE`, amount ≥ price, N
-   confirmations, not already used), then calls `createDropshipOrder`.
-4. Persist the order (Postgres): `{ txHash, externalOrderId, keepKeyOrderId, status, buyer,
-address, createdAt }`. Confirmation page shows `keepKeyOrderId` + polled status.
+1. ✅ Checkout page `/store/[slug]/checkout`: finish + email + shipping address.
+2. ✅ Pay: thirdweb `sendTransaction` — USDC transfer of the retail amount to the store
+   checkout wallet, via `useUsdcPayment()`. Captures `txHash`. Signs through
+   `useWriteAccount()` so it honors the EOA/SA view mode.
+3. ✅ Server verifies the tx with viem (`verifyUsdcPayment`: recipient, token = Base USDC,
+   amount ≥ price, ≥1 confirmation, tx succeeded), then calls `createDropshipOrder`.
+4. ✅ Confirmation shows `keepKeyOrderId` + status polled via
+   `GET /api/store/orders?externalOrderId=…` (tracking appears once KeepKey ships).
+5. ⬜ Order persistence (Postgres) — deferred; KeepKey is currently the source of truth and
+   the order is recoverable by `externalOrderId`.
 
 **Phase 2 — status + receipts**
 
-- Register the KeepKey webhook (push status) + email receipt/tracking to the buyer.
-- Buyer-facing order lookup (by email or wallet).
+- Email receipt/tracking to the buyer; buyer-facing order lookup (by email or wallet).
 
 **Phase 3 — settle + cards**
 
 - Automate/operate USDC → BTC settlement to KeepKey against the credit line.
 - Add card checkout via a MoR when a legal entity exists.
 
+## How it works (as built)
+
+```
+/store/[slug] ──Buy now──▶ /store/[slug]/checkout ──▶ POST /api/store/checkout
+                                                        │
+                          sandbox: no payment ──────────┤
+                          live: verify USDC tx ─────────┘──▶ createDropshipOrder → KeepKey
+```
+
+- **Mode gate** — `isSandbox()` decides everything. Sandbox: no payment, SKU forced to
+  `KK-TEST-001`, `externalOrderId` random. Live: `txHash` required and re-verified server-side,
+  real SKU, `externalOrderId = gnars-<txHash>`.
+- **Double-spend safety** — the live `externalOrderId` is derived from the payment tx hash, and
+  KeepKey dedupes on `externalOrderId`, so one payment can never place two orders.
+- **Eligibility** — only SKUs in `DROPSHIP_CATALOG_SKUS` (`src/lib/store/fulfillment.ts`) get a
+  checkout. The tees carry `keepkey` + `KK-TEE-*` SKUs but are print-on-demand elsewhere, so
+  they stay "coming soon" (enforced on the CTA, the page, and the API).
+- **Trust boundary** — the client only supplies a tx hash; amount/recipient/token are re-read
+  from chain. Never trust a client-reported payment.
+
+### Code map
+
+- `src/app/[locale]/store/[slug]/checkout/page.tsx` — checkout route.
+- `src/components/store/CheckoutFlow.tsx` — form, payment, confirmation + status polling.
+- `src/hooks/use-usdc-payment.ts` — USDC transfer on Base via thirdweb.
+- `src/app/api/store/checkout/route.ts` — payment gate → fulfillment order.
+- `src/services/store-payment.ts` — on-chain payment verification (+ `.test.ts`).
+- `src/lib/schemas/checkout.ts`, `src/lib/store/fulfillment.ts` (+ `.test.ts`).
+
+### Environment
+
+`NEXT_PUBLIC_STORE_CHECKOUT_ADDRESS` — dedicated store wallet that receives USDC. Defaults to
+the Gnars store wallet hardcoded in `src/lib/config.ts` (`STORE_CHECKOUT.recipient`); set the
+env var only to override per-deploy. Only used in live mode (sandbox skips payment).
+
 ## Open decisions for Vlad
 
-1. **Payment token/recipient** — USDC (recommended) to treasury, or a dedicated checkout wallet?
+1. ~~Payment token/recipient~~ — decided: **USDC on Base → dedicated checkout wallet**
+   (`NEXT_PUBLIC_STORE_CHECKOUT_ADDRESS`).
 2. **Who operates settlement** — manual BTC deposit to KeepKey per order, or batched/automated?
 3. **Refund policy** — crypto refunds are manual; define window + who signs.
-4. **Order storage** — reuse the existing Postgres (`pg`) or a KV store.
+4. **Order storage** — reuse the existing Postgres (`pg`) or a KV store (Phase 1 defers it).
 5. **Merchant-of-record / legal** — needed before any card path (option B).
 
-## What's already testable
+## What's testable now
 
-The fulfillment half is live in sandbox on gnars.com. Use the **sandbox order tester** on a
-`/store/[slug]` device page (rendered only while `KEEPKEY_DROPSHIP_MODE=test`) to place a
-`KK-TEST-001` order and watch its status — no payment, no shipment. See
-`src/components/store/SandboxOrderTester.tsx`.
+In sandbox, the full customer flow works free: `/store/keepkey-hardware-wallet` → **Buy now**
+→ fill the form → **Place test order** → confirmation with a live-polled status. Nothing is
+charged and nothing ships. The older `SandboxOrderTester` panel on the device page still
+places a raw `KK-TEST-001` order without the form.
