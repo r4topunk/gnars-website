@@ -24,9 +24,8 @@ const DEFAULT_BASE_URL = "https://affiliates.keepkey.com/api/dropship/v1";
 export const DROPSHIP_SANDBOX_SKU = "KK-TEST-001";
 
 export function isSandbox(): boolean {
-  // Env wins at call-time (so Vercel can flip live/test without a redeploy, and tests can
-  // override per-case); the config const supplies the default when the env var is unset.
-  return (process.env.KEEPKEY_DROPSHIP_MODE || KEEPKEY_DROPSHIP_MODE) !== "live";
+  // Config is the single source of truth for the mode — see KEEPKEY_DROPSHIP_MODE in config.ts.
+  return KEEPKEY_DROPSHIP_MODE !== "live";
 }
 
 function baseUrl(): string {

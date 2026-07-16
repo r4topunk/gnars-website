@@ -2,8 +2,8 @@
 
 Status: **implemented, sandbox-verified.** The server-side fulfillment layer (client +
 API routes + webhook) is built and tested end-to-end against the KeepKey sandbox. It
-runs in **test mode by default** (`KEEPKEY_DROPSHIP_MODE=test`) — no real orders, credit,
-or shipments until that flips to `live`. The customer-facing **checkout is now built**
+runs in **test mode by default** (`KEEPKEY_DROPSHIP_MODE` in `src/lib/config.ts`) — no real
+orders, credit, or shipments until that flips to `live`. The customer-facing **checkout is now built**
 (USDC on Base, `/store/[slug]/checkout`, real payment gated to live mode) — see
 `docs/features/store-checkout.md`.
 
@@ -169,24 +169,28 @@ Use the `kk_ds_test_…` token against the same base URL. Every write is flagged
 
 ## Environment (server-only — never `NEXT_PUBLIC_`)
 
-| Var                                | Purpose                                                                                                                         |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `KEEPKEY_DROPSHIP_MODE`            | `test` (default) or `live` — selects which token is used; default lives in `config.ts` (`KEEPKEY_DROPSHIP_MODE`), env overrides |
-| `KEEPKEY_DROPSHIP_TEST_TOKEN`      | sandbox bearer token                                                                                                            |
-| `KEEPKEY_DROPSHIP_LIVE_TOKEN`      | live bearer token                                                                                                               |
-| `KEEPKEY_DROPSHIP_BASE_URL`        | optional override (defaults to the base URL above)                                                                              |
-| `KEEPKEY_DROPSHIP_WEBHOOK_SECRET`  | HMAC secret for verifying webhooks                                                                                              |
-| `KEEPKEY_DROPSHIP_INTERNAL_SECRET` | gates live order creation until checkout exists                                                                                 |
+| Var                                | Purpose                                            |
+| ---------------------------------- | -------------------------------------------------- |
+| `KEEPKEY_DROPSHIP_TEST_TOKEN`      | sandbox bearer token                               |
+| `KEEPKEY_DROPSHIP_LIVE_TOKEN`      | live bearer token                                  |
+| `KEEPKEY_DROPSHIP_BASE_URL`        | optional override (defaults to the base URL above) |
+| `KEEPKEY_DROPSHIP_WEBHOOK_SECRET`  | HMAC secret for verifying webhooks                 |
+| `KEEPKEY_DROPSHIP_INTERNAL_SECRET` | gates the raw `POST /api/store/orders` live path   |
 
 Set real values in Vercel env / `.env.local`; they are gitignored and never committed.
+
+**Mode is not an env var.** `test` vs `live` is set in code at `src/lib/config.ts`
+(`KEEPKEY_DROPSHIP_MODE`, read via `isSandbox()`). To go live, change it there and ship —
+no Vercel change flips it.
 
 ## Going live (checklist)
 
 1. ✅ Checkout + payment built (`/store/[slug]/checkout` → `POST /api/store/checkout`, USDC
    on Base). Set `NEXT_PUBLIC_STORE_CHECKOUT_ADDRESS` (the store wallet) before going live.
 2. Set `KEEPKEY_DROPSHIP_LIVE_TOKEN`, `KEEPKEY_DROPSHIP_WEBHOOK_SECRET`,
-   `KEEPKEY_DROPSHIP_INTERNAL_SECRET` in Vercel; flip `KEEPKEY_DROPSHIP_MODE=live`. Order the
-   real SKU `KK-HW-001` (not `KK-TEST-001`); pass the color finish in `notes`.
+   `KEEPKEY_DROPSHIP_INTERNAL_SECRET` in Vercel, then set `KEEPKEY_DROPSHIP_MODE = "live"` in
+   `src/lib/config.ts` and ship. Orders then use the real SKU `KK-HW-001` (not `KK-TEST-001`);
+   the color finish rides along in `notes`.
 3. Do one **recommended first live order** (1× `KK-HW-001` to a real address via the
    internal-secret gate), confirm `sandbox:false` + a non-null `settlement`, verify the
    signed `order.received` webhook arrives, then pay the settlement early to prove the BTC
