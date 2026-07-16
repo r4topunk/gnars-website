@@ -86,6 +86,8 @@ export const shippingAddressSchema = z.object({
   country: z.string().length(2, "ISO 3166-1 alpha-2 country code"),
 });
 
+export type ShippingAddress = z.infer<typeof shippingAddressSchema>;
+
 export const dropshipOrderInputSchema = z.object({
   externalOrderId: z.string().min(1),
   customerName: z.string().min(1),

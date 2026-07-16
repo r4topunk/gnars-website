@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { sendOrderReceiptEmail } from "@/lib/email/order-receipt";
 import { checkoutInputSchema, type CheckoutResult } from "@/lib/schemas/checkout";
 import { isDropshipFulfillable } from "@/lib/store/fulfillment";
 import {
@@ -106,6 +107,20 @@ export async function POST(request: NextRequest) {
       lineItems: [{ sku, quantity: 1 }],
       shippingMethod: "standard",
       notes,
+    });
+
+    // Best-effort order receipt — never let a mail failure fail an order that's placed.
+    await sendOrderReceiptEmail({
+      to: input.customerEmail,
+      customerName: input.customerName,
+      productTitle: product.title,
+      finish: input.finish || undefined,
+      amount: product.price,
+      currency: product.currency,
+      keepKeyOrderId: result.keepKeyOrderId,
+      externalOrderId,
+      shippingAddress: input.shippingAddress,
+      sandbox: result.sandbox,
     });
 
     const payload: CheckoutResult = {

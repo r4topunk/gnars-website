@@ -79,7 +79,11 @@ a working checkout on gnars.com fastest.
 
 **Phase 2 — status + receipts**
 
-- Email receipt/tracking to the buyer; buyer-facing order lookup (by email or wallet).
+- ✅ Email order receipt to the buyer on checkout (SMTP via `src/lib/email/`, best-effort —
+  never fails the order). Configured with `EMAIL_USER` / `EMAIL_PASS` (Gmail SMTP by default,
+  mirrors SkateHive); skipped with a log warning if unset.
+- ⬜ Tracking email once KeepKey ships (`order.shipped` webhook isn't live yet — see
+  `docs/integrations/keepkey-fulfillment.md`); buyer-facing order lookup (by email or wallet).
 
 **Phase 3 — settle + cards**
 
@@ -111,15 +115,20 @@ a working checkout on gnars.com fastest.
 - `src/app/[locale]/store/[slug]/checkout/page.tsx` — checkout route.
 - `src/components/store/CheckoutFlow.tsx` — form, payment, confirmation + status polling.
 - `src/hooks/use-usdc-payment.ts` — USDC transfer on Base via thirdweb.
-- `src/app/api/store/checkout/route.ts` — payment gate → fulfillment order.
+- `src/app/api/store/checkout/route.ts` — payment gate → fulfillment order → receipt email.
 - `src/services/store-payment.ts` — on-chain payment verification (+ `.test.ts`).
+- `src/lib/email/mailer.ts` — shared SMTP transport; `order-receipt.ts` — receipt template +
+  send (+ `.test.ts`).
 - `src/lib/schemas/checkout.ts`, `src/lib/store/fulfillment.ts` (+ `.test.ts`).
 
 ### Environment
 
-`NEXT_PUBLIC_STORE_CHECKOUT_ADDRESS` — dedicated store wallet that receives USDC. Defaults to
-the Gnars store wallet hardcoded in `src/lib/config.ts` (`STORE_CHECKOUT.recipient`); set the
-env var only to override per-deploy. Only used in live mode (sandbox skips payment).
+- `NEXT_PUBLIC_STORE_CHECKOUT_ADDRESS` — dedicated store wallet that receives USDC. Defaults to
+  the Gnars store wallet hardcoded in `src/lib/config.ts` (`STORE_CHECKOUT.recipient`); set the
+  env var only to override per-deploy. Only used in live mode (sandbox skips payment).
+- `EMAIL_USER` / `EMAIL_PASS` (+ optional `SMTP_HOST`/`SMTP_PORT`/`SMTP_SECURE`/`EMAIL_FROM`) —
+  SMTP for order receipts. Gmail SMTP by default (App Password required). Unset → receipts are
+  skipped (orders still succeed).
 
 ## Open decisions for Vlad
 
