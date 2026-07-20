@@ -113,7 +113,7 @@ export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] gap-0 overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[92vh] gap-0 overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Zap className="h-4 w-4" style={{ color: accent }} />
@@ -122,87 +122,91 @@ export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDi
           <DialogDescription>{t("dialogIntro", { name })}</DialogDescription>
         </DialogHeader>
 
-        {/* Asset toggle */}
-        <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-border/60 bg-muted/30 p-1">
-          {(Object.keys(ASSETS) as Asset[]).map((a) => {
-            const active = a === asset;
-            const y = a === "eth" ? yields?.eth : yields?.usdc;
-            return (
-              <button
-                key={a}
-                type="button"
-                onClick={() => switchAsset(a)}
-                aria-pressed={active}
-                className={cn(
-                  "flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition cursor-pointer",
-                  active ? "text-white" : "text-muted-foreground hover:bg-muted",
-                )}
-                style={active ? { backgroundColor: accent } : undefined}
-              >
-                <span>{ASSETS[a].unit}</span>
-                <span
-                  className={cn("text-xs font-bold tabular-nums", !active && "text-foreground")}
-                >
-                  {y ? `${y.apy.toFixed(2)}%` : "—"}
+        {/* Controls + flow, side by side on desktop */}
+        <div className="mt-5 grid gap-6 lg:grid-cols-2 lg:items-center">
+          {/* Left: asset + amount */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2 rounded-xl border border-border/60 bg-muted/30 p-1">
+              {(Object.keys(ASSETS) as Asset[]).map((a) => {
+                const active = a === asset;
+                const y = a === "eth" ? yields?.eth : yields?.usdc;
+                return (
+                  <button
+                    key={a}
+                    type="button"
+                    onClick={() => switchAsset(a)}
+                    aria-pressed={active}
+                    className={cn(
+                      "flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition",
+                      active ? "text-white" : "text-muted-foreground hover:bg-muted",
+                    )}
+                    style={active ? { backgroundColor: accent } : undefined}
+                  >
+                    <span>{ASSETS[a].unit}</span>
+                    <span
+                      className={cn("text-xs font-bold tabular-nums", !active && "text-foreground")}
+                    >
+                      {y ? `${y.apy.toFixed(2)}%` : "—"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {t("amountLabel")}
+              </label>
+              <div className="relative">
+                <Input
+                  inputMode="decimal"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+                  className="pr-16 text-lg font-semibold"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">
+                  {cfg.unit}
                 </span>
-              </button>
-            );
-          })}
-        </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {cfg.presets.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setAmount(String(p))}
+                    className="cursor-pointer rounded-md border border-border/60 px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:bg-muted"
+                  >
+                    {p} {cfg.unit}
+                  </button>
+                ))}
+              </div>
+              {rate > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  {t("aprNote", { rate: rate.toFixed(2), rateType: cfg.rateType, source })}
+                </p>
+              ) : null}
+            </div>
+          </div>
 
-        {/* Amount */}
-        <div className="mt-4 space-y-2">
-          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("amountLabel")}
-          </label>
-          <div className="relative">
-            <Input
-              inputMode="decimal"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
-              className="pr-16 text-lg font-semibold"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">
-              {cfg.unit}
-            </span>
-          </div>
-          <div className="flex gap-2">
-            {cfg.presets.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setAmount(String(p))}
-                className="cursor-pointer rounded-md border border-border/60 px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:bg-muted"
-              >
-                {p} {cfg.unit}
-              </button>
-            ))}
-          </div>
-          {rate > 0 ? (
-            <p className="text-xs text-muted-foreground">
-              {t("aprNote", { rate: rate.toFixed(2), rateType: cfg.rateType, source })}
+          {/* Right: flow */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("flowTitle")}
             </p>
-          ) : null}
+            <StakeFlowChart
+              accent={accent}
+              sourceLabel={t("flowSource")}
+              targets={shares.map((s) => (s.key === "treasury" ? { ...s, label: "Gnars" } : s))}
+            />
+          </div>
         </div>
 
-        {/* Flow */}
-        <div className="mt-5">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("flowTitle")}
-          </p>
-          <StakeFlowChart
-            accent={accent}
-            sourceLabel={t("flowSource")}
-            targets={shares.map((s) => (s.key === "treasury" ? { ...s, label: "Gnars" } : s))}
-          />
-        </div>
-
-        {/* Earnings preview */}
-        <div className="mt-5">
+        {/* Earnings preview — full width */}
+        <div className="mt-6">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {t("projected")}
           </p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-3">
             {shares.map((s) => {
               const earned = annual * (s.percent / 100);
               return (
@@ -213,7 +217,7 @@ export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDi
                   <p className="truncate text-[11px] font-medium text-muted-foreground">
                     {s.label}
                   </p>
-                  <p className="mt-1 text-sm font-bold tabular-nums" style={{ color: accent }}>
+                  <p className="mt-1 text-base font-bold tabular-nums" style={{ color: accent }}>
                     {fmtAmount(earned, asset)}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
