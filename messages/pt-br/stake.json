@@ -9,7 +9,10 @@
   "stakeToast": "{name} selecionado — fluxo de stake em breve.",
   "prev": "Rider anterior",
   "next": "Próximo rider",
-  "statsTitle": "Atributos",
+  "statusTitle": "Status",
+  "ethStaking": "Staking de ETH",
+  "usdcLending": "Lending de USDC",
+  "statsTitle": "Habilidades",
   "overall": "Geral",
   "stats": {
     "speed": "Velocidade",
@@ -17,7 +20,9 @@
     "ollie": "Ollie",
     "spin": "Giro",
     "rail": "Corrimão",
-    "flow": "Flow"
+    "flow": "Flow",
+    "devSkills": "Habilidade Dev",
+    "creativity": "Criatividade"
   },
   "characters": {
     "vlad": { "name": "Vlad", "tagline": "Faz deploy à meia-noite, manda ver ao amanhecer." },

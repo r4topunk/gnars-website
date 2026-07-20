@@ -8,11 +8,21 @@ import { Check, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { YieldStatus } from "./YieldStatus";
 
 type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2";
 
 // THPS-style attributes (1–10). Placeholder values — tailor freely.
-const STAT_KEYS = ["speed", "air", "ollie", "spin", "rail", "flow"] as const;
+const STAT_KEYS = [
+  "speed",
+  "air",
+  "ollie",
+  "spin",
+  "rail",
+  "flow",
+  "devSkills",
+  "creativity",
+] as const;
 type StatKey = (typeof STAT_KEYS)[number];
 const STAT_MAX = 10;
 
@@ -35,7 +45,7 @@ const CHARACTERS: Character[] = [
     accentFrom: "from-yellow-400",
     accentTo: "to-amber-600",
     ring: "ring-yellow-400",
-    stats: { speed: 9, air: 6, ollie: 7, spin: 5, rail: 8, flow: 9 },
+    stats: { speed: 9, air: 6, ollie: 7, spin: 5, rail: 8, flow: 9, devSkills: 10, creativity: 7 },
   },
   {
     id: "yan",
@@ -43,7 +53,7 @@ const CHARACTERS: Character[] = [
     accentFrom: "from-sky-400",
     accentTo: "to-blue-600",
     ring: "ring-sky-400",
-    stats: { speed: 7, air: 8, ollie: 8, spin: 7, rail: 6, flow: 8 },
+    stats: { speed: 7, air: 8, ollie: 8, spin: 7, rail: 6, flow: 8, devSkills: 8, creativity: 9 },
   },
   {
     id: "r4to",
@@ -51,7 +61,7 @@ const CHARACTERS: Character[] = [
     accentFrom: "from-fuchsia-400",
     accentTo: "to-purple-600",
     ring: "ring-fuchsia-400",
-    stats: { speed: 8, air: 7, ollie: 6, spin: 9, rail: 7, flow: 10 },
+    stats: { speed: 8, air: 7, ollie: 6, spin: 9, rail: 7, flow: 10, devSkills: 9, creativity: 10 },
   },
   {
     id: "pamtech",
@@ -59,7 +69,7 @@ const CHARACTERS: Character[] = [
     accentFrom: "from-emerald-400",
     accentTo: "to-green-600",
     ring: "ring-emerald-400",
-    stats: { speed: 6, air: 9, ollie: 9, spin: 6, rail: 10, flow: 7 },
+    stats: { speed: 6, air: 9, ollie: 9, spin: 6, rail: 10, flow: 7, devSkills: 9, creativity: 8 },
   },
   {
     id: "v2",
@@ -67,7 +77,7 @@ const CHARACTERS: Character[] = [
     accentFrom: "from-rose-400",
     accentTo: "to-red-600",
     ring: "ring-rose-400",
-    stats: { speed: 10, air: 7, ollie: 7, spin: 8, rail: 5, flow: 9 },
+    stats: { speed: 10, air: 7, ollie: 7, spin: 8, rail: 5, flow: 9, devSkills: 7, creativity: 9 },
   },
 ];
 
@@ -116,7 +126,7 @@ export function CharacterSelector() {
   return (
     <div className="flex flex-col items-center gap-8">
       {/* Stage + stats, side by side on desktop */}
-      <div className="grid w-full max-w-5xl items-stretch gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid w-full max-w-5xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         {/* Stage */}
         <div className="relative mx-auto w-full max-w-md">
           {/* soft ambient edge glow — subtle */}
@@ -235,7 +245,7 @@ export function CharacterSelector() {
             </div>
           </div>
 
-          <div className="flex flex-1 flex-col justify-center gap-4">
+          <div className="flex flex-col gap-3">
             {STAT_KEYS.map((key) => {
               const value = active.stats[key];
               return (
@@ -267,6 +277,9 @@ export function CharacterSelector() {
               );
             })}
           </div>
+
+          {/* Live on-chain yields as the rider's status */}
+          <YieldStatus />
         </div>
       </div>
 

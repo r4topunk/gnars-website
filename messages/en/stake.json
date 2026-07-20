@@ -9,7 +9,10 @@
   "stakeToast": "{name} selected — staking flow coming later.",
   "prev": "Previous rider",
   "next": "Next rider",
-  "statsTitle": "Stats",
+  "statusTitle": "Status",
+  "ethStaking": "ETH staking",
+  "usdcLending": "USDC lending",
+  "statsTitle": "Skills",
   "overall": "Overall",
   "stats": {
     "speed": "Speed",
@@ -17,7 +20,9 @@
     "ollie": "Ollie",
     "spin": "Spin",
     "rail": "Rail",
-    "flow": "Flow"
+    "flow": "Flow",
+    "devSkills": "Dev Skills",
+    "creativity": "Creativity"
   },
   "characters": {
     "vlad": { "name": "Vlad", "tagline": "Ships at midnight, shreds at dawn." },
