@@ -69,6 +69,7 @@
       "state": "Estado / província é obrigatório",
       "address": "O endereço de entrega foi recusado. Confira rua, cidade, CEP e estado/província.",
       "notConfigured": "A finalização ainda não está disponível — a carteira da loja não está configurada.",
+      "unavailable": "A finalização está temporariamente indisponível — o fulfillment não está pronto. Nenhum pagamento foi cobrado.",
       "generic": "Algo deu errado. Tente novamente."
     },
     "status": {
