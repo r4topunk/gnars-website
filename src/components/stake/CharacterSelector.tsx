@@ -5,9 +5,9 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronLeft, ChevronRight, Zap } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { StakeDialog } from "./StakeDialog";
 import { YieldStatus } from "./YieldStatus";
 
 type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2";
@@ -34,9 +34,14 @@ interface Character {
   accentTo: string;
   /** Solid accent for rings/CTAs */
   ring: string;
+  /** Accent as a hex color (for SVG flows / canvas) */
+  hex: string;
   /** Character attributes, 1–STAT_MAX */
   stats: Record<StatKey, number>;
 }
+
+// Reward split when you stake as a rider (percent). Placeholder — tailor freely.
+export const REWARD_SPLIT = { you: 50, skater: 25, treasury: 25 } as const;
 
 const CHARACTERS: Character[] = [
   {
@@ -45,6 +50,7 @@ const CHARACTERS: Character[] = [
     accentFrom: "from-yellow-400",
     accentTo: "to-amber-600",
     ring: "ring-yellow-400",
+    hex: "#f59e0b",
     stats: { speed: 9, air: 6, ollie: 7, spin: 5, rail: 8, flow: 9, devSkills: 10, creativity: 7 },
   },
   {
@@ -53,6 +59,7 @@ const CHARACTERS: Character[] = [
     accentFrom: "from-sky-400",
     accentTo: "to-blue-600",
     ring: "ring-sky-400",
+    hex: "#0ea5e9",
     stats: { speed: 7, air: 8, ollie: 8, spin: 7, rail: 6, flow: 8, devSkills: 8, creativity: 9 },
   },
   {
@@ -61,6 +68,7 @@ const CHARACTERS: Character[] = [
     accentFrom: "from-fuchsia-400",
     accentTo: "to-purple-600",
     ring: "ring-fuchsia-400",
+    hex: "#d946ef",
     stats: { speed: 8, air: 7, ollie: 6, spin: 9, rail: 7, flow: 10, devSkills: 9, creativity: 10 },
   },
   {
@@ -69,6 +77,7 @@ const CHARACTERS: Character[] = [
     accentFrom: "from-emerald-400",
     accentTo: "to-green-600",
     ring: "ring-emerald-400",
+    hex: "#10b981",
     stats: { speed: 6, air: 9, ollie: 9, spin: 6, rail: 10, flow: 7, devSkills: 9, creativity: 8 },
   },
   {
@@ -77,6 +86,7 @@ const CHARACTERS: Character[] = [
     accentFrom: "from-rose-400",
     accentTo: "to-red-600",
     ring: "ring-rose-400",
+    hex: "#f43f5e",
     stats: { speed: 10, air: 7, ollie: 7, spin: 8, rail: 5, flow: 9, devSkills: 7, creativity: 9 },
   },
 ];
@@ -85,6 +95,7 @@ export function CharacterSelector() {
   const t = useTranslations("stake");
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const count = CHARACTERS.length;
   const active = CHARACTERS[index];
@@ -120,7 +131,7 @@ export function CharacterSelector() {
   }, [go, index]);
 
   const handleStake = () => {
-    toast.success(t("stakeToast", { name }));
+    setDialogOpen(true);
   };
 
   return (
@@ -322,6 +333,14 @@ export function CharacterSelector() {
           {t("stakeCta", { name })}
         </Button>
       </div>
+
+      <StakeDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        name={name}
+        image={active.image}
+        accent={active.hex}
+      />
     </div>
   );
 }
