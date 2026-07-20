@@ -9,6 +9,16 @@
   "stakeToast": "{name} selecionado — fluxo de stake em breve.",
   "prev": "Rider anterior",
   "next": "Próximo rider",
+  "statsTitle": "Atributos",
+  "overall": "Geral",
+  "stats": {
+    "speed": "Velocidade",
+    "air": "Air",
+    "ollie": "Ollie",
+    "spin": "Giro",
+    "rail": "Corrimão",
+    "flow": "Flow"
+  },
   "characters": {
     "vlad": { "name": "Vlad", "tagline": "Faz deploy à meia-noite, manda ver ao amanhecer." },
     "yan": { "name": "Yan", "tagline": "Flow no frontend, ralação no backend." },

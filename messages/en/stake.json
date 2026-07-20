@@ -9,6 +9,16 @@
   "stakeToast": "{name} selected — staking flow coming later.",
   "prev": "Previous rider",
   "next": "Next rider",
+  "statsTitle": "Stats",
+  "overall": "Overall",
+  "stats": {
+    "speed": "Speed",
+    "air": "Air",
+    "ollie": "Ollie",
+    "spin": "Spin",
+    "rail": "Rail",
+    "flow": "Flow"
+  },
   "characters": {
     "vlad": { "name": "Vlad", "tagline": "Ships at midnight, shreds at dawn." },
     "yan": { "name": "Yan", "tagline": "Frontend flow, backend grind." },
