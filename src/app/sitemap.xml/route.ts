@@ -3,7 +3,6 @@ import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 import { getAllBlogs } from "@/services/blogs";
 import { fetchAllDroposals } from "@/services/droposals";
 import { getAllInstallations } from "@/services/installations";
-import { fetchAllMembers } from "@/services/members";
 import { listDaoPropdates } from "@/services/propdates";
 import { listProposals } from "@/services/proposals";
 
@@ -21,7 +20,6 @@ type SitemapEntry = {
 type ProposalList = Awaited<ReturnType<typeof listProposals>>;
 type DroposalList = Awaited<ReturnType<typeof fetchAllDroposals>>;
 type BlogList = Awaited<ReturnType<typeof getAllBlogs>>;
-type MemberList = Awaited<ReturnType<typeof fetchAllMembers>>;
 type PropdateList = Awaited<ReturnType<typeof listDaoPropdates>>;
 type CoinList = Awaited<ReturnType<typeof fetchGnarsPairedCoins>>;
 
@@ -146,17 +144,14 @@ function buildSitemap(entries: SitemapEntry[]): string {
 export async function GET(): Promise<Response> {
   const now = new Date();
 
-  const [proposals, droposals, blogs, members, propdates, coins, installations] = await Promise.all(
-    [
-      safe("proposals", fetchAllProposals, [] as ProposalList),
-      safe("droposals", fetchAllDroposals, [] as DroposalList),
-      safe("blogs", getAllBlogs, [] as BlogList),
-      safe("members", fetchAllMembers, [] as MemberList),
-      safe("propdates", listDaoPropdates, [] as PropdateList),
-      safe("tv coins", fetchAllGnarsPairedCoins, [] as CoinList),
-      safe("installations", getAllInstallations, []),
-    ],
-  );
+  const [proposals, droposals, blogs, propdates, coins, installations] = await Promise.all([
+    safe("proposals", fetchAllProposals, [] as ProposalList),
+    safe("droposals", fetchAllDroposals, [] as DroposalList),
+    safe("blogs", getAllBlogs, [] as BlogList),
+    safe("propdates", listDaoPropdates, [] as PropdateList),
+    safe("tv coins", fetchAllGnarsPairedCoins, [] as CoinList),
+    safe("installations", getAllInstallations, []),
+  ]);
 
   const proposalLastMod = maxDate(
     proposals.map((proposal) => {
@@ -263,10 +258,9 @@ export async function GET(): Promise<Response> {
     ),
   );
 
-  const memberEntries: SitemapEntry[] = members.flatMap((member) =>
-    toLocalizedEntry(`/members/${member.owner}`, now, "weekly", 0.5),
-  );
-
+  // /members/[address] profiles are intentionally excluded: ~2,000 thin URLs
+  // (79% of the sitemap) drowned the crawl budget for core pages. The /members
+  // index above stays; profiles remain reachable via internal links.
   const propdateEntries: SitemapEntry[] = propdates.flatMap((propdate) =>
     toLocalizedEntry(
       `/propdates/${propdate.txid}`,
@@ -296,7 +290,6 @@ export async function GET(): Promise<Response> {
     ...proposalEntries,
     ...droposalEntries,
     ...blogEntries,
-    ...memberEntries,
     ...propdateEntries,
     ...tvEntries,
     ...installationEntries,
