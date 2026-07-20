@@ -9,7 +9,7 @@
   "stakeToast": "{name} selected — staking flow coming later.",
   "dialogIntro": "Stake ETH as {name}. Your ETH keeps earning staking yield — the rewards stream to you, your rider, and the Gnars treasury.",
   "amountLabel": "Amount to stake",
-  "aprNote": "at {apr}% ETH APR via {source}",
+  "aprNote": "at {rate}% {rateType} via {source}",
   "flowTitle": "How rewards flow",
   "flowSource": "Your stake",
   "projected": "Projected yearly rewards",

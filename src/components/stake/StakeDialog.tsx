@@ -20,6 +20,8 @@ import type { StakeYields } from "@/services/yields";
 import { REWARD_SPLIT } from "./CharacterSelector";
 import { StakeFlowChart } from "./StakeFlowChart";
 
+type Asset = "eth" | "usdc";
+
 interface StakeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -28,7 +30,13 @@ interface StakeDialogProps {
   accent: string; // hex
 }
 
-const PRESETS = [0.1, 0.5, 1, 5];
+const ASSETS: Record<
+  Asset,
+  { unit: string; rateType: string; presets: number[]; default: string }
+> = {
+  eth: { unit: "ETH", rateType: "APR", presets: [0.1, 0.5, 1, 5], default: "1" },
+  usdc: { unit: "USDC", rateType: "APY", presets: [100, 500, 1000, 5000], default: "1000" },
+};
 
 async function fetchYields(): Promise<StakeYields> {
   const res = await fetch("/api/yields");
@@ -43,8 +51,9 @@ async function fetchEthPrice(): Promise<number> {
   return json.usd ?? 0;
 }
 
-function fmtEth(n: number) {
+function fmtAmount(n: number, asset: Asset) {
   if (!isFinite(n) || n === 0) return "0";
+  if (asset === "usdc") return n.toFixed(2);
   return n < 0.001 ? n.toExponential(2) : n.toFixed(n < 1 ? 4 : 3);
 }
 
@@ -58,7 +67,8 @@ function fmtUsd(n: number) {
 
 export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDialogProps) {
   const t = useTranslations("stake");
-  const [amount, setAmount] = useState("1");
+  const [asset, setAsset] = useState<Asset>("eth");
+  const [amount, setAmount] = useState(ASSETS.eth.default);
 
   const { data: yields } = useQuery({
     queryKey: ["stake-yields"],
@@ -71,9 +81,19 @@ export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDi
     staleTime: 60_000,
   });
 
-  const apr = yields?.eth?.apy ?? 0;
+  const cfg = ASSETS[asset];
+  const yieldData = asset === "eth" ? yields?.eth : yields?.usdc;
+  const rate = yieldData?.apy ?? 0;
+  const source = yieldData?.source ?? (asset === "eth" ? "Lido" : "Morpho");
+  const unitUsd = asset === "eth" ? ethUsd : 1; // USDC ≈ $1
+
   const amountNum = Math.max(0, parseFloat(amount) || 0);
-  const annualEth = (amountNum * apr) / 100;
+  const annual = (amountNum * rate) / 100;
+
+  const switchAsset = (next: Asset) => {
+    setAsset(next);
+    setAmount(ASSETS[next].default);
+  };
 
   const shares = [
     { key: "you" as const, label: t("youLabel"), percent: REWARD_SPLIT.you },
@@ -102,6 +122,34 @@ export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDi
           <DialogDescription>{t("dialogIntro", { name })}</DialogDescription>
         </DialogHeader>
 
+        {/* Asset toggle */}
+        <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-border/60 bg-muted/30 p-1">
+          {(Object.keys(ASSETS) as Asset[]).map((a) => {
+            const active = a === asset;
+            const y = a === "eth" ? yields?.eth : yields?.usdc;
+            return (
+              <button
+                key={a}
+                type="button"
+                onClick={() => switchAsset(a)}
+                aria-pressed={active}
+                className={cn(
+                  "flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition cursor-pointer",
+                  active ? "text-white" : "text-muted-foreground hover:bg-muted",
+                )}
+                style={active ? { backgroundColor: accent } : undefined}
+              >
+                <span>{ASSETS[a].unit}</span>
+                <span
+                  className={cn("text-xs font-bold tabular-nums", !active && "text-foreground")}
+                >
+                  {y ? `${y.apy.toFixed(2)}%` : "—"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Amount */}
         <div className="mt-4 space-y-2">
           <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -112,27 +160,27 @@ export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDi
               inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
-              className="pr-14 text-lg font-semibold"
+              className="pr-16 text-lg font-semibold"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">
-              ETH
+              {cfg.unit}
             </span>
           </div>
           <div className="flex gap-2">
-            {PRESETS.map((p) => (
+            {cfg.presets.map((p) => (
               <button
                 key={p}
                 type="button"
                 onClick={() => setAmount(String(p))}
                 className="cursor-pointer rounded-md border border-border/60 px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:bg-muted"
               >
-                {p} ETH
+                {p} {cfg.unit}
               </button>
             ))}
           </div>
-          {apr > 0 ? (
+          {rate > 0 ? (
             <p className="text-xs text-muted-foreground">
-              {t("aprNote", { apr: apr.toFixed(2), source: yields?.eth?.source ?? "Lido" })}
+              {t("aprNote", { rate: rate.toFixed(2), rateType: cfg.rateType, source })}
             </p>
           ) : null}
         </div>
@@ -156,7 +204,7 @@ export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDi
           </p>
           <div className="grid grid-cols-3 gap-2">
             {shares.map((s) => {
-              const eth = annualEth * (s.percent / 100);
+              const earned = annual * (s.percent / 100);
               return (
                 <div
                   key={s.key}
@@ -166,12 +214,14 @@ export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDi
                     {s.label}
                   </p>
                   <p className="mt-1 text-sm font-bold tabular-nums" style={{ color: accent }}>
-                    {fmtEth(eth)}
+                    {fmtAmount(earned, asset)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">ETH {t("perYear")}</p>
-                  {ethUsd > 0 ? (
-                    <p className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">
-                      ≈ {fmtUsd(eth * ethUsd)}
+                  <p className="text-[10px] text-muted-foreground">
+                    {cfg.unit} {t("perYear")}
+                  </p>
+                  {asset === "eth" && unitUsd > 0 ? (
+                    <p className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">
+                      ≈ {fmtUsd(earned * unitUsd)}
                     </p>
                   ) : null}
                 </div>
@@ -191,7 +241,7 @@ export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDi
           </Button>
           <Button
             onClick={handleConfirm}
-            className={cn("cursor-pointer gap-2 text-white")}
+            className="cursor-pointer gap-2 text-white"
             style={{ backgroundColor: accent }}
           >
             <Zap className="h-4 w-4" />

@@ -9,7 +9,7 @@
   "stakeToast": "{name} selecionado — fluxo de stake em breve.",
   "dialogIntro": "Faça stake de ETH como {name}. Seu ETH continua rendendo staking — as recompensas fluem para você, seu rider e o tesouro da Gnars.",
   "amountLabel": "Valor para stake",
-  "aprNote": "a {apr}% de APR do ETH via {source}",
+  "aprNote": "a {rate}% {rateType} via {source}",
   "flowTitle": "Como as recompensas fluem",
   "flowSource": "Seu stake",
   "projected": "Recompensas anuais estimadas",
