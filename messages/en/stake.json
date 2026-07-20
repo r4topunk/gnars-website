@@ -1,0 +1,19 @@
+{
+  "title": "Stake",
+  "subtitle": "Pick your rider",
+  "intro": "Choose a character to represent you. Use the thumbnails, arrows, or arrow keys to switch.",
+  "chooseLabel": "Choose your character",
+  "selected": "Selected",
+  "selectedRider": "{name} is ready to drop in.",
+  "stakeCta": "Stake as {name}",
+  "stakeToast": "{name} selected — staking flow coming later.",
+  "prev": "Previous rider",
+  "next": "Next rider",
+  "characters": {
+    "vlad": { "name": "Vlad", "tagline": "Ships at midnight, shreds at dawn." },
+    "yan": { "name": "Yan", "tagline": "Frontend flow, backend grind." },
+    "r4to": { "name": "R4to", "tagline": "Onchain from the first push." },
+    "pamtech": { "name": "Pamtech", "tagline": "Builds the rails everyone rides." },
+    "v2": { "name": "V2", "tagline": "The comeback is always bigger." }
+  }
+}
