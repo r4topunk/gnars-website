@@ -14,7 +14,12 @@ import { ensureOnChain } from "@/lib/thirdweb-tx";
  *
  * Used by the /store checkout to collect the retail price before an order is forwarded to
  * KeepKey. Signs via `useWriteAccount()` so it respects the user's EOA/SA view mode, like
- * every other write in the app. Returns the confirmed tx hash for server-side verification.
+ * every other write in the app.
+ *
+ * Returns the **real on-chain transaction hash from the receipt**, not the hash
+ * `sendTransaction` returns. For smart-account (AA) payers that hash is the userOp hash,
+ * which the server can't verify with plain viem — using the receipt's `transactionHash`
+ * yields the actual mined tx for both EOA and SA, so server-side verification works.
  */
 export function useUsdcPayment() {
   const writer = useWriteAccount();
@@ -41,8 +46,10 @@ export function useUsdcPayment() {
           account: writer.account,
           transaction: tx,
         });
-        await waitForReceipt({ client, chain: base, transactionHash });
-        return transactionHash as Hex;
+        // The receipt carries the real mined tx hash — for AA this differs from the userOp
+        // hash above, and it's what the server verifies against on-chain.
+        const receipt = await waitForReceipt({ client, chain: base, transactionHash });
+        return receipt.transactionHash as Hex;
       } finally {
         setIsPaying(false);
       }
