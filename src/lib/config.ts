@@ -119,6 +119,6 @@ export const STORE_CHECKOUT = {
  * — it is not read from any env var, so no Vercel change is needed (or possible). Consumed
  * server-side via `isSandbox()`.
  */
-export const KEEPKEY_DROPSHIP_MODE: "test" | "live" = "test";
+export const KEEPKEY_DROPSHIP_MODE: "test" | "live" = "live";
 
 export const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.gnars.com";

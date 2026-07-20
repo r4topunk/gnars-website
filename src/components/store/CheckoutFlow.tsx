@@ -154,6 +154,15 @@ export function CheckoutFlow({
         toast.error(t("checkout.errors.notConfigured"));
         return;
       }
+      // Preflight: never prompt payment unless fulfillment is actually ready to place the
+      // order — payment is irreversible and happens before the order call.
+      const pre = await fetch("/api/store/checkout")
+        .then((r) => r.json())
+        .catch(() => null);
+      if (!pre?.ready) {
+        toast.error(t("checkout.errors.unavailable"));
+        return;
+      }
       if (!isConnected) {
         const client = getThirdwebClient();
         if (client) {

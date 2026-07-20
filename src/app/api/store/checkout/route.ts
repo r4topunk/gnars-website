@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { STORE_CHECKOUT } from "@/lib/config";
 import { sendOrderReceiptEmail } from "@/lib/email/order-receipt";
 import { checkoutInputSchema, type CheckoutResult } from "@/lib/schemas/checkout";
 import { isDropshipFulfillable } from "@/lib/store/fulfillment";
@@ -14,6 +15,18 @@ import { verifyUsdcPayment } from "@/services/store-payment";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/**
+ * Checkout readiness preflight. The client MUST call this before prompting an on-chain
+ * payment: payment happens client-side first, so if fulfillment isn't configured we'd
+ * otherwise take money and be unable to place the order. `ready:false` → client aborts
+ * before charging. Live needs the KeepKey token + a payment recipient; sandbox needs neither.
+ */
+export async function GET() {
+  const sandbox = isSandbox();
+  const ready = sandbox || (isDropshipConfigured() && Boolean(STORE_CHECKOUT.recipient));
+  return NextResponse.json({ ready, sandbox });
+}
 
 /**
  * Customer checkout: verify payment (live) then forward a fulfillment order to KeepKey.

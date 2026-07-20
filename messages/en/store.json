@@ -69,6 +69,7 @@
       "state": "State / province is required",
       "address": "That shipping address was rejected. Check the street, city, postal code, and state/province.",
       "notConfigured": "Checkout isn't available yet — the store wallet isn't configured.",
+      "unavailable": "Checkout is temporarily unavailable — fulfillment isn't ready. No payment was taken.",
       "generic": "Something went wrong. Please try again."
     },
     "status": {
