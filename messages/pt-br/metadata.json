@@ -103,5 +103,9 @@
     "title": "Loja — Gnars DAO",
     "description": "Produtos oficiais da Gnars e de marcas parceiras. Comprados na Gnars, enviados pelos nossos parceiros de fulfillment.",
     "notFoundTitle": "Produto não encontrado | Loja Gnars"
+  },
+  "stake": {
+    "title": "Stake — Gnars DAO",
+    "description": "Escolha seu rider Gnars e faça o stake da sua identidade onchain."
   }
 }

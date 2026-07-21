@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { COUNTRIES, normalizeCountry } from "./countries";
+import {
+  COUNTRIES,
+  isShippingSupported,
+  normalizeCountry,
+  SHIPPING_COUNTRY_OPTIONS,
+} from "./countries";
 
 describe("normalizeCountry", () => {
   it("passes through a valid ISO-2 code (any case)", () => {
@@ -27,5 +32,20 @@ describe("COUNTRIES", () => {
     const codes = COUNTRIES.map((c) => c.code);
     expect(new Set(codes).size).toBe(codes.length);
     for (const c of codes) expect(c).toMatch(/^[A-Z]{2}$/);
+  });
+});
+
+describe("shipping restriction (US-only for now)", () => {
+  it("accepts US, rejects everything else", () => {
+    expect(isShippingSupported("US")).toBe(true);
+    expect(isShippingSupported("us")).toBe(true);
+    expect(isShippingSupported(" US ")).toBe(true);
+    expect(isShippingSupported("BR")).toBe(false);
+    expect(isShippingSupported("GB")).toBe(false);
+    expect(isShippingSupported("")).toBe(false);
+  });
+
+  it("dropdown options are limited to shippable countries (US only)", () => {
+    expect(SHIPPING_COUNTRY_OPTIONS.map((c) => c.code)).toEqual(["US"]);
   });
 });

@@ -41,6 +41,7 @@
   "checkout": {
     "title": "Checkout",
     "optional": "optional",
+    "usOnly": "Shipping to the United States only for now.",
     "sandboxNotice": "Sandbox mode — no payment is taken and nothing ships. This places a test order so you can try the full flow.",
     "sandboxFootnote": "Test order only. Never charged, never shipped.",
     "payFootnote": "You'll pay in USDC on Base. Fulfilled and shipped by KeepKey.",
@@ -66,6 +67,7 @@
       "city": "Enter your city",
       "postalCode": "Enter your postal code",
       "country": "Select your country",
+      "region": "We currently only ship to the United States.",
       "state": "State / province is required",
       "address": "That shipping address was rejected. Check the street, city, postal code, and state/province.",
       "notConfigured": "Checkout isn't available yet — the store wallet isn't configured.",

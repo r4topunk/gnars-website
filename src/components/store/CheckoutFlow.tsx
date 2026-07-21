@@ -19,7 +19,7 @@ import {
 import { useUsdcPayment } from "@/hooks/use-usdc-payment";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { STORE_CHECKOUT } from "@/lib/config";
-import { COUNTRIES } from "@/lib/store/countries";
+import { isShippingSupported, SHIPPING_COUNTRY_OPTIONS } from "@/lib/store/countries";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
 import type { Currency } from "@/types/store";
@@ -96,6 +96,7 @@ export function CheckoutFlow({
     if (!form.city.trim()) return t("checkout.errors.city");
     if (!form.postalCode.trim()) return t("checkout.errors.postalCode");
     if (form.country.trim().length !== 2) return t("checkout.errors.country");
+    if (!isShippingSupported(form.country)) return t("checkout.errors.region");
     // KeepKey requires a non-empty state/province on every address, regardless of country.
     if (!form.state.trim()) return t("checkout.errors.state");
     return null;
@@ -318,13 +319,14 @@ export function CheckoutFlow({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {COUNTRIES.map((c) => (
+              {SHIPPING_COUNTRY_OPTIONS.map((c) => (
                 <SelectItem key={c.code} value={c.code}>
                   {c.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          <p className="mt-1 text-xs text-muted-foreground">{t("checkout.usOnly")}</p>
         </Field>
 
         <Button type="submit" size="lg" className="mt-2 w-full" disabled={busy}>

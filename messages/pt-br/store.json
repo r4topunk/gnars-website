@@ -41,6 +41,7 @@
   "checkout": {
     "title": "Finalizar compra",
     "optional": "opcional",
+    "usOnly": "Por enquanto, enviamos apenas para os Estados Unidos.",
     "sandboxNotice": "Modo sandbox — nenhum pagamento é cobrado e nada é enviado. Isso cria um pedido de teste para você experimentar o fluxo completo.",
     "sandboxFootnote": "Apenas pedido de teste. Nunca cobrado, nunca enviado.",
     "payFootnote": "Você paga em USDC na Base. Enviado pela KeepKey.",
@@ -66,6 +67,7 @@
       "city": "Informe sua cidade",
       "postalCode": "Informe seu CEP",
       "country": "Selecione seu país",
+      "region": "Por enquanto, enviamos apenas para os Estados Unidos.",
       "state": "Estado / província é obrigatório",
       "address": "O endereço de entrega foi recusado. Confira rua, cidade, CEP e estado/província.",
       "notConfigured": "A finalização ainda não está disponível — a carteira da loja não está configurada.",
