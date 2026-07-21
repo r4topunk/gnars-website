@@ -56,6 +56,7 @@ const TERMINAL = new Set(["shipped", "cancelled", "failed"]);
 const EMPTY_FORM = {
   customerName: "",
   customerEmail: "",
+  phone: "",
   line1: "",
   line2: "",
   city: "",
@@ -134,6 +135,8 @@ export function CheckoutFlow({
   function validate(): string | null {
     if (!form.customerName.trim()) return t("checkout.errors.name");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.customerEmail)) return t("checkout.errors.email");
+    // Shopify requires a shipping phone; want at least a few digits.
+    if (form.phone.replace(/\D/g, "").length < 7) return t("checkout.errors.phone");
     if (!form.line1.trim()) return t("checkout.errors.line1");
     if (!form.city.trim()) return t("checkout.errors.city");
     if (!form.postalCode.trim()) return t("checkout.errors.postalCode");
@@ -160,6 +163,7 @@ export function CheckoutFlow({
           state: form.state.trim(),
           postalCode: form.postalCode.trim(),
           country: form.country.trim().toUpperCase(),
+          phone: form.phone.trim(),
         },
         ...(txHash ? { txHash } : {}),
       }),
@@ -333,6 +337,16 @@ export function CheckoutFlow({
             />
           </Field>
         </div>
+
+        <Field label={t("checkout.fields.phone")}>
+          <Input
+            type="tel"
+            name="tel"
+            autoComplete="tel"
+            value={form.phone}
+            onChange={(e) => set("phone", e.target.value)}
+          />
+        </Field>
 
         <Field label={t("checkout.fields.line1")}>
           <Input
