@@ -48,6 +48,9 @@
     "placeSandbox": "Criar pedido de teste",
     "connectToPay": "Conecte a carteira para pagar",
     "payAmount": "Pagar {amount} em USDC",
+    "retryOrder": "Tentar pedido de novo (já pago)",
+    "retryFootnote": "Você já pagou — tentar de novo não cobra outra vez.",
+    "alreadyPaid": "Pagamento recebido ({tx}). Se o pedido não foi concluído, é só tentar de novo abaixo — você não será cobrado outra vez.",
     "connectTitle": "Conectar para pagar",
     "paid": "Pagamento confirmado",
     "fields": {

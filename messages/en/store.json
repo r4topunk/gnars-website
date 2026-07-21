@@ -48,6 +48,9 @@
     "placeSandbox": "Place test order",
     "connectToPay": "Connect wallet to pay",
     "payAmount": "Pay {amount} in USDC",
+    "retryOrder": "Retry order (already paid)",
+    "retryFootnote": "You already paid — retrying won't charge you again.",
+    "alreadyPaid": "Payment received ({tx}). If your order didn't go through, just retry below — you won't be charged again.",
     "connectTitle": "Connect to pay",
     "paid": "Payment confirmed",
     "fields": {
