@@ -84,10 +84,52 @@ export function CheckoutFlow({
   );
   const [submitting, setSubmitting] = useState(false);
   const [order, setOrder] = useState<OrderResult | null>(null);
+  // A payment that already settled on-chain but whose order hasn't been placed yet. Persisted
+  // so a failed order-placement (or a page refresh) never forces the buyer to pay again —
+  // they retry placing the order with the SAME tx (the server is idempotent on it).
+  const [paidTx, setPaidTx] = useState<string | null>(null);
 
   const set = (k: keyof typeof EMPTY_FORM, v: string) => setForm((p) => ({ ...p, [k]: v }));
 
   const recipientConfigured = Boolean(STORE_CHECKOUT.recipient);
+  const pendingKey = `gnars:store:paid:${slug}`;
+
+  // Restore an unfinished (paid-but-not-ordered) checkout for this product.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(pendingKey);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as {
+        txHash?: string;
+        form?: typeof EMPTY_FORM;
+        finish?: string;
+      };
+      if (!saved?.txHash) return;
+      setPaidTx(saved.txHash);
+      if (saved.form) setForm({ ...EMPTY_FORM, ...saved.form });
+      if (saved.finish) setFinish(saved.finish);
+    } catch {
+      // ignore malformed storage
+    }
+  }, [pendingKey]);
+
+  function savePending(txHash: string) {
+    setPaidTx(txHash);
+    try {
+      window.localStorage.setItem(pendingKey, JSON.stringify({ txHash, form, finish }));
+    } catch {
+      // storage unavailable — state still holds it for this session
+    }
+  }
+  function clearPending() {
+    setPaidTx(null);
+    try {
+      window.localStorage.removeItem(pendingKey);
+    } catch {
+      // ignore
+    }
+  }
 
   function validate(): string | null {
     if (!form.customerName.trim()) return t("checkout.errors.name");
@@ -129,6 +171,7 @@ export function CheckoutFlow({
       if (code === "invalid_address") throw new Error(t("checkout.errors.address"));
       throw new Error(data?.error?.message || `HTTP ${res.status}`);
     }
+    clearPending(); // order placed — the paid tx is now redeemed
     setOrder({
       keepKeyOrderId: data.keepKeyOrderId,
       externalOrderId: data.externalOrderId,
@@ -155,6 +198,15 @@ export function CheckoutFlow({
         toast.error(t("checkout.errors.notConfigured"));
         return;
       }
+
+      // Already paid (order-placement previously failed or the page was reloaded)? Never
+      // charge again — just retry placing the order with the same tx. The server dedupes on
+      // externalOrderId = gnars-<txHash>, so one payment can only ever yield one order.
+      if (paidTx) {
+        await placeOrder(paidTx);
+        return;
+      }
+
       // Preflight: never prompt payment unless fulfillment is actually ready to place the
       // order — payment is irreversible and happens before the order call.
       const pre = await fetch("/api/store/checkout")
@@ -181,6 +233,9 @@ export function CheckoutFlow({
         to: STORE_CHECKOUT.recipient as `0x${string}`,
         amountUsd: price,
       });
+      // Persist BEFORE placing the order: if the order call fails now, the buyer can retry
+      // without paying again (that's the whole point of this safeguard).
+      savePending(txHash);
       toast.success(t("checkout.paid"));
       await placeOrder(txHash);
     } catch (e) {
@@ -195,11 +250,14 @@ export function CheckoutFlow({
   }
 
   const busy = submitting || isPaying;
+  const shortTx = paidTx ? `${paidTx.slice(0, 6)}…${paidTx.slice(-4)}` : "";
   const payLabel = sandbox
     ? t("checkout.placeSandbox")
-    : !isConnected
-      ? t("checkout.connectToPay")
-      : t("checkout.payAmount", { amount: formatPrice(price, currency) });
+    : paidTx
+      ? t("checkout.retryOrder")
+      : !isConnected
+        ? t("checkout.connectToPay")
+        : t("checkout.payAmount", { amount: formatPrice(price, currency) });
 
   return (
     <div className="mx-auto max-w-lg">
@@ -219,6 +277,13 @@ export function CheckoutFlow({
       {sandbox && (
         <div className="mt-4 rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
           {t("checkout.sandboxNotice")}
+        </div>
+      )}
+
+      {paidTx && !sandbox && (
+        <div className="mt-4 flex items-start gap-2 rounded-lg border border-green-600/40 bg-green-600/10 px-3 py-2.5 text-xs text-foreground">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+          <span>{t("checkout.alreadyPaid", { tx: shortTx })}</span>
         </div>
       )}
 
@@ -335,7 +400,11 @@ export function CheckoutFlow({
         </Button>
 
         <p className="text-center text-xs text-muted-foreground">
-          {sandbox ? t("checkout.sandboxFootnote") : t("checkout.payFootnote")}
+          {sandbox
+            ? t("checkout.sandboxFootnote")
+            : paidTx
+              ? t("checkout.retryFootnote")
+              : t("checkout.payFootnote")}
         </p>
       </form>
     </div>
