@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { STORE_CHECKOUT } from "@/lib/config";
 import { sendOrderReceiptEmail } from "@/lib/email/order-receipt";
 import { checkoutInputSchema, type CheckoutResult } from "@/lib/schemas/checkout";
+import { isShippingSupported } from "@/lib/store/countries";
 import { isDropshipFulfillable } from "@/lib/store/fulfillment";
 import {
   createDropshipOrder,
@@ -75,6 +76,19 @@ export async function POST(request: NextRequest) {
         error: {
           code: "unsupported_product",
           message: "This product isn't available for checkout yet",
+        },
+      },
+      { status: 400 },
+    );
+  }
+  // Dropshipping is US-only for now (see SHIPPING_COUNTRIES). Authoritative gate — the
+  // client also restricts the dropdown, but never trust the client.
+  if (!isShippingSupported(input.shippingAddress.country)) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "unsupported_region",
+          message: "We currently only ship to the United States.",
         },
       },
       { status: 400 },

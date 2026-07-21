@@ -75,3 +75,18 @@ export function normalizeCountry(input: string): string {
   if (upper.length === 2 && CODES.has(upper)) return upper;
   return ALIASES[raw.toLowerCase()] ?? (upper.length === 2 ? upper : "");
 }
+
+/**
+ * ISO-2 codes we currently accept orders for. Dropshipping is **US-only for now** — expand
+ * this list to widen shipping (the checkout form and the server both gate on it).
+ */
+export const SHIPPING_COUNTRIES = ["US"] as const;
+
+const SHIPPING_SET = new Set<string>(SHIPPING_COUNTRIES);
+
+export function isShippingSupported(countryCode: string): boolean {
+  return SHIPPING_SET.has(countryCode.trim().toUpperCase());
+}
+
+/** Country dropdown options, limited to where we actually ship. */
+export const SHIPPING_COUNTRY_OPTIONS = COUNTRIES.filter((c) => SHIPPING_SET.has(c.code));
