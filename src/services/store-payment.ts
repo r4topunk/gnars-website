@@ -27,18 +27,23 @@ const ERC20_TRANSFER_EVENT = [
 ] as const;
 
 /** Confirmations required before we treat a payment as final (Base blocks are ~2s). */
-const MIN_CONFIRMATIONS = 1n;
+const MIN_CONFIRMATIONS = 1;
+
+/**
+ * How long the server waits for the tx to appear + confirm on its own RPC. The client has
+ * already mined it (it waited for the receipt before POSTing), but the server hits a
+ * different RPC node that can lag a few seconds behind — without this wait, a valid payment
+ * is falsely rejected as "not found" and the buyer retries (and pays again). ~25s covers the
+ * propagation gap while staying within the serverless function budget.
+ */
+const RECEIPT_TIMEOUT_MS = 25_000;
+const RECEIPT_POLL_MS = 2_000;
 
 export type PaymentVerification =
   | { ok: true; from: Address; amount: bigint; txHash: Hex }
   | { ok: false; code: PaymentErrorCode; message: string };
 
-export type PaymentErrorCode =
-  | "not_configured"
-  | "not_found"
-  | "not_confirmed"
-  | "reverted"
-  | "no_matching_transfer";
+export type PaymentErrorCode = "not_configured" | "not_found" | "reverted" | "no_matching_transfer";
 
 /**
  * @param txHash        Base tx hash the customer says paid.
@@ -60,20 +65,22 @@ export async function verifyUsdcPayment(
   const hash = txHash as Hex;
   const minAmount = parseUnits(amountUsd.toString(), STORE_CHECKOUT.usdcDecimals);
 
+  // Poll until the tx is on the server's RPC and has the required confirmations, absorbing
+  // the client↔server RPC propagation lag (the client already waited for the receipt).
   let receipt;
   try {
-    receipt = await serverPublicClient.getTransactionReceipt({ hash });
+    receipt = await serverPublicClient.waitForTransactionReceipt({
+      hash,
+      confirmations: MIN_CONFIRMATIONS,
+      timeout: RECEIPT_TIMEOUT_MS,
+      pollingInterval: RECEIPT_POLL_MS,
+    });
   } catch {
     return { ok: false, code: "not_found", message: "Transaction not found or not yet mined" };
   }
 
   if (receipt.status !== "success") {
     return { ok: false, code: "reverted", message: "Payment transaction reverted" };
-  }
-
-  const currentBlock = await serverPublicClient.getBlockNumber();
-  if (currentBlock - receipt.blockNumber + 1n < MIN_CONFIRMATIONS) {
-    return { ok: false, code: "not_confirmed", message: "Payment not yet confirmed" };
   }
 
   const wantRecipient = getAddress(recipient);
