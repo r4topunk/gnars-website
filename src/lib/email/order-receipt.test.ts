@@ -22,6 +22,7 @@ const base: OrderReceiptInput = {
     state: "CO",
     postalCode: "80202",
     country: "US",
+    phone: "+1 555 010 1234",
   },
   sandbox: true,
 };

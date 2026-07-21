@@ -84,6 +84,10 @@ export const shippingAddressSchema = z.object({
   state: z.string().optional().default(""),
   postalCode: z.string().min(1),
   country: z.string().length(2, "ISO 3166-1 alpha-2 country code"),
+  // Shopify (KeepKey's fulfiller) requires a shipping phone on Managed Markets orders —
+  // without it the order is rejected at fulfillment. Optional here so sandbox/legacy callers
+  // don't break; the checkout collects it as required.
+  phone: z.string().optional().default(""),
 });
 
 export type ShippingAddress = z.infer<typeof shippingAddressSchema>;

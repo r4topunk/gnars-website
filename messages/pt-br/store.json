@@ -56,6 +56,7 @@
     "fields": {
       "name": "Nome completo",
       "email": "E-mail",
+      "phone": "Telefone",
       "line1": "Endereço",
       "line2": "Apartamento, bloco, etc.",
       "city": "Cidade",
@@ -66,6 +67,7 @@
     "errors": {
       "name": "Informe seu nome",
       "email": "Informe um e-mail válido",
+      "phone": "Informe um telefone válido (obrigatório para envio)",
       "line1": "Informe seu endereço",
       "city": "Informe sua cidade",
       "postalCode": "Informe seu CEP",

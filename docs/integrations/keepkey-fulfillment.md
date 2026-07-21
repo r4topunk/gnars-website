@@ -85,7 +85,8 @@ anywhere KeepKey normally ships) or an array of ISO country codes.
     "city": "Denver",
     "state": "CO",
     "postalCode": "80202",
-    "country": "US"
+    "country": "US",
+    "phone": "+1 555 010 1234"
   },
   "lineItems": [{ "sku": "KK-HW-001", "quantity": 1 }],
   "shippingMethod": "standard",
@@ -95,7 +96,9 @@ anywhere KeepKey normally ships) or an array of ISO country codes.
 
 **`shippingMethod` is required** (KeepKey 400s without it) — our schema defaults it to
 `"standard"`. The address is validated per-country server-side (empty `state` on a US
-address → `invalid_address`). Response:
+address → `invalid_address`). **`shippingAddress.phone` is required for fulfillment** —
+KeepKey's Shopify backend rejects Managed Markets orders without a shipping phone (+ email),
+so the checkout collects phone as required. Response:
 
 ```json
 {
