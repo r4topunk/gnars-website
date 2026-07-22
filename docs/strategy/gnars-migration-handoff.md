@@ -15,7 +15,11 @@ A `/migrate` hub with three tabs:
   so only real coins show (scams/airdrops/random ERC-20s are filtered out). Multi-select, live quotes,
   a step-by-step **route map**, and **sequential execution** that converts the selected coins into old
   **$gnars**. Routing is per coin: **gnars-paired coins swap straight to $gnars (one hop); everything
-  else goes coin → ZORA → then one ΣZORA → $gnars.**
+  else goes coin → ZORA → then one ΣZORA → $gnars.** A **$GNARS / ETH** target toggle lets users
+  receive ETH instead — selling each coin straight to ETH (SDK routes content→creator→ZORA→ETH). This
+  is the viable path for large/thin positions the shallow $gnars pool can't absorb (e.g. skatehacker
+  quotes "no liquidity" to $gnars but routes fine to ETH), and it lines up with the "sell to ETH → join
+  the presale" flow.
 - **Get $GNARS** — buy old $gnars with ETH (via the Zora router — works where 0x/Matcha can't route the
   V4 creator-coin pool).
 - **Guide** — a 4-step tutorial (Convert → Hold → Deposit → Claim), EN + PT-BR.
