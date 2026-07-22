@@ -198,44 +198,49 @@ export function isGnarsPaired(coin: MigratableCoin): boolean {
   return coin.pairedWith?.address?.toLowerCase() === GNARS;
 }
 
+/** What the user converts their coins into. */
+export type MigrationTarget = "gnars" | "eth";
+
 export interface CoinQuote {
   address: Address;
-  /** True when the SDK found a route to the coin's target (ZORA, or $gnars if gnars-paired). */
+  /** True when the SDK found a route to the target. */
   routable: boolean;
-  /** Estimated output (raw, 18 decimals): $gnars if `direct`, otherwise ZORA. */
+  /** Estimated output (raw, 18 decimals): ETH, $gnars if `direct`, else ZORA. */
   out: bigint;
-  /** True when quoted straight to $gnars (a gnars-paired coin — single hop). */
+  /** True when quoted straight to $gnars (a gnars-paired coin — single hop; gnars target only). */
   direct: boolean;
   error?: string;
 }
 
 /**
- * Quotes each selected coin's full balance toward $gnars, running the requests
- * concurrently (React Query dedupes + caches). Routing depends on the coin's
- * pool pairing:
- *   - gnars-paired coin → quote straight to $gnars (one hop)
- *   - everything else   → quote to ZORA (the hub), consolidated to $gnars after
- * Forcing every coin through ZORA breaks gnars-paired content coins (they have
- * no ZORA pool), which is why they must be routed directly.
+ * Quotes each selected coin's full balance toward the chosen target.
+ *   - target "gnars": gnars-paired coins quote straight to $gnars (one hop);
+ *     everything else quotes to ZORA (hub), consolidated to $gnars afterwards.
+ *   - target "eth": every coin quotes straight to ETH (the SDK routes
+ *     content→creator→ZORA→ETH under the hood); no consolidation hop needed.
  */
 export function useCoinQuotes(
   coins: MigratableCoin[],
   sender: string | undefined,
+  target: MigrationTarget = "gnars",
   slippage = 0.15,
 ) {
   const results = useQueries({
     queries: coins.map((coin) => {
-      const direct = isGnarsPaired(coin);
-      const buyAddress = (direct ? GNARS_CREATOR_COIN : ZORA_TOKEN_BASE) as Address;
+      const useEth = target === "eth";
+      const direct = !useEth && isGnarsPaired(coin);
+      const buy: TradeParameters["buy"] = useEth
+        ? { type: "eth" }
+        : { type: "erc20", address: (direct ? GNARS_CREATOR_COIN : ZORA_TOKEN_BASE) as Address };
       return {
-        queryKey: ["migration-quote", coin.address.toLowerCase(), coin.balance, sender, direct],
+        queryKey: ["migration-quote", coin.address.toLowerCase(), coin.balance, sender, target],
         enabled: apiKeyReady && Boolean(sender) && BigInt(coin.balance) > 0n,
         staleTime: 30_000,
         retry: false,
         queryFn: async (): Promise<CoinQuote> => {
           const params: TradeParameters = {
             sell: { type: "erc20", address: coin.address },
-            buy: { type: "erc20", address: buyAddress },
+            buy,
             amountIn: BigInt(coin.balance),
             slippage,
             sender: sender as Address,
@@ -270,18 +275,29 @@ export function useCoinQuotes(
     [results],
   );
   const isLoading = results.some((r) => r.isLoading);
-  // ZORA gathered from non-direct coins (still needs a final ZORA→$gnars hop).
+  // gnars target: ZORA gathered from non-direct coins (needs a final ZORA→$gnars hop).
   const totalZoraOut = useMemo(
-    () => quotes.reduce((sum, q) => sum + (q.routable && !q.direct ? q.out : 0n), 0n),
-    [quotes],
+    () =>
+      target === "gnars"
+        ? quotes.reduce((sum, q) => sum + (q.routable && !q.direct ? q.out : 0n), 0n)
+        : 0n,
+    [quotes, target],
   );
-  // $gnars already obtained directly from gnars-paired coins.
+  // gnars target: $gnars obtained directly from gnars-paired coins.
   const directGnarsOut = useMemo(
-    () => quotes.reduce((sum, q) => sum + (q.routable && q.direct ? q.out : 0n), 0n),
-    [quotes],
+    () =>
+      target === "gnars"
+        ? quotes.reduce((sum, q) => sum + (q.routable && q.direct ? q.out : 0n), 0n)
+        : 0n,
+    [quotes, target],
+  );
+  // eth target: total ETH out across all coins (each already yields ETH).
+  const totalEthOut = useMemo(
+    () => (target === "eth" ? quotes.reduce((sum, q) => sum + (q.routable ? q.out : 0n), 0n) : 0n),
+    [quotes, target],
   );
 
-  return { quotes, totalZoraOut, directGnarsOut, isLoading };
+  return { quotes, totalZoraOut, directGnarsOut, totalEthOut, isLoading };
 }
 
 /**

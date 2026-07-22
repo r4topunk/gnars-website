@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { viemAdapter } from "thirdweb/adapters/viem";
 import { base } from "thirdweb/chains";
 import { erc20Abi, type Address, type PublicClient, type WalletClient } from "viem";
+import type { MigrationTarget } from "@/hooks/use-gnars-migration";
 import { useWriteAccount } from "@/hooks/use-write-account";
 import { GNARS_CREATOR_COIN, ZORA_TOKEN_BASE } from "@/lib/config";
 import { getThirdwebClient } from "@/lib/thirdweb";
@@ -58,7 +59,11 @@ export function useExecuteMigration() {
   // spend from an empty smart wallet → OutOfFunds.
   const writer = useWriteAccount();
 
-  const execute = async (coins: CoinToMigrate[], slippage = 0.15) => {
+  const execute = async (
+    coins: CoinToMigrate[],
+    target: MigrationTarget = "gnars",
+    slippage = 0.15,
+  ) => {
     if (coins.length === 0) return;
     if (!writer) {
       toast.error("Please connect your wallet");
@@ -73,17 +78,20 @@ export function useExecuteMigration() {
 
     setIsRunning(true);
 
-    // Route per coin: gnars-paired coins swap straight to $gnars (one hop);
-    // everything else goes to ZORA, then a single consolidated ZORA→$gnars hop.
+    const toEth = target === "eth";
+    // Route per coin. ETH target: every coin sells straight to ETH (the SDK
+    // routes content→creator→ZORA→ETH), no consolidation hop. $gnars target:
+    // gnars-paired coins go straight to $gnars (one hop); the rest go to ZORA,
+    // then a single consolidated ZORA→$gnars hop.
     const plan = coins.map((c) => ({
       coin: c,
-      direct: c.pairedWith?.toLowerCase() === GNARS_LOWER,
+      direct: !toEth && c.pairedWith?.toLowerCase() === GNARS_LOWER,
     }));
-    const hasViaZora = plan.some((p) => !p.direct);
+    const hasViaZora = !toEth && plan.some((p) => !p.direct);
 
     const initial: MigrationStep[] = [
       ...plan.map((p) => ({
-        label: `${p.coin.symbol} → ${p.direct ? "$GNARS" : "ZORA"}`,
+        label: `${p.coin.symbol} → ${toEth ? "ETH" : p.direct ? "$GNARS" : "ZORA"}`,
         status: "pending" as StepStatus,
       })),
       ...(hasViaZora ? [{ label: "ZORA → $GNARS", status: "pending" as StepStatus }] : []),
@@ -120,32 +128,37 @@ export function useExecuteMigration() {
       }
     };
 
-    const toastId = toast.loading("Migrating into $gnars…");
+    const targetLabel = toEth ? "ETH" : "$gnars";
+    const toastId = toast.loading(`Migrating into ${targetLabel}…`);
     try {
       const zoraBefore = hasViaZora ? await readZora() : 0n;
 
-      // Sell each coin toward its target: direct → $gnars, or → ZORA.
+      // Sell each coin toward its immediate target: ETH, direct $gnars, or ZORA.
       let anyViaZoraSold = false;
-      let anyDirectDone = false;
+      let anyTerminalDone = false; // reached the final asset (ETH or $gnars) directly
       for (let i = 0; i < plan.length; i++) {
         setStatus(i, "active");
         try {
-          const buyAddress = plan[i].direct ? (GNARS_CREATOR_COIN as Address) : ZORA_TOKEN_BASE;
-          const params: TradeParameters = {
-            sell: { type: "erc20", address: plan[i].coin.address },
-            buy: { type: "erc20", address: buyAddress },
-            amountIn: BigInt(plan[i].coin.balance),
-            slippage,
-            sender,
-          };
+          const buy: TradeParameters["buy"] = toEth
+            ? { type: "eth" }
+            : {
+                type: "erc20",
+                address: plan[i].direct ? (GNARS_CREATOR_COIN as Address) : ZORA_TOKEN_BASE,
+              };
           await tradeCoin({
-            tradeParameters: params,
+            tradeParameters: {
+              sell: { type: "erc20", address: plan[i].coin.address },
+              buy,
+              amountIn: BigInt(plan[i].coin.balance),
+              slippage,
+              sender,
+            },
             walletClient,
             account: walletClient.account!,
             publicClient,
           });
           setStatus(i, "done");
-          if (plan[i].direct) anyDirectDone = true;
+          if (toEth || plan[i].direct) anyTerminalDone = true;
           else anyViaZoraSold = true;
         } catch (err) {
           console.error(`[migration] swap failed for ${plan[i].coin.symbol}`, err);
@@ -153,7 +166,7 @@ export function useExecuteMigration() {
         }
       }
 
-      // Consolidate any ZORA gained from the non-direct coins into $gnars.
+      // $gnars target only: consolidate the ZORA gained from non-direct coins.
       if (hasViaZora) {
         if (!anyViaZoraSold) throw new Error("None of the coins could be sold to ZORA");
         setStatus(finalIdx, "active");
@@ -172,11 +185,11 @@ export function useExecuteMigration() {
           publicClient,
         });
         setStatus(finalIdx, "done");
-      } else if (!anyDirectDone) {
+      } else if (!anyTerminalDone) {
         throw new Error("No coins could be migrated");
       }
 
-      toast.success("Migrated into $gnars!", { id: toastId });
+      toast.success(`Migrated into ${targetLabel}!`, { id: toastId });
       return true;
     } catch (err) {
       if (finalIdx >= 0) setStatus(finalIdx, "failed");

@@ -59,9 +59,12 @@
     "unroutable": "{count} no liquidity",
     "youReceive": "You receive (estimated)",
     "slippageWarning": "The $gnars pool is thin — large migrations move the price. Estimates include slippage and can change before the transaction confirms.",
-    "migrateCta": "Migrate {count} coins to $gnars",
+    "migrateCta": "Migrate {count} coins to {token}",
     "executing": "Migrating…",
-    "executionNote": "Runs one swap per coin, then a final swap into $gnars — approve each in your wallet. Tip: test with a single low-value coin first."
+    "executionNote": "Runs one swap per coin — approve each in your wallet. Tip: test with a single low-value coin first.",
+    "receiveAs": "Receive as",
+    "targetGnars": "$GNARS",
+    "targetEth": "ETH"
   },
   "editorial": {
     "tagline": "One token, deeper liquidity",

@@ -59,9 +59,12 @@
     "unroutable": "{count} sem liquidez",
     "youReceive": "Você recebe (estimado)",
     "slippageWarning": "O pool de $gnars é raso — migrações grandes movem o preço. As estimativas incluem slippage e podem mudar antes da confirmação da transação.",
-    "migrateCta": "Migrar {count} coins para $gnars",
+    "migrateCta": "Migrar {count} coins para {token}",
     "executing": "Migrando…",
-    "executionNote": "Faz uma troca por coin e, no fim, uma troca para $gnars — aprove cada uma na sua carteira. Dica: teste primeiro com uma coin de baixo valor."
+    "executionNote": "Faz uma troca por coin — aprove cada uma na sua carteira. Dica: teste primeiro com uma coin de baixo valor.",
+    "receiveAs": "Receber como",
+    "targetGnars": "$GNARS",
+    "targetEth": "ETH"
   },
   "editorial": {
     "tagline": "Um token, mais liquidez",
