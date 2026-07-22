@@ -77,6 +77,14 @@
     "toGnars": "Para $GNARS",
     "toEth": "Para ETH",
     "skipped": "Ignoradas (sem rota)",
-    "migrateCta": "Migrar {count} coins"
+    "migrateCta": "Migrar {count} coins",
+    "checking": "Verificando…",
+    "noRoute": "Sem rota",
+    "reason": {
+      "gnars": "pareada com $gnars",
+      "eth-not-paired": "não pareada com $gnars → melhor via ETH",
+      "eth-fallback": "pool de $gnars raso demais → ETH",
+      "none": "sem rota"
+    }
   }
 }

@@ -129,6 +129,7 @@ function SmartMigratePanel({
   const { execute, isRunning, steps } = useExecuteMigration();
 
   const byAddr = new Map(coins.map((c) => [c.address.toLowerCase(), c]));
+  const assignByAddr = new Map(assignments.map((a) => [a.address.toLowerCase(), a]));
   const toGnars = assignments.filter((a) => a.target === "gnars");
   const toEth = assignments.filter((a) => a.target === "eth");
   const skipped = assignments.filter((a) => !a.target);
@@ -155,6 +156,55 @@ function SmartMigratePanel({
         {isLoading && <Spinner className="size-4" />}
       </div>
       <p className="text-xs text-muted-foreground">{t("smart.hint")}</p>
+
+      {/* Per-coin breakdown — every coin stays visible with its verdict. */}
+      <ul className="max-h-[360px] divide-y overflow-y-auto rounded-lg border">
+        {coins.map((coin) => {
+          const a = assignByAddr.get(coin.address.toLowerCase());
+          return (
+            <li key={coin.address} className="flex items-center gap-3 p-3">
+              <CoinAvatar src={coin.logoUrl} symbol={coin.symbol} />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium">{coin.symbol}</div>
+                <div className="truncate text-xs text-muted-foreground">
+                  {formatCoinAmount(BigInt(coin.balance), coin.decimals)} {coin.symbol}
+                </div>
+              </div>
+              <div className="shrink-0 text-right">
+                {!a ? (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Spinner className="size-3" /> {t("smart.checking")}
+                  </span>
+                ) : a.target === "gnars" ? (
+                  <>
+                    <Badge className="bg-primary/15 text-primary">→ $GNARS</Badge>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      ≈ {formatCoinAmount(a.out)}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground/80">
+                      {t(`smart.reason.${a.reason}`)}
+                    </div>
+                  </>
+                ) : a.target === "eth" ? (
+                  <>
+                    <Badge variant="secondary">→ ETH</Badge>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      ≈ {formatCoinAmount(a.out, 18, 6)}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground/80">
+                      {t(`smart.reason.${a.reason}`)}
+                    </div>
+                  </>
+                ) : (
+                  <span className="text-xs text-muted-foreground">{t("smart.noRoute")}</span>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <Separator />
 
       <div className="space-y-2 text-sm">
         <SmartRow
