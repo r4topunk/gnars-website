@@ -1,17 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ExternalLink, Minus, Plus } from "lucide-react";
 import { useActiveAccount } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { createRoundActionMessage } from "@/features/rounds/signature";
 import { getRoundState, getRoundStateLabel } from "@/features/rounds/state";
-import type { RoundSubmission, RoundWithSubmissions } from "@/features/rounds/types";
+import type { RoundState, RoundSubmission, RoundWithSubmissions } from "@/features/rounds/types";
 import { useUserAddress } from "@/hooks/use-user-address";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { RoundStatusPill } from "./RoundStatusPill";
 import { RoundTimeline } from "./RoundTimeline";
+
+type RoundVotingPower = {
+  walletAddress: string;
+  votingPower: number;
+  usedVotes: number;
+  remainingVotes: number;
+};
 
 export function RoundDetailView({
   round,
@@ -23,15 +30,69 @@ export function RoundDetailView({
   const state = getRoundState(round);
   const { address, isConnected } = useUserAddress();
   const account = useActiveAccount();
+  const router = useRouter();
   const [allocations, setAllocations] = useState<Record<string, number>>({});
   const [message, setMessage] = useState("");
   const [isVoting, setIsVoting] = useState(false);
-  const votingPower = state === "voting_open" && isConnected ? round.votesPerWallet : 0;
+  const [votingPowerStatus, setVotingPowerStatus] = useState<RoundVotingPower | null>(null);
+  const [isLoadingVotingPower, setIsLoadingVotingPower] = useState(false);
+  const [votingPowerError, setVotingPowerError] = useState("");
+  const votingPower = state === "voting_open" && isConnected ? votingPowerStatus?.votingPower || 0 : 0;
+  const remainingVotes =
+    state === "voting_open" && isConnected ? votingPowerStatus?.remainingVotes || 0 : 0;
   const allocatedVotes = useMemo(
     () => Object.values(allocations).reduce((total, count) => total + count, 0),
     [allocations],
   );
+  const availableVotes = Math.max(remainingVotes - allocatedVotes, 0);
+  const showVotingControls = canShowRoundVotingControls({ state, votingPower });
+  const votingStatusMessage = getVotingStatusMessage({
+    isConnected,
+    isLoadingVotingPower,
+    votingPowerError,
+    votingPower,
+    availableVotes,
+    remainingVotes,
+  });
   const winners = state === "ended" ? round.submissions.slice(0, round.winnerCount) : [];
+
+  const fetchVotingPower = useCallback(async () => {
+    if (state !== "voting_open" || !isConnected || !address) {
+      setVotingPowerStatus(null);
+      setVotingPowerError("");
+      return;
+    }
+
+    setIsLoadingVotingPower(true);
+    setVotingPowerError("");
+
+    try {
+      const response = await fetch(
+        `/api/rounds/${round.slug}/voting-power?wallet=${encodeURIComponent(address)}`,
+      );
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Unable to load voting power.");
+
+      setVotingPowerStatus(result as RoundVotingPower);
+    } catch (error) {
+      setVotingPowerStatus(null);
+      setVotingPowerError(error instanceof Error ? error.message : "Unable to load voting power.");
+    } finally {
+      setIsLoadingVotingPower(false);
+    }
+  }, [
+    address,
+    isConnected,
+    round.slug,
+    setIsLoadingVotingPower,
+    setVotingPowerError,
+    setVotingPowerStatus,
+    state,
+  ]);
+
+  useEffect(() => {
+    void fetchVotingPower();
+  }, [fetchVotingPower]);
 
   const updateAllocation = (submissionId: string, delta: number) => {
     setMessage("");
@@ -44,13 +105,13 @@ export function RoundDetailView({
       );
       return {
         ...current,
-        [submissionId]: Math.min(next, Math.max(votingPower - totalWithoutCurrent, 0)),
+        [submissionId]: Math.min(next, Math.max(remainingVotes - totalWithoutCurrent, 0)),
       };
     });
   };
 
   const submitVotes = async () => {
-    if (!address || !account || allocatedVotes <= 0) return;
+    if (!address || !account || allocatedVotes <= 0 || allocatedVotes > remainingVotes) return;
 
     setIsVoting(true);
     setMessage("");
@@ -83,7 +144,9 @@ export function RoundDetailView({
       if (!response.ok) throw new Error(result.error || "Unable to submit votes.");
 
       setAllocations({});
-      setMessage("Votes submitted. Refreshing will show the updated totals.");
+      setMessage("Votes submitted.");
+      await fetchVotingPower();
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to submit votes.");
     } finally {
@@ -190,15 +253,19 @@ export function RoundDetailView({
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-xl font-semibold tracking-tight">Voting</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {isConnected
-                    ? `${Math.max(votingPower - allocatedVotes, 0)} of ${votingPower} votes remaining`
-                    : "Connect your wallet to vote."}
-                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{votingStatusMessage}</p>
               </div>
               <Button
                 onClick={submitVotes}
-                disabled={!databaseConfigured || !isConnected || allocatedVotes <= 0 || isVoting}
+                disabled={
+                  !databaseConfigured ||
+                  !isConnected ||
+                  !showVotingControls ||
+                  allocatedVotes <= 0 ||
+                  allocatedVotes > remainingVotes ||
+                  isVoting ||
+                  isLoadingVotingPower
+                }
               >
                 {isVoting ? "Submitting..." : "Submit votes"}
               </Button>
@@ -221,10 +288,11 @@ export function RoundDetailView({
                   key={submission.id}
                   submission={submission}
                   rank={index + 1}
-                  showVoting={state === "voting_open" && votingPower > 0}
+                  showVoting={showVotingControls}
                   allocation={allocations[submission.id] || 0}
                   onMinus={() => updateAllocation(submission.id, -1)}
                   onPlus={() => updateAllocation(submission.id, 1)}
+                  disablePlus={availableVotes <= 0}
                 />
               ))}
             </div>
@@ -285,6 +353,7 @@ function SubmissionCard({
   allocation,
   onMinus,
   onPlus,
+  disablePlus,
 }: {
   submission: RoundSubmission;
   rank: number;
@@ -292,6 +361,7 @@ function SubmissionCard({
   allocation: number;
   onMinus: () => void;
   onPlus: () => void;
+  disablePlus?: boolean;
 }) {
   return (
     <article
@@ -357,7 +427,7 @@ function SubmissionCard({
               <span className="w-6 text-center text-sm font-semibold tabular-nums">
                 {allocation}
               </span>
-              <Button size="icon-sm" variant="outline" onClick={onPlus}>
+              <Button size="icon-sm" variant="outline" onClick={onPlus} disabled={disablePlus}>
                 <Plus className="size-3.5" />
               </Button>
             </div>
@@ -372,4 +442,39 @@ function getVotingStrategyLabel(round: RoundWithSubmissions) {
   if (round.votingStrategy === "one_per_wallet") return "1 vote per wallet";
   if (round.votingStrategy === "one_per_nft") return "1 vote per Gnars NFT";
   return `${round.votesPerWallet} votes per wallet`;
+}
+
+export function canShowRoundVotingControls({
+  state,
+  votingPower,
+}: {
+  state: RoundState;
+  votingPower: number;
+}) {
+  return state === "voting_open" && votingPower > 0;
+}
+
+function getVotingStatusMessage({
+  isConnected,
+  isLoadingVotingPower,
+  votingPowerError,
+  votingPower,
+  availableVotes,
+  remainingVotes,
+}: {
+  isConnected: boolean;
+  isLoadingVotingPower: boolean;
+  votingPowerError: string;
+  votingPower: number;
+  availableVotes: number;
+  remainingVotes: number;
+}) {
+  if (!isConnected) return "Connect your wallet to vote.";
+  if (isLoadingVotingPower) return "Checking delegated Gnars voting power...";
+  if (votingPowerError) return votingPowerError;
+  if (votingPower <= 0) {
+    return "This wallet needs at least 1 delegated Gnars DAO vote to vote in this round.";
+  }
+
+  return `${availableVotes} of ${remainingVotes} votes remaining`;
 }
