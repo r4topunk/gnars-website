@@ -10,8 +10,8 @@
  *   each coin ──tradeCoin──▶ ZORA   (V4 hooks auto-route content → creator → ZORA)
  *   Σ ZORA    ──tradeCoin──▶ $gnars (supported creator-coin ⇄ ZORA trade)
  *
- * A small % of the output $gnars is burned on every migration (see
- * MIGRATION_BURN_BPS) — buy-and-burn to tighten $gnars supply.
+ * Users can also target ETH instead of $gnars, and Smart Select quote-verifies
+ * the best target per coin.
  *
  * This hook only READS and QUOTES. Execution lives in use-execute-migration.ts.
  */
@@ -344,6 +344,13 @@ export function useGnarsOutputQuote(
   };
 }
 
+/** Why Smart Select chose a coin's target — surfaced in the UI. */
+export type SmartReason =
+  | "gnars" // gnars-paired: routes to $gnars in one clean hop
+  | "eth-not-paired" // not gnars-paired: ETH avoids the thin $gnars pool
+  | "eth-fallback" // gnars-paired but the $gnars route failed → ETH
+  | "none"; // no route to either → skipped
+
 /** A Smart Select assignment: the target chosen for a coin (or null = skip). */
 export interface SmartAssignment {
   address: Address;
@@ -351,6 +358,8 @@ export interface SmartAssignment {
   target: MigrationTarget | null;
   /** Estimated output (raw 18dp) in the chosen target's units. */
   out: bigint;
+  /** Why this target was chosen. */
+  reason: SmartReason;
 }
 
 /**
@@ -389,12 +398,19 @@ export function useSmartPlan(coins: MigratableCoin[], sender: string | undefined
         // gnars-paired coins: verify the one-hop $gnars route first.
         if (isGnarsPaired(coin)) {
           const g = await quote({ type: "erc20", address: GNARS_CREATOR_COIN as Address });
-          if (g !== null) return { address: coin.address, target: "gnars", out: g };
+          if (g !== null)
+            return { address: coin.address, target: "gnars", out: g, reason: "gnars" };
+          // Paired with $gnars but the route failed (e.g. pool too thin for the size) → ETH.
+          const e = await quote({ type: "eth" });
+          if (e !== null)
+            return { address: coin.address, target: "eth", out: e, reason: "eth-fallback" };
+          return { address: coin.address, target: null, out: 0n, reason: "none" };
         }
-        // Otherwise (or if the $gnars route failed): route to ETH if it exists.
+        // Not gnars-paired: ETH avoids routing into the thin $gnars pool.
         const e = await quote({ type: "eth" });
-        if (e !== null) return { address: coin.address, target: "eth", out: e };
-        return { address: coin.address, target: null, out: 0n };
+        if (e !== null)
+          return { address: coin.address, target: "eth", out: e, reason: "eth-not-paired" };
+        return { address: coin.address, target: null, out: 0n, reason: "none" };
       },
     })),
   });

@@ -77,6 +77,14 @@
     "toGnars": "To $GNARS",
     "toEth": "To ETH",
     "skipped": "Skipped (no route)",
-    "migrateCta": "Migrate {count} coins"
+    "migrateCta": "Migrate {count} coins",
+    "checking": "Checking…",
+    "noRoute": "No route",
+    "reason": {
+      "gnars": "paired with $gnars",
+      "eth-not-paired": "not $gnars-paired → cleaner via ETH",
+      "eth-fallback": "$gnars pool too thin → ETH",
+      "none": "no route"
+    }
   }
 }
