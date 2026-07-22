@@ -58,7 +58,6 @@
     "routable": "Com rota para $gnars",
     "unroutable": "{count} sem liquidez",
     "youReceive": "Você recebe (estimado)",
-    "burn": "Inclui {amount} $GNARS ({pct}%) comprados e queimados para fortalecer a liquidez",
     "slippageWarning": "O pool de $gnars é raso — migrações grandes movem o preço. As estimativas incluem slippage e podem mudar antes da confirmação da transação.",
     "migrateCta": "Migrar {count} coins para $gnars",
     "executing": "Migrando…",
@@ -66,6 +65,6 @@
   },
   "editorial": {
     "tagline": "Um token, mais liquidez",
-    "body": "Cada coin da Zora que você migra passa pela ZORA até $gnars, e uma parte de cada migração é queimada. O resultado: poeira fragmentada vira liquidez concentrada e mais saudável em $gnars."
+    "body": "Cada coin da Zora que você migra é consolidada em $gnars. O resultado: poeira fragmentada vira liquidez concentrada e mais saudável em $gnars."
   }
 }

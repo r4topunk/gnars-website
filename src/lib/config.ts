@@ -60,6 +60,15 @@ export const MIGRATION_BURN_BPS = 100 as const;
 export const MIGRATION_MULTISIG = (process.env.NEXT_PUBLIC_MIGRATION_MULTISIG ||
   "0xBe6C3D651d2F6e9eFA562b5a7CDf411304cad076") as `0x${string}`;
 
+// Trade referrer for the migration/buy swaps — earns a share of the Zora trade
+// fee, claimable in Zora by this account. Set to haxixe.eth (Vlad's personal
+// account) so rewards are easy to claim.
+// ⚠️ Not yet wired: the Zora SDK's tradeCoin/createTradeCall do NOT forward a
+// referrer. Capturing it requires POSTing to the quote endpoint with `referrer`
+// in the body and executing the returned call ourselves (see handoff doc).
+export const MIGRATION_TRADE_REFERRER = (process.env.NEXT_PUBLIC_MIGRATION_TRADE_REFERRER ||
+  "0x8Bf5941d27176242745B716251943Ae4892a3C26") as `0x${string}`;
+
 // Creator allowlist — Zora handles that bypass the NFT qualification gate.
 // Use for known community members whose wallets are fragmented across profiles.
 export const GNARS_CREATOR_ALLOWLIST: readonly string[] = [

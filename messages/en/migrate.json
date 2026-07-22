@@ -58,7 +58,6 @@
     "routable": "With a route to $gnars",
     "unroutable": "{count} no liquidity",
     "youReceive": "You receive (estimated)",
-    "burn": "Includes {amount} $GNARS ({pct}%) bought & burned to strengthen liquidity",
     "slippageWarning": "The $gnars pool is thin — large migrations move the price. Estimates include slippage and can change before the transaction confirms.",
     "migrateCta": "Migrate {count} coins to $gnars",
     "executing": "Migrating…",
@@ -66,6 +65,6 @@
   },
   "editorial": {
     "tagline": "One token, deeper liquidity",
-    "body": "Every Zora coin you migrate routes through ZORA into $gnars, and a slice of each migration is burned. The result: fragmented dust becomes concentrated, healthier $gnars liquidity."
+    "body": "Every Zora coin you migrate is consolidated into $gnars. The result: fragmented dust becomes concentrated, healthier $gnars liquidity."
   }
 }
