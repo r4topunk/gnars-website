@@ -41,19 +41,22 @@ dozens of thin creator/content coins.
   burn**. This is DAO revenue from Zora's fee, not a tax on migrators. (The old per-trade "1% burn" idea
   was dropped — it was never on-chain.)
 
-## Allocations / distribution (OPEN — needs DAO sign-off)
+## Allocations / distribution (proposed — DAO to ratify)
 
-The Upgrader mints the new token and distributes to depositors pro-rata to their sale proceeds; the rest
-is split per the deploy config. Percentages to finalize:
+Supply proposed **100B** (Clanker standard, 100× the old 1B). Proposed split of the new supply — these
+are starting numbers to debate, not decisions:
 
-- Existing-holder migration (deposit old $gnars → claim new): \_\_\_\_%
-- Airdrop by contribution / snapshot of key creator+content coin holders: \_\_\_\_%
-- Treasury / vault reserve: ~30% (see tokenomics)
-- Initial liquidity on Clanker: \_\_\_\_%
-- Ops / team (if any): \_\_\_\_%
+| Bucket                        | Proposed % | Notes                                                                                                            |
+| ----------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Liquidity / public (pool)** | ~55%       | Placed single-sided by the Clanker factory. Migrators + the ETH presale buy from this at launch via the dev-buy. |
+| **Founder vault / treasury**  | ~30%       | Locked, ~7-day vesting. Beneficiary = temp multisig → DAO treasury.                                              |
+| **Airdrop (snapshot)**        | ~15%       | Merkle airdrop to qualifying holders (see below), ~1-day lockup.                                                 |
 
-Note: proceeds from selling deposited coins are **capped by pool depth** (the old $gnars pool is thin),
-so fresh **ETH/WETH via the deposit lane** is the real backing — the value engine, not the dust.
+**Guiding principle (from the community review):** dust migration is negligible (~$5–15k community-wide,
+median member holds $0, and the $gnars pool can't absorb it). So **reward the community via the airdrop**
+and **back the token via the ETH presale** — do _not_ over-weight per-token dust migration. Depositor
+allocations from migrating are pro-rata to actual sale proceeds, which for dust is ~nothing; that's fine
+because the airdrop is what makes holders whole.
 
 ## Migration mechanics
 
@@ -67,6 +70,44 @@ reader `0x76a51fBC42e932ed3a5e1Ec413a7E03a3EC800AE`):
 3. **WETH deposit lane** for fresh-capital contributions (the "party" path) — the real backing.
 4. ⚠️ **Unsold leftovers are stuck forever** — so thin content coins deposited raw can lose their unsold
    portion; steer users to convert first or contribute WETH.
+
+## ETH presale mechanics
+
+The "ETH presale" is **not a separate contract** — it's the WETH deposit lane inside the same Upgrader
+upgrade. It's what gives the new token real backing (dust can't).
+
+1. **Deposit window:** contributors deposit **ETH/WETH** (and/or old $gnars) into the upgrade.
+2. **Execute (one tx):** the Upgrader sells token deposits, combines with the deposited ETH, deploys new
+   $gnars on Clanker, and runs a **dev-buy** (`ClankerUniv4EthDevBuy`) that swaps the pooled ETH into new
+   $gnars **inside the deploy tx** — so the ETH lands in the pool as real liquidity and everyone enters at
+   **one shared, snipe-proof price**.
+3. **Claim:** depositors claim new $gnars pro-rata to their share of proceeds (ETH contributors get $gnars
+   proportional to their ETH).
+4. **Anti-MEV:** single-tx dev-buy = one price for all; Clanker MEV modules cover the first ~2 minutes.
+
+Tools: **Upgrader** (engine + WETH lane) · **Clanker** (deploy + dev-buy + vault + MEV) · **gnars.com**
+self-hosted deposit/claim UI · **temp multisig** (vault beneficiary → treasury). No custom presale
+contract or PartyDAO needed.
+
+**Open params to confirm with kompreni:** min/max raise, per-wallet ETH cap, and the **refund path if the
+minimum isn't met**. Timing is coordinated socially (no on-chain deadline).
+
+## Airdrop / snapshot (proposed)
+
+Reward the community without needing their thin liquidity: a merkle airdrop of the ~15% bucket to a
+**snapshot taken at a block _before_ the announcement** (anti-gaming). Delivered via `ClankerAirdrop`
+(same deploy, if the Upgrader's deployer exposes it) or a separate post-launch airdrop.
+
+Qualifying sets (to finalize):
+
+- Holders of **old $gnars** (the Zora creator coin).
+- Holders of the **selected Gnars creator coins** (`GNARS_CREATOR_ALLOWLIST` + the curated creators list)
+  and **Gnars-channel content coins**.
+- Optionally **Gnars NFT holders** (the governance/community layer).
+
+**Weighting (DAO decision):** value is concentrated in a few wallets and most members hold $0, so a purely
+value-weighted airdrop would concentrate heavily. Consider a **blended** model — a flat base per qualifying
+holder + a value-weighted top-up — to reward broad participation, not just the largest holders.
 
 ## Interim migration multisig
 
@@ -89,8 +130,8 @@ per-step governance proposal), then sweeps everything to the DAO treasury at the
 
 ## Phases
 
-1. **Pre-migration (now):** campaign people into old $gnars / holding; `/migrate` hub live (hidden route
-   - Farcaster mini app); `/create-coin` unlisted so no new content coins are spun up.
+1. **Pre-migration (now):** campaign people into old $gnars / holding; `/migrate` hub live as a hidden
+   route and Farcaster mini app; `/create-coin` unlisted so no new content coins are spun up.
 2. **Migration:** kompreni `schedule`s + `execute`s the upgrade; deposit/claim portal on the site.
 3. **Post-migration:** point content coins at new $gnars; re-list `/create-coin` and `/migrate` nav;
    sweep the multisig to treasury.
