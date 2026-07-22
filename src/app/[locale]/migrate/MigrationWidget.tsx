@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useTranslations } from "next-intl";
-import { ArrowDown, Check, ChevronRight, Flame, ShieldCheck, X } from "lucide-react";
+import { ArrowDown, Check, ChevronRight, ShieldCheck, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,7 +22,6 @@ import {
   type RouteHop,
 } from "@/hooks/use-gnars-migration";
 import { useUserAddress } from "@/hooks/use-user-address";
-import { MIGRATION_BURN_BPS } from "@/lib/config";
 
 export function MigrationWidget() {
   const t = useTranslations("migrate");
@@ -279,11 +278,11 @@ function MigrationPreview({
     directGnarsOut,
     isLoading: quotesLoading,
   } = useCoinQuotes(coins, sender);
-  const {
-    burnGnars,
-    netGnars,
-    isLoading: gnarsLoading,
-  } = useGnarsOutputQuote(totalZoraOut, directGnarsOut, sender);
+  const { totalGnars, isLoading: gnarsLoading } = useGnarsOutputQuote(
+    totalZoraOut,
+    directGnarsOut,
+    sender,
+  );
 
   const { execute, isRunning, steps } = useExecuteMigration();
 
@@ -340,14 +339,7 @@ function MigrationPreview({
           {t("preview.youReceive")}
         </div>
         <div className="mt-1 text-2xl font-bold">
-          {loading ? "…" : formatCoinAmount(netGnars)} <span className="text-base">$GNARS</span>
-        </div>
-        <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Flame className="size-3.5" />
-          {t("preview.burn", {
-            amount: formatCoinAmount(burnGnars),
-            pct: (MIGRATION_BURN_BPS / 100).toString(),
-          })}
+          {loading ? "…" : formatCoinAmount(totalGnars)} <span className="text-base">$GNARS</span>
         </div>
       </div>
 
