@@ -25,7 +25,6 @@ import Image from "next/image";
 import {
   ArrowLeftRight,
   BookOpen,
-  Coins,
   Gavel,
   Gift,
   Home,
@@ -206,13 +205,17 @@ function buildNavigationItems(t: NavTranslations) {
           description: t("items.community.droposals.description"),
           badge: "NEW!",
         },
-        {
-          title: t("items.community.createCoin.title"),
-          href: "/create-coin",
-          icon: Coins,
-          description: t("items.community.createCoin.description"),
-          badge: "NEW!",
-        },
+        // NOTE: /create-coin is intentionally unlisted during the $gnars
+        // migration — we don't want new Zora content coins spun up while we're
+        // consolidating into one token. The route still exists (reachable by
+        // URL); re-add this entry once the migration is complete.
+        // {
+        //   title: t("items.community.createCoin.title"),
+        //   href: "/create-coin",
+        //   icon: Coins,
+        //   description: t("items.community.createCoin.description"),
+        //   badge: "NEW!",
+        // },
       ],
     },
   ] as const;
