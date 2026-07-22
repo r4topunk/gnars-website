@@ -149,13 +149,16 @@ function buildNavigationItems(t: NavTranslations) {
           description: t("items.money.swap.description"),
           badge: "NEW!",
         },
-        {
-          title: t("items.money.migrate.title"),
-          href: "/migrate",
-          icon: Coins,
-          description: t("items.money.migrate.description"),
-          badge: "NEW!",
-        },
+        // NOTE: /migrate is intentionally unlisted for now — it's a live but
+        // hidden route (reachable by direct URL) while the fund-moving migration
+        // flow is tested with the team. Re-add this entry to surface it publicly.
+        // {
+        //   title: t("items.money.migrate.title"),
+        //   href: "/migrate",
+        //   icon: Coins,
+        //   description: t("items.money.migrate.description"),
+        //   badge: "NEW!",
+        // },
         {
           title: t("items.money.rounds.title"),
           href: "/rounds",
