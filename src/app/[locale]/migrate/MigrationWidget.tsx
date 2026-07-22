@@ -273,12 +273,17 @@ function MigrationPreview({
   sender: string | undefined;
 }) {
   const t = useTranslations("migrate");
-  const { quotes, totalZoraOut, isLoading: quotesLoading } = useCoinQuotes(coins, sender);
+  const {
+    quotes,
+    totalZoraOut,
+    directGnarsOut,
+    isLoading: quotesLoading,
+  } = useCoinQuotes(coins, sender);
   const {
     burnGnars,
     netGnars,
     isLoading: gnarsLoading,
-  } = useGnarsOutputQuote(totalZoraOut, sender);
+  } = useGnarsOutputQuote(totalZoraOut, directGnarsOut, sender);
 
   const { execute, isRunning, steps } = useExecuteMigration();
 
@@ -292,7 +297,12 @@ function MigrationPreview({
   );
   const routableCoins = coins
     .filter((c) => routableAddrs.has(c.address.toLowerCase()))
-    .map((c) => ({ address: c.address, symbol: c.symbol, balance: c.balance }));
+    .map((c) => ({
+      address: c.address,
+      symbol: c.symbol,
+      balance: c.balance,
+      pairedWith: c.pairedWith?.address ?? null,
+    }));
 
   const onMigrate = () => execute(routableCoins);
 

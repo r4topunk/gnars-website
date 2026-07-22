@@ -193,19 +193,30 @@ export function useMigratableCoins(address: string | undefined) {
   };
 }
 
+/** Is this coin paired directly with $gnars (so it can swap to $gnars in one hop)? */
+export function isGnarsPaired(coin: MigratableCoin): boolean {
+  return coin.pairedWith?.address?.toLowerCase() === GNARS;
+}
+
 export interface CoinQuote {
   address: Address;
-  /** True when the SDK found a route coin → ZORA. */
+  /** True when the SDK found a route to the coin's target (ZORA, or $gnars if gnars-paired). */
   routable: boolean;
-  /** Estimated ZORA out (raw, 18 decimals) for the full balance. */
-  zoraOut: bigint;
+  /** Estimated output (raw, 18 decimals): $gnars if `direct`, otherwise ZORA. */
+  out: bigint;
+  /** True when quoted straight to $gnars (a gnars-paired coin — single hop). */
+  direct: boolean;
   error?: string;
 }
 
 /**
- * Quotes each selected coin's full balance → ZORA via the Zora SDK, running the
- * requests concurrently (React Query dedupes + caches per coin+amount). Only the
- * coins the user actually selected are quoted, keeping API load bounded.
+ * Quotes each selected coin's full balance toward $gnars, running the requests
+ * concurrently (React Query dedupes + caches). Routing depends on the coin's
+ * pool pairing:
+ *   - gnars-paired coin → quote straight to $gnars (one hop)
+ *   - everything else   → quote to ZORA (the hub), consolidated to $gnars after
+ * Forcing every coin through ZORA breaks gnars-paired content coins (they have
+ * no ZORA pool), which is why they must be routed directly.
  */
 export function useCoinQuotes(
   coins: MigratableCoin[],
@@ -213,39 +224,45 @@ export function useCoinQuotes(
   slippage = 0.15,
 ) {
   const results = useQueries({
-    queries: coins.map((coin) => ({
-      queryKey: ["migration-quote", coin.address.toLowerCase(), coin.balance, sender],
-      enabled: apiKeyReady && Boolean(sender) && BigInt(coin.balance) > 0n,
-      staleTime: 30_000,
-      retry: false,
-      queryFn: async (): Promise<CoinQuote> => {
-        const params: TradeParameters = {
-          sell: { type: "erc20", address: coin.address },
-          buy: { type: "erc20", address: ZORA_TOKEN_BASE },
-          amountIn: BigInt(coin.balance),
-          slippage,
-          sender: sender as Address,
-        };
-        try {
-          const resp = await createTradeCall(params);
-          if (!resp?.success || !resp.quote?.amountOut) {
-            return { address: coin.address, routable: false, zoraOut: 0n };
+    queries: coins.map((coin) => {
+      const direct = isGnarsPaired(coin);
+      const buyAddress = (direct ? GNARS_CREATOR_COIN : ZORA_TOKEN_BASE) as Address;
+      return {
+        queryKey: ["migration-quote", coin.address.toLowerCase(), coin.balance, sender, direct],
+        enabled: apiKeyReady && Boolean(sender) && BigInt(coin.balance) > 0n,
+        staleTime: 30_000,
+        retry: false,
+        queryFn: async (): Promise<CoinQuote> => {
+          const params: TradeParameters = {
+            sell: { type: "erc20", address: coin.address },
+            buy: { type: "erc20", address: buyAddress },
+            amountIn: BigInt(coin.balance),
+            slippage,
+            sender: sender as Address,
+          };
+          try {
+            const resp = await createTradeCall(params);
+            if (!resp?.success || !resp.quote?.amountOut) {
+              return { address: coin.address, routable: false, out: 0n, direct };
+            }
+            return {
+              address: coin.address,
+              routable: true,
+              out: BigInt(resp.quote.amountOut),
+              direct,
+            };
+          } catch (err) {
+            return {
+              address: coin.address,
+              routable: false,
+              out: 0n,
+              direct,
+              error: err instanceof Error ? err.message : String(err),
+            };
           }
-          return {
-            address: coin.address,
-            routable: true,
-            zoraOut: BigInt(resp.quote.amountOut),
-          };
-        } catch (err) {
-          return {
-            address: coin.address,
-            routable: false,
-            zoraOut: 0n,
-            error: err instanceof Error ? err.message : String(err),
-          };
-        }
-      },
-    })),
+        },
+      };
+    }),
   });
 
   const quotes = useMemo(
@@ -253,19 +270,30 @@ export function useCoinQuotes(
     [results],
   );
   const isLoading = results.some((r) => r.isLoading);
+  // ZORA gathered from non-direct coins (still needs a final ZORA→$gnars hop).
   const totalZoraOut = useMemo(
-    () => quotes.reduce((sum, q) => sum + (q.routable ? q.zoraOut : 0n), 0n),
+    () => quotes.reduce((sum, q) => sum + (q.routable && !q.direct ? q.out : 0n), 0n),
+    [quotes],
+  );
+  // $gnars already obtained directly from gnars-paired coins.
+  const directGnarsOut = useMemo(
+    () => quotes.reduce((sum, q) => sum + (q.routable && q.direct ? q.out : 0n), 0n),
     [quotes],
   );
 
-  return { quotes, totalZoraOut, isLoading };
+  return { quotes, totalZoraOut, directGnarsOut, isLoading };
 }
 
 /**
- * Given aggregate ZORA, quotes the final ZORA → $gnars leg and splits the
- * output into the burn skim and the amount the user keeps.
+ * Final $gnars estimate: quotes the consolidated ZORA → $gnars leg and adds the
+ * $gnars already obtained directly from gnars-paired coins, then splits off the
+ * burn skim.
  */
-export function useGnarsOutputQuote(totalZoraOut: bigint, sender: string | undefined) {
+export function useGnarsOutputQuote(
+  totalZoraOut: bigint,
+  directGnarsOut: bigint,
+  sender: string | undefined,
+) {
   const query = useQuery({
     queryKey: ["migration-gnars-out", totalZoraOut.toString(), sender],
     enabled: apiKeyReady && Boolean(sender) && totalZoraOut > 0n,
@@ -287,7 +315,7 @@ export function useGnarsOutputQuote(totalZoraOut: bigint, sender: string | undef
     },
   });
 
-  const totalGnars = query.data ?? 0n;
+  const totalGnars = (query.data ?? 0n) + directGnarsOut;
   const burnGnars = (totalGnars * BigInt(MIGRATION_BURN_BPS)) / 10_000n;
   const netGnars = totalGnars - burnGnars;
 
@@ -295,7 +323,7 @@ export function useGnarsOutputQuote(totalZoraOut: bigint, sender: string | undef
     totalGnars,
     burnGnars,
     netGnars,
-    isLoading: query.isLoading,
+    isLoading: totalZoraOut > 0n ? query.isLoading : false,
     isError: query.isError,
   };
 }
