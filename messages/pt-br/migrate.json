@@ -69,5 +69,14 @@
   "editorial": {
     "tagline": "Um token, mais liquidez",
     "body": "Cada coin da Zora que você migra é consolidada em $gnars. O resultado: poeira fragmentada vira liquidez concentrada e mais saudável em $gnars."
+  },
+  "smart": {
+    "button": "Seleção inteligente ✨",
+    "title": "Plano de migração inteligente",
+    "hint": "Cotamos cada coin e roteamos para o melhor destino — $gnars quando há rota, ETH caso contrário, e ignoramos as coins sem rota.",
+    "toGnars": "Para $GNARS",
+    "toEth": "Para ETH",
+    "skipped": "Ignoradas (sem rota)",
+    "migrateCta": "Migrar {count} coins"
   }
 }

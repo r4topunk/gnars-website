@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useTranslations } from "next-intl";
-import { ArrowDown, Check, ChevronRight, ShieldCheck, X } from "lucide-react";
+import { ArrowDown, Check, ChevronRight, ShieldCheck, Sparkles, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,13 +11,18 @@ import { ConnectButton } from "@/components/ui/ConnectButton";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import { useExecuteMigration, type MigrationStep } from "@/hooks/use-execute-migration";
+import {
+  useExecuteMigration,
+  type CoinToMigrate,
+  type MigrationStep,
+} from "@/hooks/use-execute-migration";
 import {
   buildRoute,
   formatCoinAmount,
   useCoinQuotes,
   useGnarsOutputQuote,
   useMigratableCoins,
+  useSmartPlan,
   type MigratableCoin,
   type MigrationTarget,
   type RouteHop,
@@ -32,6 +37,7 @@ export function MigrationWidget() {
   // Selection is keyed by lowercase address.
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [target, setTarget] = React.useState<MigrationTarget>("gnars");
+  const [smartMode, setSmartMode] = React.useState(false);
 
   const selectedCoins = React.useMemo(
     () => coins.filter((c) => selected.has(c.address.toLowerCase())),
@@ -61,27 +67,141 @@ export function MigrationWidget() {
 
   return (
     <div className="space-y-6">
-      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <ShieldCheck className="size-3.5 shrink-0" />
-        {t("safetyHint")}
-      </p>
-      <HoldingsList
-        coins={coins}
-        isLoading={isLoading}
-        selected={selected}
-        onToggle={toggle}
-        onSelectAll={selectAll}
-        onClearAll={clearAll}
-      />
-      {selectedCoins.length > 0 && <RouteMap coins={selectedCoins} />}
-      {selectedCoins.length > 0 && (
-        <MigrationPreview
-          coins={selectedCoins}
-          sender={address}
-          target={target}
-          onTargetChange={setTarget}
-        />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <ShieldCheck className="size-3.5 shrink-0" />
+          {t("safetyHint")}
+        </p>
+        {coins.length > 0 && (
+          <Button
+            variant={smartMode ? "default" : "outline"}
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setSmartMode((m) => !m)}
+          >
+            <Sparkles className="size-4" />
+            {t("smart.button")}
+          </Button>
+        )}
+      </div>
+
+      {smartMode ? (
+        <SmartMigratePanel coins={coins} sender={address} />
+      ) : (
+        <>
+          <HoldingsList
+            coins={coins}
+            isLoading={isLoading}
+            selected={selected}
+            onToggle={toggle}
+            onSelectAll={selectAll}
+            onClearAll={clearAll}
+          />
+          {selectedCoins.length > 0 && <RouteMap coins={selectedCoins} />}
+          {selectedCoins.length > 0 && (
+            <MigrationPreview
+              coins={selectedCoins}
+              sender={address}
+              target={target}
+              onTargetChange={setTarget}
+            />
+          )}
+        </>
       )}
+    </div>
+  );
+}
+
+/**
+ * Quote-verified Smart Select: quotes every coin and routes each to its best
+ * destination ($gnars where it routes, ETH otherwise, skip if neither), then
+ * migrates them as one mixed batch with per-coin targets.
+ */
+function SmartMigratePanel({
+  coins,
+  sender,
+}: {
+  coins: MigratableCoin[];
+  sender: string | undefined;
+}) {
+  const t = useTranslations("migrate");
+  const { assignments, isLoading } = useSmartPlan(coins, sender);
+  const { execute, isRunning, steps } = useExecuteMigration();
+
+  const byAddr = new Map(coins.map((c) => [c.address.toLowerCase(), c]));
+  const toGnars = assignments.filter((a) => a.target === "gnars");
+  const toEth = assignments.filter((a) => a.target === "eth");
+  const skipped = assignments.filter((a) => !a.target);
+  const gnarsOut = toGnars.reduce((s, a) => s + a.out, 0n);
+  const ethOut = toEth.reduce((s, a) => s + a.out, 0n);
+
+  const migrateCoins: CoinToMigrate[] = [];
+  for (const a of [...toGnars, ...toEth]) {
+    const c = byAddr.get(a.address.toLowerCase());
+    if (!c || !a.target) continue;
+    migrateCoins.push({
+      address: c.address,
+      symbol: c.symbol,
+      balance: c.balance,
+      pairedWith: c.pairedWith?.address ?? null,
+      target: a.target,
+    });
+  }
+
+  return (
+    <Card className="space-y-4 p-5">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">{t("smart.title")}</span>
+        {isLoading && <Spinner className="size-4" />}
+      </div>
+      <p className="text-xs text-muted-foreground">{t("smart.hint")}</p>
+
+      <div className="space-y-2 text-sm">
+        <SmartRow
+          label={t("smart.toGnars")}
+          count={toGnars.length}
+          amount={`${formatCoinAmount(gnarsOut)} $GNARS`}
+        />
+        <SmartRow
+          label={t("smart.toEth")}
+          count={toEth.length}
+          amount={`${formatCoinAmount(ethOut, 18, 6)} ETH`}
+        />
+        {skipped.length > 0 && <SmartRow label={t("smart.skipped")} count={skipped.length} muted />}
+      </div>
+
+      {steps.length > 0 && <StepList steps={steps} />}
+
+      <Button
+        className="w-full"
+        size="lg"
+        disabled={isLoading || isRunning || migrateCoins.length === 0}
+        onClick={() => execute(migrateCoins)}
+      >
+        {isRunning ? t("preview.executing") : t("smart.migrateCta", { count: migrateCoins.length })}
+      </Button>
+      <p className="text-center text-[11px] text-muted-foreground">{t("preview.executionNote")}</p>
+    </Card>
+  );
+}
+
+function SmartRow({
+  label,
+  count,
+  amount,
+  muted,
+}: {
+  label: string;
+  count: number;
+  amount?: string;
+  muted?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className={muted ? "text-muted-foreground" : ""}>
+        {label} · {count}
+      </span>
+      {amount && <span className="text-muted-foreground">{amount}</span>}
     </div>
   );
 }

@@ -344,6 +344,69 @@ export function useGnarsOutputQuote(
   };
 }
 
+/** A Smart Select assignment: the target chosen for a coin (or null = skip). */
+export interface SmartAssignment {
+  address: Address;
+  /** null when neither $gnars nor ETH has a route (dead/dust) → skip. */
+  target: MigrationTarget | null;
+  /** Estimated output (raw 18dp) in the chosen target's units. */
+  out: bigint;
+}
+
+/**
+ * Quote-verified Smart Select: for each coin, decide the best target by actually
+ * quoting it.
+ *   - gnars-paired coin → verify a route to $gnars; if it routes, target $gnars;
+ *     otherwise fall back to ETH.
+ *   - everything else → target ETH (verified routable), which avoids the thin
+ *     $gnars pool. If neither routes → skip.
+ * gnars-assigned coins are always gnars-paired, so execution sends them straight
+ * to $gnars (no thin-pool ZORA→$gnars hop).
+ */
+export function useSmartPlan(coins: MigratableCoin[], sender: string | undefined, slippage = 0.15) {
+  const results = useQueries({
+    queries: coins.map((coin) => ({
+      queryKey: ["smart-plan", coin.address.toLowerCase(), coin.balance, sender],
+      enabled: apiKeyReady && Boolean(sender) && BigInt(coin.balance) > 0n,
+      staleTime: 30_000,
+      retry: false,
+      queryFn: async (): Promise<SmartAssignment> => {
+        const amountIn = BigInt(coin.balance);
+        const quote = async (buy: TradeParameters["buy"]): Promise<bigint | null> => {
+          try {
+            const r = await createTradeCall({
+              sell: { type: "erc20", address: coin.address },
+              buy,
+              amountIn,
+              slippage,
+              sender: sender as Address,
+            });
+            return r?.success && r.quote?.amountOut ? BigInt(r.quote.amountOut) : null;
+          } catch {
+            return null;
+          }
+        };
+        // gnars-paired coins: verify the one-hop $gnars route first.
+        if (isGnarsPaired(coin)) {
+          const g = await quote({ type: "erc20", address: GNARS_CREATOR_COIN as Address });
+          if (g !== null) return { address: coin.address, target: "gnars", out: g };
+        }
+        // Otherwise (or if the $gnars route failed): route to ETH if it exists.
+        const e = await quote({ type: "eth" });
+        if (e !== null) return { address: coin.address, target: "eth", out: e };
+        return { address: coin.address, target: null, out: 0n };
+      },
+    })),
+  });
+
+  const assignments = useMemo(
+    () => results.map((r) => r.data).filter((a): a is SmartAssignment => Boolean(a)),
+    [results],
+  );
+  const isLoading = results.some((r) => r.isLoading);
+  return { assignments, isLoading };
+}
+
 /** Format a raw 18-decimal amount for display (trims to a sane precision). */
 export function formatCoinAmount(raw: bigint, decimals = 18, maxFrac = 4): string {
   const s = formatUnits(raw, decimals);
