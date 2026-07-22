@@ -17,27 +17,27 @@
     "slippageNote": "The $gnars pool is thin, so larger buys move the price. Start small and check the amount you receive."
   },
   "guide": {
-    "title": "How to migrate into $gnars",
-    "intro": "The plan: get everyone into old $gnars before the upgrade, then the upgrade portal is simply old $gnars in, new $gnars out.",
+    "title": "How the $gnars migration works",
+    "intro": "There are two ways to take part — convert your Zora coins into $gnars, or bring fresh ETH to the launch. Both get you into the new $gnars when the DAO runs the upgrade.",
     "steps": [
       {
-        "title": "Convert your Zora coins",
-        "body": "Use the Consolidate tab to swap your Zora content/creator coins into old $gnars, or the Get $GNARS tab to buy in with ETH."
+        "title": "Choose how you join",
+        "body": "Convert your Zora coins into old $gnars (Consolidate tab), buy in with ETH (Get $GNARS tab), or set ETH aside to contribute directly at launch. Fresh ETH is the strongest contribution — it becomes real liquidity backing the new token, which scattered coins can't provide."
       },
       {
-        "title": "Hold old $gnars",
-        "body": "Old $gnars is the Zora creator coin at 0x0cf0…b23b. Holding it is your ticket into the upgrade."
+        "title": "Deposit when the upgrade opens",
+        "body": "When the DAO opens the upgrade, deposit your old $gnars and/or ETH into the portal (it will appear right here). There's no fixed on-chain deadline — watch the official Gnars channels for the date."
       },
       {
-        "title": "Deposit in the upgrade portal",
-        "body": "When the deposit period opens, deposit your old $gnars into the Upgrader. Watch the DAO's channels for the exact date and link."
+        "title": "The upgrade runs — one shared price",
+        "body": "In a single transaction, all deposits are sold, the new $gnars is deployed on Clanker (paired with ETH), and everyone buys in at the same snipe-proof price. Your ETH is what puts real liquidity into the new pool."
       },
       {
-        "title": "Claim new $gnars",
-        "body": "After the upgrade runs, claim your new $gnars on Clanker — allocated proportionally to your share. That's the token going forward."
+        "title": "Claim your new $gnars",
+        "body": "After the upgrade runs, claim your new $gnars — allocated proportionally to what you contributed. That's the token going forward: ETH ↔ $gnars ↔ content coins."
       }
     ],
-    "footnote": "Amounts you receive depend on live liquidity and can change. Only migrate what you're comfortable with, and always verify links in official Gnars channels."
+    "footnote": "The ETH presale is what gives the new token real backing — migrating dust is optional and mostly symbolic. Amounts depend on live liquidity and can change; only contribute what you're comfortable with, and always verify links in official Gnars channels."
   },
   "noCoins": "No migratable Zora coins found in this wallet.",
   "safetyHint": "Only verified Zora coins are shown — non-Zora and scam/airdrop tokens are filtered out.",
