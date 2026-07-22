@@ -316,3 +316,22 @@ export const SWAP_MINIAPP_EMBED_CONFIG = {
     },
   },
 };
+
+/**
+ * Embed metadata for the Gnars Migration mini app (`/migrate`).
+ * Lets a cast that links to /migrate render a "Migrate to $gnars" launch button.
+ */
+export const MIGRATE_MINIAPP_EMBED_CONFIG = {
+  version: "1",
+  imageUrl: `${BASE_URL}/migrate/miniapp-image`,
+  button: {
+    title: "Migrate to $gnars",
+    action: {
+      type: "launch_miniapp" as const,
+      name: "Gnars Migration",
+      url: `${BASE_URL}/migrate`,
+      splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
+      splashBackgroundColor: "#000000",
+    },
+  },
+};

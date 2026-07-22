@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BASE_URL } from "@/lib/config";
+import { MIGRATE_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import { MigrateTabs } from "./MigrateTabs";
+
+const miniappImage = `${BASE_URL}/migrate/miniapp-image`;
 
 export async function generateMetadata({
   params,
@@ -26,9 +29,22 @@ export async function generateMetadata({
     openGraph: {
       title: t("title"),
       description: t("description"),
+      images: [miniappImage],
       url: `${BASE_URL}/migrate`,
       type: "website",
       locale: locale === "pt-br" ? "pt_BR" : "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+      images: [miniappImage],
+    },
+    // Farcaster mini app embed metadata — a cast linking to /migrate renders
+    // the migration cover + a "Migrate to $gnars" launch button. The global
+    // MiniAppReady (in [locale]/layout.tsx) handles sdk.actions.ready().
+    other: {
+      "fc:miniapp": JSON.stringify(MIGRATE_MINIAPP_EMBED_CONFIG),
     },
   };
 }
