@@ -52,6 +52,10 @@
       "store": {
         "title": "Store",
         "description": "Official Gnars gear and partner brands — checkout coming soon"
+      },
+      "migrate": {
+        "title": "Migration",
+        "description": "Swap your Zora coins into $gnars — consolidate liquidity into one token"
       }
     },
     "community": {

@@ -107,5 +107,9 @@
   "stake": {
     "title": "Stake — Gnars DAO",
     "description": "Escolha seu rider Gnars e faça o stake da sua identidade onchain."
+  },
+  "migrate": {
+    "title": "Migração Gnars — Gnars DAO",
+    "description": "Consolide suas coins da Zora espalhadas em $gnars em um fluxo em lote. Roteado via ZORA, com queima a cada migração para fortalecer a liquidez de $gnars."
   }
 }

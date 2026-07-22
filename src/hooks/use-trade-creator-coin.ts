@@ -5,8 +5,8 @@ import { setApiKey, tradeCoin, type TradeParameters } from "@zoralabs/coins-sdk"
 import { toast } from "sonner";
 import { viemAdapter } from "thirdweb/adapters/viem";
 import { base } from "thirdweb/chains";
-import { useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { parseEther, type PublicClient, type WalletClient } from "viem";
+import { useWriteAccount } from "@/hooks/use-write-account";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { normalizeTxError } from "@/lib/thirdweb-tx";
 
@@ -32,8 +32,9 @@ interface TradeCreatorCoinParams {
 
 export function useTradeCreatorCoin() {
   const [isTrading, setIsTrading] = useState(false);
-  const account = useActiveAccount();
-  const wallet = useActiveWallet();
+  // Sign from the account matching the user's view mode — the EOA for external
+  // wallets (where funds live), not the sponsored-but-empty smart account.
+  const writer = useWriteAccount();
 
   const buyCreatorCoin = async ({ creatorCoinAddress, amountInEth }: TradeCreatorCoinParams) => {
     if (!isApiKeyConfigured) {
@@ -49,10 +50,11 @@ export function useTradeCreatorCoin() {
       throw new Error("Thirdweb client not configured");
     }
 
-    if (!account || !wallet) {
+    if (!writer) {
       toast.error("Please connect your wallet");
       return;
     }
+    const { account, wallet } = writer;
 
     const toastId = toast.loading("Buying creator token...");
     setIsTrading(true);

@@ -37,6 +37,8 @@ This is the canonical entry point for project documentation. Everything below sh
 
 - `docs/strategy/gnars-token-migration.md` — GNARS token migration from Zora to Clanker: decisions, codebase impact audit (63 files), 3-phase plan, blockers, and open questions
 - `docs/strategy/gnars-migration-decisions.md` — Decision checklist (7 areas) to review with Vlad before any proposal or technical work
+- `docs/strategy/gnars-migration-implementation.md` — `/migrate` build state + verified on-chain facts (Upgrader contract, Zora V4 routing, WETH pairing, temp multisig, open team asks)
+- `docs/strategy/gnars-migration-handoff.md` — handoff for the Upgrader team to review/complete the gnars.com side (run steps, file map, what's built vs pending, coordination items)
 
 ## Specs
 

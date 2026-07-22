@@ -52,6 +52,10 @@
       "store": {
         "title": "Loja",
         "description": "Produtos oficiais da Gnars e de marcas parceiras — finalização de compra em breve"
+      },
+      "migrate": {
+        "title": "Migração",
+        "description": "Troque suas coins da Zora por $gnars — consolide a liquidez em um só token"
       }
     },
     "community": {
