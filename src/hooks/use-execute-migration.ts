@@ -41,6 +41,12 @@ export interface CoinToMigrate {
   balance: string;
   /** Pool pairing address — used to pick the route (direct to $gnars vs via ZORA). */
   pairedWith: string | null;
+  /**
+   * Per-coin target. When set (Smart Select), this coin routes to its own
+   * target regardless of the batch default — enabling a mixed batch where some
+   * coins go to $gnars and others to ETH. Falls back to the batch `target`.
+   */
+  target?: MigrationTarget;
 }
 
 export type StepStatus = "pending" | "active" | "done" | "failed";
@@ -78,20 +84,19 @@ export function useExecuteMigration() {
 
     setIsRunning(true);
 
-    const toEth = target === "eth";
-    // Route per coin. ETH target: every coin sells straight to ETH (the SDK
-    // routes content→creator→ZORA→ETH), no consolidation hop. $gnars target:
-    // gnars-paired coins go straight to $gnars (one hop); the rest go to ZORA,
-    // then a single consolidated ZORA→$gnars hop.
-    const plan = coins.map((c) => ({
-      coin: c,
-      direct: !toEth && c.pairedWith?.toLowerCase() === GNARS_LOWER,
-    }));
-    const hasViaZora = !toEth && plan.some((p) => !p.direct);
+    // Route per coin using its own target (Smart Select) or the batch default.
+    // ETH: coin sells straight to ETH (SDK routes content→creator→ZORA→ETH), no
+    // consolidation hop. $gnars: gnars-paired coins go straight to $gnars (one
+    // hop); the rest go to ZORA, then a single consolidated ZORA→$gnars hop.
+    const plan = coins.map((c) => {
+      const toEth = (c.target ?? target) === "eth";
+      return { coin: c, toEth, direct: !toEth && c.pairedWith?.toLowerCase() === GNARS_LOWER };
+    });
+    const hasViaZora = plan.some((p) => !p.toEth && !p.direct);
 
     const initial: MigrationStep[] = [
       ...plan.map((p) => ({
-        label: `${p.coin.symbol} → ${toEth ? "ETH" : p.direct ? "$GNARS" : "ZORA"}`,
+        label: `${p.coin.symbol} → ${p.toEth ? "ETH" : p.direct ? "$GNARS" : "ZORA"}`,
         status: "pending" as StepStatus,
       })),
       ...(hasViaZora ? [{ label: "ZORA → $GNARS", status: "pending" as StepStatus }] : []),
@@ -128,7 +133,9 @@ export function useExecuteMigration() {
       }
     };
 
-    const targetLabel = toEth ? "ETH" : "$gnars";
+    const allEth = plan.every((p) => p.toEth);
+    const allGnars = plan.every((p) => !p.toEth);
+    const targetLabel = allEth ? "ETH" : allGnars ? "$gnars" : "$gnars + ETH";
     const toastId = toast.loading(`Migrating into ${targetLabel}…`);
     try {
       const zoraBefore = hasViaZora ? await readZora() : 0n;
@@ -139,7 +146,7 @@ export function useExecuteMigration() {
       for (let i = 0; i < plan.length; i++) {
         setStatus(i, "active");
         try {
-          const buy: TradeParameters["buy"] = toEth
+          const buy: TradeParameters["buy"] = plan[i].toEth
             ? { type: "eth" }
             : {
                 type: "erc20",
@@ -158,7 +165,7 @@ export function useExecuteMigration() {
             publicClient,
           });
           setStatus(i, "done");
-          if (toEth || plan[i].direct) anyTerminalDone = true;
+          if (plan[i].toEth || plan[i].direct) anyTerminalDone = true;
           else anyViaZoraSold = true;
         } catch (err) {
           console.error(`[migration] swap failed for ${plan[i].coin.symbol}`, err);

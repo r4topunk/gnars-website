@@ -69,5 +69,14 @@
   "editorial": {
     "tagline": "One token, deeper liquidity",
     "body": "Every Zora coin you migrate is consolidated into $gnars. The result: fragmented dust becomes concentrated, healthier $gnars liquidity."
+  },
+  "smart": {
+    "button": "Smart Select ✨",
+    "title": "Smart migration plan",
+    "hint": "We quote every coin and route each to its best destination — $gnars where it routes, ETH otherwise, and we skip coins with no route.",
+    "toGnars": "To $GNARS",
+    "toEth": "To ETH",
+    "skipped": "Skipped (no route)",
+    "migrateCta": "Migrate {count} coins"
   }
 }
