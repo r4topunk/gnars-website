@@ -107,5 +107,9 @@
   "stake": {
     "title": "Stake — Gnars DAO",
     "description": "Pick your Gnars rider and stake your identity onchain."
+  },
+  "migrate": {
+    "title": "Gnars Migration — Gnars DAO",
+    "description": "Consolidate your scattered Zora coins into $gnars in one batched flow. Routed through ZORA, with a burn on every migration to strengthen $gnars liquidity."
   }
 }

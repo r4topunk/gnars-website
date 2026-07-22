@@ -34,6 +34,32 @@ export const GNARS_CREATOR_COIN = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b" a
 // The SDK expects a profile identifier (handle or wallet), not the token address directly
 export const GNARS_ZORA_HANDLE = "gnars" as const;
 
+// ZORA protocol token on Base — the routing hub for the Gnars Migration tool.
+// Every Zora coin routes to ZORA (Zora V4 hooks auto-hop content → creator → ZORA),
+// and ZORA → $gnars is a supported creator-coin trade. Verified on-chain (symbol "ZORA").
+export const ZORA_TOKEN_BASE = "0x1111111111166b7FE7bd91427724B487980aFc69" as const;
+
+// Burn sink for the migration fee. Each migration skims a small % of the
+// output $gnars and sends it here (buy-and-burn) to tighten $gnars supply.
+// Standard EVM burn address — tokens sent here are unrecoverable.
+export const BURN_ADDRESS = "0x000000000000000000000000000000000000dEaD" as const;
+
+// Migration fee, in basis points, taken from the $gnars output and burned.
+// 100 bps = 1%. Keep modest so migrating stays worthwhile for users.
+export const MIGRATION_BURN_BPS = 100 as const;
+
+// Interim operational signer for the migration. During the migration the DAO
+// uses a temporary multisig (fast, no per-step governance proposal) to receive
+// migration proceeds, the Clanker founder-vault allocation, and collected fees.
+// Once tokens are fully migrated and fees settled, this multisig sweeps
+// everything to the DAO treasury in a single governed move.
+//
+// Verified on-chain 2026-07-22: a Safe multisig on Base (v1.3.0, 3-of-N threshold).
+// This is also the address we ask the Upgrader operator to set as the founder-vault
+// beneficiary. Overridable via NEXT_PUBLIC_MIGRATION_MULTISIG.
+export const MIGRATION_MULTISIG = (process.env.NEXT_PUBLIC_MIGRATION_MULTISIG ||
+  "0xBe6C3D651d2F6e9eFA562b5a7CDf411304cad076") as `0x${string}`;
+
 // Creator allowlist — Zora handles that bypass the NFT qualification gate.
 // Use for known community members whose wallets are fragmented across profiles.
 export const GNARS_CREATOR_ALLOWLIST: readonly string[] = [

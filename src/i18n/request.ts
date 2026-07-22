@@ -28,6 +28,7 @@ const NAMESPACES = [
   "blogs",
   "store",
   "stake",
+  "migrate",
   "errors",
   "metadata",
 ] as const;
@@ -61,6 +62,7 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "en/blogs": () => import("../../messages/en/blogs.json"),
   "en/store": () => import("../../messages/en/store.json"),
   "en/stake": () => import("../../messages/en/stake.json"),
+  "en/migrate": () => import("../../messages/en/migrate.json"),
   "en/errors": () => import("../../messages/en/errors.json"),
   "en/metadata": () => import("../../messages/en/metadata.json"),
   "pt-br/common": () => import("../../messages/pt-br/common.json"),
@@ -88,6 +90,7 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "pt-br/blogs": () => import("../../messages/pt-br/blogs.json"),
   "pt-br/store": () => import("../../messages/pt-br/store.json"),
   "pt-br/stake": () => import("../../messages/pt-br/stake.json"),
+  "pt-br/migrate": () => import("../../messages/pt-br/migrate.json"),
   "pt-br/errors": () => import("../../messages/pt-br/errors.json"),
   "pt-br/metadata": () => import("../../messages/pt-br/metadata.json"),
 };

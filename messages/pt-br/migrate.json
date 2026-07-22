@@ -1,0 +1,71 @@
+{
+  "title": "Migração Gnars",
+  "subtitle": "Consolide suas coins da Zora espalhadas em $gnars. Selecione várias coins de uma vez e troque todas por $gnars em um único fluxo — roteado via ZORA nos bastidores.",
+  "connectPrompt": "Conecte sua carteira para ver suas coins da Zora e migrá-las para $gnars.",
+  "tabs": {
+    "consolidate": "Consolidar",
+    "get": "Obter $GNARS",
+    "guide": "Guia"
+  },
+  "getGnars": {
+    "title": "Obtenha o $gnars antigo com ETH",
+    "subtitle": "Compre o $gnars antigo diretamente (ETH → ZORA → $gnars). Usa o roteador da Zora — o mesmo do zora.co — por isso funciona onde a Matcha/0x não consegue.",
+    "connectPrompt": "Conecte sua carteira para comprar $gnars.",
+    "amountLabel": "Valor a gastar",
+    "buyCta": "Comprar $gnars",
+    "buying": "Comprando $gnars…",
+    "slippageNote": "O pool de $gnars é raso, então compras maiores movem o preço. Comece pequeno e confira quanto você recebe."
+  },
+  "guide": {
+    "title": "Como migrar para $gnars",
+    "intro": "O plano: colocar todos no $gnars antigo antes do upgrade; então o portal de upgrade é simplesmente $gnars antigo entra, $gnars novo sai.",
+    "steps": [
+      {
+        "title": "Converta suas coins da Zora",
+        "body": "Use a aba Consolidar para trocar suas content/creator coins da Zora por $gnars antigo, ou a aba Obter $GNARS para entrar com ETH."
+      },
+      {
+        "title": "Segure o $gnars antigo",
+        "body": "O $gnars antigo é a creator coin da Zora em 0x0cf0…b23b. Segurá-lo é seu ingresso para o upgrade."
+      },
+      {
+        "title": "Deposite no portal de upgrade",
+        "body": "Quando o período de depósito abrir, deposite seu $gnars antigo no Upgrader. Acompanhe os canais da DAO para a data e o link exatos."
+      },
+      {
+        "title": "Resgate o novo $gnars",
+        "body": "Após o upgrade rodar, resgate seu novo $gnars na Clanker — alocado proporcionalmente à sua parte. Esse é o token daqui pra frente."
+      }
+    ],
+    "footnote": "Os valores recebidos dependem da liquidez ao vivo e podem mudar. Migre apenas o que você se sentir confortável e sempre verifique os links nos canais oficiais da Gnars."
+  },
+  "noCoins": "Nenhuma coin da Zora migrável encontrada nesta carteira.",
+  "safetyHint": "Apenas coins da Zora verificadas são exibidas — tokens não-Zora e de golpe/airdrop são filtrados.",
+  "holdingsTitle": "Suas coins da Zora ({count})",
+  "selectAll": "Selecionar tudo",
+  "clear": "Limpar",
+  "route": {
+    "title": "Rota da migração",
+    "viaCreator": "via {creator}",
+    "directNote": "Pareada diretamente com $gnars — um único salto.",
+    "groupContent": "Content coins → {creator}",
+    "groupCreator": "Creator coins → ZORA",
+    "hopHint": "Cada coin passa pelo seu par de pool. A troca acontece em uma única transação — estes são os saltos nos bastidores."
+  },
+  "preview": {
+    "title": "Prévia da migração",
+    "selected": "Coins selecionadas",
+    "routable": "Com rota para $gnars",
+    "unroutable": "{count} sem liquidez",
+    "youReceive": "Você recebe (estimado)",
+    "burn": "Inclui {amount} $GNARS ({pct}%) comprados e queimados para fortalecer a liquidez",
+    "slippageWarning": "O pool de $gnars é raso — migrações grandes movem o preço. As estimativas incluem slippage e podem mudar antes da confirmação da transação.",
+    "migrateCta": "Migrar {count} coins para $gnars",
+    "executing": "Migrando…",
+    "executionNote": "Faz uma troca por coin e, no fim, uma troca para $gnars — aprove cada uma na sua carteira. Dica: teste primeiro com uma coin de baixo valor."
+  },
+  "editorial": {
+    "tagline": "Um token, mais liquidez",
+    "body": "Cada coin da Zora que você migra passa pela ZORA até $gnars, e uma parte de cada migração é queimada. O resultado: poeira fragmentada vira liquidez concentrada e mais saudável em $gnars."
+  }
+}

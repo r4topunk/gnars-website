@@ -150,6 +150,13 @@ function buildNavigationItems(t: NavTranslations) {
           badge: "NEW!",
         },
         {
+          title: t("items.money.migrate.title"),
+          href: "/migrate",
+          icon: Coins,
+          description: t("items.money.migrate.description"),
+          badge: "NEW!",
+        },
+        {
           title: t("items.money.rounds.title"),
           href: "/rounds",
           icon: Trophy,
