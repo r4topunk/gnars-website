@@ -19,6 +19,7 @@ import {
   useGnarsOutputQuote,
   useMigratableCoins,
   type MigratableCoin,
+  type MigrationTarget,
   type RouteHop,
 } from "@/hooks/use-gnars-migration";
 import { useUserAddress } from "@/hooks/use-user-address";
@@ -30,6 +31,7 @@ export function MigrationWidget() {
 
   // Selection is keyed by lowercase address.
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
+  const [target, setTarget] = React.useState<MigrationTarget>("gnars");
 
   const selectedCoins = React.useMemo(
     () => coins.filter((c) => selected.has(c.address.toLowerCase())),
@@ -72,7 +74,41 @@ export function MigrationWidget() {
         onClearAll={clearAll}
       />
       {selectedCoins.length > 0 && <RouteMap coins={selectedCoins} />}
-      {selectedCoins.length > 0 && <MigrationPreview coins={selectedCoins} sender={address} />}
+      {selectedCoins.length > 0 && (
+        <MigrationPreview
+          coins={selectedCoins}
+          sender={address}
+          target={target}
+          onTargetChange={setTarget}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Segmented toggle for the migration target ($GNARS vs ETH). */
+function TargetToggle({
+  target,
+  onChange,
+}: {
+  target: MigrationTarget;
+  onChange: (t: MigrationTarget) => void;
+}) {
+  const t = useTranslations("migrate");
+  return (
+    <div className="inline-flex rounded-lg border p-0.5">
+      {(["gnars", "eth"] as const).map((opt) => (
+        <button
+          key={opt}
+          type="button"
+          onClick={() => onChange(opt)}
+          className={`cursor-pointer rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+            target === opt ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+          }`}
+        >
+          {opt === "gnars" ? t("preview.targetGnars") : t("preview.targetEth")}
+        </button>
+      ))}
     </div>
   );
 }
@@ -267,22 +303,31 @@ function HoldingsList({
 function MigrationPreview({
   coins,
   sender,
+  target,
+  onTargetChange,
 }: {
   coins: MigratableCoin[];
   sender: string | undefined;
+  target: MigrationTarget;
+  onTargetChange: (t: MigrationTarget) => void;
 }) {
   const t = useTranslations("migrate");
   const {
     quotes,
     totalZoraOut,
     directGnarsOut,
+    totalEthOut,
     isLoading: quotesLoading,
-  } = useCoinQuotes(coins, sender);
+  } = useCoinQuotes(coins, sender, target);
   const { totalGnars, isLoading: gnarsLoading } = useGnarsOutputQuote(
     totalZoraOut,
     directGnarsOut,
     sender,
   );
+
+  const isEth = target === "eth";
+  const total = isEth ? totalEthOut : totalGnars;
+  const unit = isEth ? "ETH" : "$GNARS";
 
   const { execute, isRunning, steps } = useExecuteMigration();
 
@@ -303,13 +348,18 @@ function MigrationPreview({
       pairedWith: c.pairedWith?.address ?? null,
     }));
 
-  const onMigrate = () => execute(routableCoins);
+  const onMigrate = () => execute(routableCoins, target);
 
   return (
     <Card className="space-y-4 p-5">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">{t("preview.title")}</span>
         {loading && <Spinner className="size-4" />}
+      </div>
+
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm text-muted-foreground">{t("preview.receiveAs")}</span>
+        <TargetToggle target={target} onChange={onTargetChange} />
       </div>
 
       <div className="flex items-center justify-between text-sm">
@@ -339,7 +389,8 @@ function MigrationPreview({
           {t("preview.youReceive")}
         </div>
         <div className="mt-1 text-2xl font-bold">
-          {loading ? "…" : formatCoinAmount(totalGnars)} <span className="text-base">$GNARS</span>
+          {loading ? "…" : formatCoinAmount(total, 18, isEth ? 6 : 4)}{" "}
+          <span className="text-base">{unit}</span>
         </div>
       </div>
 
@@ -353,7 +404,9 @@ function MigrationPreview({
         disabled={loading || isRunning || routableCount === 0}
         onClick={onMigrate}
       >
-        {isRunning ? t("preview.executing") : t("preview.migrateCta", { count: routableCount })}
+        {isRunning
+          ? t("preview.executing")
+          : t("preview.migrateCta", { count: routableCount, token: unit })}
       </Button>
       <p className="text-center text-[11px] text-muted-foreground">{t("preview.executionNote")}</p>
     </Card>
