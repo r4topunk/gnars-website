@@ -12,7 +12,7 @@
 // scripts/deploy-sponsorship-vault.cjs for the CLI equivalent / provenance.
 
 import {
-  getAddress, keccak256, encodeAbiParameters, encodeFunctionData,
+  getAddress, encodeAbiParameters, encodeFunctionData,
   type Address, type Hex,
 } from "viem";
 
@@ -98,6 +98,7 @@ export const splitFactoryAbi = [{
 
 export const vaultAbi = [
   { type: "function", name: "submit", stateMutability: "nonpayable", inputs: [{ type: "bytes" }], outputs: [] },
+  { type: "function", name: "setCurator", stateMutability: "nonpayable", inputs: [{ type: "address" }], outputs: [] },
   { type: "function", name: "setIsAllocator", stateMutability: "nonpayable", inputs: [{ type: "address" }, { type: "bool" }], outputs: [] },
   { type: "function", name: "addAdapter", stateMutability: "nonpayable", inputs: [{ type: "address" }], outputs: [] },
   { type: "function", name: "increaseAbsoluteCap", stateMutability: "nonpayable", inputs: [{ type: "bytes" }, { type: "uint256" }], outputs: [] },
@@ -118,9 +119,13 @@ export const vaultAbi = [
 
 export type SafeCall = { to: Address; data: Hex; value?: bigint };
 
-/** idData for a "this"-adapter cap: keccak256(abi.encode("this", adapter)). */
+/**
+ * idData for a "this"-adapter cap: the RAW abi.encode("this", adapter).
+ * The vault hashes it internally (`id = keccak256(idData)`), so hashing here
+ * too would set the cap under a meaningless id and leave the adapter uncapped.
+ */
 export function idData(adapter: Address): Hex {
-  return keccak256(encodeAbiParameters([{ type: "string" }, { type: "address" }], ["this", getAddress(adapter)]));
+  return encodeAbiParameters([{ type: "string" }, { type: "address" }], ["this", getAddress(adapter)]);
 }
 
 const enc = (fn: string, args: readonly unknown[]): Hex =>
@@ -140,14 +145,20 @@ const submitThenCall = (vault: Address, data: Hex): SafeCall[] => [
 export function buildConfigCalls(vault: Address, adapter: Address, split: Address): SafeCall[] {
   const id = idData(adapter);
   return [
+    // createVaultV2 only sets the OWNER; every call below is curator-gated, so
+    // the Safe has to make itself curator first (owner-only, no timelock) or
+    // the whole batch reverts.
+    { to: vault, data: enc("setCurator", [SOPA_SAFE]) },
     ...submitThenCall(vault, enc("setIsAllocator", [SOPA_SAFE, true])),
     ...submitThenCall(vault, enc("addAdapter", [adapter])),
     ...submitThenCall(vault, enc("increaseAbsoluteCap", [id, ABSOLUTE_CAP])),
     ...submitThenCall(vault, enc("increaseRelativeCap", [id, RELATIVE_CAP])),
     { to: vault, data: enc("setLiquidityAdapterAndData", [adapter, LIQUIDITY_DATA]) }, // allocator, direct
     { to: vault, data: enc("setMaxRate", [MAX_RATE]) },                                // allocator, direct
-    ...submitThenCall(vault, enc("setPerformanceFee", [PERFORMANCE_FEE])),
+    // Recipient BEFORE fee: setPerformanceFee reverts while the recipient is
+    // still address(0) (FeeInvariantBroken).
     ...submitThenCall(vault, enc("setPerformanceFeeRecipient", [split])),
+    ...submitThenCall(vault, enc("setPerformanceFee", [PERFORMANCE_FEE])),
   ];
 }
 
