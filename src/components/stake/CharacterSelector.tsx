@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { StakeDialog } from "./StakeDialog";
 import { YieldStatus } from "./YieldStatus";
+import { getRider } from "@/lib/gnars-vaults";
+import { useVaultTotal } from "@/hooks/use-vault-total";
 
 type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima";
 
@@ -36,11 +38,18 @@ interface Character {
   ring: string;
   /** Accent as a hex color (for SVG flows / canvas) */
   hex: string;
+  /**
+   * Roster tiles zoom into the cut-out's head so the grid reads like a fighting
+   * game's character select. The cut-outs are full-body, so each rider needs its
+   * own zoom/offset to land on the face.
+   */
+  face: { size: string; pos: string };
   /** Character attributes, 1–STAT_MAX */
   stats: Record<StatKey, number>;
 }
 
-// Reward split when you stake as a rider (percent). Placeholder — tailor freely.
+// Reward split when you stake as a rider (percent). Mirrors the vault: the
+// depositor keeps half the yield, the rest is shared.
 export const REWARD_SPLIT = { you: 50, skater: 25, treasury: 25 } as const;
 
 const CHARACTERS: Character[] = [
@@ -51,6 +60,7 @@ const CHARACTERS: Character[] = [
     accentTo: "to-amber-600",
     ring: "ring-yellow-400",
     hex: "#f59e0b",
+    face: { size: "420%", pos: "50% 6%" },
     stats: { speed: 9, air: 6, ollie: 7, spin: 5, rail: 8, flow: 9, devSkills: 10, creativity: 7 },
   },
   {
@@ -60,6 +70,7 @@ const CHARACTERS: Character[] = [
     accentTo: "to-blue-600",
     ring: "ring-sky-400",
     hex: "#0ea5e9",
+    face: { size: "420%", pos: "50% 5%" },
     stats: { speed: 7, air: 8, ollie: 8, spin: 7, rail: 6, flow: 8, devSkills: 8, creativity: 9 },
   },
   {
@@ -69,6 +80,7 @@ const CHARACTERS: Character[] = [
     accentTo: "to-purple-600",
     ring: "ring-fuchsia-400",
     hex: "#d946ef",
+    face: { size: "420%", pos: "50% 8%" },
     stats: { speed: 8, air: 7, ollie: 6, spin: 9, rail: 7, flow: 10, devSkills: 9, creativity: 10 },
   },
   {
@@ -78,6 +90,7 @@ const CHARACTERS: Character[] = [
     accentTo: "to-green-600",
     ring: "ring-emerald-400",
     hex: "#10b981",
+    face: { size: "420%", pos: "50% 9%" },
     stats: { speed: 6, air: 9, ollie: 9, spin: 6, rail: 10, flow: 7, devSkills: 9, creativity: 8 },
   },
   {
@@ -87,6 +100,7 @@ const CHARACTERS: Character[] = [
     accentTo: "to-red-600",
     ring: "ring-rose-400",
     hex: "#f43f5e",
+    face: { size: "420%", pos: "50% 8%" },
     stats: { speed: 10, air: 7, ollie: 7, spin: 8, rail: 5, flow: 9, devSkills: 7, creativity: 9 },
   },
   {
@@ -96,9 +110,14 @@ const CHARACTERS: Character[] = [
     accentTo: "to-cyan-600",
     ring: "ring-teal-400",
     hex: "#14b8a6",
+    face: { size: "330%", pos: "50% 3%" },
     stats: { speed: 8, air: 8, ollie: 7, spin: 8, rail: 7, flow: 9, devSkills: 6, creativity: 9 },
   },
 ];
+
+// The arcade gold used for selection, bars and the overall score.
+const GOLD = "linear-gradient(90deg,#f7c948,#f5851f)";
+const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: n < 100 ? 2 : 0 })}`;
 
 export function CharacterSelector() {
   const t = useTranslations("stake");
@@ -113,6 +132,10 @@ export function CharacterSelector() {
   const overall = Math.round(
     STAT_KEYS.reduce((sum, k) => sum + active.stats[k], 0) / STAT_KEYS.length,
   );
+
+  // What the community has staked behind this rider, live from their vault.
+  const vault = getRider(active.id)?.vault;
+  const staked = useVaultTotal(vault);
 
   const go = useCallback(
     (next: number) => {
@@ -139,32 +162,45 @@ export function CharacterSelector() {
     return () => window.removeEventListener("keydown", onKey);
   }, [go, index]);
 
-  const handleStake = () => {
-    setDialogOpen(true);
-  };
-
   return (
-    <div className="flex flex-col items-center gap-8">
-      {/* Stage + stats, side by side on desktop */}
-      <div className="grid w-full max-w-5xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        {/* Stage */}
-        <div className="relative mx-auto w-full max-w-md">
-          {/* soft ambient edge glow — subtle */}
-          <div
-            aria-hidden
-            className={cn(
-              "absolute -inset-1 -z-10 rounded-[1.75rem] bg-gradient-to-br opacity-20 blur-xl transition-colors duration-500",
-              active.accentFrom,
-              active.accentTo,
-            )}
-          />
+    <div className="flex flex-col gap-7">
+      {/* Stage + skills */}
+      <div className="grid gap-6 lg:grid-cols-[1.55fr_1fr] lg:items-stretch">
+        {/* Stage — the picked rider, full height */}
+        <div
+          className="relative flex min-h-[440px] items-end justify-center overflow-hidden rounded-[28px] border border-white/[0.06] sm:min-h-[560px] lg:min-h-[640px]"
+          style={{
+            background:
+              "radial-gradient(120% 90% at 50% 38%, rgba(245,140,30,.22) 0%, rgba(245,140,30,0) 52%), linear-gradient(180deg,#161210,#0c0a08)",
+          }}
+        >
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.div
+              key={active.id}
+              custom={direction}
+              initial={{ opacity: 0, x: direction * 60 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: direction * -60 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              className="absolute inset-x-0 bottom-[6%] top-[6%]"
+            >
+              <Image
+                src={active.image}
+                alt={name}
+                fill
+                priority
+                unoptimized
+                sizes="(max-width: 1024px) 90vw, 44rem"
+                className="object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.55)]"
+              />
+            </motion.div>
+          </AnimatePresence>
 
-          {/* prev / next */}
           <button
             type="button"
             onClick={() => go(index - 1)}
             aria-label={t("prev")}
-            className="absolute left-2 top-1/2 z-20 -translate-y-1/2 rounded-full bg-background/70 p-2 shadow-md backdrop-blur-sm transition hover:scale-110 hover:bg-background cursor-pointer"
+            className="absolute left-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/[0.12] bg-black/35 text-white backdrop-blur-sm transition hover:bg-black/60"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -172,141 +208,103 @@ export function CharacterSelector() {
             type="button"
             onClick={() => go(index + 1)}
             aria-label={t("next")}
-            className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-full bg-background/70 p-2 shadow-md backdrop-blur-sm transition hover:scale-110 hover:bg-background cursor-pointer"
+            className="absolute right-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/[0.12] bg-black/35 text-white backdrop-blur-sm transition hover:bg-black/60"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
 
-          <div className="relative aspect-[3/4] w-full overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-b from-muted/30 via-background to-background shadow-2xl">
-            {/* accent spotlight behind the cut-out character — soft + contained */}
-            <div
-              aria-hidden
-              className={cn(
-                "absolute left-1/2 top-1/3 h-1/2 w-3/5 -translate-x-1/2 rounded-full bg-gradient-to-br opacity-[0.18] blur-3xl transition-colors duration-500",
-                active.accentFrom,
-                active.accentTo,
+          {/* Name plate */}
+          <div className="pointer-events-none relative z-10 w-full bg-gradient-to-b from-transparent via-[#0c0a08]/60 to-[#0c0a08]/95 px-6 pb-7 pt-20 sm:px-8">
+            <span
+              className="mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-bold text-[#1a1205]"
+              style={{ backgroundImage: GOLD }}
+            >
+              <Check className="h-3.5 w-3.5" />
+              {t("selected")}
+            </span>
+            <h2 className="text-4xl font-black leading-none text-white sm:text-[46px]">{name}</h2>
+            <p className="mt-2 text-[15px] text-white/75 sm:text-base">{tagline}</p>
+            {/* What the community has behind this rider */}
+            <p className="mt-3 text-sm text-white/60">
+              {vault ? (
+                staked === null ? (
+                  <span className="opacity-60">carregando apoio…</span>
+                ) : (
+                  <>
+                    <span className="font-mono text-base font-bold text-[#f7c948]">{usd(staked)}</span>{" "}
+                    apoiando {name}
+                  </>
+                )
+              ) : (
+                <span className="opacity-70">cofre de patrocínio em breve</span>
               )}
-            />
-            {/* grounding floor glow under the board */}
-            <div
-              aria-hidden
-              className={cn(
-                "absolute bottom-6 left-1/2 h-10 w-1/2 -translate-x-1/2 rounded-[50%] bg-gradient-to-r opacity-25 blur-2xl transition-colors duration-500",
-                active.accentFrom,
-                active.accentTo,
-              )}
-            />
-
-            <AnimatePresence initial={false} custom={direction} mode="popLayout">
-              <motion.div
-                key={active.id}
-                custom={direction}
-                initial={{ opacity: 0, x: direction * 60 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: direction * -60 }}
-                transition={{ duration: 0.28, ease: "easeOut" }}
-                className="absolute inset-0 flex items-end justify-center px-6 pt-8"
-              >
-                <Image
-                  src={active.image}
-                  alt={name}
-                  width={1086}
-                  height={1448}
-                  priority
-                  unoptimized
-                  sizes="(max-width: 768px) 90vw, 28rem"
-                  className="h-full w-full object-contain object-bottom drop-shadow-[0_18px_35px_rgba(0,0,0,0.45)]"
-                />
-              </motion.div>
-            </AnimatePresence>
-
-            {/* bottom scrim + name */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-5 pt-16">
-              <div className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    "inline-flex h-6 items-center gap-1 rounded-full bg-gradient-to-r px-2 text-[11px] font-semibold text-white",
-                    active.accentFrom,
-                    active.accentTo,
-                  )}
-                >
-                  <Check className="h-3 w-3" />
-                  {t("selected")}
-                </span>
-              </div>
-              <h2 className="mt-2 text-3xl font-black tracking-tight text-white">{name}</h2>
-              <p className="text-sm text-white/80">{tagline}</p>
-            </div>
+            </p>
           </div>
         </div>
 
-        {/* Stats panel — THPS-style attributes */}
-        <div className="flex flex-col rounded-3xl border border-border/60 bg-gradient-to-b from-muted/30 via-background to-background p-5 shadow-2xl lg:p-6">
-          <div className="mb-5 flex items-end justify-between gap-3">
+        {/* Skills */}
+        <div className="flex flex-col rounded-[22px] border border-white/[0.06] bg-gradient-to-b from-[#181410]/85 to-[#0e0b09]/85 p-6 sm:p-7">
+          <div className="mb-5 flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">
                 {t("statsTitle")}
               </p>
-              <p className="truncate text-lg font-bold leading-tight">{name}</p>
+              <p className="mt-1 truncate text-2xl font-extrabold text-white">{name}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/50">
                 {t("overall")}
               </p>
               <p
-                className={cn(
-                  "bg-gradient-to-r bg-clip-text text-4xl font-black tabular-nums text-transparent",
-                  active.accentFrom,
-                  active.accentTo,
-                )}
+                className="bg-clip-text text-4xl font-black leading-none tabular-nums text-transparent"
+                style={{ backgroundImage: "linear-gradient(180deg,#f7c948,#f5851f)" }}
               >
                 {overall}
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-[15px]">
             {STAT_KEYS.map((key) => {
               const value = active.stats[key];
               return (
                 <div key={key}>
-                  <div className="mb-1 flex items-baseline justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {t(`stats.${key}`)}
-                    </span>
-                    <span className="text-sm font-bold tabular-nums">{value}</span>
+                  <div className="mb-1.5 flex items-baseline justify-between text-[12.5px] font-semibold tracking-[0.12em]">
+                    <span className="uppercase text-white/60">{t(`stats.${key}`)}</span>
+                    <span className="tabular-nums text-white">{value}</span>
                   </div>
-                  <div className="relative h-2.5 overflow-hidden rounded-full bg-muted">
-                    <motion.div
-                      className={cn(
-                        "h-full rounded-full bg-gradient-to-r",
-                        active.accentFrom,
-                        active.accentTo,
-                      )}
-                      initial={false}
-                      animate={{ width: `${(value / STAT_MAX) * 100}%` }}
-                      transition={{ duration: 0.45, ease: "easeOut" }}
-                    />
-                    {/* THPS-style segment notches */}
-                    <div
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent_0,transparent_calc(10%_-_1.5px),rgba(0,0,0,0.4)_calc(10%_-_1.5px),rgba(0,0,0,0.4)_10%)]"
-                    />
+                  {/* Segmented arcade meter */}
+                  <div className="flex gap-[3px]">
+                    {Array.from({ length: STAT_MAX }, (_, i) => (
+                      <div
+                        key={i}
+                        className="h-2 flex-1 rounded-[2px]"
+                        style={
+                          i < value
+                            ? { backgroundImage: GOLD }
+                            : { backgroundColor: "rgba(255,255,255,.09)" }
+                        }
+                      />
+                    ))}
                   </div>
                 </div>
               );
             })}
           </div>
 
+          <div className="my-5 h-px bg-white/[0.07]" />
           {/* Live on-chain yields as the rider's status */}
           <YieldStatus />
         </div>
       </div>
 
-      {/* Thumbnail rail */}
-      <div className="flex flex-wrap items-center justify-center gap-3">
+      {/* Roster — face-focused tiles */}
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-6 sm:gap-3.5">
         {CHARACTERS.map((c, i) => {
           const isActive = i === index;
+          const cOverall = Math.round(
+            STAT_KEYS.reduce((sum, k) => sum + c.stats[k], 0) / STAT_KEYS.length,
+          );
           return (
             <button
               key={c.id}
@@ -315,20 +313,54 @@ export function CharacterSelector() {
               aria-label={t(`characters.${c.id}.name`)}
               aria-pressed={isActive}
               className={cn(
-                "relative aspect-[3/4] w-16 shrink-0 overflow-hidden rounded-xl border bg-muted transition-all duration-200 cursor-pointer sm:w-20",
-                isActive
-                  ? cn("scale-105 ring-2 ring-offset-2 ring-offset-background", c.ring)
-                  : "opacity-60 hover:opacity-100",
+                "relative aspect-[4/5] cursor-pointer overflow-hidden rounded-[14px] bg-gradient-to-b from-[#141210] to-[#0c0a08] shadow-[0_8px_22px_rgba(0,0,0,.4)] transition-transform duration-200",
+                isActive ? "" : "hover:-translate-y-[3px]",
               )}
             >
-              <Image
-                src={c.image}
-                alt={t(`characters.${c.id}.name`)}
-                fill
-                unoptimized
-                sizes="5rem"
-                className="object-contain object-bottom p-1"
+              {/* zoomed into the head — the fighting-game portrait */}
+              <div
+                aria-hidden
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `url("${c.image}")`,
+                  backgroundSize: c.face.size,
+                  backgroundPosition: c.face.pos,
+                  backgroundRepeat: "no-repeat",
+                }}
               />
+              <div
+                aria-hidden
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(180deg,rgba(0,0,0,0) 48%,rgba(8,6,5,.35) 66%,rgba(8,6,5,.92) 100%)",
+                }}
+              />
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-3 pb-2.5 pt-2">
+                <span className="truncate text-sm font-extrabold text-white">
+                  {t(`characters.${c.id}.name`)}
+                </span>
+                <span className="text-xs font-extrabold text-[#f7c948]">{cOverall}</span>
+              </div>
+
+              {isActive && (
+                <>
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-[14px] border-[3px] border-[#f5a623]"
+                    style={{
+                      boxShadow:
+                        "0 0 0 2px rgba(245,166,35,.25),0 0 30px rgba(245,133,31,.4),inset 0 0 26px rgba(245,133,31,.16)",
+                    }}
+                  />
+                  <span
+                    className="absolute left-2 top-2 rounded-md px-2 py-0.5 text-[10px] font-extrabold tracking-[0.08em] text-[#1a1205]"
+                    style={{ backgroundImage: GOLD }}
+                  >
+                    P1
+                  </span>
+                </>
+              )}
             </button>
           );
         })}
@@ -337,7 +369,7 @@ export function CharacterSelector() {
       {/* CTA */}
       <div className="flex flex-col items-center gap-2">
         <p className="text-sm text-muted-foreground">{t("selectedRider", { name })}</p>
-        <Button size="lg" onClick={handleStake} className="cursor-pointer gap-2">
+        <Button size="lg" onClick={() => setDialogOpen(true)} className="cursor-pointer gap-2">
           <Zap className="h-4 w-4" />
           {t("stakeCta", { name })}
         </Button>
