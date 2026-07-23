@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CharacterSelector } from "@/components/stake/CharacterSelector";
+import { StakeAdminPanel } from "@/components/stake/StakeAdminPanel";
 
 export async function generateMetadata({
   params,
@@ -54,6 +55,7 @@ export default async function StakePage({ params }: { params: Promise<{ locale: 
         </div>
 
         <CharacterSelector />
+        <StakeAdminPanel />
       </div>
     </div>
   );
