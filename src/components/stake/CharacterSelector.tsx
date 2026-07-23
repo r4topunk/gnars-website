@@ -11,6 +11,8 @@ import { StakeDialog } from "./StakeDialog";
 import { YieldStatus } from "./YieldStatus";
 import { getRider } from "@/lib/gnars-vaults";
 import { useVaultTotal } from "@/hooks/use-vault-total";
+import { VaultSupporters } from "./VaultSupporters";
+import { useActiveAccount } from "thirdweb/react";
 
 type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima";
 
@@ -134,8 +136,10 @@ export function CharacterSelector() {
   );
 
   // What the community has staked behind this rider, live from their vault.
-  const vault = getRider(active.id)?.vault;
+  const rider = getRider(active.id);
+  const vault = rider?.vault;
   const staked = useVaultTotal(vault);
+  const you = useActiveAccount()?.address;
 
   const go = useCallback(
     (next: number) => {
@@ -374,6 +378,14 @@ export function CharacterSelector() {
           {t("stakeCta", { name })}
         </Button>
       </div>
+
+      {/* Who's backing the picked rider */}
+      <VaultSupporters
+        vault={vault}
+        feeRecipient={rider?.split}
+        riderName={name}
+        you={you}
+      />
 
       <StakeDialog
         open={dialogOpen}
