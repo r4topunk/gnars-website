@@ -31,8 +31,10 @@ export const RIDERS: Record<RiderId, Rider> = {
     id: "vlad",
     handle: "vlad",
     wallet: getAddress("0x8Bf5941d27176242745B716251943Ae4892a3C26"),
-    // Already deployed (Gnars 50% / vlad 50%, owner = SOPA Safe) — the deploy
-    // reuses it instead of creating another split.
+    // Live and fully configured: routes to Moonwell, 50% performance fee to the
+    // split (Gnars 25% / vlad 25% of the yield), caps max/100%.
+    vault: getAddress("0xF3f8F84E6891A7881956a2495DaBFF480EE2d4D2"),
+    adapter: getAddress("0x4aA117b2B40C629E20164B5091f0A540db442865"),
     split: getAddress("0xCf0fD6F7D9C382EcDf85e549cBc081afa1E2D179"),
   },
   yan: { id: "yan", handle: "nogenta", wallet: getAddress("0xD1195629d9Ba1168591B8EcdEc9abb1721fCC7D8") },

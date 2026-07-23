@@ -6,6 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Info, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { getRider } from "@/lib/gnars-vaults";
+import { useStakeDeposit } from "@/hooks/use-stake-deposit";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +27,8 @@ type Asset = "eth" | "usdc";
 interface StakeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Rider id — picks which sponsorship vault the deposit goes into. */
+  riderId: string;
   name: string;
   image: string;
   accent: string; // hex
@@ -65,8 +69,9 @@ function fmtUsd(n: number) {
   });
 }
 
-export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDialogProps) {
+export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }: StakeDialogProps) {
   const t = useTranslations("stake");
+  const { stake, phase: stakePhase, error: stakeError, isStaking } = useStakeDeposit();
   const [asset, setAsset] = useState<Asset>("eth");
   const [amount, setAmount] = useState(ASSETS.eth.default);
 
@@ -106,9 +111,24 @@ export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDi
     },
   ];
 
-  const handleConfirm = () => {
-    toast.success(t("stakeToast", { name }));
-    onOpenChange(false);
+  // Real deposit for USDC once the rider's vault is live; ETH has no vault yet.
+  const rider = getRider(riderId);
+  const handleConfirm = async () => {
+    if (asset !== "usdc") {
+      toast.info("Por enquanto só USDC", { description: "O cofre de ETH ainda não está no ar." });
+      return;
+    }
+    if (!rider?.vault) {
+      toast.info("Cofre ainda não deployado", { description: `${name} ainda não tem cofre de patrocínio.` });
+      return;
+    }
+    const ok = await stake(rider.vault, amount);
+    if (ok) {
+      toast.success(t("stakeToast", { name }), { description: "Seu depósito continua seu — dá pra sacar quando quiser." });
+      onOpenChange(false);
+    } else {
+      toast.error("Falha no depósito", { description: stakeError ?? undefined });
+    }
   };
 
   return (
@@ -245,11 +265,16 @@ export function StakeDialog({ open, onOpenChange, name, image, accent }: StakeDi
           </Button>
           <Button
             onClick={handleConfirm}
+            disabled={isStaking}
             className="cursor-pointer gap-2 text-white"
             style={{ backgroundColor: accent }}
           >
             <Zap className="h-4 w-4" />
-            {t("stakeCta", { name })}
+            {stakePhase === "approve"
+              ? "1/2 · aprovando USDC…"
+              : stakePhase === "deposit"
+                ? "2/2 · depositando…"
+                : t("stakeCta", { name })}
           </Button>
         </DialogFooter>
       </DialogContent>

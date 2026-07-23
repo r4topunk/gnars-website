@@ -346,6 +346,7 @@ export function CharacterSelector() {
       <StakeDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+        riderId={active.id}
         name={name}
         image={active.image}
         accent={active.hex}
