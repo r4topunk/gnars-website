@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronLeft, ChevronRight, Zap } from "lucide-react";
@@ -46,6 +47,11 @@ interface Character {
    * own zoom/offset to land on the face.
    */
   face: { size: string; pos: string };
+  /**
+   * Clip that replaces the still on the stage while hovered. These are multi-MB
+   * files, so the <video> is only mounted on hover — never preloaded.
+   */
+  video?: string;
   /** Character attributes, 1–STAT_MAX */
   stats: Record<StatKey, number>;
 }
@@ -63,6 +69,7 @@ const CHARACTERS: Character[] = [
     ring: "ring-yellow-400",
     hex: "#f59e0b",
     face: { size: "420%", pos: "50% 6%" },
+    video: "https://ipfs.skatehive.app/ipfs/bafybeiapkdzwrh3tv2dhaxkefzcwtoxekjaryecapa7kpqcaifqgwux3c4",
     stats: { speed: 9, air: 6, ollie: 7, spin: 5, rail: 8, flow: 9, devSkills: 10, creativity: 7 },
   },
   {
@@ -121,11 +128,19 @@ const CHARACTERS: Character[] = [
 const GOLD = "linear-gradient(90deg,#f7c948,#f5851f)";
 const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: n < 100 ? 2 : 0 })}`;
 
-export function CharacterSelector() {
+export function CharacterSelector({ initialRider }: { initialRider?: string } = {}) {
   const t = useTranslations("stake");
-  const [index, setIndex] = useState(0);
+  const pathname = usePathname();
+  const startIndex = Math.max(
+    0,
+    CHARACTERS.findIndex((c) => c.id === initialRider),
+  );
+  const [index, setIndex] = useState(startIndex);
   const [direction, setDirection] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
+  // Only true while the pointer is over the stage — the clip mounts on hover so
+  // its multi-MB download never happens for people who don't hover.
+  const [hovered, setHovered] = useState(false);
 
   const count = CHARACTERS.length;
   const active = CHARACTERS[index];
@@ -166,12 +181,24 @@ export function CharacterSelector() {
     return () => window.removeEventListener("keydown", onKey);
   }, [go, index]);
 
+  // Keep the URL on the picked rider so anyone can copy the address bar and
+  // share that rider's vault. replaceState rather than push — browsing the
+  // roster with the arrows shouldn't stack up history entries.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const root = pathname.replace(/\/stake(\/[^/]+)?\/?$/, "/stake");
+    const next = `${root}/${active.id}`;
+    if (window.location.pathname !== next) window.history.replaceState(null, "", next);
+  }, [active.id, pathname]);
+
   return (
     <div className="flex flex-col gap-7">
       {/* Stage + skills */}
       <div className="grid gap-6 lg:grid-cols-[1.55fr_1fr] lg:items-stretch">
         {/* Stage — the picked rider, full height */}
         <div
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
           className="relative flex min-h-[440px] items-end justify-center overflow-hidden rounded-[28px] border border-white/[0.06] sm:min-h-[560px] lg:min-h-[640px]"
           style={{
             background:
@@ -199,6 +226,25 @@ export function CharacterSelector() {
               />
             </motion.div>
           </AnimatePresence>
+
+          {/* Hovering swaps the still for the rider's clip. Mounted only while
+              hovered, so the file is fetched on demand and never on page load. */}
+          {hovered && active.video && (
+            <motion.video
+              key={`${active.id}-video`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.25 }}
+              src={active.video}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="none"
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-[6%] top-[6%] h-auto w-full object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.55)]"
+            />
+          )}
 
           <button
             type="button"
