@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { StakeDialog } from "./StakeDialog";
 import { YieldStatus } from "./YieldStatus";
 
-type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2";
+type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima";
 
 // THPS-style attributes (1–10). Placeholder values — tailor freely.
 const STAT_KEYS = [
@@ -88,6 +88,15 @@ const CHARACTERS: Character[] = [
     ring: "ring-rose-400",
     hex: "#f43f5e",
     stats: { speed: 10, air: 7, ollie: 7, spin: 8, rail: 5, flow: 9, devSkills: 7, creativity: 9 },
+  },
+  {
+    id: "zima",
+    image: "/stake/cutout/zima.png",
+    accentFrom: "from-teal-400",
+    accentTo: "to-cyan-600",
+    ring: "ring-teal-400",
+    hex: "#14b8a6",
+    stats: { speed: 8, air: 8, ollie: 7, spin: 8, rail: 7, flow: 9, devSkills: 6, creativity: 9 },
   },
 ];
 

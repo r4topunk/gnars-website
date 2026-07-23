@@ -37,10 +37,29 @@
     "creativity": "Criatividade"
   },
   "characters": {
-    "vlad": { "name": "Vlad", "tagline": "Faz deploy à meia-noite, manda ver ao amanhecer." },
-    "yan": { "name": "Yan", "tagline": "Flow no frontend, ralação no backend." },
-    "r4to": { "name": "R4to", "tagline": "Onchain desde o primeiro empurrão." },
-    "pamtech": { "name": "Pamtech", "tagline": "Constrói os corrimãos que todo mundo anda." },
-    "v2": { "name": "V2", "tagline": "O retorno é sempre maior." }
+    "vlad": {
+      "name": "Vlad",
+      "tagline": "Faz deploy à meia-noite, manda ver ao amanhecer."
+    },
+    "yan": {
+      "name": "Yan",
+      "tagline": "Flow no frontend, ralação no backend."
+    },
+    "r4to": {
+      "name": "R4to",
+      "tagline": "Onchain desde o primeiro empurrão."
+    },
+    "pamtech": {
+      "name": "Pamtech",
+      "tagline": "Constrói os corrimãos que todo mundo anda."
+    },
+    "v2": {
+      "name": "V2",
+      "tagline": "O retorno é sempre maior."
+    },
+    "zima": {
+      "name": "Zima",
+      "tagline": "Sangue novo no time."
+    }
   }
 }

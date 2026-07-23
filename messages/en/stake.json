@@ -37,10 +37,29 @@
     "creativity": "Creativity"
   },
   "characters": {
-    "vlad": { "name": "Vlad", "tagline": "Ships at midnight, shreds at dawn." },
-    "yan": { "name": "Yan", "tagline": "Frontend flow, backend grind." },
-    "r4to": { "name": "R4to", "tagline": "Onchain from the first push." },
-    "pamtech": { "name": "Pamtech", "tagline": "Builds the rails everyone rides." },
-    "v2": { "name": "V2", "tagline": "The comeback is always bigger." }
+    "vlad": {
+      "name": "Vlad",
+      "tagline": "Ships at midnight, shreds at dawn."
+    },
+    "yan": {
+      "name": "Yan",
+      "tagline": "Frontend flow, backend grind."
+    },
+    "r4to": {
+      "name": "R4to",
+      "tagline": "Onchain from the first push."
+    },
+    "pamtech": {
+      "name": "Pamtech",
+      "tagline": "Builds the rails everyone rides."
+    },
+    "v2": {
+      "name": "V2",
+      "tagline": "The comeback is always bigger."
+    },
+    "zima": {
+      "name": "Zima",
+      "tagline": "New blood on the roster."
+    }
   }
 }
