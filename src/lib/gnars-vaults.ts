@@ -27,7 +27,14 @@ export type Rider = {
 };
 
 export const RIDERS: Record<RiderId, Rider> = {
-  vlad: { id: "vlad", handle: "vlad", wallet: getAddress("0x8Bf5941d27176242745B716251943Ae4892a3C26") },
+  vlad: {
+    id: "vlad",
+    handle: "vlad",
+    wallet: getAddress("0x8Bf5941d27176242745B716251943Ae4892a3C26"),
+    // Already deployed (Gnars 50% / vlad 50%, owner = SOPA Safe) — the deploy
+    // reuses it instead of creating another split.
+    split: getAddress("0xCf0fD6F7D9C382EcDf85e549cBc081afa1E2D179"),
+  },
   yan: { id: "yan", handle: "nogenta", wallet: getAddress("0xD1195629d9Ba1168591B8EcdEc9abb1721fCC7D8") },
   r4to: { id: "r4to", handle: "r4topunk", wallet: getAddress("0x39a7B6fa1597BB6657Fe84e64E3B836c37d6F75d") },
   pamtech: { id: "pamtech", handle: "pamtech", wallet: getAddress("0x057CFcd04198E6D17F1Bf502135d9508b6Fa2FDe") },
