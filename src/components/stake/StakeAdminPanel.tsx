@@ -60,9 +60,9 @@ export function StakeAdminPanel() {
     );
   }
 
-  async function onDeploy(id: RiderId, wallet: string) {
+  async function onDeploy(id: RiderId, wallet: string, existingSplit?: string) {
     setActiveId(id);
-    const out = await deploy(wallet as `0x${string}`, id);
+    const out = await deploy(wallet as `0x${string}`, id, existingSplit as `0x${string}` | undefined);
     if (out) {
       setResults((r) => ({ ...r, [id]: out }));
       toast.success(`Vault de ${id} deployado`, { description: "Aprove o batch no Safe da SOPA pra ativar." });
@@ -102,7 +102,7 @@ export function StakeAdminPanel() {
                   </div>
                 </div>
                 {!done && r.wallet && (
-                  <Button size="sm" disabled={isDeploying} onClick={() => onDeploy(r.id, r.wallet!)}>
+                  <Button size="sm" disabled={isDeploying} onClick={() => onDeploy(r.id, r.wallet!, r.split)}>
                     {busy ? PHASE_LABEL[phase] : "Deploy vault"}
                   </Button>
                 )}

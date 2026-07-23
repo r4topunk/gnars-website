@@ -53,7 +53,7 @@ export function useDeploySponsorshipVault() {
   const [result, setResult] = useState<DeployResult | null>(null);
 
   const deploy = useCallback(
-    async (athlete: Address, handle: string): Promise<DeployResult | null> => {
+    async (athlete: Address, handle: string, existingSplit?: Address): Promise<DeployResult | null> => {
       const client = getThirdwebClient();
       if (!client) { setError("Thirdweb client não configurado."); setPhase("error"); return null; }
       if (!writer) { setError("Conecte a carteira."); setPhase("error"); return null; }
@@ -67,18 +67,23 @@ export function useDeploySponsorshipVault() {
       try {
         await ensureOnChain(writer.wallet, base);
 
-        // 1. split ---------------------------------------------------------
-        setPhase("split");
-        const splitData = encodeFunctionData({
-          abi: splitFactoryAbi, functionName: "createSplit",
-          args: [splitParamsFor(athlete), SOPA_SAFE, account.address as Address],
-        });
-        let tx = prepareTransaction({ client, chain: base, to: PULL_SPLIT_FACTORY, data: splitData });
-        let hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
-        let receipt = await waitForReceipt({ client, chain: base, transactionHash: hash });
-        const split = parseEventLogs({ abi: splitFactoryAbi, eventName: "SplitCreated", logs: receipt.logs })[0]
-          ?.args.split as Address | undefined;
-        if (!split) throw new Error("Não achei o endereço do split no recibo.");
+        // 1. split — reuse the rider's already-deployed split when the config
+        // carries one, so retrying after a partial run doesn't orphan another
+        // split contract (and doesn't cost another signature).
+        let split = existingSplit;
+        if (!split) {
+          setPhase("split");
+          const splitData = encodeFunctionData({
+            abi: splitFactoryAbi, functionName: "createSplit",
+            args: [splitParamsFor(athlete), SOPA_SAFE, account.address as Address],
+          });
+          const splitTx = prepareTransaction({ client, chain: base, to: PULL_SPLIT_FACTORY, data: splitData });
+          const splitHash = (await sendTransaction({ account, transaction: splitTx })).transactionHash;
+          const splitReceipt = await waitForReceipt({ client, chain: base, transactionHash: splitHash });
+          split = parseEventLogs({ abi: splitFactoryAbi, eventName: "SplitCreated", logs: splitReceipt.logs })[0]
+            ?.args.split as Address | undefined;
+          if (!split) throw new Error("Não achei o endereço do split no recibo.");
+        }
 
         // 2. vault ---------------------------------------------------------
         setPhase("vault");
@@ -86,10 +91,10 @@ export function useDeploySponsorshipVault() {
         const vaultData = encodeFunctionData({
           abi: vaultFactoryAbi, functionName: "createVaultV2", args: [SOPA_SAFE, USDC, salt],
         });
-        tx = prepareTransaction({ client, chain: base, to: VAULT_V2_FACTORY, data: vaultData });
-        hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
-        receipt = await waitForReceipt({ client, chain: base, transactionHash: hash });
-        const vault = parseEventLogs({ abi: vaultFactoryAbi, eventName: "CreateVaultV2", logs: receipt.logs })[0]
+        const vaultTx = prepareTransaction({ client, chain: base, to: VAULT_V2_FACTORY, data: vaultData });
+        const vaultHash = (await sendTransaction({ account, transaction: vaultTx })).transactionHash;
+        const vaultReceipt = await waitForReceipt({ client, chain: base, transactionHash: vaultHash });
+        const vault = parseEventLogs({ abi: vaultFactoryAbi, eventName: "CreateVaultV2", logs: vaultReceipt.logs })[0]
           ?.args.newVaultV2 as Address | undefined;
         if (!vault) throw new Error("Não achei o endereço do vault no recibo.");
 
@@ -98,10 +103,10 @@ export function useDeploySponsorshipVault() {
         const adapterData = encodeFunctionData({
           abi: adapterFactoryAbi, functionName: "createMorphoVaultV1Adapter", args: [vault, MOONWELL_USDC],
         });
-        tx = prepareTransaction({ client, chain: base, to: ADAPTER_FACTORY, data: adapterData });
-        hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
-        receipt = await waitForReceipt({ client, chain: base, transactionHash: hash });
-        const adapter = parseEventLogs({ abi: adapterFactoryAbi, eventName: "CreateMorphoVaultV1Adapter", logs: receipt.logs })[0]
+        const adapterTx = prepareTransaction({ client, chain: base, to: ADAPTER_FACTORY, data: adapterData });
+        const adapterHash = (await sendTransaction({ account, transaction: adapterTx })).transactionHash;
+        const adapterReceipt = await waitForReceipt({ client, chain: base, transactionHash: adapterHash });
+        const adapter = parseEventLogs({ abi: adapterFactoryAbi, eventName: "CreateMorphoVaultV1Adapter", logs: adapterReceipt.logs })[0]
           ?.args.morphoVaultV1Adapter as Address | undefined;
         if (!adapter) throw new Error("Não achei o endereço do adapter no recibo.");
 
