@@ -90,7 +90,7 @@ export function useDeploySponsorshipVault() {
         hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
         receipt = await waitForReceipt({ client, chain: base, transactionHash: hash });
         const vault = parseEventLogs({ abi: vaultFactoryAbi, eventName: "CreateVaultV2", logs: receipt.logs })[0]
-          ?.args.vaultV2 as Address | undefined;
+          ?.args.newVaultV2 as Address | undefined;
         if (!vault) throw new Error("Não achei o endereço do vault no recibo.");
 
         // 3. adapter -------------------------------------------------------

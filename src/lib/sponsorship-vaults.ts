@@ -49,11 +49,12 @@ export const vaultFactoryAbi = [{
   inputs: [{ name: "owner", type: "address" }, { name: "asset", type: "address" }, { name: "salt", type: "bytes32" }],
   outputs: [{ type: "address" }],
 }, {
+  // On-chain signature: owner/asset/newVaultV2 are all indexed.
   type: "event", name: "CreateVaultV2", inputs: [
-    { name: "owner", type: "address", indexed: false },
-    { name: "asset", type: "address", indexed: false },
+    { name: "owner", type: "address", indexed: true },
+    { name: "asset", type: "address", indexed: true },
     { name: "salt", type: "bytes32", indexed: false },
-    { name: "vaultV2", type: "address", indexed: false },
+    { name: "newVaultV2", type: "address", indexed: true },
   ],
 }] as const;
 
@@ -62,10 +63,11 @@ export const adapterFactoryAbi = [{
   inputs: [{ name: "parentVault", type: "address" }, { name: "morphoVaultV1", type: "address" }],
   outputs: [{ type: "address" }],
 }, {
+  // On-chain signature: all three addresses are indexed.
   type: "event", name: "CreateMorphoVaultV1Adapter", inputs: [
-    { name: "parentVault", type: "address", indexed: false },
-    { name: "morphoVaultV1", type: "address", indexed: false },
-    { name: "morphoVaultV1Adapter", type: "address", indexed: false },
+    { name: "parentVault", type: "address", indexed: true },
+    { name: "morphoVaultV1", type: "address", indexed: true },
+    { name: "morphoVaultV1Adapter", type: "address", indexed: true },
   ],
 }] as const;
 
@@ -82,12 +84,15 @@ export const splitFactoryAbi = [{
   inputs: [splitParamsTuple, { name: "_owner", type: "address" }, { name: "_creator", type: "address" }],
   outputs: [{ type: "address" }],
 }, {
-  // SplitFactoryV2 announces the new proxy address here.
+  // SplitFactoryV2 announces the new proxy address here. On-chain signature
+  // carries a trailing `nonce` — omitting it makes topic0 mismatch and the log
+  // won't decode.
   type: "event", name: "SplitCreated", inputs: [
     { name: "split", type: "address", indexed: true },
     splitParamsTuple,
     { name: "owner", type: "address", indexed: false },
     { name: "creator", type: "address", indexed: false },
+    { name: "nonce", type: "uint256", indexed: false },
   ],
 }] as const;
 
