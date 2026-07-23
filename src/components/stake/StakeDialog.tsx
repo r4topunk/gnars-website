@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { getRider } from "@/lib/gnars-vaults";
 import { useStakeDeposit } from "@/hooks/use-stake-deposit";
+import { useVaultPosition } from "@/hooks/use-vault-total";
 import {
   Dialog,
   DialogContent,
@@ -71,7 +72,9 @@ function fmtUsd(n: number) {
 
 export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }: StakeDialogProps) {
   const t = useTranslations("stake");
-  const { stake, phase: stakePhase, error: stakeError, isStaking } = useStakeDeposit();
+  const { stake, withdrawAll, phase: stakePhase, error: stakeError, isStaking, account } =
+    useStakeDeposit();
+  const [refresh, setRefresh] = useState(0);
   const [asset, setAsset] = useState<Asset>("eth");
   const [amount, setAmount] = useState(ASSETS.eth.default);
 
@@ -113,6 +116,18 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
 
   // Real deposit for USDC once the rider's vault is live; ETH has no vault yet.
   const rider = getRider(riderId);
+  const position = useVaultPosition(rider?.vault, account ?? undefined, refresh);
+
+  const handleWithdraw = async () => {
+    if (!rider?.vault || !position || position.shares <= BigInt(0)) return;
+    const ok = await withdrawAll(rider.vault, position.shares);
+    if (ok) {
+      toast.success("Saque concluído", { description: "O principal voltou pra sua carteira." });
+      setRefresh((n) => n + 1);
+    } else {
+      toast.error("Falha no saque", { description: stakeError ?? undefined });
+    }
+  };
   const handleConfirm = async () => {
     if (asset !== "usdc") {
       toast.info("Por enquanto só USDC", { description: "O cofre de ETH ainda não está no ar." });
@@ -125,6 +140,7 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
     const ok = await stake(rider.vault, amount);
     if (ok) {
       toast.success(t("stakeToast", { name }), { description: "Seu depósito continua seu — dá pra sacar quando quiser." });
+      setRefresh((n) => n + 1);
       onOpenChange(false);
     } else {
       toast.error("Falha no depósito", { description: stakeError ?? undefined });
@@ -260,6 +276,23 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
         </p>
 
         <DialogFooter className="mt-4">
+          {position && position.shares > BigInt(0) && (
+            <div className="mr-auto flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">
+                Sua posição:{" "}
+                <strong className="font-mono text-foreground">${position.assets.toFixed(2)}</strong>
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleWithdraw}
+                disabled={isStaking}
+                className="cursor-pointer"
+              >
+                {stakePhase === "withdraw" ? "sacando…" : "Sacar tudo"}
+              </Button>
+            </div>
+          )}
           <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
             {t("cancel")}
           </Button>
