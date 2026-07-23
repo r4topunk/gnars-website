@@ -17,9 +17,11 @@ import { useCallback, useState } from "react";
 import { prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
 import { base } from "thirdweb/chains";
 import {
+  createPublicClient, http, fallback,
   encodeFunctionData, hashTypedData, parseEventLogs, toHex, keccak256, zeroAddress,
   type Address, type Hex,
 } from "viem";
+import { base as viemBase } from "viem/chains";
 import { useWriteAccount } from "@/hooks/use-write-account";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { getThirdwebClient } from "@/lib/thirdweb";
@@ -45,6 +47,32 @@ const multiSendAbi = [{
   name: "multiSend", type: "function", stateMutability: "payable",
   inputs: [{ name: "transactions", type: "bytes" }], outputs: [],
 }] as const;
+
+const rpc = createPublicClient({
+  chain: viemBase,
+  transport: fallback([
+    http("https://mainnet.base.org"),
+    http("https://base-rpc.publicnode.com"),
+    http("https://base.drpc.org"),
+  ]),
+});
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * The adapter's constructor reads from the vault, so creating it against an RPC
+ * that hasn't seen the just-mined vault yet reverts during gas estimation.
+ * Wait for the bytecode to actually be visible before moving on.
+ */
+async function waitForCode(address: Address, tries = 12): Promise<void> {
+  for (let i = 0; i < tries; i++) {
+    try {
+      const code = await rpc.getCode({ address });
+      if (code && code !== "0x") return;
+    } catch { /* keep polling */ }
+    await sleep(1500);
+  }
+}
 
 export function useDeploySponsorshipVault() {
   const writer = useWriteAccount();
@@ -100,11 +128,23 @@ export function useDeploySponsorshipVault() {
 
         // 3. adapter -------------------------------------------------------
         setPhase("adapter");
+        // The wallet's own RPC may still be a block behind the vault creation;
+        // wait for the code, then retry once if estimation still trips on it.
+        await waitForCode(vault);
         const adapterData = encodeFunctionData({
           abi: adapterFactoryAbi, functionName: "createMorphoVaultV1Adapter", args: [vault, MOONWELL_USDC],
         });
-        const adapterTx = prepareTransaction({ client, chain: base, to: ADAPTER_FACTORY, data: adapterData });
-        const adapterHash = (await sendTransaction({ account, transaction: adapterTx })).transactionHash;
+        const sendAdapter = async () => {
+          const adapterTx = prepareTransaction({ client, chain: base, to: ADAPTER_FACTORY, data: adapterData });
+          return (await sendTransaction({ account, transaction: adapterTx })).transactionHash;
+        };
+        let adapterHash: Hex;
+        try {
+          adapterHash = await sendAdapter();
+        } catch {
+          await sleep(4000);
+          adapterHash = await sendAdapter();
+        }
         const adapterReceipt = await waitForReceipt({ client, chain: base, transactionHash: adapterHash });
         const adapter = parseEventLogs({ abi: adapterFactoryAbi, eventName: "CreateMorphoVaultV1Adapter", logs: adapterReceipt.logs })[0]
           ?.args.morphoVaultV1Adapter as Address | undefined;
