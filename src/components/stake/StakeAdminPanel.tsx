@@ -111,7 +111,9 @@ export function StakeAdminPanel() {
                 )}
               </div>
 
-              {busy && phase === "error" && error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+              {activeId === r.id && phase === "error" && error && (
+                <p className="mt-2 text-xs text-destructive">{error}</p>
+              )}
 
               {done && (
                 <div className="mt-2 space-y-0.5 font-mono text-[11px] text-muted-foreground">
