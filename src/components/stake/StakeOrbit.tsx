@@ -40,8 +40,8 @@ export function StakeOrbit() {
 
   if (graph === null) {
     return (
-      <div className="rounded-[22px] border border-white/[0.06] bg-[#0e0b09]/60 p-6 text-sm text-white/40">
-        carregando o fluxo…
+      <div className="rounded-[22px] border border-white/[0.06] bg-[#0e0b09] p-6 text-sm text-white/40">
+        {t("orbit.loading")}
       </div>
     );
   }
@@ -56,29 +56,32 @@ export function StakeOrbit() {
   const supW = (amount: number) => Math.max(1.5, 6 * Math.sqrt(amount / maxTotal));
 
   return (
-    <div className="rounded-[22px] border border-white/[0.06] bg-gradient-to-b from-[#181410]/85 to-[#0e0b09]/85 p-5 sm:p-7">
+    <div className="rounded-[22px] border border-white/[0.06] bg-gradient-to-b from-[#181410] to-[#0e0b09] p-5 sm:p-7">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">Fluxo de patrocínio</p>
-          <p className="mt-1.5 max-w-md text-sm text-white/60">
-            Tesouro da Gnars no centro, atletas na 1ª órbita, apoiadores na 2ª. O valor de cada stake
-            fica na linha; o apoio flui pra dentro.
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">{t("orbit.title")}</p>
+          <p className="mt-1.5 max-w-md text-sm text-white/60">{t("orbit.subtitle")}</p>
         </div>
         <div className="flex gap-5 text-right">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">Total</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">{t("orbit.total")}</p>
             <p className="font-mono text-xl font-bold tabular-nums text-white">{usd(graph.total)}</p>
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">Apoiadores</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">{t("orbit.backers")}</p>
             <p className="font-mono text-xl font-bold tabular-nums text-white">{graph.backerCount}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">{t("orbit.earnedForTreasury")}</p>
+            <p className="font-mono text-xl font-bold tabular-nums" style={{ color: GOLD }}>
+              {graph.gnarsAccrued > 0 && graph.gnarsAccrued < 0.01 ? `$${graph.gnarsAccrued.toFixed(6)}` : usd(graph.gnarsAccrued)}
+            </p>
           </div>
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${W}`} className="mx-auto block h-auto w-full max-w-[640px]" role="img" aria-label="Fluxo de patrocínio orbital">
+        <svg viewBox={`0 0 ${W} ${W}`} className="mx-auto block h-auto w-full max-w-[640px]" role="img" aria-label={t("orbit.title")}>
           <style>{`
             @keyframes so-flow { to { stroke-dashoffset: -220; } }
             .so-flow { stroke-dasharray: 3 9; animation: so-flow 3.2s linear infinite; }
@@ -126,7 +129,7 @@ export function StakeOrbit() {
                       {/* backer node */}
                       <circle cx={bp.x} cy={bp.y} r={isYou ? 9 : 7} fill={isYou ? GOLD : "#0c0a08"} stroke={isYou ? GOLD : v.hex} strokeWidth={2} />
                       <text x={bp.x} y={bp.y + (bp.y < C ? -14 : 20)} textAnchor="middle" fontSize="9.5" fill={isYou ? GOLD : "rgba(255,255,255,.55)"} fontFamily="monospace" fontWeight={isYou ? 700 : 400}>
-                        {isYou ? "você" : short(b.address)}
+                        {isYou ? t("orbit.you") : short(b.address)}
                       </text>
                     </g>
                   );
@@ -168,7 +171,7 @@ export function StakeOrbit() {
               }}
             />
           </foreignObject>
-          <text x={C} y={C + 68} textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.5" fill="rgba(255,255,255,.6)">TESOURO</text>
+          <text x={C} y={C + 68} textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.5" fill="rgba(255,255,255,.6)">{t("orbit.treasury")}</text>
         </svg>
       </div>
     </div>

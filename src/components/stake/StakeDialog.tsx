@@ -126,10 +126,10 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
     if (!rider?.vault || !earned || earned.earnedRaw <= BigInt(0)) return;
     const ok = await claimRewards(rider.vault, earned.earnedRaw);
     if (ok) {
-      toast.success("Rendimento sacado", { description: "O principal continua rendendo." });
+      toast.success(t("dlg.claimedTitle"), { description: t("dlg.claimedDesc") });
       setRefresh((n) => n + 1);
     } else {
-      toast.error("Falha ao sacar rendimento", { description: stakeError ?? undefined });
+      toast.error(t("dlg.claimFailTitle"), { description: stakeError ?? undefined });
     }
   };
 
@@ -137,28 +137,28 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
     if (!rider?.vault || !position || position.shares <= BigInt(0)) return;
     const ok = await withdrawAll(rider.vault, position.shares);
     if (ok) {
-      toast.success("Saque concluído", { description: "O principal voltou pra sua carteira." });
+      toast.success(t("dlg.withdrewTitle"), { description: t("dlg.withdrewDesc") });
       setRefresh((n) => n + 1);
     } else {
-      toast.error("Falha no saque", { description: stakeError ?? undefined });
+      toast.error(t("dlg.withdrawFailTitle"), { description: stakeError ?? undefined });
     }
   };
   const handleConfirm = async () => {
     if (asset !== "usdc") {
-      toast.info("Por enquanto só USDC", { description: "O cofre de ETH ainda não está no ar." });
+      toast.info(t("dlg.usdcOnlyTitle"), { description: t("dlg.usdcOnlyDesc") });
       return;
     }
     if (!rider?.vault) {
-      toast.info("Cofre ainda não deployado", { description: `${name} ainda não tem cofre de patrocínio.` });
+      toast.info(t("dlg.noVaultTitle"), { description: t("dlg.noVaultDesc", { name }) });
       return;
     }
     const ok = await stake(rider.vault, amount);
     if (ok) {
-      toast.success(t("stakeToast", { name }), { description: "Seu depósito continua seu — dá pra sacar quando quiser." });
+      toast.success(t("stakeToast", { name }), { description: t("dlg.stakedDesc") });
       setRefresh((n) => n + 1);
       onOpenChange(false);
     } else {
-      toast.error("Falha no depósito", { description: stakeError ?? undefined });
+      toast.error(t("dlg.failTitle"), { description: stakeError ?? undefined });
     }
   };
 
@@ -315,7 +315,7 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
                     disabled={isStaking}
                     className="cursor-pointer"
                   >
-                    {stakePhase === "claim" ? "sacando…" : `Sacar rendimento ($${earned.earned.toFixed(2)})`}
+                    {stakePhase === "claim" ? t("dlg.claiming") : t("dlg.claim", { amount: `$${earned.earned.toFixed(2)}` })}
                   </Button>
                 )}
                 <Button
@@ -325,7 +325,7 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
                   disabled={isStaking}
                   className="cursor-pointer"
                 >
-                  {stakePhase === "withdraw" ? "sacando…" : "Sacar tudo"}
+                  {stakePhase === "withdraw" ? t("dlg.withdrawing") : t("dlg.withdrawAll")}
                 </Button>
               </div>
             </div>
@@ -341,9 +341,9 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
           >
             <Zap className="h-4 w-4" />
             {stakePhase === "approve"
-              ? "1/2 · aprovando USDC…"
+              ? t("dlg.approving")
               : stakePhase === "deposit"
-                ? "2/2 · depositando…"
+                ? t("dlg.depositing")
                 : t("stakeCta", { name })}
           </Button>
         </DialogFooter>
