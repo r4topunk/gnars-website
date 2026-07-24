@@ -10,11 +10,39 @@
 import { useCallback, useRef, useState } from "react";
 import { prepareTransaction, sendTransaction, waitForReceipt, readContract, getContract } from "thirdweb";
 import { base } from "thirdweb/chains";
-import { encodeFunctionData, parseUnits, type Address } from "viem";
+import {
+  createPublicClient, http, fallback,
+  encodeFunctionData, parseUnits, erc20Abi as viemErc20Abi, type Address,
+} from "viem";
+import { base as viemBase } from "viem/chains";
 import { useWriteAccount } from "@/hooks/use-write-account";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { USDC } from "@/lib/sponsorship-vaults";
+
+// Our own multi-endpoint client — after the approve is mined, the wallet's RPC
+// can still be a block behind, so the deposit's gas estimation doesn't see the
+// fresh allowance and reverts (the "click twice" bug). Confirm propagation here
+// before sending the deposit.
+const rpc = createPublicClient({
+  chain: viemBase,
+  transport: fallback([
+    http("https://mainnet.base.org"),
+    http("https://base-rpc.publicnode.com"),
+    http("https://base.drpc.org"),
+  ]),
+});
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function waitForAllowance(owner: Address, spender: Address, needed: bigint, tries = 12): Promise<void> {
+  for (let i = 0; i < tries; i++) {
+    try {
+      const a = await rpc.readContract({ address: USDC, abi: viemErc20Abi, functionName: "allowance", args: [owner, spender] });
+      if (a >= needed) return;
+    } catch { /* keep polling */ }
+    await sleep(1500);
+  }
+}
 
 const erc20Abi = [{
   type: "function", name: "approve", stateMutability: "nonpayable",
@@ -101,14 +129,29 @@ export function useStakeDeposit() {
           const approveTx = prepareTransaction({ client, chain: base, to: USDC, data: approveData });
           const approveHash = (await sendTransaction({ account, transaction: approveTx })).transactionHash;
           await waitForReceipt({ client, chain: base, transactionHash: approveHash });
+          // Don't send the deposit until the allowance is actually visible — this
+          // is what makes a single click work instead of failing with a scary
+          // "insufficient allowance" and needing a second try.
+          await waitForAllowance(account.address as Address, vault, assets);
         }
 
         setPhase("deposit");
         const depositData = encodeFunctionData({
           abi: vaultAbi, functionName: "deposit", args: [assets, account.address as Address],
         });
-        const depositTx = prepareTransaction({ client, chain: base, to: vault, data: depositData });
-        const depositHash = (await sendTransaction({ account, transaction: depositTx })).transactionHash;
+        const sendDeposit = async () => {
+          const depositTx = prepareTransaction({ client, chain: base, to: vault, data: depositData });
+          return (await sendTransaction({ account, transaction: depositTx })).transactionHash;
+        };
+        let depositHash: `0x${string}`;
+        try {
+          depositHash = await sendDeposit();
+        } catch {
+          // Estimation can still trip on a lagging RPC right after the approve;
+          // give it a moment and try once more before surfacing an error.
+          await sleep(4000);
+          depositHash = await sendDeposit();
+        }
         await waitForReceipt({ client, chain: base, transactionHash: depositHash });
 
         setPhase("done");
