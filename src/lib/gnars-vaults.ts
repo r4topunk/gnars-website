@@ -53,7 +53,14 @@ export const RIDERS: Record<RiderId, Rider> = {
     adapter: getAddress("0x8e76D3707fBCA5a00f17A3B7040659559D7F77ee"),
     split: getAddress("0x6b92E460250C0E579095fee4FEc1f446E5355c81"),
   },
-  pamtech: { id: "pamtech", handle: "pamtech", wallet: getAddress("0x057CFcd04198E6D17F1Bf502135d9508b6Fa2FDe") },
+  pamtech: {
+    id: "pamtech",
+    handle: "pamtech",
+    wallet: getAddress("0x057CFcd04198E6D17F1Bf502135d9508b6Fa2FDe"),
+    vault: getAddress("0xC38B368B68e70AAa4780a6fe54c707d4b768F98f"),
+    adapter: getAddress("0x55068670b99A3C6827D44f63Bfaa4ab13204f53E"),
+    split: getAddress("0xD5F74869e38CAfB593fA81f148f433C273a8D921"),
+  },
   v2: {
     id: "v2",
     handle: "louzoshi",
