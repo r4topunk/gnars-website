@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CharacterSelector } from "@/components/stake/CharacterSelector";
 import { StakeAdminPanel } from "@/components/stake/StakeAdminPanel";
+import { StakeOrbit } from "@/components/stake/StakeOrbit";
 import { STAKE_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 
 export async function generateMetadata({
@@ -61,6 +62,7 @@ export default async function StakePage({ params }: { params: Promise<{ locale: 
         </div>
 
         <CharacterSelector />
+        <StakeOrbit />
         <StakeAdminPanel />
       </div>
     </div>
