@@ -152,7 +152,7 @@ export function useDeploySponsorshipVault() {
 
         // 4. propose config batch to the SOPA Safe -------------------------
         setPhase("propose");
-        const calls: SafeCall[] = buildConfigCalls(vault, adapter, split);
+        const calls: SafeCall[] = buildConfigCalls(vault, adapter, split, handle);
         const msData = encodeFunctionData({ abi: multiSendAbi, functionName: "multiSend", args: [encodeMultiSend(calls)] });
         const nonce = await nextSafeNonce(SOPA_SAFE);
         const message = {
