@@ -230,20 +230,26 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
           {/* Hovering swaps the still for the rider's clip. Mounted only while
               hovered, so the file is fetched on demand and never on page load. */}
           {hovered && active.video && (
-            <motion.video
+            <motion.div
               key={`${active.id}-video`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.25 }}
-              src={active.video}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="none"
               aria-hidden
-              className="pointer-events-none absolute inset-x-0 bottom-[6%] top-[6%] h-auto w-full object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.55)]"
-            />
+              // Same box as the still, so the clip lands exactly where the
+              // character was instead of overflowing the card.
+              className="pointer-events-none absolute inset-x-0 bottom-[6%] top-[6%]"
+            >
+              <video
+                src={active.video}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="none"
+                className="h-full w-full object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.55)]"
+              />
+            </motion.div>
           )}
 
           <button

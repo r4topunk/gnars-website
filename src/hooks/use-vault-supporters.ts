@@ -1,13 +1,16 @@
 "use client";
 
-// Who is backing a rider. The vault's shares are an ERC-20, so the holder list
-// IS the supporter list — no event scanning needed. Each holder's position is
-// their share of totalAssets.
+// Who is backing a rider.
 //
-// The performance-fee recipient (the 0xSplits contract) also shows up as a
-// holder, because the fee is minted to it as shares. That's not a supporter, so
-// it's flagged rather than hidden — it's the yield already earmarked for Gnars
-// and the athlete.
+// The vault's shares are an ERC-20, but Blockscout doesn't index holders for
+// these vaults (they ship without name/symbol, and its holders endpoint returns
+// empty even though total_supply is right). So the address list comes from the
+// vault's own Deposit/Withdraw events, and every balance is then read from the
+// contract — events only tell us *who* to ask about, never how much.
+//
+// The performance-fee recipient (the 0xSplits contract) also holds shares,
+// because the fee is minted to it. That's not a supporter, so it's flagged
+// rather than hidden — it's yield already earmarked for Gnars and the athlete.
 
 import { useEffect, useState } from "react";
 import { createPublicClient, http, fallback, formatUnits, getAddress, type Address } from "viem";
@@ -24,7 +27,8 @@ const client = createPublicClient({
 
 const abi = [
   { type: "function", name: "totalAssets", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
-  { type: "function", name: "totalSupply", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "convertToAssets", stateMutability: "view", inputs: [{ type: "uint256" }], outputs: [{ type: "uint256" }] },
 ] as const;
 
 export type Supporter = {
@@ -37,7 +41,29 @@ export type Supporter = {
   isFeeRecipient: boolean;
 };
 
-type HolderItem = { address?: { hash?: string }; value?: string };
+type DecodedParam = { name?: string; value?: unknown };
+type LogItem = { decoded?: { method_call?: string; parameters?: DecodedParam[] } | null };
+
+/** Share owners seen in the vault's Deposit/Withdraw events. */
+async function ownersFromLogs(vault: Address): Promise<Address[]> {
+  const res = await fetch(`https://base.blockscout.com/api/v2/addresses/${vault}/logs`, {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(9000),
+  });
+  if (!res.ok) return [];
+  const json = (await res.json()) as { items?: LogItem[] };
+  const owners = new Set<string>();
+  for (const log of json.items ?? []) {
+    const call = log.decoded?.method_call ?? "";
+    if (!call.startsWith("Deposit(") && !call.startsWith("Withdraw(")) continue;
+    // ERC-4626 names the share owner `owner` in both events.
+    const owner = log.decoded?.parameters?.find((p) => p.name === "owner")?.value;
+    if (typeof owner === "string" && /^0x[a-fA-F0-9]{40}$/.test(owner)) {
+      owners.add(getAddress(owner));
+    }
+  }
+  return [...owners] as Address[];
+}
 
 export function useVaultSupporters(vault?: Address, feeRecipient?: Address): Supporter[] | null {
   const [supporters, setSupporters] = useState<Supporter[] | null>(null);
@@ -51,38 +77,42 @@ export function useVaultSupporters(vault?: Address, feeRecipient?: Address): Sup
 
     (async () => {
       try {
-        const [res, totalAssets, totalSupply] = await Promise.all([
-          fetch(`https://base.blockscout.com/api/v2/tokens/${vault}/holders`, {
-            headers: { Accept: "application/json" },
-            signal: AbortSignal.timeout(9000),
-          }),
+        const [owners, totalAssetsRaw] = await Promise.all([
+          ownersFromLogs(vault),
           client.readContract({ address: vault, abi, functionName: "totalAssets" }),
-          client.readContract({ address: vault, abi, functionName: "totalSupply" }),
         ]);
         if (cancelled) return;
-        if (!res.ok || totalSupply === BigInt(0)) { setSupporters([]); return; }
 
-        const json = (await res.json()) as { items?: HolderItem[] };
-        const assetsTotal = Number(formatUnits(totalAssets, 6));
+        // The fee recipient never appears in Deposit events — it's minted to.
+        const candidates = new Set<Address>(owners);
+        if (feeRecipient) candidates.add(getAddress(feeRecipient));
 
-        const rows = (json.items ?? [])
-          .map((it) => {
-            const raw = it.address?.hash;
-            const value = it.value;
-            if (!raw || !value) return null;
-            let address: Address;
-            try { address = getAddress(raw); } catch { return null; }
-            const shares = BigInt(value);
-            if (shares <= BigInt(0)) return null;
-            // Position = this holder's slice of what the vault actually holds.
-            const share = Number(shares) / Number(totalSupply);
-            return {
-              address,
-              assets: assetsTotal * share,
-              share,
-              isFeeRecipient: !!feeRecipient && address.toLowerCase() === feeRecipient.toLowerCase(),
-            } satisfies Supporter;
-          })
+        const totalAssets = Number(formatUnits(totalAssetsRaw, 6));
+        const rows = (
+          await Promise.all(
+            [...candidates].map(async (address) => {
+              // Balances come from the contract — the events only told us who to ask.
+              const shares = await client.readContract({
+                address: vault, abi, functionName: "balanceOf", args: [address],
+              });
+              if (shares <= BigInt(0)) return null;
+              const assets = Number(
+                formatUnits(
+                  await client.readContract({
+                    address: vault, abi, functionName: "convertToAssets", args: [shares],
+                  }),
+                  6,
+                ),
+              );
+              return {
+                address,
+                assets,
+                share: totalAssets > 0 ? assets / totalAssets : 0,
+                isFeeRecipient: !!feeRecipient && address.toLowerCase() === feeRecipient.toLowerCase(),
+              } satisfies Supporter;
+            }),
+          )
+        )
           .filter((r): r is Supporter => r !== null)
           .sort((a, b) => b.assets - a.assets);
 
