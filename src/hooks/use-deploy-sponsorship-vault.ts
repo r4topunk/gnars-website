@@ -83,8 +83,8 @@ export function useDeploySponsorshipVault() {
   const deploy = useCallback(
     async (athlete: Address, handle: string, existingSplit?: Address): Promise<DeployResult | null> => {
       const client = getThirdwebClient();
-      if (!client) { setError("Thirdweb client não configurado."); setPhase("error"); return null; }
-      if (!writer) { setError("Conecte a carteira."); setPhase("error"); return null; }
+      if (!client) { setError("Thirdweb client not configured."); setPhase("error"); return null; }
+      if (!writer) { setError("Connect your wallet."); setPhase("error"); return null; }
       // The Safe proposal must be signed by a SOPA Safe OWNER (an EOA), not a
       // thirdweb smart account. Grab the underlying admin EOA when the wallet is
       // AA-wrapped; for a plain injected wallet writer.account already is it.
@@ -110,7 +110,7 @@ export function useDeploySponsorshipVault() {
           const splitReceipt = await waitForReceipt({ client, chain: base, transactionHash: splitHash });
           split = parseEventLogs({ abi: splitFactoryAbi, eventName: "SplitCreated", logs: splitReceipt.logs })[0]
             ?.args.split as Address | undefined;
-          if (!split) throw new Error("Não achei o endereço do split no recibo.");
+          if (!split) throw new Error("Couldn't find the split address in the receipt.");
         }
 
         // 2. vault ---------------------------------------------------------
@@ -124,7 +124,7 @@ export function useDeploySponsorshipVault() {
         const vaultReceipt = await waitForReceipt({ client, chain: base, transactionHash: vaultHash });
         const vault = parseEventLogs({ abi: vaultFactoryAbi, eventName: "CreateVaultV2", logs: vaultReceipt.logs })[0]
           ?.args.newVaultV2 as Address | undefined;
-        if (!vault) throw new Error("Não achei o endereço do vault no recibo.");
+        if (!vault) throw new Error("Couldn't find the vault address in the receipt.");
 
         // 3. adapter -------------------------------------------------------
         setPhase("adapter");
@@ -148,7 +148,7 @@ export function useDeploySponsorshipVault() {
         const adapterReceipt = await waitForReceipt({ client, chain: base, transactionHash: adapterHash });
         const adapter = parseEventLogs({ abi: adapterFactoryAbi, eventName: "CreateMorphoVaultV1Adapter", logs: adapterReceipt.logs })[0]
           ?.args.morphoVaultV1Adapter as Address | undefined;
-        if (!adapter) throw new Error("Não achei o endereço do adapter no recibo.");
+        if (!adapter) throw new Error("Couldn't find the adapter address in the receipt.");
 
         // 4. propose config batch to the SOPA Safe -------------------------
         setPhase("propose");
@@ -180,7 +180,7 @@ export function useDeploySponsorshipVault() {
         setPhase("done");
         return out;
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Falha no deploy.");
+        setError(e instanceof Error ? e.message : "Deploy failed.");
         setPhase("error");
         return null;
       }

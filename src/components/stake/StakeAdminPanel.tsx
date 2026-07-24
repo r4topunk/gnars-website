@@ -19,12 +19,12 @@ const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 const PHASE_LABEL: Record<DeployPhase, string> = {
   idle: "",
-  split: "1/4 · deployando split…",
-  vault: "2/4 · deployando vault…",
-  adapter: "3/4 · deployando adapter…",
-  propose: "4/4 · propondo no Safe…",
-  done: "pronto",
-  error: "erro",
+  split: "1/4 · deploying split…",
+  vault: "2/4 · deploying vault…",
+  adapter: "3/4 · deploying adapter…",
+  propose: "4/4 · proposing in the Safe…",
+  done: "done",
+  error: "error",
 };
 
 export function StakeAdminPanel() {
@@ -49,11 +49,11 @@ export function StakeAdminPanel() {
     return (
       <Card className="border-border/60">
         <CardHeader>
-          <CardTitle className="text-sm text-muted-foreground">Painel de cofres (admin)</CardTitle>
+          <CardTitle className="text-sm text-muted-foreground">Sponsorship vaults (admin)</CardTitle>
           <CardDescription className="font-mono text-xs">
-            conectado, mas sem permissão de admin.<br />
-            ativo: {activeAddr ?? "—"}<br />
-            eoa:&nbsp;&nbsp;&nbsp;{eoaAddr ?? "— (carteira não expõe EOA)"}
+            connected, but no admin permission.<br />
+            active: {activeAddr ?? "—"}<br />
+            eoa:&nbsp;&nbsp;&nbsp;{eoaAddr ?? "— (wallet doesn't expose an EOA)"}
           </CardDescription>
         </CardHeader>
       </Card>
@@ -65,9 +65,9 @@ export function StakeAdminPanel() {
     const out = await deploy(wallet as `0x${string}`, id, existingSplit as `0x${string}` | undefined);
     if (out) {
       setResults((r) => ({ ...r, [id]: out }));
-      toast.success(`Vault de ${id} deployado`, { description: "Aprove o batch no Safe da SOPA pra ativar." });
+      toast.success(`${id} vault deployed`, { description: "Approve the batch in the SOPA Safe to activate." });
     } else {
-      toast.error(`Falha no deploy de ${id}`);
+      toast.error(`${id} deploy failed`);
     }
   }
 
@@ -76,12 +76,12 @@ export function StakeAdminPanel() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="border-yellow-500/50 text-yellow-500">ADMIN</Badge>
-          <CardTitle>Cofres de patrocínio</CardTitle>
+          <CardTitle>Sponsorship vaults</CardTitle>
         </div>
         <CardDescription>
-          Um vault Morpho por rider. Depósito rende na Moonwell; metade do rendimento vira fee e é dividida
-          Gnars&nbsp;25% / atleta&nbsp;25% (o depositante fica com 50%). Owner = Safe da SOPA. Você assina o deploy
-          e o batch — 1 das 2 confirmações do Safe.
+          One Morpho vault per rider. Deposits earn on Moonwell; half the yield becomes a fee split
+          Gnars&nbsp;25% / athlete&nbsp;25% (the depositor keeps 50%). Owner = SOPA Safe. You sign the deploy
+          and the batch — 1 of the Safe’s 2 confirmations.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -95,10 +95,10 @@ export function StakeAdminPanel() {
                   <div className="flex items-center gap-2">
                     <span className="font-semibold capitalize">{r.id}</span>
                     <span className="text-xs text-muted-foreground">@{r.handle}</span>
-                    {done && <Badge variant="secondary" className="text-emerald-500">deployado</Badge>}
+                    {done && <Badge variant="secondary" className="text-emerald-500">deployed</Badge>}
                   </div>
                   <div className="font-mono text-xs text-muted-foreground">
-                    {r.wallet ? short(r.wallet) : "sem carteira cadastrada"}
+                    {r.wallet ? short(r.wallet) : "no wallet on file"}
                   </div>
                 </div>
                 {!done && r.wallet && (
@@ -107,7 +107,7 @@ export function StakeAdminPanel() {
                   </Button>
                 )}
                 {!done && !r.wallet && (
-                  <Badge variant="outline" className="text-muted-foreground">pendente</Badge>
+                  <Badge variant="outline" className="text-muted-foreground">pending</Badge>
                 )}
               </div>
 
@@ -122,7 +122,7 @@ export function StakeAdminPanel() {
                   <div>split:&nbsp;&nbsp;{done.split}</div>
                   {"queueUrl" in done && done.queueUrl && (
                     <a href={done.queueUrl} target="_blank" rel="noreferrer" className="text-yellow-500 underline">
-                      aprovar batch no Safe →
+                      approve batch in the Safe →
                     </a>
                   )}
                 </div>
@@ -133,8 +133,8 @@ export function StakeAdminPanel() {
 
         {Object.keys(results).length > 0 && (
           <p className="pt-1 text-[11px] text-muted-foreground">
-            Cole os endereços acima em <code>src/lib/gnars-vaults.ts</code> (campos vault/adapter/split do rider) pra
-            ligar o patrocínio no /stake.
+            Paste the addresses above into <code>src/lib/gnars-vaults.ts</code> (the rider’s vault/adapter/split) to
+            light up the sponsorship on /stake.
           </p>
         )}
       </CardContent>

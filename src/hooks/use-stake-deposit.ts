@@ -84,16 +84,16 @@ export function useStakeDeposit() {
     async (vault: Address, amountUsdc: string): Promise<boolean> => {
       if (pending.current) return false;
       const client = getThirdwebClient();
-      if (!client) { setError("Thirdweb não configurado."); setPhase("error"); return false; }
-      if (!writer) { setError("Conecte a carteira."); setPhase("error"); return false; }
+      if (!client) { setError("Thirdweb not configured."); setPhase("error"); return false; }
+      if (!writer) { setError("Connect your wallet."); setPhase("error"); return false; }
 
       let assets: bigint;
       try {
         assets = parseUnits(amountUsdc, 6); // USDC has 6 decimals
       } catch {
-        setError("Valor inválido."); setPhase("error"); return false;
+        setError("Invalid amount."); setPhase("error"); return false;
       }
-      if (assets <= BigInt(0)) { setError("Valor inválido."); setPhase("error"); return false; }
+      if (assets <= BigInt(0)) { setError("Invalid amount."); setPhase("error"); return false; }
 
       const account = writer.account;
       setError(null);
@@ -110,7 +110,7 @@ export function useStakeDeposit() {
           params: [assets],
         });
         if (shares <= BigInt(0)) {
-          setError("Valor muito pequeno — não geraria posição no cofre.");
+          setError("Amount too small — it wouldn't create a position.");
           setPhase("error");
           return false;
         }
@@ -157,7 +157,7 @@ export function useStakeDeposit() {
         setPhase("done");
         return true;
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Falha no depósito.");
+        setError(e instanceof Error ? e.message : "Deposit failed.");
         setPhase("error");
         return false;
       } finally {
@@ -176,9 +176,9 @@ export function useStakeDeposit() {
     async (vault: Address, shares: bigint): Promise<boolean> => {
       if (pending.current) return false;
       const client = getThirdwebClient();
-      if (!client) { setError("Thirdweb não configurado."); setPhase("error"); return false; }
-      if (!writer) { setError("Conecte a carteira."); setPhase("error"); return false; }
-      if (shares <= BigInt(0)) { setError("Nada para sacar."); setPhase("error"); return false; }
+      if (!client) { setError("Thirdweb not configured."); setPhase("error"); return false; }
+      if (!writer) { setError("Connect your wallet."); setPhase("error"); return false; }
+      if (shares <= BigInt(0)) { setError("Nothing to withdraw."); setPhase("error"); return false; }
 
       const account = writer.account;
       setError(null);
@@ -197,7 +197,7 @@ export function useStakeDeposit() {
         setPhase("done");
         return true;
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Falha no saque.");
+        setError(e instanceof Error ? e.message : "Withdrawal failed.");
         setPhase("error");
         return false;
       } finally {
@@ -216,9 +216,9 @@ export function useStakeDeposit() {
     async (vault: Address, earnedRaw: bigint): Promise<boolean> => {
       if (pending.current) return false;
       const client = getThirdwebClient();
-      if (!client) { setError("Thirdweb não configurado."); setPhase("error"); return false; }
-      if (!writer) { setError("Conecte a carteira."); setPhase("error"); return false; }
-      if (earnedRaw <= BigInt(0)) { setError("Sem rendimento pra sacar."); setPhase("error"); return false; }
+      if (!client) { setError("Thirdweb not configured."); setPhase("error"); return false; }
+      if (!writer) { setError("Connect your wallet."); setPhase("error"); return false; }
+      if (earnedRaw <= BigInt(0)) { setError("No earnings to claim."); setPhase("error"); return false; }
 
       const account = writer.account;
       setError(null);
@@ -236,7 +236,7 @@ export function useStakeDeposit() {
         setPhase("done");
         return true;
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Falha ao sacar rendimento.");
+        setError(e instanceof Error ? e.message : "Failed to claim earnings.");
         setPhase("error");
         return false;
       } finally {

@@ -35,6 +35,8 @@ export type OrbitAthlete = {
   vault: Address;
   split?: Address;
   total: number;
+  /** Fee accrued to the split for this vault (the shares minted to it), in USDC. */
+  feeAccrued: number;
   backers: OrbitBacker[];
 };
 export type StakeGraph = {
@@ -42,6 +44,8 @@ export type StakeGraph = {
   total: number;
   /** Distinct backer addresses across all riders. */
   backerCount: number;
+  /** The Gnars treasury's earned share so far = half of the accrued fee. */
+  gnarsAccrued: number;
 };
 
 const ZERO = "0x0000000000000000000000000000000000000000";
@@ -74,7 +78,7 @@ export function useStakeGraph(nonce = 0): StakeGraph | null {
 
   useEffect(() => {
     const live = RIDER_LIST.filter((r) => r.vault);
-    if (live.length === 0) { setGraph({ athletes: [], total: 0, backerCount: 0 }); return; }
+    if (live.length === 0) { setGraph({ athletes: [], total: 0, backerCount: 0, gnarsAccrued: 0 }); return; }
     let cancelled = false;
 
     (async () => {
@@ -92,9 +96,20 @@ export function useStakeGraph(nonce = 0): StakeGraph | null {
               backers.push({ address, amount: Number(formatUnits(assets, 6)) });
             }
             backers.sort((a, b) => b.amount - a.amount);
+
+            // The performance fee is minted to the split as vault shares — its
+            // position is the fee accrued so far.
+            let feeAccrued = 0;
+            if (r.split) {
+              const sShares = await client.readContract({ address: vault, abi, functionName: "balanceOf", args: [r.split as Address] });
+              if (sShares > BigInt(0)) {
+                const sAssets = await client.readContract({ address: vault, abi, functionName: "convertToAssets", args: [sShares] });
+                feeAccrued = Number(formatUnits(sAssets, 6));
+              }
+            }
             return {
               id: r.id, handle: r.handle, vault, split: r.split,
-              total: Number(formatUnits(totalRaw, 6)), backers,
+              total: Number(formatUnits(totalRaw, 6)), feeAccrued, backers,
             };
           }),
         );
@@ -105,6 +120,8 @@ export function useStakeGraph(nonce = 0): StakeGraph | null {
           athletes,
           total: athletes.reduce((s, a) => s + a.total, 0),
           backerCount: distinct.size,
+          // Split is Gnars 50 / athlete 50, so the treasury's share is half.
+          gnarsAccrued: athletes.reduce((s, a) => s + a.feeAccrued, 0) / 2,
         });
       } catch {
         if (!cancelled) setGraph(null);

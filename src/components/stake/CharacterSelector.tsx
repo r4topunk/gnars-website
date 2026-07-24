@@ -286,15 +286,18 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
             <p className="mt-3 text-sm text-white/60">
               {vault ? (
                 staked === null ? (
-                  <span className="opacity-60">carregando apoio…</span>
+                  <span className="opacity-60">{t("loadingSupport")}</span>
                 ) : (
-                  <>
-                    <span className="font-mono text-base font-bold text-[#f7c948]">{usd(staked)}</span>{" "}
-                    apoiando {name}
-                  </>
+                  t.rich("backing", {
+                    name,
+                    amount: usd(staked),
+                    b: (chunks) => (
+                      <span className="font-mono text-base font-bold text-[#f7c948]">{chunks}</span>
+                    ),
+                  })
                 )
               ) : (
-                <span className="opacity-70">cofre de patrocínio em breve</span>
+                <span className="opacity-70">{t("vaultSoon")}</span>
               )}
             </p>
           </div>
