@@ -118,7 +118,7 @@ const CHARACTERS: Character[] = [
     ring: "ring-teal-400",
     hex: "#14b8a6",
     face: { size: "330%", pos: "50% 3%" },
-    stats: { speed: 8, air: 8, ollie: 7, spin: 8, rail: 7, flow: 9, devSkills: 6, creativity: 9 },
+    stats: { speed: 8, air: 8, ollie: 3, spin: 8, rail: 10, flow: 9, devSkills: 6, creativity: 10 },
   },
 ];
 
