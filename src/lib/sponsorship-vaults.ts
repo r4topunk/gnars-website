@@ -99,6 +99,8 @@ export const splitFactoryAbi = [{
 export const vaultAbi = [
   { type: "function", name: "submit", stateMutability: "nonpayable", inputs: [{ type: "bytes" }], outputs: [] },
   { type: "function", name: "setCurator", stateMutability: "nonpayable", inputs: [{ type: "address" }], outputs: [] },
+  { type: "function", name: "setName", stateMutability: "nonpayable", inputs: [{ type: "string" }], outputs: [] },
+  { type: "function", name: "setSymbol", stateMutability: "nonpayable", inputs: [{ type: "string" }], outputs: [] },
   { type: "function", name: "setIsAllocator", stateMutability: "nonpayable", inputs: [{ type: "address" }, { type: "bool" }], outputs: [] },
   { type: "function", name: "addAdapter", stateMutability: "nonpayable", inputs: [{ type: "address" }], outputs: [] },
   { type: "function", name: "increaseAbsoluteCap", stateMutability: "nonpayable", inputs: [{ type: "bytes" }, { type: "uint256" }], outputs: [] },
@@ -142,9 +144,30 @@ const submitThenCall = (vault: Address, data: Hex): SafeCall[] => [
  * actions run direct, right after the Safe is made an allocator. Ordering
  * matters: adapter + caps must exist before setLiquidityAdapter.
  */
-export function buildConfigCalls(vault: Address, adapter: Address, split: Address): SafeCall[] {
+/** ERC-20 identity for a rider's vault, so it isn't nameless in wallets and explorers. */
+export function vaultNaming(riderId: string) {
+  const label = riderId.charAt(0).toUpperCase() + riderId.slice(1);
+  return { name: `Gnars ${label} USDC`, symbol: `gn${riderId.toUpperCase()}` };
+}
+
+export function buildConfigCalls(
+  vault: Address,
+  adapter: Address,
+  split: Address,
+  riderId?: string,
+): SafeCall[] {
   const id = idData(adapter);
+  const naming = riderId ? vaultNaming(riderId) : null;
   return [
+    // Name it up front — an unnamed vault shows as a blank ERC-20 in wallets and
+    // explorers, and block indexers skip its holders entirely. Owner-gated, no
+    // timelock.
+    ...(naming
+      ? [
+          { to: vault, data: enc("setName", [naming.name]) },
+          { to: vault, data: enc("setSymbol", [naming.symbol]) },
+        ]
+      : []),
     // createVaultV2 only sets the OWNER; every call below is curator-gated, so
     // the Safe has to make itself curator first (owner-only, no timelock) or
     // the whole batch reverts.
