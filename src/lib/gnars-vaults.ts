@@ -55,7 +55,14 @@ export const RIDERS: Record<RiderId, Rider> = {
   },
   pamtech: { id: "pamtech", handle: "pamtech", wallet: getAddress("0x057CFcd04198E6D17F1Bf502135d9508b6Fa2FDe") },
   v2: { id: "v2", handle: "louzoshi", wallet: getAddress("0x1BfA69ed9481fc8365d2f3476F548a5C39c5A51f") },
-  zima: { id: "zima", handle: "zima", wallet: getAddress("0x2feb329b9289b60064904fa61fc347157a5aed6a") },
+  zima: {
+    id: "zima",
+    handle: "zima",
+    wallet: getAddress("0x2feb329b9289b60064904fa61fc347157a5aed6a"),
+    vault: getAddress("0x4E7f8523d3f81EFc547d43387eBe5d6251bb32cF"),
+    adapter: getAddress("0xC9d6d942E727e82673454e0cC4A5335d35f652EF"),
+    split: getAddress("0x81C570DCd0055749d732c1EcCfDd8C56CBBbbEf3"),
+  },
 };
 
 export const RIDER_LIST: Rider[] = Object.values(RIDERS);
