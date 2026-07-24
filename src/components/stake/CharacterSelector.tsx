@@ -301,6 +301,17 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
               )}
             </p>
           </div>
+
+          {/* Stake CTA — bottom-right of the card, above the name plate */}
+          <Button
+            size="lg"
+            onClick={() => setDialogOpen(true)}
+            className="absolute bottom-5 right-5 z-30 cursor-pointer gap-2 border-0 font-bold text-[#1a1205] shadow-[0_8px_24px_rgba(245,133,31,.35)] hover:opacity-90"
+            style={{ backgroundImage: GOLD }}
+          >
+            <Zap className="h-4 w-4" />
+            {t("stakeCta", { name })}
+          </Button>
         </div>
 
         {/* Skills */}
@@ -425,15 +436,6 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
             </button>
           );
         })}
-      </div>
-
-      {/* CTA */}
-      <div className="flex flex-col items-center gap-2">
-        <p className="text-sm text-muted-foreground">{t("selectedRider", { name })}</p>
-        <Button size="lg" onClick={() => setDialogOpen(true)} className="cursor-pointer gap-2">
-          <Zap className="h-4 w-4" />
-          {t("stakeCta", { name })}
-        </Button>
       </div>
 
       {/* Who's backing the picked rider */}
