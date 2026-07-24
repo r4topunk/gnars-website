@@ -84,5 +84,25 @@ export const depositPoolAbi = [
   ] },
 ] as const;
 
+// ---- Claim / LayerZero fee (all read on-chain from L1SenderV2's config) ----
+// `claim`/`claimFor` are payable: the ETH pays the LayerZero message that mints
+// MOR on Arbitrum. The message payload is a fixed 64 bytes (abi.encode(address,
+// uint256)), so the native fee is essentially constant (~0.000475 ETH); excess
+// is refunded to the refundTo the contracts pass. We still quote it live so a
+// protocol config change can't silently under-fund the claim.
+export const L1_SENDER = getAddress("0x2Efd4430489e1a05A89c2f51811aC661B7E5FF84");
+export const LZ_GATEWAY = getAddress("0x66A71Dcef29A0fFBDBE3c6a460a3B5BC225Cd675");
+export const LZ_DST_CHAIN_ID = 110; // LayerZero v1 chain id for Arbitrum One
+export const LZ_ADAPTER_PARAMS = "0x" as const;
+
+export const lzEndpointAbi = [{
+  type: "function", name: "estimateFees", stateMutability: "view",
+  inputs: [
+    { name: "dstChainId", type: "uint16" }, { name: "userApplication", type: "address" },
+    { name: "payload", type: "bytes" }, { name: "payInZRO", type: "bool" }, { name: "adapterParam", type: "bytes" },
+  ],
+  outputs: [{ name: "nativeFee", type: "uint256" }, { name: "zroFee", type: "uint256" }],
+}] as const;
+
 /** MOR reward destination for a rider — a 2-recipient Arbitrum split (Gnars/athlete). */
 export type MorpheusSponsor = { morSplit?: Address };
