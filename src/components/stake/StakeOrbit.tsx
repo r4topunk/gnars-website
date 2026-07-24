@@ -11,13 +11,15 @@ import { useActiveAccount } from "thirdweb/react";
 import { useStakeGraph } from "@/hooks/use-stake-graph";
 import type { RiderId } from "@/lib/gnars-vaults";
 
-const RIDER_VISUAL: Record<RiderId, { hex: string; image: string }> = {
-  vlad: { hex: "#f59e0b", image: "/stake/cutout/vlad.png" },
-  yan: { hex: "#0ea5e9", image: "/stake/cutout/yan.png" },
-  r4to: { hex: "#d946ef", image: "/stake/cutout/r4to.png" },
-  pamtech: { hex: "#10b981", image: "/stake/cutout/pamtech.png" },
-  v2: { hex: "#f43f5e", image: "/stake/cutout/v2.png" },
-  zima: { hex: "#14b8a6", image: "/stake/cutout/zima.png" },
+// `face` zooms each full-body cut-out onto the head — same framing as the
+// character-select tiles, so the orbit nodes read as portraits.
+const RIDER_VISUAL: Record<RiderId, { hex: string; image: string; face: { size: string; pos: string } }> = {
+  vlad: { hex: "#f59e0b", image: "/stake/cutout/vlad.png", face: { size: "420%", pos: "50% 6%" } },
+  yan: { hex: "#0ea5e9", image: "/stake/cutout/yan.png", face: { size: "420%", pos: "50% 5%" } },
+  r4to: { hex: "#d946ef", image: "/stake/cutout/r4to.png", face: { size: "420%", pos: "50% 8%" } },
+  pamtech: { hex: "#10b981", image: "/stake/cutout/pamtech.png", face: { size: "420%", pos: "50% 9%" } },
+  v2: { hex: "#f43f5e", image: "/stake/cutout/v2.png", face: { size: "420%", pos: "50% 8%" } },
+  zima: { hex: "#14b8a6", image: "/stake/cutout/zima.png", face: { size: "330%", pos: "50% 3%" } },
 };
 
 const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: n > 0 && n < 100 ? 2 : 0 })}`;
@@ -81,14 +83,6 @@ export function StakeOrbit() {
             @keyframes so-flow { to { stroke-dashoffset: -220; } }
             .so-flow { stroke-dasharray: 3 9; animation: so-flow 3.2s linear infinite; }
           `}</style>
-          <defs>
-            {athletes.map((a) => (
-              <clipPath key={`clip-${a.id}`} id={`so-clip-${a.id}`}>
-                <circle cx={0} cy={0} r={athR(a.total)} />
-              </clipPath>
-            ))}
-          </defs>
-
           {/* orbit rings — recessive */}
           <circle cx={C} cy={C} r={R_ATH} fill="none" stroke="rgba(255,255,255,.06)" />
           <circle cx={C} cy={C} r={R_SUP} fill="none" stroke="rgba(255,255,255,.04)" />
@@ -138,17 +132,19 @@ export function StakeOrbit() {
                   );
                 })}
 
-                {/* athlete node (cut-out clipped to a circle) */}
+                {/* athlete node — cut-out zoomed onto the face, clipped round */}
                 <g transform={`translate(${ap.x} ${ap.y})`}>
                   <circle r={athR(a.total)} fill="#141210" stroke={lit ? v.hex : "rgba(255,255,255,.18)"} strokeWidth={lit ? 2.5 : 1.5} />
-                  <image
-                    href={v.image}
-                    x={-athR(a.total)} y={-athR(a.total) * 1.05}
-                    width={athR(a.total) * 2} height={athR(a.total) * 2.2}
-                    clipPath={`url(#so-clip-${a.id})`}
-                    preserveAspectRatio="xMidYMin slice"
-                    opacity={lit ? 1 : 0.5}
-                  />
+                  <foreignObject x={-athR(a.total)} y={-athR(a.total)} width={athR(a.total) * 2} height={athR(a.total) * 2}>
+                    <div
+                      style={{
+                        width: "100%", height: "100%", borderRadius: "50%",
+                        backgroundImage: `url(${v.image})`, backgroundSize: v.face.size,
+                        backgroundPosition: v.face.pos, backgroundRepeat: "no-repeat",
+                        opacity: lit ? 1 : 0.45,
+                      }}
+                    />
+                  </foreignObject>
                 </g>
                 {/* athlete name + total */}
                 <text x={ap.x} y={ap.y + athR(a.total) + 16} textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff">
@@ -161,10 +157,18 @@ export function StakeOrbit() {
             );
           })}
 
-          {/* treasury center */}
-          <circle cx={C} cy={C} r={46} fill="#141210" stroke={GOLD} strokeWidth={3} />
-          <text x={C} y={C - 4} textAnchor="middle" fontSize="13" fontWeight="900" fill={GOLD}>GNARS</text>
-          <text x={C} y={C + 13} textAnchor="middle" fontSize="9" letterSpacing="1" fill="rgba(255,255,255,.55)">TESOURO</text>
+          {/* treasury center — the Gnars logo */}
+          <circle cx={C} cy={C} r={48} fill="#0c0a08" stroke={GOLD} strokeWidth={3} />
+          <foreignObject x={C - 44} y={C - 44} width={88} height={88}>
+            <div
+              style={{
+                width: "100%", height: "100%", borderRadius: "50%",
+                backgroundImage: "url(/gnars.webp)", backgroundSize: "cover",
+                backgroundPosition: "center", backgroundRepeat: "no-repeat",
+              }}
+            />
+          </foreignObject>
+          <text x={C} y={C + 68} textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.5" fill="rgba(255,255,255,.6)">TESOURO</text>
         </svg>
       </div>
     </div>
