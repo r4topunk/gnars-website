@@ -210,7 +210,9 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
               key={active.id}
               custom={direction}
               initial={{ opacity: 0, x: direction * 60 }}
-              animate={{ opacity: 1, x: 0 }}
+              // Fade the cut-out out while the clip plays, otherwise the
+              // character shows through above and below the footage.
+              animate={{ opacity: hovered && active.video ? 0 : 1, x: 0 }}
               exit={{ opacity: 0, x: direction * -60 }}
               transition={{ duration: 0.28, ease: "easeOut" }}
               className="absolute inset-x-0 bottom-[6%] top-[6%]"
@@ -236,9 +238,10 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
               animate={{ opacity: 1 }}
               transition={{ duration: 0.25 }}
               aria-hidden
-              // Same box as the still, so the clip lands exactly where the
-              // character was instead of overflowing the card.
-              className="pointer-events-none absolute inset-x-0 bottom-[6%] top-[6%]"
+              // These are landscape skate clips, not cut-outs — contained in a
+              // portrait card they letterbox into a band. Fill the whole card
+              // and crop instead; the card's overflow-hidden keeps the corners.
+              className="pointer-events-none absolute inset-0"
             >
               <video
                 src={active.video}
@@ -247,8 +250,10 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
                 muted
                 playsInline
                 preload="none"
-                className="h-full w-full object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.55)]"
+                className="h-full w-full object-cover"
               />
+              {/* keeps the name plate readable over the footage */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a08]/85 via-transparent to-[#0c0a08]/25" />
             </motion.div>
           )}
 
