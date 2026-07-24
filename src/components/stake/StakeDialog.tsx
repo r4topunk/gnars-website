@@ -8,7 +8,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { getRider } from "@/lib/gnars-vaults";
 import { useStakeDeposit } from "@/hooks/use-stake-deposit";
-import { useVaultPosition } from "@/hooks/use-vault-total";
+import { useVaultPosition, useVaultEarned } from "@/hooks/use-vault-total";
+
+// Only offer a rewards claim once it's worth more than the gas to take it.
+const CLAIM_FLOOR_USD = 1;
 import {
   Dialog,
   DialogContent,
@@ -72,7 +75,7 @@ function fmtUsd(n: number) {
 
 export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }: StakeDialogProps) {
   const t = useTranslations("stake");
-  const { stake, withdrawAll, phase: stakePhase, error: stakeError, isStaking, account } =
+  const { stake, withdrawAll, claimRewards, phase: stakePhase, error: stakeError, isStaking, account } =
     useStakeDeposit();
   const [refresh, setRefresh] = useState(0);
   const [asset, setAsset] = useState<Asset>("eth");
@@ -117,6 +120,18 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
   // Real deposit for USDC once the rider's vault is live; ETH has no vault yet.
   const rider = getRider(riderId);
   const position = useVaultPosition(rider?.vault, account ?? undefined, refresh);
+  const earned = useVaultEarned(rider?.vault, account ?? undefined, refresh);
+
+  const handleClaim = async () => {
+    if (!rider?.vault || !earned || earned.earnedRaw <= BigInt(0)) return;
+    const ok = await claimRewards(rider.vault, earned.earnedRaw);
+    if (ok) {
+      toast.success("Rendimento sacado", { description: "O principal continua rendendo." });
+      setRefresh((n) => n + 1);
+    } else {
+      toast.error("Falha ao sacar rendimento", { description: stakeError ?? undefined });
+    }
+  };
 
   const handleWithdraw = async () => {
     if (!rider?.vault || !position || position.shares <= BigInt(0)) return;
@@ -277,20 +292,42 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
 
         <DialogFooter className="mt-4">
           {position && position.shares > BigInt(0) && (
-            <div className="mr-auto flex items-center gap-3">
+            <div className="mr-auto flex flex-wrap items-center gap-x-4 gap-y-2">
               <span className="text-xs text-muted-foreground">
                 Sua posição:{" "}
                 <strong className="font-mono text-foreground">${position.assets.toFixed(2)}</strong>
+                {earned && earned.principal > 0 && (
+                  <>
+                    {" "}
+                    <span className="opacity-70">
+                      (principal ${earned.principal.toFixed(2)} · rendimento{" "}
+                      <span className="text-emerald-500">${earned.earned.toFixed(2)}</span>)
+                    </span>
+                  </>
+                )}
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleWithdraw}
-                disabled={isStaking}
-                className="cursor-pointer"
-              >
-                {stakePhase === "withdraw" ? "sacando…" : "Sacar tudo"}
-              </Button>
+              <div className="flex items-center gap-2">
+                {earned && earned.earned >= CLAIM_FLOOR_USD && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClaim}
+                    disabled={isStaking}
+                    className="cursor-pointer"
+                  >
+                    {stakePhase === "claim" ? "sacando…" : `Sacar rendimento ($${earned.earned.toFixed(2)})`}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleWithdraw}
+                  disabled={isStaking}
+                  className="cursor-pointer"
+                >
+                  {stakePhase === "withdraw" ? "sacando…" : "Sacar tudo"}
+                </Button>
+              </div>
             </div>
           )}
           <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">

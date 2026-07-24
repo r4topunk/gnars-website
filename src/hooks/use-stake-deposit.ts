@@ -29,6 +29,10 @@ const vaultAbi = [{
   // can't leave a rounding remainder that reverts a "withdraw everything".
   type: "function", name: "redeem", stateMutability: "nonpayable",
   inputs: [{ type: "uint256" }, { type: "address" }, { type: "address" }], outputs: [{ type: "uint256" }],
+}, {
+  // Withdraw by assets — used to pull only the earned amount, leaving principal.
+  type: "function", name: "withdraw", stateMutability: "nonpayable",
+  inputs: [{ type: "uint256" }, { type: "address" }, { type: "address" }], outputs: [{ type: "uint256" }],
 }] as const;
 
 // Reads used to skip a redundant approve and to refuse deposits that would
@@ -36,7 +40,7 @@ const vaultAbi = [{
 const ALLOWANCE = "function allowance(address owner, address spender) view returns (uint256)" as const;
 const PREVIEW_DEPOSIT = "function previewDeposit(uint256 assets) view returns (uint256)" as const;
 
-export type StakePhase = "idle" | "approve" | "deposit" | "withdraw" | "done" | "error";
+export type StakePhase = "idle" | "approve" | "deposit" | "withdraw" | "claim" | "done" | "error";
 
 export function useStakeDeposit() {
   const writer = useWriteAccount();
@@ -160,12 +164,52 @@ export function useStakeDeposit() {
     [writer],
   );
 
+  /**
+   * Withdraw only the earned amount (in USDC micro-units), leaving the principal
+   * staked and still earning. The yield lives in the share price, so this burns
+   * just the shares worth `earnedRaw`.
+   */
+  const claimRewards = useCallback(
+    async (vault: Address, earnedRaw: bigint): Promise<boolean> => {
+      if (pending.current) return false;
+      const client = getThirdwebClient();
+      if (!client) { setError("Thirdweb não configurado."); setPhase("error"); return false; }
+      if (!writer) { setError("Conecte a carteira."); setPhase("error"); return false; }
+      if (earnedRaw <= BigInt(0)) { setError("Sem rendimento pra sacar."); setPhase("error"); return false; }
+
+      const account = writer.account;
+      setError(null);
+      pending.current = true;
+      try {
+        await ensureOnChain(writer.wallet, base);
+        setPhase("claim");
+        const data = encodeFunctionData({
+          abi: vaultAbi, functionName: "withdraw",
+          args: [earnedRaw, account.address as Address, account.address as Address],
+        });
+        const tx = prepareTransaction({ client, chain: base, to: vault, data });
+        const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
+        await waitForReceipt({ client, chain: base, transactionHash: hash });
+        setPhase("done");
+        return true;
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Falha ao sacar rendimento.");
+        setPhase("error");
+        return false;
+      } finally {
+        pending.current = false;
+      }
+    },
+    [writer],
+  );
+
   return {
     stake,
     withdrawAll,
+    claimRewards,
     phase,
     error,
-    isStaking: phase === "approve" || phase === "deposit" || phase === "withdraw",
+    isStaking: phase === "approve" || phase === "deposit" || phase === "withdraw" || phase === "claim",
     /** The account that deposits/withdraws — read positions for this one. */
     account: writer?.account.address ?? null,
   };
