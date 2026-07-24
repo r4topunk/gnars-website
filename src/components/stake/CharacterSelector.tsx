@@ -68,7 +68,7 @@ const CHARACTERS: Character[] = [
     hex: "#f59e0b",
     face: { size: "420%", pos: "50% 6%" },
     video: "https://ipfs.skatehive.app/ipfs/bafybeiapkdzwrh3tv2dhaxkefzcwtoxekjaryecapa7kpqcaifqgwux3c4",
-    stats: { speed: 9, air: 6, ollie: 7, spin: 5, rail: 8, flow: 9, devSkills: 10, creativity: 7 },
+    stats: { speed: 7, air: 5, ollie: 8, spin: 9, rail: 2, flow: 9, devSkills: 10, creativity: 9 },
   },
   {
     id: "yan",
