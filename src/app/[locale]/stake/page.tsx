@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CharacterSelector } from "@/components/stake/CharacterSelector";
 import { StakeAdminPanel } from "@/components/stake/StakeAdminPanel";
+import { STAKE_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 
 export async function generateMetadata({
   params,
@@ -33,6 +34,11 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: t("title"),
       description: t("description"),
+    },
+    // Farcaster mini app embed — without this /stake inherits the root default
+    // and launches the home miniapp instead of the rider select.
+    other: {
+      "fc:miniapp": JSON.stringify(STAKE_MINIAPP_EMBED_CONFIG),
     },
   };
 }
