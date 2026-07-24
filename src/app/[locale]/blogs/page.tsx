@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BlogsPageSkeleton } from "@/components/blogs/BlogsPageSkeleton";
 import { BlogsView } from "@/components/blogs/BlogsView";
 import { getAllBlogSummaries } from "@/services/blogs";
+import { BLOGS_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 
 export async function generateMetadata({
   params,
@@ -36,6 +37,10 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: t("title"),
       description: t("description"),
+    },
+    // Farcaster mini app embed — launch straight into the blog instead of home.
+    other: {
+      "fc:miniapp": JSON.stringify(BLOGS_MINIAPP_EMBED_CONFIG),
     },
   };
 }
