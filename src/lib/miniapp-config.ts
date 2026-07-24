@@ -372,3 +372,34 @@ export const BLOGS_MINIAPP_EMBED_CONFIG = {
     },
   },
 };
+
+/**
+ * Generic launch embed for routes that just need to open at their own URL
+ * instead of inheriting the root default (which launches the home mini app).
+ */
+export function launchMiniappEmbed(path: string, name: string, title: string) {
+  return {
+    version: "1" as const,
+    imageUrl: `${BASE_URL}/miniapp-image`,
+    button: {
+      title,
+      action: {
+        type: "launch_miniapp" as const,
+        name,
+        url: `${BASE_URL}${path}`,
+        splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
+        splashBackgroundColor: "#000000",
+      },
+    },
+  };
+}
+
+export const AUCTIONS_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/auctions", "Gnars Auctions", "View auction");
+export const TREASURY_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/treasury", "Gnars Treasury", "View treasury");
+export const COMMUNITY_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/community", "Gnars Community", "Explore community");
+export const STORE_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/store", "Gnars Store", "Shop Gnars");
+export const FEED_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/feed", "Gnars Feed", "Open the feed");
+export const PROPOSE_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/propose", "Gnars Propose", "Create a proposal");
+export const ROUNDS_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/rounds", "Gnars Rounds", "View rounds");
+export const ABOUT_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/about", "About Gnars", "About Gnars");
+export const PROPDATES_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/propdates", "Gnars Propdates", "View propdates");
