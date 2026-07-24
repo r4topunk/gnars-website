@@ -14,13 +14,26 @@ import { useCallback, useRef, useState } from "react";
 import { prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
 import { ethereum } from "thirdweb/chains";
 import {
-  createPublicClient, http, fallback, encodeFunctionData, parseUnits, erc20Abi, type Address,
+  createPublicClient, http, fallback, encodeFunctionData, encodeAbiParameters, parseUnits, erc20Abi, type Address,
 } from "viem";
 import { mainnet } from "viem/chains";
 import { useWriteAccount } from "@/hooks/use-write-account";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { getThirdwebClient } from "@/lib/thirdweb";
-import { MORPHEUS_POOLS, MOR_REWARD_POOL_INDEX, depositPoolAbi, type MorpheusAsset } from "@/lib/morpheus";
+import {
+  MORPHEUS_POOLS, MOR_REWARD_POOL_INDEX, depositPoolAbi, type MorpheusAsset,
+  L1_SENDER, LZ_GATEWAY, LZ_DST_CHAIN_ID, LZ_ADAPTER_PARAMS, lzEndpointAbi,
+} from "@/lib/morpheus";
+
+/** Quote the LayerZero native fee for a claim (payload is fixed-size, so amount is nominal). */
+async function quoteClaimFee(user: Address, amount: bigint): Promise<bigint> {
+  const payload = encodeAbiParameters([{ type: "address" }, { type: "uint256" }], [user, amount]);
+  const [nativeFee] = await rpc.readContract({
+    address: LZ_GATEWAY, abi: lzEndpointAbi, functionName: "estimateFees",
+    args: [LZ_DST_CHAIN_ID, L1_SENDER, payload, false, LZ_ADAPTER_PARAMS],
+  });
+  return (nativeFee * BigInt(120)) / BigInt(100); // +20% margin; excess is refunded on-chain
+}
 
 const rpc = createPublicClient({
   chain: mainnet,
@@ -42,7 +55,7 @@ async function waitForAllowance(token: Address, owner: Address, spender: Address
   }
 }
 
-export type MorpheusPhase = "idle" | "approve" | "stake" | "withdraw" | "done" | "error";
+export type MorpheusPhase = "idle" | "approve" | "stake" | "withdraw" | "claim" | "done" | "error";
 
 export function useMorpheusStake() {
   const writer = useWriteAccount();
@@ -141,5 +154,48 @@ export function useMorpheusStake() {
     [writer],
   );
 
-  return { stake, withdraw, phase, error, isBusy: phase === "approve" || phase === "stake" || phase === "withdraw" };
+  /**
+   * Claim accrued MOR to `receiver` (own wallet for self-claim, or a Gnars/athlete
+   * split for donate mode). Pays the quoted LayerZero fee; excess is refunded.
+   */
+  const claim = useCallback(
+    async (asset: MorpheusAsset, receiver: Address): Promise<boolean> => {
+      if (pending.current) return false;
+      const client = getThirdwebClient();
+      if (!client) { setError("Thirdweb not configured."); setPhase("error"); return false; }
+      if (!writer) { setError("Connect your wallet."); setPhase("error"); return false; }
+      const { pool } = MORPHEUS_POOLS[asset];
+      const account = writer.account;
+      setError(null);
+      pending.current = true;
+      try {
+        await ensureOnChain(writer.wallet, ethereum);
+        setPhase("claim");
+        const pending_ = await rpc.readContract({
+          address: pool, abi: depositPoolAbi, functionName: "getLatestUserReward",
+          args: [MOR_REWARD_POOL_INDEX, account.address as Address],
+        });
+        if (pending_ <= BigInt(0)) { setError("No MOR to claim yet."); setPhase("error"); return false; }
+        const fee = await quoteClaimFee(account.address as Address, pending_);
+        const data = encodeFunctionData({ abi: depositPoolAbi, functionName: "claim", args: [MOR_REWARD_POOL_INDEX, receiver] });
+        const tx = prepareTransaction({ client, chain: ethereum, to: pool, data, value: fee });
+        const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
+        await waitForReceipt({ client, chain: ethereum, transactionHash: hash });
+        setPhase("done");
+        return true;
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Claim failed.");
+        setPhase("error");
+        return false;
+      } finally {
+        pending.current = false;
+      }
+    },
+    [writer],
+  );
+
+  return {
+    stake, withdraw, claim, phase, error,
+    isBusy: phase === "approve" || phase === "stake" || phase === "withdraw" || phase === "claim",
+  };
 }

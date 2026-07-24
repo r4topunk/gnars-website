@@ -25,7 +25,7 @@ const fmt = (n: number, d = 4) => n.toLocaleString("en-US", { maximumFractionDig
 export function MorpheusPanel() {
   const account = useActiveAccount();
   const you = account?.address;
-  const { stake, withdraw, phase, error, isBusy } = useMorpheusStake();
+  const { stake, withdraw, claim, phase, error, isBusy } = useMorpheusStake();
   const [refresh, setRefresh] = useState(0);
   const position = useMorpheusPosition(you, refresh);
 
@@ -50,6 +50,15 @@ export function MorpheusPanel() {
     const ok = await withdraw(a, String(staked));
     if (ok) { toast.success("Withdrawn"); setRefresh((n) => n + 1); }
     else toast.error("Withdraw failed", { description: error ?? undefined });
+  };
+
+  const onClaim = async (a: MorpheusAsset) => {
+    if (!you) return;
+    // Self-claim to your own address on Arbitrum. Donate-to-split comes with the
+    // Arbitrum splits (needs the SOPA Safe deployed there).
+    const ok = await claim(a, you as `0x${string}`);
+    if (ok) { toast.success("MOR claimed", { description: "Arriving on Arbitrum in a few minutes." }); setRefresh((n) => n + 1); }
+    else toast.error("Claim failed", { description: error ?? undefined });
   };
 
   const phaseLabel =
@@ -127,14 +136,21 @@ export function MorpheusPanel() {
           <div className="space-y-2 border-t border-border/40 pt-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your Morpheus positions</p>
             {position.pools.filter((p) => p.staked > 0).map((p) => (
-              <div key={p.asset} className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-sm">
+              <div key={p.asset} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-sm">
                 <span className="font-mono">{fmt(p.staked, 4)} {p.symbol}</span>
                 <span className="text-xs text-muted-foreground">
                   {p.pendingMor > 0 ? `${fmt(p.pendingMor, 4)} MOR pending` : "MOR accruing"}
                 </span>
-                <Button size="sm" variant="outline" disabled={isBusy} onClick={() => onWithdraw(p.asset, p.staked)}>
-                  Withdraw
-                </Button>
+                <div className="flex gap-2">
+                  {p.pendingMor > 0 && (
+                    <Button size="sm" disabled={isBusy} onClick={() => onClaim(p.asset)} className="bg-violet-500 text-white hover:bg-violet-600">
+                      {phase === "claim" ? "claiming…" : "Claim MOR"}
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" disabled={isBusy} onClick={() => onWithdraw(p.asset, p.staked)}>
+                    Withdraw
+                  </Button>
+                </div>
               </div>
             ))}
             <p className="text-[11px] text-muted-foreground">
