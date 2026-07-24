@@ -65,6 +65,90 @@ export function useVaultPosition(
   return pos;
 }
 
+type DecodedParam = { name?: string; value?: unknown };
+type LogItem = { decoded?: { method_call?: string; parameters?: DecodedParam[] } | null };
+
+/** Net principal an account put in: sum of its Deposit assets minus Withdraw assets. */
+async function principalFromLogs(vault: Address, account: string): Promise<bigint> {
+  const res = await fetch(`https://base.blockscout.com/api/v2/addresses/${vault}/logs`, {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(9000),
+  });
+  if (!res.ok) return BigInt(0);
+  const json = (await res.json()) as { items?: LogItem[] };
+  const me = account.toLowerCase();
+  let principal = BigInt(0);
+  for (const log of json.items ?? []) {
+    const call = log.decoded?.method_call ?? "";
+    const params = log.decoded?.parameters ?? [];
+    const owner = params.find((p) => p.name === "owner")?.value;
+    if (typeof owner !== "string" || owner.toLowerCase() !== me) continue;
+    const assets = params.find((p) => p.name === "assets")?.value;
+    if (typeof assets !== "string" && typeof assets !== "number") continue;
+    const amt = BigInt(assets);
+    if (call.startsWith("Deposit(")) principal += amt;
+    else if (call.startsWith("Withdraw(")) principal -= amt;
+  }
+  return principal > BigInt(0) ? principal : BigInt(0);
+}
+
+export type VaultEarned = {
+  /** Current position value, USDC. */
+  current: number;
+  /** Net deposited, USDC. */
+  principal: number;
+  /** current − principal, floored at 0, USDC. */
+  earned: number;
+  /** Raw earned in USDC micro-units, for the withdraw call. */
+  earnedRaw: bigint;
+  shares: bigint;
+};
+
+/**
+ * Splits a position into principal vs earned. Principal isn't stored per-user
+ * on-chain, so it's reconstructed from the account's Deposit/Withdraw events;
+ * the current value is read from the contract. `nonce` forces a refetch.
+ */
+export function useVaultEarned(vault?: Address, account?: string, nonce = 0): VaultEarned | null {
+  const [data, setData] = useState<VaultEarned | null>(null);
+
+  useEffect(() => {
+    if (!vault || !account) { setData(null); return; }
+    let cancelled = false;
+    setData(null);
+    (async () => {
+      try {
+        const shares = await client.readContract({
+          address: vault, abi, functionName: "balanceOf", args: [account as Address],
+        });
+        if (cancelled) return;
+        if (shares === BigInt(0)) {
+          setData({ current: 0, principal: 0, earned: 0, earnedRaw: BigInt(0), shares: BigInt(0) });
+          return;
+        }
+        const [currentRaw, principalRaw] = await Promise.all([
+          client.readContract({ address: vault, abi, functionName: "convertToAssets", args: [shares] }),
+          principalFromLogs(vault, account),
+        ]);
+        if (cancelled) return;
+        const earnedRaw = currentRaw > principalRaw ? currentRaw - principalRaw : BigInt(0);
+        setData({
+          current: Number(formatUnits(currentRaw, 6)),
+          principal: Number(formatUnits(principalRaw, 6)),
+          earned: Number(formatUnits(earnedRaw, 6)),
+          earnedRaw,
+          shares,
+        });
+      } catch {
+        if (!cancelled) setData(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [vault, account, nonce]);
+
+  return data;
+}
+
 export function useVaultTotal(vault?: Address): number | null {
   const [total, setTotal] = useState<number | null>(null);
 
