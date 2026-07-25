@@ -35,6 +35,9 @@ const GOLD = "#f7c948";
 // Morpheus green — MOR stakes get their own colored stream, distinct from the
 // rider-tinted Morpho vault flows, so a wallet that backs both shows two lines.
 const MOR_GREEN = "#2be58b";
+// Real protocol logos, marking each backer node by where they staked.
+const MORPHO_LOGO = "/logos/morpho.webp";
+const MORPHEUS_LOGO = "/logos/morpheus.webp";
 
 const W = 760;
 const C = W / 2;
@@ -138,16 +141,13 @@ export function StakeOrbit() {
 
       <div className="mb-3 flex flex-wrap items-center gap-4 text-[11px] text-white/50">
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-white/60" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={MORPHO_LOGO} alt="" className="h-4 w-4 rounded-full" />
           {t("orbit.legendVault")}
         </span>
         <span className="flex items-center gap-1.5">
-          <span
-            className="flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-black text-[#04140d]"
-            style={{ background: MOR_GREEN }}
-          >
-            M
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={MORPHEUS_LOGO} alt="" className="h-4 w-4 rounded-full" />
           {t("orbit.legendMor")}
         </span>
       </div>
@@ -204,18 +204,25 @@ export function StakeOrbit() {
                       <text x={mid.x} y={mid.y - 4} textAnchor="middle" fontSize="11" fontWeight="700" fill="#fff" style={{ paintOrder: "stroke", stroke: "#0c0a08", strokeWidth: 3 }}>
                         {usd(b.amount)}
                       </text>
-                      {/* backer node — MOR stakes carry the green Morpheus "M" mark */}
-                      <circle
-                        cx={bp.x} cy={bp.y} r={isYou ? 9 : 7}
-                        fill={isMor ? col : isYou ? GOLD : "#0c0a08"}
-                        stroke={isYou ? GOLD : col}
-                        strokeWidth={2}
-                      />
-                      {isMor && (
-                        <text x={bp.x} y={bp.y + 3} textAnchor="middle" fontSize="9" fontWeight="900" fill="#04140d">
-                          M
-                        </text>
-                      )}
+                      {/* backer node — the real protocol logo (Morpho or Morpheus) */}
+                      {(() => {
+                        const r = isYou ? 12 : 10;
+                        return (
+                          <>
+                            <foreignObject x={bp.x - r} y={bp.y - r} width={r * 2} height={r * 2}>
+                              <div
+                                style={{
+                                  width: "100%", height: "100%", borderRadius: "50%",
+                                  backgroundColor: "#0c0a08",
+                                  backgroundImage: `url(${isMor ? MORPHEUS_LOGO : MORPHO_LOGO})`,
+                                  backgroundSize: "cover", backgroundPosition: "center",
+                                }}
+                              />
+                            </foreignObject>
+                            <circle cx={bp.x} cy={bp.y} r={r} fill="none" stroke={isYou ? GOLD : col} strokeWidth={2} />
+                          </>
+                        );
+                      })()}
                       <text x={bp.x} y={bp.y + (bp.y < C ? -14 : 20)} textAnchor="middle" fontSize="9.5" fill={isYou ? GOLD : "rgba(255,255,255,.55)"} fontFamily="monospace" fontWeight={isYou ? 700 : 400}>
                         {isYou ? t("orbit.you") : nameOrShort(b.address, ensNames)}
                       </text>
