@@ -123,6 +123,18 @@
     "principal": "principal",
     "yield": "yield"
   },
+  "lootbox": {
+    "title": "Rewards ready",
+    "claim": "Claim",
+    "claiming": "claiming…",
+    "distribute": "Split",
+    "distributing": "splitting…",
+    "bridging": "MOR claimed — bridging to Arbitrum (~a few min). Come back to Split it.",
+    "claimedTitle": "MOR claimed",
+    "distributedTitle": "MOR split — you kept 50%",
+    "failed": "Didn’t go through",
+    "hint": "You keep 50% · Gnars 25% · athlete 25%"
+  },
   "admin": {
     "title": "Sponsorship vaults",
     "desc": "One Morpho vault per rider. Deposits earn on Moonwell; half the yield becomes a fee split Gnars 25% / athlete 25% (the depositor keeps 50%). Owner = SOPA Safe. You sign the deploy and the batch — 1 of the Safe’s 2 confirmations.",

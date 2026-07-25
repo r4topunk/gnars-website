@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { RIDER_LIST } from "@/lib/gnars-vaults";
-import { MORPHEUS_POOLS, MOR_SPLITS, type MorpheusAsset } from "@/lib/morpheus";
+import { MORPHEUS_POOLS, type MorpheusAsset } from "@/lib/morpheus";
 import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
 import { useMorpheusPosition } from "@/hooks/use-morpheus-position";
 
@@ -25,7 +25,7 @@ const fmt = (n: number, d = 4) => n.toLocaleString("en-US", { maximumFractionDig
 export function MorpheusPanel() {
   const account = useActiveAccount();
   const you = account?.address;
-  const { stake, withdraw, claim, setDonateReceiver, phase, error, isBusy } = useMorpheusStake();
+  const { stake, withdraw, phase, error, isBusy } = useMorpheusStake();
   const [refresh, setRefresh] = useState(0);
   const position = useMorpheusPosition(you, refresh);
 
@@ -52,37 +52,10 @@ export function MorpheusPanel() {
     else toast.error("Withdraw failed", { description: error ?? undefined });
   };
 
-  const onClaim = async (a: MorpheusAsset) => {
-    if (!you) return;
-    // Route to the picked rider's split if the user turned donate mode on for
-    // this pool; otherwise self-claim to their own Arbitrum address.
-    const split = MOR_SPLITS[riderId];
-    const receiver = donateAssets[a] && split ? split : (you as `0x${string}`);
-    const ok = await claim(a, receiver);
-    if (ok) {
-      toast.success("MOR claimed", { description: receiver === split ? `Split to Gnars + ${riderId} on Arbitrum.` : "Arriving on Arbitrum in a few minutes." });
-      setRefresh((n) => n + 1);
-    } else toast.error("Claim failed", { description: error ?? undefined });
-  };
-
-  // Which pools the user has flipped into donate mode (points claims at the split).
-  const [donateAssets, setDonateAssets] = useState<Partial<Record<MorpheusAsset, boolean>>>({});
-  const onDonateToggle = async (a: MorpheusAsset) => {
-    const split = MOR_SPLITS[riderId];
-    if (!split || !you) return;
-    const turningOn = !donateAssets[a];
-    const ok = await setDonateReceiver(a, turningOn ? split : (you as `0x${string}`));
-    if (ok) {
-      setDonateAssets((d) => ({ ...d, [a]: turningOn }));
-      toast.success(turningOn ? `Donating MOR to Gnars + ${riderId}` : "Keeping your MOR", {
-        description: turningOn ? "Future claims route to the split — anyone can trigger them." : "Claims go back to your wallet.",
-      });
-    } else toast.error("Failed", { description: error ?? undefined });
-  };
-
   const phaseLabel =
     phase === "approve" ? `approving ${MORPHEUS_POOLS[asset].symbol}…`
     : phase === "stake" ? "staking on mainnet…"
+    : phase === "setReceiver" ? "linking reward split…"
     : phase === "withdraw" ? "withdrawing…"
     : `Stake ${MORPHEUS_POOLS[asset].symbol}`;
 
@@ -146,7 +119,8 @@ export function MorpheusPanel() {
 
         <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-400" />
-          Principal is yours, withdrawable after a 7-day lock. MOR arrives on Arbitrum; claiming it comes next.
+          Principal is yours, withdrawable after a 7-day lock. Your MOR routes to a 3-way split
+          (you 50% · Gnars 25% · athlete 25%) — collect it from the floating reward box.
           Start small — mainnet gas can rival a small stake.
         </p>
 
@@ -161,23 +135,6 @@ export function MorpheusPanel() {
                   {p.pendingMor > 0 ? `${fmt(p.pendingMor, 4)} MOR pending` : "MOR accruing"}
                 </span>
                 <div className="flex flex-wrap gap-2">
-                  {MOR_SPLITS[riderId] && (
-                    <Button
-                      size="sm"
-                      variant={donateAssets[p.asset] ? "default" : "outline"}
-                      disabled={isBusy}
-                      onClick={() => onDonateToggle(p.asset)}
-                      className={donateAssets[p.asset] ? "bg-violet-500 text-white hover:bg-violet-600" : ""}
-                      title={`Route this position's MOR to Gnars + ${riderId}`}
-                    >
-                      {donateAssets[p.asset] ? `donating → ${riderId}` : "Donate MOR"}
-                    </Button>
-                  )}
-                  {p.pendingMor > 0 && (
-                    <Button size="sm" disabled={isBusy} onClick={() => onClaim(p.asset)} className="bg-violet-500 text-white hover:bg-violet-600">
-                      {phase === "claim" ? "claiming…" : "Claim MOR"}
-                    </Button>
-                  )}
                   <Button size="sm" variant="outline" disabled={isBusy} onClick={() => onWithdraw(p.asset, p.staked)}>
                     Withdraw
                   </Button>

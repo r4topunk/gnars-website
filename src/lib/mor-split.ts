@@ -13,10 +13,10 @@
 // nobody can rewrite a staker's split.
 
 import {
-  createPublicClient, http, fallback, getAddress, type Address,
+  createPublicClient, http, fallback, getAddress, erc20Abi, formatUnits, type Address,
 } from "viem";
 import { arbitrum } from "viem/chains";
-import { ARBITRUM_PUSH_SPLIT_FACTORY, MOR_TOKEN, MOR_GNARS_RECIPIENT } from "@/lib/morpheus";
+import { ARBITRUM_PUSH_SPLIT_FACTORY, MOR_TOKEN, MOR_DECIMALS, MOR_GNARS_RECIPIENT } from "@/lib/morpheus";
 
 export const SPLIT_TOTAL_ALLOCATION = BigInt(1_000_000);
 /** staker 50% / Gnars 25% / athlete 25% (of 1,000,000). */
@@ -106,4 +106,17 @@ export async function isSplitDeployed(staker: Address, athlete: Address): Promis
     args: [splitParamsFor(staker, athlete), SPLIT_OWNER, SPLIT_SALT],
   });
   return exists;
+}
+
+/** MOR sitting at a staker's split on Arbitrum, waiting to be distributed. */
+export async function splitMorBalance(staker: Address, athlete: Address): Promise<number> {
+  try {
+    const split = await predictSplitAddress(staker, athlete);
+    const bal = await arbitrumClient.readContract({
+      address: MOR_TOKEN, abi: erc20Abi, functionName: "balanceOf", args: [split],
+    });
+    return Number(formatUnits(bal, MOR_DECIMALS));
+  } catch {
+    return 0;
+  }
 }

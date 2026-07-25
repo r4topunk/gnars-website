@@ -27,6 +27,7 @@ import {
   MORPHEUS_POOLS, MORPHEUS_DISTRIBUTOR, MOR_REWARD_POOL_INDEX, depositPoolAbi, type MorpheusAsset,
   L1_SENDER, LZ_GATEWAY, LZ_DST_CHAIN_ID, LZ_ADAPTER_PARAMS, lzEndpointAbi,
 } from "@/lib/morpheus";
+import { predictSplitAddress } from "@/lib/mor-split";
 
 /** Quote the LayerZero native fee for a claim (payload is fixed-size, so amount is nominal). */
 async function quoteClaimFee(user: Address, amount: bigint): Promise<bigint> {
@@ -78,7 +79,7 @@ async function confirmAllowance(
   return false;
 }
 
-export type MorpheusPhase = "idle" | "approve" | "stake" | "withdraw" | "claim" | "done" | "error";
+export type MorpheusPhase = "idle" | "approve" | "stake" | "setReceiver" | "withdraw" | "claim" | "done" | "error";
 
 export function useMorpheusStake() {
   const writer = useWriteAccount();
@@ -140,6 +141,19 @@ export function useMorpheusStake() {
         let stakeHash: `0x${string}`;
         try { stakeHash = await sendStake(); } catch { await sleep(4000); stakeHash = await sendStake(); }
         await waitForReceipt({ client, chain: ethereum, transactionHash: stakeHash });
+
+        // Route this position's MOR to the staker's deterministic 3-way split by
+        // default (opt-out): staker 50 / Gnars 25 / athlete 25. Only the staker
+        // can set their own receiver, so this is a 2nd signature. Non-fatal: the
+        // stake already succeeded, and the receiver can also be set at claim time.
+        try {
+          setPhase("setReceiver");
+          const split = await predictSplitAddress(account.address as Address, athlete);
+          const rData = encodeFunctionData({ abi: depositPoolAbi, functionName: "setClaimReceiver", args: [MOR_REWARD_POOL_INDEX, split] });
+          const rTx = prepareTransaction({ client, chain: ethereum, to: pool, data: rData });
+          const rHash = (await sendTransaction({ account, transaction: rTx })).transactionHash;
+          await waitForReceipt({ client, chain: ethereum, transactionHash: rHash });
+        } catch { /* receiver not set; claim can still target the split explicitly */ }
 
         setPhase("done");
         return true;
@@ -267,6 +281,6 @@ export function useMorpheusStake() {
 
   return {
     stake, withdraw, claim, setDonateReceiver, phase, error,
-    isBusy: phase === "approve" || phase === "stake" || phase === "withdraw" || phase === "claim",
+    isBusy: phase === "approve" || phase === "stake" || phase === "setReceiver" || phase === "withdraw" || phase === "claim",
   };
 }
