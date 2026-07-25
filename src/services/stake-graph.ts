@@ -143,12 +143,9 @@ const ETHERSCAN_KEY = process.env.ETHERSCAN_API_KEY || process.env.BASESCAN_API_
 const USER_REFERRED_SIG = keccak256(toHex("UserReferred(uint256,address,address,uint256)"));
 const pad32 = (a: Address) => `0x000000000000000000000000${a.slice(2).toLowerCase()}`;
 
-// Temporary: capture the last Etherscan response so /api/stake-graph can expose
-// why the MOR scan came back empty (rate limit vs bad key vs no records).
-let _morNote = "init";
-export function lastMorNote() { return _morNote; }
-
-/** A rider's referred stakes on a pool, straight from the UserReferred events. */
+/** A rider's referred stakes on a pool, straight from the UserReferred events.
+ * Needs a mainnet-capable Etherscan key (a Basescan-only key returns NOTOK for
+ * chainid=1) — set ETHERSCAN_API_KEY in the env. */
 async function etherscanReferred(pool: Address, referrer: Address, key: string): Promise<Array<{ user: Address; amount: bigint }>> {
   const url =
     `https://api.etherscan.io/v2/api?chainid=1&module=logs&action=getLogs&address=${pool}` +
@@ -158,13 +155,12 @@ async function etherscanReferred(pool: Address, referrer: Address, key: string):
     try {
       const res = await fetch(url, { cache: "no-store" });
       const j = (await res.json()) as { status?: string; message?: string; result?: unknown };
-      _morNote = `${j.status ?? "?"}|${String(j.message ?? "?").slice(0, 30)}|${Array.isArray(j.result) ? `n=${j.result.length}` : String(j.result).slice(0, 70)}`;
       if (j.status === "1" && Array.isArray(j.result)) {
         return (j.result as Array<{ topics: string[]; data: string }>).map((l) => ({ user: getAddress(`0x${l.topics[2].slice(26)}`), amount: BigInt(l.data) }));
       }
       if (typeof j.message === "string" && /rate limit/i.test(j.message)) { await sleep(500); continue; }
-      return []; // "No records found"
-    } catch (e) { _morNote = `throw|${String(e).slice(0, 40)}`; await sleep(300); }
+      return []; // "No records found" / bad key
+    } catch { await sleep(300); }
   }
   return [];
 }
