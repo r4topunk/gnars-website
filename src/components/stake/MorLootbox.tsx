@@ -57,7 +57,10 @@ export function MorLootbox() {
   const pools = position?.pools ?? [];
   const claimable = pools.filter((p) => p.pendingMor > LOOT_MIN_MOR && p.referrer && p.referrer.toLowerCase() !== ZERO);
   const distributable = pools.filter((p) => (splitBalances[p.asset] ?? 0) > LOOT_MIN_MOR);
-  const hasAction = claimable.length > 0 || distributable.length > 0;
+  const stakedPools = pools.filter((p) => p.staked > 0);
+  // The box surfaces whenever there's any MOR to act on — rewards to collect OR
+  // a principal position to manage (withdraw after the 7-day lock).
+  const hasAction = claimable.length > 0 || distributable.length > 0 || stakedPools.length > 0;
 
   const refresh = () => setNonce((n) => n + 1);
 
@@ -97,6 +100,20 @@ export function MorLootbox() {
       }
     },
     [distribute, t],
+  );
+
+  const onWithdraw = useCallback(
+    async (asset: MorpheusAsset, staked: number) => {
+      setBusyAsset(asset);
+      try {
+        const ok = await morpheus.withdraw(asset, String(staked));
+        if (ok) { toast.success(t("lootbox.withdrawn")); refresh(); }
+        else toast.error(t("lootbox.failed"), { description: morpheus.error ?? undefined });
+      } finally {
+        setBusyAsset(null);
+      }
+    },
+    [morpheus, t],
   );
 
   if (!you || !hasAction) return null;
@@ -162,6 +179,40 @@ export function MorLootbox() {
                 </div>
               ))}
             </div>
+
+            {stakedPools.length > 0 && (
+              <div className="mt-3 border-t border-border/40 pt-3">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-foreground-subtle">
+                  {t("lootbox.positions")}
+                </p>
+                <div className="space-y-2">
+                  {stakedPools.map((p) => {
+                    const unlocked = p.unlockAt > 0 && Date.now() / 1000 >= p.unlockAt;
+                    return (
+                      <div key={`w-${p.asset}`} className="flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-surface-elevated px-3 py-2">
+                        <span className="text-xs text-foreground-muted">
+                          <b className="font-mono text-foreground">{fmt(p.staked)}</b> {p.symbol}
+                          {!unlocked && p.unlockAt > 0 && (
+                            <span className="ml-1 text-foreground-subtle">
+                              · {t("lootbox.locked", { date: new Date(p.unlockAt * 1000).toLocaleDateString() })}
+                            </span>
+                          )}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!unlocked || busyAsset === p.asset || morpheus.isBusy}
+                          onClick={() => onWithdraw(p.asset, p.staked)}
+                          className="h-7"
+                        >
+                          {busyAsset === p.asset && morpheus.phase === "withdraw" ? t("lootbox.withdrawing") : t("lootbox.withdraw")}
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <p className="mt-3 text-[11px] leading-snug text-foreground-subtle">{t("lootbox.hint")}</p>
           </motion.div>

@@ -134,7 +134,12 @@
     "claimedTitle": "MOR claimed",
     "distributedTitle": "MOR split — you kept 50%",
     "failed": "Didn’t go through",
-    "hint": "You keep 50% · Gnars 25% · athlete 25%"
+    "hint": "You keep 50% · Gnars 25% · athlete 25%",
+    "positions": "Your Morpheus stake",
+    "withdraw": "Withdraw",
+    "withdrawing": "withdrawing…",
+    "withdrawn": "Withdrawn",
+    "locked": "unlocks {date}"
   },
   "admin": {
     "title": "Sponsorship vaults",
