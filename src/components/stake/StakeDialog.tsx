@@ -37,7 +37,7 @@ interface Opp {
 }
 const OPPS: Opp[] = [
   { id: "vault-usdc", kind: "vault", asset: "usdc", unit: "USDC", labelKey: "opp.vaultUsdc", venue: "Morpho", logo: MORPHO_LOGO, presets: [100, 500, 1000, 5000], default: "1000" },
-  { id: "mor-steth", kind: "mor", asset: "steth", unit: "stETH", labelKey: "opp.morSteth", venue: "Morpheus", logo: MORPHEUS_LOGO, presets: [0.01, 0.1, 0.5, 1], default: "0.1" },
+  { id: "mor-steth", kind: "mor", asset: "steth", unit: "stETH", labelKey: "opp.morSteth", venue: "Morpheus", logo: MORPHEUS_LOGO, presets: [0.011, 0.1, 0.5, 1], default: "0.011" },
   { id: "mor-usdc", kind: "mor", asset: "usdc", unit: "USDC", labelKey: "opp.morUsdc", venue: "Morpheus", logo: MORPHEUS_LOGO, presets: [100, 500, 1000, 5000], default: "1000" },
 ];
 
