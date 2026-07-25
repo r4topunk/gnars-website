@@ -72,7 +72,8 @@
     "treasury": "TESOURO",
     "earnedForTreasury": "Rendeu pro tesouro",
     "legendVault": "Vault Morpho",
-    "legendMor": "Morpheus · MOR"
+    "legendMor": "Morpheus · MOR",
+    "backToAll": "Todos os riders"
   },
   "backing": "<b>{amount}</b> apoiando {name}",
   "loadingSupport": "carregando apoio…",
