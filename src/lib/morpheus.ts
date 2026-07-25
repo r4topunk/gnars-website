@@ -61,6 +61,15 @@ export const MOR_DECIMALS = 18;
 export const ARBITRUM_PULL_SPLIT_FACTORY = getAddress("0x6B9118074aB15142d7524E8c4ea8f62A3Bdb98f1");
 
 /**
+ * 0xSplits SplitV2 **PushSplitFactory** on Arbitrum — verified live (has code;
+ * SPLIT_WALLET_IMPLEMENTATION 0x6291…1b99). Push (not Pull) so `distribute`
+ * delivers the MOR straight to each recipient's wallet instead of parking it in
+ * the SplitsWarehouse for a separate withdraw. Used for the per-staker 3-way
+ * reward splits (staker 50 / Gnars 25 / athlete 25).
+ */
+export const ARBITRUM_PUSH_SPLIT_FACTORY = getAddress("0x80f1B766817D04870f115fEBbcCADF8DBF75E017");
+
+/**
  * The Gnars reward recipient on Arbitrum — a dedicated 3-of-3 multisig. NOT the
  * Base treasury (0x72ad…6f88, a Nouns timelock with no code on Arbitrum, where
  * MOR would be permanently stuck). Recipient of the Gnars half of every athlete
