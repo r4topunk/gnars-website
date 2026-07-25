@@ -12,7 +12,7 @@ import type { RiderId } from "@/lib/gnars-vaults";
 // straight into the array. Keep them short (they type out one character at a
 // time in a small bubble).
 export const RIDER_LINES: Record<RiderId, string[]> = {
-  vlad: [],
+  vlad: ["If you stake with me, you can always ask a puff of my joints"],
   yan: [],
   r4to: [],
   pamtech: [],

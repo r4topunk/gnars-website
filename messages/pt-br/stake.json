@@ -71,6 +71,7 @@
     "loading": "carregando o fluxo…",
     "treasury": "TESOURO",
     "earnedForTreasury": "Rendeu pro tesouro",
+    "fee": "taxa",
     "legendVault": "Vault Morpho",
     "legendMor": "Morpheus · MOR",
     "backToAll": "Todos os riders"

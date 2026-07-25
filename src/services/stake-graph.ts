@@ -10,10 +10,13 @@
 //  - MOR log scans and usersData reads are parallelized + multicalled.
 //  - The API route wraps this with s-maxage + stale-while-revalidate.
 
-import { createPublicClient, http, fallback, formatUnits, getAddress, type Address } from "viem";
+import { createPublicClient, http, fallback, formatUnits, getAddress, erc20Abi, type Address } from "viem";
 import { base, mainnet } from "viem/chains";
 import { RIDER_LIST, type RiderId } from "@/lib/gnars-vaults";
-import { MORPHEUS_POOLS, MOR_REWARD_POOL_INDEX, depositPoolAbi } from "@/lib/morpheus";
+import {
+  MORPHEUS_POOLS, MOR_REWARD_POOL_INDEX, MOR_TOKEN, MOR_DECIMALS, MOR_GNARS_RECIPIENT, depositPoolAbi,
+} from "@/lib/morpheus";
+import { splitMorBalance, arbitrumClient } from "@/lib/mor-split";
 
 // Prefer Alchemy (reliable, handles large getLogs) when the key is set, since
 // the public RPCs frequently fail/timeout on the MOR log scan — and a swallowed
@@ -85,7 +88,14 @@ export type StakeGraph = {
   athletes: OrbitAthlete[];
   total: number;
   backerCount: number;
+  /** Gnars' share of the Morpho vault performance fee accrued so far, in USD. */
   gnarsAccrued: number;
+  /** MOR earned for the Gnars treasury (distributed + its 25% still in splits). */
+  gnarsMor: number;
+  /** That MOR valued in USD. */
+  gnarsMorUsd: number;
+  /** Total earned for the treasury in USD = vault fee + MOR value. */
+  treasuryUsd: number;
 };
 
 const ZERO = "0x0000000000000000000000000000000000000000";
@@ -199,9 +209,57 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
   return byRider;
 }
 
+async function getMorUsd(): Promise<number> {
+  try {
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/simple/token_price/arbitrum-one?contract_addresses=${MOR_TOKEN}&vs_currencies=usd`,
+      { next: { revalidate: 300 } },
+    );
+    if (!res.ok) return 0;
+    const j = (await res.json()) as Record<string, { usd?: number }>;
+    return j?.[MOR_TOKEN.toLowerCase()]?.usd ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * MOR earned for the Gnars treasury: what's already been distributed to the
+ * Gnars Arbitrum multisig, plus Gnars' 25% share still sitting undistributed in
+ * each staker's split. Best-effort — priced in USD via CoinGecko.
+ */
+async function gnarsMorEarned(morByRider: Record<string, OrbitBacker[]>): Promise<{ mor: number; usd: number }> {
+  const walletById = new Map<string, Address>();
+  for (const r of RIDER_LIST) if (r.wallet) walletById.set(r.id, r.wallet);
+
+  // Unique (staker, athlete) pairs → the per-staker splits holding MOR.
+  const pairs = new Map<string, [Address, Address]>();
+  for (const [id, backers] of Object.entries(morByRider)) {
+    const ref = walletById.get(id);
+    if (!ref) continue;
+    for (const b of backers) pairs.set(`${b.address}-${ref}`.toLowerCase(), [b.address, ref]);
+  }
+
+  try {
+    const [splitBals, directRaw, morUsd] = await Promise.all([
+      Promise.all([...pairs.values()].map(([s, a]) => splitMorBalance(s, a).catch(() => 0))),
+      arbitrumClient
+        .readContract({ address: MOR_TOKEN, abi: erc20Abi, functionName: "balanceOf", args: [MOR_GNARS_RECIPIENT] })
+        .then((b) => Number(formatUnits(b, MOR_DECIMALS)))
+        .catch(() => 0),
+      getMorUsd(),
+    ]);
+    const pendingGnars = splitBals.reduce((s, v) => s + v, 0) * 0.25; // Gnars = 25% of each split
+    const mor = pendingGnars + directRaw;
+    return { mor, usd: mor * morUsd };
+  } catch {
+    return { mor: 0, usd: 0 };
+  }
+}
+
 export async function getStakeGraph(): Promise<StakeGraph> {
   const live = RIDER_LIST.filter((r) => r.vault);
-  if (live.length === 0) return { athletes: [], total: 0, backerCount: 0, gnarsAccrued: 0 };
+  if (live.length === 0) return { athletes: [], total: 0, backerCount: 0, gnarsAccrued: 0, gnarsMor: 0, gnarsMorUsd: 0, treasuryUsd: 0 };
 
   const ethUsd = await getEthUsd();
   const [athletes, mor] = await Promise.all([
@@ -259,10 +317,16 @@ export async function getStakeGraph(): Promise<StakeGraph> {
 
   const distinct = new Set<string>();
   athletes.forEach((a) => a.backers.forEach((b) => distinct.add(b.address.toLowerCase())));
+
+  const gnarsAccrued = athletes.reduce((s, a) => s + a.feeAccrued, 0) / 2; // vault fee, USDC≈USD
+  const gm = await gnarsMorEarned(mor);
   return {
     athletes,
     total: athletes.reduce((s, a) => s + a.total, 0),
     backerCount: distinct.size,
-    gnarsAccrued: athletes.reduce((s, a) => s + a.feeAccrued, 0) / 2,
+    gnarsAccrued,
+    gnarsMor: gm.mor,
+    gnarsMorUsd: gm.usd,
+    treasuryUsd: gnarsAccrued + gm.usd,
   };
 }
