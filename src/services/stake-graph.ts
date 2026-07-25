@@ -158,7 +158,7 @@ async function etherscanReferred(pool: Address, referrer: Address, key: string):
     try {
       const res = await fetch(url, { cache: "no-store" });
       const j = (await res.json()) as { status?: string; message?: string; result?: unknown };
-      _morNote = `${j.status ?? "?"}|${String(j.message ?? "?").slice(0, 40)}|${Array.isArray(j.result) ? j.result.length : typeof j.result}`;
+      _morNote = `${j.status ?? "?"}|${String(j.message ?? "?").slice(0, 30)}|${Array.isArray(j.result) ? `n=${j.result.length}` : String(j.result).slice(0, 70)}`;
       if (j.status === "1" && Array.isArray(j.result)) {
         return (j.result as Array<{ topics: string[]; data: string }>).map((l) => ({ user: getAddress(`0x${l.topics[2].slice(26)}`), amount: BigInt(l.data) }));
       }
