@@ -19,13 +19,15 @@ import { MORPHEUS_POOLS, MOR_REWARD_POOL_INDEX, depositPoolAbi } from "@/lib/mor
 // the public RPCs frequently fail/timeout on the MOR log scan — and a swallowed
 // failure there means a staker silently vanishes from the orbit.
 const ALCHEMY = process.env.ALCHEMY_API_KEY;
-// eth.drpc.org is the reliable getLogs fallback — the other free mainnet RPCs
-// (publicnode/llama/ankr) reject or rate-limit eth_getLogs, which silently
-// emptied the MOR log scan and dropped stakers from the orbit. Verified: drpc
-// serves the exact referrer-filtered query in ~0.2s.
+// eth.drpc.org leads for the mainnet reads: it serves the referrer-filtered
+// eth_getLogs query reliably in ~0.2s with NO block-range cap. Alchemy's FREE
+// tier limits eth_getLogs to a 10-block range (useless for our scan), and the
+// other free RPCs (publicnode/llama) reject or rate-limit getLogs — a swallowed
+// failure there silently emptied the MOR scan and dropped stakers from the
+// orbit. Alchemy is kept as a (paid-tier) fallback; public nodes last.
 const ethRpcs = [
-  ...(ALCHEMY ? [`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY}`] : []),
   "https://eth.drpc.org",
+  ...(ALCHEMY ? [`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY}`] : []),
   "https://ethereum.publicnode.com",
   "https://eth.llamarpc.com",
 ];
