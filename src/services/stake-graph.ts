@@ -10,7 +10,7 @@
 //  - MOR log scans and usersData reads are parallelized + multicalled.
 //  - The API route wraps this with s-maxage + stale-while-revalidate.
 
-import { createPublicClient, http, fallback, formatUnits, getAddress, keccak256, toHex, erc20Abi, type Address } from "viem";
+import { createPublicClient, http, fallback, formatUnits, getAddress, keccak256, toHex, encodeFunctionData, erc20Abi, type Address } from "viem";
 import { base, mainnet } from "viem/chains";
 import { RIDER_LIST, type RiderId } from "@/lib/gnars-vaults";
 import {
@@ -163,6 +163,26 @@ async function etherscanReferred(pool: Address, referrer: Address, key: string):
   return [];
 }
 
+/** A user's CURRENT deposited principal on a pool (subtracts withdrawals), via
+ * an Etherscan proxy eth_call — datacenter-safe like the logs call. usersData
+ * returns 9 words; `deposited` is word index 1. */
+async function etherscanDeposited(pool: Address, user: Address, key: string): Promise<bigint> {
+  const data = encodeFunctionData({ abi: depositPoolAbi, functionName: "usersData", args: [user, MOR_REWARD_POOL_INDEX] });
+  const url = `https://api.etherscan.io/v2/api?chainid=1&module=proxy&action=eth_call&to=${pool}&data=${data}&tag=latest&apikey=${key}`;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const res = await fetch(url, { next: { revalidate: 60 } });
+      const j = (await res.json()) as { result?: string; error?: unknown };
+      if (typeof j.result === "string" && j.result.startsWith("0x") && j.result.length >= 130) {
+        return BigInt(`0x${j.result.slice(66, 130)}`); // word[1] = deposited (uint256)
+      }
+      if (j.error || (typeof j.result === "string" && /rate limit/i.test(j.result))) { await sleep(500); continue; }
+      return BigInt(0);
+    } catch { await sleep(300); }
+  }
+  return BigInt(0);
+}
+
 async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBacker[]>> {
   const walletToId = new Map<string, RiderId>();
   for (const r of RIDER_LIST) if (r.wallet) walletToId.set(r.wallet.toLowerCase(), r.id);
@@ -182,14 +202,18 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
     const rows = await Promise.all(
       pairs.map(async ({ asset, pool, decimals, id, ref }) => {
         const logs = await etherscanReferred(pool, ref, ETHERSCAN_KEY as string);
-        const byUser = new Map<string, bigint>();
-        for (const l of logs) byUser.set(l.user.toLowerCase(), (byUser.get(l.user.toLowerCase()) ?? BigInt(0)) + l.amount);
+        const users = [...new Set(logs.map((l) => l.user.toLowerCase()))].map((u) => getAddress(u));
         const out: Array<{ id: RiderId; backer: OrbitBacker }> = [];
-        for (const [userLc, amt] of byUser) {
-          const tokens = Number(formatUnits(amt, decimals));
-          const usd = asset === "steth" ? tokens * ethUsd : tokens;
-          if (usd > 0) out.push({ id, backer: { address: getAddress(userLc), amount: usd, kind: "mor", asset } });
-        }
+        await Promise.all(
+          users.map(async (user) => {
+            // Current deposited (withdrawals subtracted), not the historical event amount.
+            const deposited = await etherscanDeposited(pool, user, ETHERSCAN_KEY as string);
+            if (deposited <= BigInt(0)) return;
+            const tokens = Number(formatUnits(deposited, decimals));
+            const usd = asset === "steth" ? tokens * ethUsd : tokens;
+            if (usd > 0) out.push({ id, backer: { address: user, amount: usd, kind: "mor", asset } });
+          }),
+        );
         return out;
       }),
     );
@@ -376,9 +400,14 @@ export async function getStakeGraph(): Promise<StakeGraph> {
 
   const gnarsAccrued = athletes.reduce((s, a) => s + a.feeAccrued, 0) / 2; // vault fee, USDC≈USD
   const gm = await gnarsMorEarned(mor);
+  // Total staked backing riders = Morpho vault TVL + Morpheus (MOR) deposits, USD.
+  const morTvl = athletes.reduce(
+    (s, a) => s + a.backers.reduce((x, b) => x + (b.kind === "mor" ? b.amount : 0), 0),
+    0,
+  );
   return {
     athletes,
-    total: athletes.reduce((s, a) => s + a.total, 0),
+    total: athletes.reduce((s, a) => s + a.total, 0) + morTvl,
     backerCount: distinct.size,
     gnarsAccrued,
     gnarsMor: gm.mor,
