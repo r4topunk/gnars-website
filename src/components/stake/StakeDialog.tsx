@@ -3,12 +3,14 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
+import { useActiveAccount } from "thirdweb/react";
 import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { getRider } from "@/lib/gnars-vaults";
 import { useStakeDeposit } from "@/hooks/use-stake-deposit";
 import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
 import { useVaultPosition, useVaultEarned } from "@/hooks/use-vault-total";
+import { useEnsNameAndAvatar } from "@/hooks/use-ens";
 import type { StakeYields } from "@/services/yields";
 import { REWARD_SPLIT } from "./CharacterSelector";
 import { riderCustomLine } from "@/lib/rider-lines";
@@ -19,6 +21,7 @@ import { riderCustomLine } from "@/lib/rider-lines";
 
 const GOLD = "#f5a623";
 const GOLD_HI = "#f7c948";
+const GREEN = "#4ade80"; // APR reads as profit
 const CLAIM_FLOOR_USD = 1;
 const MORPHO_LOGO = "/logos/morpho.webp";
 const MORPHEUS_LOGO = "/logos/morpheus.webp";
@@ -76,6 +79,8 @@ function fmtAmount(n: number, usdc: boolean) {
 
 export function StakeDialog({ open, onOpenChange, riderId, name, image, overall, faceSize = "420%", facePos = "50% 6%" }: StakeDialogProps) {
   const t = useTranslations("stake");
+  const you = useActiveAccount()?.address;
+  const { ensAvatar: youAvatar } = useEnsNameAndAvatar(you);
   const { stake, withdrawAll, claimRewards, phase: stakePhase, error: stakeError, isStaking, account } = useStakeDeposit();
   const morpheus = useMorpheusStake();
   const [refresh, setRefresh] = useState(0);
@@ -225,6 +230,7 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
                 ridVal={share(REWARD_SPLIT.skater)}
                 gnaVal={share(REWARD_SPLIT.treasury)}
                 youLabel={t("youLabel")}
+                youAvatar={youAvatar ?? undefined}
                 gnarsLabel="Gnars"
                 srcLabel={t("flowSource")}
                 yieldLabel={t("opp.yield")}
@@ -294,7 +300,7 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
                           {o.kind === "vault" ? t("opp.stableTag") : t("opp.morTag")} · {o.unit}
                         </div>
                       </div>
-                      <div className="flex-none text-[17px] font-black" style={{ color: GOLD_HI }}>
+                      <div className="flex-none text-[17px] font-black" style={{ color: GREEN }}>
                         {apr ? `${o.kind === "mor" ? "~" : ""}${apr.toFixed(1)}%` : "—"}
                       </div>
                     </button>
@@ -415,10 +421,10 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
 
 /** The rewards-flow SVG (gold streams → You / rider / Gnars) with real avatars overlaid. */
 function RewardFlow({
-  riderName, riderImg, faceSize, facePos, youVal, ridVal, gnaVal, youLabel, gnarsLabel, srcLabel, yieldLabel,
+  riderName, riderImg, faceSize, facePos, youVal, ridVal, gnaVal, youLabel, youAvatar, gnarsLabel, srcLabel, yieldLabel,
 }: {
   riderName: string; riderImg: string; faceSize: string; facePos: string;
-  youVal: string; ridVal: string; gnaVal: string; youLabel: string; gnarsLabel: string; srcLabel: string; yieldLabel: string;
+  youVal: string; ridVal: string; gnaVal: string; youLabel: string; youAvatar?: string; gnarsLabel: string; srcLabel: string; yieldLabel: string;
 }) {
   const P = {
     you: "M126,130 C280,130 320,46 403,46",
@@ -466,13 +472,14 @@ function RewardFlow({
         <text x={110} y={100} fill="#fff" fontSize={17} fontWeight={700} textAnchor="middle">{srcLabel}</text>
         <text x={110} y={176} fill="#8a857e" fontSize={13} fontWeight={600} textAnchor="middle">{yieldLabel}</text>
 
-        {node("n1", 46, youLabel, "50%", youVal, (
+        {node("n1", 46, youLabel, "50%", youVal, youAvatar ? null : (
           <text x={430} y={52} fill={GOLD_HI} fontSize={13} fontWeight={800} textAnchor="middle">{youLabel.slice(0, 3).toUpperCase()}</text>
         ))}
         {node("n2", 138, riderName, "25%", ridVal)}
         {node("n3", 230, gnarsLabel, "25%", gnaVal)}
       </svg>
-      {/* real avatars over the rider + Gnars nodes */}
+      {/* real avatars over the You (if connected) + rider + Gnars nodes */}
+      {youAvatar && <div aria-hidden style={overlay(61.43, 16.67, 7.71, "cover", "center", youAvatar)} />}
       <div aria-hidden style={overlay(61.43, 50, 7.71, faceSize, facePos, riderImg)} />
       <div aria-hidden style={overlay(61.43, 83.33, 7.71, "cover", "center", "/gnars.webp")} />
     </div>
