@@ -107,8 +107,8 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
   const isMor = opp.kind === "mor";
   const isUsdc = opp.asset === "usdc";
 
-  // APR per opportunity: the Morpho vault's live APY, or the blended Morpheus rate.
-  const aprFor = (o: Opp) => (o.kind === "vault" ? yields?.usdc?.apy : yields?.mor?.apy) ?? 0;
+  // APR per opportunity: the Morpho vault's live APY, or the per-asset Morpheus rate.
+  const aprFor = (o: Opp) => (o.kind === "vault" ? yields?.usdc?.apy : yields?.mor?.[o.asset]?.apy) ?? 0;
   const rate = aprFor(opp);
   const source = isMor ? "Morpheus" : yields?.usdc?.source ?? "Morpho";
 
