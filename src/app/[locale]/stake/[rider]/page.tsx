@@ -31,6 +31,8 @@ export async function generateMetadata({
 
   const path = `/stake/${rider}`;
   const canonical = locale === "en" ? path : `/pt-br${path}`;
+  // Rider's cutout body dropped into the arcade "character select" scene.
+  const image = `${BASE_URL}/stake/${rider}/miniapp-image`;
   return {
     title,
     description,
@@ -43,13 +45,15 @@ export async function generateMetadata({
       description,
       locale: locale === "pt-br" ? "pt_BR" : "en_US",
       type: "website",
-      images: [{ url: `/stake/cutout/${rider}.png` }],
+      images: [{ url: image, width: 1200, height: 800, alt: title }],
     },
-    twitter: { card: "summary_large_image", title, description },
-    // Farcaster mini app embed — launch straight into this rider.
+    twitter: { card: "summary_large_image", title, description, images: [image] },
+    // Farcaster mini app embed — launch straight into this rider, with the
+    // rider's own character-select image instead of the generic cover.
     other: {
       "fc:miniapp": JSON.stringify({
         ...STAKE_MINIAPP_EMBED_CONFIG,
+        imageUrl: image,
         button: {
           ...STAKE_MINIAPP_EMBED_CONFIG.button,
           title: `Stake with ${name}`,
