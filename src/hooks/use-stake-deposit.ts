@@ -8,7 +8,7 @@
 // no vault behind it yet.
 
 import { useCallback, useRef, useState } from "react";
-import { prepareTransaction, sendTransaction, waitForReceipt, readContract, getContract } from "thirdweb";
+import { prepareTransaction, sendTransaction, waitForReceipt, readContract, getContract, type ThirdwebClient } from "thirdweb";
 import { base } from "thirdweb/chains";
 import {
   createPublicClient, http, fallback,
@@ -34,14 +34,26 @@ const rpc = createPublicClient({
 });
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function waitForAllowance(owner: Address, spender: Address, needed: bigint, tries = 12): Promise<void> {
+// Confirm the vault's allowance is visible on the RPC that estimates the deposit
+// (thirdweb's node) — not just the viem fallback, which can lag out of sync and
+// let a doomed "transfer amount exceeds allowance" tx through. Returns false if
+// it never propagates so the caller can abort cleanly.
+async function confirmAllowance(
+  client: ThirdwebClient, owner: Address, spender: Address, needed: bigint, tries = 16,
+): Promise<boolean> {
+  const contract = getContract({ client, chain: base, address: USDC });
   for (let i = 0; i < tries; i++) {
     try {
+      const a = await readContract({ contract, method: ALLOWANCE, params: [owner, spender] });
+      if (a >= needed) return true;
+    } catch { /* keep polling */ }
+    try {
       const a = await rpc.readContract({ address: USDC, abi: viemErc20Abi, functionName: "allowance", args: [owner, spender] });
-      if (a >= needed) return;
+      if (a >= needed) return true;
     } catch { /* keep polling */ }
     await sleep(1500);
   }
+  return false;
 }
 
 const erc20Abi = [{
@@ -132,7 +144,12 @@ export function useStakeDeposit() {
           // Don't send the deposit until the allowance is actually visible — this
           // is what makes a single click work instead of failing with a scary
           // "insufficient allowance" and needing a second try.
-          await waitForAllowance(account.address as Address, vault, assets);
+          const ok = await confirmAllowance(client, account.address as Address, vault, assets);
+          if (!ok) {
+            setError("Approval is still confirming on-chain — give it a few seconds and tap Stake again.");
+            setPhase("error");
+            return false;
+          }
         }
 
         setPhase("deposit");
