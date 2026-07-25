@@ -134,7 +134,12 @@
     "claimedTitle": "MOR sacado",
     "distributedTitle": "MOR dividido — você ficou com 50%",
     "failed": "Não rolou",
-    "hint": "Você fica com 50% · Gnars 25% · atleta 25%"
+    "hint": "Você fica com 50% · Gnars 25% · atleta 25%",
+    "positions": "Seu stake na Morpheus",
+    "withdraw": "Sacar",
+    "withdrawing": "sacando…",
+    "withdrawn": "Sacado",
+    "locked": "libera em {date}"
   },
   "admin": {
     "title": "Cofres de patrocínio",
