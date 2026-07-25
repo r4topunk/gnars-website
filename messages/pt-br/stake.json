@@ -123,6 +123,18 @@
     "principal": "principal",
     "yield": "rendimento"
   },
+  "lootbox": {
+    "title": "Recompensas prontas",
+    "claim": "Sacar",
+    "claiming": "sacando…",
+    "distribute": "Dividir",
+    "distributing": "dividindo…",
+    "bridging": "MOR sacado — indo pra Arbitrum (~alguns min). Volte pra Dividir.",
+    "claimedTitle": "MOR sacado",
+    "distributedTitle": "MOR dividido — você ficou com 50%",
+    "failed": "Não rolou",
+    "hint": "Você fica com 50% · Gnars 25% · atleta 25%"
+  },
   "admin": {
     "title": "Cofres de patrocínio",
     "desc": "Um vault Morpho por rider. Depósito rende na Moonwell; metade do rendimento vira fee dividida Gnars 25% / atleta 25% (o depositante fica com 50%). Owner = Safe da SOPA. Você assina o deploy e o batch — 1 das 2 confirmações do Safe.",

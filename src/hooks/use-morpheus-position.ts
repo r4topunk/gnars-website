@@ -31,6 +31,8 @@ export type MorpheusPoolPosition = {
   pendingMor: number;
   /** Unix seconds when the withdraw lock lifts (0 if nothing staked). */
   unlockAt: number;
+  /** The athlete credited as referrer for this position (drives the 3-way split). */
+  referrer: Address;
 };
 
 export type MorpheusPositions = {
@@ -60,11 +62,13 @@ export function useMorpheusPosition(wallet?: string, nonce = 0): MorpheusPositio
             ]);
             const lastStake = Number(data[0]); // uint128 lastStake
             const deposited = data[1]; // uint256 deposited
+            const referrer = data[8] as Address; // stored referrer (athlete)
             return {
               asset, symbol,
               staked: Number(formatUnits(deposited, decimals)),
               pendingMor: Number(formatUnits(reward, MOR_DECIMALS)),
               unlockAt: deposited > BigInt(0) ? lastStake + WITHDRAW_LOCK_SECONDS : 0,
+              referrer,
             } satisfies MorpheusPoolPosition;
           }),
         );
