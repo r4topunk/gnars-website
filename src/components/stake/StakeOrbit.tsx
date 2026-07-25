@@ -25,6 +25,9 @@ const RIDER_VISUAL: Record<RiderId, { hex: string; image: string; face: { size: 
 const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: n > 0 && n < 100 ? 2 : 0 })}`;
 const short = (a: string) => `${a.slice(0, 5)}…${a.slice(-3)}`;
 const GOLD = "#f7c948";
+// Morpheus green — MOR stakes get their own colored stream, distinct from the
+// rider-tinted Morpho vault flows, so a wallet that backs both shows two lines.
+const MOR_GREEN = "#2be58b";
 
 const W = 760;
 const C = W / 2;
@@ -80,6 +83,22 @@ export function StakeOrbit() {
         </div>
       </div>
 
+      <div className="mb-3 flex flex-wrap items-center gap-4 text-[11px] text-white/50">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-white/60" />
+          {t("orbit.legendVault")}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span
+            className="flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-black text-[#04140d]"
+            style={{ background: MOR_GREEN }}
+          >
+            M
+          </span>
+          {t("orbit.legendMor")}
+        </span>
+      </div>
+
       <div className="overflow-x-auto">
         <svg viewBox={`0 0 ${W} ${W}`} className="mx-auto block h-auto w-full max-w-[640px]" role="img" aria-label={t("orbit.title")}>
           <style>{`
@@ -118,16 +137,28 @@ export function StakeOrbit() {
                   const bp = pt(angle + off, R_SUP);
                   const mid = { x: (ap.x + bp.x) / 2, y: (ap.y + bp.y) / 2 };
                   const isYou = you && b.address.toLowerCase() === you;
+                  const isMor = b.kind === "mor";
+                  const col = isMor ? MOR_GREEN : v.hex;
                   return (
-                    <g key={b.address}>
-                      <line x1={bp.x} y1={bp.y} x2={ap.x} y2={ap.y} stroke={v.hex} strokeOpacity={0.35} strokeWidth={supW(b.amount)} strokeLinecap="round" />
-                      <line x1={bp.x} y1={bp.y} x2={ap.x} y2={ap.y} className="so-flow" stroke={v.hex} strokeWidth={supW(b.amount)} strokeLinecap="round" />
+                    <g key={`${b.kind}-${b.address}`}>
+                      <line x1={bp.x} y1={bp.y} x2={ap.x} y2={ap.y} stroke={col} strokeOpacity={0.35} strokeWidth={supW(b.amount)} strokeLinecap="round" />
+                      <line x1={bp.x} y1={bp.y} x2={ap.x} y2={ap.y} className="so-flow" stroke={col} strokeWidth={supW(b.amount)} strokeLinecap="round" />
                       {/* value on the line */}
                       <text x={mid.x} y={mid.y - 4} textAnchor="middle" fontSize="11" fontWeight="700" fill="#fff" style={{ paintOrder: "stroke", stroke: "#0c0a08", strokeWidth: 3 }}>
                         {usd(b.amount)}
                       </text>
-                      {/* backer node */}
-                      <circle cx={bp.x} cy={bp.y} r={isYou ? 9 : 7} fill={isYou ? GOLD : "#0c0a08"} stroke={isYou ? GOLD : v.hex} strokeWidth={2} />
+                      {/* backer node — MOR stakes carry the green Morpheus "M" mark */}
+                      <circle
+                        cx={bp.x} cy={bp.y} r={isYou ? 9 : 7}
+                        fill={isMor ? col : isYou ? GOLD : "#0c0a08"}
+                        stroke={isYou ? GOLD : col}
+                        strokeWidth={2}
+                      />
+                      {isMor && (
+                        <text x={bp.x} y={bp.y + 3} textAnchor="middle" fontSize="9" fontWeight="900" fill="#04140d">
+                          M
+                        </text>
+                      )}
                       <text x={bp.x} y={bp.y + (bp.y < C ? -14 : 20)} textAnchor="middle" fontSize="9.5" fill={isYou ? GOLD : "rgba(255,255,255,.55)"} fontFamily="monospace" fontWeight={isYou ? 700 : 400}>
                         {isYou ? t("orbit.you") : short(b.address)}
                       </text>
