@@ -3,7 +3,7 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Info, Zap, Gift, TrendingUp, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Info, Zap, Gift, TrendingUp, ShieldCheck, AlertTriangle, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { getRider } from "@/lib/gnars-vaults";
@@ -357,6 +357,17 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent }
                     key={s.key}
                     className="rounded-lg border border-border/60 bg-muted/30 p-3 text-center"
                   >
+                    <div
+                      className="mx-auto mb-2 flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-surface-elevated"
+                      style={{ boxShadow: `0 0 0 2px ${accent}22` }}
+                    >
+                      {s.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={s.image} alt={s.label} className="h-full w-full object-cover object-top" />
+                      ) : (
+                        <User className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
                     <p className="truncate text-[11px] font-medium text-muted-foreground">{s.label}</p>
                     <p className="mt-1 text-base font-bold tabular-nums" style={{ color: accent }}>
                       {fmtAmount(share, isUsdc)}
