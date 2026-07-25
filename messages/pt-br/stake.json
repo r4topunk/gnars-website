@@ -70,7 +70,9 @@
     "you": "você",
     "loading": "carregando o fluxo…",
     "treasury": "TESOURO",
-    "earnedForTreasury": "Rendeu pro tesouro"
+    "earnedForTreasury": "Rendeu pro tesouro",
+    "legendVault": "Vault Morpho",
+    "legendMor": "Morpheus · MOR"
   },
   "backing": "<b>{amount}</b> apoiando {name}",
   "loadingSupport": "carregando apoio…",

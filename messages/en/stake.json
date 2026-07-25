@@ -70,7 +70,9 @@
     "you": "you",
     "loading": "loading the flow…",
     "treasury": "TREASURY",
-    "earnedForTreasury": "Earned for treasury"
+    "earnedForTreasury": "Earned for treasury",
+    "legendVault": "Morpho vault",
+    "legendMor": "Morpheus · MOR"
   },
   "backing": "<b>{amount}</b> backing {name}",
   "loadingSupport": "loading support…",
