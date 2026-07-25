@@ -42,6 +42,17 @@ export const MORPHEUS_POOLS = {
 
 export type MorpheusAsset = keyof typeof MORPHEUS_POOLS;
 
+/**
+ * The shared Morpheus Distributor. `DepositPool.stake()` delegates the token
+ * `transferFrom` to THIS contract, so the deposit-token approval must be granted
+ * to the distributor — NOT the per-asset DepositPool we call `stake` on.
+ *
+ * Verified by a state-override `eth_call`: with an allowance to the pool, stake
+ * reverts "ERC20: transfer amount exceeds allowance"; with an allowance to the
+ * distributor, the same stake succeeds. Both pools report the same distributor.
+ */
+export const MORPHEUS_DISTRIBUTOR = getAddress("0xDf1AC1AC255d91F5f4B1E3B4Aef57c5350F64C7A");
+
 /** MOR reward token, on Arbitrum One. */
 export const MOR_TOKEN = getAddress("0x092baadb7def4c3981454dd9c0a0d7ff07bcfc86");
 export const MOR_DECIMALS = 18;

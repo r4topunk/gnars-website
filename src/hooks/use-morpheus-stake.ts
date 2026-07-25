@@ -24,7 +24,7 @@ import { useWriteAccount } from "@/hooks/use-write-account";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import {
-  MORPHEUS_POOLS, MOR_REWARD_POOL_INDEX, depositPoolAbi, type MorpheusAsset,
+  MORPHEUS_POOLS, MORPHEUS_DISTRIBUTOR, MOR_REWARD_POOL_INDEX, depositPoolAbi, type MorpheusAsset,
   L1_SENDER, LZ_GATEWAY, LZ_DST_CHAIN_ID, LZ_ADAPTER_PARAMS, lzEndpointAbi,
 } from "@/lib/morpheus";
 
@@ -105,18 +105,21 @@ export function useMorpheusStake() {
       try {
         await ensureOnChain(writer.wallet, ethereum);
 
-        const allowance = await rpc.readContract({ address: token, abi: erc20Abi, functionName: "allowance", args: [account.address as Address, pool] });
+        // The Distributor (not the DepositPool we call `stake` on) is what pulls
+        // the deposit token, so the approval must name the distributor as spender.
+        const spender = MORPHEUS_DISTRIBUTOR;
+        const allowance = await rpc.readContract({ address: token, abi: erc20Abi, functionName: "allowance", args: [account.address as Address, spender] });
         if (allowance < assets) {
           setPhase("approve");
-          const approveData = encodeFunctionData({ abi: erc20Abi, functionName: "approve", args: [pool, assets] });
+          const approveData = encodeFunctionData({ abi: erc20Abi, functionName: "approve", args: [spender, assets] });
           const approveTx = prepareTransaction({ client, chain: ethereum, to: token, data: approveData });
           const hash = (await sendTransaction({ account, transaction: approveTx })).transactionHash;
           await waitForReceipt({ client, chain: ethereum, transactionHash: hash });
-          // Wait until the pool's allowance is actually visible on the estimation
-          // RPC — otherwise the stake reverts with "transfer amount exceeds
-          // allowance". If it never propagates, abort cleanly rather than
-          // broadcasting a doomed tx.
-          const ok = await confirmAllowance(client, token, account.address as Address, pool, assets);
+          // Wait until the allowance is actually visible on the estimation RPC —
+          // otherwise the stake reverts with "transfer amount exceeds allowance".
+          // If it never propagates, abort cleanly rather than broadcasting a
+          // doomed tx.
+          const ok = await confirmAllowance(client, token, account.address as Address, spender, assets);
           if (!ok) {
             setError("Approval is still confirming on-chain — give it a few seconds and tap Stake again.");
             setPhase("error");
