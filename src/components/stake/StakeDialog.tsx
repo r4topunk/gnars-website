@@ -11,6 +11,7 @@ import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
 import { useVaultPosition, useVaultEarned } from "@/hooks/use-vault-total";
 import type { StakeYields } from "@/services/yields";
 import { REWARD_SPLIT } from "./CharacterSelector";
+import { riderCustomLine } from "@/lib/rider-lines";
 
 // Adapted from the Claude-designed "Stake Dialog v2" — arcade-gold, three
 // columns (yield source / amount / your share) over a rewards-flow hero with the
@@ -108,10 +109,14 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent, 
   const share = (pct: number) =>
     isMor ? `≈$${fmt2(totalUsd * (pct / 100))}` : `${fmt2(totalAsset * (pct / 100))} ${opp.unit}`;
 
-  // Rider one-liner with a typewriter reveal.
+  // Rider one-liner with a typewriter reveal. A skater's own lines (rider-lines.ts)
+  // replace the flavor line when set; the empty/big prompts stay generic.
+  const oppIndex = OPPS.indexOf(opp);
   const line = (() => {
     if (!amountNum) return t("opp.lineEmpty");
     if (amountNum >= (isUsdc ? 5000 : 1)) return t("opp.lineBig", { amount: fmtAmount(amountNum, isUsdc), asset: opp.unit });
+    const custom = riderCustomLine(riderId, oppIndex);
+    if (custom) return custom;
     if (opp.kind === "vault") return t("opp.lineStable", { you: fmt2(totalAsset * 0.5), asset: opp.unit });
     return t("opp.lineVar", { rate: rate.toFixed(1) });
   })();
@@ -225,14 +230,14 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent, 
               />
             </div>
 
-            {/* Rider speech + cutout */}
-            <div className="relative hidden min-h-[300px] flex-col gap-4 pt-1.5 sm:flex">
+            {/* Rider speech + face crop */}
+            <div className="relative hidden min-h-[320px] flex-col gap-4 pt-1.5 sm:flex">
               <div
-                className="relative flex-none rounded-2xl p-3.5"
+                className="relative flex flex-1 flex-col justify-center rounded-2xl p-4"
                 style={{ background: "linear-gradient(180deg,#1c1714,#141110)", border: `2px solid ${GOLD}`, boxShadow: "0 12px 30px rgba(0,0,0,.55)" }}
               >
                 <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.2em]" style={{ color: GOLD_HI }}>{name}</div>
-                <div className="min-h-[61px] text-[13.5px] font-semibold leading-relaxed" style={{ color: "#e8e4df" }}>
+                <div className="text-[13.5px] font-semibold leading-relaxed" style={{ color: "#e8e4df" }}>
                   {line.slice(0, typed)}
                   <span style={{ color: GOLD }}>{typed < line.length ? "▌" : ""}</span>
                 </div>
@@ -241,13 +246,14 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent, 
                   style={{ background: "#141110", borderRight: `2px solid ${GOLD}`, borderBottom: `2px solid ${GOLD}` }}
                 />
               </div>
+              {/* face crop — head only, so the speech bubble gets the room */}
               <div
                 aria-hidden
-                className="relative min-h-[200px] flex-1"
+                className="h-[156px] flex-none overflow-hidden rounded-2xl border border-white/[0.08]"
                 style={{
                   backgroundImage: `url(${image})`, backgroundRepeat: "no-repeat",
-                  backgroundSize: "contain", backgroundPosition: "bottom center",
-                  filter: "drop-shadow(0 20px 30px rgba(0,0,0,.6))",
+                  backgroundSize: faceSize, backgroundPosition: facePos,
+                  boxShadow: "inset 0 -46px 44px rgba(14,12,10,.55)",
                 }}
               />
             </div>
