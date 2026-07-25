@@ -10,7 +10,7 @@
 //  - MOR log scans and usersData reads are parallelized + multicalled.
 //  - The API route wraps this with s-maxage + stale-while-revalidate.
 
-import { createPublicClient, http, fallback, formatUnits, getAddress, erc20Abi, type Address } from "viem";
+import { createPublicClient, http, fallback, formatUnits, getAddress, keccak256, toHex, erc20Abi, type Address } from "viem";
 import { base, mainnet } from "viem/chains";
 import { RIDER_LIST, type RiderId } from "@/lib/gnars-vaults";
 import {
@@ -135,6 +135,34 @@ async function getEthUsd(): Promise<number> {
   }
 }
 
+// Etherscan V2 logs API — a hosted indexer that answers from datacenter IPs,
+// which the free RPCs block for eth_getLogs (that silently emptied this scan in
+// prod). One unified key covers every chain (chainid=1 here).
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const ETHERSCAN_KEY = process.env.ETHERSCAN_API_KEY || process.env.BASESCAN_API_KEY;
+const USER_REFERRED_SIG = keccak256(toHex("UserReferred(uint256,address,address,uint256)"));
+const pad32 = (a: Address) => `0x000000000000000000000000${a.slice(2).toLowerCase()}`;
+
+/** A rider's referred stakes on a pool, straight from the UserReferred events. */
+async function etherscanReferred(pool: Address, referrer: Address, key: string): Promise<Array<{ user: Address; amount: bigint }>> {
+  const url =
+    `https://api.etherscan.io/v2/api?chainid=1&module=logs&action=getLogs&address=${pool}` +
+    `&topic0=${USER_REFERRED_SIG}&topic0_3_opr=and&topic3=${pad32(referrer)}` +
+    `&fromBlock=0&toBlock=latest&page=1&offset=1000&apikey=${key}`;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const res = await fetch(url, { next: { revalidate: 60 } });
+      const j = (await res.json()) as { status?: string; message?: string; result?: Array<{ topics: string[]; data: string }> };
+      if (j.status === "1" && Array.isArray(j.result)) {
+        return j.result.map((l) => ({ user: getAddress(`0x${l.topics[2].slice(26)}`), amount: BigInt(l.data) }));
+      }
+      if (typeof j.message === "string" && /rate limit/i.test(j.message)) { await sleep(500); continue; }
+      return []; // "No records found"
+    } catch { await sleep(300); }
+  }
+  return [];
+}
+
 async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBacker[]>> {
   const walletToId = new Map<string, RiderId>();
   for (const r of RIDER_LIST) if (r.wallet) walletToId.set(r.wallet.toLowerCase(), r.id);
@@ -142,6 +170,34 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
   const byRider: Record<string, OrbitBacker[]> = {};
   if (referrers.length === 0) return byRider;
 
+  // Primary: Etherscan hosted logs (datacenter-safe). One call per (pool, rider),
+  // all in parallel; the staked amount comes straight from the event.
+  if (ETHERSCAN_KEY) {
+    const idWallets = RIDER_LIST.filter((r) => r.wallet).map((r) => [r.id, r.wallet as Address] as const);
+    const escPools: Array<{ asset: "steth" | "usdc"; pool: Address; decimals: number }> = [
+      { asset: "steth", pool: MORPHEUS_POOLS.stEth.pool, decimals: 18 },
+      { asset: "usdc", pool: MORPHEUS_POOLS.usdc.pool, decimals: 6 },
+    ];
+    const pairs = escPools.flatMap((p) => idWallets.map(([id, ref]) => ({ ...p, id, ref })));
+    const rows = await Promise.all(
+      pairs.map(async ({ asset, pool, decimals, id, ref }) => {
+        const logs = await etherscanReferred(pool, ref, ETHERSCAN_KEY as string);
+        const byUser = new Map<string, bigint>();
+        for (const l of logs) byUser.set(l.user.toLowerCase(), (byUser.get(l.user.toLowerCase()) ?? BigInt(0)) + l.amount);
+        const out: Array<{ id: RiderId; backer: OrbitBacker }> = [];
+        for (const [userLc, amt] of byUser) {
+          const tokens = Number(formatUnits(amt, decimals));
+          const usd = asset === "steth" ? tokens * ethUsd : tokens;
+          if (usd > 0) out.push({ id, backer: { address: getAddress(userLc), amount: usd, kind: "mor", asset } });
+        }
+        return out;
+      }),
+    );
+    for (const { id, backer } of rows.flat()) (byRider[id] ||= []).push(backer);
+    return byRider;
+  }
+
+  // Fallback (no Etherscan key, e.g. local dev): viem getLogs + usersData.
   let latest: bigint;
   try { latest = await ethClient.getBlockNumber(); } catch { return byRider; }
   // ~3-week window, chunked at 10k so both Alchemy and the public fallback RPCs
