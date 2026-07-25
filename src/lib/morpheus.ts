@@ -49,6 +49,24 @@ export const MOR_DECIMALS = 18;
 /** 0xSplits SplitV2 PullSplitFactory — same deterministic address on Arbitrum. */
 export const ARBITRUM_PULL_SPLIT_FACTORY = getAddress("0x6B9118074aB15142d7524E8c4ea8f62A3Bdb98f1");
 
+/**
+ * The Gnars reward recipient on Arbitrum — a dedicated 3-of-3 multisig. NOT the
+ * Base treasury (0x72ad…6f88, a Nouns timelock with no code on Arbitrum, where
+ * MOR would be permanently stuck). Recipient of the Gnars half of every athlete
+ * split, and their owner.
+ */
+export const MOR_GNARS_RECIPIENT = getAddress("0xBe6C3D651d2F6e9eFA562b5a7CDf411304cad076");
+
+/** Per-athlete MOR reward splits on Arbitrum (Gnars 50 / athlete 50). */
+export const MOR_SPLITS: Record<string, Address> = {
+  vlad: getAddress("0x65E849Ac55E5283270383fE0619b61768248152B"),
+  yan: getAddress("0x50f470b0bCFAEC93A81447e762A419BdC1D77207"),
+  r4to: getAddress("0x363C2ea82C3274113e3d712Bb7dB3B551733A76c"),
+  pamtech: getAddress("0xfb3a1b62db94cbB212438537c4E194dE30BC4175"),
+  v2: getAddress("0xeA5BF9B03EDE018d1285d3748183c7c808756909"),
+  zima: getAddress("0x6ed4922635f610381AAF9B3EF8cb192AfB6D94Dc"),
+};
+
 /** 7-day locks (read on-chain from rewardPoolsProtocolDetails(0)). */
 export const WITHDRAW_LOCK_SECONDS = 604800;
 

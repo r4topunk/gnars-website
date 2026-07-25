@@ -194,8 +194,44 @@ export function useMorpheusStake() {
     [writer],
   );
 
+  /**
+   * Donate mode: point this pool's claim receiver at a Gnars/athlete split.
+   * Once set, every future claim (self OR a permissionless keeper `claimFor`)
+   * routes 100% of this position's MOR to the split. Set receiver = own wallet
+   * to turn donate mode off.
+   */
+  const setDonateReceiver = useCallback(
+    async (asset: MorpheusAsset, receiver: Address): Promise<boolean> => {
+      if (pending.current) return false;
+      const client = getThirdwebClient();
+      if (!client) { setError("Thirdweb not configured."); setPhase("error"); return false; }
+      if (!writer) { setError("Connect your wallet."); setPhase("error"); return false; }
+      const { pool } = MORPHEUS_POOLS[asset];
+      const account = writer.account;
+      setError(null);
+      pending.current = true;
+      try {
+        await ensureOnChain(writer.wallet, ethereum);
+        setPhase("stake");
+        const data = encodeFunctionData({ abi: depositPoolAbi, functionName: "setClaimReceiver", args: [MOR_REWARD_POOL_INDEX, receiver] });
+        const tx = prepareTransaction({ client, chain: ethereum, to: pool, data });
+        const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
+        await waitForReceipt({ client, chain: ethereum, transactionHash: hash });
+        setPhase("done");
+        return true;
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to set donate mode.");
+        setPhase("error");
+        return false;
+      } finally {
+        pending.current = false;
+      }
+    },
+    [writer],
+  );
+
   return {
-    stake, withdraw, claim, phase, error,
+    stake, withdraw, claim, setDonateReceiver, phase, error,
     isBusy: phase === "approve" || phase === "stake" || phase === "withdraw" || phase === "claim",
   };
 }
