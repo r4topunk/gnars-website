@@ -450,6 +450,9 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
         name={name}
         image={active.image}
         accent={active.hex}
+        overall={overall}
+        faceSize={active.face.size}
+        facePos={active.face.pos}
       />
     </div>
   );

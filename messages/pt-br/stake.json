@@ -32,7 +32,7 @@
     "ollie": "Ollie",
     "spin": "Estilo",
     "rail": "Surf",
-    "flow": "Flow",
+    "flow": "Aura",
     "devSkills": "Habilidade Dev",
     "creativity": "Criatividade"
   },
@@ -122,7 +122,17 @@
     "stakedMorDesc": "Rendendo MOR na Arbitrum — o principal destrava após 7 dias.",
     "yourPosition": "Sua posição",
     "principal": "principal",
-    "yield": "rendimento"
+    "yield": "rendimento",
+    "overall": "Geral",
+    "howRewardsFlow": "Como as recompensas fluem",
+    "yieldSource": "Fonte de rendimento",
+    "yourShare": "Sua parte",
+    "perYearMor": "/ ano em MOR",
+    "stakeVerb": "Stake",
+    "lineEmpty": "Bolsa vazia? Vai, joga algo aí e bora.",
+    "lineBig": "{amount} {asset}?! Isso é dinheiro de patrocínio. Tô dentro.",
+    "lineStable": "Devagar e sempre. {you} {asset} por ano de volta pra você — meu corte eu pego em fita.",
+    "lineVar": "~{rate}% APR é um baita air. Pode cair limpo ou levar tombo. Tá dentro?"
   },
   "lootbox": {
     "title": "Recompensas prontas",

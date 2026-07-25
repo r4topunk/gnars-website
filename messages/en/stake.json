@@ -32,7 +32,7 @@
     "ollie": "Ollie",
     "spin": "Style",
     "rail": "Surf",
-    "flow": "Flow",
+    "flow": "Aura",
     "devSkills": "Dev Skills",
     "creativity": "Creativity"
   },
@@ -122,7 +122,17 @@
     "stakedMorDesc": "Earning MOR on Arbitrum — your principal unlocks after 7 days.",
     "yourPosition": "Your position",
     "principal": "principal",
-    "yield": "yield"
+    "yield": "yield",
+    "overall": "Overall",
+    "howRewardsFlow": "How rewards flow",
+    "yieldSource": "Yield source",
+    "yourShare": "Your share",
+    "perYearMor": "/ yr in MOR",
+    "stakeVerb": "Stake",
+    "lineEmpty": "Empty bag? Come on — drop something in and let's roll.",
+    "lineBig": "{amount} {asset}?! That's sponsor money. I'm dropping in.",
+    "lineStable": "Steady wins. {you} {asset} a year back to you — I'll take my cut in grip tape.",
+    "lineVar": "~{rate}% APR is a big air. Could land clean, could slam. You in?"
   },
   "lootbox": {
     "title": "Rewards ready",
