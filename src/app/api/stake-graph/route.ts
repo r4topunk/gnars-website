@@ -7,7 +7,9 @@ export const revalidate = 60;
 export async function GET() {
   try {
     const graph = await getStakeGraph();
-    return NextResponse.json(graph, {
+    // Diagnostic: is the Etherscan key present in this deploy's env? (temporary)
+    const _etherscanKey = Boolean(process.env.ETHERSCAN_API_KEY || process.env.BASESCAN_API_KEY);
+    return NextResponse.json({ ...graph, _etherscanKey }, {
       headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
     });
   } catch {
