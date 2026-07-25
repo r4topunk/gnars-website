@@ -151,7 +151,9 @@ async function etherscanReferred(pool: Address, referrer: Address, key: string):
     `&fromBlock=0&toBlock=latest&page=1&offset=1000&apikey=${key}`;
   for (let i = 0; i < 3; i++) {
     try {
-      const res = await fetch(url, { next: { revalidate: 60 } });
+      // no-store so each retry is a real call — the route's own cache (60s)
+      // handles caching, and a transient rate-limit won't stick in the data cache.
+      const res = await fetch(url, { cache: "no-store" });
       const j = (await res.json()) as { status?: string; message?: string; result?: Array<{ topics: string[]; data: string }> };
       if (j.status === "1" && Array.isArray(j.result)) {
         return j.result.map((l) => ({ user: getAddress(`0x${l.topics[2].slice(26)}`), amount: BigInt(l.data) }));
