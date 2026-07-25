@@ -49,6 +49,20 @@ const rpc = createPublicClient({
 });
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// A mainnet tx that never confirms (dropped / underpriced / left unsigned) would
+// otherwise leave the button spinning on "approving" forever. Bound the wait so
+// it surfaces a clear, retryable error instead — a later confirmation just sets
+// the allowance, so the retry skips straight to the stake.
+const RECEIPT_TIMEOUT_MS = 120_000;
+async function waitReceipt(client: ThirdwebClient, transactionHash: `0x${string}`): Promise<void> {
+  await Promise.race([
+    waitForReceipt({ client, chain: ethereum, transactionHash }),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Transaction is taking too long to confirm — check your wallet and tap again.")), RECEIPT_TIMEOUT_MS),
+    ),
+  ]);
+}
+
 const ALLOWANCE = "function allowance(address owner, address spender) view returns (uint256)" as const;
 
 /**
@@ -115,7 +129,7 @@ export function useMorpheusStake() {
           const approveData = encodeFunctionData({ abi: erc20Abi, functionName: "approve", args: [spender, assets] });
           const approveTx = prepareTransaction({ client, chain: ethereum, to: token, data: approveData });
           const hash = (await sendTransaction({ account, transaction: approveTx })).transactionHash;
-          await waitForReceipt({ client, chain: ethereum, transactionHash: hash });
+          await waitReceipt(client, hash);
           // Wait until the allowance is actually visible on the estimation RPC —
           // otherwise the stake reverts with "transfer amount exceeds allowance".
           // If it never propagates, abort cleanly rather than broadcasting a
@@ -140,7 +154,7 @@ export function useMorpheusStake() {
         };
         let stakeHash: `0x${string}`;
         try { stakeHash = await sendStake(); } catch { await sleep(4000); stakeHash = await sendStake(); }
-        await waitForReceipt({ client, chain: ethereum, transactionHash: stakeHash });
+        await waitReceipt(client, stakeHash);
 
         // Route this position's MOR to the staker's deterministic 3-way split by
         // default (opt-out): staker 50 / Gnars 25 / athlete 25. Only the staker
@@ -152,7 +166,7 @@ export function useMorpheusStake() {
           const rData = encodeFunctionData({ abi: depositPoolAbi, functionName: "setClaimReceiver", args: [MOR_REWARD_POOL_INDEX, split] });
           const rTx = prepareTransaction({ client, chain: ethereum, to: pool, data: rData });
           const rHash = (await sendTransaction({ account, transaction: rTx })).transactionHash;
-          await waitForReceipt({ client, chain: ethereum, transactionHash: rHash });
+          await waitReceipt(client, rHash);
         } catch { /* receiver not set; claim can still target the split explicitly */ }
 
         setPhase("done");
@@ -189,7 +203,7 @@ export function useMorpheusStake() {
         const data = encodeFunctionData({ abi: depositPoolAbi, functionName: "withdraw", args: [MOR_REWARD_POOL_INDEX, assets] });
         const tx = prepareTransaction({ client, chain: ethereum, to: pool, data });
         const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
-        await waitForReceipt({ client, chain: ethereum, transactionHash: hash });
+        await waitReceipt(client, hash);
         setPhase("done");
         return true;
       } catch (e) {
@@ -229,7 +243,7 @@ export function useMorpheusStake() {
         const data = encodeFunctionData({ abi: depositPoolAbi, functionName: "claim", args: [MOR_REWARD_POOL_INDEX, receiver] });
         const tx = prepareTransaction({ client, chain: ethereum, to: pool, data, value: fee });
         const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
-        await waitForReceipt({ client, chain: ethereum, transactionHash: hash });
+        await waitReceipt(client, hash);
         setPhase("done");
         return true;
       } catch (e) {
@@ -265,7 +279,7 @@ export function useMorpheusStake() {
         const data = encodeFunctionData({ abi: depositPoolAbi, functionName: "setClaimReceiver", args: [MOR_REWARD_POOL_INDEX, receiver] });
         const tx = prepareTransaction({ client, chain: ethereum, to: pool, data });
         const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
-        await waitForReceipt({ client, chain: ethereum, transactionHash: hash });
+        await waitReceipt(client, hash);
         setPhase("done");
         return true;
       } catch (e) {
