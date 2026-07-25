@@ -28,8 +28,9 @@ export const MORPHEUS_POOLS = {
     token: getAddress("0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"), // stETH
     decimals: 18,
     symbol: "stETH",
-    /** minimalStake read on-chain (0.01 stETH). */
-    minStake: "0.01",
+    /** Protocol minimum is 0.01 stETH, but stETH transfers can land 1–2 wei
+     * short (share rounding) and trip the min check — so we surface 0.011. */
+    minStake: "0.011",
   },
   usdc: {
     pool: getAddress("0x6cCE082851Add4c535352f596662521B4De4750E"),
