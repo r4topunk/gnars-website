@@ -71,6 +71,7 @@
     "loading": "loading the flow…",
     "treasury": "TREASURY",
     "earnedForTreasury": "Earned for treasury",
+    "fee": "fee",
     "legendVault": "Morpho vault",
     "legendMor": "Morpheus · MOR",
     "backToAll": "All riders"

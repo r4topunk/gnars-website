@@ -24,6 +24,9 @@ const RIDER_VISUAL: Record<RiderId, { hex: string; image: string; face: { size: 
 };
 
 const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: n > 0 && n < 100 ? 2 : 0 })}`;
+// Tiny sub-cent treasury amounts still deserve to read as non-zero.
+const usdSmall = (n: number) => (n > 0 && n < 0.01 ? `$${n.toFixed(6)}` : usd(n));
+const fmtMor = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 4 });
 const short = (a: string) => `${a.slice(0, 5)}…${a.slice(-3)}`;
 /** Prefer an ENS/basename, trimmed to fit the small orbit label. */
 const nameOrShort = (addr: string, names: Record<string, string>) => {
@@ -123,7 +126,10 @@ export function StakeOrbit() {
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">{t("orbit.earnedForTreasury")}</p>
             <p className="font-mono text-xl font-bold tabular-nums" style={{ color: GOLD }}>
-              {graph.gnarsAccrued > 0 && graph.gnarsAccrued < 0.01 ? `$${graph.gnarsAccrued.toFixed(6)}` : usd(graph.gnarsAccrued)}
+              {usdSmall(graph.treasuryUsd)}
+            </p>
+            <p className="mt-0.5 font-mono text-[10px] tabular-nums text-white/40">
+              {usdSmall(graph.gnarsAccrued)} {t("orbit.fee")} · {fmtMor(graph.gnarsMor)} MOR
             </p>
           </div>
         </div>
