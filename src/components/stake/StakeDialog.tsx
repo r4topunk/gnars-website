@@ -206,8 +206,8 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent, 
 
           {/* Hero: rewards flow + rider */}
           <div
-            className="relative grid items-stretch gap-3 rounded-[20px] border border-white/[0.07] px-5 pt-[18px] sm:grid-cols-[minmax(0,1fr)_260px]"
-            style={{ background: "radial-gradient(90% 120% at 88% 100%, rgba(245,140,30,.22) 0%, rgba(245,140,30,0) 58%), rgba(255,255,255,.03)" }}
+            className="relative grid items-stretch gap-3.5 rounded-[20px] border border-white/[0.07] px-5 pt-[18px] sm:grid-cols-[minmax(0,1fr)_268px]"
+            style={{ background: "rgba(255,255,255,.03)" }}
           >
             <div className="min-w-0 pb-[18px]">
               <div className="mb-1.5 flex items-baseline justify-between gap-4">
@@ -227,33 +227,39 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent, 
                 youLabel={t("youLabel")}
                 gnarsLabel="Gnars"
                 srcLabel={t("flowSource")}
+                yieldLabel={t("opp.yield")}
               />
             </div>
 
             {/* Rider speech + face crop */}
-            <div className="relative hidden min-h-[320px] flex-col gap-4 pt-1.5 sm:flex">
+            <div className="relative hidden min-h-[280px] flex-col gap-[15px] pt-1 sm:flex">
               <div
-                className="relative flex flex-1 flex-col justify-center rounded-2xl p-4"
-                style={{ background: "linear-gradient(180deg,#1c1714,#141110)", border: `2px solid ${GOLD}`, boxShadow: "0 12px 30px rgba(0,0,0,.55)" }}
+                className="relative flex-none rounded-2xl px-3.5 py-3"
+                style={{ background: "linear-gradient(180deg,#1c1714,#141110)", border: `2px solid ${GOLD}` }}
               >
                 <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.2em]" style={{ color: GOLD_HI }}>{name}</div>
-                <div className="text-[13.5px] font-semibold leading-relaxed" style={{ color: "#e8e4df" }}>
-                  {line.slice(0, typed)}
-                  <span style={{ color: GOLD }}>{typed < line.length ? "▌" : ""}</span>
+                {/* reserve the full line's height (invisible) so typing never reflows the bubble */}
+                <div className="relative text-[13px] font-semibold leading-relaxed">
+                  <span className="invisible">{line}</span>
+                  <span className="absolute inset-x-0 top-0" style={{ color: "#e8e4df" }}>
+                    {line.slice(0, typed)}
+                    <span style={{ color: GOLD }}>{typed < line.length ? "▌" : ""}</span>
+                  </span>
                 </div>
                 <div
                   className="absolute -bottom-2.5 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45"
                   style={{ background: "#141110", borderRight: `2px solid ${GOLD}`, borderBottom: `2px solid ${GOLD}` }}
                 />
               </div>
-              {/* face crop — head only, so the speech bubble gets the room */}
+              {/* face crop with a soft bottom fade — no box, blends into the panel */}
               <div
                 aria-hidden
-                className="h-[156px] flex-none overflow-hidden rounded-2xl border border-white/[0.08]"
+                className="min-h-[170px] flex-1"
                 style={{
                   backgroundImage: `url(${image})`, backgroundRepeat: "no-repeat",
                   backgroundSize: faceSize, backgroundPosition: facePos,
-                  boxShadow: "inset 0 -46px 44px rgba(14,12,10,.55)",
+                  WebkitMaskImage: "linear-gradient(180deg,#000 62%,rgba(0,0,0,0) 100%)",
+                  maskImage: "linear-gradient(180deg,#000 62%,rgba(0,0,0,0) 100%)",
                 }}
               />
             </div>
@@ -409,15 +415,15 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent, 
 
 /** The rewards-flow SVG (gold streams → You / rider / Gnars) with real avatars overlaid. */
 function RewardFlow({
-  riderName, riderImg, faceSize, facePos, youVal, ridVal, gnaVal, youLabel, gnarsLabel, srcLabel,
+  riderName, riderImg, faceSize, facePos, youVal, ridVal, gnaVal, youLabel, gnarsLabel, srcLabel, yieldLabel,
 }: {
   riderName: string; riderImg: string; faceSize: string; facePos: string;
-  youVal: string; ridVal: string; gnaVal: string; youLabel: string; gnarsLabel: string; srcLabel: string;
+  youVal: string; ridVal: string; gnaVal: string; youLabel: string; gnarsLabel: string; srcLabel: string; yieldLabel: string;
 }) {
   const P = {
-    you: "M126,181 C280,181 320,70 403,70",
-    rid: "M126,190 L403,190",
-    gna: "M126,199 C280,199 320,310 403,310",
+    you: "M126,130 C280,130 320,46 403,46",
+    rid: "M126,138 L403,138",
+    gna: "M126,146 C280,146 320,230 403,230",
   };
   const stream = (id: string, d: string, n: number) =>
     Array.from({ length: n }, (_, i) => (
@@ -434,15 +440,15 @@ function RewardFlow({
       <text x={470} y={cy + 33} fill="#8a857e" fontSize={13} fontWeight={600}>{val}</text>
     </g>
   );
-  const overlay = (topPct: number, size: string, pos: string, url: string): CSSProperties => ({
-    position: "absolute", left: "66.67%", top: `${topPct}%`, width: "7.13%", aspectRatio: "1",
+  const overlay = (leftPct: number, topPct: number, width: number, size: string, pos: string, url: string): CSSProperties => ({
+    position: "absolute", left: `${leftPct}%`, top: `${topPct}%`, width: `${width}%`, aspectRatio: "1",
     transform: "translate(-50%,-50%)", borderRadius: "50%", overflow: "hidden",
     backgroundImage: `url(${url})`, backgroundRepeat: "no-repeat", backgroundSize: size, backgroundPosition: pos,
   });
 
   return (
     <div className="relative w-full">
-      <svg viewBox="0 0 645 385" style={{ width: "100%", height: "auto", display: "block" }}>
+      <svg viewBox="0 0 700 276" style={{ width: "100%", height: "auto", display: "block" }}>
         <defs>
           <linearGradient id="flowG2" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor={GOLD} stopOpacity={0.3} />
@@ -456,18 +462,19 @@ function RewardFlow({
         {stream("r", P.rid, 2)}
         {stream("g", P.gna, 2)}
 
-        <circle cx={110} cy={190} r={15} fill={GOLD} />
-        <text x={110} y={152} fill="#fff" fontSize={17} fontWeight={700} textAnchor="middle">{srcLabel}</text>
+        <circle cx={110} cy={138} r={15} fill={GOLD} />
+        <text x={110} y={100} fill="#fff" fontSize={17} fontWeight={700} textAnchor="middle">{srcLabel}</text>
+        <text x={110} y={176} fill="#8a857e" fontSize={13} fontWeight={600} textAnchor="middle">{yieldLabel}</text>
 
-        {node("n1", 70, youLabel, "50%", youVal, (
-          <text x={430} y={76} fill={GOLD_HI} fontSize={13} fontWeight={800} textAnchor="middle">{youLabel.slice(0, 3).toUpperCase()}</text>
+        {node("n1", 46, youLabel, "50%", youVal, (
+          <text x={430} y={52} fill={GOLD_HI} fontSize={13} fontWeight={800} textAnchor="middle">{youLabel.slice(0, 3).toUpperCase()}</text>
         ))}
-        {node("n2", 190, riderName, "25%", ridVal)}
-        {node("n3", 310, gnarsLabel, "25%", gnaVal)}
+        {node("n2", 138, riderName, "25%", ridVal)}
+        {node("n3", 230, gnarsLabel, "25%", gnaVal)}
       </svg>
       {/* real avatars over the rider + Gnars nodes */}
-      <div aria-hidden style={overlay(49.35, faceSize, facePos, riderImg)} />
-      <div aria-hidden style={overlay(80.5, "cover", "center", "/gnars.webp")} />
+      <div aria-hidden style={overlay(61.43, 50, 7.71, faceSize, facePos, riderImg)} />
+      <div aria-hidden style={overlay(61.43, 83.33, 7.71, "cover", "center", "/gnars.webp")} />
     </div>
   );
 }
