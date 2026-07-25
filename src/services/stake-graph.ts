@@ -181,23 +181,31 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
       { asset: "usdc", pool: MORPHEUS_POOLS.usdc.pool, decimals: 6 },
     ];
     const pairs = escPools.flatMap((p) => idWallets.map(([id, ref]) => ({ ...p, id, ref })));
-    const rows = await Promise.all(
-      pairs.map(async ({ asset, pool, decimals, id, ref }) => {
-        const logs = await etherscanReferred(pool, ref, ETHERSCAN_KEY as string);
-        // Sum the staked amount straight from the events (datacenter-safe, no
-        // extra eth_call that would blow the free rate limit). Withdrawals aren't
-        // subtracted, but the 7-day lock makes that rare.
-        const byUser = new Map<string, bigint>();
-        for (const l of logs) byUser.set(l.user.toLowerCase(), (byUser.get(l.user.toLowerCase()) ?? BigInt(0)) + l.amount);
-        const out: Array<{ id: RiderId; backer: OrbitBacker }> = [];
-        for (const [userLc, amt] of byUser) {
-          const tokens = Number(formatUnits(amt, decimals));
-          const usd = asset === "steth" ? tokens * ethUsd : tokens;
-          if (usd > 0) out.push({ id, backer: { address: getAddress(userLc), amount: usd, kind: "mor", asset } });
-        }
-        return out;
-      }),
-    );
+    const rows: Array<{ id: RiderId; backer: OrbitBacker }>[] = [];
+    // Etherscan's free tier caps at ~5 req/s — run the calls in small waves with
+    // a gap so they don't get rate-limited into empty results. The route caches
+    // the whole graph for 60s, so this runs at most once a minute.
+    const BATCH = 4;
+    for (let i = 0; i < pairs.length; i += BATCH) {
+      const wave = await Promise.all(
+        pairs.slice(i, i + BATCH).map(async ({ asset, pool, decimals, id, ref }) => {
+          const logs = await etherscanReferred(pool, ref, ETHERSCAN_KEY as string);
+          // Staked amount straight from the events (no eth_call). Withdrawals
+          // aren't subtracted, but the 7-day lock makes that rare.
+          const byUser = new Map<string, bigint>();
+          for (const l of logs) byUser.set(l.user.toLowerCase(), (byUser.get(l.user.toLowerCase()) ?? BigInt(0)) + l.amount);
+          const out: Array<{ id: RiderId; backer: OrbitBacker }> = [];
+          for (const [userLc, amt] of byUser) {
+            const tokens = Number(formatUnits(amt, decimals));
+            const usd = asset === "steth" ? tokens * ethUsd : tokens;
+            if (usd > 0) out.push({ id, backer: { address: getAddress(userLc), amount: usd, kind: "mor", asset } });
+          }
+          return out;
+        }),
+      );
+      rows.push(...wave);
+      if (i + BATCH < pairs.length) await sleep(320);
+    }
     for (const { id, backer } of rows.flat()) (byRider[id] ||= []).push(backer);
     return byRider;
   }
