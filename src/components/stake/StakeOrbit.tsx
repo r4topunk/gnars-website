@@ -6,6 +6,7 @@
 // per-rider supporters list, this shows a backer's positions across every rider
 // at once (which is why "I don't see all my stakes" happens on the flat list).
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useActiveAccount } from "thirdweb/react";
 import { useStakeGraph } from "@/hooks/use-stake-graph";
@@ -24,6 +25,12 @@ const RIDER_VISUAL: Record<RiderId, { hex: string; image: string; face: { size: 
 
 const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: n > 0 && n < 100 ? 2 : 0 })}`;
 const short = (a: string) => `${a.slice(0, 5)}…${a.slice(-3)}`;
+/** Prefer an ENS/basename, trimmed to fit the small orbit label. */
+const nameOrShort = (addr: string, names: Record<string, string>) => {
+  const n = names[addr.toLowerCase()];
+  if (!n) return short(addr);
+  return n.length > 16 ? `${n.slice(0, 15)}…` : n;
+};
 const GOLD = "#f7c948";
 // Morpheus green — MOR stakes get their own colored stream, distinct from the
 // rider-tinted Morpho vault flows, so a wallet that backs both shows two lines.
@@ -41,6 +48,36 @@ export function StakeOrbit() {
   const you = useActiveAccount()?.address?.toLowerCase();
   const graph = useStakeGraph();
 
+  // Click an athlete to recenter the orbit on them; click "all" to zoom out.
+  const [focusId, setFocusId] = useState<RiderId | null>(null);
+  // Resolve backer addresses to ENS / basenames (batched, cached by /api/ens).
+  const [ensNames, setEnsNames] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (!graph) return;
+    const addrs = Array.from(
+      new Set(graph.athletes.flatMap((a) => a.backers.map((b) => b.address.toLowerCase()))),
+    );
+    if (addrs.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/ens", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ addresses: addrs }),
+        });
+        if (!res.ok) return;
+        const json = (await res.json()) as { ensMap?: Record<string, { name?: string | null }> };
+        const map: Record<string, string> = {};
+        for (const [addr, data] of Object.entries(json.ensMap ?? {})) {
+          if (data?.name) map[addr.toLowerCase()] = data.name;
+        }
+        if (!cancelled) setEnsNames(map);
+      } catch { /* addresses stay short */ }
+    })();
+    return () => { cancelled = true; };
+  }, [graph]);
+
   if (graph === null) {
     return (
       <div className="rounded-[22px] border border-white/[0.06] bg-[#0e0b09] p-6 text-sm text-white/40">
@@ -57,6 +94,12 @@ export function StakeOrbit() {
   const athR = (total: number) => 22 + 14 * Math.sqrt(total / maxTotal);
   // line weight ∝ amount, floored so a tiny stake is still visible.
   const supW = (amount: number) => Math.max(1.5, 6 * Math.sqrt(amount / maxTotal));
+
+  // Focus mode: the picked athlete takes the center, the treasury slides to a
+  // small satellite near the top, and everyone else drops away.
+  const focused = focusId ? athletes.find((a) => a.id === focusId) ?? null : null;
+  const treasuryPt = focused ? { x: C, y: 96 } : { x: C, y: C };
+  const treasuryR = focused ? 26 : 48;
 
   return (
     <div className="rounded-[22px] border border-white/[0.06] bg-gradient-to-b from-[#181410] to-[#0e0b09] p-5 sm:p-7">
@@ -82,6 +125,16 @@ export function StakeOrbit() {
           </div>
         </div>
       </div>
+
+      {focused && (
+        <button
+          type="button"
+          onClick={() => setFocusId(null)}
+          className="mb-3 inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-black/50"
+        >
+          ← {t("orbit.backToAll")}
+        </button>
+      )}
 
       <div className="mb-3 flex flex-wrap items-center gap-4 text-[11px] text-white/50">
         <span className="flex items-center gap-1.5">
@@ -110,31 +163,35 @@ export function StakeOrbit() {
           <circle cx={C} cy={C} r={R_SUP} fill="none" stroke="rgba(255,255,255,.04)" />
 
           {athletes.map((a, i) => {
+            // In focus mode, render only the focused athlete — at the center.
+            if (focused && a.id !== focused.id) return null;
+            const isCenter = !!focused && a.id === focused.id;
             const angle = -90 + (360 / n) * i;
-            const ap = pt(angle, R_ATH);
+            const ap = isCenter ? { x: C, y: C } : pt(angle, R_ATH);
             const v = RIDER_VISUAL[a.id];
             const lit = a.total > 0;
+            const nodeR = isCenter ? 52 : athR(a.total);
 
-            // backers fan out within ±22° of the athlete's angle on the outer ring
+            // backers fan a full circle when centered, else a ±22° arc.
             const spread = 44;
             const bs = a.backers;
             return (
               <g key={a.id}>
                 {/* spoke: athlete -> treasury (the fee relationship) */}
                 <line
-                  x1={ap.x} y1={ap.y} x2={C} y2={C}
+                  x1={ap.x} y1={ap.y} x2={treasuryPt.x} y2={treasuryPt.y}
                   stroke={lit ? v.hex : "rgba(255,255,255,.10)"}
                   strokeOpacity={lit ? 0.5 : 1}
                   strokeWidth={lit ? 2 : 1}
                 />
                 {lit && (
-                  <line x1={ap.x} y1={ap.y} x2={C} y2={C} className="so-flow" stroke={v.hex} strokeWidth={2} strokeOpacity={0.9} />
+                  <line x1={ap.x} y1={ap.y} x2={treasuryPt.x} y2={treasuryPt.y} className="so-flow" stroke={v.hex} strokeWidth={2} strokeOpacity={0.9} />
                 )}
 
                 {/* backer lines + dots + value labels */}
                 {bs.map((b, j) => {
                   const off = bs.length === 1 ? 0 : (j / (bs.length - 1) - 0.5) * spread;
-                  const bp = pt(angle + off, R_SUP);
+                  const bp = isCenter ? pt(-90 + (360 / bs.length) * j, R_SUP) : pt(angle + off, R_SUP);
                   const mid = { x: (ap.x + bp.x) / 2, y: (ap.y + bp.y) / 2 };
                   const isYou = you && b.address.toLowerCase() === you;
                   const isMor = b.kind === "mor";
@@ -160,16 +217,21 @@ export function StakeOrbit() {
                         </text>
                       )}
                       <text x={bp.x} y={bp.y + (bp.y < C ? -14 : 20)} textAnchor="middle" fontSize="9.5" fill={isYou ? GOLD : "rgba(255,255,255,.55)"} fontFamily="monospace" fontWeight={isYou ? 700 : 400}>
-                        {isYou ? t("orbit.you") : short(b.address)}
+                        {isYou ? t("orbit.you") : nameOrShort(b.address, ensNames)}
                       </text>
                     </g>
                   );
                 })}
 
-                {/* athlete node — cut-out zoomed onto the face, clipped round */}
-                <g transform={`translate(${ap.x} ${ap.y})`}>
-                  <circle r={athR(a.total)} fill="#141210" stroke={lit ? v.hex : "rgba(255,255,255,.18)"} strokeWidth={lit ? 2.5 : 1.5} />
-                  <foreignObject x={-athR(a.total)} y={-athR(a.total)} width={athR(a.total) * 2} height={athR(a.total) * 2}>
+                {/* athlete node — cut-out zoomed onto the face, clipped round.
+                    Click to recenter on this rider (or zoom back out). */}
+                <g
+                  transform={`translate(${ap.x} ${ap.y})`}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setFocusId(isCenter ? null : a.id)}
+                >
+                  <circle r={nodeR} fill="#141210" stroke={lit ? v.hex : "rgba(255,255,255,.18)"} strokeWidth={lit ? 2.5 : 1.5} />
+                  <foreignObject x={-nodeR} y={-nodeR} width={nodeR * 2} height={nodeR * 2}>
                     <div
                       style={{
                         width: "100%", height: "100%", borderRadius: "50%",
@@ -181,19 +243,19 @@ export function StakeOrbit() {
                   </foreignObject>
                 </g>
                 {/* athlete name + total */}
-                <text x={ap.x} y={ap.y + athR(a.total) + 16} textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff">
+                <text x={ap.x} y={ap.y + nodeR + 16} textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff">
                   {t(`characters.${a.id}.name`)}
                 </text>
-                <text x={ap.x} y={ap.y + athR(a.total) + 31} textAnchor="middle" fontSize="12" fontWeight="700" fontFamily="monospace" fill={lit ? v.hex : "rgba(255,255,255,.4)"}>
+                <text x={ap.x} y={ap.y + nodeR + 31} textAnchor="middle" fontSize="12" fontWeight="700" fontFamily="monospace" fill={lit ? v.hex : "rgba(255,255,255,.4)"}>
                   {a.total > 0 ? usd(a.total) : "—"}
                 </text>
               </g>
             );
           })}
 
-          {/* treasury center — the Gnars logo */}
-          <circle cx={C} cy={C} r={48} fill="#0c0a08" stroke={GOLD} strokeWidth={3} />
-          <foreignObject x={C - 44} y={C - 44} width={88} height={88}>
+          {/* treasury — center in overview, a small satellite when focused */}
+          <circle cx={treasuryPt.x} cy={treasuryPt.y} r={treasuryR} fill="#0c0a08" stroke={GOLD} strokeWidth={3} />
+          <foreignObject x={treasuryPt.x - (treasuryR - 4)} y={treasuryPt.y - (treasuryR - 4)} width={(treasuryR - 4) * 2} height={(treasuryR - 4) * 2}>
             <div
               style={{
                 width: "100%", height: "100%", borderRadius: "50%",
@@ -202,7 +264,7 @@ export function StakeOrbit() {
               }}
             />
           </foreignObject>
-          <text x={C} y={C + 68} textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.5" fill="rgba(255,255,255,.6)">{t("orbit.treasury")}</text>
+          <text x={treasuryPt.x} y={treasuryPt.y + treasuryR + 16} textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.5" fill="rgba(255,255,255,.6)">{t("orbit.treasury")}</text>
         </svg>
       </div>
     </div>
