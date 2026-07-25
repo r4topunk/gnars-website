@@ -39,6 +39,9 @@ export function MorLootbox() {
   const [open, setOpen] = useState(false);
   const [splitBalances, setSplitBalances] = useState<Partial<Record<MorpheusAsset, number>>>({});
   const [busyAsset, setBusyAsset] = useState<MorpheusAsset | null>(null);
+  // Read the clock once at mount (a lazy initializer is pure-in-render safe) —
+  // the 7-day unlock doesn't need a live tick; a refresh re-reads it.
+  const [nowSec] = useState(() => Math.floor(Date.now() / 1000));
 
   // Read what's already sitting at each position's split on Arbitrum.
   useEffect(() => {
@@ -187,7 +190,7 @@ export function MorLootbox() {
                 </p>
                 <div className="space-y-2">
                   {stakedPools.map((p) => {
-                    const unlocked = p.unlockAt > 0 && Date.now() / 1000 >= p.unlockAt;
+                    const unlocked = p.unlockAt > 0 && nowSec >= p.unlockAt;
                     return (
                       <div key={`w-${p.asset}`} className="flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-surface-elevated px-3 py-2">
                         <span className="text-xs text-foreground-muted">

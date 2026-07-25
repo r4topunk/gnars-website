@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -74,7 +74,7 @@ function fmtAmount(n: number, usdc: boolean) {
   return n < 0.001 ? n.toExponential(2) : n.toFixed(n < 1 ? 4 : 3);
 }
 
-export function StakeDialog({ open, onOpenChange, riderId, name, image, accent, overall, faceSize = "420%", facePos = "50% 6%" }: StakeDialogProps) {
+export function StakeDialog({ open, onOpenChange, riderId, name, image, overall, faceSize = "420%", facePos = "50% 6%" }: StakeDialogProps) {
   const t = useTranslations("stake");
   const { stake, withdrawAll, claimRewards, phase: stakePhase, error: stakeError, isStaking, account } = useStakeDeposit();
   const morpheus = useMorpheusStake();
@@ -121,13 +121,13 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, accent, 
     return t("opp.lineVar", { rate: rate.toFixed(1) });
   })();
   const [typed, setTyped] = useState(0);
-  const lineRef = useRef(line);
-  lineRef.current = line;
+  // Re-runs whenever `line` changes, so the interval closure always has the
+  // current line — no ref needed.
   useEffect(() => {
     setTyped(0);
     const id = setInterval(() => {
       setTyped((n) => {
-        if (n >= lineRef.current.length) { clearInterval(id); return n; }
+        if (n >= line.length) { clearInterval(id); return n; }
         return n + 1;
       });
     }, 24);
