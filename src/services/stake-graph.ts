@@ -15,23 +15,36 @@ import { base, mainnet } from "viem/chains";
 import { RIDER_LIST, type RiderId } from "@/lib/gnars-vaults";
 import { MORPHEUS_POOLS, MOR_REWARD_POOL_INDEX, depositPoolAbi } from "@/lib/morpheus";
 
+// Prefer Alchemy (reliable, handles large getLogs) when the key is set, since
+// the public RPCs frequently fail/timeout on the MOR log scan — and a swallowed
+// failure there means a staker silently vanishes from the orbit.
+const ALCHEMY = process.env.ALCHEMY_API_KEY;
+// eth.drpc.org is the reliable getLogs fallback — the other free mainnet RPCs
+// (publicnode/llama/ankr) reject or rate-limit eth_getLogs, which silently
+// emptied the MOR log scan and dropped stakers from the orbit. Verified: drpc
+// serves the exact referrer-filtered query in ~0.2s.
+const ethRpcs = [
+  ...(ALCHEMY ? [`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY}`] : []),
+  "https://eth.drpc.org",
+  "https://ethereum.publicnode.com",
+  "https://eth.llamarpc.com",
+];
+const baseRpcs = [
+  ...(ALCHEMY ? [`https://base-mainnet.g.alchemy.com/v2/${ALCHEMY}`] : []),
+  "https://mainnet.base.org",
+  "https://base-rpc.publicnode.com",
+  "https://base.drpc.org",
+];
+
 const baseClient = createPublicClient({
   chain: base,
   batch: { multicall: true },
-  transport: fallback([
-    http("https://mainnet.base.org"),
-    http("https://base-rpc.publicnode.com"),
-    http("https://base.drpc.org"),
-  ]),
+  transport: fallback(baseRpcs.map((u) => http(u))),
 });
 const ethClient = createPublicClient({
   chain: mainnet,
   batch: { multicall: true },
-  transport: fallback([
-    http("https://ethereum.publicnode.com"),
-    http("https://eth.llamarpc.com"),
-    http("https://rpc.ankr.com/eth"),
-  ]),
+  transport: fallback(ethRpcs.map((u) => http(u))),
 });
 
 const userReferredEvent = {
@@ -119,8 +132,10 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
 
   let latest: bigint;
   try { latest = await ethClient.getBlockNumber(); } catch { return byRider; }
-  const WINDOW = BigInt(90_000);
-  const CHUNK = BigInt(45_000);
+  // ~3-week window, chunked at 10k so both Alchemy and the public fallback RPCs
+  // accept each range (public nodes reject large getLogs spans).
+  const WINDOW = BigInt(150_000);
+  const CHUNK = BigInt(10_000);
   const from0 = latest > WINDOW ? latest - WINDOW : BigInt(0);
 
   const pools: Array<{ asset: "steth" | "usdc"; pool: Address; decimals: number }> = [
