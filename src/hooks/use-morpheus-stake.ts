@@ -11,7 +11,10 @@
 // Everything is a real mainnet tx (gas is not cheap) — the UI flags that.
 
 import { useCallback, useRef, useState } from "react";
-import { prepareTransaction, sendTransaction, waitForReceipt } from "thirdweb";
+import {
+  prepareTransaction, sendTransaction, waitForReceipt, readContract, getContract,
+  type ThirdwebClient,
+} from "thirdweb";
 import { ethereum } from "thirdweb/chains";
 import {
   createPublicClient, http, fallback, encodeFunctionData, encodeAbiParameters, parseUnits, erc20Abi, type Address,
@@ -45,14 +48,34 @@ const rpc = createPublicClient({
 });
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function waitForAllowance(token: Address, owner: Address, spender: Address, needed: bigint, tries = 12): Promise<void> {
+const ALLOWANCE = "function allowance(address owner, address spender) view returns (uint256)" as const;
+
+/**
+ * Confirm the pool's allowance is high enough *on the RPC that will estimate the
+ * stake* before we send it. Mainnet is ~12s/block and the free fallback RPCs lag
+ * each other, so we treat thirdweb's node (the one that gas-estimates the write)
+ * as the source of truth and use the viem fallback only as a secondary signal.
+ * Returns false if the allowance never propagates in the poll window — the
+ * caller then aborts with a friendly "try again" instead of broadcasting a tx
+ * that reverts with "transfer amount exceeds allowance".
+ */
+async function confirmAllowance(
+  client: ThirdwebClient, token: Address, owner: Address, spender: Address, needed: bigint,
+  tries = 24,
+): Promise<boolean> {
+  const contract = getContract({ client, chain: ethereum, address: token });
   for (let i = 0; i < tries; i++) {
     try {
-      const a = await rpc.readContract({ address: token, abi: erc20Abi, functionName: "allowance", args: [owner, spender] });
-      if (a >= needed) return;
+      const a = await readContract({ contract, method: ALLOWANCE, params: [owner, spender] });
+      if (a >= needed) return true;
     } catch { /* keep polling */ }
-    await sleep(1500);
+    try {
+      const a = await rpc.readContract({ address: token, abi: erc20Abi, functionName: "allowance", args: [owner, spender] });
+      if (a >= needed) return true;
+    } catch { /* keep polling */ }
+    await sleep(2000);
   }
+  return false;
 }
 
 export type MorpheusPhase = "idle" | "approve" | "stake" | "withdraw" | "claim" | "done" | "error";
@@ -89,7 +112,16 @@ export function useMorpheusStake() {
           const approveTx = prepareTransaction({ client, chain: ethereum, to: token, data: approveData });
           const hash = (await sendTransaction({ account, transaction: approveTx })).transactionHash;
           await waitForReceipt({ client, chain: ethereum, transactionHash: hash });
-          await waitForAllowance(token, account.address as Address, pool, assets);
+          // Wait until the pool's allowance is actually visible on the estimation
+          // RPC — otherwise the stake reverts with "transfer amount exceeds
+          // allowance". If it never propagates, abort cleanly rather than
+          // broadcasting a doomed tx.
+          const ok = await confirmAllowance(client, token, account.address as Address, pool, assets);
+          if (!ok) {
+            setError("Approval is still confirming on-chain — give it a few seconds and tap Stake again.");
+            setPhase("error");
+            return false;
+          }
         }
 
         setPhase("stake");
