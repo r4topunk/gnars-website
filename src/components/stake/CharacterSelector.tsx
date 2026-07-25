@@ -202,7 +202,12 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
               "radial-gradient(120% 90% at 50% 38%, rgba(245,140,30,.22) 0%, rgba(245,140,30,0) 52%), linear-gradient(180deg,#161210,#0c0a08)",
           }}
         >
-          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+          {/* Default (sync) mode: both cut-outs are absolutely positioned inside
+              the stage and cross-fade in place. Avoid mode="popLayout" here — it
+              portals the exiting cut-out onto document.body, where its
+              top/bottom percentages blow up the page height and yank the scroll
+              upward on every select. */}
+          <AnimatePresence initial={false} custom={direction}>
             <motion.div
               key={active.id}
               custom={direction}
