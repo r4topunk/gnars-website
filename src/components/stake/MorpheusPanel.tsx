@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { RIDER_LIST } from "@/lib/gnars-vaults";
-import { MORPHEUS_POOLS, type MorpheusAsset } from "@/lib/morpheus";
+import { MORPHEUS_POOLS, MOR_SPLITS, type MorpheusAsset } from "@/lib/morpheus";
 import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
 import { useMorpheusPosition } from "@/hooks/use-morpheus-position";
 
@@ -25,7 +25,7 @@ const fmt = (n: number, d = 4) => n.toLocaleString("en-US", { maximumFractionDig
 export function MorpheusPanel() {
   const account = useActiveAccount();
   const you = account?.address;
-  const { stake, withdraw, claim, phase, error, isBusy } = useMorpheusStake();
+  const { stake, withdraw, claim, setDonateReceiver, phase, error, isBusy } = useMorpheusStake();
   const [refresh, setRefresh] = useState(0);
   const position = useMorpheusPosition(you, refresh);
 
@@ -54,11 +54,30 @@ export function MorpheusPanel() {
 
   const onClaim = async (a: MorpheusAsset) => {
     if (!you) return;
-    // Self-claim to your own address on Arbitrum. Donate-to-split comes with the
-    // Arbitrum splits (needs the SOPA Safe deployed there).
-    const ok = await claim(a, you as `0x${string}`);
-    if (ok) { toast.success("MOR claimed", { description: "Arriving on Arbitrum in a few minutes." }); setRefresh((n) => n + 1); }
-    else toast.error("Claim failed", { description: error ?? undefined });
+    // Route to the picked rider's split if the user turned donate mode on for
+    // this pool; otherwise self-claim to their own Arbitrum address.
+    const split = MOR_SPLITS[riderId];
+    const receiver = donateAssets[a] && split ? split : (you as `0x${string}`);
+    const ok = await claim(a, receiver);
+    if (ok) {
+      toast.success("MOR claimed", { description: receiver === split ? `Split to Gnars + ${riderId} on Arbitrum.` : "Arriving on Arbitrum in a few minutes." });
+      setRefresh((n) => n + 1);
+    } else toast.error("Claim failed", { description: error ?? undefined });
+  };
+
+  // Which pools the user has flipped into donate mode (points claims at the split).
+  const [donateAssets, setDonateAssets] = useState<Partial<Record<MorpheusAsset, boolean>>>({});
+  const onDonateToggle = async (a: MorpheusAsset) => {
+    const split = MOR_SPLITS[riderId];
+    if (!split || !you) return;
+    const turningOn = !donateAssets[a];
+    const ok = await setDonateReceiver(a, turningOn ? split : (you as `0x${string}`));
+    if (ok) {
+      setDonateAssets((d) => ({ ...d, [a]: turningOn }));
+      toast.success(turningOn ? `Donating MOR to Gnars + ${riderId}` : "Keeping your MOR", {
+        description: turningOn ? "Future claims route to the split — anyone can trigger them." : "Claims go back to your wallet.",
+      });
+    } else toast.error("Failed", { description: error ?? undefined });
   };
 
   const phaseLabel =
@@ -141,7 +160,19 @@ export function MorpheusPanel() {
                 <span className="text-xs text-muted-foreground">
                   {p.pendingMor > 0 ? `${fmt(p.pendingMor, 4)} MOR pending` : "MOR accruing"}
                 </span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {MOR_SPLITS[riderId] && (
+                    <Button
+                      size="sm"
+                      variant={donateAssets[p.asset] ? "default" : "outline"}
+                      disabled={isBusy}
+                      onClick={() => onDonateToggle(p.asset)}
+                      className={donateAssets[p.asset] ? "bg-violet-500 text-white hover:bg-violet-600" : ""}
+                      title={`Route this position's MOR to Gnars + ${riderId}`}
+                    >
+                      {donateAssets[p.asset] ? `donating → ${riderId}` : "Donate MOR"}
+                    </Button>
+                  )}
                   {p.pendingMor > 0 && (
                     <Button size="sm" disabled={isBusy} onClick={() => onClaim(p.asset)} className="bg-violet-500 text-white hover:bg-violet-600">
                       {phase === "claim" ? "claiming…" : "Claim MOR"}
