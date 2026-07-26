@@ -139,7 +139,10 @@ async function getEthUsd(): Promise<number> {
 // which the free RPCs block for eth_getLogs (that silently emptied this scan in
 // prod). One unified key covers every chain (chainid=1 here).
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const ETHERSCAN_KEY = process.env.ETHERSCAN_API_KEY || process.env.BASESCAN_API_KEY;
+// Must be a MAINNET-capable key from etherscan.io. The repo's BASESCAN_API_KEY
+// is Basescan-only → chainid=1 returns "NOTOK / invalid api key", so it's NOT a
+// usable fallback here; set ETHERSCAN_API_KEY explicitly in the env.
+const ETHERSCAN_KEY = process.env.ETHERSCAN_API_KEY;
 const USER_REFERRED_SIG = keccak256(toHex("UserReferred(uint256,address,address,uint256)"));
 const pad32 = (a: Address) => `0x000000000000000000000000${a.slice(2).toLowerCase()}`;
 
