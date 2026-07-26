@@ -8,7 +8,7 @@ import { getAddress, type Address } from "viem";
 // admin panel — paste the addresses the panel prints here to light up the
 // rider's on-chain sponsorship on /stake.
 
-export type RiderId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima";
+export type RiderId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima" | "will";
 
 export type Rider = {
   id: RiderId;
@@ -76,6 +76,12 @@ export const RIDERS: Record<RiderId, Rider> = {
     vault: getAddress("0x4E7f8523d3f81EFc547d43387eBe5d6251bb32cF"),
     adapter: getAddress("0xC9d6d942E727e82673454e0cC4A5335d35f652EF"),
     split: getAddress("0x81C570DCd0055749d732c1EcCfDd8C56CBBbbEf3"),
+  },
+  will: {
+    id: "will",
+    handle: "will",
+    wallet: getAddress("0xddb4938755c243a4f60a2f2f8f95df4f894c58cc"),
+    // vault/adapter/split to be filled once Will's vault is deployed.
   },
 };
 

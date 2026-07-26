@@ -21,6 +21,7 @@ const RIDER_VISUAL: Record<RiderId, { hex: string; image: string; face: { size: 
   pamtech: { hex: "#10b981", image: "/stake/cutout/pamtech.png", face: { size: "420%", pos: "50% 9%" } },
   v2: { hex: "#f43f5e", image: "/stake/cutout/v2.png", face: { size: "420%", pos: "50% 8%" } },
   zima: { hex: "#14b8a6", image: "/stake/cutout/zima.png", face: { size: "330%", pos: "50% 3%" } },
+  will: { hex: "#818cf8", image: "/stake/cutout/will.png", face: { size: "400%", pos: "50% 8%" } },
 };
 
 const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: n > 0 && n < 100 ? 2 : 0 })}`;
