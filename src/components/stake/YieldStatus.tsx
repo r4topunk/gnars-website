@@ -45,7 +45,8 @@ function StatusRow({
   );
 }
 
-/** Live on-chain yields shown as the rider's "status" (ETH via Lido, USDC via Morpho). */
+/** Live yields shown as the rider's "status" — the actual opportunities:
+ * USDC via Morpho, stETH + USDC via Morpheus (MOR). */
 export function YieldStatus() {
   const t = useTranslations("stake");
   const { data, isLoading } = useQuery({
@@ -68,19 +69,27 @@ export function YieldStatus() {
       </div>
       <div className="space-y-2">
         <StatusRow
-          dot="bg-sky-400"
-          asset="ETH"
-          source={data?.eth?.source}
-          apy={data?.eth?.apy}
-          suffix="APR"
-          loading={isLoading}
-        />
-        <StatusRow
           dot="bg-emerald-400"
           asset="USDC"
           source={data?.usdc?.source}
           apy={data?.usdc?.apy}
           suffix="APY"
+          loading={isLoading}
+        />
+        <StatusRow
+          dot="bg-violet-400"
+          asset="stETH"
+          source={data?.mor?.steth?.source}
+          apy={data?.mor?.steth?.apy}
+          suffix="APR"
+          loading={isLoading}
+        />
+        <StatusRow
+          dot="bg-violet-400"
+          asset="USDC"
+          source={data?.mor?.usdc?.source}
+          apy={data?.mor?.usdc?.apy}
+          suffix="APR"
           loading={isLoading}
         />
       </div>
