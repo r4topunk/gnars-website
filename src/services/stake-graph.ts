@@ -146,12 +146,6 @@ const ETHERSCAN_KEY = process.env.ETHERSCAN_API_KEY;
 const USER_REFERRED_SIG = keccak256(toHex("UserReferred(uint256,address,address,uint256)"));
 const pad32 = (a: Address) => `0x000000000000000000000000${a.slice(2).toLowerCase()}`;
 
-// Temporary diag: which key env is set + the last Etherscan response.
-let _morNote = "init";
-export function lastMorNote() {
-  return `esk=${process.env.ETHERSCAN_API_KEY ? "Y" : "n"} bsk=${process.env.BASESCAN_API_KEY ? "Y" : "n"} | ${_morNote}`;
-}
-
 /** A rider's referred stakes on a pool, straight from the UserReferred events.
  * Needs a mainnet-capable Etherscan key (a Basescan-only key returns NOTOK for
  * chainid=1) — set ETHERSCAN_API_KEY in the env. */
@@ -160,15 +154,16 @@ async function etherscanReferred(pool: Address, referrer: Address, key: string):
     `https://api.etherscan.io/v2/api?chainid=1&module=logs&action=getLogs&address=${pool}` +
     `&topic0=${USER_REFERRED_SIG}&topic0_3_opr=and&topic3=${pad32(referrer)}` +
     `&fromBlock=0&toBlock=latest&page=1&offset=1000&apikey=${key}`;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 4; i++) {
     try {
       const res = await fetch(url, { cache: "no-store" });
       const j = (await res.json()) as { status?: string; message?: string; result?: unknown };
-      _morNote = `${j.status ?? "?"}|${String(j.message ?? "?").slice(0, 24)}|${Array.isArray(j.result) ? `n=${j.result.length}` : String(j.result).slice(0, 50)}`;
       if (j.status === "1" && Array.isArray(j.result)) {
         return (j.result as Array<{ topics: string[]; data: string }>).map((l) => ({ user: getAddress(`0x${l.topics[2].slice(26)}`), amount: BigInt(l.data) }));
       }
-      if (typeof j.message === "string" && /rate limit/i.test(j.message)) { await sleep(500); continue; }
+      // The rate-limit note lives in `result` ("Max calls per sec rate limit
+      // reached (3/sec)"), not `message` — retry with backoff before giving up.
+      if (/rate limit/i.test(String(j.message)) || /rate limit/i.test(String(j.result))) { await sleep(600); continue; }
       return []; // "No records found" / bad key
     } catch { await sleep(300); }
   }
@@ -192,10 +187,10 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
     ];
     const pairs = escPools.flatMap((p) => idWallets.map(([id, ref]) => ({ ...p, id, ref })));
     const rows: Array<{ id: RiderId; backer: OrbitBacker }>[] = [];
-    // Etherscan's free tier caps at ~5 req/s — run the calls in small waves with
-    // a gap so they don't get rate-limited into empty results. The route caches
-    // the whole graph for 60s, so this runs at most once a minute.
-    const BATCH = 4;
+    // The key's tier caps at ~3 req/s — run the calls in waves of 3 with a gap
+    // so they don't get rate-limited into empty results (the retry backoff
+    // covers the rest). The route caches the whole graph for 60s.
+    const BATCH = 3;
     for (let i = 0; i < pairs.length; i += BATCH) {
       const wave = await Promise.all(
         pairs.slice(i, i + BATCH).map(async ({ asset, pool, decimals, id, ref }) => {
