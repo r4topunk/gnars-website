@@ -13,7 +13,7 @@ import { YieldStatus } from "./YieldStatus";
 import { getRider } from "@/lib/gnars-vaults";
 import { useVaultTotal } from "@/hooks/use-vault-total";
 
-type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima";
+type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima" | "will";
 
 // THPS-style attributes (1–10). Placeholder values — tailor freely.
 const STAT_KEYS = [
@@ -119,6 +119,16 @@ const CHARACTERS: Character[] = [
     hex: "#14b8a6",
     face: { size: "330%", pos: "50% 3%" },
     stats: { speed: 8, air: 8, ollie: 3, spin: 8, rail: 10, flow: 9, devSkills: 6, creativity: 10 },
+  },
+  {
+    id: "will",
+    image: "/stake/cutout/will.png",
+    accentFrom: "from-indigo-400",
+    accentTo: "to-indigo-600",
+    ring: "ring-indigo-400",
+    hex: "#818cf8",
+    face: { size: "400%", pos: "50% 8%" },
+    stats: { speed: 7, air: 6, ollie: 7, spin: 7, rail: 8, flow: 8, devSkills: 5, creativity: 8 },
   },
 ];
 
