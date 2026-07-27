@@ -200,6 +200,25 @@ export const proposalSchema = z.object({
    * TemplateDetailsForm mirrors these into `description` as compiled markdown.
    */
   templateFields: z.record(z.string(), z.unknown()).optional(),
+  /**
+   * Proposal Commitment acknowledgment, checked on the preview step.
+   *
+   * Optional *here* on purpose: `ActionForms` saves each transaction through
+   * this form's `handleSubmit`, so a required field would block adding the very
+   * transactions the user needs before the checkbox is reachable. The hard
+   * requirement lives in `proposalSubmissionSchema` below, which is what the
+   * server action parses.
+   */
+  termsAccepted: z.boolean().optional(),
+});
+
+/**
+ * Strict schema for the actual `propose()` call. Enforces the Proposal
+ * Commitment acknowledgment so the server action cannot compose an onchain
+ * description for a proposal that never opted in.
+ */
+export const proposalSubmissionSchema = proposalSchema.extend({
+  termsAccepted: z.literal(true, { message: "You must accept the Proposal Commitment" }),
 });
 
 // Types

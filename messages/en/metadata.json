@@ -111,5 +111,9 @@
   "migrate": {
     "title": "Gnars Migration — Gnars DAO",
     "description": "Consolidate your scattered Zora coins into $gnars in one batched flow. Routed through ZORA, with a burn on every migration to strengthen $gnars liquidity."
+  },
+  "proposeTerms": {
+    "title": "Proposal Commitment — Gnars DAO",
+    "description": "The public commitment every proposer acknowledges before submitting a proposal to Gnars DAO."
   }
 }

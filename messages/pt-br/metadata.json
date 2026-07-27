@@ -111,5 +111,9 @@
   "migrate": {
     "title": "Migração Gnars — Gnars DAO",
     "description": "Consolide suas coins da Zora espalhadas em $gnars em um fluxo em lote. Roteado via ZORA, com queima a cada migração para fortalecer a liquidez de $gnars."
+  },
+  "proposeTerms": {
+    "title": "Compromisso de Proposta — Gnars DAO",
+    "description": "O compromisso público que todo proponente aceita antes de enviar uma proposta para a Gnars DAO."
   }
 }

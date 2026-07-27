@@ -38,6 +38,7 @@ export function ProposalWizard() {
       description: "",
       bannerImage: undefined,
       transactions: [],
+      termsAccepted: false,
     },
     mode: "onChange",
   });
