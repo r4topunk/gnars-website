@@ -33,6 +33,10 @@ Is the response per-user or uncacheable (cookies/headers/POST)?
 
 Never combine `force-dynamic` with `revalidate` (force-dynamic silently wins — the sitemap bug).
 
+**Tag revalidation does not reach the CDN.** `revalidateTag` invalidates Next's data cache (what `unstable_cache` writes to). A response already cached by an explicit `Cache-Control: s-maxage` header — the `dynamic + Cache-Control` branch above — is **not tag-aware** and ages out on its own. So on those routes the `s-maxage` value, not the tag, is the hard upper bound on cross-user staleness (worst case `s-maxage` + the SWR window on a low-traffic region). Pick the two windows independently: a short `s-maxage` for freshness, a long `unstable_cache` TTL to keep an expensive computation off the request path. `/api/stake-graph` is the reference (300s / 1800s).
+
+Purging the CDN by tag is possible via `invalidateByTag` + `Vercel-Cache-Tag` from `@vercel/functions`, which is not currently a dependency — evaluate before reaching for it.
+
 ### Rule 2 — every service read is tagged
 
 All reads in `src/services/*` go through `unstable_cache` with canonical tags. TTL is a _backstop_, not the freshness mechanism.
@@ -82,22 +86,22 @@ Keep the global React Query `staleTime: 5min`. Live views override per-query: cu
 
 ## Current state vs target (route params)
 
-| Route                                     | Today                                     | Target                                                                 |
-| ----------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------- |
-| `/proposals`                              | revalidate 300                            | 1800 + `proposals` tag                                                 |
-| `/proposals/[chain]/[id]`                 | 300 for all                               | 120 Active/Pending, 86400 terminal (status-aware) + `proposal:<n>` tag |
-| `/proposals/snapshot`                     | 300                                       | static (immutable JSON)                                                |
-| `/` (home)                                | 300                                       | 900 + tags (`proposals`, `auction`, `feed`)                            |
-| `/members/[address]`                      | force-dynamic ✅                          | keep; cached lookups (done PR #127)                                    |
-| `/members`                                | 3600 ✅                                   | + `members` tag                                                        |
-| `/feed`                                   | 300 (inner cache 15s!)                    | 300 route + inner cache aligned 300 + `feed` tag                       |
-| `/blogs`, `/blogs/[slug]`                 | 300                                       | 3600 (match data cache)                                                |
-| `/installations/[slug]`                   | 300                                       | 3600/static                                                            |
-| `/rounds*`                                | 300, raw pg                               | tagged `unstable_cache`; closed rounds 86400                           |
-| `/droposals*`                             | 1800 ✅                                   | executed → static                                                      |
-| `sitemap.xml`                             | revalidate 3600 **+ force-dynamic (bug)** | drop force-dynamic                                                     |
-| `/tv`, `/treasury`, `/community/bounties` | 300                                       | 900–1800 (client components already handle live parts)                 |
-| `/api/stake-graph`                        | dynamic + `s-maxage=1800` ✅              | keep; `unstable_cache` + `stake` tag on the service (done)             |
+| Route                                     | Today                                     | Target                                                                                                     |
+| ----------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `/proposals`                              | revalidate 300                            | 1800 + `proposals` tag                                                                                     |
+| `/proposals/[chain]/[id]`                 | 300 for all                               | 120 Active/Pending, 86400 terminal (status-aware) + `proposal:<n>` tag                                     |
+| `/proposals/snapshot`                     | 300                                       | static (immutable JSON)                                                                                    |
+| `/` (home)                                | 300                                       | 900 + tags (`proposals`, `auction`, `feed`)                                                                |
+| `/members/[address]`                      | force-dynamic ✅                          | keep; cached lookups (done PR #127)                                                                        |
+| `/members`                                | 3600 ✅                                   | + `members` tag                                                                                            |
+| `/feed`                                   | 300 (inner cache 15s!)                    | 300 route + inner cache aligned 300 + `feed` tag                                                           |
+| `/blogs`, `/blogs/[slug]`                 | 300                                       | 3600 (match data cache)                                                                                    |
+| `/installations/[slug]`                   | 300                                       | 3600/static                                                                                                |
+| `/rounds*`                                | 300, raw pg                               | tagged `unstable_cache`; closed rounds 86400                                                               |
+| `/droposals*`                             | 1800 ✅                                   | executed → static                                                                                          |
+| `sitemap.xml`                             | revalidate 3600 **+ force-dynamic (bug)** | drop force-dynamic                                                                                         |
+| `/tv`, `/treasury`, `/community/bounties` | 300                                       | 900–1800 (client components already handle live parts)                                                     |
+| `/api/stake-graph`                        | dynamic + `s-maxage=300` ✅               | keep; split windows — CDN 300s (staleness bound) + `unstable_cache` 1800s backstop with `stake` tag (done) |
 
 ## Rollout (round 3, ordered so freshness improves first)
 

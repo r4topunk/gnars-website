@@ -10,10 +10,15 @@
 //  - MOR log scans and usersData reads are parallelized + multicalled.
 //  - The whole result goes through `unstable_cache` under the `stake` tag
 //    (caching-standard.md Rule 2): the TTL is a backstop, freshness comes from
-//    `revalidateTag("stake")` fired by the deposit/withdraw/claim hooks. The
-//    Vercel Data Cache is shared across regions, so a cold edge region reuses
-//    another's result instead of recomputing this (the single heaviest
-//    server-side operation in the repo) from scratch.
+//    `revalidateTag("stake")` fired by the deposit/withdraw/claim hooks. That
+//    keeps this — the single heaviest server-side operation in the repo — off
+//    the request path, so a cache miss at the CDN layer costs a data-cache read
+//    instead of the full ~3.5s recompute.
+//
+//    Scope matters: `unstable_cache` writes to Next's data cache, which is what
+//    `revalidateTag` invalidates. It is NOT the CDN — a response already cached
+//    by the `Cache-Control` header on /api/stake-graph is not tag-aware and
+//    ages out on its own. See that route for how the two windows are split.
 
 import { unstable_cache } from "next/cache";
 import {
@@ -430,13 +435,19 @@ async function gnarsMorEarned(
 }
 
 /**
- * Backstop TTL for the whole graph. Staking is a low-frequency event (a handful
- * of deposits a day at most), so freshness comes from `revalidateTag("stake")`
- * fired by the deposit/withdraw/claim hooks — not from the TTL expiring. The
- * previous 60s put the repo's heaviest server-side computation on a ~1440×/day
- * treadmill for data that changes a few times a day.
+ * Backstop TTL for the DATA cache only — deliberately not the CDN window, which
+ * /api/stake-graph sets separately and much shorter (the CDN entry can't be
+ * tag-invalidated, so it, not this, bounds cross-user staleness).
+ *
+ * Staking is a low-frequency event (a handful of deposits a day at most), so
+ * what refreshes this is `revalidateTag("stake")` from the deposit/withdraw/
+ * claim hooks, not the TTL expiring. The previous 60s put the repo's heaviest
+ * server-side computation on a ~1440×/day treadmill for data that changes a few
+ * times a day.
+ *
+ * Not exported: nothing outside this module should couple its own window to it.
  */
-export const GRAPH_TTL_SECONDS = 1800;
+const GRAPH_TTL_SECONDS = 1800;
 
 async function fetchStakeGraphUncached(): Promise<StakeGraph> {
   const live = RIDER_LIST.filter((r) => r.vault);

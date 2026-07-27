@@ -19,9 +19,13 @@ export function useStakeGraph(nonce = 0): StakeGraph | null {
   const { data } = useQuery({
     queryKey: ["stake-graph", nonce],
     queryFn: fetchStakeGraph,
-    // Aligned with the route's cache window. A `nonce` bump (after the user's
-    // own deposit) still forces a fresh fetch, and other users get the update
-    // from `revalidateTag("stake")` — not from a short client TTL.
+    // Matched to the CDN `s-maxage` on /api/stake-graph: refetching sooner
+    // would just re-serve the same header-cached bytes, since a `revalidateTag`
+    // between now and then can't purge that CDN entry.
+    //
+    // Note a `nonce` bump changes only this query key, not the request URL, so
+    // it forces a network fetch but can still be answered by that same CDN
+    // entry — it is not a way to see your own deposit immediately.
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
