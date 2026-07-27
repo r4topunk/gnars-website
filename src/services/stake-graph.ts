@@ -176,11 +176,26 @@ async function backerAddresses(vault: Address, feeRecipient?: Address): Promise<
   return [...out];
 }
 
+/**
+ * CoinGecko's demo key. `/api/prices` already treats it as mandatory; these
+ * calls used to go out unauthenticated, i.e. on the shared-IP free tier that is
+ * the most likely to 429 — and a 429 here silently deletes most of the TVL (see
+ * `priceStEth` below), so the key matters more here than anywhere else.
+ */
+const COINGECKO_KEY = process.env.COINGECKO_API_KEY;
+const coingeckoHeaders: HeadersInit = {
+  "user-agent": "gnars-website/stake-graph",
+  ...(COINGECKO_KEY ? { "x-cg-demo-api-key": COINGECKO_KEY } : {}),
+};
+
+/** ETH/USD, or 0 when the price could not be fetched. Callers that actually
+ * need it to value something must treat 0 as a hard failure — never as $0. */
 async function getEthUsd(): Promise<number> {
   try {
     const res = await fetch(
       "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
       {
+        headers: coingeckoHeaders,
         next: { revalidate: 300 },
       },
     );
@@ -190,6 +205,27 @@ async function getEthUsd(): Promise<number> {
   } catch {
     return 0;
   }
+}
+
+/**
+ * Value a stETH position in USD, or throw.
+ *
+ * The whole graph used to be built from `tokens * ethUsd` with `ethUsd`
+ * silently 0 on any CoinGecko hiccup. Every stETH row then evaluated to $0 and
+ * was dropped by the `usd > 0` filter — erasing most of the TVL and several
+ * backers while still returning a perfectly well-formed `StakeGraph`. Nothing
+ * threw, so the route's error path never ran and the bad graph was cached like
+ * a good one.
+ *
+ * Throwing is what makes the caching safe: it reaches the route's `catch`,
+ * which answers 500 with `no-store`, so a pricing outage degrades to "no data"
+ * instead of "confidently wrong data pinned for the backstop TTL".
+ */
+function priceStEth(tokens: number, ethUsd: number): number {
+  if (!(ethUsd > 0)) {
+    throw new Error("stake-graph: ETH/USD unavailable — refusing to price stETH positions at $0");
+  }
+  return tokens * ethUsd;
 }
 
 // Etherscan V2 logs API — a hosted indexer that answers from datacenter IPs,
@@ -284,7 +320,7 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
           const out: Array<{ id: RiderId; backer: OrbitBacker }> = [];
           for (const [userLc, amt] of byUser) {
             const tokens = Number(formatUnits(amt, decimals));
-            const usd = asset === "steth" ? tokens * ethUsd : tokens;
+            const usd = asset === "steth" ? priceStEth(tokens, ethUsd) : tokens;
             if (usd > 0)
               out.push({
                 id,
@@ -367,7 +403,7 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
         const deposited = ud?.[1] ?? BigInt(0);
         if (deposited <= BigInt(0)) return;
         const tokens = Number(formatUnits(deposited, decimals));
-        const amount = asset === "steth" ? tokens * ethUsd : tokens;
+        const amount = asset === "steth" ? priceStEth(tokens, ethUsd) : tokens;
         if (amount <= 0) return;
         rows.push({ id, backer: { address: getAddress(u), amount, kind: "mor", asset } });
       });
@@ -383,7 +419,7 @@ async function getMorUsd(): Promise<number> {
   try {
     const res = await fetch(
       `https://api.coingecko.com/api/v3/simple/token_price/arbitrum-one?contract_addresses=${MOR_TOKEN}&vs_currencies=usd`,
-      { next: { revalidate: 300 } },
+      { headers: coingeckoHeaders, next: { revalidate: 300 } },
     );
     if (!res.ok) return 0;
     const j = (await res.json()) as Record<string, { usd?: number }>;
@@ -495,6 +531,14 @@ async function fetchStakeGraphUncached(): Promise<StakeGraph> {
           contracts: contracts as Parameters<typeof baseClient.multicall>[0]["contracts"],
         });
 
+        // `allowFailure` lets a genuinely empty vault (success, 0n) and a dead
+        // RPC (failure, no result) both arrive here. Coercing the second to 0n
+        // is what turns an outage into a plausible "nobody has staked" graph —
+        // the exact shape of bug that gets cached and believed. Distinguish
+        // them by `status` and let a real failure reach the route's catch.
+        if (res[0].status === "failure" || res[1].status === "failure") {
+          throw new Error(`stake-graph: vault reads failed for ${vault}`);
+        }
         const totalAssets = (res[0].result as bigint | undefined) ?? BigInt(0);
         const totalSupply = (res[1].result as bigint | undefined) ?? BigInt(0);
         const toAssets = (shares: bigint) =>
