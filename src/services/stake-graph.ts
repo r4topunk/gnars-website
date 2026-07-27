@@ -8,8 +8,14 @@
 //  - Shares → assets is computed locally from totalAssets/totalSupply, killing
 //    the per-backer convertToAssets calls entirely.
 //  - MOR log scans and usersData reads are parallelized + multicalled.
-//  - The API route wraps this with s-maxage + stale-while-revalidate.
+//  - The whole result goes through `unstable_cache` under the `stake` tag
+//    (caching-standard.md Rule 2): the TTL is a backstop, freshness comes from
+//    `revalidateTag("stake")` fired by the deposit/withdraw/claim hooks. The
+//    Vercel Data Cache is shared across regions, so a cold edge region reuses
+//    another's result instead of recomputing this (the single heaviest
+//    server-side operation in the repo) from scratch.
 
+import { unstable_cache } from "next/cache";
 import {
   createPublicClient,
   erc20Abi,
@@ -22,6 +28,7 @@ import {
   type Address,
 } from "viem";
 import { base, mainnet } from "viem/chains";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { RIDER_LIST, type RiderId } from "@/lib/gnars-vaults";
 import { arbitrumClient, splitMorBalance } from "@/lib/mor-split";
 import {
@@ -205,6 +212,13 @@ async function etherscanReferred(
     `&fromBlock=0&toBlock=latest&page=1&offset=1000&apikey=${key}`;
   for (let i = 0; i < 4; i++) {
     try {
+      // Deliberately uncached at the fetch layer. Etherscan signals rate limits
+      // with HTTP 200 + an error body, so a TTL'd fetch would happily cache a
+      // "rate limit reached" response and poison the graph for the whole TTL.
+      // Caching happens one level up, in the `unstable_cache` wrapper around
+      // `getStakeGraph` — this callback only runs on a cache miss, and its
+      // `no-store` is scoped to that callback, so it can't opt the calling
+      // route out of caching the way a bare request-scoped `no-store` would.
       const res = await fetch(url, { cache: "no-store" });
       const j = (await res.json()) as { status?: string; message?: string; result?: unknown };
       if (j.status === "1" && Array.isArray(j.result)) {
@@ -415,7 +429,16 @@ async function gnarsMorEarned(
   }
 }
 
-export async function getStakeGraph(): Promise<StakeGraph> {
+/**
+ * Backstop TTL for the whole graph. Staking is a low-frequency event (a handful
+ * of deposits a day at most), so freshness comes from `revalidateTag("stake")`
+ * fired by the deposit/withdraw/claim hooks — not from the TTL expiring. The
+ * previous 60s put the repo's heaviest server-side computation on a ~1440×/day
+ * treadmill for data that changes a few times a day.
+ */
+export const GRAPH_TTL_SECONDS = 1800;
+
+async function fetchStakeGraphUncached(): Promise<StakeGraph> {
   const live = RIDER_LIST.filter((r) => r.vault);
   if (live.length === 0)
     return {
@@ -526,3 +549,14 @@ export async function getStakeGraph(): Promise<StakeGraph> {
     treasuryUsd: gnarsAccrued + gm.usd,
   };
 }
+
+/**
+ * The cached entry point every caller should use. `StakeGraph` is plain
+ * numbers/strings, so it survives the cache's JSON round-trip unchanged — no
+ * re-hydration needed (contrast `services/proposals.ts`, which has to restore a
+ * `Date`).
+ */
+export const getStakeGraph = unstable_cache(fetchStakeGraphUncached, ["stake-graph"], {
+  tags: [CACHE_TAGS.stake],
+  revalidate: GRAPH_TTL_SECONDS,
+});

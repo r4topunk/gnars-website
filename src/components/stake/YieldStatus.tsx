@@ -52,8 +52,10 @@ export function YieldStatus() {
   const { data, isLoading } = useQuery({
     queryKey: ["stake-yields"],
     queryFn: fetchYields,
-    refetchInterval: 60_000,
-    staleTime: 60_000,
+    // No `refetchInterval`: APYs move on the order of hours and `/api/yields`
+    // is CDN-cached for 300s, so polling every 60s just re-served identical
+    // bytes 5× (caching-standard.md Rule 5).
+    staleTime: 300_000,
   });
 
   return (

@@ -27,6 +27,8 @@ import {
 } from "viem";
 import { base as viemBase } from "viem/chains";
 import { useWriteAccount } from "@/hooks/use-write-account";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { requestRevalidation } from "@/lib/request-revalidation";
 import { USDC } from "@/lib/sponsorship-vaults";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
@@ -247,6 +249,10 @@ export function useStakeDeposit() {
         }
         await waitForReceipt({ client, chain: base, transactionHash: depositHash });
 
+        // Drop the server's `stake` cache so OTHER users see this deposit in the
+        // orbit right away instead of waiting out the backstop TTL
+        // (caching-standard.md Rule 3).
+        requestRevalidation([CACHE_TAGS.stake]);
         setPhase("done");
         return true;
       } catch (e) {
@@ -300,6 +306,7 @@ export function useStakeDeposit() {
         const tx = prepareTransaction({ client, chain: base, to: vault, data });
         const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
         await waitForReceipt({ client, chain: base, transactionHash: hash });
+        requestRevalidation([CACHE_TAGS.stake]);
         setPhase("done");
         return true;
       } catch (e) {
@@ -352,6 +359,7 @@ export function useStakeDeposit() {
         const tx = prepareTransaction({ client, chain: base, to: vault, data });
         const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
         await waitForReceipt({ client, chain: base, transactionHash: hash });
+        requestRevalidation([CACHE_TAGS.stake]);
         setPhase("done");
         return true;
       } catch (e) {

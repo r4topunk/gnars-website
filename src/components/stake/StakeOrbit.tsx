@@ -248,8 +248,13 @@ export function StakeOrbit() {
                   const isYou = you && b.address.toLowerCase() === you;
                   const isMor = b.kind === "mor";
                   const col = isMor ? MOR_GREEN : v.hex;
+                  // `asset` belongs in the key: one wallet can stake MOR in BOTH
+                  // Morpheus pools (stETH and USDC), which are two separate
+                  // backer rows for the same address+kind. Without it React saw
+                  // duplicate keys and dropped one of the two streams, silently
+                  // hiding a real stake from the orbit.
                   return (
-                    <g key={`${b.kind}-${b.address}`}>
+                    <g key={`${b.kind}-${b.asset ?? "na"}-${b.address}`}>
                       <line
                         x1={bp.x}
                         y1={bp.y}

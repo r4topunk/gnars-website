@@ -48,6 +48,7 @@ All reads in `src/services/*` go through `unstable_cache` with canonical tags. T
 | `treasury`                | balances                       | 900                        |
 | `propdates`               | EAS attestations               | 300                        |
 | `rounds` / `round:<slug>` | rounds listings / one round    | 300 / closed: 86400        |
+| `stake`                   | sponsorship graph (orbit)      | 1800                       |
 
 ### Rule 3 — mutations invalidate, clients don't poll
 
@@ -56,15 +57,16 @@ After a write-hook confirms a receipt it must:
 1. `queryClient.invalidateQueries(...)` for the local view (pattern already exists in `AuctionBidForm` / `AuctionSettleButton` — votes and propose are missing it).
 2. `POST /api/revalidate { tags: [...] }` (new route, tag-allowlist, light rate limit) so **other users'** server caches drop. Because of subgraph lag, fire it after polling the subgraph for the event (bounded ~30–45s), with a fallback second call at +60s.
 
-| Mutation (hook)         | Tags to invalidate                        |
-| ----------------------- | ----------------------------------------- |
-| `useCastVote`           | `proposal:<n>`, `proposals`, `feed`       |
-| propose (wizard submit) | `proposals`, `feed`                       |
-| bid                     | `auction`, `feed`                         |
-| settle                  | `auction`, `auctions`, `feed`, `treasury` |
-| propdate post           | `propdates`, `proposal:<n>`               |
-| delegate                | `members`                                 |
-| round vote/submit       | `round:<slug>`, `rounds`                  |
+| Mutation (hook)                                                      | Tags to invalidate                        |
+| -------------------------------------------------------------------- | ----------------------------------------- |
+| `useCastVote`                                                        | `proposal:<n>`, `proposals`, `feed`       |
+| propose (wizard submit)                                              | `proposals`, `feed`                       |
+| bid                                                                  | `auction`, `feed`                         |
+| settle                                                               | `auction`, `auctions`, `feed`, `treasury` |
+| propdate post                                                        | `propdates`, `proposal:<n>`               |
+| delegate                                                             | `members`                                 |
+| round vote/submit                                                    | `round:<slug>`, `rounds`                  |
+| stake deposit/withdraw/claim (`useStakeDeposit`, `useMorpheusStake`) | `stake`                                   |
 
 ### Rule 4 — prefetch discipline
 
@@ -95,6 +97,7 @@ Keep the global React Query `staleTime: 5min`. Live views override per-query: cu
 | `/droposals*`                             | 1800 ✅                                   | executed → static                                                      |
 | `sitemap.xml`                             | revalidate 3600 **+ force-dynamic (bug)** | drop force-dynamic                                                     |
 | `/tv`, `/treasury`, `/community/bounties` | 300                                       | 900–1800 (client components already handle live parts)                 |
+| `/api/stake-graph`                        | dynamic + `s-maxage=1800` ✅              | keep; `unstable_cache` + `stake` tag on the service (done)             |
 
 ## Rollout (round 3, ordered so freshness improves first)
 

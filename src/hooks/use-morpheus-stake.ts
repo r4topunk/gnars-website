@@ -31,6 +31,7 @@ import {
 } from "viem";
 import { mainnet } from "viem/chains";
 import { useWriteAccount } from "@/hooks/use-write-account";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { predictSplitAddress } from "@/lib/mor-split";
 import {
   depositPoolAbi,
@@ -44,6 +45,7 @@ import {
   MORPHEUS_POOLS,
   type MorpheusAsset,
 } from "@/lib/morpheus";
+import { requestRevalidation } from "@/lib/request-revalidation";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 
@@ -271,6 +273,9 @@ export function useMorpheusStake() {
           /* receiver not set; claim can still target the split explicitly */
         }
 
+        // A MOR stake shows up in the orbit as a green stream — drop the server
+        // `stake` cache so other users see it without waiting out the TTL.
+        requestRevalidation([CACHE_TAGS.stake]);
         setPhase("done");
         return true;
       } catch (e) {
@@ -324,6 +329,7 @@ export function useMorpheusStake() {
         const tx = prepareTransaction({ client, chain: ethereum, to: pool, data });
         const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
         await waitReceipt(client, hash);
+        requestRevalidation([CACHE_TAGS.stake]);
         setPhase("done");
         return true;
       } catch (e) {
@@ -382,6 +388,7 @@ export function useMorpheusStake() {
         const tx = prepareTransaction({ client, chain: ethereum, to: pool, data, value: fee });
         const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
         await waitReceipt(client, hash);
+        requestRevalidation([CACHE_TAGS.stake]);
         setPhase("done");
         return true;
       } catch (e) {
@@ -430,6 +437,7 @@ export function useMorpheusStake() {
         const tx = prepareTransaction({ client, chain: ethereum, to: pool, data });
         const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
         await waitReceipt(client, hash);
+        requestRevalidation([CACHE_TAGS.stake]);
         setPhase("done");
         return true;
       } catch (e) {
