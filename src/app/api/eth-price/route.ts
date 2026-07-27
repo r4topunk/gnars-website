@@ -1,42 +1,32 @@
 import { NextResponse } from "next/server";
+import { getEthUsd } from "@/services/prices";
+
+/**
+ * Thin wrapper over `services/prices`. Provider choice, TTL and failure
+ * semantics all live there — this route exists only so client components can
+ * reach the price without the Alchemy key.
+ *
+ * `usd` is `null` when the price is unknown, deliberately NOT `0`: this route
+ * used to answer `{ usd: 0 }` on every failure path and `services/treasury.ts`
+ * multiplied the treasury's ETH balance by it, rendering a confident $0.
+ * Clients that do `?? 0` keep working — `formatEthToUsd` already renders "—"
+ * for a falsy price.
+ */
+export const dynamic = "force-dynamic";
+
+const CDN_TTL_SECONDS = 300;
 
 export async function GET() {
-  const apiKey = process.env.ALCHEMY_API_KEY;
-
-  if (!apiKey) {
-    console.error("[eth-price] ALCHEMY_API_KEY not set");
-    return NextResponse.json({ usd: 0, error: "missing_api_key" });
-  }
-
-  try {
-    const res = await fetch("https://api.g.alchemy.com/prices/v1/tokens/by-symbol?symbols=ETH", {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      console.error("[eth-price] Alchemy API error:", res.status);
-      return NextResponse.json({ usd: 0, error: `api_error_${res.status}` });
-    }
-
-    const data = await res.json();
-    const ethData = data?.data?.find((d: { symbol: string }) => d.symbol === "ETH");
-    const usdPrice = ethData?.prices?.find(
-      (p: { currency: string }) => p.currency.toLowerCase() === "usd",
-    );
-    const usd = Number(usdPrice?.value ?? 0) || 0;
-
-    console.log("[eth-price] ETH price:", usd);
-    return NextResponse.json(
-      { usd },
-      {
-        headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
-      },
-    );
-  } catch (error) {
-    console.error("[eth-price] Error:", error);
-    return NextResponse.json({ usd: 0, error: "fetch_error" });
-  }
+  const usd = await getEthUsd();
+  return NextResponse.json(
+    { usd },
+    {
+      headers: usd
+        ? {
+            "Cache-Control": `public, s-maxage=${CDN_TTL_SECONDS}, stale-while-revalidate=${CDN_TTL_SECONDS * 2}`,
+          }
+        : // Never pin an outage to the CDN for the full window.
+          { "Cache-Control": "no-store" },
+    },
+  );
 }

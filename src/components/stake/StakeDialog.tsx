@@ -3,17 +3,18 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { useActiveAccount } from "thirdweb/react";
 import { toast } from "sonner";
+import { useActiveAccount } from "thirdweb/react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { getRider } from "@/lib/gnars-vaults";
-import { useStakeDeposit } from "@/hooks/use-stake-deposit";
-import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
-import { useVaultPosition, useVaultEarned } from "@/hooks/use-vault-total";
 import { useEnsNameAndAvatar } from "@/hooks/use-ens";
+import { useEthPrice } from "@/hooks/use-eth-price";
+import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
+import { useStakeDeposit } from "@/hooks/use-stake-deposit";
+import { useVaultEarned, useVaultPosition } from "@/hooks/use-vault-total";
+import { getRider } from "@/lib/gnars-vaults";
+import { riderCustomLine } from "@/lib/rider-lines";
 import type { StakeYields } from "@/services/yields";
 import { REWARD_SPLIT } from "./CharacterSelector";
-import { riderCustomLine } from "@/lib/rider-lines";
 
 // Adapted from the Claude-designed "Stake Dialog v2" — arcade-gold, three
 // columns (yield source / amount / your share) over a rewards-flow hero with the
@@ -39,9 +40,39 @@ interface Opp {
   default: string;
 }
 const OPPS: Opp[] = [
-  { id: "vault-usdc", kind: "vault", asset: "usdc", unit: "USDC", labelKey: "opp.vaultUsdc", venue: "Morpho", logo: MORPHO_LOGO, presets: [100, 500, 1000, 5000], default: "1000" },
-  { id: "mor-steth", kind: "mor", asset: "steth", unit: "stETH", labelKey: "opp.morSteth", venue: "Morpheus", logo: MORPHEUS_LOGO, presets: [0.011, 0.1, 0.5, 1], default: "0.011" },
-  { id: "mor-usdc", kind: "mor", asset: "usdc", unit: "USDC", labelKey: "opp.morUsdc", venue: "Morpheus", logo: MORPHEUS_LOGO, presets: [100, 500, 1000, 5000], default: "1000" },
+  {
+    id: "vault-usdc",
+    kind: "vault",
+    asset: "usdc",
+    unit: "USDC",
+    labelKey: "opp.vaultUsdc",
+    venue: "Morpho",
+    logo: MORPHO_LOGO,
+    presets: [100, 500, 1000, 5000],
+    default: "1000",
+  },
+  {
+    id: "mor-steth",
+    kind: "mor",
+    asset: "steth",
+    unit: "stETH",
+    labelKey: "opp.morSteth",
+    venue: "Morpheus",
+    logo: MORPHEUS_LOGO,
+    presets: [0.011, 0.1, 0.5, 1],
+    default: "0.011",
+  },
+  {
+    id: "mor-usdc",
+    kind: "mor",
+    asset: "usdc",
+    unit: "USDC",
+    labelKey: "opp.morUsdc",
+    venue: "Morpheus",
+    logo: MORPHEUS_LOGO,
+    presets: [100, 500, 1000, 5000],
+    default: "1000",
+  },
 ];
 
 interface StakeDialogProps {
@@ -63,38 +94,59 @@ async function fetchYields(): Promise<StakeYields> {
   if (!res.ok) throw new Error("yields");
   return res.json();
 }
-async function fetchEthPrice(): Promise<number> {
-  const res = await fetch("/api/eth-price");
-  if (!res.ok) return 0;
-  const json = (await res.json()) as { usd?: number };
-  return json.usd ?? 0;
-}
 
-const fmt2 = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt2 = (n: number) =>
+  n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 function fmtAmount(n: number, usdc: boolean) {
   if (!isFinite(n) || n === 0) return "0";
   if (usdc) return n.toFixed(2);
   return n < 0.001 ? n.toExponential(2) : n.toFixed(n < 1 ? 4 : 3);
 }
 
-export function StakeDialog({ open, onOpenChange, riderId, name, image, overall, faceSize = "420%", facePos = "50% 6%" }: StakeDialogProps) {
+export function StakeDialog({
+  open,
+  onOpenChange,
+  riderId,
+  name,
+  image,
+  overall,
+  faceSize = "420%",
+  facePos = "50% 6%",
+}: StakeDialogProps) {
   const t = useTranslations("stake");
   const you = useActiveAccount()?.address;
   const { ensAvatar: youAvatar } = useEnsNameAndAvatar(you);
-  const { stake, withdrawAll, claimRewards, phase: stakePhase, error: stakeError, isStaking, account } = useStakeDeposit();
+  const {
+    stake,
+    withdrawAll,
+    claimRewards,
+    phase: stakePhase,
+    error: stakeError,
+    isStaking,
+    account,
+  } = useStakeDeposit();
   const morpheus = useMorpheusStake();
   const [refresh, setRefresh] = useState(0);
   const [oppId, setOppId] = useState<OppId>("vault-usdc");
   const [amount, setAmount] = useState(OPPS[0].default);
 
-  const { data: yields } = useQuery({ queryKey: ["stake-yields"], queryFn: fetchYields, staleTime: 60_000 });
-  const { data: ethUsd = 0 } = useQuery({ queryKey: ["eth-price"], queryFn: fetchEthPrice, staleTime: 60_000 });
+  const { data: yields } = useQuery({
+    queryKey: ["stake-yields"],
+    queryFn: fetchYields,
+    // Same window as YieldStatus, which shares this key.
+    staleTime: 300_000,
+  });
+  // Shared hook, not a private query: this used to declare the same
+  // ["eth-price"] key with a different staleTime than useEthPrice, so the two
+  // observers kept invalidating each other's idea of freshness.
+  const { ethPrice: ethUsd } = useEthPrice();
 
   const opp = OPPS.find((o) => o.id === oppId)!;
   const isMor = opp.kind === "mor";
   const isUsdc = opp.asset === "usdc";
 
-  const aprFor = (o: Opp) => (o.kind === "vault" ? yields?.usdc?.apy : yields?.mor?.[o.asset]?.apy) ?? 0;
+  const aprFor = (o: Opp) =>
+    (o.kind === "vault" ? yields?.usdc?.apy : yields?.mor?.[o.asset]?.apy) ?? 0;
   const rate = aprFor(opp);
   const rateKind = isMor ? "APR" : "APY";
 
@@ -119,10 +171,12 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
   const oppIndex = OPPS.indexOf(opp);
   const line = (() => {
     if (!amountNum) return t("opp.lineEmpty");
-    if (amountNum >= (isUsdc ? 5000 : 1)) return t("opp.lineBig", { amount: fmtAmount(amountNum, isUsdc), asset: opp.unit });
+    if (amountNum >= (isUsdc ? 5000 : 1))
+      return t("opp.lineBig", { amount: fmtAmount(amountNum, isUsdc), asset: opp.unit });
     const custom = riderCustomLine(riderId, oppIndex);
     if (custom) return custom;
-    if (opp.kind === "vault") return t("opp.lineStable", { you: fmt2(totalAsset * 0.5), asset: opp.unit });
+    if (opp.kind === "vault")
+      return t("opp.lineStable", { you: fmt2(totalAsset * 0.5), asset: opp.unit });
     return t("opp.lineVar", { rate: rate.toFixed(1) });
   })();
   const [typed, setTyped] = useState(0);
@@ -132,7 +186,10 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
     setTyped(0);
     const id = setInterval(() => {
       setTyped((n) => {
-        if (n >= line.length) { clearInterval(id); return n; }
+        if (n >= line.length) {
+          clearInterval(id);
+          return n;
+        }
         return n + 1;
       });
     }, 24);
@@ -146,37 +203,59 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
   const handleConfirm = async () => {
     if (isMor) {
       if (!rider?.wallet) return;
-      const ok = await morpheus.stake(opp.asset === "steth" ? "stEth" : "usdc", amount, rider.wallet);
-      if (ok) { toast.success(t("opp.stakedMorTitle", { name }), { description: t("opp.stakedMorDesc") }); setRefresh((n) => n + 1); onOpenChange(false); }
-      else toast.error(t("dlg.failTitle"), { description: morpheus.error ?? undefined });
+      const ok = await morpheus.stake(
+        opp.asset === "steth" ? "stEth" : "usdc",
+        amount,
+        rider.wallet,
+      );
+      if (ok) {
+        toast.success(t("opp.stakedMorTitle", { name }), { description: t("opp.stakedMorDesc") });
+        setRefresh((n) => n + 1);
+        onOpenChange(false);
+      } else toast.error(t("dlg.failTitle"), { description: morpheus.error ?? undefined });
       return;
     }
-    if (!rider?.vault) { toast.info(t("dlg.noVaultTitle"), { description: t("dlg.noVaultDesc", { name }) }); return; }
+    if (!rider?.vault) {
+      toast.info(t("dlg.noVaultTitle"), { description: t("dlg.noVaultDesc", { name }) });
+      return;
+    }
     const ok = await stake(rider.vault, amount);
-    if (ok) { toast.success(t("stakeToast", { name }), { description: t("dlg.stakedDesc") }); setRefresh((n) => n + 1); onOpenChange(false); }
-    else toast.error(t("dlg.failTitle"), { description: stakeError ?? undefined });
+    if (ok) {
+      toast.success(t("stakeToast", { name }), { description: t("dlg.stakedDesc") });
+      setRefresh((n) => n + 1);
+      onOpenChange(false);
+    } else toast.error(t("dlg.failTitle"), { description: stakeError ?? undefined });
   };
   const handleClaim = async () => {
     if (!rider?.vault || !earned || earned.earnedRaw <= BigInt(0)) return;
     const ok = await claimRewards(rider.vault, earned.earnedRaw);
-    if (ok) { toast.success(t("dlg.claimedTitle"), { description: t("dlg.claimedDesc") }); setRefresh((n) => n + 1); }
-    else toast.error(t("dlg.claimFailTitle"), { description: stakeError ?? undefined });
+    if (ok) {
+      toast.success(t("dlg.claimedTitle"), { description: t("dlg.claimedDesc") });
+      setRefresh((n) => n + 1);
+    } else toast.error(t("dlg.claimFailTitle"), { description: stakeError ?? undefined });
   };
   const handleWithdraw = async () => {
     if (!rider?.vault || !position || position.shares <= BigInt(0)) return;
     const ok = await withdrawAll(rider.vault, position.shares);
-    if (ok) { toast.success(t("dlg.withdrewTitle"), { description: t("dlg.withdrewDesc") }); setRefresh((n) => n + 1); }
-    else toast.error(t("dlg.withdrawFailTitle"), { description: stakeError ?? undefined });
+    if (ok) {
+      toast.success(t("dlg.withdrewTitle"), { description: t("dlg.withdrewDesc") });
+      setRefresh((n) => n + 1);
+    } else toast.error(t("dlg.withdrawFailTitle"), { description: stakeError ?? undefined });
   };
 
   const confirmLabel = isMor
-    ? morpheus.phase === "approve" ? t("opp.approving")
-      : morpheus.phase === "stake" ? t("opp.staking")
-      : morpheus.phase === "setReceiver" ? t("opp.staking")
-      : `${t("opp.stakeVerb")} ${fmtAmount(amountNum, isUsdc)} ${opp.unit}`
-    : stakePhase === "approve" ? t("dlg.approving")
-      : stakePhase === "deposit" ? t("dlg.depositing")
-      : `${t("opp.stakeVerb")} ${fmtAmount(amountNum, isUsdc)} ${opp.unit}`;
+    ? morpheus.phase === "approve"
+      ? t("opp.approving")
+      : morpheus.phase === "stake"
+        ? t("opp.staking")
+        : morpheus.phase === "setReceiver"
+          ? t("opp.staking")
+          : `${t("opp.stakeVerb")} ${fmtAmount(amountNum, isUsdc)} ${opp.unit}`
+    : stakePhase === "approve"
+      ? t("dlg.approving")
+      : stakePhase === "deposit"
+        ? t("dlg.depositing")
+        : `${t("opp.stakeVerb")} ${fmtAmount(amountNum, isUsdc)} ${opp.unit}`;
 
   const muted = "#8a857e";
 
@@ -193,17 +272,26 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2.5">
                 <span style={{ color: GOLD, fontSize: 20 }}>⚡</span>
-                <h2 className="m-0 text-2xl font-black tracking-tight sm:text-[27px]">{t("stakeCta", { name })}</h2>
+                <h2 className="m-0 text-2xl font-black tracking-tight sm:text-[27px]">
+                  {t("stakeCta", { name })}
+                </h2>
                 {typeof overall === "number" && (
                   <span
                     className="rounded-full px-2.5 py-1 text-[11px] font-bold tracking-widest"
-                    style={{ color: GOLD_HI, background: "rgba(245,166,35,.14)", border: "1px solid rgba(245,166,35,.3)" }}
+                    style={{
+                      color: GOLD_HI,
+                      background: "rgba(245,166,35,.14)",
+                      border: "1px solid rgba(245,166,35,.3)",
+                    }}
                   >
                     {t("opp.overall")} {overall}
                   </span>
                 )}
               </div>
-              <p className="mt-2 max-w-[660px] text-[14.5px] leading-relaxed" style={{ color: muted }}>
+              <p
+                className="mt-2 max-w-[660px] text-[14.5px] leading-relaxed"
+                style={{ color: muted }}
+              >
                 {t("dialogIntro", { name })}
               </p>
             </div>
@@ -216,9 +304,16 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
           >
             <div className="min-w-0 pb-[18px]">
               <div className="mb-1.5 flex items-baseline justify-between gap-4">
-                <span className="text-[11px] font-bold uppercase tracking-[0.22em]" style={{ color: muted }}>{t("opp.howRewardsFlow")}</span>
+                <span
+                  className="text-[11px] font-bold uppercase tracking-[0.22em]"
+                  style={{ color: muted }}
+                >
+                  {t("opp.howRewardsFlow")}
+                </span>
                 <span className="text-[15px] font-black" style={{ color: GOLD_HI }}>
-                  {isMor ? `≈$${fmt2(totalUsd)} ${t("opp.perYearMor")}` : `${fmt2(totalAsset)} ${opp.unit} / ${t("perYear")}`}
+                  {isMor
+                    ? `≈$${fmt2(totalUsd)} ${t("opp.perYearMor")}`
+                    : `${fmt2(totalAsset)} ${opp.unit} / ${t("perYear")}`}
                 </span>
               </div>
               <RewardFlow
@@ -241,9 +336,17 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
             <div className="relative hidden min-h-[280px] flex-col gap-[15px] pt-1 sm:flex">
               <div
                 className="relative flex-none rounded-2xl px-3.5 py-3"
-                style={{ background: "linear-gradient(180deg,#1c1714,#141110)", border: `2px solid ${GOLD}` }}
+                style={{
+                  background: "linear-gradient(180deg,#1c1714,#141110)",
+                  border: `2px solid ${GOLD}`,
+                }}
               >
-                <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.2em]" style={{ color: GOLD_HI }}>{name}</div>
+                <div
+                  className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.2em]"
+                  style={{ color: GOLD_HI }}
+                >
+                  {name}
+                </div>
                 {/* reserve the full line's height (invisible) so typing never reflows the bubble */}
                 <div className="relative text-[13px] font-semibold leading-relaxed">
                   <span className="invisible">{line}</span>
@@ -254,7 +357,11 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
                 </div>
                 <div
                   className="absolute -bottom-2.5 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45"
-                  style={{ background: "#141110", borderRight: `2px solid ${GOLD}`, borderBottom: `2px solid ${GOLD}` }}
+                  style={{
+                    background: "#141110",
+                    borderRight: `2px solid ${GOLD}`,
+                    borderBottom: `2px solid ${GOLD}`,
+                  }}
                 />
               </div>
               {/* face crop with a soft bottom fade — no box, blends into the panel */}
@@ -262,8 +369,10 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
                 aria-hidden
                 className="min-h-[170px] flex-1"
                 style={{
-                  backgroundImage: `url(${image})`, backgroundRepeat: "no-repeat",
-                  backgroundSize: faceSize, backgroundPosition: facePos,
+                  backgroundImage: `url(${image})`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: faceSize,
+                  backgroundPosition: facePos,
                   WebkitMaskImage: "linear-gradient(180deg,#000 62%,rgba(0,0,0,0) 100%)",
                   maskImage: "linear-gradient(180deg,#000 62%,rgba(0,0,0,0) 100%)",
                 }}
@@ -275,7 +384,12 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
           <div className="grid items-start gap-5 sm:grid-cols-3">
             {/* Yield source */}
             <div className="min-w-0">
-              <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em]" style={{ color: muted }}>{t("opp.yieldSource")}</div>
+              <div
+                className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em]"
+                style={{ color: muted }}
+              >
+                {t("opp.yieldSource")}
+              </div>
               <div className="flex flex-col gap-2.5">
                 {OPPS.map((o) => {
                   const active = o.id === oppId;
@@ -296,7 +410,10 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
                       <img src={o.logo} alt="" className="h-6 w-6 flex-none rounded-full" />
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-bold">{t(o.labelKey)}</div>
-                        <div className="mt-0.5 text-[11.5px] font-semibold" style={{ color: muted }}>
+                        <div
+                          className="mt-0.5 text-[11.5px] font-semibold"
+                          style={{ color: muted }}
+                        >
                           {o.kind === "vault" ? t("opp.stableTag") : t("opp.morTag")} · {o.unit}
                         </div>
                       </div>
@@ -311,15 +428,25 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
 
             {/* Amount */}
             <div className="min-w-0">
-              <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em]" style={{ color: muted }}>{t("amountLabel")}</div>
-              <div className="flex h-[58px] items-center gap-2.5 rounded-[14px] border border-white/[0.11] px-4" style={{ background: "rgba(255,255,255,.045)" }}>
+              <div
+                className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em]"
+                style={{ color: muted }}
+              >
+                {t("amountLabel")}
+              </div>
+              <div
+                className="flex h-[58px] items-center gap-2.5 rounded-[14px] border border-white/[0.11] px-4"
+                style={{ background: "rgba(255,255,255,.045)" }}
+              >
                 <input
                   value={amount}
                   onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
                   inputMode="decimal"
                   className="min-w-0 flex-1 border-none bg-transparent text-2xl font-extrabold tracking-tight text-white outline-none"
                 />
-                <span className="text-sm font-bold" style={{ color: "#8f8a83" }}>{opp.unit}</span>
+                <span className="text-sm font-bold" style={{ color: "#8f8a83" }}>
+                  {opp.unit}
+                </span>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {opp.presets.map((v) => {
@@ -332,7 +459,9 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
                       className="cursor-pointer rounded-[10px] px-3 py-2 text-[12.5px] font-bold"
                       style={{
                         color: on ? "#1a1205" : "#c9c6c2",
-                        background: on ? "linear-gradient(90deg,#f7c948,#f5851f)" : "rgba(255,255,255,.05)",
+                        background: on
+                          ? "linear-gradient(90deg,#f7c948,#f5851f)"
+                          : "rgba(255,255,255,.05)",
                         border: on ? "1px solid transparent" : "1px solid rgba(255,255,255,.09)",
                       }}
                     >
@@ -347,15 +476,28 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
                 </div>
               )}
               {isMor && (
-                <div className="mt-2 text-[11.5px] font-semibold" style={{ color: "#b8741a" }}>{t("opp.mainnetWarn")}</div>
+                <div className="mt-2 text-[11.5px] font-semibold" style={{ color: "#b8741a" }}>
+                  {t("opp.mainnetWarn")}
+                </div>
               )}
             </div>
 
             {/* Your share */}
-            <div className="flex min-w-0 flex-col gap-3 rounded-[18px] border border-white/[0.07] p-[18px]" style={{ background: "rgba(255,255,255,.035)" }}>
-              <div className="text-[11px] font-bold uppercase tracking-[0.22em]" style={{ color: muted }}>{t("opp.yourShare")}</div>
+            <div
+              className="flex min-w-0 flex-col gap-3 rounded-[18px] border border-white/[0.07] p-[18px]"
+              style={{ background: "rgba(255,255,255,.035)" }}
+            >
+              <div
+                className="text-[11px] font-bold uppercase tracking-[0.22em]"
+                style={{ color: muted }}
+              >
+                {t("opp.yourShare")}
+              </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-[34px] font-black leading-none tracking-tight" style={{ color: GOLD_HI }}>
+                <span
+                  className="text-[34px] font-black leading-none tracking-tight"
+                  style={{ color: GOLD_HI }}
+                >
                   {isMor ? `≈$${fmt2(totalUsd * 0.5)}` : fmt2(totalAsset * 0.5)}
                 </span>
                 <span className="text-[13px] font-bold" style={{ color: muted }}>
@@ -369,9 +511,14 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
                 { label: t("treasuryLabel"), color: "#5c4520", pct: REWARD_SPLIT.treasury },
               ].map((s) => (
                 <div key={s.label} className="flex items-center gap-2.5">
-                  <div className="h-2 w-2 flex-none rounded-[2px]" style={{ background: s.color }} />
+                  <div
+                    className="h-2 w-2 flex-none rounded-[2px]"
+                    style={{ background: s.color }}
+                  />
                   <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{s.label}</span>
-                  <span className="text-[13px] font-extrabold" style={{ color: "#c9c6c2" }}>{share(s.pct)}</span>
+                  <span className="text-[13px] font-extrabold" style={{ color: "#c9c6c2" }}>
+                    {share(s.pct)}
+                  </span>
                 </div>
               ))}
               <button
@@ -379,7 +526,11 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
                 onClick={handleConfirm}
                 disabled={busy}
                 className="mt-auto cursor-pointer rounded-[13px] px-5 py-3.5 text-center text-[14.5px] font-extrabold disabled:opacity-70"
-                style={{ color: "#1a1205", background: "linear-gradient(90deg,#f7c948,#f5851f)", boxShadow: "0 8px 24px rgba(245,133,31,.28)" }}
+                style={{
+                  color: "#1a1205",
+                  background: "linear-gradient(90deg,#f7c948,#f5851f)",
+                  boxShadow: "0 8px 24px rgba(245,133,31,.28)",
+                }}
               >
                 {confirmLabel}
               </button>
@@ -388,20 +539,40 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
 
           {/* Vault position management — only when a live position exists */}
           {!isMor && position && position.shares > BigInt(0) && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-white/[0.07] px-4 py-3 text-xs" style={{ background: "rgba(255,255,255,.02)" }}>
+            <div
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-white/[0.07] px-4 py-3 text-xs"
+              style={{ background: "rgba(255,255,255,.02)" }}
+            >
               <span style={{ color: muted }}>
-                {t("opp.yourPosition")}: <strong className="font-mono text-white">${position.assets.toFixed(2)}</strong>
+                {t("opp.yourPosition")}:{" "}
+                <strong className="font-mono text-white">${position.assets.toFixed(2)}</strong>
                 {earned && earned.principal > 0 && (
-                  <span className="opacity-80"> ({t("opp.principal")} ${earned.principal.toFixed(2)} · {t("opp.yield")} <span style={{ color: "#4ade80" }}>${earned.earned.toFixed(2)}</span>)</span>
+                  <span className="opacity-80">
+                    {" "}
+                    ({t("opp.principal")} ${earned.principal.toFixed(2)} · {t("opp.yield")}{" "}
+                    <span style={{ color: "#4ade80" }}>${earned.earned.toFixed(2)}</span>)
+                  </span>
                 )}
               </span>
               <div className="ml-auto flex items-center gap-2">
                 {earned && earned.earned >= CLAIM_FLOOR_USD && (
-                  <button type="button" onClick={handleClaim} disabled={isStaking} className="cursor-pointer rounded-lg border border-white/15 px-3 py-1.5 font-semibold hover:bg-white/5 disabled:opacity-60">
-                    {stakePhase === "claim" ? t("dlg.claiming") : t("dlg.claim", { amount: `$${earned.earned.toFixed(2)}` })}
+                  <button
+                    type="button"
+                    onClick={handleClaim}
+                    disabled={isStaking}
+                    className="cursor-pointer rounded-lg border border-white/15 px-3 py-1.5 font-semibold hover:bg-white/5 disabled:opacity-60"
+                  >
+                    {stakePhase === "claim"
+                      ? t("dlg.claiming")
+                      : t("dlg.claim", { amount: `$${earned.earned.toFixed(2)}` })}
                   </button>
                 )}
-                <button type="button" onClick={handleWithdraw} disabled={isStaking} className="cursor-pointer rounded-lg border border-white/15 px-3 py-1.5 font-semibold hover:bg-white/5 disabled:opacity-60">
+                <button
+                  type="button"
+                  onClick={handleWithdraw}
+                  disabled={isStaking}
+                  className="cursor-pointer rounded-lg border border-white/15 px-3 py-1.5 font-semibold hover:bg-white/5 disabled:opacity-60"
+                >
                   {stakePhase === "withdraw" ? t("dlg.withdrawing") : t("dlg.withdrawAll")}
                 </button>
               </div>
@@ -409,7 +580,10 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
           )}
 
           {/* Footer */}
-          <div className="flex items-start gap-2 border-t border-white/[0.07] pt-3.5 text-xs leading-normal" style={{ color: "#7d7871" }}>
+          <div
+            className="flex items-start gap-2 border-t border-white/[0.07] pt-3.5 text-xs leading-normal"
+            style={{ color: "#7d7871" }}
+          >
             <span className="flex-none">ⓘ</span>
             <span>{t("disclaimer")}</span>
           </div>
@@ -421,10 +595,31 @@ export function StakeDialog({ open, onOpenChange, riderId, name, image, overall,
 
 /** The rewards-flow SVG (gold streams → You / rider / Gnars) with real avatars overlaid. */
 function RewardFlow({
-  riderName, riderImg, faceSize, facePos, youVal, ridVal, gnaVal, youLabel, youAvatar, gnarsLabel, srcLabel, yieldLabel,
+  riderName,
+  riderImg,
+  faceSize,
+  facePos,
+  youVal,
+  ridVal,
+  gnaVal,
+  youLabel,
+  youAvatar,
+  gnarsLabel,
+  srcLabel,
+  yieldLabel,
 }: {
-  riderName: string; riderImg: string; faceSize: string; facePos: string;
-  youVal: string; ridVal: string; gnaVal: string; youLabel: string; youAvatar?: string; gnarsLabel: string; srcLabel: string; yieldLabel: string;
+  riderName: string;
+  riderImg: string;
+  faceSize: string;
+  facePos: string;
+  youVal: string;
+  ridVal: string;
+  gnaVal: string;
+  youLabel: string;
+  youAvatar?: string;
+  gnarsLabel: string;
+  srcLabel: string;
+  yieldLabel: string;
 }) {
   const P = {
     you: "M126,130 C280,130 320,46 403,46",
@@ -434,22 +629,56 @@ function RewardFlow({
   const stream = (id: string, d: string, n: number) =>
     Array.from({ length: n }, (_, i) => (
       <circle key={id + i} r={4} fill={GOLD_HI}>
-        <animateMotion dur="2.8s" repeatCount="indefinite" begin={`${((i * 2.8) / n).toFixed(2)}s`} path={d} />
+        <animateMotion
+          dur="2.8s"
+          repeatCount="indefinite"
+          begin={`${((i * 2.8) / n).toFixed(2)}s`}
+          path={d}
+        />
       </circle>
     ));
-  const node = (key: string, cy: number, label: string, pct: string, val: string, inner?: ReactNode) => (
+  const node = (
+    key: string,
+    cy: number,
+    label: string,
+    pct: string,
+    val: string,
+    inner?: ReactNode,
+  ) => (
     <g key={key}>
       <circle cx={430} cy={cy} r={27} fill="#14110e" stroke={GOLD} strokeWidth={3} />
       {inner}
-      <text x={470} y={cy - 10} fill="#fff" fontSize={20} fontWeight={800}>{label}</text>
-      <text x={470} y={cy + 13} fill={GOLD} fontSize={17} fontWeight={800}>{pct}</text>
-      <text x={470} y={cy + 33} fill="#8a857e" fontSize={13} fontWeight={600}>{val}</text>
+      <text x={470} y={cy - 10} fill="#fff" fontSize={20} fontWeight={800}>
+        {label}
+      </text>
+      <text x={470} y={cy + 13} fill={GOLD} fontSize={17} fontWeight={800}>
+        {pct}
+      </text>
+      <text x={470} y={cy + 33} fill="#8a857e" fontSize={13} fontWeight={600}>
+        {val}
+      </text>
     </g>
   );
-  const overlay = (leftPct: number, topPct: number, width: number, size: string, pos: string, url: string): CSSProperties => ({
-    position: "absolute", left: `${leftPct}%`, top: `${topPct}%`, width: `${width}%`, aspectRatio: "1",
-    transform: "translate(-50%,-50%)", borderRadius: "50%", overflow: "hidden",
-    backgroundImage: `url(${url})`, backgroundRepeat: "no-repeat", backgroundSize: size, backgroundPosition: pos,
+  const overlay = (
+    leftPct: number,
+    topPct: number,
+    width: number,
+    size: string,
+    pos: string,
+    url: string,
+  ): CSSProperties => ({
+    position: "absolute",
+    left: `${leftPct}%`,
+    top: `${topPct}%`,
+    width: `${width}%`,
+    aspectRatio: "1",
+    transform: "translate(-50%,-50%)",
+    borderRadius: "50%",
+    overflow: "hidden",
+    backgroundImage: `url(${url})`,
+    backgroundRepeat: "no-repeat",
+    backgroundSize: size,
+    backgroundPosition: pos,
   });
 
   return (
@@ -469,17 +698,32 @@ function RewardFlow({
         {stream("g", P.gna, 2)}
 
         <circle cx={110} cy={138} r={15} fill={GOLD} />
-        <text x={110} y={100} fill="#fff" fontSize={17} fontWeight={700} textAnchor="middle">{srcLabel}</text>
-        <text x={110} y={176} fill="#8a857e" fontSize={13} fontWeight={600} textAnchor="middle">{yieldLabel}</text>
+        <text x={110} y={100} fill="#fff" fontSize={17} fontWeight={700} textAnchor="middle">
+          {srcLabel}
+        </text>
+        <text x={110} y={176} fill="#8a857e" fontSize={13} fontWeight={600} textAnchor="middle">
+          {yieldLabel}
+        </text>
 
-        {node("n1", 46, youLabel, "50%", youVal, youAvatar ? null : (
-          <text x={430} y={52} fill={GOLD_HI} fontSize={13} fontWeight={800} textAnchor="middle">{youLabel.slice(0, 3).toUpperCase()}</text>
-        ))}
+        {node(
+          "n1",
+          46,
+          youLabel,
+          "50%",
+          youVal,
+          youAvatar ? null : (
+            <text x={430} y={52} fill={GOLD_HI} fontSize={13} fontWeight={800} textAnchor="middle">
+              {youLabel.slice(0, 3).toUpperCase()}
+            </text>
+          ),
+        )}
         {node("n2", 138, riderName, "25%", ridVal)}
         {node("n3", 230, gnarsLabel, "25%", gnaVal)}
       </svg>
       {/* real avatars over the You (if connected) + rider + Gnars nodes */}
-      {youAvatar && <div aria-hidden style={overlay(61.43, 16.67, 7.71, "cover", "center", youAvatar)} />}
+      {youAvatar && (
+        <div aria-hidden style={overlay(61.43, 16.67, 7.71, "cover", "center", youAvatar)} />
+      )}
       <div aria-hidden style={overlay(61.43, 50, 7.71, faceSize, facePos, riderImg)} />
       <div aria-hidden style={overlay(61.43, 83.33, 7.71, "cover", "center", "/gnars.webp")} />
     </div>

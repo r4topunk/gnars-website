@@ -41,18 +41,19 @@ Purging the CDN by tag is possible via `invalidateByTag` + `Vercel-Cache-Tag` fr
 
 All reads in `src/services/*` go through `unstable_cache` with canonical tags. TTL is a _backstop_, not the freshness mechanism.
 
-| Tag                       | Covers                         | Backstop TTL               |
-| ------------------------- | ------------------------------ | -------------------------- |
-| `proposals`               | proposal lists (all consumers) | 1800                       |
-| `proposal:<number>`       | one proposal detail + votes    | 1800 (Active/Pending: 120) |
-| `auction`                 | current auction state          | 60                         |
-| `auctions`                | settled auction history        | 3600                       |
-| `feed`                    | activity feed events           | 300                        |
-| `members`                 | holders list, overviews        | 3600                       |
-| `treasury`                | balances                       | 900                        |
-| `propdates`               | EAS attestations               | 300                        |
-| `rounds` / `round:<slug>` | rounds listings / one round    | 300 / closed: 86400        |
-| `stake`                   | sponsorship graph (orbit)      | 1800                       |
+| Tag                       | Covers                                | Backstop TTL               |
+| ------------------------- | ------------------------------------- | -------------------------- |
+| `proposals`               | proposal lists (all consumers)        | 1800                       |
+| `proposal:<number>`       | one proposal detail + votes           | 1800 (Active/Pending: 120) |
+| `auction`                 | current auction state                 | 60                         |
+| `auctions`                | settled auction history               | 3600                       |
+| `feed`                    | activity feed events                  | 300                        |
+| `members`                 | holders list, overviews               | 3600                       |
+| `treasury`                | balances                              | 900                        |
+| `propdates`               | EAS attestations                      | 300                        |
+| `rounds` / `round:<slug>` | rounds listings / one round           | 300 / closed: 86400        |
+| `stake`                   | sponsorship graph (orbit)             | 1800                       |
+| `prices`                  | all USD prices (`services/prices.ts`) | 300                        |
 
 ### Rule 3 — mutations invalidate, clients don't poll
 
@@ -71,6 +72,18 @@ After a write-hook confirms a receipt it must:
 | delegate                                                             | `members`                                 |
 | round vote/submit                                                    | `round:<slug>`, `rounds`                  |
 | stake deposit/withdraw/claim (`useStakeDeposit`, `useMorpheusStake`) | `stake`                                   |
+
+### Rule 3b — a missing value is `null`, never `0`
+
+Prices, balances and rates that could not be fetched must surface as `null` and
+be rendered as unavailable. Defaulting them to `0` produces a well-formed,
+confident, wrong number that then gets cached like a good one — the treasury
+rendered "$0.00" on any price-feed hiccup, and the stake graph silently dropped
+most of its TVL. `services/prices.ts` is the reference: `UsdPrice = number | null`.
+
+Server-side callers should import the service directly. Fetching the app's own
+`/api/*` route from a Server Component is a self-HTTP round trip to read a value
+already sitting in the data cache.
 
 ### Rule 4 — prefetch discipline
 

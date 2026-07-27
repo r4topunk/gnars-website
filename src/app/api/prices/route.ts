@@ -1,35 +1,23 @@
 import { NextResponse } from "next/server";
+import { getEthUsd, getTokenPricesUsd, type UsdPrice } from "@/services/prices";
 
-// Cache external CoinGecko fetches for 4 hours
-const COINGECKO_REVALIDATE_SECONDS = 60 * 60 * 4;
+/**
+ * Thin wrapper over `services/prices` — see that module for provider choice,
+ * TTL and failure semantics.
+ *
+ * A price of `null` means "unknown", never "$0". Callers must branch on it.
+ *
+ * WETH stays special-cased to the ETH feed (they are 1:1 by construction, and
+ * Alchemy's ETH price is the fresher of the two), which is what the previous
+ * implementation did too.
+ */
+export const dynamic = "force-dynamic";
 
-// WETH address on Base - we'll use ETH price for this
+const CDN_TTL_SECONDS = 300;
 const WETH_ADDRESS_BASE = "0x4200000000000000000000000000000000000006";
 
-type PricesRequest = {
-  addresses?: string[];
-};
-
 function normalizeAddresses(addrs: string[]): string[] {
-  return addrs
-    .map((a) => (typeof a === "string" ? a : ""))
-    .map((a) => a.toLowerCase())
-    .filter(Boolean);
-}
-
-async function fetchEthPrice(apiKey: string): Promise<number> {
-  const url = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd";
-  const res = await fetch(url, {
-    headers: { "user-agent": "gnars-website/treasury", "x-cg-demo-api-key": apiKey },
-    next: { revalidate: COINGECKO_REVALIDATE_SECONDS },
-  });
-
-  if (!res.ok) {
-    return 0;
-  }
-
-  const data = (await res.json()) as { ethereum?: { usd?: number } };
-  return Number(data?.ethereum?.usd ?? 0) || 0;
+  return addrs.map((a) => (typeof a === "string" ? a.toLowerCase() : "")).filter(Boolean);
 }
 
 async function handlePrices(addresses: string[]) {
@@ -37,71 +25,47 @@ async function handlePrices(addresses: string[]) {
     return NextResponse.json({ error: "addresses required" }, { status: 400 });
   }
 
-  const apiKey = process.env.COINGECKO_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: "missing_coingecko_key" }, { status: 400 });
-  }
+  const weth = WETH_ADDRESS_BASE.toLowerCase();
+  const wantsWeth = addresses.includes(weth);
+  const tokenAddresses = addresses.filter((a) => a !== weth);
 
-  // Filter out WETH since we'll fetch ETH price separately
-  const tokenAddresses = addresses.filter(
-    (a) => a.toLowerCase() !== WETH_ADDRESS_BASE.toLowerCase(),
-  );
-  const includesWeth = addresses.some((a) => a.toLowerCase() === WETH_ADDRESS_BASE.toLowerCase());
-
-  // Fetch token prices and ETH price in parallel
-  const [tokenData, ethPrice] = await Promise.all([
-    tokenAddresses.length > 0
-      ? (async () => {
-          const params = new URLSearchParams({
-            contract_addresses: tokenAddresses.join(","),
-            vs_currencies: "usd",
-          });
-          const url = `https://api.coingecko.com/api/v3/simple/token_price/base?${params.toString()}`;
-          const res = await fetch(url, {
-            headers: { "user-agent": "gnars-website/treasury", "x-cg-demo-api-key": apiKey },
-            next: { revalidate: COINGECKO_REVALIDATE_SECONDS },
-          });
-          if (!res.ok) return {} as Record<string, { usd?: number }>;
-          return (await res.json()) as Record<string, { usd?: number }>;
-        })()
-      : Promise.resolve({} as Record<string, { usd?: number }>),
-    includesWeth ? fetchEthPrice(apiKey) : Promise.resolve(0),
+  const [tokenPrices, ethUsd] = await Promise.all([
+    getTokenPricesUsd(tokenAddresses, "base"),
+    wantsWeth ? getEthUsd() : Promise.resolve(null),
   ]);
 
-  const normalized: Record<string, { usd: number }> = {};
-
-  // Add token prices
-  for (const [addr, price] of Object.entries(tokenData)) {
-    const key = addr.toLowerCase();
-    const usd = Number(price?.usd ?? 0) || 0;
-    normalized[key] = { usd };
+  const prices: Record<string, { usd: UsdPrice }> = {};
+  for (const [address, usd] of Object.entries(tokenPrices)) {
+    prices[address] = { usd };
   }
+  if (wantsWeth) prices[weth] = { usd: ethUsd };
 
-  // Add WETH price using ETH price
-  if (includesWeth && ethPrice > 0) {
-    normalized[WETH_ADDRESS_BASE.toLowerCase()] = { usd: ethPrice };
-  }
+  // A fully-null map is an outage, not an answer — don't let the CDN hold it
+  // for the whole window.
+  const anyResolved = Object.values(prices).some((p) => p.usd !== null);
 
   return NextResponse.json(
-    { prices: normalized },
+    { prices },
     {
-      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600" },
+      headers: anyResolved
+        ? {
+            "Cache-Control": `public, s-maxage=${CDN_TTL_SECONDS}, stale-while-revalidate=${CDN_TTL_SECONDS * 2}`,
+          }
+        : { "Cache-Control": "no-store" },
     },
   );
 }
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const addressesParam = searchParams.get("addresses") || "";
-  const addresses = normalizeAddresses(addressesParam.split(","));
+  const addresses = normalizeAddresses((searchParams.get("addresses") || "").split(","));
   return handlePrices(addresses);
 }
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as PricesRequest;
-    const raw = Array.isArray(body?.addresses) ? body.addresses : [];
-    const addresses = normalizeAddresses(raw);
+    const body = (await req.json()) as { addresses?: string[] };
+    const addresses = normalizeAddresses(Array.isArray(body?.addresses) ? body.addresses : []);
     return handlePrices(addresses);
   } catch {
     return NextResponse.json({ error: "invalid-request" }, { status: 400 });

@@ -16,6 +16,7 @@ export const CACHE_TAGS = {
   propdates: "propdates",
   rounds: "rounds",
   stake: "stake",
+  prices: "prices",
 } as const;
 
 export type StaticCacheTag = (typeof CACHE_TAGS)[keyof typeof CACHE_TAGS];
