@@ -5,7 +5,6 @@
 // each stake's value on the line, and support flowing inward. Unlike the
 // per-rider supporters list, this shows a backer's positions across every rider
 // at once (which is why "I don't see all my stakes" happens on the flat list).
-
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useActiveAccount } from "thirdweb/react";
@@ -14,17 +13,25 @@ import type { RiderId } from "@/lib/gnars-vaults";
 
 // `face` zooms each full-body cut-out onto the head — same framing as the
 // character-select tiles, so the orbit nodes read as portraits.
-const RIDER_VISUAL: Record<RiderId, { hex: string; image: string; face: { size: string; pos: string } }> = {
+const RIDER_VISUAL: Record<
+  RiderId,
+  { hex: string; image: string; face: { size: string; pos: string } }
+> = {
   vlad: { hex: "#f59e0b", image: "/stake/cutout/vlad.png", face: { size: "420%", pos: "50% 6%" } },
   yan: { hex: "#0ea5e9", image: "/stake/cutout/yan.png", face: { size: "420%", pos: "50% 5%" } },
   r4to: { hex: "#d946ef", image: "/stake/cutout/r4to.png", face: { size: "420%", pos: "50% 8%" } },
-  pamtech: { hex: "#10b981", image: "/stake/cutout/pamtech.png", face: { size: "420%", pos: "50% 9%" } },
+  pamtech: {
+    hex: "#10b981",
+    image: "/stake/cutout/pamtech.png",
+    face: { size: "420%", pos: "50% 9%" },
+  },
   v2: { hex: "#f43f5e", image: "/stake/cutout/v2.png", face: { size: "420%", pos: "50% 8%" } },
   zima: { hex: "#14b8a6", image: "/stake/cutout/zima.png", face: { size: "330%", pos: "50% 3%" } },
   will: { hex: "#818cf8", image: "/stake/cutout/will.png", face: { size: "400%", pos: "50% 8%" } },
 };
 
-const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: n > 0 && n < 100 ? 2 : 0 })}`;
+const usd = (n: number) =>
+  `$${n.toLocaleString("en-US", { maximumFractionDigits: n > 0 && n < 100 ? 2 : 0 })}`;
 // Tiny sub-cent treasury amounts still deserve to read as non-zero.
 const usdSmall = (n: number) => (n > 0 && n < 0.01 ? `$${n.toFixed(6)}` : usd(n));
 const fmtMor = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 4 });
@@ -48,7 +55,10 @@ const C = W / 2;
 const R_ATH = 208; // athlete orbit radius
 const R_SUP = 328; // supporter orbit radius
 const rad = (deg: number) => (deg * Math.PI) / 180;
-const pt = (angleDeg: number, r: number) => ({ x: C + r * Math.cos(rad(angleDeg)), y: C + r * Math.sin(rad(angleDeg)) });
+const pt = (angleDeg: number, r: number) => ({
+  x: C + r * Math.cos(rad(angleDeg)),
+  y: C + r * Math.sin(rad(angleDeg)),
+});
 
 export function StakeOrbit() {
   const t = useTranslations("stake");
@@ -80,9 +90,13 @@ export function StakeOrbit() {
           if (data?.name) map[addr.toLowerCase()] = data.name;
         }
         if (!cancelled) setEnsNames(map);
-      } catch { /* addresses stay short */ }
+      } catch {
+        /* addresses stay short */
+      }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [graph]);
 
   if (graph === null) {
@@ -104,7 +118,7 @@ export function StakeOrbit() {
 
   // Focus mode: the picked athlete takes the center, the treasury slides to a
   // small satellite near the top, and everyone else drops away.
-  const focused = focusId ? athletes.find((a) => a.id === focusId) ?? null : null;
+  const focused = focusId ? (athletes.find((a) => a.id === focusId) ?? null) : null;
   const treasuryPt = focused ? { x: C, y: 96 } : { x: C, y: C };
   const treasuryR = focused ? 26 : 48;
 
@@ -112,20 +126,32 @@ export function StakeOrbit() {
     <div className="rounded-[22px] border border-white/[0.06] bg-gradient-to-b from-[#181410] to-[#0e0b09] p-5 sm:p-7">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">{t("orbit.title")}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">
+            {t("orbit.title")}
+          </p>
           <p className="mt-1.5 max-w-md text-sm text-white/60">{t("orbit.subtitle")}</p>
         </div>
         <div className="flex gap-5 text-right">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">{t("orbit.total")}</p>
-            <p className="font-mono text-xl font-bold tabular-nums text-white">{usd(graph.total)}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
+              {t("orbit.total")}
+            </p>
+            <p className="font-mono text-xl font-bold tabular-nums text-white">
+              {usd(graph.total)}
+            </p>
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">{t("orbit.backers")}</p>
-            <p className="font-mono text-xl font-bold tabular-nums text-white">{graph.backerCount}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
+              {t("orbit.backers")}
+            </p>
+            <p className="font-mono text-xl font-bold tabular-nums text-white">
+              {graph.backerCount}
+            </p>
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">{t("orbit.earnedForTreasury")}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
+              {t("orbit.earnedForTreasury")}
+            </p>
             <p className="font-mono text-xl font-bold tabular-nums" style={{ color: GOLD }}>
               {usdSmall(graph.treasuryUsd)}
             </p>
@@ -160,7 +186,12 @@ export function StakeOrbit() {
       </div>
 
       <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${W}`} className="mx-auto block h-auto w-full max-w-[640px]" role="img" aria-label={t("orbit.title")}>
+        <svg
+          viewBox={`0 0 ${W} ${W}`}
+          className="mx-auto block h-auto w-full max-w-[640px]"
+          role="img"
+          aria-label={t("orbit.title")}
+        >
           <style>{`
             @keyframes so-flow { to { stroke-dashoffset: -220; } }
             .so-flow { stroke-dasharray: 3 9; animation: so-flow 3.2s linear infinite; }
@@ -186,29 +217,69 @@ export function StakeOrbit() {
               <g key={a.id}>
                 {/* spoke: athlete -> treasury (the fee relationship) */}
                 <line
-                  x1={ap.x} y1={ap.y} x2={treasuryPt.x} y2={treasuryPt.y}
+                  x1={ap.x}
+                  y1={ap.y}
+                  x2={treasuryPt.x}
+                  y2={treasuryPt.y}
                   stroke={lit ? v.hex : "rgba(255,255,255,.10)"}
                   strokeOpacity={lit ? 0.5 : 1}
                   strokeWidth={lit ? 2 : 1}
                 />
                 {lit && (
-                  <line x1={ap.x} y1={ap.y} x2={treasuryPt.x} y2={treasuryPt.y} className="so-flow" stroke={v.hex} strokeWidth={2} strokeOpacity={0.9} />
+                  <line
+                    x1={ap.x}
+                    y1={ap.y}
+                    x2={treasuryPt.x}
+                    y2={treasuryPt.y}
+                    className="so-flow"
+                    stroke={v.hex}
+                    strokeWidth={2}
+                    strokeOpacity={0.9}
+                  />
                 )}
 
                 {/* backer lines + dots + value labels */}
                 {bs.map((b, j) => {
                   const off = bs.length === 1 ? 0 : (j / (bs.length - 1) - 0.5) * spread;
-                  const bp = isCenter ? pt(-90 + (360 / bs.length) * j, R_SUP) : pt(angle + off, R_SUP);
+                  const bp = isCenter
+                    ? pt(-90 + (360 / bs.length) * j, R_SUP)
+                    : pt(angle + off, R_SUP);
                   const mid = { x: (ap.x + bp.x) / 2, y: (ap.y + bp.y) / 2 };
                   const isYou = you && b.address.toLowerCase() === you;
                   const isMor = b.kind === "mor";
                   const col = isMor ? MOR_GREEN : v.hex;
                   return (
                     <g key={`${b.kind}-${b.address}`}>
-                      <line x1={bp.x} y1={bp.y} x2={ap.x} y2={ap.y} stroke={col} strokeOpacity={0.35} strokeWidth={supW(b.amount)} strokeLinecap="round" />
-                      <line x1={bp.x} y1={bp.y} x2={ap.x} y2={ap.y} className="so-flow" stroke={col} strokeWidth={supW(b.amount)} strokeLinecap="round" />
+                      <line
+                        x1={bp.x}
+                        y1={bp.y}
+                        x2={ap.x}
+                        y2={ap.y}
+                        stroke={col}
+                        strokeOpacity={0.35}
+                        strokeWidth={supW(b.amount)}
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1={bp.x}
+                        y1={bp.y}
+                        x2={ap.x}
+                        y2={ap.y}
+                        className="so-flow"
+                        stroke={col}
+                        strokeWidth={supW(b.amount)}
+                        strokeLinecap="round"
+                      />
                       {/* value on the line */}
-                      <text x={mid.x} y={mid.y - 4} textAnchor="middle" fontSize="11" fontWeight="700" fill="#fff" style={{ paintOrder: "stroke", stroke: "#0c0a08", strokeWidth: 3 }}>
+                      <text
+                        x={mid.x}
+                        y={mid.y - 4}
+                        textAnchor="middle"
+                        fontSize="11"
+                        fontWeight="700"
+                        fill="#fff"
+                        style={{ paintOrder: "stroke", stroke: "#0c0a08", strokeWidth: 3 }}
+                      >
                         {usd(b.amount)}
                       </text>
                       {/* backer node — the real protocol logo (Morpho or Morpheus) */}
@@ -219,18 +290,36 @@ export function StakeOrbit() {
                             <foreignObject x={bp.x - r} y={bp.y - r} width={r * 2} height={r * 2}>
                               <div
                                 style={{
-                                  width: "100%", height: "100%", borderRadius: "50%",
+                                  width: "100%",
+                                  height: "100%",
+                                  borderRadius: "50%",
                                   backgroundColor: "#0c0a08",
                                   backgroundImage: `url(${isMor ? MORPHEUS_LOGO : MORPHO_LOGO})`,
-                                  backgroundSize: "cover", backgroundPosition: "center",
+                                  backgroundSize: "cover",
+                                  backgroundPosition: "center",
                                 }}
                               />
                             </foreignObject>
-                            <circle cx={bp.x} cy={bp.y} r={r} fill="none" stroke={isYou ? GOLD : col} strokeWidth={2} />
+                            <circle
+                              cx={bp.x}
+                              cy={bp.y}
+                              r={r}
+                              fill="none"
+                              stroke={isYou ? GOLD : col}
+                              strokeWidth={2}
+                            />
                           </>
                         );
                       })()}
-                      <text x={bp.x} y={bp.y + (bp.y < C ? -14 : 20)} textAnchor="middle" fontSize="9.5" fill={isYou ? GOLD : "rgba(255,255,255,.55)"} fontFamily="monospace" fontWeight={isYou ? 700 : 400}>
+                      <text
+                        x={bp.x}
+                        y={bp.y + (bp.y < C ? -14 : 20)}
+                        textAnchor="middle"
+                        fontSize="9.5"
+                        fill={isYou ? GOLD : "rgba(255,255,255,.55)"}
+                        fontFamily="monospace"
+                        fontWeight={isYou ? 700 : 400}
+                      >
                         {isYou ? t("orbit.you") : nameOrShort(b.address, ensNames)}
                       </text>
                     </g>
@@ -244,23 +333,47 @@ export function StakeOrbit() {
                   style={{ cursor: "pointer" }}
                   onClick={() => setFocusId(isCenter ? null : a.id)}
                 >
-                  <circle r={nodeR} fill="#141210" stroke={lit ? v.hex : "rgba(255,255,255,.18)"} strokeWidth={lit ? 2.5 : 1.5} />
+                  <circle
+                    r={nodeR}
+                    fill="#141210"
+                    stroke={lit ? v.hex : "rgba(255,255,255,.18)"}
+                    strokeWidth={lit ? 2.5 : 1.5}
+                  />
                   <foreignObject x={-nodeR} y={-nodeR} width={nodeR * 2} height={nodeR * 2}>
                     <div
                       style={{
-                        width: "100%", height: "100%", borderRadius: "50%",
-                        backgroundImage: `url(${v.image})`, backgroundSize: v.face.size,
-                        backgroundPosition: v.face.pos, backgroundRepeat: "no-repeat",
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: "50%",
+                        backgroundImage: `url(${v.image})`,
+                        backgroundSize: v.face.size,
+                        backgroundPosition: v.face.pos,
+                        backgroundRepeat: "no-repeat",
                         opacity: lit ? 1 : 0.45,
                       }}
                     />
                   </foreignObject>
                 </g>
                 {/* athlete name + total */}
-                <text x={ap.x} y={ap.y + nodeR + 16} textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff">
+                <text
+                  x={ap.x}
+                  y={ap.y + nodeR + 16}
+                  textAnchor="middle"
+                  fontSize="13"
+                  fontWeight="800"
+                  fill="#fff"
+                >
                   {t(`characters.${a.id}.name`)}
                 </text>
-                <text x={ap.x} y={ap.y + nodeR + 31} textAnchor="middle" fontSize="12" fontWeight="700" fontFamily="monospace" fill={lit ? v.hex : "rgba(255,255,255,.4)"}>
+                <text
+                  x={ap.x}
+                  y={ap.y + nodeR + 31}
+                  textAnchor="middle"
+                  fontSize="12"
+                  fontWeight="700"
+                  fontFamily="monospace"
+                  fill={lit ? v.hex : "rgba(255,255,255,.4)"}
+                >
                   {a.total > 0 ? usd(a.total) : "—"}
                 </text>
               </g>
@@ -268,17 +381,43 @@ export function StakeOrbit() {
           })}
 
           {/* treasury — center in overview, a small satellite when focused */}
-          <circle cx={treasuryPt.x} cy={treasuryPt.y} r={treasuryR} fill="#0c0a08" stroke={GOLD} strokeWidth={3} />
-          <foreignObject x={treasuryPt.x - (treasuryR - 4)} y={treasuryPt.y - (treasuryR - 4)} width={(treasuryR - 4) * 2} height={(treasuryR - 4) * 2}>
+          <circle
+            cx={treasuryPt.x}
+            cy={treasuryPt.y}
+            r={treasuryR}
+            fill="#0c0a08"
+            stroke={GOLD}
+            strokeWidth={3}
+          />
+          <foreignObject
+            x={treasuryPt.x - (treasuryR - 4)}
+            y={treasuryPt.y - (treasuryR - 4)}
+            width={(treasuryR - 4) * 2}
+            height={(treasuryR - 4) * 2}
+          >
             <div
               style={{
-                width: "100%", height: "100%", borderRadius: "50%",
-                backgroundImage: "url(/gnars.webp)", backgroundSize: "cover",
-                backgroundPosition: "center", backgroundRepeat: "no-repeat",
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                backgroundImage: "url(/gnars.webp)",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
               }}
             />
           </foreignObject>
-          <text x={treasuryPt.x} y={treasuryPt.y + treasuryR + 16} textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.5" fill="rgba(255,255,255,.6)">{t("orbit.treasury")}</text>
+          <text
+            x={treasuryPt.x}
+            y={treasuryPt.y + treasuryR + 16}
+            textAnchor="middle"
+            fontSize="11"
+            fontWeight="800"
+            letterSpacing="1.5"
+            fill="rgba(255,255,255,.6)"
+          >
+            {t("orbit.treasury")}
+          </text>
         </svg>
       </div>
     </div>

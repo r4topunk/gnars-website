@@ -10,13 +10,28 @@
 //  - MOR log scans and usersData reads are parallelized + multicalled.
 //  - The API route wraps this with s-maxage + stale-while-revalidate.
 
-import { createPublicClient, http, fallback, formatUnits, getAddress, keccak256, toHex, erc20Abi, type Address } from "viem";
+import {
+  createPublicClient,
+  erc20Abi,
+  fallback,
+  formatUnits,
+  getAddress,
+  http,
+  keccak256,
+  toHex,
+  type Address,
+} from "viem";
 import { base, mainnet } from "viem/chains";
 import { RIDER_LIST, type RiderId } from "@/lib/gnars-vaults";
+import { arbitrumClient, splitMorBalance } from "@/lib/mor-split";
 import {
-  MORPHEUS_POOLS, MOR_REWARD_POOL_INDEX, MOR_TOKEN, MOR_DECIMALS, MOR_GNARS_RECIPIENT, depositPoolAbi,
+  depositPoolAbi,
+  MOR_DECIMALS,
+  MOR_GNARS_RECIPIENT,
+  MOR_REWARD_POOL_INDEX,
+  MOR_TOKEN,
+  MORPHEUS_POOLS,
 } from "@/lib/morpheus";
-import { splitMorBalance, arbitrumClient } from "@/lib/mor-split";
 
 // Prefer Alchemy (reliable, handles large getLogs) when the key is set, since
 // the public RPCs frequently fail/timeout on the MOR log scan — and a swallowed
@@ -53,7 +68,8 @@ const ethClient = createPublicClient({
 });
 
 const userReferredEvent = {
-  type: "event", name: "UserReferred",
+  type: "event",
+  name: "UserReferred",
   inputs: [
     { name: "rewardPoolIndex", type: "uint256", indexed: true },
     { name: "user", type: "address", indexed: true },
@@ -63,9 +79,27 @@ const userReferredEvent = {
 } as const;
 
 const vaultAbi = [
-  { type: "function", name: "totalAssets", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
-  { type: "function", name: "totalSupply", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
-  { type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ type: "address" }], outputs: [{ type: "uint256" }] },
+  {
+    type: "function",
+    name: "totalAssets",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "totalSupply",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
 ] as const;
 
 export type OrbitBacker = {
@@ -108,25 +142,36 @@ async function backerAddresses(vault: Address, feeRecipient?: Address): Promise<
       signal: AbortSignal.timeout(9000),
     });
     if (res.ok) {
-      const json = (await res.json()) as { items?: { to?: { hash?: string }; from?: { hash?: string } }[] };
+      const json = (await res.json()) as {
+        items?: { to?: { hash?: string }; from?: { hash?: string } }[];
+      };
       for (const t of json.items ?? []) {
         for (const raw of [t.to?.hash, t.from?.hash]) {
           if (raw && raw.toLowerCase() !== ZERO) {
-            try { out.add(getAddress(raw)); } catch { /* skip */ }
+            try {
+              out.add(getAddress(raw));
+            } catch {
+              /* skip */
+            }
           }
         }
       }
     }
-  } catch { /* fall through */ }
+  } catch {
+    /* fall through */
+  }
   if (feeRecipient) out.delete(getAddress(feeRecipient));
   return [...out];
 }
 
 async function getEthUsd(): Promise<number> {
   try {
-    const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd", {
-      next: { revalidate: 300 },
-    });
+    const res = await fetch(
+      "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
+      {
+        next: { revalidate: 300 },
+      },
+    );
     if (!res.ok) return 0;
     const j = (await res.json()) as { ethereum?: { usd?: number } };
     return j.ethereum?.usd ?? 0;
@@ -149,7 +194,11 @@ const pad32 = (a: Address) => `0x000000000000000000000000${a.slice(2).toLowerCas
 /** A rider's referred stakes on a pool, straight from the UserReferred events.
  * Needs a mainnet-capable Etherscan key (a Basescan-only key returns NOTOK for
  * chainid=1) — set ETHERSCAN_API_KEY in the env. */
-async function etherscanReferred(pool: Address, referrer: Address, key: string): Promise<Array<{ user: Address; amount: bigint }>> {
+async function etherscanReferred(
+  pool: Address,
+  referrer: Address,
+  key: string,
+): Promise<Array<{ user: Address; amount: bigint }>> {
   const url =
     `https://api.etherscan.io/v2/api?chainid=1&module=logs&action=getLogs&address=${pool}` +
     `&topic0=${USER_REFERRED_SIG}&topic0_3_opr=and&topic3=${pad32(referrer)}` +
@@ -159,13 +208,21 @@ async function etherscanReferred(pool: Address, referrer: Address, key: string):
       const res = await fetch(url, { cache: "no-store" });
       const j = (await res.json()) as { status?: string; message?: string; result?: unknown };
       if (j.status === "1" && Array.isArray(j.result)) {
-        return (j.result as Array<{ topics: string[]; data: string }>).map((l) => ({ user: getAddress(`0x${l.topics[2].slice(26)}`), amount: BigInt(l.data) }));
+        return (j.result as Array<{ topics: string[]; data: string }>).map((l) => ({
+          user: getAddress(`0x${l.topics[2].slice(26)}`),
+          amount: BigInt(l.data),
+        }));
       }
       // The rate-limit note lives in `result` ("Max calls per sec rate limit
       // reached (3/sec)"), not `message` — retry with backoff before giving up.
-      if (/rate limit/i.test(String(j.message)) || /rate limit/i.test(String(j.result))) { await sleep(600); continue; }
+      if (/rate limit/i.test(String(j.message)) || /rate limit/i.test(String(j.result))) {
+        await sleep(600);
+        continue;
+      }
       return []; // "No records found" / bad key
-    } catch { await sleep(300); }
+    } catch {
+      await sleep(300);
+    }
   }
   return [];
 }
@@ -180,7 +237,9 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
   // Primary: Etherscan hosted logs (datacenter-safe). One call per (pool, rider),
   // all in parallel; the staked amount comes straight from the event.
   if (ETHERSCAN_KEY) {
-    const idWallets = RIDER_LIST.filter((r) => r.wallet).map((r) => [r.id, r.wallet as Address] as const);
+    const idWallets = RIDER_LIST.filter((r) => r.wallet).map(
+      (r) => [r.id, r.wallet as Address] as const,
+    );
     const escPools: Array<{ asset: "steth" | "usdc"; pool: Address; decimals: number }> = [
       { asset: "steth", pool: MORPHEUS_POOLS.stEth.pool, decimals: 18 },
       { asset: "usdc", pool: MORPHEUS_POOLS.usdc.pool, decimals: 6 },
@@ -198,12 +257,20 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
           // Staked amount straight from the events (no eth_call). Withdrawals
           // aren't subtracted, but the 7-day lock makes that rare.
           const byUser = new Map<string, bigint>();
-          for (const l of logs) byUser.set(l.user.toLowerCase(), (byUser.get(l.user.toLowerCase()) ?? BigInt(0)) + l.amount);
+          for (const l of logs)
+            byUser.set(
+              l.user.toLowerCase(),
+              (byUser.get(l.user.toLowerCase()) ?? BigInt(0)) + l.amount,
+            );
           const out: Array<{ id: RiderId; backer: OrbitBacker }> = [];
           for (const [userLc, amt] of byUser) {
             const tokens = Number(formatUnits(amt, decimals));
             const usd = asset === "steth" ? tokens * ethUsd : tokens;
-            if (usd > 0) out.push({ id, backer: { address: getAddress(userLc), amount: usd, kind: "mor", asset } });
+            if (usd > 0)
+              out.push({
+                id,
+                backer: { address: getAddress(userLc), amount: usd, kind: "mor", asset },
+              });
           }
           return out;
         }),
@@ -217,7 +284,11 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
 
   // Fallback (no Etherscan key, e.g. local dev): viem getLogs + usersData.
   let latest: bigint;
-  try { latest = await ethClient.getBlockNumber(); } catch { return byRider; }
+  try {
+    latest = await ethClient.getBlockNumber();
+  } catch {
+    return byRider;
+  }
   // ~3-week window, chunked at 10k so both Alchemy and the public fallback RPCs
   // accept each range (public nodes reject large getLogs spans).
   const WINDOW = BigInt(150_000);
@@ -238,11 +309,15 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
       }
       const logsArr = await Promise.all(
         ranges.map(([fromBlock, toBlock]) =>
-          ethClient.getLogs({
-            address: pool, event: userReferredEvent,
-            args: { rewardPoolIndex: MOR_REWARD_POOL_INDEX, referrer: referrers },
-            fromBlock, toBlock,
-          }).catch(() => []),
+          ethClient
+            .getLogs({
+              address: pool,
+              event: userReferredEvent,
+              args: { rewardPoolIndex: MOR_REWARD_POOL_INDEX, referrer: referrers },
+              fromBlock,
+              toBlock,
+            })
+            .catch(() => []),
         ),
       );
       const userToRef = new Map<string, string>();
@@ -258,7 +333,9 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
       const uds = await ethClient.multicall({
         allowFailure: true,
         contracts: users.map((u) => ({
-          address: pool, abi: depositPoolAbi, functionName: "usersData",
+          address: pool,
+          abi: depositPoolAbi,
+          functionName: "usersData",
           args: [getAddress(u), MOR_REWARD_POOL_INDEX],
         })),
       });
@@ -302,7 +379,9 @@ async function getMorUsd(): Promise<number> {
  * Gnars Arbitrum multisig, plus Gnars' 25% share still sitting undistributed in
  * each staker's split. Best-effort — priced in USD via CoinGecko.
  */
-async function gnarsMorEarned(morByRider: Record<string, OrbitBacker[]>): Promise<{ mor: number; usd: number }> {
+async function gnarsMorEarned(
+  morByRider: Record<string, OrbitBacker[]>,
+): Promise<{ mor: number; usd: number }> {
   const walletById = new Map<string, Address>();
   for (const r of RIDER_LIST) if (r.wallet) walletById.set(r.id, r.wallet);
 
@@ -318,7 +397,12 @@ async function gnarsMorEarned(morByRider: Record<string, OrbitBacker[]>): Promis
     const [splitBals, directRaw, morUsd] = await Promise.all([
       Promise.all([...pairs.values()].map(([s, a]) => splitMorBalance(s, a).catch(() => 0))),
       arbitrumClient
-        .readContract({ address: MOR_TOKEN, abi: erc20Abi, functionName: "balanceOf", args: [MOR_GNARS_RECIPIENT] })
+        .readContract({
+          address: MOR_TOKEN,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [MOR_GNARS_RECIPIENT],
+        })
         .then((b) => Number(formatUnits(b, MOR_DECIMALS)))
         .catch(() => 0),
       getMorUsd(),
@@ -333,7 +417,16 @@ async function gnarsMorEarned(morByRider: Record<string, OrbitBacker[]>): Promis
 
 export async function getStakeGraph(): Promise<StakeGraph> {
   const live = RIDER_LIST.filter((r) => r.vault);
-  if (live.length === 0) return { athletes: [], total: 0, backerCount: 0, gnarsAccrued: 0, gnarsMor: 0, gnarsMorUsd: 0, treasuryUsd: 0 };
+  if (live.length === 0)
+    return {
+      athletes: [],
+      total: 0,
+      backerCount: 0,
+      gnarsAccrued: 0,
+      gnarsMor: 0,
+      gnarsMorUsd: 0,
+      treasuryUsd: 0,
+    };
 
   const ethUsd = await getEthUsd();
   const [athletes, mor] = await Promise.all([
@@ -346,8 +439,22 @@ export async function getStakeGraph(): Promise<StakeGraph> {
         const contracts = [
           { address: vault, abi: vaultAbi, functionName: "totalAssets", args: [] },
           { address: vault, abi: vaultAbi, functionName: "totalSupply", args: [] },
-          ...candidates.map((a) => ({ address: vault, abi: vaultAbi, functionName: "balanceOf", args: [a] })),
-          ...(r.split ? [{ address: vault, abi: vaultAbi, functionName: "balanceOf", args: [r.split as Address] }] : []),
+          ...candidates.map((a) => ({
+            address: vault,
+            abi: vaultAbi,
+            functionName: "balanceOf",
+            args: [a],
+          })),
+          ...(r.split
+            ? [
+                {
+                  address: vault,
+                  abi: vaultAbi,
+                  functionName: "balanceOf",
+                  args: [r.split as Address],
+                },
+              ]
+            : []),
         ];
         const res = await baseClient.multicall({
           allowFailure: true,
@@ -356,13 +463,18 @@ export async function getStakeGraph(): Promise<StakeGraph> {
 
         const totalAssets = (res[0].result as bigint | undefined) ?? BigInt(0);
         const totalSupply = (res[1].result as bigint | undefined) ?? BigInt(0);
-        const toAssets = (shares: bigint) => (totalSupply > BigInt(0) ? (shares * totalAssets) / totalSupply : BigInt(0));
+        const toAssets = (shares: bigint) =>
+          totalSupply > BigInt(0) ? (shares * totalAssets) / totalSupply : BigInt(0);
 
         const backers: OrbitBacker[] = [];
         candidates.forEach((addr, i) => {
           const shares = (res[2 + i].result as bigint | undefined) ?? BigInt(0);
           if (shares <= BigInt(0)) return;
-          backers.push({ address: addr, amount: Number(formatUnits(toAssets(shares), 6)), kind: "vault" });
+          backers.push({
+            address: addr,
+            amount: Number(formatUnits(toAssets(shares), 6)),
+            kind: "vault",
+          });
         });
         backers.sort((a, b) => b.amount - a.amount);
 
@@ -373,8 +485,13 @@ export async function getStakeGraph(): Promise<StakeGraph> {
         }
 
         return {
-          id: r.id, handle: r.handle, vault, split: r.split,
-          total: Number(formatUnits(totalAssets, 6)), feeAccrued, backers,
+          id: r.id,
+          handle: r.handle,
+          vault,
+          split: r.split,
+          total: Number(formatUnits(totalAssets, 6)),
+          feeAccrued,
+          backers,
         };
       }),
     ),
