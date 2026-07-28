@@ -251,6 +251,40 @@ async function etherscanReferred(
   return [];
 }
 
+// The MOR claim receiver a staker set for a pool (0x0 if never set). The /stake
+// flow wires this to the rider's 3-way split, so a NON-zero receiver marks an
+// "official" sponsorship stake (its MOR routes to Gnars + the athlete). A zero
+// receiver is a raw Morpheus deposit that pays 100% back to the staker — not a
+// sponsorship, so the orbit must not count it. Read via Etherscan proxy eth_call
+// (datacenter-safe, same key as the log scan).
+const CLAIM_RECEIVER_SIG = keccak256(toHex("claimReceiver(uint256,address)")).slice(0, 10);
+async function etherscanClaimReceiver(
+  pool: Address,
+  user: Address,
+  key: string,
+): Promise<Address | null> {
+  const data = `${CLAIM_RECEIVER_SIG}${"0".repeat(64)}${pad32(user).slice(2)}`;
+  const url =
+    `https://api.etherscan.io/v2/api?chainid=1&module=proxy&action=eth_call` +
+    `&to=${pool}&data=${data}&tag=latest&apikey=${key}`;
+  for (let i = 0; i < 4; i++) {
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      const j = (await res.json()) as { result?: unknown; message?: string };
+      if (typeof j.result === "string" && j.result.length >= 66)
+        return getAddress(`0x${j.result.slice(-40)}`);
+      if (/rate limit/i.test(String(j.result)) || /rate limit/i.test(String(j.message))) {
+        await sleep(600);
+        continue;
+      }
+      return null;
+    } catch {
+      await sleep(300);
+    }
+  }
+  return null;
+}
+
 async function morBackersByRider(ethUsd: UsdPrice): Promise<Record<string, OrbitBacker[]>> {
   const walletToId = new Map<string, RiderId>();
   for (const r of RIDER_LIST) if (r.wallet) walletToId.set(r.wallet.toLowerCase(), r.id);
@@ -288,12 +322,19 @@ async function morBackersByRider(ethUsd: UsdPrice): Promise<Record<string, Orbit
             );
           const out: Array<{ id: RiderId; backer: OrbitBacker }> = [];
           for (const [userLc, amt] of byUser) {
+            const user = getAddress(userLc);
+            // Only OFFICIAL /stake deposits belong in the sponsorship orbit: the
+            // site wires the MOR claim receiver to the rider's 3-way split. A zero
+            // receiver is a raw Morpheus stake whose MOR pays 100% to the staker
+            // (no Gnars/athlete cut) — exclude it from the orbit AND the total.
+            const receiver = await etherscanClaimReceiver(pool, user, ETHERSCAN_KEY as string);
+            if (!receiver || receiver.toLowerCase() === ZERO) continue;
             const tokens = Number(formatUnits(amt, decimals));
             const usd = asset === "steth" ? priceStEth(tokens, ethUsd) : tokens;
             if (usd > 0)
               out.push({
                 id,
-                backer: { address: getAddress(userLc), amount: usd, kind: "mor", asset },
+                backer: { address: user, amount: usd, kind: "mor", asset },
               });
           }
           return out;

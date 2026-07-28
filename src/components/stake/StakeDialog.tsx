@@ -12,6 +12,7 @@ import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
 import { useStakeDeposit } from "@/hooks/use-stake-deposit";
 import { useVaultEarned, useVaultPosition } from "@/hooks/use-vault-total";
 import { getRider } from "@/lib/gnars-vaults";
+import { claimLockEndFor, LOCK_OPTIONS, multiplierForYears } from "@/lib/lock-multiplier";
 import { riderCustomLine } from "@/lib/rider-lines";
 import type { StakeYields } from "@/services/yields";
 import { REWARD_SPLIT } from "./CharacterSelector";
@@ -129,6 +130,12 @@ export function StakeDialog({
   const [refresh, setRefresh] = useState(0);
   const [oppId, setOppId] = useState<OppId>("vault-usdc");
   const [amount, setAmount] = useState(OPPS[0].default);
+  // MOR stakes get a 2nd step to tune the optional power-factor lock, so the
+  // first screen stays lean for newcomers. `nowSec` is captured once (lazy init)
+  // to keep the multiplier math out of render-time Date.now().
+  const [step, setStep] = useState<"config" | "lock">("config");
+  const [lockYears, setLockYears] = useState(0);
+  const [nowSec] = useState(() => Math.floor(Date.now() / 1000));
 
   const { data: yields } = useQuery({
     queryKey: ["stake-yields"],
@@ -141,6 +148,14 @@ export function StakeDialog({
   // observers kept invalidating each other's idea of freshness.
   const { ethPrice: ethUsd } = useEthPrice();
 
+  // Reopen always lands on the lean first step with no lock preselected.
+  useEffect(() => {
+    if (open) {
+      setStep("config");
+      setLockYears(0);
+    }
+  }, [open]);
+
   const opp = OPPS.find((o) => o.id === oppId)!;
   const isMor = opp.kind === "mor";
   const isUsdc = opp.asset === "usdc";
@@ -152,7 +167,9 @@ export function StakeDialog({
 
   const assetUsd = opp.asset === "steth" ? ethUsd : 1;
   const amountNum = Math.max(0, parseFloat(amount) || 0);
-  const totalAsset = (amountNum * rate) / 100; // yield in the deposit asset
+  // The power-factor lock scales the MOR projection (1× when no lock / vault).
+  const lockMult = isMor ? multiplierForYears(lockYears, nowSec) : 1;
+  const totalAsset = ((amountNum * rate) / 100) * lockMult; // yield in the deposit asset
   const totalUsd = totalAsset * assetUsd;
   const busy = isMor ? morpheus.isBusy : isStaking;
 
@@ -160,6 +177,8 @@ export function StakeDialog({
     const o = OPPS.find((x) => x.id === next)!;
     setOppId(next);
     setAmount(o.default);
+    setStep("config");
+    setLockYears(0);
   };
 
   // Shares of the yield — the 3-way split (mirrors the vault and the MOR split).
@@ -203,10 +222,12 @@ export function StakeDialog({
   const handleConfirm = async () => {
     if (isMor) {
       if (!rider?.wallet) return;
+      const lockEnd = claimLockEndFor(lockYears);
       const ok = await morpheus.stake(
         opp.asset === "steth" ? "stEth" : "usdc",
         amount,
         rider.wallet,
+        lockEnd,
       );
       if (ok) {
         toast.success(t("opp.stakedMorTitle", { name }), { description: t("opp.stakedMorDesc") });
@@ -380,162 +401,177 @@ export function StakeDialog({
             </div>
           </div>
 
-          {/* Three columns */}
-          <div className="grid items-start gap-5 sm:grid-cols-3">
-            {/* Yield source */}
-            <div className="min-w-0">
-              <div
-                className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em]"
-                style={{ color: muted }}
-              >
-                {t("opp.yieldSource")}
-              </div>
-              <div className="flex flex-col gap-2.5">
-                {OPPS.map((o) => {
-                  const active = o.id === oppId;
-                  const apr = aprFor(o);
-                  return (
-                    <button
-                      key={o.id}
-                      type="button"
-                      onClick={() => switchOpp(o.id)}
-                      aria-pressed={active}
-                      className="flex cursor-pointer items-center gap-3 rounded-[13px] px-3.5 py-3 text-left transition"
-                      style={{
-                        border: active ? `2px solid ${GOLD}` : "1px solid rgba(255,255,255,.09)",
-                        background: active ? "rgba(245,166,35,.09)" : "rgba(255,255,255,.035)",
-                      }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={o.logo} alt="" className="h-6 w-6 flex-none rounded-full" />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-bold">{t(o.labelKey)}</div>
-                        <div
-                          className="mt-0.5 text-[11.5px] font-semibold"
-                          style={{ color: muted }}
-                        >
-                          {o.kind === "vault" ? t("opp.stableTag") : t("opp.morTag")} · {o.unit}
-                        </div>
-                      </div>
-                      <div className="flex-none text-[17px] font-black" style={{ color: GREEN }}>
-                        {apr ? `${o.kind === "mor" ? "~" : ""}${apr.toFixed(1)}%` : "—"}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Amount */}
-            <div className="min-w-0">
-              <div
-                className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em]"
-                style={{ color: muted }}
-              >
-                {t("amountLabel")}
-              </div>
-              <div
-                className="flex h-[58px] items-center gap-2.5 rounded-[14px] border border-white/[0.11] px-4"
-                style={{ background: "rgba(255,255,255,.045)" }}
-              >
-                <input
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
-                  inputMode="decimal"
-                  className="min-w-0 flex-1 border-none bg-transparent text-2xl font-extrabold tracking-tight text-white outline-none"
-                />
-                <span className="text-sm font-bold" style={{ color: "#8f8a83" }}>
-                  {opp.unit}
-                </span>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {opp.presets.map((v) => {
-                  const on = String(v) === amount;
-                  return (
-                    <button
-                      key={v}
-                      type="button"
-                      onClick={() => setAmount(String(v))}
-                      className="cursor-pointer rounded-[10px] px-3 py-2 text-[12.5px] font-bold"
-                      style={{
-                        color: on ? "#1a1205" : "#c9c6c2",
-                        background: on
-                          ? "linear-gradient(90deg,#f7c948,#f5851f)"
-                          : "rgba(255,255,255,.05)",
-                        border: on ? "1px solid transparent" : "1px solid rgba(255,255,255,.09)",
-                      }}
-                    >
-                      {v}
-                    </button>
-                  );
-                })}
-              </div>
-              {rate > 0 && (
-                <div className="mt-3 text-[12.5px] font-semibold" style={{ color: muted }}>
-                  {t("aprNote", { rate: rate.toFixed(2), rateType: rateKind, source: opp.venue })}
-                </div>
-              )}
-              {isMor && (
-                <div className="mt-2 text-[11.5px] font-semibold" style={{ color: "#b8741a" }}>
-                  {t("opp.mainnetWarn")}
-                </div>
-              )}
-            </div>
-
-            {/* Your share */}
-            <div
-              className="flex min-w-0 flex-col gap-3 rounded-[18px] border border-white/[0.07] p-[18px]"
-              style={{ background: "rgba(255,255,255,.035)" }}
-            >
-              <div
-                className="text-[11px] font-bold uppercase tracking-[0.22em]"
-                style={{ color: muted }}
-              >
-                {t("opp.yourShare")}
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span
-                  className="text-[34px] font-black leading-none tracking-tight"
-                  style={{ color: GOLD_HI }}
+          {/* Step 1 (config): source · amount · your share. Step 2 (lock, MOR only)
+              tunes the optional power-factor multiplier — kept off the first screen. */}
+          {step === "config" ? (
+            <div className="grid items-start gap-5 sm:grid-cols-3">
+              {/* Yield source */}
+              <div className="min-w-0">
+                <div
+                  className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em]"
+                  style={{ color: muted }}
                 >
-                  {isMor ? `≈$${fmt2(totalUsd * 0.5)}` : fmt2(totalAsset * 0.5)}
-                </span>
-                <span className="text-[13px] font-bold" style={{ color: muted }}>
-                  {isMor ? t("opp.perYearMor") : `${opp.unit} / ${t("perYear")}`}
-                </span>
+                  {t("opp.yieldSource")}
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  {OPPS.map((o) => {
+                    const active = o.id === oppId;
+                    const apr = aprFor(o);
+                    return (
+                      <button
+                        key={o.id}
+                        type="button"
+                        onClick={() => switchOpp(o.id)}
+                        aria-pressed={active}
+                        className="flex cursor-pointer items-center gap-3 rounded-[13px] px-3.5 py-3 text-left transition"
+                        style={{
+                          border: active ? `2px solid ${GOLD}` : "1px solid rgba(255,255,255,.09)",
+                          background: active ? "rgba(245,166,35,.09)" : "rgba(255,255,255,.035)",
+                        }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={o.logo} alt="" className="h-6 w-6 flex-none rounded-full" />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-bold">{t(o.labelKey)}</div>
+                          <div
+                            className="mt-0.5 text-[11.5px] font-semibold"
+                            style={{ color: muted }}
+                          >
+                            {o.kind === "vault" ? t("opp.stableTag") : t("opp.morTag")} · {o.unit}
+                          </div>
+                        </div>
+                        <div className="flex-none text-[17px] font-black" style={{ color: GREEN }}>
+                          {apr ? `${o.kind === "mor" ? "~" : ""}${apr.toFixed(1)}%` : "—"}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="h-px bg-white/[0.08]" />
-              {[
-                { label: t("youLabel"), color: GOLD_HI, pct: REWARD_SPLIT.you },
-                { label: name, color: "#b8741a", pct: REWARD_SPLIT.skater },
-                { label: t("treasuryLabel"), color: "#5c4520", pct: REWARD_SPLIT.treasury },
-              ].map((s) => (
-                <div key={s.label} className="flex items-center gap-2.5">
-                  <div
-                    className="h-2 w-2 flex-none rounded-[2px]"
-                    style={{ background: s.color }}
+
+              {/* Amount */}
+              <div className="min-w-0">
+                <div
+                  className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em]"
+                  style={{ color: muted }}
+                >
+                  {t("amountLabel")}
+                </div>
+                <div
+                  className="flex h-[58px] items-center gap-2.5 rounded-[14px] border border-white/[0.11] px-4"
+                  style={{ background: "rgba(255,255,255,.045)" }}
+                >
+                  <input
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+                    inputMode="decimal"
+                    className="min-w-0 flex-1 border-none bg-transparent text-2xl font-extrabold tracking-tight text-white outline-none"
                   />
-                  <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{s.label}</span>
-                  <span className="text-[13px] font-extrabold" style={{ color: "#c9c6c2" }}>
-                    {share(s.pct)}
+                  <span className="text-sm font-bold" style={{ color: "#8f8a83" }}>
+                    {opp.unit}
                   </span>
                 </div>
-              ))}
-              <button
-                type="button"
-                onClick={handleConfirm}
-                disabled={busy}
-                className="mt-auto cursor-pointer rounded-[13px] px-5 py-3.5 text-center text-[14.5px] font-extrabold disabled:opacity-70"
-                style={{
-                  color: "#1a1205",
-                  background: "linear-gradient(90deg,#f7c948,#f5851f)",
-                  boxShadow: "0 8px 24px rgba(245,133,31,.28)",
-                }}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {opp.presets.map((v) => {
+                    const on = String(v) === amount;
+                    return (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setAmount(String(v))}
+                        className="cursor-pointer rounded-[10px] px-3 py-2 text-[12.5px] font-bold"
+                        style={{
+                          color: on ? "#1a1205" : "#c9c6c2",
+                          background: on
+                            ? "linear-gradient(90deg,#f7c948,#f5851f)"
+                            : "rgba(255,255,255,.05)",
+                          border: on ? "1px solid transparent" : "1px solid rgba(255,255,255,.09)",
+                        }}
+                      >
+                        {v}
+                      </button>
+                    );
+                  })}
+                </div>
+                {rate > 0 && (
+                  <div className="mt-3 text-[12.5px] font-semibold" style={{ color: muted }}>
+                    {t("aprNote", { rate: rate.toFixed(2), rateType: rateKind, source: opp.venue })}
+                  </div>
+                )}
+                {isMor && (
+                  <div className="mt-2 text-[11.5px] font-semibold" style={{ color: "#b8741a" }}>
+                    {t("opp.mainnetWarn")}
+                  </div>
+                )}
+              </div>
+
+              {/* Your share */}
+              <div
+                className="flex min-w-0 flex-col gap-3 rounded-[18px] border border-white/[0.07] p-[18px]"
+                style={{ background: "rgba(255,255,255,.035)" }}
               >
-                {confirmLabel}
-              </button>
+                <div
+                  className="text-[11px] font-bold uppercase tracking-[0.22em]"
+                  style={{ color: muted }}
+                >
+                  {t("opp.yourShare")}
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span
+                    className="text-[34px] font-black leading-none tracking-tight"
+                    style={{ color: GOLD_HI }}
+                  >
+                    {isMor ? `≈$${fmt2(totalUsd * 0.5)}` : fmt2(totalAsset * 0.5)}
+                  </span>
+                  <span className="text-[13px] font-bold" style={{ color: muted }}>
+                    {isMor ? t("opp.perYearMor") : `${opp.unit} / ${t("perYear")}`}
+                  </span>
+                </div>
+                <div className="h-px bg-white/[0.08]" />
+                {[
+                  { label: t("youLabel"), color: GOLD_HI, pct: REWARD_SPLIT.you },
+                  { label: name, color: "#b8741a", pct: REWARD_SPLIT.skater },
+                  { label: t("treasuryLabel"), color: "#5c4520", pct: REWARD_SPLIT.treasury },
+                ].map((s) => (
+                  <div key={s.label} className="flex items-center gap-2.5">
+                    <div
+                      className="h-2 w-2 flex-none rounded-[2px]"
+                      style={{ background: s.color }}
+                    />
+                    <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{s.label}</span>
+                    <span className="text-[13px] font-extrabold" style={{ color: "#c9c6c2" }}>
+                      {share(s.pct)}
+                    </span>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={isMor ? () => setStep("lock") : handleConfirm}
+                  disabled={busy}
+                  className="mt-auto cursor-pointer rounded-[13px] px-5 py-3.5 text-center text-[14.5px] font-extrabold disabled:opacity-70"
+                  style={{
+                    color: "#1a1205",
+                    background: "linear-gradient(90deg,#f7c948,#f5851f)",
+                    boxShadow: "0 8px 24px rgba(245,133,31,.28)",
+                  }}
+                >
+                  {isMor ? t("lock.continue") : confirmLabel}
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <LockStep
+              t={t}
+              rate={rate}
+              nowSec={nowSec}
+              lockYears={lockYears}
+              setLockYears={setLockYears}
+              onBack={() => setStep("config")}
+              onStake={handleConfirm}
+              stakeLabel={confirmLabel}
+              busy={busy}
+            />
+          )}
 
           {/* Vault position management — only when a live position exists */}
           {!isMor && position && position.shares > BigInt(0) && (
@@ -726,6 +762,140 @@ function RewardFlow({
       )}
       <div aria-hidden style={overlay(61.43, 50, 7.71, faceSize, facePos, riderImg)} />
       <div aria-hidden style={overlay(61.43, 83.33, 7.71, "cover", "center", "/gnars.webp")} />
+    </div>
+  );
+}
+
+/** Step 2 (MOR only): pick the optional power-factor lock. The multiplier is
+ * exact (on-chain LockMultiplierMath replica); the APR it scales is the same
+ * live estimate shown on step 1, so the RELATIVE boost is honest. */
+function LockStep({
+  t,
+  rate,
+  nowSec,
+  lockYears,
+  setLockYears,
+  onBack,
+  onStake,
+  stakeLabel,
+  busy,
+}: {
+  t: ReturnType<typeof useTranslations>;
+  rate: number;
+  nowSec: number;
+  lockYears: number;
+  setLockYears: (y: number) => void;
+  onBack: () => void;
+  onStake: () => void;
+  stakeLabel: string;
+  busy: boolean;
+}) {
+  const muted = "#8a857e";
+  const optLabel = (y: number) => (y === 0 ? t("lock.none") : t("lock.years", { n: y }));
+  return (
+    <div className="grid items-start gap-5 sm:grid-cols-[minmax(0,1fr)_300px]">
+      {/* Explainer + lock options */}
+      <div className="min-w-0">
+        <div
+          className="mb-1 text-[11px] font-bold uppercase tracking-[0.24em]"
+          style={{ color: muted }}
+        >
+          {t("lock.step")}
+        </div>
+        <h3 className="m-0 text-lg font-black">{t("lock.title")}</h3>
+        <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: muted }}>
+          {t("lock.explain")}
+        </p>
+        <div className="mt-4 grid gap-2.5">
+          {LOCK_OPTIONS.map(({ years }) => {
+            const m = multiplierForYears(years, nowSec);
+            const active = years === lockYears;
+            return (
+              <button
+                key={years}
+                type="button"
+                onClick={() => setLockYears(years)}
+                aria-pressed={active}
+                className="flex cursor-pointer items-center gap-3 rounded-[13px] px-4 py-3 text-left transition"
+                style={{
+                  border: active ? `2px solid ${GOLD}` : "1px solid rgba(255,255,255,.09)",
+                  background: active ? "rgba(245,166,35,.09)" : "rgba(255,255,255,.035)",
+                }}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-bold">{optLabel(years)}</div>
+                  <div className="mt-0.5 text-[11.5px] font-semibold" style={{ color: muted }}>
+                    {years === 0 ? t("lock.noneNote") : t("lock.mult", { mult: m.toFixed(2) })}
+                  </div>
+                </div>
+                <div className="flex-none text-right">
+                  <div className="text-[17px] font-black" style={{ color: GREEN }}>
+                    ~{(rate * m).toFixed(0)}%
+                  </div>
+                  <div
+                    className="text-[10px] font-bold uppercase tracking-wider"
+                    style={{ color: muted }}
+                  >
+                    APR
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <div
+          className="mt-3 flex items-start gap-2 text-[11.5px] font-semibold"
+          style={{ color: "#b8741a" }}
+        >
+          <span className="flex-none">⚠</span>
+          <span>{t("lock.oneway")}</span>
+        </div>
+      </div>
+
+      {/* Summary + actions */}
+      <div
+        className="flex min-h-[240px] flex-col gap-3 rounded-[18px] border border-white/[0.07] p-[18px]"
+        style={{ background: "rgba(255,255,255,.035)" }}
+      >
+        <div className="text-[11px] font-bold uppercase tracking-[0.22em]" style={{ color: muted }}>
+          {t("lock.summaryTitle")}
+        </div>
+        <p className="text-[13px] leading-relaxed" style={{ color: "#c9c6c2" }}>
+          {lockYears === 0
+            ? t("lock.summaryNone")
+            : t("lock.summaryLocked", {
+                label: optLabel(lockYears),
+                mult: multiplierForYears(lockYears, nowSec).toFixed(2),
+              })}
+        </p>
+        <p className="text-[12px] leading-relaxed" style={{ color: muted }}>
+          {t("lock.stethNote")}
+        </p>
+        <div className="mt-auto flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={onStake}
+            disabled={busy}
+            className="cursor-pointer rounded-[13px] px-5 py-3.5 text-center text-[14.5px] font-extrabold disabled:opacity-70"
+            style={{
+              color: "#1a1205",
+              background: "linear-gradient(90deg,#f7c948,#f5851f)",
+              boxShadow: "0 8px 24px rgba(245,133,31,.28)",
+            }}
+          >
+            {stakeLabel}
+          </button>
+          <button
+            type="button"
+            onClick={onBack}
+            disabled={busy}
+            className="cursor-pointer rounded-[13px] border border-white/15 px-5 py-2.5 text-center text-[13px] font-bold disabled:opacity-60"
+            style={{ color: "#c9c6c2" }}
+          >
+            {t("lock.back")}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

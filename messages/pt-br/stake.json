@@ -139,6 +139,22 @@
     "lineStable": "Devagar e sempre. {you} {asset} por ano de volta pra você — meu corte eu pego em fita.",
     "lineVar": "~{rate}% APR é um baita air. Pode cair limpo ou levar tombo. Tá dentro?"
   },
+  "lock": {
+    "step": "Passo 2 · turbinar (opcional)",
+    "title": "Trave o claim do MOR pra render mais",
+    "explain": "Seu stETH continua líquido — saca depois dos 7 dias, quando quiser. Você só adia QUANDO pode sacar o MOR que acumula; em troca, seu multiplicador de recompensa sobe.",
+    "continue": "Próximo: lock →",
+    "none": "Sem lock",
+    "noneNote": "Saca seu MOR quando quiser",
+    "years": "{n, plural, one {# ano} other {# anos}}",
+    "mult": "{mult}× mais MOR",
+    "oneway": "O lock só pode ser estendido depois, nunca encurtado.",
+    "back": "Voltar",
+    "summaryTitle": "O que você está escolhendo",
+    "summaryNone": "Sem lock — taxa base, e você saca seu MOR quando quiser.",
+    "summaryLocked": "Travar {label} → {mult}× a fatia de MOR, em troca de não poder sacar até lá.",
+    "stethNote": "De qualquer forma seu stETH nunca fica preso por isso — vale só a regra de saque de 7 dias."
+  },
   "lootbox": {
     "title": "Recompensas prontas",
     "claim": "Sacar",
