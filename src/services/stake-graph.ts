@@ -44,6 +44,7 @@ import {
   MOR_TOKEN,
   MORPHEUS_POOLS,
 } from "@/lib/morpheus";
+import { getEthUsd, getTokenPriceUsd, type UsdPrice } from "@/services/prices";
 
 // Prefer Alchemy (reliable, handles large getLogs) when the key is set, since
 // the public RPCs frequently fail/timeout on the MOR log scan — and a swallowed
@@ -177,52 +178,20 @@ async function backerAddresses(vault: Address, feeRecipient?: Address): Promise<
 }
 
 /**
- * CoinGecko's demo key. `/api/prices` already treats it as mandatory; these
- * calls used to go out unauthenticated, i.e. on the shared-IP free tier that is
- * the most likely to 429 — and a 429 here silently deletes most of the TVL (see
- * `priceStEth` below), so the key matters more here than anywhere else.
- */
-const COINGECKO_KEY = process.env.COINGECKO_API_KEY;
-const coingeckoHeaders: HeadersInit = {
-  "user-agent": "gnars-website/stake-graph",
-  ...(COINGECKO_KEY ? { "x-cg-demo-api-key": COINGECKO_KEY } : {}),
-};
-
-/** ETH/USD, or 0 when the price could not be fetched. Callers that actually
- * need it to value something must treat 0 as a hard failure — never as $0. */
-async function getEthUsd(): Promise<number> {
-  try {
-    const res = await fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
-      {
-        headers: coingeckoHeaders,
-        next: { revalidate: 300 },
-      },
-    );
-    if (!res.ok) return 0;
-    const j = (await res.json()) as { ethereum?: { usd?: number } };
-    return j.ethereum?.usd ?? 0;
-  } catch {
-    return 0;
-  }
-}
-
-/**
  * Value a stETH position in USD, or throw.
  *
- * The whole graph used to be built from `tokens * ethUsd` with `ethUsd`
- * silently 0 on any CoinGecko hiccup. Every stETH row then evaluated to $0 and
- * was dropped by the `usd > 0` filter — erasing most of the TVL and several
- * backers while still returning a perfectly well-formed `StakeGraph`. Nothing
- * threw, so the route's error path never ran and the bad graph was cached like
- * a good one.
+ * The graph used to be built from `tokens * ethUsd` with `ethUsd` silently 0 on
+ * any price hiccup. Every stETH row then evaluated to $0 and was dropped by the
+ * `usd > 0` filter — erasing most of the TVL and several backers while still
+ * returning a perfectly well-formed `StakeGraph`. Nothing threw, so the route's
+ * error path never ran and the bad graph was cached like a good one.
  *
  * Throwing is what makes the caching safe: it reaches the route's `catch`,
  * which answers 500 with `no-store`, so a pricing outage degrades to "no data"
  * instead of "confidently wrong data pinned for the backstop TTL".
  */
-function priceStEth(tokens: number, ethUsd: number): number {
-  if (!(ethUsd > 0)) {
+function priceStEth(tokens: number, ethUsd: UsdPrice): number {
+  if (ethUsd == null) {
     throw new Error("stake-graph: ETH/USD unavailable — refusing to price stETH positions at $0");
   }
   return tokens * ethUsd;
@@ -316,7 +285,7 @@ async function etherscanClaimReceiver(
   return null;
 }
 
-async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBacker[]>> {
+async function morBackersByRider(ethUsd: UsdPrice): Promise<Record<string, OrbitBacker[]>> {
   const walletToId = new Map<string, RiderId>();
   for (const r of RIDER_LIST) if (r.wallet) walletToId.set(r.wallet.toLowerCase(), r.id);
   const referrers = [...walletToId.keys()].map((a) => getAddress(a));
@@ -456,20 +425,6 @@ async function morBackersByRider(ethUsd: number): Promise<Record<string, OrbitBa
   return byRider;
 }
 
-async function getMorUsd(): Promise<number> {
-  try {
-    const res = await fetch(
-      `https://api.coingecko.com/api/v3/simple/token_price/arbitrum-one?contract_addresses=${MOR_TOKEN}&vs_currencies=usd`,
-      { headers: coingeckoHeaders, next: { revalidate: 300 } },
-    );
-    if (!res.ok) return 0;
-    const j = (await res.json()) as Record<string, { usd?: number }>;
-    return j?.[MOR_TOKEN.toLowerCase()]?.usd ?? 0;
-  } catch {
-    return 0;
-  }
-}
-
 /**
  * MOR earned for the Gnars treasury: what's already been distributed to the
  * Gnars Arbitrum multisig, plus Gnars' 25% share still sitting undistributed in
@@ -478,6 +433,22 @@ async function getMorUsd(): Promise<number> {
 async function gnarsMorEarned(
   morByRider: Record<string, OrbitBacker[]>,
 ): Promise<{ mor: number; usd: number }> {
+  // The pricing check deliberately lives OUTSIDE the try below: that catch is
+  // there to tolerate flaky Arbitrum reads, and it would happily swallow a
+  // "cannot price" throw, putting us right back to reporting $0 for real MOR.
+  const { mor, morUsd } = await readGnarsMor(morByRider);
+  // Same rule as `priceStEth`: only a balance we actually hold and cannot price
+  // is a failure. With no MOR accrued there is nothing to misreport.
+  if (mor > 0 && morUsd == null) {
+    throw new Error("stake-graph: MOR/USD unavailable — refusing to value accrued MOR at $0");
+  }
+  return { mor, usd: mor * (morUsd ?? 0) };
+}
+
+/** Raw read, tolerant of flaky RPCs. Pricing policy is applied by the caller. */
+async function readGnarsMor(
+  morByRider: Record<string, OrbitBacker[]>,
+): Promise<{ mor: number; morUsd: UsdPrice }> {
   const walletById = new Map<string, Address>();
   for (const r of RIDER_LIST) if (r.wallet) walletById.set(r.id, r.wallet);
 
@@ -501,13 +472,13 @@ async function gnarsMorEarned(
         })
         .then((b) => Number(formatUnits(b, MOR_DECIMALS)))
         .catch(() => 0),
-      getMorUsd(),
+      getTokenPriceUsd(MOR_TOKEN, "arbitrum-one"),
     ]);
     const pendingGnars = splitBals.reduce((s, v) => s + v, 0) * 0.25; // Gnars = 25% of each split
     const mor = pendingGnars + directRaw;
-    return { mor, usd: mor * morUsd };
+    return { mor, morUsd };
   } catch {
-    return { mor: 0, usd: 0 };
+    return { mor: 0, morUsd: null as UsdPrice };
   }
 }
 

@@ -13,7 +13,10 @@ export async function TreasuryBalance({ treasuryAddress, metric = "total" }: Tre
     const snapshot = await loadTreasurySnapshot(treasuryAddress);
     value =
       metric === "total"
-        ? snapshot.usdTotal
+        ? // `null` means the price feed failed; `undefined` is this component's
+          // existing "no value" signal, which the client already renders as a
+          // dash rather than $0.
+          (snapshot.usdTotal ?? undefined)
         : metric === "eth"
           ? snapshot.ethBalance
           : snapshot.totalAuctionSales;
