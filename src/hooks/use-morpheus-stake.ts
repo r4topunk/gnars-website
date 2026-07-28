@@ -153,9 +153,17 @@ export function useMorpheusStake() {
   const [error, setError] = useState<string | null>(null);
   const pending = useRef(false);
 
-  /** Stake `amount` of the asset, crediting the athlete as referrer. */
+  /** Stake `amount` of the asset, crediting the athlete as referrer. `claimLockEnd`
+   * (unix seconds, 0 = none) is the optional power-factor lock: it defers when the
+   * MOR can be CLAIMED, boosting the reward multiplier — it does NOT lock the
+   * deposit (that follows the 7-day withdraw rule). */
   const stake = useCallback(
-    async (asset: MorpheusAsset, amount: string, athlete: Address): Promise<boolean> => {
+    async (
+      asset: MorpheusAsset,
+      amount: string,
+      athlete: Address,
+      claimLockEnd = 0,
+    ): Promise<boolean> => {
       if (pending.current) return false;
       const client = getThirdwebClient();
       if (!client) {
@@ -235,11 +243,17 @@ export function useMorpheusStake() {
         }
 
         setPhase("stake");
-        // claimLockEnd = 0 → no extra lock beyond the protocol's 7-day default.
+        // claimLockEnd > 0 → defer MOR claims until then for a bigger reward
+        // multiplier (power factor); 0 keeps only the protocol's 7-day default.
         const stakeData = encodeFunctionData({
           abi: depositPoolAbi,
           functionName: "stake",
-          args: [MOR_REWARD_POOL_INDEX, assets, BigInt(0), athlete],
+          args: [
+            MOR_REWARD_POOL_INDEX,
+            assets,
+            BigInt(Math.max(0, Math.floor(claimLockEnd))),
+            athlete,
+          ],
         });
         const sendStake = async () => {
           const tx = prepareTransaction({ client, chain: ethereum, to: pool, data: stakeData });

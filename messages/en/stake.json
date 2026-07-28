@@ -139,6 +139,22 @@
     "lineStable": "Steady wins. {you} {asset} a year back to you — I'll take my cut in grip tape.",
     "lineVar": "~{rate}% APR is a big air. Could land clean, could slam. You in?"
   },
+  "lock": {
+    "step": "Step 2 · boost (optional)",
+    "title": "Lock your MOR claim to earn more",
+    "explain": "Your stETH stays liquid — withdraw after the 7-day window, whenever you want. You only defer WHEN you can claim the MOR you earn; in exchange your reward multiplier goes up.",
+    "continue": "Next: lock →",
+    "none": "No lock",
+    "noneNote": "Claim your MOR anytime",
+    "years": "{n, plural, one {# year} other {# years}}",
+    "mult": "{mult}× more MOR",
+    "oneway": "A lock can only be extended later, never shortened.",
+    "back": "Back",
+    "summaryTitle": "What you're choosing",
+    "summaryNone": "No lock — base rate, and you can claim your MOR whenever you like.",
+    "summaryLocked": "Locking {label} → {mult}× the MOR share, in exchange for not claiming it until then.",
+    "stethNote": "Either way your stETH principal is never locked by this — only the 7-day withdraw rule applies."
+  },
   "lootbox": {
     "title": "Rewards ready",
     "claim": "Claim",
