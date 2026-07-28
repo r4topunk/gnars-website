@@ -9,31 +9,53 @@
 // come in a later phase.
 //
 // Everything is a real mainnet tx (gas is not cheap) — the UI flags that.
-
 import { useCallback, useRef, useState } from "react";
 import {
-  prepareTransaction, sendTransaction, waitForReceipt, readContract, getContract,
+  getContract,
+  prepareTransaction,
+  readContract,
+  sendTransaction,
+  waitForReceipt,
   type ThirdwebClient,
 } from "thirdweb";
 import { ethereum } from "thirdweb/chains";
 import {
-  createPublicClient, http, fallback, encodeFunctionData, encodeAbiParameters, parseUnits, erc20Abi, type Address,
+  createPublicClient,
+  encodeAbiParameters,
+  encodeFunctionData,
+  erc20Abi,
+  fallback,
+  http,
+  parseUnits,
+  type Address,
 } from "viem";
 import { mainnet } from "viem/chains";
 import { useWriteAccount } from "@/hooks/use-write-account";
-import { ensureOnChain } from "@/lib/thirdweb-tx";
-import { getThirdwebClient } from "@/lib/thirdweb";
-import {
-  MORPHEUS_POOLS, MORPHEUS_DISTRIBUTOR, MOR_REWARD_POOL_INDEX, depositPoolAbi, type MorpheusAsset,
-  L1_SENDER, LZ_GATEWAY, LZ_DST_CHAIN_ID, LZ_ADAPTER_PARAMS, lzEndpointAbi,
-} from "@/lib/morpheus";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { predictSplitAddress } from "@/lib/mor-split";
+import {
+  depositPoolAbi,
+  L1_SENDER,
+  LZ_ADAPTER_PARAMS,
+  LZ_DST_CHAIN_ID,
+  LZ_GATEWAY,
+  lzEndpointAbi,
+  MOR_REWARD_POOL_INDEX,
+  MORPHEUS_DISTRIBUTOR,
+  MORPHEUS_POOLS,
+  type MorpheusAsset,
+} from "@/lib/morpheus";
+import { requestRevalidation } from "@/lib/request-revalidation";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { ensureOnChain } from "@/lib/thirdweb-tx";
 
 /** Quote the LayerZero native fee for a claim (payload is fixed-size, so amount is nominal). */
 async function quoteClaimFee(user: Address, amount: bigint): Promise<bigint> {
   const payload = encodeAbiParameters([{ type: "address" }, { type: "uint256" }], [user, amount]);
   const [nativeFee] = await rpc.readContract({
-    address: LZ_GATEWAY, abi: lzEndpointAbi, functionName: "estimateFees",
+    address: LZ_GATEWAY,
+    abi: lzEndpointAbi,
+    functionName: "estimateFees",
     args: [LZ_DST_CHAIN_ID, L1_SENDER, payload, false, LZ_ADAPTER_PARAMS],
   });
   return (nativeFee * BigInt(120)) / BigInt(100); // +20% margin; excess is refunded on-chain
@@ -58,12 +80,21 @@ async function waitReceipt(client: ThirdwebClient, transactionHash: `0x${string}
   await Promise.race([
     waitForReceipt({ client, chain: ethereum, transactionHash }),
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Transaction is taking too long to confirm — check your wallet and tap again.")), RECEIPT_TIMEOUT_MS),
+      setTimeout(
+        () =>
+          reject(
+            new Error(
+              "Transaction is taking too long to confirm — check your wallet and tap again.",
+            ),
+          ),
+        RECEIPT_TIMEOUT_MS,
+      ),
     ),
   ]);
 }
 
-const ALLOWANCE = "function allowance(address owner, address spender) view returns (uint256)" as const;
+const ALLOWANCE =
+  "function allowance(address owner, address spender) view returns (uint256)" as const;
 
 /**
  * Confirm the pool's allowance is high enough *on the RPC that will estimate the
@@ -75,7 +106,11 @@ const ALLOWANCE = "function allowance(address owner, address spender) view retur
  * that reverts with "transfer amount exceeds allowance".
  */
 async function confirmAllowance(
-  client: ThirdwebClient, token: Address, owner: Address, spender: Address, needed: bigint,
+  client: ThirdwebClient,
+  token: Address,
+  owner: Address,
+  spender: Address,
+  needed: bigint,
   tries = 24,
 ): Promise<boolean> {
   const contract = getContract({ client, chain: ethereum, address: token });
@@ -83,17 +118,34 @@ async function confirmAllowance(
     try {
       const a = await readContract({ contract, method: ALLOWANCE, params: [owner, spender] });
       if (a >= needed) return true;
-    } catch { /* keep polling */ }
+    } catch {
+      /* keep polling */
+    }
     try {
-      const a = await rpc.readContract({ address: token, abi: erc20Abi, functionName: "allowance", args: [owner, spender] });
+      const a = await rpc.readContract({
+        address: token,
+        abi: erc20Abi,
+        functionName: "allowance",
+        args: [owner, spender],
+      });
       if (a >= needed) return true;
-    } catch { /* keep polling */ }
+    } catch {
+      /* keep polling */
+    }
     await sleep(2000);
   }
   return false;
 }
 
-export type MorpheusPhase = "idle" | "approve" | "stake" | "setReceiver" | "withdraw" | "claim" | "done" | "error";
+export type MorpheusPhase =
+  | "idle"
+  | "approve"
+  | "stake"
+  | "setReceiver"
+  | "withdraw"
+  | "claim"
+  | "done"
+  | "error";
 
 export function useMorpheusStake() {
   const writer = useWriteAccount();
@@ -106,16 +158,39 @@ export function useMorpheusStake() {
    * MOR can be CLAIMED, boosting the reward multiplier — it does NOT lock the
    * deposit (that follows the 7-day withdraw rule). */
   const stake = useCallback(
-    async (asset: MorpheusAsset, amount: string, athlete: Address, claimLockEnd = 0): Promise<boolean> => {
+    async (
+      asset: MorpheusAsset,
+      amount: string,
+      athlete: Address,
+      claimLockEnd = 0,
+    ): Promise<boolean> => {
       if (pending.current) return false;
       const client = getThirdwebClient();
-      if (!client) { setError("Thirdweb not configured."); setPhase("error"); return false; }
-      if (!writer) { setError("Connect your wallet."); setPhase("error"); return false; }
+      if (!client) {
+        setError("Thirdweb not configured.");
+        setPhase("error");
+        return false;
+      }
+      if (!writer) {
+        setError("Connect your wallet.");
+        setPhase("error");
+        return false;
+      }
       const { pool, token, decimals } = MORPHEUS_POOLS[asset];
 
       let assets: bigint;
-      try { assets = parseUnits(amount, decimals); } catch { setError("Invalid amount."); setPhase("error"); return false; }
-      if (assets <= BigInt(0)) { setError("Invalid amount."); setPhase("error"); return false; }
+      try {
+        assets = parseUnits(amount, decimals);
+      } catch {
+        setError("Invalid amount.");
+        setPhase("error");
+        return false;
+      }
+      if (assets <= BigInt(0)) {
+        setError("Invalid amount.");
+        setPhase("error");
+        return false;
+      }
 
       const account = writer.account;
       setError(null);
@@ -126,20 +201,42 @@ export function useMorpheusStake() {
         // The Distributor (not the DepositPool we call `stake` on) is what pulls
         // the deposit token, so the approval must name the distributor as spender.
         const spender = MORPHEUS_DISTRIBUTOR;
-        const allowance = await rpc.readContract({ address: token, abi: erc20Abi, functionName: "allowance", args: [account.address as Address, spender] });
+        const allowance = await rpc.readContract({
+          address: token,
+          abi: erc20Abi,
+          functionName: "allowance",
+          args: [account.address as Address, spender],
+        });
         if (allowance < assets) {
           setPhase("approve");
-          const approveData = encodeFunctionData({ abi: erc20Abi, functionName: "approve", args: [spender, assets] });
-          const approveTx = prepareTransaction({ client, chain: ethereum, to: token, data: approveData });
+          const approveData = encodeFunctionData({
+            abi: erc20Abi,
+            functionName: "approve",
+            args: [spender, assets],
+          });
+          const approveTx = prepareTransaction({
+            client,
+            chain: ethereum,
+            to: token,
+            data: approveData,
+          });
           const hash = (await sendTransaction({ account, transaction: approveTx })).transactionHash;
           await waitReceipt(client, hash);
           // Wait until the allowance is actually visible on the estimation RPC —
           // otherwise the stake reverts with "transfer amount exceeds allowance".
           // If it never propagates, abort cleanly rather than broadcasting a
           // doomed tx.
-          const ok = await confirmAllowance(client, token, account.address as Address, spender, assets);
+          const ok = await confirmAllowance(
+            client,
+            token,
+            account.address as Address,
+            spender,
+            assets,
+          );
           if (!ok) {
-            setError("Approval is still confirming on-chain — give it a few seconds and tap Stake again.");
+            setError(
+              "Approval is still confirming on-chain — give it a few seconds and tap Stake again.",
+            );
             setPhase("error");
             return false;
           }
@@ -149,15 +246,26 @@ export function useMorpheusStake() {
         // claimLockEnd > 0 → defer MOR claims until then for a bigger reward
         // multiplier (power factor); 0 keeps only the protocol's 7-day default.
         const stakeData = encodeFunctionData({
-          abi: depositPoolAbi, functionName: "stake",
-          args: [MOR_REWARD_POOL_INDEX, assets, BigInt(Math.max(0, Math.floor(claimLockEnd))), athlete],
+          abi: depositPoolAbi,
+          functionName: "stake",
+          args: [
+            MOR_REWARD_POOL_INDEX,
+            assets,
+            BigInt(Math.max(0, Math.floor(claimLockEnd))),
+            athlete,
+          ],
         });
         const sendStake = async () => {
           const tx = prepareTransaction({ client, chain: ethereum, to: pool, data: stakeData });
           return (await sendTransaction({ account, transaction: tx })).transactionHash;
         };
         let stakeHash: `0x${string}`;
-        try { stakeHash = await sendStake(); } catch { await sleep(4000); stakeHash = await sendStake(); }
+        try {
+          stakeHash = await sendStake();
+        } catch {
+          await sleep(4000);
+          stakeHash = await sendStake();
+        }
         await waitReceipt(client, stakeHash);
 
         // Route this position's MOR to the staker's deterministic 3-way split by
@@ -167,12 +275,21 @@ export function useMorpheusStake() {
         try {
           setPhase("setReceiver");
           const split = await predictSplitAddress(account.address as Address, athlete);
-          const rData = encodeFunctionData({ abi: depositPoolAbi, functionName: "setClaimReceiver", args: [MOR_REWARD_POOL_INDEX, split] });
+          const rData = encodeFunctionData({
+            abi: depositPoolAbi,
+            functionName: "setClaimReceiver",
+            args: [MOR_REWARD_POOL_INDEX, split],
+          });
           const rTx = prepareTransaction({ client, chain: ethereum, to: pool, data: rData });
           const rHash = (await sendTransaction({ account, transaction: rTx })).transactionHash;
           await waitReceipt(client, rHash);
-        } catch { /* receiver not set; claim can still target the split explicitly */ }
+        } catch {
+          /* receiver not set; claim can still target the split explicitly */
+        }
 
+        // A MOR stake shows up in the orbit as a green stream — drop the server
+        // `stake` cache so other users see it without waiting out the TTL.
+        requestRevalidation([CACHE_TAGS.stake]);
         setPhase("done");
         return true;
       } catch (e) {
@@ -191,12 +308,26 @@ export function useMorpheusStake() {
     async (asset: MorpheusAsset, amount: string): Promise<boolean> => {
       if (pending.current) return false;
       const client = getThirdwebClient();
-      if (!client) { setError("Thirdweb not configured."); setPhase("error"); return false; }
-      if (!writer) { setError("Connect your wallet."); setPhase("error"); return false; }
+      if (!client) {
+        setError("Thirdweb not configured.");
+        setPhase("error");
+        return false;
+      }
+      if (!writer) {
+        setError("Connect your wallet.");
+        setPhase("error");
+        return false;
+      }
       const { pool, decimals } = MORPHEUS_POOLS[asset];
 
       let assets: bigint;
-      try { assets = parseUnits(amount, decimals); } catch { setError("Invalid amount."); setPhase("error"); return false; }
+      try {
+        assets = parseUnits(amount, decimals);
+      } catch {
+        setError("Invalid amount.");
+        setPhase("error");
+        return false;
+      }
 
       const account = writer.account;
       setError(null);
@@ -204,10 +335,15 @@ export function useMorpheusStake() {
       try {
         await ensureOnChain(writer.wallet, ethereum);
         setPhase("withdraw");
-        const data = encodeFunctionData({ abi: depositPoolAbi, functionName: "withdraw", args: [MOR_REWARD_POOL_INDEX, assets] });
+        const data = encodeFunctionData({
+          abi: depositPoolAbi,
+          functionName: "withdraw",
+          args: [MOR_REWARD_POOL_INDEX, assets],
+        });
         const tx = prepareTransaction({ client, chain: ethereum, to: pool, data });
         const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
         await waitReceipt(client, hash);
+        requestRevalidation([CACHE_TAGS.stake]);
         setPhase("done");
         return true;
       } catch (e) {
@@ -229,8 +365,16 @@ export function useMorpheusStake() {
     async (asset: MorpheusAsset, receiver: Address): Promise<boolean> => {
       if (pending.current) return false;
       const client = getThirdwebClient();
-      if (!client) { setError("Thirdweb not configured."); setPhase("error"); return false; }
-      if (!writer) { setError("Connect your wallet."); setPhase("error"); return false; }
+      if (!client) {
+        setError("Thirdweb not configured.");
+        setPhase("error");
+        return false;
+      }
+      if (!writer) {
+        setError("Connect your wallet.");
+        setPhase("error");
+        return false;
+      }
       const { pool } = MORPHEUS_POOLS[asset];
       const account = writer.account;
       setError(null);
@@ -239,15 +383,26 @@ export function useMorpheusStake() {
         await ensureOnChain(writer.wallet, ethereum);
         setPhase("claim");
         const pending_ = await rpc.readContract({
-          address: pool, abi: depositPoolAbi, functionName: "getLatestUserReward",
+          address: pool,
+          abi: depositPoolAbi,
+          functionName: "getLatestUserReward",
           args: [MOR_REWARD_POOL_INDEX, account.address as Address],
         });
-        if (pending_ <= BigInt(0)) { setError("No MOR to claim yet."); setPhase("error"); return false; }
+        if (pending_ <= BigInt(0)) {
+          setError("No MOR to claim yet.");
+          setPhase("error");
+          return false;
+        }
         const fee = await quoteClaimFee(account.address as Address, pending_);
-        const data = encodeFunctionData({ abi: depositPoolAbi, functionName: "claim", args: [MOR_REWARD_POOL_INDEX, receiver] });
+        const data = encodeFunctionData({
+          abi: depositPoolAbi,
+          functionName: "claim",
+          args: [MOR_REWARD_POOL_INDEX, receiver],
+        });
         const tx = prepareTransaction({ client, chain: ethereum, to: pool, data, value: fee });
         const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
         await waitReceipt(client, hash);
+        requestRevalidation([CACHE_TAGS.stake]);
         setPhase("done");
         return true;
       } catch (e) {
@@ -271,8 +426,16 @@ export function useMorpheusStake() {
     async (asset: MorpheusAsset, receiver: Address): Promise<boolean> => {
       if (pending.current) return false;
       const client = getThirdwebClient();
-      if (!client) { setError("Thirdweb not configured."); setPhase("error"); return false; }
-      if (!writer) { setError("Connect your wallet."); setPhase("error"); return false; }
+      if (!client) {
+        setError("Thirdweb not configured.");
+        setPhase("error");
+        return false;
+      }
+      if (!writer) {
+        setError("Connect your wallet.");
+        setPhase("error");
+        return false;
+      }
       const { pool } = MORPHEUS_POOLS[asset];
       const account = writer.account;
       setError(null);
@@ -280,10 +443,15 @@ export function useMorpheusStake() {
       try {
         await ensureOnChain(writer.wallet, ethereum);
         setPhase("stake");
-        const data = encodeFunctionData({ abi: depositPoolAbi, functionName: "setClaimReceiver", args: [MOR_REWARD_POOL_INDEX, receiver] });
+        const data = encodeFunctionData({
+          abi: depositPoolAbi,
+          functionName: "setClaimReceiver",
+          args: [MOR_REWARD_POOL_INDEX, receiver],
+        });
         const tx = prepareTransaction({ client, chain: ethereum, to: pool, data });
         const hash = (await sendTransaction({ account, transaction: tx })).transactionHash;
         await waitReceipt(client, hash);
+        requestRevalidation([CACHE_TAGS.stake]);
         setPhase("done");
         return true;
       } catch (e) {
@@ -298,7 +466,17 @@ export function useMorpheusStake() {
   );
 
   return {
-    stake, withdraw, claim, setDonateReceiver, phase, error,
-    isBusy: phase === "approve" || phase === "stake" || phase === "setReceiver" || phase === "withdraw" || phase === "claim",
+    stake,
+    withdraw,
+    claim,
+    setDonateReceiver,
+    phase,
+    error,
+    isBusy:
+      phase === "approve" ||
+      phase === "stake" ||
+      phase === "setReceiver" ||
+      phase === "withdraw" ||
+      phase === "claim",
   };
 }
