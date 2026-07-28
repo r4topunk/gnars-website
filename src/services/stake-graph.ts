@@ -285,6 +285,40 @@ async function etherscanClaimReceiver(
   return null;
 }
 
+// A staker's currently-claimable MOR on a pool (still in the Morpheus contract,
+// pre-claim). Gnars' 25% of this is revenue ACCRUING to the treasury — it shows
+// up here so the treasury figure ticks up like the (also-unrealized) vault fee,
+// instead of sitting at 0 until the first claim→split→distribute. Etherscan
+// proxy eth_call (datacenter-safe); returns wei, 0 on any failure.
+const LATEST_REWARD_SIG = keccak256(toHex("getLatestUserReward(uint256,address)")).slice(0, 10);
+async function etherscanLatestReward(pool: Address, user: Address, key: string): Promise<bigint> {
+  const data = `${LATEST_REWARD_SIG}${"0".repeat(64)}${pad32(user).slice(2)}`;
+  const url =
+    `https://api.etherscan.io/v2/api?chainid=1&module=proxy&action=eth_call` +
+    `&to=${pool}&data=${data}&tag=latest&apikey=${key}`;
+  for (let i = 0; i < 4; i++) {
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      const j = (await res.json()) as { result?: unknown; message?: string };
+      if (typeof j.result === "string" && /^0x[0-9a-fA-F]+$/.test(j.result)) {
+        try {
+          return BigInt(j.result);
+        } catch {
+          return BigInt(0);
+        }
+      }
+      if (/rate limit/i.test(String(j.result)) || /rate limit/i.test(String(j.message))) {
+        await sleep(600);
+        continue;
+      }
+      return BigInt(0);
+    } catch {
+      await sleep(300);
+    }
+  }
+  return BigInt(0);
+}
+
 async function morBackersByRider(ethUsd: UsdPrice): Promise<Record<string, OrbitBacker[]>> {
   const walletToId = new Map<string, RiderId>();
   for (const r of RIDER_LIST) if (r.wallet) walletToId.set(r.wallet.toLowerCase(), r.id);
@@ -426,9 +460,14 @@ async function morBackersByRider(ethUsd: UsdPrice): Promise<Record<string, Orbit
 }
 
 /**
- * MOR earned for the Gnars treasury: what's already been distributed to the
- * Gnars Arbitrum multisig, plus Gnars' 25% share still sitting undistributed in
- * each staker's split. Best-effort — priced in USD via CoinGecko.
+ * MOR earned/accruing for the Gnars treasury, in three tiers (Gnars = 25% of the
+ * staker's rewards throughout):
+ *   1. directRaw   — already distributed to the Gnars Arbitrum multisig.
+ *   2. in-split    — claimed to a staker's split, awaiting distribution (Arbitrum).
+ *   3. accruing    — still unclaimed in the Morpheus pools (mainnet, pending).
+ * Tier 3 keeps the figure alive: it ticks up as MOR accrues, mirroring the
+ * (also-unrealized) vault fee, instead of reading 0 until the first claim.
+ * Best-effort — priced in USD via CoinGecko.
  */
 async function gnarsMorEarned(
   morByRider: Record<string, OrbitBacker[]>,
@@ -454,14 +493,22 @@ async function readGnarsMor(
 
   // Unique (staker, athlete) pairs → the per-staker splits holding MOR.
   const pairs = new Map<string, [Address, Address]>();
+  // (pool, staker) targets for the still-unclaimed MOR accruing in Morpheus.
+  const pendTargets: Array<[Address, Address]> = [];
   for (const [id, backers] of Object.entries(morByRider)) {
     const ref = walletById.get(id);
     if (!ref) continue;
-    for (const b of backers) pairs.set(`${b.address}-${ref}`.toLowerCase(), [b.address, ref]);
+    for (const b of backers) {
+      pairs.set(`${b.address}-${ref}`.toLowerCase(), [b.address, ref]);
+      if (b.kind === "mor" && b.asset && ETHERSCAN_KEY) {
+        const pool = b.asset === "steth" ? MORPHEUS_POOLS.stEth.pool : MORPHEUS_POOLS.usdc.pool;
+        pendTargets.push([pool, b.address]);
+      }
+    }
   }
 
   try {
-    const [splitBals, directRaw, morUsd] = await Promise.all([
+    const [splitBals, directRaw, morUsd, pendRaw] = await Promise.all([
       Promise.all([...pairs.values()].map(([s, a]) => splitMorBalance(s, a).catch(() => 0))),
       arbitrumClient
         .readContract({
@@ -473,9 +520,16 @@ async function readGnarsMor(
         .then((b) => Number(formatUnits(b, MOR_DECIMALS)))
         .catch(() => 0),
       getTokenPriceUsd(MOR_TOKEN, "arbitrum-one"),
+      Promise.all(
+        pendTargets.map(([p, u]) =>
+          etherscanLatestReward(p, u, ETHERSCAN_KEY as string).catch(() => BigInt(0)),
+        ),
+      ),
     ]);
-    const pendingGnars = splitBals.reduce((s, v) => s + v, 0) * 0.25; // Gnars = 25% of each split
-    const mor = pendingGnars + directRaw;
+    const inSplitGnars = splitBals.reduce((s, v) => s + v, 0) * 0.25; // claimed, awaiting distribute
+    const accruingGnars =
+      pendRaw.reduce((s, v) => s + Number(formatUnits(v, MOR_DECIMALS)), 0) * 0.25; // still in Morpheus
+    const mor = inSplitGnars + directRaw + accruingGnars;
     return { mor, morUsd };
   } catch {
     return { mor: 0, morUsd: null as UsdPrice };
