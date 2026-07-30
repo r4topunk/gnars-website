@@ -81,7 +81,12 @@ export const RIDERS: Record<RiderId, Rider> = {
     id: "will",
     handle: "will",
     wallet: getAddress("0xddb4938755c243a4f60a2f2f8f95df4f894c58cc"),
-    // vault/adapter/split to be filled once Will's vault is deployed.
+    // Live and configured: routes to Moonwell, 50% performance fee to the split
+    // (Gnars 25% / will 25% of the yield). Deployed + config batch executed;
+    // addresses read on-chain from the factory (owner = SOPA Safe).
+    vault: getAddress("0x438f7d1ef1ae4ce74d9994edfcaf4ecb92a3f855"),
+    adapter: getAddress("0xa2343979662fe97F586cB001E1f3c5fe7462075b"),
+    split: getAddress("0x6D966c9dcCAd3cb02B4c109f070181C2c8077bAB"),
   },
 };
 
