@@ -4,6 +4,7 @@ import { CharacterSelector } from "@/components/stake/CharacterSelector";
 import { StakeAdminPanel } from "@/components/stake/StakeAdminPanel";
 import { StakeOrbit } from "@/components/stake/StakeOrbit";
 import { MorLootbox } from "@/components/stake/MorLootbox";
+import { MorpheusStakeWidget } from "@/components/stake/MorpheusStakeWidget";
 import { STAKE_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 
 export async function generateMetadata({
@@ -62,11 +63,14 @@ export default async function StakePage({ params }: { params: Promise<{ locale: 
           <p className="mx-auto max-w-xl text-muted-foreground">{t("intro")}</p>
         </div>
 
-        <CharacterSelector />
+        <div id="stake-start" className="scroll-mt-24">
+          <CharacterSelector />
+        </div>
         <StakeOrbit />
         <StakeAdminPanel />
       </div>
       <MorLootbox />
+      <MorpheusStakeWidget />
     </div>
   );
 }
