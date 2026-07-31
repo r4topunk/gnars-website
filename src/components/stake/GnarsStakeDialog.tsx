@@ -97,7 +97,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] w-[calc(100%-2rem)] gap-0 overflow-y-auto rounded-3xl border-violet-500/25 bg-background p-0 sm:max-w-[720px]">
+      <DialogContent className="max-h-[92vh] w-[calc(100%-2rem)] gap-0 overflow-y-auto rounded-3xl border-emerald-500/25 bg-background p-0 sm:max-w-[720px]">
         <div className="flex flex-col gap-6 p-6 sm:p-8">
           {/* Header */}
           <div className="pr-6">
@@ -106,7 +106,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
               <DialogTitle className="text-2xl font-black tracking-tight sm:text-3xl">
                 Back Gnars on Morpheus
               </DialogTitle>
-              <span className="rounded-full border border-violet-500/50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+              <span className="rounded-full border border-emerald-500/50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                 MOR · Base
               </span>
             </div>
@@ -117,10 +117,10 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
           </div>
 
           {/* Milestones hero */}
-          <section className="rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/[0.08] via-violet-500/[0.02] to-transparent p-5 sm:p-6">
+          <section className="rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/[0.08] via-emerald-500/[0.02] to-transparent p-5 sm:p-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                   Staking milestones
                 </div>
                 <div className="mt-1 flex items-baseline gap-1.5">
@@ -130,16 +130,16 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                   </span>
                 </div>
               </div>
-              <span className="rounded-full bg-violet-500/15 px-3 py-1 text-xs font-semibold text-violet-600 dark:text-violet-300">
+              <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
                 {pctLabel}% of the way to the IRL event
               </span>
             </div>
 
             {/* Progress bar with milestone ticks */}
             <div className="relative mt-5 pb-1 sm:pb-7">
-              <div className="h-4 w-full rounded-full bg-violet-500/10 ring-1 ring-violet-500/20">
+              <div className="h-4 w-full rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/20">
                 <div
-                  className="h-4 rounded-full bg-gradient-to-r from-violet-600 via-violet-400 to-fuchsia-400 shadow-[0_0_16px_rgba(139,92,246,.6)] transition-all duration-700"
+                  className="h-4 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-[#2be58b] shadow-[0_0_16px_rgba(43,229,139,.6)] transition-all duration-700"
                   style={{ width: `${pct}%` }}
                 />
               </div>
@@ -155,7 +155,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                     <span
                       className={cn(
                         "h-4 w-1 rounded-full",
-                        done ? "bg-violet-600 shadow-[0_0_6px_rgba(139,92,246,.8)] dark:bg-white" : "bg-violet-500/25",
+                        done ? "bg-emerald-600 shadow-[0_0_6px_rgba(43,229,139,.8)] dark:bg-[#2be58b]" : "bg-emerald-500/25",
                       )}
                       aria-hidden
                     />
@@ -181,7 +181,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                     <span
                       className={cn(
                         "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
-                        done ? "bg-violet-500 text-white" : "border border-border text-muted-foreground",
+                        done ? "bg-emerald-500 text-white" : "border border-border text-muted-foreground",
                       )}
                     >
                       {done ? <Check className="h-3.5 w-3.5" /> : <Lock className="h-3 w-3" />}
@@ -231,7 +231,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                 type="button"
                 onClick={() => setAmount(String(walletMor))}
                 disabled={walletMor <= 0}
-                className="rounded-full border border-violet-500/40 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-violet-600 transition-colors hover:bg-violet-500/10 disabled:cursor-not-allowed disabled:opacity-40 dark:text-violet-400"
+                className="rounded-full border border-emerald-500/40 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-emerald-600 transition-colors hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-40 dark:text-emerald-400"
               >
                 Max
               </button>
@@ -252,7 +252,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                   key={v}
                   type="button"
                   onClick={() => setAmount(String(v))}
-                  className="rounded-full border border-border/60 bg-background/40 px-3 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-violet-500/50 hover:text-foreground"
+                  className="rounded-full border border-border/60 bg-background/40 px-3 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-emerald-500/50 hover:text-foreground"
                 >
                   {v}
                 </button>
@@ -261,7 +261,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                 type="button"
                 onClick={() => setAmount(String(walletMor))}
                 disabled={walletMor <= 0}
-                className="rounded-full border border-border/60 bg-background/40 px-3 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-violet-500/50 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-full border border-border/60 bg-background/40 px-3 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-emerald-500/50 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Max
               </button>
@@ -275,7 +275,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
               <Button
                 onClick={onStake}
                 disabled={isBusy || !canStake}
-                className="mt-4 w-full bg-violet-500 text-white hover:bg-violet-600"
+                className="mt-4 w-full bg-emerald-500 text-white hover:bg-emerald-600"
               >
                 {ctaLabel}
               </Button>
@@ -284,7 +284,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
             {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
 
             <p className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground">
-              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-400" />
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
               You&apos;re backing the builder — rewards accrue to the subnet, not to individual stakers. Every
               action is a transaction on Base.
             </p>
@@ -309,7 +309,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                       </span>
                     </>
                   ) : (
-                    <span className="font-medium text-violet-600 dark:text-violet-400">
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400">
                       unlocked — withdraw anytime
                     </span>
                   )}
