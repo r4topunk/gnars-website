@@ -1,0 +1,115 @@
+{
+  "items": [
+    {
+      "id": "deathlens-pro-2-0",
+      "slug": "death-lens-pro-2-0",
+      "title": "Death Lens Pro 2.0",
+      "description": "Pro-grade phone lens for filming skateboarding. The lens used by the Death Lens crew for crisp, distortion-controlled clips.",
+      "images": ["/shop/death-lens-pro-2-0.png"],
+      "priceUSD": 68,
+      "type": "affiliate",
+      "externalUrl": "https://www.deathdigital.com/products/pro-2-0-lens",
+      "vendor": "Death Lens",
+      "tags": ["filming", "lens", "skate"],
+      "status": "active",
+      "featured": true
+    },
+    {
+      "id": "deathlens-fisheye",
+      "slug": "death-lens-fisheye",
+      "title": "Death Lens Fisheye",
+      "description": "The classic skate fisheye for that up-close, wide warp look. Clips onto your phone for instant lines.",
+      "images": ["/shop/death-lens-fisheye.png"],
+      "priceUSD": 39,
+      "type": "affiliate",
+      "externalUrl": "https://www.deathdigital.com/products/fisheye-lens",
+      "vendor": "Death Lens",
+      "tags": ["filming", "lens", "fisheye", "skate"],
+      "status": "active",
+      "featured": true
+    },
+    {
+      "id": "deathlens-wide-angle",
+      "slug": "death-lens-wide-angle",
+      "title": "Death Lens Wide Angle",
+      "description": "Wide-angle phone lens for filming skate lines with more in frame and less distortion than a fisheye.",
+      "images": ["/shop/death-lens-wide-angle.png"],
+      "priceUSD": 23,
+      "type": "affiliate",
+      "externalUrl": "https://www.deathdigital.com/products/wide-angle-lens",
+      "vendor": "Death Lens",
+      "tags": ["filming", "lens", "wide-angle", "skate"],
+      "status": "active"
+    },
+    {
+      "id": "deathlens-clip-fisheye",
+      "slug": "death-lens-clip-on-fisheye",
+      "title": "Death Lens Universal Clip-On Fisheye",
+      "description": "Universal clip-on fisheye that works with most phones — no case required. Grab it and film.",
+      "images": ["/shop/death-lens-clip-on-fisheye.png"],
+      "priceUSD": 49,
+      "type": "affiliate",
+      "externalUrl": "https://www.deathdigital.com/products/clip-on-fisheye-lens",
+      "vendor": "Death Lens",
+      "tags": ["filming", "lens", "fisheye", "universal"],
+      "status": "active"
+    },
+    {
+      "id": "deathlens-clip-wide-angle",
+      "slug": "death-lens-clip-on-wide-angle",
+      "title": "Death Lens Universal Clip-On Wide Angle",
+      "description": "Universal clip-on wide-angle lens for any phone. Pocket-friendly way to step up your skate filming.",
+      "images": ["/shop/death-lens-clip-on-wide-angle.png"],
+      "priceUSD": 33,
+      "type": "affiliate",
+      "externalUrl": "https://www.deathdigital.com/products/clip-on-wide-angle-lens",
+      "vendor": "Death Lens",
+      "tags": ["filming", "lens", "wide-angle", "universal"],
+      "status": "active"
+    },
+    {
+      "id": "keepkey-hardware-wallet",
+      "slug": "keepkey-hardware-wallet",
+      "title": "KeepKey Hardware Wallet",
+      "description": "Open-source crypto hardware wallet. Keeps your private keys offline with on-device confirmation. Self-custody your gnar.",
+      "images": ["/shop/keepkey-hardware-wallet.png"],
+      "priceUSD": 59.95,
+      "type": "affiliate",
+      "externalUrl": "https://keepkey.com/store?code=GNARLY",
+      "vendor": "KeepKey",
+      "tags": ["crypto", "hardware-wallet", "self-custody"],
+      "status": "active",
+      "featured": true
+    },
+    {
+      "id": "keepkey-ethdenver-tee",
+      "slug": "keepkey-ethdenver-tee",
+      "title": "KeepKey ETHDenver 2025 Tee",
+      "description": "KeepKey ETHDenver 2025 t-shirt. Print-on-demand crypto merch for the self-custody crowd.",
+      "images": ["/shop/keepkey-ethdenver-tee.png"],
+      "priceUSD": 30,
+      "type": "affiliate",
+      "externalUrl": "https://keepkey.printify.me/product/17250533",
+      "vendor": "KeepKey",
+      "tags": ["apparel", "crypto", "merch"],
+      "status": "active"
+    },
+    {
+      "id": "keepkey-laser-eyes-tee",
+      "slug": "keepkey-laser-eyes-tee",
+      "title": "KeepKey Laser Eyes Tee",
+      "description": "American Apparel Laser Eyes KeepKey t-shirt. Print-on-demand Bitcoin maxi merch.",
+      "images": ["/shop/keepkey-laser-eyes-tee.png"],
+      "priceUSD": 30,
+      "type": "affiliate",
+      "externalUrl": "https://keepkey.printify.me/product/13163479",
+      "vendor": "KeepKey",
+      "tags": ["apparel", "crypto", "merch"],
+      "status": "active"
+    }
+  ],
+  "meta": {
+    "total": 8,
+    "lastUpdated": "2026-06-20"
+  }
+}

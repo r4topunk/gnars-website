@@ -32,6 +32,7 @@ import {
   Menu,
   Newspaper,
   PlusCircle,
+  ShoppingBag,
   Trophy,
   Tv,
   UserCheck,
@@ -165,9 +166,16 @@ function buildNavigationItems(t: NavTranslations) {
           description: t("items.money.rounds.description"),
           badge: "SOON",
         },
-        // TODO(store): re-add the Store nav entry (icon: ShoppingBag, href: "/store")
-        // once the storefront is ready to launch. Route + i18n strings already exist;
-        // it is intentionally unlinked for now so /store stays hidden.
+        {
+          title: t("items.money.shop.title"),
+          href: "/shop",
+          icon: ShoppingBag,
+          description: t("items.money.shop.description"),
+          badge: "SOON",
+        },
+        // TODO(store): main added a parallel /store route (i18n strings + route
+        // exist) but kept it intentionally unlinked. /shop (above) is the linked
+        // Phase-1 storefront; consolidate /shop and /store into one before launch.
       ],
     },
     {
