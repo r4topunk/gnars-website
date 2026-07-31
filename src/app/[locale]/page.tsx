@@ -8,6 +8,7 @@ import { ActivityFeedSection } from "@/components/home/ActivityFeedSection";
 import { AnimatedDescription } from "@/components/home/AnimatedDescription";
 import { HeroStatsValues } from "@/components/home/HeroStatsValues";
 import { HomeStaticContent } from "@/components/home/HomeStaticContent";
+import { PoweredByMorpheus } from "@/components/home/PoweredByMorpheus";
 import { RecentProposalsSection } from "@/components/home/RecentProposalsSection";
 import {
   ActivityFeedSkeleton,
@@ -94,6 +95,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </div>
         </div>
       </section>
+
+      {/* Community × community — Gnars is a Morpheus Builder */}
+      <PoweredByMorpheus />
 
       {/* Dashboard Grid */}
       <div className="flex flex-1 flex-col gap-6 py-8">
