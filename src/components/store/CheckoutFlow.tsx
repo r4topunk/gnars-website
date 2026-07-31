@@ -1,0 +1,560 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { ArrowLeft, CheckCircle2, Loader2, Package } from "lucide-react";
+import { toast } from "sonner";
+import { useConnectModal } from "thirdweb/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useUsdcPayment } from "@/hooks/use-usdc-payment";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { STORE_CHECKOUT } from "@/lib/config";
+import { isShippingSupported, SHIPPING_COUNTRY_OPTIONS } from "@/lib/store/countries";
+import { getThirdwebClient } from "@/lib/thirdweb";
+import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
+import type { Currency } from "@/types/store";
+import { formatPrice } from "./shared";
+
+interface Finish {
+  id: string;
+  title: string;
+  disabled: boolean;
+}
+
+interface CheckoutFlowProps {
+  slug: string;
+  title: string;
+  price: number;
+  currency: Currency;
+  finishes: Finish[];
+  defaultFinish?: string;
+  /** True when KEEPKEY_DROPSHIP_MODE=test — payment is skipped, order never ships. */
+  sandbox: boolean;
+}
+
+interface OrderResult {
+  keepKeyOrderId: string;
+  externalOrderId: string;
+  status: string;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  carrier?: string | null;
+}
+
+const TERMINAL = new Set(["shipped", "cancelled", "failed"]);
+
+const EMPTY_FORM = {
+  customerName: "",
+  customerEmail: "",
+  phone: "",
+  line1: "",
+  line2: "",
+  city: "",
+  state: "",
+  postalCode: "",
+  country: "US",
+};
+
+export function CheckoutFlow({
+  slug,
+  title,
+  price,
+  currency,
+  finishes,
+  defaultFinish,
+  sandbox,
+}: CheckoutFlowProps) {
+  const t = useTranslations("store");
+  const { isConnected } = useUserAddress();
+  const { connect: openConnectModal } = useConnectModal();
+  const { pay, isPaying } = useUsdcPayment();
+
+  const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [finish, setFinish] = useState(
+    defaultFinish ?? finishes.find((f) => !f.disabled)?.title ?? "",
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [order, setOrder] = useState<OrderResult | null>(null);
+  // A payment that already settled on-chain but whose order hasn't been placed yet. Persisted
+  // so a failed order-placement (or a page refresh) never forces the buyer to pay again —
+  // they retry placing the order with the SAME tx (the server is idempotent on it).
+  const [paidTx, setPaidTx] = useState<string | null>(null);
+
+  const set = (k: keyof typeof EMPTY_FORM, v: string) => setForm((p) => ({ ...p, [k]: v }));
+
+  const recipientConfigured = Boolean(STORE_CHECKOUT.recipient);
+  const pendingKey = `gnars:store:paid:${slug}`;
+
+  // Restore an unfinished (paid-but-not-ordered) checkout for this product.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(pendingKey);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as {
+        txHash?: string;
+        form?: typeof EMPTY_FORM;
+        finish?: string;
+      };
+      if (!saved?.txHash) return;
+      setPaidTx(saved.txHash);
+      if (saved.form) setForm({ ...EMPTY_FORM, ...saved.form });
+      if (saved.finish) setFinish(saved.finish);
+    } catch {
+      // ignore malformed storage
+    }
+  }, [pendingKey]);
+
+  function savePending(txHash: string) {
+    setPaidTx(txHash);
+    try {
+      window.localStorage.setItem(pendingKey, JSON.stringify({ txHash, form, finish }));
+    } catch {
+      // storage unavailable — state still holds it for this session
+    }
+  }
+  function clearPending() {
+    setPaidTx(null);
+    try {
+      window.localStorage.removeItem(pendingKey);
+    } catch {
+      // ignore
+    }
+  }
+
+  function validate(): string | null {
+    if (!form.customerName.trim()) return t("checkout.errors.name");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.customerEmail)) return t("checkout.errors.email");
+    // Shopify requires a shipping phone; want at least a few digits.
+    if (form.phone.replace(/\D/g, "").length < 7) return t("checkout.errors.phone");
+    if (!form.line1.trim()) return t("checkout.errors.line1");
+    if (!form.city.trim()) return t("checkout.errors.city");
+    if (!form.postalCode.trim()) return t("checkout.errors.postalCode");
+    if (form.country.trim().length !== 2) return t("checkout.errors.country");
+    if (!isShippingSupported(form.country)) return t("checkout.errors.region");
+    // KeepKey requires a non-empty state/province on every address, regardless of country.
+    if (!form.state.trim()) return t("checkout.errors.state");
+    return null;
+  }
+
+  async function placeOrder(txHash?: string) {
+    const res = await fetch("/api/store/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        slug,
+        finish,
+        customerName: form.customerName.trim(),
+        customerEmail: form.customerEmail.trim(),
+        shippingAddress: {
+          line1: form.line1.trim(),
+          line2: form.line2.trim(),
+          city: form.city.trim(),
+          state: form.state.trim(),
+          postalCode: form.postalCode.trim(),
+          country: form.country.trim().toUpperCase(),
+          phone: form.phone.trim(),
+        },
+        ...(txHash ? { txHash } : {}),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      // KeepKey's invalid_address message ("Invalid input") is useless — make it actionable.
+      const code = data?.error?.code;
+      if (code === "invalid_address") throw new Error(t("checkout.errors.address"));
+      throw new Error(data?.error?.message || `HTTP ${res.status}`);
+    }
+    clearPending(); // order placed — the paid tx is now redeemed
+    setOrder({
+      keepKeyOrderId: data.keepKeyOrderId,
+      externalOrderId: data.externalOrderId,
+      status: data.status,
+    });
+  }
+
+  async function onSubmit() {
+    const err = validate();
+    if (err) {
+      toast.error(err);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      if (sandbox) {
+        await placeOrder();
+        return;
+      }
+
+      // Live: require a configured wallet + an on-chain USDC payment first.
+      if (!recipientConfigured) {
+        toast.error(t("checkout.errors.notConfigured"));
+        return;
+      }
+
+      // Already paid (order-placement previously failed or the page was reloaded)? Never
+      // charge again — just retry placing the order with the same tx. The server dedupes on
+      // externalOrderId = gnars-<txHash>, so one payment can only ever yield one order.
+      if (paidTx) {
+        await placeOrder(paidTx);
+        return;
+      }
+
+      // Preflight: never prompt payment unless fulfillment is actually ready to place the
+      // order — payment is irreversible and happens before the order call.
+      const pre = await fetch("/api/store/checkout")
+        .then((r) => r.json())
+        .catch(() => null);
+      if (!pre?.ready) {
+        toast.error(t("checkout.errors.unavailable"));
+        return;
+      }
+      if (!isConnected) {
+        const client = getThirdwebClient();
+        if (client) {
+          await openConnectModal({
+            client,
+            wallets: THIRDWEB_WALLETS,
+            accountAbstraction: THIRDWEB_AA_CONFIG,
+            size: "compact",
+            title: t("checkout.connectTitle"),
+          });
+        }
+        return;
+      }
+      const txHash = await pay({
+        to: STORE_CHECKOUT.recipient as `0x${string}`,
+        amountUsd: price,
+      });
+      // Persist BEFORE placing the order: if the order call fails now, the buyer can retry
+      // without paying again (that's the whole point of this safeguard).
+      savePending(txHash);
+      toast.success(t("checkout.paid"));
+      await placeOrder(txHash);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("checkout.errors.generic"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (order) {
+    return <OrderConfirmation order={order} title={title} sandbox={sandbox} />;
+  }
+
+  const busy = submitting || isPaying;
+  const shortTx = paidTx ? `${paidTx.slice(0, 6)}…${paidTx.slice(-4)}` : "";
+  const payLabel = sandbox
+    ? t("checkout.placeSandbox")
+    : paidTx
+      ? t("checkout.retryOrder")
+      : !isConnected
+        ? t("checkout.connectToPay")
+        : t("checkout.payAmount", { amount: formatPrice(price, currency) });
+
+  return (
+    <div className="mx-auto max-w-lg">
+      <Link
+        href={`/store/${slug}`}
+        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" /> {t("detail.backToStore")}
+      </Link>
+
+      <h1 className="text-2xl font-bold">{t("checkout.title")}</h1>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {title} —{" "}
+        <span className="font-medium text-foreground">{formatPrice(price, currency)}</span>
+      </p>
+
+      {sandbox && (
+        <div className="mt-4 rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+          {t("checkout.sandboxNotice")}
+        </div>
+      )}
+
+      {paidTx && !sandbox && (
+        <div className="mt-4 flex items-start gap-2 rounded-lg border border-green-600/40 bg-green-600/10 px-3 py-2.5 text-xs text-foreground">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+          <span>{t("checkout.alreadyPaid", { tx: shortTx })}</span>
+        </div>
+      )}
+
+      {/* A real <form> with autocomplete tokens so the browser/password-manager can autofill
+          name, email and the full shipping address. */}
+      <form
+        className="mt-6 space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
+        }}
+      >
+        {finishes.length > 1 && (
+          <Field label={t("detail.finish")}>
+            <Select value={finish} onValueChange={setFinish}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {finishes.map((f) => (
+                  <SelectItem key={f.id} value={f.title} disabled={f.disabled}>
+                    {f.title}
+                    {f.disabled ? ` (${t("card.outOfStock")})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        )}
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label={t("checkout.fields.name")}>
+            <Input
+              name="name"
+              autoComplete="name"
+              value={form.customerName}
+              onChange={(e) => set("customerName", e.target.value)}
+            />
+          </Field>
+          <Field label={t("checkout.fields.email")}>
+            <Input
+              type="email"
+              name="email"
+              autoComplete="email"
+              value={form.customerEmail}
+              onChange={(e) => set("customerEmail", e.target.value)}
+            />
+          </Field>
+        </div>
+
+        <Field label={t("checkout.fields.phone")}>
+          <Input
+            type="tel"
+            name="tel"
+            autoComplete="tel"
+            value={form.phone}
+            onChange={(e) => set("phone", e.target.value)}
+          />
+        </Field>
+
+        <Field label={t("checkout.fields.line1")}>
+          <Input
+            name="address-line1"
+            autoComplete="address-line1"
+            value={form.line1}
+            onChange={(e) => set("line1", e.target.value)}
+          />
+        </Field>
+        <Field label={t("checkout.fields.line2")} optional>
+          <Input
+            name="address-line2"
+            autoComplete="address-line2"
+            value={form.line2}
+            onChange={(e) => set("line2", e.target.value)}
+          />
+        </Field>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Field label={t("checkout.fields.city")}>
+            <Input
+              name="city"
+              autoComplete="address-level2"
+              value={form.city}
+              onChange={(e) => set("city", e.target.value)}
+            />
+          </Field>
+          <Field label={t("checkout.fields.state")}>
+            <Input
+              name="state"
+              autoComplete="address-level1"
+              value={form.state}
+              onChange={(e) => set("state", e.target.value)}
+            />
+          </Field>
+          <Field label={t("checkout.fields.postalCode")}>
+            <Input
+              name="postal-code"
+              autoComplete="postal-code"
+              value={form.postalCode}
+              onChange={(e) => set("postalCode", e.target.value)}
+            />
+          </Field>
+        </div>
+
+        <Field label={t("checkout.fields.country")}>
+          <Select value={form.country} onValueChange={(v) => set("country", v)}>
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SHIPPING_COUNTRY_OPTIONS.map((c) => (
+                <SelectItem key={c.code} value={c.code}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="mt-1 text-xs text-muted-foreground">{t("checkout.usOnly")}</p>
+        </Field>
+
+        <Button type="submit" size="lg" className="mt-2 w-full" disabled={busy}>
+          {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {payLabel}
+        </Button>
+
+        <p className="text-center text-xs text-muted-foreground">
+          {sandbox
+            ? t("checkout.sandboxFootnote")
+            : paidTx
+              ? t("checkout.retryFootnote")
+              : t("checkout.payFootnote")}
+        </p>
+      </form>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  optional,
+  children,
+}: {
+  label: string;
+  optional?: boolean;
+  children: React.ReactNode;
+}) {
+  const t = useTranslations("store");
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs text-muted-foreground">
+        {label}
+        {optional ? ` (${t("checkout.optional")})` : ""}
+      </Label>
+      {children}
+    </div>
+  );
+}
+
+function OrderConfirmation({
+  order,
+  title,
+  sandbox,
+}: {
+  order: OrderResult;
+  title: string;
+  sandbox: boolean;
+}) {
+  const t = useTranslations("store");
+  const [current, setCurrent] = useState(order);
+  const timer = useRef<ReturnType<typeof setInterval>>(undefined);
+
+  const refresh = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `/api/store/orders?externalOrderId=${encodeURIComponent(order.externalOrderId)}`,
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      setCurrent({
+        keepKeyOrderId: data.keepKeyOrderId,
+        externalOrderId: data.externalOrderId,
+        status: data.status,
+        trackingNumber: data.trackingNumber,
+        trackingUrl: data.trackingUrl,
+        carrier: data.carrier,
+      });
+    } catch {
+      // transient — next tick retries
+    }
+  }, [order.externalOrderId]);
+
+  useEffect(() => {
+    if (TERMINAL.has(current.status)) return;
+    timer.current = setInterval(refresh, 12_000);
+    return () => clearInterval(timer.current);
+  }, [current.status, refresh]);
+
+  return (
+    <div className="mx-auto max-w-lg text-center">
+      <CheckCircle2 className="mx-auto h-12 w-12 text-green-500" />
+      <h1 className="mt-4 text-2xl font-bold">{t("checkout.success.title")}</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        {t("checkout.success.subtitle", { title })}
+      </p>
+
+      <div className="mt-6 rounded-xl border border-border p-4 text-left">
+        <Row label={t("checkout.success.orderId")} value={current.keepKeyOrderId} mono />
+        <Row
+          label={t("checkout.success.status")}
+          value={
+            t.has(`checkout.status.${current.status}`)
+              ? t(`checkout.status.${current.status}`)
+              : current.status
+          }
+        />
+        {current.trackingNumber && (
+          <Row
+            label={current.carrier ?? t("checkout.success.tracking")}
+            value={current.trackingNumber}
+            href={current.trackingUrl ?? undefined}
+          />
+        )}
+      </div>
+
+      <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+        <Package className="h-3.5 w-3.5" />
+        {sandbox ? t("checkout.success.sandboxNote") : t("checkout.success.liveNote")}
+      </p>
+
+      <div className="mt-6 flex justify-center gap-2">
+        <Button variant="outline" size="sm" onClick={refresh}>
+          {t("checkout.success.refresh")}
+        </Button>
+        <Button asChild size="sm">
+          <Link href="/store">{t("checkout.success.backToStore")}</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Row({
+  label,
+  value,
+  mono,
+  href,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  href?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-border/60 py-2 last:border-0">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className={`text-sm text-primary underline ${mono ? "font-mono" : ""}`}
+        >
+          {value}
+        </a>
+      ) : (
+        <span className={`text-sm ${mono ? "font-mono" : ""}`}>{value}</span>
+      )}
+    </div>
+  );
+}

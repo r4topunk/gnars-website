@@ -5,7 +5,7 @@ description:
 date: 2021-12-04 00:00:00 +0000
 permalink: /top-selling-nft-artists-2021/
 author: gami
-image: /images/top-selling-nft-artists.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreihwx33juqurudhfkkrrm4qhylpgu6zs6goos7mmpdaiae3fkw7bba
 image_caption:
 video_embed:
 tags: [artists]

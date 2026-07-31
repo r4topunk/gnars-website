@@ -103,5 +103,22 @@
     "title": "Shop — Gnars DAO",
     "description": "Gear, apparel, and gnar from the Gnars community and partner stores. Curated picks that support skate culture.",
     "notFoundTitle": "Product Not Found | Gnars Shop"
+  },
+  "store": {
+    "title": "Store — Gnars DAO",
+    "description": "Official gear from Gnars and partner brands. Bought on Gnars, shipped by our fulfillment partners.",
+    "notFoundTitle": "Product Not Found | Gnars Store"
+  },
+  "stake": {
+    "title": "Stake — Gnars DAO",
+    "description": "Pick your Gnars rider and stake your identity onchain."
+  },
+  "migrate": {
+    "title": "Gnars Migration — Gnars DAO",
+    "description": "Consolidate your scattered Zora coins into $gnars in one batched flow. Routed through ZORA, with a burn on every migration to strengthen $gnars liquidity."
+  },
+  "proposeTerms": {
+    "title": "Proposal Commitment — Gnars DAO",
+    "description": "The public commitment every proposer acknowledges before submitting a proposal to Gnars DAO."
   }
 }

@@ -5,7 +5,7 @@ description:
 date: 2021-06-30 00:00:00 +0000
 permalink: /history-of-nfts/
 author: gami
-image: /images/nft-history.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreiadnqrwpb2potyudqmdgtew7ytmlj4mjfaomlidsjuqxfecnvmhke
 image_caption:
 video_embed:
 tags: [research]
@@ -16,7 +16,7 @@ We call for the creation of a brand new discipline: The History of NFT Art. The 
 
 Below our readers will not find the outlines of a treatise or even a discussion of the reluctance of Historians to break their silence about NFTs. What we offer here is a succinct chronological outline of the events that led to the creation of the NFT market as it exists today. This outline will give the readers a measure of the work that needs to be accomplished.
 
-![History of NFTs](/images/history-oft-nft-1.jpeg)
+![History of NFTs](https://ipfs.skatehive.app/ipfs/bafkreidwh5qmbxjfsmrlmkddhn6me7t76yz23ozhuybkv6msnsdftso2nm)
 
 Before going any further, to alleviate any doubt as to what the object of this article is, wouldn’t it be desirable to define, very quickly, what an NFT is?
 
@@ -34,11 +34,11 @@ News outlets started actively covering NFTs about two or three years ago, giving
 
 Then came the infamous **Coloured Coins** (2012-2013), which represented a huge leap in bitcoin’s capabilities: the idea was to add metadata to Bitcoin transactions that corresponded to a state for a token, using the blockchain as a kind of registry for storing that information.
 
-![History of NFTs](/images/history-oft-nft-2.jpeg)
+![History of NFTs](https://ipfs.skatehive.app/ipfs/bafkreidkhgqhse5gsjmhjv3obe4kapvpflv46be44gkcrvlthdtabi3ayi)
 
 Many protocols implemented the idea of Colored Coins: **OpenAssets, ChromaWay and Celu** among others. However, the main Colored Coin projects are **Mastercoin** and **Counterparty**, which improved the base protocol and made it easier to create tokens and track them with the help of explorers.
 
-![History of NFTs](/images/history-oft-nft-3.jpeg)
+![History of NFTs](https://ipfs.skatehive.app/ipfs/bafkreiezjqvacidvie5aruawhbrndifzzauyvmmjiijw45idw7lb7ndbuy)
 
 Historically, the very first mention of Colored Coins came from a blog post published in early 2012 by Yoni Assia, entitled “Bitcoin 2.X (aka Colored Bitcoin) – initial specs”. On December 4th of 2012, Meri Rosenfeld published a paper entitled “Overview of Colored Coins.” In 2013, another paper covering the topic of colored coins was published by Yoni Assia, Vitalik Buterin, Lior Hakim and Meni Rosenfeld: “Colored Coins – Bitcoin X.”
 
@@ -50,23 +50,23 @@ Colored Coins were used to represent a multitude of assets and they have multipl
 
 April of 2015 saw the release of “Spells of Genesis”: for the very first time, in-game assets were released, via Counterparty, as NFTs.
 
-![History of NFTs](/images/history-oft-nft-4.jpeg)
+![History of NFTs](https://ipfs.skatehive.app/ipfs/bafkreiemzj45b6fnzvesa363sdcua2sjkbdrsm5ujc3jk6uuwrrmodykpu)
 
 Counterparty proved to be a popular choice for issuing in-game items as NFTs. In August of 2016, the game **Force of Will** was released via Counterparty. That game was the fourth ranked card game by sales in North America; only Pokemon, Yu-Gi-Oh and Magic the Gathering had higher rankings.
 
 October 2016 saw the rapid emergence of Meme’s on blockchains. **Rare Pepes** started making their appearance on the Counterparty platform as NFTs.
 
-![History of NFTs](/images/history-oft-nft-5.jpeg)
+![History of NFTs](https://ipfs.skatehive.app/ipfs/bafkreicy2fws5wtbto5gpwijed2g3hi3mvzwtncandm5i4hy6adt56y634)
 
 **It did not take long before Rare Pepes started making their appearance on the Ethereum Blockchain.** In March of 2017, a project named “Peperium” was announced. Peperium was a decentralized Meme marketplace and a trading card game that allowed users to create memes by leveraging Ethereum and IPFS. The Peperium project also had its own token, RARE, which was used for meme creation and listing fees.
 
-![History of NFTs](/images/history-oft-nft-6.jpeg)
+![History of NFTs](https://ipfs.skatehive.app/ipfs/bafkreicdkxcjtstswabzg2hsn67ixd5nye477ylcau7fcs4f3esi5h4hse)
 
 In July of 2017, John Watkinson and Matt Hall launched Cryptopunks. The **Cryptopunks** projects consisted of 10 000 unique characters generated on the Ethereum blockchain. Watkinson and Hall let anyone with an Ethereum address claim a Cryptopunk for free. All 10 000 Cryptopunks were swiftly claimed and started being traded shortly after on secondary markets.
 
 October 2017 is remembered as the month during which NFTs hit the mainstream. **Cryptokitties** was launched by a Vancouver-based company called **Axiom Zen.** They launched an Alpha version of their game at **ETH Waterloo,** the largest Ethereum Hackathon in the world. They won first place in the Hackathon and the game went viral afterwards. The game was picked up by news outlets such as CNN and Coindesk. Taking advantage of the game’s popularity, Axiom Zen created a company called Dapper Labs, which was awarded 15 million dollars in funding from investors such as **a16z** and **Google Ventures.**
 
-![History of NFTs](/images/history-oft-nft-7.jpeg)
+![History of NFTs](https://ipfs.skatehive.app/ipfs/bafkreihcz2hsbwbccmkcgypa67eeobcftnkic4vw5k64quqstltswoxepa)
 
 In 2018 and 2019, the NFT ecosystem continued to grow. There are more than a hundred NFT projects either deployed or in development. NFT marketplaces, such as OpenSea, Rarible and SuperRare, are thriving.
 

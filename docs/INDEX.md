@@ -10,6 +10,8 @@ This is the canonical entry point for project documentation. Everything below sh
 ## Architecture
 
 - `docs/architecture/thirdweb-wallet-layer.md` — provider tree, reads/writes split, view-mode toggle (EOA/SA), AA config, known escape hatches
+- `docs/architecture/vercel-quota-strategy.md` — Hobby quota playbook: billing mechanics, data cadence → cache strategy, fix backlog, traps
+- `docs/architecture/caching-standard.md` — route param + cache tag + mutation invalidation standard (long caches + event-driven revalidateTag)
 - `docs/architecture/exploration-progress.md`
 - `docs/architecture/refactor-audit.md`
 - `docs/i18n/tone-brief.md` — PT-BR translation tone brief
@@ -21,12 +23,20 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/features/feed.md` — live feed components and integration notes
 - `docs/features/coin-proposal.md` — coin proposal wizard
 - `docs/features/buy-coin-transaction.md` — proposal transaction type for buy-coin
+- `docs/features/store-checkout.md` — /store checkout (USDC on Base, built Phase 1, real payment gated to live) + build plan
+- `docs/features/blog-archive.md` — historical blog archive, IPFS image migration, and the Drive→IPFS curation pipeline proposal
 
 ## Integrations
 
 - `docs/integrations/pinata.md` — IPFS upload integration
 - `docs/integrations/splits.md` — 0xSplits droposal revenue sharing
 - `docs/integrations/swap.md` — 0x Swap API v2 integration powering /swap, including affiliate-fee config
+- `docs/integrations/keepkey-fulfillment.md` — KeepKey dropship fulfillment: implemented client + API routes + webhook, money flow, sandbox, env
+
+## Strategy
+
+- `docs/strategy/gnars-token-spec.md` — $gnars token product spec: goal, current state, new-token tokenomics, allocations, migration mechanics, addresses, phases, open decisions
+- `docs/strategy/gnars-migration-handoff.md` — handoff for the Upgrader team to review/complete the gnars.com side (run steps, file map, what's built vs pending, coordination items)
 
 ## Specs
 

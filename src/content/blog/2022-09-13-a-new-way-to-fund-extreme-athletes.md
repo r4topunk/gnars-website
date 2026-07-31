@@ -5,7 +5,7 @@ description:
 date: 2022-09-13 00:00:00 +0000
 permalink: /a-new-way-to-fund-extreme-athletes/
 author: gami
-image: /images/gnars-nounish-film.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreige64c3hq2ply26ts2sjtlxyryy7n42qtj53j27n7chgk6hw42m5y
 image_caption:
 video_embed: https://www.youtube.com/embed/JQSmfSnRGVk
 tags: [community]

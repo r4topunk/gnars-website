@@ -78,7 +78,7 @@ describe("compileTemplate", () => {
 });
 
 describe("TEMPLATE_SCHEMAS", () => {
-  it("covers all 6 templates", () => {
+  it("covers all 7 templates", () => {
     expect(Object.keys(TEMPLATE_SCHEMAS).sort()).toEqual([
       "athlete-sponsorship",
       "content-media",
@@ -86,6 +86,7 @@ describe("TEMPLATE_SCHEMAS", () => {
       "droposal",
       "event-activation",
       "physical-installation",
+      "sponsorship-yield-claim",
     ]);
   });
 

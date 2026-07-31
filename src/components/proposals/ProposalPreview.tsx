@@ -22,13 +22,16 @@ import { useProposalEligibilityContext } from "@/components/proposals/ProposalEl
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { createProposalAction } from "@/app/[locale]/propose/actions";
 import { useProposalIndexing } from "@/hooks/use-proposal-indexing";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useWriteAccount } from "@/hooks/use-write-account";
+import { Link } from "@/i18n/navigation";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { ipfsToGatewayUrl } from "@/lib/pinata";
 import { encodeTransactions } from "@/lib/proposal-utils";
+import { requestRevalidation } from "@/lib/request-revalidation";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { type ProposalFormValues } from "./schema";
@@ -106,6 +109,7 @@ export function ProposalPreview() {
   const {
     getValues,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useFormContext<ProposalFormValues>();
   const [isActionPending, startTransition] = useTransition();
@@ -127,6 +131,16 @@ export function ProposalPreview() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [onchainProposalId, setOnchainProposalId] = useState<`0x${string}` | undefined>(undefined);
   const indexing = useProposalIndexing(onchainProposalId);
+
+  // Once the subgraph has indexed the new proposal, revalidate again —
+  // this is the deterministic pass (the receipt-time kick may have run
+  // before the subgraph could serve the proposal).
+  useEffect(() => {
+    if (indexing.status !== "ready") return;
+    const tags = ["proposals", "feed"];
+    if (indexing.proposalNumber != null) tags.push(`proposal:${indexing.proposalNumber}`);
+    requestRevalidation(tags);
+  }, [indexing.status, indexing.proposalNumber]);
 
   // Watch form values for reactive preview
   const watchedData = useWatch<ProposalFormValues>();
@@ -151,13 +165,26 @@ export function ProposalPreview() {
       }
     };
 
-    if (data.title && data.description) {
+    // The prepared description includes the commitment footer, so it only
+    // exists once the proposer has accepted — matching what goes onchain.
+    if (data.title && data.description && data.termsAccepted) {
       generateDescription();
     }
   }, [data]);
 
   const handleFormSubmit = async (formData: ProposalFormValues) => {
     console.log("handleFormSubmit called with data:", formData);
+
+    // The commitment is optional in the form schema (see schema.ts) so that
+    // saving a transaction doesn't trip on it — enforce it here, at the only
+    // point where it actually matters.
+    if (formData.termsAccepted !== true) {
+      const detail = t("preview.termsRequired");
+      setValidationError(detail);
+      toast.error(detail);
+      return;
+    }
+
     setValidationError(null);
     setHash(undefined);
     setIsConfirming(false);
@@ -268,6 +295,10 @@ export function ProposalPreview() {
           console.warn("Could not decode ProposalCreated event:", parseErr);
         }
 
+        // Early kick for other users' caches; /api/revalidate runs a
+        // delayed second pass internally to cover subgraph indexing lag.
+        requestRevalidation(["proposals", "feed"]);
+
         setIsSuccess(true);
       } catch (error) {
         console.error("Error submitting proposal:", error);
@@ -334,6 +365,7 @@ export function ProposalPreview() {
     eligibility.hasThreshold === true &&
     Boolean(data.title) &&
     (data.transactions?.length ?? 0) > 0 &&
+    data.termsAccepted === true &&
     !isActionPending &&
     !isWalletPending &&
     !isConfirming &&
@@ -525,6 +557,41 @@ export function ProposalPreview() {
               <AlertDescription>{t("preview.waitingConfirmation")}</AlertDescription>
             </Alert>
           )}
+
+          <div className="mb-4 rounded-lg border p-4">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="terms-accepted"
+                checked={data.termsAccepted === true}
+                onCheckedChange={(checked) =>
+                  setValue("termsAccepted", checked === true, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+                className="mt-0.5"
+              />
+              <div className="space-y-1">
+                <label
+                  htmlFor="terms-accepted"
+                  className="text-sm font-medium leading-snug cursor-pointer"
+                >
+                  {t.rich("preview.termsLabel", {
+                    link: (chunks) => (
+                      <Link
+                        href="/propose/terms"
+                        target="_blank"
+                        className="underline underline-offset-4 hover:text-primary"
+                      >
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
+                </label>
+                <p className="text-xs text-muted-foreground">{t("preview.termsHint")}</p>
+              </div>
+            </div>
+          </div>
 
           {isConnected && eligibility.hasThreshold === true && (
             <Button

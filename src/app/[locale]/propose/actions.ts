@@ -1,14 +1,15 @@
 "use server";
 
 import { z } from "zod";
-import { proposalSchema } from "@/components/proposals/schema";
+import { proposalSchema, proposalSubmissionSchema } from "@/components/proposals/schema";
 import { ipfsToGatewayUrl } from "@/lib/pinata";
+import { PROPOSAL_COMMITMENT_FOOTER } from "@/lib/proposal-commitment";
 import { encodeTransactions } from "@/lib/proposal-utils";
 
 type ProposalFormValues = z.infer<typeof proposalSchema>;
 
 export async function createProposalAction(formData: ProposalFormValues) {
-  const validationResult = proposalSchema.safeParse(formData);
+  const validationResult = proposalSubmissionSchema.safeParse(formData);
   if (!validationResult.success) {
     throw new Error("Invalid proposal data");
   }
@@ -27,7 +28,12 @@ export async function createProposalAction(formData: ProposalFormValues) {
     formattedDescription = `![Banner](${imageUrl})\n\n${description}`;
   }
 
-  // 3. Format: Title && Description
+  // 3. Record the Proposal Commitment acknowledgment. `proposalSchema` already
+  // rejected anything without `termsAccepted`, so reaching here means the
+  // proposer opted in on the preview step.
+  formattedDescription = `${formattedDescription}${PROPOSAL_COMMITMENT_FOOTER}`;
+
+  // 4. Format: Title && Description
   // Nouns Builder uses && as separator (NOT $$ or #)
   const fullDescription = `${title}&&${formattedDescription}`;
 

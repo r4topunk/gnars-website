@@ -3,12 +3,10 @@ import { fetchGnarsPairedCoins } from "@/lib/zora-coins-subgraph";
 import { getAllBlogs } from "@/services/blogs";
 import { fetchAllDroposals } from "@/services/droposals";
 import { getAllInstallations } from "@/services/installations";
-import { fetchAllMembers } from "@/services/members";
 import { listDaoPropdates } from "@/services/propdates";
 import { listProposals } from "@/services/proposals";
 
 export const revalidate = 3600;
-export const dynamic = "force-dynamic";
 
 type SitemapEntry = {
   url: string;
@@ -22,7 +20,6 @@ type SitemapEntry = {
 type ProposalList = Awaited<ReturnType<typeof listProposals>>;
 type DroposalList = Awaited<ReturnType<typeof fetchAllDroposals>>;
 type BlogList = Awaited<ReturnType<typeof getAllBlogs>>;
-type MemberList = Awaited<ReturnType<typeof fetchAllMembers>>;
 type PropdateList = Awaited<ReturnType<typeof listDaoPropdates>>;
 type CoinList = Awaited<ReturnType<typeof fetchGnarsPairedCoins>>;
 
@@ -31,7 +28,10 @@ const PROPOSAL_PAGE_SIZE = 200;
 const MAX_COIN_PAGES = 50;
 const COIN_PAGE_SIZE = 200;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gnars.com";
+// Canonical host is www.gnars.com (matches metadataBase in [locale]/layout.tsx
+// and BASE_URL in lib/config.ts). A non-www default here emitted 2,564 URLs that
+// all 307-redirected to www, so Google dropped them — keep this on www.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.gnars.com";
 const BASE = SITE_URL.replace(/\/+$/, "");
 
 const toUrl = (path: string) => new URL(path, `${BASE}/`).toString();
@@ -144,17 +144,14 @@ function buildSitemap(entries: SitemapEntry[]): string {
 export async function GET(): Promise<Response> {
   const now = new Date();
 
-  const [proposals, droposals, blogs, members, propdates, coins, installations] = await Promise.all(
-    [
-      safe("proposals", fetchAllProposals, [] as ProposalList),
-      safe("droposals", fetchAllDroposals, [] as DroposalList),
-      safe("blogs", getAllBlogs, [] as BlogList),
-      safe("members", fetchAllMembers, [] as MemberList),
-      safe("propdates", listDaoPropdates, [] as PropdateList),
-      safe("tv coins", fetchAllGnarsPairedCoins, [] as CoinList),
-      safe("installations", getAllInstallations, []),
-    ],
-  );
+  const [proposals, droposals, blogs, propdates, coins, installations] = await Promise.all([
+    safe("proposals", fetchAllProposals, [] as ProposalList),
+    safe("droposals", fetchAllDroposals, [] as DroposalList),
+    safe("blogs", getAllBlogs, [] as BlogList),
+    safe("propdates", listDaoPropdates, [] as PropdateList),
+    safe("tv coins", fetchAllGnarsPairedCoins, [] as CoinList),
+    safe("installations", getAllInstallations, []),
+  ]);
 
   const proposalLastMod = maxDate(
     proposals.map((proposal) => {
@@ -261,10 +258,9 @@ export async function GET(): Promise<Response> {
     ),
   );
 
-  const memberEntries: SitemapEntry[] = members.flatMap((member) =>
-    toLocalizedEntry(`/members/${member.owner}`, now, "weekly", 0.5),
-  );
-
+  // /members/[address] profiles are intentionally excluded: ~2,000 thin URLs
+  // (79% of the sitemap) drowned the crawl budget for core pages. The /members
+  // index above stays; profiles remain reachable via internal links.
   const propdateEntries: SitemapEntry[] = propdates.flatMap((propdate) =>
     toLocalizedEntry(
       `/propdates/${propdate.txid}`,
@@ -294,7 +290,6 @@ export async function GET(): Promise<Response> {
     ...proposalEntries,
     ...droposalEntries,
     ...blogEntries,
-    ...memberEntries,
     ...propdateEntries,
     ...tvEntries,
     ...installationEntries,

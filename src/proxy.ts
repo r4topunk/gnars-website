@@ -33,5 +33,10 @@ export function proxy(request: NextRequest): NextResponse {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|_vercel|md|.*\\..*).*)"],
+  // Exclude root-level, locale-agnostic routes. `opengraph-image` and `miniapp-image`
+  // live at the app root (outside [locale]); without excluding them the intl proxy
+  // rewrites them into the [locale] tree where they don't exist → 404 (breaks the
+  // site OG image and the Farcaster mini-app embed image). Dotted paths
+  // (robots.txt, sitemap.xml, .well-known/*) are already excluded by `.*\..*`.
+  matcher: ["/((?!api|_next|_vercel|md|opengraph-image|miniapp-image|.*\\..*).*)"],
 };

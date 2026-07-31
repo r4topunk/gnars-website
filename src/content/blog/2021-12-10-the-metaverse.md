@@ -5,7 +5,7 @@ description:
 date: 2021-12-10 00:00:00 +0000
 permalink: /the-metaverse/
 author: gami
-image: /images/the-metaverse.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreiagnq5l5fipcrejnj4un5vosprlmacvqcqd37ekrug4ah26yi4ls4
 image_caption:
 video_embed:
 tags: [research]

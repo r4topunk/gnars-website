@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ProposalsGridSkeleton } from "@/components/proposals/ProposalsGrid";
 import { ProposalsView } from "@/components/proposals/ProposalsView";
+import { toListProposal } from "@/lib/proposal-list-payload";
 import { listMultiChainProposals } from "@/services/multi-chain-proposals";
 
 export const revalidate = 300;
@@ -46,7 +47,10 @@ async function getProposals() {
   try {
     // Only fetch Base proposals by default (for performance)
     // Ethereum and Snapshot are loaded client-side when filters are activated
-    return await listMultiChainProposals(200, false, false);
+    const proposals = await listMultiChainProposals(200, false, false);
+    // Slim payload: full descriptions + vote arrays are ~87% of the RSC
+    // payload and get re-billed as ISR write units on every revalidation.
+    return proposals.map(toListProposal);
   } catch (error) {
     console.error("Failed to fetch proposals:", error);
     return [];

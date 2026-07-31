@@ -5,7 +5,7 @@ description:
 date: 2022-01-28 00:00:00 +0000
 permalink: /ens-domains/
 author: gami
-image: /images/ENS-domains.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreiexb2dvcv3z2zhvoq6u6ggm33pvklwxw2sqtqeyjyuq7fv7gmmbze
 image_caption:
 video_embed:
 tags: [research]

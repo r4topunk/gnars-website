@@ -25,7 +25,6 @@ import Image from "next/image";
 import {
   ArrowLeftRight,
   BookOpen,
-  Coins,
   Gavel,
   Gift,
   Home,
@@ -64,6 +63,7 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -149,6 +149,16 @@ function buildNavigationItems(t: NavTranslations) {
           description: t("items.money.swap.description"),
           badge: "NEW!",
         },
+        // NOTE: /migrate is intentionally unlisted for now — it's a live but
+        // hidden route (reachable by direct URL) while the fund-moving migration
+        // flow is tested with the team. Re-add this entry to surface it publicly.
+        // {
+        //   title: t("items.money.migrate.title"),
+        //   href: "/migrate",
+        //   icon: Coins,
+        //   description: t("items.money.migrate.description"),
+        //   badge: "NEW!",
+        // },
         {
           title: t("items.money.rounds.title"),
           href: "/rounds",
@@ -163,6 +173,9 @@ function buildNavigationItems(t: NavTranslations) {
           description: t("items.money.shop.description"),
           badge: "SOON",
         },
+        // TODO(store): main added a parallel /store route (i18n strings + route
+        // exist) but kept it intentionally unlinked. /shop (above) is the linked
+        // Phase-1 storefront; consolidate /shop and /store into one before launch.
       ],
     },
     {
@@ -200,13 +213,17 @@ function buildNavigationItems(t: NavTranslations) {
           description: t("items.community.droposals.description"),
           badge: "NEW!",
         },
-        {
-          title: t("items.community.createCoin.title"),
-          href: "/create-coin",
-          icon: Coins,
-          description: t("items.community.createCoin.description"),
-          badge: "NEW!",
-        },
+        // NOTE: /create-coin is intentionally unlisted during the $gnars
+        // migration — we don't want new Zora content coins spun up while we're
+        // consolidating into one token. The route still exists (reachable by
+        // URL); re-add this entry once the migration is complete.
+        // {
+        //   title: t("items.community.createCoin.title"),
+        //   href: "/create-coin",
+        //   icon: Coins,
+        //   description: t("items.community.createCoin.description"),
+        //   badge: "NEW!",
+        // },
       ],
     },
   ] as const;
@@ -418,6 +435,9 @@ function MobileNav() {
         <SheetContent side="left" className="w-[300px] sm:w-[400px]">
           <SheetHeader>
             <SheetTitle className="text-left">{t("mobileMenu.sheetTitle")}</SheetTitle>
+            <SheetDescription className="sr-only">
+              {t("mobileMenu.sheetDescription")}
+            </SheetDescription>
           </SheetHeader>
           <nav className="flex flex-col gap-4 mt-8 flex-1 overflow-y-auto">
             {navigationItems.map((item) => {
@@ -506,10 +526,11 @@ function MobileNav() {
                 {isPending ? t("switchNetwork.switching") : t("switchNetwork.label")}
               </Badge>
             )}
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-center gap-1">
+              <ThemeToggle />
               <LocaleSwitcher />
-              <ConnectButton />
             </div>
+            <ConnectButton />
           </SheetFooter>
         </SheetContent>
       </Sheet>

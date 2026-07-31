@@ -225,7 +225,10 @@
     "failedToSubmit": "Failed to submit proposal",
     "thirdwebNotConfigured": "Thirdweb client not configured",
     "connectWalletToSubmit": "Connect wallet to submit a proposal",
-    "pleaseFixErrors": "Please fix validation errors before submitting"
+    "pleaseFixErrors": "Please fix validation errors before submitting",
+    "termsLabel": "I have read and accept the <link>Gnars Proposal Commitment</link>",
+    "termsHint": "A short note recording this acknowledgment is appended to your proposal description.",
+    "termsRequired": "You must accept the Proposal Commitment before submitting."
   },
   "droposalBuilder": {
     "media": {
@@ -295,5 +298,43 @@
     },
     "breadcrumbCreate": "Create Proposal",
     "breadcrumbTemplates": "Templates"
+  },
+  "terms": {
+    "title": "Proposal Commitment",
+    "subtitle": "A public commitment, not a legal contract. It is enforced by transparency and reputation, not by courts.",
+    "intro": "By submitting a proposal to Gnars DAO, you acknowledge the following.",
+    "callout": "Gnars is built on action over talk. Approval is not just access to funds — it is trust from the community.",
+    "clauses": {
+      "goodFaith": {
+        "title": "Good faith",
+        "body": "I have described the scope, timeline, budget, and deliverables of this proposal accurately, and I intend to execute it as written."
+      },
+      "treasuryRespect": {
+        "title": "Treasury respect",
+        "body": "Treasury funds are community resources, not casual capital. If this proposal is approved, I will keep spending aligned with the approved plan."
+      },
+      "noSilence": {
+        "title": "No silence",
+        "body": "I will post progress updates as propdates while the work is in flight, and I will report delays, blockers, or changes in scope publicly and early — before trust breaks."
+      },
+      "proofOfWork": {
+        "title": "Proof of work",
+        "body": "Updates will include evidence the work exists: links, commits, repos, files, media, transactions, or live pages."
+      },
+      "finalReport": {
+        "title": "Final report",
+        "body": "When the work is done, I will post a closing report covering what was delivered, how the budget was used, what remains reusable, and what I learned."
+      },
+      "openByDefault": {
+        "title": "Open by default",
+        "body": "Where applicable, code, media, documentation, and creative outputs will be delivered CC0 or open-source. Any part that cannot be shared openly is disclosed in the proposal itself."
+      },
+      "proportionalSafeguards": {
+        "title": "Proportional safeguards",
+        "body": "I understand that larger requests may be expected to use milestone-based releases, shared custody, or both, and that voters will weigh this when deciding."
+      }
+    },
+    "versionLabel": "Version {version}",
+    "backToPropose": "Back to creating a proposal"
   }
 }

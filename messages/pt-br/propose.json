@@ -225,7 +225,10 @@
     "failedToSubmit": "Falha ao enviar proposta",
     "thirdwebNotConfigured": "Cliente Thirdweb não configurado",
     "connectWalletToSubmit": "Conecte a wallet para enviar uma proposta",
-    "pleaseFixErrors": "Por favor, corrija os erros de validação antes de enviar"
+    "pleaseFixErrors": "Por favor, corrija os erros de validação antes de enviar",
+    "termsLabel": "Li e aceito o <link>Compromisso de Proposta da Gnars</link>",
+    "termsHint": "Uma linha registrando esse aceite é anexada à descrição da sua proposta.",
+    "termsRequired": "Você precisa aceitar o Compromisso de Proposta antes de enviar."
   },
   "droposalBuilder": {
     "media": {
@@ -295,5 +298,43 @@
     },
     "breadcrumbCreate": "Criar Proposta",
     "breadcrumbTemplates": "Templates"
+  },
+  "terms": {
+    "title": "Compromisso de Proposta",
+    "subtitle": "Um compromisso público, não um contrato legal. Vale por transparência e reputação, não por tribunal.",
+    "intro": "Ao enviar uma proposta para a Gnars DAO, você reconhece o seguinte.",
+    "callout": "A Gnars é feita de ação, não de discurso. Aprovação não é só acesso a fundos — é confiança da comunidade.",
+    "clauses": {
+      "goodFaith": {
+        "title": "Boa-fé",
+        "body": "Descrevi o escopo, o prazo, o orçamento e as entregas desta proposta de forma honesta, e pretendo executá-la como está escrito."
+      },
+      "treasuryRespect": {
+        "title": "Respeito ao tesouro",
+        "body": "O tesouro é recurso da comunidade, não dinheiro solto. Se esta proposta for aprovada, mantenho os gastos alinhados com o plano aprovado."
+      },
+      "noSilence": {
+        "title": "Sem sumiço",
+        "body": "Vou postar updates de progresso como propdates enquanto o trabalho estiver rolando, e avisar sobre atrasos, bloqueios ou mudança de escopo em público e cedo — antes de quebrar a confiança."
+      },
+      "proofOfWork": {
+        "title": "Prova de trabalho",
+        "body": "Os updates vêm com evidência de que o trabalho existe: links, commits, repositórios, arquivos, mídia, transações ou páginas no ar."
+      },
+      "finalReport": {
+        "title": "Relatório final",
+        "body": "Quando terminar, posto um relatório de fechamento contando o que foi entregue, como o orçamento foi usado, o que fica reutilizável e o que aprendi."
+      },
+      "openByDefault": {
+        "title": "Aberto por padrão",
+        "body": "Quando fizer sentido, código, mídia, documentação e outputs criativos saem em CC0 ou open-source. O que não puder ser aberto fica declarado na própria proposta."
+      },
+      "proportionalSafeguards": {
+        "title": "Salvaguardas proporcionais",
+        "body": "Entendo que pedidos maiores podem exigir liberação por milestone, custódia compartilhada ou ambos, e que quem vota vai levar isso em conta."
+      }
+    },
+    "versionLabel": "Versão {version}",
+    "backToPropose": "Voltar para criar proposta"
   }
 }

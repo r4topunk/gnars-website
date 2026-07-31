@@ -5,7 +5,7 @@ description:
 date: 2021-11-02 00:00:00 +0000
 permalink: /big-players-buying-up-real-estate-part-2-adobe/
 author: gami
-image: /images/nft-adobe-edition.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreigqahg234ioncqs5vnyo3prh3uskcv5hh6eo2kejs5f5g7tat7cxa
 image_caption:
 video_embed:
 tags: [news]

@@ -5,7 +5,7 @@ description:
 date: 2021-08-23 00:00:00 +0000
 permalink: /big-players-buying-up-real-estate-in-the-metaverse/
 author: gami
-image: /images/crypto-punks.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreibrdbqrxnwidy7phqnerkqmr6ahwaetbean73sfn3vudbze4izopa
 image_caption:
 video_embed:
 tags: [news]

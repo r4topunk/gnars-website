@@ -5,7 +5,7 @@ description:
 date: 2022-04-14 00:00:00 +0000
 permalink: /top-solana-nft-projects/
 author: gami
-image: /images/top-solana-nfts.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreihwqwlhiwhupmdzsclrvnzncmr37wzhtgoa6nd3kafo6wvhihfijy
 image_caption:
 video_embed:
 tags: [opinion]

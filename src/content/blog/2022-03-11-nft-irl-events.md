@@ -5,7 +5,7 @@ description:
 date: 2022-03-11 00:00:00 +0000
 permalink: /nft-irl-events/
 author: gami
-image: /images/NFT-IRL-Events.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreiarxz3jiejv2tiazn65xuedlr2fzeyhtjkxjgxoxe5zdabhxqkxpm
 image_caption:
 video_embed:
 tags: [research]

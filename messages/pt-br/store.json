@@ -1,0 +1,105 @@
+{
+  "title": "Loja Gnars",
+  "description": "Produtos oficiais da Gnars e de marcas parceiras. Comprados na Gnars, enviados pelos nossos parceiros de fulfillment.",
+  "hero": {
+    "eyebrow": "A Loja Gnars",
+    "headline": "Equipamento para quem manda ver.",
+    "subtitle": "Hardware e vestuário oficiais da Gnars e de marcas parceiras — feitos de forma aberta, enviados para o mundo todo.",
+    "browse": "Ver todos os produtos",
+    "featuredDrop": "Drop em destaque",
+    "stats": {
+      "products": "Produtos",
+      "categories": "Categorias",
+      "openBrandValue": "CC0",
+      "openBrandLabel": "Marca aberta"
+    }
+  },
+  "empty": {
+    "title": "Ainda não há nada na loja",
+    "description": "Novos produtos estão a caminho. Volte em breve."
+  },
+  "featuredHeading": "Destaques",
+  "allHeading": "Todos os produtos",
+  "filterAll": "Todos",
+  "card": {
+    "buy": "Comprar",
+    "viewDetails": "Ver detalhes",
+    "inStock": "Em estoque",
+    "outOfStock": "Esgotado",
+    "preorder": "Pré-venda",
+    "comingSoon": "Em breve",
+    "featured": "Destaque"
+  },
+  "detail": {
+    "backToStore": "Voltar à loja",
+    "finish": "Acabamento",
+    "checkoutComingSoon": "Finalização de compra em breve",
+    "buyNow": "Comprar agora",
+    "viewOnBrand": "Ver na {brand}",
+    "fulfilledBy": "Enviado pela {brand}."
+  },
+  "checkout": {
+    "title": "Finalizar compra",
+    "optional": "opcional",
+    "usOnly": "Por enquanto, enviamos apenas para os Estados Unidos.",
+    "sandboxNotice": "Modo sandbox — nenhum pagamento é cobrado e nada é enviado. Isso cria um pedido de teste para você experimentar o fluxo completo.",
+    "sandboxFootnote": "Apenas pedido de teste. Nunca cobrado, nunca enviado.",
+    "payFootnote": "Você paga em USDC na Base. Enviado pela KeepKey.",
+    "placeSandbox": "Criar pedido de teste",
+    "connectToPay": "Conecte a carteira para pagar",
+    "payAmount": "Pagar {amount} em USDC",
+    "retryOrder": "Tentar pedido de novo (já pago)",
+    "retryFootnote": "Você já pagou — tentar de novo não cobra outra vez.",
+    "alreadyPaid": "Pagamento recebido ({tx}). Se o pedido não foi concluído, é só tentar de novo abaixo — você não será cobrado outra vez.",
+    "connectTitle": "Conectar para pagar",
+    "paid": "Pagamento confirmado",
+    "fields": {
+      "name": "Nome completo",
+      "email": "E-mail",
+      "phone": "Telefone",
+      "line1": "Endereço",
+      "line2": "Apartamento, bloco, etc.",
+      "city": "Cidade",
+      "state": "Estado / Província",
+      "postalCode": "CEP",
+      "country": "País (código ISO)"
+    },
+    "errors": {
+      "name": "Informe seu nome",
+      "email": "Informe um e-mail válido",
+      "phone": "Informe um telefone válido (obrigatório para envio)",
+      "line1": "Informe seu endereço",
+      "city": "Informe sua cidade",
+      "postalCode": "Informe seu CEP",
+      "country": "Selecione seu país",
+      "region": "Por enquanto, enviamos apenas para os Estados Unidos.",
+      "state": "Estado / província é obrigatório",
+      "address": "O endereço de entrega foi recusado. Confira rua, cidade, CEP e estado/província.",
+      "notConfigured": "A finalização ainda não está disponível — a carteira da loja não está configurada.",
+      "unavailable": "A finalização está temporariamente indisponível — o fulfillment não está pronto. Nenhum pagamento foi cobrado.",
+      "generic": "Algo deu errado. Tente novamente."
+    },
+    "status": {
+      "received": "Recebido",
+      "processing": "Em processamento",
+      "shipped": "Enviado",
+      "cancelled": "Cancelado",
+      "failed": "Falhou"
+    },
+    "success": {
+      "title": "Pedido realizado",
+      "subtitle": "Seu pedido de {title} foi registrado. Vamos atualizar o status abaixo.",
+      "orderId": "ID do pedido",
+      "status": "Status",
+      "tracking": "Rastreamento",
+      "sandboxNote": "Pedido sandbox — nada é enviado. O status permanece \"recebido\".",
+      "liveNote": "O rastreamento aparecerá aqui assim que a KeepKey enviar.",
+      "refresh": "Atualizar status",
+      "backToStore": "Voltar à loja"
+    }
+  },
+  "notFound": {
+    "title": "Produto não encontrado",
+    "description": "O produto que você procura não existe."
+  }
+}

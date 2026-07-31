@@ -1,8 +1,7 @@
-import { headers } from "next/headers";
 import { ImageResponse } from "next/og";
-import { formatEther } from "viem";
-import { DAO_ADDRESSES, TREASURY_TOKEN_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { formatEthDisplay, formatUsdDisplay, OG_COLORS, OG_FONTS, OG_SIZE } from "@/lib/og-utils";
+import { loadTreasurySnapshot } from "@/services/treasury";
 
 export const alt = "Gnars DAO Treasury";
 export const size = OG_SIZE;
@@ -13,131 +12,24 @@ export const contentType = "image/png";
 // served from the edge with zero function CPU. Keeps us under Hobby CPU/transfer.
 const OG_CACHE_CONTROL = "public, max-age=0, s-maxage=1800, stale-while-revalidate=3600";
 
-type TokenBalance = {
-  contractAddress?: string;
-  tokenBalance: string;
-  decimals?: number;
-};
-
-type AlchemyTokenResponse = {
-  result?: {
-    tokenBalances?: TokenBalance[];
-  };
-};
-
-type PriceResponse = {
-  prices?: Record<string, { usd?: number }>;
-};
-
-type EthPriceResponse = {
-  usd: number;
-  error?: string;
-};
-
-async function fetchTreasurySnapshot(): Promise<{ ethBalance: string; usdTotal: number } | null> {
+async function fetchTreasurySnapshot(): Promise<{
+  ethBalance: string;
+  usdTotal: number | null;
+} | null> {
+  // Delegates to the same service the treasury page uses. This function used to
+  // re-implement the whole balance+price computation and reach it over HTTP via
+  // the app's own /api/alchemy, /api/prices and /api/eth-price — two copies of
+  // financial logic that could disagree, plus four self-requests per render.
   try {
-    const baseUrl = await getBaseUrl();
-
-    const [ethRes, tokenRes, priceRes, ethPriceRes] = await Promise.all([
-      fetchJson<{ result?: string }>(`${baseUrl}/api/alchemy`, {
-        method: "POST",
-        body: JSON.stringify({
-          method: "eth_getBalance",
-          params: [DAO_ADDRESSES.treasury, "latest"],
-        }),
-      }),
-      fetchJson<AlchemyTokenResponse>(`${baseUrl}/api/alchemy`, {
-        method: "POST",
-        body: JSON.stringify({
-          method: "alchemy_getTokenBalances",
-          params: [DAO_ADDRESSES.treasury, TREASURY_TOKEN_ADDRESSES.filter(Boolean)],
-        }),
-      }),
-      fetchJson<PriceResponse>(`${baseUrl}/api/prices`, {
-        method: "POST",
-        body: JSON.stringify({
-          addresses: TREASURY_TOKEN_ADDRESSES.map((a) => String(a).toLowerCase()),
-        }),
-      }).catch(() => ({ prices: {} })),
-      fetchJson<EthPriceResponse>(`${baseUrl}/api/eth-price`, {
-        method: "GET",
-      }).catch(() => ({ usd: 0 })),
-    ]);
-
-    const ethBalanceWei = BigInt(ethRes.result ?? "0x0");
-    const ethBalance = Number(formatEther(ethBalanceWei));
-    const ethPrice = ethPriceRes?.usd ?? 0;
-
-    const tokenBalances = (tokenRes.result?.tokenBalances ?? []).filter((token) => {
-      const balance = token.tokenBalance?.toLowerCase();
-      return balance && balance !== "0" && balance !== "0x0";
-    });
-
-    const prices: Record<string, { usd: number }> = priceRes.prices ?? {};
-    const wethAddress = String(TREASURY_TOKEN_ALLOWLIST.WETH).toLowerCase();
-
-    const priceLookup = Object.fromEntries(
-      Object.entries(prices).map(([address, value]) => [
-        address.toLowerCase(),
-        address.toLowerCase() === wethAddress ? ethPrice : Number(value?.usd ?? 0) || 0,
-      ]),
-    );
-    priceLookup[wethAddress] = ethPrice;
-
-    const decimals: Record<string, number> = {
-      [String(TREASURY_TOKEN_ALLOWLIST.USDC).toLowerCase()]: 6,
-      [String(TREASURY_TOKEN_ALLOWLIST.WETH).toLowerCase()]: 18,
-      [String(TREASURY_TOKEN_ALLOWLIST.SENDIT).toLowerCase()]: 18,
-    };
-
-    const tokensUsd = tokenBalances.reduce((sum, token) => {
-      const address = token.contractAddress ? String(token.contractAddress).toLowerCase() : null;
-      if (!address) return sum;
-      const tokenDecimals = decimals[address] ?? 18;
-      const raw = token.tokenBalance ?? "0x0";
-      const parsed = Number.parseInt(raw, 16);
-      const balance = Number.isFinite(parsed) ? parsed / Math.pow(10, tokenDecimals) : 0;
-      const price = priceLookup[address] ?? 0;
-      return sum + balance * price;
-    }, 0);
-
-    const usdTotal = tokensUsd + ethBalance * ethPrice;
-
+    const snapshot = await loadTreasurySnapshot(DAO_ADDRESSES.treasury);
     return {
-      ethBalance: formatEthDisplay(ethBalance),
-      usdTotal,
+      ethBalance: formatEthDisplay(snapshot.ethBalance),
+      usdTotal: snapshot.usdTotal,
     };
   } catch (error) {
     console.error("[treasury OG] error fetching snapshot:", error);
     return null;
   }
-}
-
-async function getBaseUrl() {
-  const h = await headers();
-  const protocol = h.get("x-forwarded-proto") ?? "https";
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  if (!host) {
-    throw new Error("Unable to determine request host");
-  }
-  return `${protocol}://${host}`;
-}
-
-async function fetchJson<T>(url: string, init: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init.headers || {}),
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
-  }
-
-  return (await response.json()) as T;
 }
 
 export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
@@ -157,7 +49,8 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
   }
 
   const ethBalance = treasuryData.ethBalance;
-  const usdTotal = formatUsdDisplay(treasuryData.usdTotal);
+  // An unpriced treasury renders as a dash, never as "$0".
+  const usdTotal = treasuryData.usdTotal == null ? "—" : formatUsdDisplay(treasuryData.usdTotal);
   const labels = {
     title: isPt ? "TESOURO" : "TREASURY",
     subtitle: isPt ? "Visão Geral Financeira da Gnars DAO" : "Gnars DAO Financial Overview",

@@ -1,0 +1,90 @@
+{
+  "title": "Gnars Migration",
+  "subtitle": "Consolidate your scattered Zora coins into $gnars. Batch-select your holdings and swap them all into $gnars in one flow — routed through ZORA under the hood.",
+  "connectPrompt": "Connect your wallet to see your Zora coins and migrate them into $gnars.",
+  "tabs": {
+    "consolidate": "Consolidate",
+    "get": "Get $GNARS",
+    "guide": "Guide"
+  },
+  "getGnars": {
+    "title": "Get old $gnars with ETH",
+    "subtitle": "Buy old $gnars directly (ETH → ZORA → $gnars). This uses Zora's router — the same one zora.co uses — which is why it works where Matcha/0x can't.",
+    "connectPrompt": "Connect your wallet to buy $gnars.",
+    "amountLabel": "Amount to spend",
+    "buyCta": "Buy $gnars",
+    "buying": "Buying $gnars…",
+    "slippageNote": "The $gnars pool is thin, so larger buys move the price. Start small and check the amount you receive."
+  },
+  "guide": {
+    "title": "How the $gnars migration works",
+    "intro": "There are two ways to take part — convert your Zora coins into $gnars, or bring fresh ETH to the launch. Both get you into the new $gnars when the DAO runs the upgrade.",
+    "steps": [
+      {
+        "title": "Choose how you join",
+        "body": "Convert your Zora coins into old $gnars (Consolidate tab), buy in with ETH (Get $GNARS tab), or set ETH aside to contribute directly at launch. Fresh ETH is the strongest contribution — it becomes real liquidity backing the new token, which scattered coins can't provide."
+      },
+      {
+        "title": "Deposit when the upgrade opens",
+        "body": "When the DAO opens the upgrade, deposit your old $gnars and/or ETH into the portal (it will appear right here). There's no fixed on-chain deadline — watch the official Gnars channels for the date."
+      },
+      {
+        "title": "The upgrade runs — one shared price",
+        "body": "In a single transaction, all deposits are sold, the new $gnars is deployed on Clanker (paired with ETH), and everyone buys in at the same snipe-proof price. Your ETH is what puts real liquidity into the new pool."
+      },
+      {
+        "title": "Claim your new $gnars",
+        "body": "After the upgrade runs, claim your new $gnars — allocated proportionally to what you contributed. That's the token going forward: ETH ↔ $gnars ↔ content coins."
+      }
+    ],
+    "footnote": "The ETH presale is what gives the new token real backing — migrating dust is optional and mostly symbolic. Amounts depend on live liquidity and can change; only contribute what you're comfortable with, and always verify links in official Gnars channels."
+  },
+  "noCoins": "No migratable Zora coins found in this wallet.",
+  "safetyHint": "Only verified Zora coins are shown — non-Zora and scam/airdrop tokens are filtered out.",
+  "holdingsTitle": "Your Zora coins ({count})",
+  "selectAll": "Select all",
+  "clear": "Clear",
+  "route": {
+    "title": "Migration route",
+    "viaCreator": "via {creator}",
+    "directNote": "Paired directly with $gnars — single hop.",
+    "groupContent": "Content coins → {creator}",
+    "groupCreator": "Creator coins → ZORA",
+    "hopHint": "Each coin routes through its pool pairing. The swap happens in one trade — these are the hops under the hood."
+  },
+  "preview": {
+    "title": "Migration preview",
+    "selected": "Selected coins",
+    "routable": "With a route to $gnars",
+    "unroutable": "{count} no liquidity",
+    "youReceive": "You receive (estimated)",
+    "slippageWarning": "The $gnars pool is thin — large migrations move the price. Estimates include slippage and can change before the transaction confirms.",
+    "migrateCta": "Migrate {count} coins to {token}",
+    "executing": "Migrating…",
+    "executionNote": "Runs one swap per coin — approve each in your wallet. Tip: test with a single low-value coin first.",
+    "receiveAs": "Receive as",
+    "targetGnars": "$GNARS",
+    "targetEth": "ETH"
+  },
+  "editorial": {
+    "tagline": "One token, deeper liquidity",
+    "body": "Every Zora coin you migrate is consolidated into $gnars. The result: fragmented dust becomes concentrated, healthier $gnars liquidity."
+  },
+  "smart": {
+    "button": "Smart Select ✨",
+    "title": "Smart migration plan",
+    "hint": "We quote every coin and route each to its best destination — $gnars where it routes, ETH otherwise, and we skip coins with no route.",
+    "toGnars": "To $GNARS",
+    "toEth": "To ETH",
+    "skipped": "Skipped (no route)",
+    "migrateCta": "Migrate {count} coins",
+    "checking": "Checking…",
+    "noRoute": "No route",
+    "reason": {
+      "gnars": "paired with $gnars",
+      "eth-not-paired": "not $gnars-paired → cleaner via ETH",
+      "eth-fallback": "$gnars pool too thin → ETH",
+      "none": "no route"
+    }
+  }
+}

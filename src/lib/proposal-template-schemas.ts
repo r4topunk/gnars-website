@@ -36,6 +36,50 @@ export type TemplateFieldValue = string | BudgetRow[];
 export type TemplateValues = Record<string, TemplateFieldValue | undefined>;
 
 export const TEMPLATE_SCHEMAS: Record<string, TemplateSchema> = {
+  // Sponsorship vaults pay the DAO's cut as vault SHARES held by a 0xSplits
+  // contract. The treasury is a timelock, so unlike the athletes it can't just
+  // click withdraw — realising that yield needs a governance proposal. This
+  // template is that proposal. No budget field: nothing is being spent, the
+  // amounts are whatever has accrued on-chain.
+  "sponsorship-yield-claim": {
+    slug: "sponsorship-yield-claim",
+    title: "Sponsorship Yield Claim",
+    defaultTitle: "Claim sponsorship yield — [period]",
+    fields: [
+      {
+        id: "vaults",
+        label: "Vaults being claimed",
+        type: "textarea",
+        rows: 4,
+        required: true,
+        helper:
+          "Which rider vaults this claim covers and how much has accrued to each. The treasury's cut is 25% of the yield — depositors' principal is never touched.",
+        placeholder:
+          "Vlad — vault 0xF3f8…d4D2, split 0xCf0f…D179 — 12.40 USDC accrued, treasury share 6.20 USDC",
+      },
+      {
+        id: "calls",
+        label: "Transactions",
+        type: "textarea",
+        rows: 5,
+        required: true,
+        helper:
+          "The exact calls to add in the transaction step. The fee arrives as vault shares, so the treasury withdraws them from the Splits Warehouse and then redeems them for USDC.",
+        placeholder:
+          "1. PullSplit.distribute(...) — permissionless, can be called by anyone beforehand\n2. SplitsWarehouse.withdraw(treasury, <vault share token>)\n3. VaultV2.redeem(<shares>, treasury, treasury)",
+      },
+      {
+        id: "rationale",
+        label: "Why claim now",
+        type: "textarea",
+        rows: 3,
+        helper:
+          "Gas and voter attention cost more than a tiny claim is worth, so say why this amount justifies a proposal, and what the USDC is earmarked for.",
+        placeholder:
+          "First claim since the vaults launched; batching every rider keeps it to a single proposal. Funds return to the treasury's USDC balance.",
+      },
+    ],
+  },
   "athlete-sponsorship": {
     slug: "athlete-sponsorship",
     title: "Athlete Sponsorship",

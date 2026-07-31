@@ -52,6 +52,8 @@ const nextConfig: NextConfig = {
     BASE_URL: "https://nouns.build",
   },
   images: {
+    // Proposal banners / Zora media are immutable IPFS content — cache long.
+    minimumCacheTTL: 2592000,
     remotePatterns: [
       {
         protocol: "https",

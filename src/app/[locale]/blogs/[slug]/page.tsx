@@ -5,7 +5,8 @@ import { BlogDetail, BlogDetailSkeleton } from "@/components/blogs/detail/BlogDe
 import { Blog } from "@/lib/schemas/blogs";
 import { getBlogBySlug } from "@/services/blogs";
 
-export const revalidate = 300;
+// Data layer (getCachedPublication) already caches 3600s — match route TTL to it.
+export const revalidate = 3600;
 const CROSS_CHAR_REGEX = /[×✕✖✗✘]/g;
 const VARIATION_SELECTOR_REGEX = /[\uFE00-\uFE0F]/g;
 

@@ -10,6 +10,7 @@ import {
 import { NftHoldings } from "@/components/treasury/NftHoldings";
 import { TokenHoldings } from "@/components/treasury/TokenHoldings";
 import { TreasuryBalance } from "@/components/treasury/TreasuryBalance";
+import { SponsorshipYield } from "@/components/treasury/SponsorshipYield";
 import { ZoraCoinHoldings } from "@/components/treasury/ZoraCoinHoldings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DAO_ADDRESSES } from "@/lib/config";
@@ -120,6 +121,12 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
               </Suspense>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Rider sponsorship vaults — the DAO's share of the staking yield, and
+            the proposal that turns it into treasury USDC. */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <SponsorshipYield />
         </div>
 
         {/* Charts */}

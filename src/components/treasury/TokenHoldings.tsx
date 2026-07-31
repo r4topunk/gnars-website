@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { headers } from "next/headers";
 import { TREASURY_TOKEN_ADDRESSES } from "@/lib/config";
+import { getTokenPricesUsd } from "@/services/prices";
 import { EnrichedToken, TokenHoldingsClient } from "./TokenHoldingsClient";
 
 interface TokenBalance {
@@ -21,10 +22,6 @@ interface TokenMetadataResponse {
     name?: string;
     symbol?: string;
   };
-}
-
-interface PriceResponse {
-  prices?: Record<string, { usd?: number }>;
 }
 
 const loadTokenHoldings = cache(async (treasuryAddress: string): Promise<EnrichedToken[]> => {
@@ -89,7 +86,7 @@ const loadTokenHoldings = cache(async (treasuryAddress: string): Promise<Enriche
       symbol: metadata.symbol,
       name: metadata.name,
       logo: metadata.logo,
-      usdValue: 0,
+      usdValue: null,
     });
   }
 
@@ -97,31 +94,23 @@ const loadTokenHoldings = cache(async (treasuryAddress: string): Promise<Enriche
     return [];
   }
 
-  try {
-    const priceResponse = await fetchJson<PriceResponse>(`${baseUrl}/api/prices`, {
-      method: "POST",
-      body: JSON.stringify({
-        addresses: tokensWithMetadata.map((token) => token.contractAddress.toLowerCase()),
-      }),
-    });
+  // Server-side already — read the service directly instead of this module
+  // making an HTTP round trip to the app's own /api/prices.
+  const priceMap = await getTokenPricesUsd(
+    tokensWithMetadata.map((token) => token.contractAddress.toLowerCase()),
+    "base",
+  );
 
-    const priceMap = Object.fromEntries(
-      Object.entries(priceResponse.prices ?? {}).map(([address, value]) => [
-        address.toLowerCase(),
-        Number(value?.usd ?? 0) || 0,
-      ]),
-    );
-
-    for (const token of tokensWithMetadata) {
-      const price = priceMap[token.contractAddress.toLowerCase()] ?? 0;
-      token.usdValue = price * token.balance;
-    }
-  } catch {
-    // Ignore price errors; usdValue will remain 0.
+  for (const token of tokensWithMetadata) {
+    const price = priceMap[token.contractAddress.toLowerCase()];
+    // `null` = unpriceable. Leave usdValue null rather than claiming $0, which
+    // is a real balance the UI would otherwise show as worthless.
+    token.usdValue = price == null ? null : price * token.balance;
   }
 
   // Sort tokens by USD value descending for a friendlier presentation.
-  tokensWithMetadata.sort((a, b) => b.usdValue - a.usdValue);
+  // Unpriced tokens sort last rather than being treated as worth $0.
+  tokensWithMetadata.sort((a, b) => (b.usdValue ?? -1) - (a.usdValue ?? -1));
 
   return tokensWithMetadata;
 });

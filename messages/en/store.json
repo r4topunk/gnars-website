@@ -1,0 +1,105 @@
+{
+  "title": "Gnars Store",
+  "description": "Official gear from Gnars and partner brands. Bought on Gnars, shipped by our fulfillment partners.",
+  "hero": {
+    "eyebrow": "The Gnars Store",
+    "headline": "Gear for people who shred.",
+    "subtitle": "Official hardware and apparel from Gnars and partner brands — designed in the open, shipped worldwide.",
+    "browse": "Browse all products",
+    "featuredDrop": "Featured drop",
+    "stats": {
+      "products": "Products",
+      "categories": "Categories",
+      "openBrandValue": "CC0",
+      "openBrandLabel": "Open brand"
+    }
+  },
+  "empty": {
+    "title": "Nothing in the store yet",
+    "description": "New products are on the way. Check back soon."
+  },
+  "featuredHeading": "Featured",
+  "allHeading": "All products",
+  "filterAll": "All",
+  "card": {
+    "buy": "Buy",
+    "viewDetails": "View details",
+    "inStock": "In stock",
+    "outOfStock": "Out of stock",
+    "preorder": "Pre-order",
+    "comingSoon": "Coming soon",
+    "featured": "Featured"
+  },
+  "detail": {
+    "backToStore": "Back to store",
+    "finish": "Finish",
+    "checkoutComingSoon": "Checkout coming soon",
+    "buyNow": "Buy now",
+    "viewOnBrand": "View on {brand}",
+    "fulfilledBy": "Fulfilled and shipped by {brand}."
+  },
+  "checkout": {
+    "title": "Checkout",
+    "optional": "optional",
+    "usOnly": "Shipping to the United States only for now.",
+    "sandboxNotice": "Sandbox mode — no payment is taken and nothing ships. This places a test order so you can try the full flow.",
+    "sandboxFootnote": "Test order only. Never charged, never shipped.",
+    "payFootnote": "You'll pay in USDC on Base. Fulfilled and shipped by KeepKey.",
+    "placeSandbox": "Place test order",
+    "connectToPay": "Connect wallet to pay",
+    "payAmount": "Pay {amount} in USDC",
+    "retryOrder": "Retry order (already paid)",
+    "retryFootnote": "You already paid — retrying won't charge you again.",
+    "alreadyPaid": "Payment received ({tx}). If your order didn't go through, just retry below — you won't be charged again.",
+    "connectTitle": "Connect to pay",
+    "paid": "Payment confirmed",
+    "fields": {
+      "name": "Full name",
+      "email": "Email",
+      "phone": "Phone number",
+      "line1": "Address",
+      "line2": "Apartment, suite, etc.",
+      "city": "City",
+      "state": "State / Province",
+      "postalCode": "Postal code",
+      "country": "Country (ISO code)"
+    },
+    "errors": {
+      "name": "Enter your name",
+      "email": "Enter a valid email",
+      "phone": "Enter a valid phone number (required for shipping)",
+      "line1": "Enter your street address",
+      "city": "Enter your city",
+      "postalCode": "Enter your postal code",
+      "country": "Select your country",
+      "region": "We currently only ship to the United States.",
+      "state": "State / province is required",
+      "address": "That shipping address was rejected. Check the street, city, postal code, and state/province.",
+      "notConfigured": "Checkout isn't available yet — the store wallet isn't configured.",
+      "unavailable": "Checkout is temporarily unavailable — fulfillment isn't ready. No payment was taken.",
+      "generic": "Something went wrong. Please try again."
+    },
+    "status": {
+      "received": "Received",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "cancelled": "Cancelled",
+      "failed": "Failed"
+    },
+    "success": {
+      "title": "Order placed",
+      "subtitle": "Your {title} order is in. We'll update the status below.",
+      "orderId": "Order ID",
+      "status": "Status",
+      "tracking": "Tracking",
+      "sandboxNote": "Sandbox order — nothing ships. Status stays \"received\".",
+      "liveNote": "You'll get tracking here once KeepKey ships it.",
+      "refresh": "Refresh status",
+      "backToStore": "Back to store"
+    }
+  },
+  "notFound": {
+    "title": "Product Not Found",
+    "description": "The product you're looking for doesn't exist."
+  }
+}

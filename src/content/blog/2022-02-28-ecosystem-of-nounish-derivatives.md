@@ -5,7 +5,7 @@ description:
 date: 2022-02-28 00:00:00 +0000
 permalink: /ecosystem-of-nounish-derivatives/
 author: gami
-image: /images/nounish-derivatives.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreidqt7yrankazhkktkzwjfx5cffeslkzu4mhmu3ubc3s6vjournm5u
 image_caption:
 video_embed:
 tags: [research]

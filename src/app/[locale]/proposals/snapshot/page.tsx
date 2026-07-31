@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { listSnapshotProposals } from "@/services/snapshot";
 
-export const revalidate = 300;
+// Snapshot proposals are immutable historical JSON — 3600 for now,
+// eventual target is fully static (revalidate = false).
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Snapshot Proposals — Gnars DAO",

@@ -24,6 +24,7 @@ import { useAuctionTransaction } from "@/hooks/use-auction-transaction";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useWriteAccount } from "@/hooks/use-write-account";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { requestRevalidation } from "@/lib/request-revalidation";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain } from "@/lib/thirdweb-tx";
 import { THIRDWEB_AA_CONFIG, THIRDWEB_WALLETS } from "@/lib/thirdweb-wallets";
@@ -126,6 +127,7 @@ export function AuctionBidForm({
     onConfirmed: () => {
       toast.success(t("bid.confirmed"), { description: t("bid.confirmedDescription") });
       invalidateAuctionData();
+      requestRevalidation(["auction", "feed"]);
       if (pendingBidRef.current) {
         const multiplier = 1 + minBidIncrementPct / 100;
         const raw = parseFloat(pendingBidRef.current.amount) * multiplier;

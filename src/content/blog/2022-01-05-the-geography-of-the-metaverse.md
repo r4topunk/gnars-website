@@ -5,7 +5,7 @@ description:
 date: 2022-01-05 00:00:00 +0000
 permalink: /the-geography-of-the-metaverse/
 author: gami
-image: /images/metageo2.png
+image: https://ipfs.skatehive.app/ipfs/bafybeigpdma3vkkd2e7ubrqs4exhznyennbmtew4j3ohnkljldbwhnwovu
 image_caption:
 video_embed:
 tags: [research]

@@ -34,6 +34,41 @@ export const GNARS_CREATOR_COIN = "0x0cf0c3b75d522290d7d12c74d7f1f0cc47ccb23b" a
 // The SDK expects a profile identifier (handle or wallet), not the token address directly
 export const GNARS_ZORA_HANDLE = "gnars" as const;
 
+// ZORA protocol token on Base — the routing hub for the Gnars Migration tool.
+// Every Zora coin routes to ZORA (Zora V4 hooks auto-hop content → creator → ZORA),
+// and ZORA → $gnars is a supported creator-coin trade. Verified on-chain (symbol "ZORA").
+export const ZORA_TOKEN_BASE = "0x1111111111166b7FE7bd91427724B487980aFc69" as const;
+
+// Burn sink for the migration fee. Each migration skims a small % of the
+// output $gnars and sends it here (buy-and-burn) to tighten $gnars supply.
+// Standard EVM burn address — tokens sent here are unrecoverable.
+export const BURN_ADDRESS = "0x000000000000000000000000000000000000dEaD" as const;
+
+// Migration fee, in basis points, taken from the $gnars output and burned.
+// 100 bps = 1%. Keep modest so migrating stays worthwhile for users.
+export const MIGRATION_BURN_BPS = 100 as const;
+
+// Interim operational signer for the migration. During the migration the DAO
+// uses a temporary multisig (fast, no per-step governance proposal) to receive
+// migration proceeds, the Clanker founder-vault allocation, and collected fees.
+// Once tokens are fully migrated and fees settled, this multisig sweeps
+// everything to the DAO treasury in a single governed move.
+//
+// Verified on-chain 2026-07-22: a Safe multisig on Base (v1.3.0, 3-of-N threshold).
+// This is also the address we ask the Upgrader operator to set as the founder-vault
+// beneficiary. Overridable via NEXT_PUBLIC_MIGRATION_MULTISIG.
+export const MIGRATION_MULTISIG = (process.env.NEXT_PUBLIC_MIGRATION_MULTISIG ||
+  "0xBe6C3D651d2F6e9eFA562b5a7CDf411304cad076") as `0x${string}`;
+
+// Trade referrer for the migration/buy swaps — earns a share of the Zora trade
+// fee, claimable in Zora by this account. Set to haxixe.eth (Vlad's personal
+// account) so rewards are easy to claim.
+// ⚠️ Not yet wired: the Zora SDK's tradeCoin/createTradeCall do NOT forward a
+// referrer. Capturing it requires POSTing to the quote endpoint with `referrer`
+// in the body and executing the returned call ourselves (see handoff doc).
+export const MIGRATION_TRADE_REFERRER = (process.env.NEXT_PUBLIC_MIGRATION_TRADE_REFERRER ||
+  "0x8Bf5941d27176242745B716251943Ae4892a3C26") as `0x${string}`;
+
 // Creator allowlist — Zora handles that bypass the NFT qualification gate.
 // Use for known community members whose wallets are fragmented across profiles.
 export const GNARS_CREATOR_ALLOWLIST: readonly string[] = [
@@ -57,16 +92,18 @@ export const DROPOSAL_DEFAULT_MINT_LIMIT = 1000000 as const;
 
 // /swap (0x Swap API) — affiliate fee taken on the bought token when the
 // user keeps the "Support Gnars treasury" checkbox checked.
-// Recipient depends on chain: Base swaps land in the on-chain DAO treasury;
-// other chains route to a multichain custody address that the DAO bridges
-// back periodically.
+// Recipient depends on chain: Base swaps land in the Gnars split contract;
+// other chains route to the cross-chain fee recipient wallet.
 export const SWAP_FEE_BPS = 50 as const; // 0.5%
 
+export const SWAP_FEE_RECIPIENT_BASE =
+  "0x15E69fD67DcC17E061Ceeb93DaC791e0f5aF0Eae" as `0x${string}`;
+
 export const SWAP_FEE_RECIPIENT_MULTICHAIN =
-  "0xa642b91ff941fb68919d1877e9937f3e369dfd68" as `0x${string}`;
+  "0x96C37393B79aD7EABdF9Ccf82C2EDAd3d3c0eEA2" as `0x${string}`;
 
 export function getSwapFeeRecipient(chainId: number): `0x${string}` {
-  return chainId === CHAIN.id ? DAO_ADDRESSES.treasury : SWAP_FEE_RECIPIENT_MULTICHAIN;
+  return chainId === CHAIN.id ? SWAP_FEE_RECIPIENT_BASE : SWAP_FEE_RECIPIENT_MULTICHAIN;
 }
 
 export const SUBGRAPH = {
@@ -94,5 +131,29 @@ export const TREASURY_TOKEN_ALLOWLIST = {
 } as const;
 
 export const TREASURY_TOKEN_ADDRESSES = Object.values(TREASURY_TOKEN_ALLOWLIST);
+
+/**
+ * /store checkout config. Customers pay USDC on Base to `recipient`; the server verifies that
+ * transfer before forwarding the order to the fulfillment provider (KeepKey). `recipient` is
+ * the dedicated Gnars store wallet — hardcoded here (public address, safe to commit) with an
+ * env override for other deploys. Secrets (KeepKey tokens/webhook) stay in env. USDC on Base
+ * has 6 decimals. Sandbox orders skip payment, so this is only used in live mode.
+ */
+export const STORE_CHECKOUT = {
+  usdc: TREASURY_TOKEN_ALLOWLIST.USDC as `0x${string}`,
+  usdcDecimals: 6,
+  recipient: (process.env.NEXT_PUBLIC_STORE_CHECKOUT_ADDRESS ||
+    "0x8Bf5941d27176242745B716251943Ae4892a3C26") as `0x${string}`,
+} as const;
+
+/**
+ * KeepKey dropship fulfillment mode — the single control for going live.
+ *
+ * `test` (sandbox) draws no credit and never ships; `live` places real orders that draw the
+ * credit line and owe crypto settlement. **To go live, change this to `"live"` and ship it**
+ * — it is not read from any env var, so no Vercel change is needed (or possible). Consumed
+ * server-side via `isSandbox()`.
+ */
+export const KEEPKEY_DROPSHIP_MODE: "test" | "live" = "live";
 
 export const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.gnars.com";

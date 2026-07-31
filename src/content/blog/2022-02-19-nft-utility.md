@@ -5,7 +5,7 @@ description:
 date: 2022-02-19 00:00:00 +0000
 permalink: /nft-utility/
 author: gami
-image: /images/nft-utility.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreifz5f4hlk53yeidbl6s7rxvt2zu2sb6isawgzxrgqdb7op52h64xm
 image_caption:
 video_embed:
 tags: [research]

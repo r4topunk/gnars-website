@@ -5,7 +5,7 @@ description:
 date: 2021-10-03 00:00:00 +0000
 permalink: /the-economics-of-authenticity/
 author: gami
-image: /images/the-economics-of-authenticity.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreift7twi4owchnnhzg6ew2sagelsbje7wvec33auwmnzj2mveqrv2i
 image_caption:
 video_embed:
 tags: [research]

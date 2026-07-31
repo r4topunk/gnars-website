@@ -5,7 +5,7 @@ description:
 date: 2022-03-17 00:00:00 +0000
 permalink: /bayc-x-cryptopunks-merge-of-the-giants/
 author: gami
-image: /images/BAYC-CryptoPunks.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreigdwcztrb6wfo4xciz23csij6mow4ewdbzst4ovd6ngiqil47yew4
 image_caption:
 video_embed:
 tags: [research]

@@ -12,7 +12,9 @@ import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 import type { FeedEvent } from "@/lib/types/feed-events";
 
-const CACHE_TTL = 15;
+// Backstop TTL only — freshness comes from revalidateTag("feed") via
+// /api/revalidate, not from this TTL (docs/architecture/caching-standard.md).
+const CACHE_TTL = 300;
 const CACHE_TAG = "feed-events";
 
 // Over-fetch so the client-side filter pass (zero-amount
@@ -590,7 +592,7 @@ const fetchFeedEvents = unstable_cache(
   ["feed-events"],
   {
     revalidate: CACHE_TTL,
-    tags: [CACHE_TAG],
+    tags: [CACHE_TAG, "feed"],
   },
 );
 

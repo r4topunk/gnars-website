@@ -3,13 +3,19 @@
 import { useQuery } from "@tanstack/react-query";
 
 interface EthPriceResponse {
-  usd: number;
+  /** `null` when the price feed is unavailable — never 0-as-unknown. */
+  usd: number | null;
   error?: string;
 }
 
 /**
- * Hook to fetch current ETH price in USD
- * Uses the /api/eth-price endpoint which fetches from Alchemy
+ * The single client-side ETH price. Every component that needs it must go
+ * through this hook rather than its own `useQuery` — one shared query key is
+ * what lets React Query dedupe them into one request per window.
+ *
+ * `/api/eth-price` is a thin wrapper over `services/prices` (Alchemy, 300s).
+ * `usd` is `null` when unknown; `?? 0` keeps that falsy so `formatEthToUsd`
+ * renders "—" rather than "$0.00".
  */
 export function useEthPrice() {
   const { data, isLoading, error } = useQuery<EthPriceResponse>({
@@ -21,8 +27,10 @@ export function useEthPrice() {
       }
       return res.json();
     },
-    staleTime: 60 * 1000, // 1 minute
-    refetchInterval: 60 * 1000, // Refetch every minute
+    // Matched to the route's CDN window. There is no `refetchInterval`: the old
+    // 60s poll re-fetched five times per cache window across every mounted
+    // consumer (bounties, member profiles) and got the same bytes each time.
+    staleTime: 5 * 60 * 1000,
   });
 
   return {

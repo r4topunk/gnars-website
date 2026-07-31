@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { AUCTIONS_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 
 export async function generateMetadata({
   params,
@@ -32,6 +33,9 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: t("title"),
       description: t("description"),
+    },
+    other: {
+      "fc:miniapp": JSON.stringify(AUCTIONS_MINIAPP_EMBED_CONFIG),
     },
   };
 }

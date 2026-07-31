@@ -20,7 +20,8 @@ export interface EnrichedToken {
   symbol: string;
   name: string;
   logo?: string;
-  usdValue: number;
+  /** `null` when the token could not be priced — render as unavailable, not $0. */
+  usdValue: number | null;
 }
 
 interface TokenHoldingsClientProps {
@@ -40,7 +41,9 @@ export function TokenHoldingsClient({ tokens, error }: TokenHoldingsClientProps)
     }).format(balance);
   };
 
-  const formatUsdValue = (value: number) => {
+  const formatUsdValue = (value: number | null) => {
+    // A real balance we couldn't price reads as a dash, never as $0.00.
+    if (value == null) return "—";
     return new Intl.NumberFormat(intlLocale, {
       style: "currency",
       currency: "USD",

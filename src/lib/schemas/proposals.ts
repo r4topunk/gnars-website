@@ -29,6 +29,9 @@ export const proposalSchema = z.object({
   proposalNumber: z.number(),
   title: z.string(),
   description: z.string(),
+  // Precomputed by toListProposal() for slim list payloads; when present the
+  // card uses it instead of scanning `description` for the first URL.
+  bannerImageUrl: z.string().nullable().optional(),
   status: z.nativeEnum(ProposalStatus),
   proposer: z.string(),
   proposerEnsName: z.string().optional(),

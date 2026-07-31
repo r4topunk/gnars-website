@@ -5,7 +5,7 @@ description:
 date: 2021-11-09 00:00:00 +0000
 permalink: /patrons-of-the-arts/
 author: gami
-image: /images/primavera.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreibd4kvc4iqeyanet54ny6qagv4ialaawbixmb2erirjxp4etoaj64
 image_caption:
 video_embed:
 tags: [research]
@@ -26,7 +26,7 @@ A patron of the arts is someone who financially supports the creation of a piece
 
 To put this into context, artists were generally regarded as intellectuals, and some were even elevated to positions of nobility in the Renaissance. Through their craft, they were promoted to the higher-ups of society and mingled amongst aristocrats and royalty.
 
-![Patrons of the Arts](/images/lorenzo-medici.jpeg)
+![Patrons of the Arts](https://ipfs.skatehive.app/ipfs/bafkreic5v5v4aphcbnpffil7voksid2xltz5sr4y55mngi32d5ym3jbmxi)
 
 Why should artists of old ever create pieces for public enjoyment, or for art’s sake? It was in their best interest to only create what their patrons asked of them, for it was that which elevated their position above the commoners.  
 In a highly close-knitted, elitist circle of aristocrats, the people would have no chance of letting their voice be heard in the form of art. Art was for the people to interpret, but for the patrons to dictate.
@@ -39,7 +39,7 @@ According to Pew Research, they define the middle class as people earning betwee
 
 But the ‘middle-class’ in the universe of arts refer to those who treasure the value of art, but may not have the means to do so. If a peasant in the Renaissance age cherished art, he could only lust upon the pieces commissioned by the rich, but never have a chance of owning one himself.
 
-![Patrons of the Arts](/images/patron-of-the-arts.jpeg)
+![Patrons of the Arts](https://ipfs.skatehive.app/ipfs/bafkreigdisodeagjavgrox3zef7pj5tc37b2a67cbenj4rlxobtvyflhg4)
 
 NFTs give such people the power to have ownership of meaningful art, and patronage of arts for the middle-class.
 

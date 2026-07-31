@@ -5,7 +5,7 @@ description:
 date: 2021-11-17 00:00:00 +0000
 permalink: /daos-revolutionary-or-crypto-chats/
 author: gami
-image: /images/dao-revulutionary-companies.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreie4w4ny7xiighfzxur63au5rxa3if6bp2upbr7xdlhngsng4oc344
 image_caption:
 video_embed:
 tags: [research]

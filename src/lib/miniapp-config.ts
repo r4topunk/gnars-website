@@ -16,12 +16,13 @@ import { BASE_URL, DAO_ADDRESSES, DAO_DESCRIPTION } from "./config";
 export const MINIAPP_CONFIG = {
   // Account association - MUST be filled in after signing at base.dev/preview
   // Leave empty strings until you've signed the manifest
+  // Signed for the Gnars custody account (fid 3757, domain gnars.com).
   accountAssociation: {
     header:
-      "eyJmaWQiOjUzODgzOSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDk3Yjc4ZDdCM2M2NmMyZmZiOTYxYWEwQURCNmNlNjcyQTM3MTZEOEMifQ",
+      "eyJmaWQiOjM3NTcsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhjQzI5YjVFNmZhOWM1OGU3QzRGMWQ3ZTAzMzExRjMxNjE0M0ZkNWZmIn0",
     payload: "eyJkb21haW4iOiJnbmFycy5jb20ifQ",
     signature:
-      "qm+dqd4UcCOzjAYvNCDaoQOp1A4PoXAm9B6Qv6D4iJ9kzFZ4zjVpoL3s21y2UckqPC+QPO2/HkKuRzoU8GmV4xs=",
+      "j7zi5DsViINJnAaGbXCA36xMmKDtgZ72oRVjAbVCDKsawCrrDnbXR58dD420FxQsQQnFBRFv2bw0K7yCPrzCGRs=",
   },
 
   // Base builder configuration - add your Base account address
@@ -315,3 +316,90 @@ export const SWAP_MINIAPP_EMBED_CONFIG = {
     },
   },
 };
+
+/**
+ * Embed metadata for the Gnars Migration mini app (`/migrate`).
+ * Lets a cast that links to /migrate render a "Migrate to $gnars" launch button.
+ */
+export const MIGRATE_MINIAPP_EMBED_CONFIG = {
+  version: "1",
+  imageUrl: `${BASE_URL}/migrate/miniapp-image`,
+  button: {
+    title: "Migrate to $gnars",
+    action: {
+      type: "launch_miniapp" as const,
+      name: "Gnars Migration",
+      url: `${BASE_URL}/migrate`,
+      splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
+      splashBackgroundColor: "#000000",
+    },
+  },
+};
+
+/**
+ * Stake Mini App Configuration
+ * Fighting-game rider select — back an athlete's sponsorship vault.
+ */
+export const STAKE_MINIAPP_EMBED_CONFIG = {
+  version: "1",
+  imageUrl: `${BASE_URL}/miniapp-image`,
+  button: {
+    title: "Stake or Die",
+    action: {
+      type: "launch_miniapp" as const,
+      name: "Gnars Stake",
+      url: `${BASE_URL}/stake`,
+      splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
+      splashBackgroundColor: "#000000",
+    },
+  },
+};
+
+/**
+ * Blogs Mini App Configuration
+ */
+export const BLOGS_MINIAPP_EMBED_CONFIG = {
+  version: "1",
+  imageUrl: `${BASE_URL}/miniapp-image`,
+  button: {
+    title: "Read the blog",
+    action: {
+      type: "launch_miniapp" as const,
+      name: "Gnars Blog",
+      url: `${BASE_URL}/blogs`,
+      splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
+      splashBackgroundColor: "#000000",
+    },
+  },
+};
+
+/**
+ * Generic launch embed for routes that just need to open at their own URL
+ * instead of inheriting the root default (which launches the home mini app).
+ */
+export function launchMiniappEmbed(path: string, name: string, title: string) {
+  return {
+    version: "1" as const,
+    imageUrl: `${BASE_URL}/miniapp-image`,
+    button: {
+      title,
+      action: {
+        type: "launch_miniapp" as const,
+        name,
+        url: `${BASE_URL}${path}`,
+        splashImageUrl: `${BASE_URL}/gnars-splash-200.png`,
+        splashBackgroundColor: "#000000",
+      },
+    },
+  };
+}
+
+export const AUCTIONS_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/auctions", "Gnars Auctions", "View auction");
+export const TREASURY_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/treasury", "Gnars Treasury", "View treasury");
+export const COMMUNITY_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/community", "Gnars Community", "Explore community");
+export const STORE_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/store", "Gnars Store", "Shop Gnars");
+export const FEED_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/feed", "Gnars Feed", "Open the feed");
+export const PROPOSE_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/propose", "Gnars Propose", "Create a proposal");
+export const ROUNDS_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/rounds", "Gnars Rounds", "View rounds");
+export const ABOUT_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/about", "About Gnars", "About Gnars");
+export const PROPDATES_MINIAPP_EMBED_CONFIG = launchMiniappEmbed("/propdates", "Gnars Propdates", "View propdates");

@@ -21,13 +21,16 @@ export async function HeroStatsValues() {
   const [daoStats, snapshot] = await Promise.all([
     fetchDaoStats().catch(() => ({ totalSupply: 0, ownerCount: 0 })),
     loadTreasurySnapshot(DAO_ADDRESSES.treasury).catch(() => ({
-      usdTotal: 0,
+      usdTotal: null,
       ethBalance: 0,
       totalAuctionSales: 0,
     })),
   ]);
 
-  const formattedTreasury = formatLargeNumber(snapshot.usdTotal);
+  // A null total means the price feed failed. Show a dash — rendering "$0" for
+  // a treasury we simply could not price is worse than showing nothing.
+  const formattedTreasury =
+    snapshot.usdTotal == null ? "—" : `$${formatLargeNumber(snapshot.usdTotal)}`;
 
   return (
     <div className="flex flex-wrap gap-4 pt-4">
@@ -58,7 +61,7 @@ export async function HeroStatsValues() {
           <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
         </div>
         <div>
-          <div className="font-semibold">${formattedTreasury}</div>
+          <div className="font-semibold">{formattedTreasury}</div>
           <div className="text-xs text-muted-foreground">{t("treasury")}</div>
         </div>
       </div>

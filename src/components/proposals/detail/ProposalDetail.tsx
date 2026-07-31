@@ -18,6 +18,7 @@ import { useUserAddress } from "@/hooks/use-user-address";
 import { useVotes } from "@/hooks/useVotes";
 import { useRouter } from "@/i18n/navigation";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
+import { requestRevalidation } from "@/lib/request-revalidation";
 import { isProposalSuccessful } from "@/lib/utils/proposal-state";
 import type { MultiChainProposal } from "@/services/multi-chain-proposals";
 
@@ -168,8 +169,20 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
           return [updated, ...filtered];
         });
       }
+
+      // Local state above is optimistic for the voter themselves; kick the
+      // server caches so other users see the vote without waiting out the
+      // ISR/segment-cache TTLs (docs/architecture/caching-standard.md Rule 3).
+      requestRevalidation([`proposal:${proposal.proposalNumber}`, "proposals", "feed"]);
     },
-    [setUserVote, setUserVoteReason, setHasRecentVoteConfirmation, setVoteTotals, setVotesList],
+    [
+      setUserVote,
+      setUserVoteReason,
+      setHasRecentVoteConfirmation,
+      setVoteTotals,
+      setVotesList,
+      proposal.proposalNumber,
+    ],
   );
 
   // Find user's vote from subgraph

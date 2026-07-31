@@ -80,7 +80,11 @@ export function ProposalCard({
   });
   const isPending = proposal.status === ProposalStatus.PENDING;
 
-  const bannerUrl = normalizeImageUrl(extractFirstUrl(proposal.description));
+  const bannerUrl = normalizeImageUrl(
+    proposal.bannerImageUrl !== undefined
+      ? proposal.bannerImageUrl
+      : extractFirstUrl(proposal.description),
+  );
   const currentBannerSrc = bannerUrl ?? "/logo-banner.jpg";
   const [bannerSrc, setBannerSrc] = useState<string>(currentBannerSrc);
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
@@ -117,7 +121,7 @@ export function ProposalCard({
   const proposalUrl = `/proposals/${source}/${proposal.proposalNumber}`;
 
   return (
-    <Link href={proposalUrl} className="block">
+    <Link href={proposalUrl} className="block" prefetch={false}>
       <Card className="overflow-hidden cursor-pointer transition-transform transition-shadow hover:-translate-y-0.5 hover:shadow-md">
         {showBanner && (
           <div className="mx-4 border rounded-md overflow-hidden">

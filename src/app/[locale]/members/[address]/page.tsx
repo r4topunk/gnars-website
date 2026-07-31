@@ -133,7 +133,7 @@ interface MemberPageProps {
 }
 
 // Helper to fetch member metadata for OG tags
-async function getMemberMetadata(address: string) {
+async function getMemberMetadataUncached(address: string) {
   try {
     // Fetch Zora profile data
     if (process.env.NEXT_PUBLIC_ZORA_API_KEY) {
@@ -188,6 +188,17 @@ async function getMemberMetadata(address: string) {
     return null;
   }
 }
+
+/**
+ * The page stays force-dynamic (ISR here would burn write units on every
+ * unique bot-crawled address), but the metadata lookup — Zora profile +
+ * member overview, the bulk of per-request CPU — is served from the data
+ * cache for 30 minutes per address.
+ */
+const getMemberMetadata = unstable_cache(getMemberMetadataUncached, ["members:og-metadata"], {
+  revalidate: 1800,
+  tags: ["members:og-metadata"],
+});
 
 export async function generateMetadata({ params }: MemberPageProps): Promise<Metadata> {
   const { address, locale } = await params;

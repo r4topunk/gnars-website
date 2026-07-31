@@ -5,7 +5,7 @@ description:
 date: 2021-12-03 00:00:00 +0000
 permalink: /what-are-nft-rarity-rankings/
 author: gami
-image: /images/what-are-nft-rarity-rankings.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreieh26eixp6xio4wtcki4rlu55qg45h2tfndcicsqryjj4icsw76ze
 image_caption:
 video_embed:
 tags: [education]

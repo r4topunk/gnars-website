@@ -5,7 +5,7 @@ description:
 date: 2021-11-22 00:00:00 +0000
 permalink: /nft-influencers/
 author: gami
-image: /images/nft-influencer.jpeg
+image: https://ipfs.skatehive.app/ipfs/bafkreicpjosuxbyrtc2g3qpd53sae2mfbionoptwjkfm7mlfru46wmhcim
 image_caption:
 video_embed:
 tags: [education]

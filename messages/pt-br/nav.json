@@ -2,7 +2,8 @@
   "languageSwitcherLabel": "Mudar idioma",
   "mobileMenu": {
     "toggleLabel": "Alternar menu",
-    "sheetTitle": "Navegação"
+    "sheetTitle": "Navegação",
+    "sheetDescription": "Navegue pelas seções da Gnars DAO e conecte sua carteira."
   },
   "switchNetwork": {
     "label": "Mudar para Base",
@@ -51,6 +52,14 @@
       "shop": {
         "title": "Loja",
         "description": "Equipamentos e gnar da comunidade e de lojas parceiras — em breve, ainda não disponível"
+      },
+      "store": {
+        "title": "Loja",
+        "description": "Produtos oficiais da Gnars e de marcas parceiras — finalização de compra em breve"
+      },
+      "migrate": {
+        "title": "Migração",
+        "description": "Troque suas coins da Zora por $gnars — consolide a liquidez em um só token"
       }
     },
     "community": {
