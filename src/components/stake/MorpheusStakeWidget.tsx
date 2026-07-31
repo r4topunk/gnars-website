@@ -34,7 +34,7 @@ export function MorpheusStakeWidget() {
   };
 
   return (
-    <div className="fixed left-4 bottom-[150px] z-40 flex flex-col items-start gap-3">
+    <div className="fixed right-5 bottom-24 z-40 flex flex-col items-end gap-3">
       <AnimatePresence>
         {view !== "closed" && (
           <motion.div
@@ -121,12 +121,12 @@ export function MorpheusStakeWidget() {
         type="button"
         onClick={() => setView(view === "closed" ? "intro" : "closed")}
         aria-label="Stake on the Gnars subnet"
-        className="group relative flex h-14 w-14 items-center justify-center rounded-full border border-violet-400/40 bg-background/90 shadow-lg backdrop-blur transition hover:scale-105"
+        className="group relative flex h-16 w-16 items-center justify-center rounded-full border border-violet-300/50 bg-gradient-to-br from-violet-600 to-violet-500 shadow-[0_0_24px_rgba(139,92,246,.55)] transition hover:scale-105"
       >
         {view === "closed" && (
-          <span className="absolute inset-0 animate-ping rounded-full bg-violet-500/20" aria-hidden />
+          <span className="absolute inset-0 animate-ping rounded-full bg-violet-400/30" aria-hidden />
         )}
-        <Image src="/logos/morpheus.webp" alt="Morpheus" width={34} height={34} className="relative rounded-full" />
+        <Image src="/logos/morpheus.webp" alt="Morpheus" width={38} height={38} className="relative rounded-full" />
       </button>
     </div>
   );
