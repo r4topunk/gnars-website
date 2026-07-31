@@ -6,7 +6,6 @@ import { StakeAdminPanel } from "@/components/stake/StakeAdminPanel";
 import { StakeOrbit } from "@/components/stake/StakeOrbit";
 import { MorLootbox } from "@/components/stake/MorLootbox";
 import { MorpheusStakeWidget } from "@/components/stake/MorpheusStakeWidget";
-import { GnarsSubnetPanel } from "@/components/stake/GnarsSubnetPanel";
 import { RIDER_LIST, getRider } from "@/lib/gnars-vaults";
 import { STAKE_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 import { BASE_URL } from "@/lib/config";
@@ -90,7 +89,6 @@ export default async function StakeRiderPage({
 
         <CharacterSelector initialRider={rider} />
         <StakeOrbit />
-        <GnarsSubnetPanel />
         <StakeAdminPanel />
       </div>
       <MorLootbox />
