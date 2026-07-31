@@ -5,7 +5,6 @@ import { StakeAdminPanel } from "@/components/stake/StakeAdminPanel";
 import { StakeOrbit } from "@/components/stake/StakeOrbit";
 import { MorLootbox } from "@/components/stake/MorLootbox";
 import { MorpheusStakeWidget } from "@/components/stake/MorpheusStakeWidget";
-import { GnarsSubnetPanel } from "@/components/stake/GnarsSubnetPanel";
 import { STAKE_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 
 export async function generateMetadata({
@@ -68,7 +67,6 @@ export default async function StakePage({ params }: { params: Promise<{ locale: 
           <CharacterSelector />
         </div>
         <StakeOrbit />
-        <GnarsSubnetPanel />
         <StakeAdminPanel />
       </div>
       <MorLootbox />
