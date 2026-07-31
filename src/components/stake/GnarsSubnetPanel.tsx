@@ -25,7 +25,9 @@ export function GnarsSubnetPanel() {
   const { position, totalStaked } = useGnarsSubnet(you, nonce);
   const [amount, setAmount] = useState("");
 
-  const nowSec = Math.floor(Date.now() / 1000);
+  // Read the clock once at mount (lazy initializer is pure-in-render safe); the
+  // 7-day unlock doesn't need a live tick — a refresh/refetch re-reads it.
+  const [nowSec] = useState(() => Math.floor(Date.now() / 1000));
   const locked = !!position && position.unlockAt > nowSec;
   const daysLeft = position ? Math.max(0, Math.ceil((position.unlockAt - nowSec) / 86400)) : 0;
 
