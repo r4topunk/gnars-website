@@ -28,7 +28,8 @@ export function MorpheusStakeWidget() {
   const [view, setView] = useState<View>("closed");
 
   const goStake = () => {
-    document.getElementById("stake-start")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Jump to the real Gnars subnet stake panel (MOR → the Builder subnet).
+    document.getElementById("gnars-subnet-stake")?.scrollIntoView({ behavior: "smooth", block: "start" });
     setView("closed");
   };
 
