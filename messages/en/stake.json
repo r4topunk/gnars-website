@@ -170,7 +170,16 @@
     "withdraw": "Withdraw",
     "withdrawing": "withdrawing…",
     "withdrawn": "Withdrawn",
-    "locked": "unlocks {date}"
+    "locked": "unlocks {date}",
+    "subtitle": "Collect your MOR rewards in three steps.",
+    "close": "Close",
+    "step1": "Claim",
+    "step1sub": "Pull MOR from mainnet",
+    "step2": "Bridge",
+    "step2sub": "LayerZero to Arbitrum (~1–2 min)",
+    "step3": "Distribute",
+    "step3sub": "Split 50/25/25 to wallets",
+    "allCollected": "Nothing to collect right now — all your MOR has been claimed and distributed."
   },
   "admin": {
     "title": "Sponsorship vaults",

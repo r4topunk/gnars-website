@@ -170,7 +170,16 @@
     "withdraw": "Sacar",
     "withdrawing": "sacando…",
     "withdrawn": "Sacado",
-    "locked": "libera em {date}"
+    "locked": "libera em {date}",
+    "subtitle": "Colete seus rewards em MOR em três passos.",
+    "close": "Fechar",
+    "step1": "Reivindicar",
+    "step1sub": "Puxa o MOR da mainnet",
+    "step2": "Bridge",
+    "step2sub": "LayerZero pra Arbitrum (~1–2 min)",
+    "step3": "Distribuir",
+    "step3sub": "Divide 50/25/25 nas carteiras",
+    "allCollected": "Nada pra coletar agora — todo o seu MOR já foi reivindicado e distribuído."
   },
   "admin": {
     "title": "Cofres de patrocínio",
