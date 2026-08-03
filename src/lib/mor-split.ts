@@ -120,3 +120,32 @@ export async function splitMorBalance(staker: Address, athlete: Address): Promis
     return 0;
   }
 }
+
+/**
+ * The 0xSplits SplitsWarehouse (ERC-6909) — same canonical address on every
+ * chain. `distribute` doesn't push straight to wallets: it CREDITS each
+ * recipient's balance in the Warehouse, and a separate `withdraw(owner, token)`
+ * pushes it out. Warehouse token id = uint256(uint160(token)).
+ */
+export const SPLITS_WAREHOUSE = getAddress("0x8fb66F38cF86A3d5e8768f8F1754A24A6c661Fb8");
+
+export const splitsWarehouseAbi = [
+  { type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ name: "owner", type: "address" }, { name: "id", type: "uint256" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "withdraw", stateMutability: "nonpayable", inputs: [{ name: "owner", type: "address" }, { name: "token", type: "address" }], outputs: [] },
+] as const;
+
+/**
+ * MOR credited to `owner` in the SplitsWarehouse after a distribute, waiting to
+ * be collected into the wallet. The Warehouse leaves 1 wei — treat <= 1 as empty.
+ */
+export async function warehouseMorBalance(owner: Address): Promise<number> {
+  try {
+    const bal = await arbitrumClient.readContract({
+      address: SPLITS_WAREHOUSE, abi: splitsWarehouseAbi, functionName: "balanceOf",
+      args: [getAddress(owner), BigInt(MOR_TOKEN)],
+    });
+    return Number(formatUnits(bal <= BigInt(1) ? BigInt(0) : bal, MOR_DECIMALS));
+  } catch {
+    return 0;
+  }
+}

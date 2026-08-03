@@ -178,8 +178,14 @@
     "step2": "Bridge",
     "step2sub": "LayerZero pra Arbitrum (~1–2 min)",
     "step3": "Distribuir",
-    "step3sub": "Divide 50/25/25 nas carteiras",
-    "allCollected": "Nada pra coletar agora — todo o seu MOR já foi reivindicado e distribuído."
+    "step3sub": "Divide 50/25/25",
+    "allCollected": "Nada pra coletar agora — todo o seu MOR já foi reivindicado e distribuído.",
+    "step4": "Coletar",
+    "step4sub": "Warehouse → sua carteira",
+    "collect": "Coletar",
+    "collecting": "Coletando…",
+    "collectedTitle": "Coletado na sua carteira",
+    "inWarehouse": "no Warehouse"
   },
   "admin": {
     "title": "Cofres de patrocínio",

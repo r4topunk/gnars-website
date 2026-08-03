@@ -36,54 +36,63 @@ function tierFor(total: number): "bronze" | "silver" | "gold" | "black" {
 interface Props {
   claimable: MorpheusPoolPosition[];
   distributable: MorpheusPoolPosition[];
+  collectable: number;
   stakedPools: MorpheusPoolPosition[];
   splitBalances: Partial<Record<MorpheusAsset, number>>;
   busyAsset: MorpheusAsset | null;
   morpheusBusy: boolean;
   morpheusPhase: string;
   distributing: boolean;
+  collecting: boolean;
   nowSec: number;
   onClaim: (asset: MorpheusAsset, referrer: Address) => void;
   onDistribute: (asset: MorpheusAsset, referrer: Address) => void;
+  onCollect: () => void;
   onWithdraw: (asset: MorpheusAsset, staked: number) => void;
   onClose: () => void;
 }
 
 export function RewardClaimModal({
-  claimable, distributable, stakedPools, splitBalances,
-  busyAsset, morpheusBusy, morpheusPhase, distributing, nowSec,
-  onClaim, onDistribute, onWithdraw, onClose,
+  claimable, distributable, collectable, stakedPools, splitBalances,
+  busyAsset, morpheusBusy, morpheusPhase, distributing, collecting, nowSec,
+  onClaim, onDistribute, onCollect, onWithdraw, onClose,
 }: Props) {
   const t = useTranslations("stake");
 
   const totalClaimable = claimable.reduce((s, p) => s + p.pendingMor, 0);
   const totalDistributable = distributable.reduce((s, p) => s + (splitBalances[p.asset] ?? 0), 0);
-  const total = totalClaimable + totalDistributable;
+  const total = totalClaimable + totalDistributable + collectable;
 
-  const stage: "claim" | "distribute" | "done" =
-    claimable.length > 0 ? "claim" : distributable.length > 0 ? "distribute" : "done";
+  const stage: "claim" | "distribute" | "collect" | "done" =
+    claimable.length > 0 ? "claim"
+      : distributable.length > 0 ? "distribute"
+      : collectable > 0 ? "collect"
+      : "done";
 
-  const isPending = busyAsset != null;
-  // Reward has landed at the split → let the chest reveal it (idle otherwise).
-  const isOpening = distributable.length > 0 && busyAsset == null;
+  const isPending = busyAsset != null || collecting;
+  // Reward is out of the pool (at the split, or credited in the warehouse) → let
+  // the chest reveal it; idle while a tx runs or nothing's waiting.
+  const isOpening = (distributable.length > 0 || collectable > 0) && !isPending;
 
   // Clicking the chest runs the primary next action.
   const runPrimary = () => {
     if (claimable.length > 0) { const p = claimable[0]; onClaim(p.asset, p.referrer); return; }
-    if (distributable.length > 0) { const p = distributable[0]; onDistribute(p.asset, p.referrer); }
+    if (distributable.length > 0) { const p = distributable[0]; onDistribute(p.asset, p.referrer); return; }
+    if (collectable > 0) onCollect();
   };
 
   const steps = [
     { key: "claim", label: t("lootbox.step1"), sub: t("lootbox.step1sub") },
     { key: "bridge", label: t("lootbox.step2"), sub: t("lootbox.step2sub") },
     { key: "distribute", label: t("lootbox.step3"), sub: t("lootbox.step3sub") },
+    { key: "collect", label: t("lootbox.step4"), sub: t("lootbox.step4sub") },
   ] as const;
 
+  const order = ["claim", "bridge", "distribute", "collect"];
+  const currentIdx = stage === "claim" ? 0 : stage === "distribute" ? 2 : stage === "collect" ? 3 : order.length;
   const stepState = (key: string): "done" | "current" | "idle" => {
-    if (stage === "done") return "done";
-    if (stage === "claim") return key === "claim" ? "current" : "idle";
-    // distribute stage: claim + bridge behind us, distribute is the live step.
-    return key === "distribute" ? "current" : "done";
+    const i = order.indexOf(key);
+    return i < currentIdx ? "done" : i === currentIdx ? "current" : "idle";
   };
 
   return (
@@ -173,7 +182,18 @@ export function RewardClaimModal({
               </div>
             ))}
 
-            {claimable.length === 0 && distributable.length === 0 && (
+            {collectable > 0 && (
+              <div className="flex items-center justify-between gap-2 rounded-lg border bg-muted/40 px-3 py-2">
+                <span className="text-xs text-muted-foreground">
+                  <b className="font-mono text-foreground">{fmt(collectable)}</b> MOR · {t("lootbox.inWarehouse")}
+                </span>
+                <Button size="sm" disabled={collecting} onClick={onCollect} className="h-7">
+                  {collecting ? t("lootbox.collecting") : t("lootbox.collect")}
+                </Button>
+              </div>
+            )}
+
+            {claimable.length === 0 && distributable.length === 0 && collectable === 0 && (
               <p className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">{t("lootbox.allCollected")}</p>
             )}
           </div>
