@@ -20,9 +20,10 @@ import { ARBITRUM_PUSH_SPLIT_FACTORY, MOR_TOKEN } from "@/lib/morpheus";
 import {
   splitParamsFor, predictSplitAddress, isSplitDeployed,
   pushSplitFactoryAbi, splitWalletAbi, SPLIT_OWNER, SPLIT_SALT,
+  SPLITS_WAREHOUSE, splitsWarehouseAbi,
 } from "@/lib/mor-split";
 
-export type DistributePhase = "idle" | "deploy" | "distribute" | "done" | "error";
+export type DistributePhase = "idle" | "deploy" | "distribute" | "collect" | "done" | "error";
 
 export function useMorDistribute() {
   const writer = useWriteAccount();
@@ -85,10 +86,47 @@ export function useMorDistribute() {
     [writer],
   );
 
+  /**
+   * Collect `owner`'s MOR out of the SplitsWarehouse into their wallet — the cut
+   * `distribute` credited there. `withdraw(owner, token)` is permissionless; the
+   * caller pays gas and the MOR still only goes to `owner`.
+   */
+  const collect = useCallback(
+    async (owner: Address): Promise<boolean> => {
+      if (pending.current) return false;
+      const client = getThirdwebClient();
+      if (!client) { setError("Thirdweb not configured."); setPhase("error"); return false; }
+      if (!writer) { setError("Connect your wallet."); setPhase("error"); return false; }
+      setError(null);
+      pending.current = true;
+      try {
+        await ensureOnChain(writer.wallet, arbitrum);
+        setPhase("collect");
+        const data = encodeFunctionData({
+          abi: splitsWarehouseAbi, functionName: "withdraw", args: [owner, MOR_TOKEN],
+        });
+        const tx = prepareTransaction({ client, chain: arbitrum, to: SPLITS_WAREHOUSE, data });
+        const hash = (await sendTransaction({ account: writer.account, transaction: tx })).transactionHash;
+        await waitForReceipt({ client, chain: arbitrum, transactionHash: hash });
+        setPhase("done");
+        return true;
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Collect failed.");
+        setPhase("error");
+        return false;
+      } finally {
+        pending.current = false;
+      }
+    },
+    [writer],
+  );
+
   return {
     distribute,
+    collect,
     phase,
     error,
-    isBusy: phase === "deploy" || phase === "distribute",
+    isBusy: phase === "deploy" || phase === "distribute" || phase === "collect",
+    collecting: phase === "collect",
   };
 }

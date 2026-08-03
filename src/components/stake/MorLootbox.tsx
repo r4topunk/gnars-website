@@ -20,7 +20,7 @@ import { useUserAddress } from "@/hooks/use-user-address";
 import { useMorpheusPosition } from "@/hooks/use-morpheus-position";
 import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
 import { useMorDistribute } from "@/hooks/use-mor-distribute";
-import { predictSplitAddress, splitMorBalance } from "@/lib/mor-split";
+import { predictSplitAddress, splitMorBalance, warehouseMorBalance } from "@/lib/mor-split";
 import type { MorpheusAsset } from "@/lib/morpheus";
 import { RewardClaimModal } from "@/components/stake/RewardClaimModal";
 
@@ -39,10 +39,11 @@ export function MorLootbox() {
   const [nonce, setNonce] = useState(0);
   const position = useMorpheusPosition(you, nonce);
   const morpheus = useMorpheusStake();
-  const { distribute, isBusy: distributing } = useMorDistribute();
+  const { distribute, collect, isBusy: distributing, collecting } = useMorDistribute();
 
   const [open, setOpen] = useState(false);
   const [splitBalances, setSplitBalances] = useState<Partial<Record<MorpheusAsset, number>>>({});
+  const [collectable, setCollectable] = useState(0);
   const [busyAsset, setBusyAsset] = useState<MorpheusAsset | null>(null);
   // Read the clock once at mount (a lazy initializer is pure-in-render safe) —
   // the 7-day unlock doesn't need a live tick; a refresh re-reads it.
@@ -62,13 +63,22 @@ export function MorLootbox() {
     return () => { cancelled = true; };
   }, [you, position, nonce]);
 
+  // MOR the user was credited in the SplitsWarehouse (after a distribute), still
+  // to be collected into the wallet — the last hop of the reward flow.
+  useEffect(() => {
+    if (!you) { setCollectable(0); return; }
+    let cancelled = false;
+    warehouseMorBalance(you as Address).then((v) => { if (!cancelled) setCollectable(v); });
+    return () => { cancelled = true; };
+  }, [you, nonce]);
+
   const pools = position?.pools ?? [];
   const claimable = pools.filter((p) => p.pendingMor > LOOT_MIN_MOR && p.referrer && p.referrer.toLowerCase() !== ZERO);
   const distributable = pools.filter((p) => (splitBalances[p.asset] ?? 0) > LOOT_MIN_MOR);
   const stakedPools = pools.filter((p) => p.staked > 0);
-  // The box surfaces whenever there's any MOR to act on — rewards to collect OR
-  // a principal position to manage (withdraw after the 7-day lock).
-  const hasAction = claimable.length > 0 || distributable.length > 0 || stakedPools.length > 0;
+  // The box surfaces whenever there's any MOR to act on — rewards to claim,
+  // distribute or collect, OR a principal position to manage (7-day lock).
+  const hasAction = claimable.length > 0 || distributable.length > 0 || collectable > LOOT_MIN_MOR || stakedPools.length > 0;
 
   const refresh = () => setNonce((n) => n + 1);
 
@@ -110,6 +120,16 @@ export function MorLootbox() {
     [distribute, t],
   );
 
+  const onCollect = useCallback(
+    async () => {
+      if (!you) return;
+      const ok = await collect(you as Address);
+      if (ok) { toast.success(t("lootbox.collectedTitle")); refresh(); }
+      else toast.error(t("lootbox.failed"));
+    },
+    [you, collect, t],
+  );
+
   const onWithdraw = useCallback(
     async (asset: MorpheusAsset, staked: number) => {
       setBusyAsset(asset);
@@ -128,7 +148,7 @@ export function MorLootbox() {
 
   const totalClaimable = claimable.reduce((s, p) => s + p.pendingMor, 0);
   const totalDistributable = distributable.reduce((s, p) => s + (splitBalances[p.asset] ?? 0), 0);
-  const badge = totalClaimable + totalDistributable;
+  const badge = totalClaimable + totalDistributable + collectable;
 
   return (
     <>
@@ -136,15 +156,18 @@ export function MorLootbox() {
         <RewardClaimModal
           claimable={claimable}
           distributable={distributable}
+          collectable={collectable}
           stakedPools={stakedPools}
           splitBalances={splitBalances}
           busyAsset={busyAsset}
           morpheusBusy={morpheus.isBusy}
           morpheusPhase={morpheus.phase}
           distributing={distributing}
+          collecting={collecting}
           nowSec={nowSec}
           onClaim={onClaim}
           onDistribute={onDistribute}
+          onCollect={onCollect}
           onWithdraw={onWithdraw}
           onClose={() => setOpen(false)}
         />

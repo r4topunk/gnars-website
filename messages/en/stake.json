@@ -178,8 +178,14 @@
     "step2": "Bridge",
     "step2sub": "LayerZero to Arbitrum (~1–2 min)",
     "step3": "Distribute",
-    "step3sub": "Split 50/25/25 to wallets",
-    "allCollected": "Nothing to collect right now — all your MOR has been claimed and distributed."
+    "step3sub": "Split 50/25/25",
+    "allCollected": "Nothing to collect right now — all your MOR has been claimed and distributed.",
+    "step4": "Collect",
+    "step4sub": "Warehouse → your wallet",
+    "collect": "Collect",
+    "collecting": "Collecting…",
+    "collectedTitle": "Collected to your wallet",
+    "inWarehouse": "in the Warehouse"
   },
   "admin": {
     "title": "Sponsorship vaults",
