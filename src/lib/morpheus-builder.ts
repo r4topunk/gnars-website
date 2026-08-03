@@ -6,7 +6,8 @@
 // staker's principal is theirs, withdrawable after a 7-day lock. All values
 // below were read on-chain from BuildersV4 before hardcoding.
 
-import { getAddress, type Address } from "viem";
+import { createPublicClient, fallback, formatUnits, getAddress, http, type Address } from "viem";
+import { base } from "viem/chains";
 
 /** BuildersV4 (ERC1967 proxy) on Base. */
 export const BUILDERS = getAddress("0x42BB446eAE6dca7723a9eBdb81EA88aFe77eF4B9");
@@ -67,5 +68,21 @@ export type GnarsSubnetPosition = {
 };
 
 export const GNARS_SUBNET = { id: GNARS_SUBNET_ID, admin: getAddress("0x8Bf5941d27176242745B716251943Ae4892a3C26") } as const;
+
+/**
+ * Total MOR staked into the Gnars subnet, read on-chain (server-safe).
+ * Mirrors the `useGnarsSubnet` hook: `subnetsData(id).deposited`, 18 decimals.
+ * Used to gate the homepage "Powered by Morpheus" reveal behind the goal.
+ */
+export async function getGnarsSubnetTotalStaked(): Promise<number> {
+  const client = createPublicClient({ chain: base, transport: fallback(BASE_RPCS.map((u) => http(u))) });
+  const data = await client.readContract({
+    address: BUILDERS,
+    abi: buildersAbi,
+    functionName: "subnetsData",
+    args: [GNARS_SUBNET_ID],
+  });
+  return Number(formatUnits(data[1], MOR_DECIMALS));
+}
 
 export type { Address };

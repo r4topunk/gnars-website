@@ -1,10 +1,24 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
+import { getGnarsSubnetTotalStaked } from "@/lib/morpheus-builder";
+import { SUBNET_GOAL_MOR } from "@/lib/stake-milestones";
 
 // "Powered by Morpheus" homepage strip — signals the Gnars × Morpheus
 // community-to-community partnership, with the colored Morpheus mark, and links
 // to the subnet staking flow. Morpheus green (#2be58b / emerald) accents.
-export function PoweredByMorpheus() {
+//
+// Gated: only surfaces once the subnet actually clears its goal (SUBNET_GOAL_MOR).
+// Before that it's a spoiler, so we render nothing. Fails closed — if the
+// on-chain read errors we hide it rather than reveal it prematurely.
+export async function PoweredByMorpheus() {
+  let totalStaked = 0;
+  try {
+    totalStaked = await getGnarsSubnetTotalStaked();
+  } catch {
+    return null;
+  }
+  if (totalStaked < SUBNET_GOAL_MOR) return null;
+
   return (
     <section className="mx-auto w-full max-w-6xl px-4">
       <Link
