@@ -192,5 +192,20 @@
     "deployedToast": "{id} vault deployed",
     "deployedToastDesc": "Approve the batch in the SOPA Safe to activate.",
     "deployFail": "{id} deploy failed"
+  },
+  "positions": {
+    "title": "Your positions",
+    "subtitle": "Your Morpheus Capital stakes — deposit, MOR earned, and when each lock lifts.",
+    "connect": "Connect your wallet to see your positions.",
+    "loading": "Reading your positions…",
+    "none": "No Morpheus stake yet. Back a rider above to start earning MOR.",
+    "earned": "MOR earned",
+    "morLock": "MOR unlock",
+    "principalLock": "Deposit unlock",
+    "claimable": "claimable now",
+    "lockedUntil": "locked until {date}",
+    "unlocked": "unlocked",
+    "claimHint": "To claim, open the reward box (bottom-right) once the MOR unlock date has passed — it bridges your MOR to Arbitrum and splits it to your wallet.",
+    "powerLockNote": "A far-off MOR unlock means a longer power-lock was chosen at deposit (higher APR / power factor) — the MOR stays locked until that date."
   }
 }
