@@ -96,8 +96,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
       </section>
 
-      {/* Community × community — Gnars is a Morpheus Builder */}
-      <PoweredByMorpheus />
+      {/* Community × community — Gnars is a Morpheus Builder (gated on the subnet goal) */}
+      <Suspense fallback={null}>
+        <PoweredByMorpheus />
+      </Suspense>
 
       {/* Dashboard Grid */}
       <div className="flex flex-1 flex-col gap-6 py-8">
