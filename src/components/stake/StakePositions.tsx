@@ -7,8 +7,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useActiveAccount } from "thirdweb/react";
 import { cn } from "@/lib/utils";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useMorpheusPosition, type MorpheusPoolPosition } from "@/hooks/use-morpheus-position";
 
@@ -87,7 +87,9 @@ function PositionRow({ p, now, t }: { p: MorpheusPoolPosition; now: number; t: T
 
 export function StakePositions() {
   const t = useTranslations("stake.positions");
-  const you = useActiveAccount()?.address;
+  // Effective user address (EOA for external wallets) — reads must key off the
+  // address the stake actually lives on, not the Smart Account wrap.
+  const { address: you } = useUserAddress();
   const pos = useMorpheusPosition(you);
   // Lazy initializer keeps render pure — the 7-day / power locks don't need a
   // live tick; a refresh re-reads the clock.

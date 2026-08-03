@@ -11,12 +11,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useActiveAccount } from "thirdweb/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Gift, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { type Address } from "viem";
 import { Button } from "@/components/ui/button";
+import { useUserAddress } from "@/hooks/use-user-address";
 import { useMorpheusPosition } from "@/hooks/use-morpheus-position";
 import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
 import { useMorDistribute } from "@/hooks/use-mor-distribute";
@@ -30,7 +30,12 @@ const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 4 
 
 export function MorLootbox() {
   const t = useTranslations("stake");
-  const you = useActiveAccount()?.address;
+  // Read off the EFFECTIVE user address (EOA for external wallets), not the raw
+  // active account — with account-abstraction thirdweb's active account is the
+  // Smart Account wrap, but stakes/claims live on the user's EOA. Keying reads
+  // off the SA made the box find no position and never appear. Writes still sign
+  // through the active account inside the morpheus/distribute hooks.
+  const { address: you } = useUserAddress();
   const [nonce, setNonce] = useState(0);
   const position = useMorpheusPosition(you, nonce);
   const morpheus = useMorpheusStake();
