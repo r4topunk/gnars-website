@@ -192,5 +192,20 @@
     "deployedToast": "Vault de {id} deployado",
     "deployedToastDesc": "Aprove o batch no Safe da SOPA pra ativar.",
     "deployFail": "Falha no deploy de {id}"
+  },
+  "positions": {
+    "title": "Suas posições",
+    "subtitle": "Seus stakes na Morpheus Capital — depósito, MOR rendido e quando cada lock abre.",
+    "connect": "Conecte a carteira pra ver suas posições.",
+    "loading": "Lendo suas posições…",
+    "none": "Nenhum stake na Morpheus ainda. Apoie um rider acima pra começar a render MOR.",
+    "earned": "MOR rendido",
+    "morLock": "Unlock do MOR",
+    "principalLock": "Unlock do depósito",
+    "claimable": "dá pra sacar",
+    "lockedUntil": "travado até {date}",
+    "unlocked": "liberado",
+    "claimHint": "Pra sacar, abra a caixa de recompensa (canto inferior direito) depois que a data de unlock do MOR passar — ela leva o MOR pra Arbitrum e divide na sua carteira.",
+    "powerLockNote": "Um unlock do MOR distante significa que um power-lock maior foi escolhido no depósito (APR / power factor mais alto) — o MOR fica travado até essa data."
   }
 }

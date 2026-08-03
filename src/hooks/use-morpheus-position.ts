@@ -31,6 +31,10 @@ export type MorpheusPoolPosition = {
   pendingMor: number;
   /** Unix seconds when the withdraw lock lifts (0 if nothing staked). */
   unlockAt: number;
+  /** Unix seconds when the MOR reward claim-lock lifts (claimLockEnd) — until
+   * then the accrued MOR can't be claimed. 0 if none. This is the "power lock"
+   * chosen at deposit: a longer lock buys a higher power factor / APR. */
+  morUnlockAt: number;
   /** The athlete credited as referrer for this position (drives the 3-way split). */
   referrer: Address;
 };
@@ -62,12 +66,14 @@ export function useMorpheusPosition(wallet?: string, nonce = 0): MorpheusPositio
             ]);
             const lastStake = Number(data[0]); // uint128 lastStake
             const deposited = data[1]; // uint256 deposited
+            const claimLockEnd = Number(data[5]); // uint128 claimLockEnd (MOR power lock)
             const referrer = data[8] as Address; // stored referrer (athlete)
             return {
               asset, symbol,
               staked: Number(formatUnits(deposited, decimals)),
               pendingMor: Number(formatUnits(reward, MOR_DECIMALS)),
               unlockAt: deposited > BigInt(0) ? lastStake + WITHDRAW_LOCK_SECONDS : 0,
+              morUnlockAt: deposited > BigInt(0) ? claimLockEnd : 0,
               referrer,
             } satisfies MorpheusPoolPosition;
           }),

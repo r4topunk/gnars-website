@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CharacterSelector } from "@/components/stake/CharacterSelector";
 import { StakeAdminPanel } from "@/components/stake/StakeAdminPanel";
 import { StakeOrbit } from "@/components/stake/StakeOrbit";
+import { StakePositions } from "@/components/stake/StakePositions";
 import { MorLootbox } from "@/components/stake/MorLootbox";
 import { MorpheusStakeWidget } from "@/components/stake/MorpheusStakeWidget";
 import { STAKE_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
@@ -67,6 +68,7 @@ export default async function StakePage({ params }: { params: Promise<{ locale: 
           <CharacterSelector />
         </div>
         <StakeOrbit />
+        <StakePositions />
         <StakeAdminPanel />
       </div>
       <MorLootbox />
