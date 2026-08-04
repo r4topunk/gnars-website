@@ -185,7 +185,10 @@
     "collect": "Coletar",
     "collecting": "Coletando…",
     "collectedTitle": "Coletado na sua carteira",
-    "inWarehouse": "no Warehouse"
+    "inWarehouse": "no Warehouse",
+    "morphoTitle": "Yield Morpho",
+    "claimYield": "Colher",
+    "vaultClaimed": "Yield colhido na carteira"
   },
   "admin": {
     "title": "Cofres de patrocínio",

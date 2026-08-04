@@ -185,7 +185,10 @@
     "collect": "Collect",
     "collecting": "Collecting…",
     "collectedTitle": "Collected to your wallet",
-    "inWarehouse": "in the Warehouse"
+    "inWarehouse": "in the Warehouse",
+    "morphoTitle": "Morpho yield",
+    "claimYield": "Harvest",
+    "vaultClaimed": "Yield harvested to your wallet"
   },
   "admin": {
     "title": "Sponsorship vaults",
