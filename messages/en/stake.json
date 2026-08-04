@@ -181,7 +181,7 @@
     "step3sub": "Split 50/25/25",
     "allCollected": "Nothing to collect right now — all your MOR has been claimed and distributed.",
     "step4": "Collect",
-    "step4sub": "Warehouse → your wallet",
+    "step4sub": "Warehouse → every wallet (you + Gnars)",
     "collect": "Collect",
     "collecting": "Collecting…",
     "collectedTitle": "Collected to your wallet",

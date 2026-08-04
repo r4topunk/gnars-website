@@ -20,7 +20,7 @@ import { ARBITRUM_PUSH_SPLIT_FACTORY, MOR_TOKEN } from "@/lib/morpheus";
 import {
   splitParamsFor, predictSplitAddress, isSplitDeployed,
   pushSplitFactoryAbi, splitWalletAbi, SPLIT_OWNER, SPLIT_SALT,
-  SPLITS_WAREHOUSE, splitsWarehouseAbi,
+  SPLITS_WAREHOUSE, splitsWarehouseAbi, MULTICALL3, multicall3Abi,
 } from "@/lib/mor-split";
 
 export type DistributePhase = "idle" | "deploy" | "distribute" | "collect" | "done" | "error";
@@ -87,13 +87,15 @@ export function useMorDistribute() {
   );
 
   /**
-   * Collect `owner`'s MOR out of the SplitsWarehouse into their wallet — the cut
-   * `distribute` credited there. `withdraw(owner, token)` is permissionless; the
-   * caller pays gas and the MOR still only goes to `owner`.
+   * Collect EVERY recipient's MOR out of the SplitsWarehouse in one tx — staker
+   * + Gnars + athlete — by batching their `withdraw(owner, MOR)` calls through
+   * Multicall3. `withdraw` pays out to `owner` no matter who calls, so a single
+   * Collect click delivers all cuts. `allowFailure` so a zero/dust owner can
+   * never revert the batch.
    */
   const collect = useCallback(
-    async (owner: Address): Promise<boolean> => {
-      if (pending.current) return false;
+    async (owners: Address[]): Promise<boolean> => {
+      if (pending.current || owners.length === 0) return false;
       const client = getThirdwebClient();
       if (!client) { setError("Thirdweb not configured."); setPhase("error"); return false; }
       if (!writer) { setError("Connect your wallet."); setPhase("error"); return false; }
@@ -102,10 +104,13 @@ export function useMorDistribute() {
       try {
         await ensureOnChain(writer.wallet, arbitrum);
         setPhase("collect");
-        const data = encodeFunctionData({
-          abi: splitsWarehouseAbi, functionName: "withdraw", args: [owner, MOR_TOKEN],
-        });
-        const tx = prepareTransaction({ client, chain: arbitrum, to: SPLITS_WAREHOUSE, data });
+        const calls = owners.map((owner) => ({
+          target: SPLITS_WAREHOUSE,
+          allowFailure: true,
+          callData: encodeFunctionData({ abi: splitsWarehouseAbi, functionName: "withdraw", args: [owner, MOR_TOKEN] }),
+        }));
+        const data = encodeFunctionData({ abi: multicall3Abi, functionName: "aggregate3", args: [calls] });
+        const tx = prepareTransaction({ client, chain: arbitrum, to: MULTICALL3, data });
         const hash = (await sendTransaction({ account: writer.account, transaction: tx })).transactionHash;
         await waitForReceipt({ client, chain: arbitrum, transactionHash: hash });
         setPhase("done");

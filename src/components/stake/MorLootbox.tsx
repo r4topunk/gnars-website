@@ -15,13 +15,13 @@ import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Gift } from "lucide-react";
 import { toast } from "sonner";
-import { type Address } from "viem";
+import { getAddress, type Address } from "viem";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useMorpheusPosition } from "@/hooks/use-morpheus-position";
 import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
 import { useMorDistribute } from "@/hooks/use-mor-distribute";
 import { predictSplitAddress, splitMorBalance, warehouseMorBalance } from "@/lib/mor-split";
-import type { MorpheusAsset } from "@/lib/morpheus";
+import { MOR_GNARS_RECIPIENT, type MorpheusAsset } from "@/lib/morpheus";
 import { RewardClaimModal } from "@/components/stake/RewardClaimModal";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
@@ -43,7 +43,7 @@ export function MorLootbox() {
 
   const [open, setOpen] = useState(false);
   const [splitBalances, setSplitBalances] = useState<Partial<Record<MorpheusAsset, number>>>({});
-  const [collectable, setCollectable] = useState(0);
+  const [collectItems, setCollectItems] = useState<{ owner: Address; amount: number }[]>([]);
   const [busyAsset, setBusyAsset] = useState<MorpheusAsset | null>(null);
   // Read the clock once at mount (a lazy initializer is pure-in-render safe) —
   // the 7-day unlock doesn't need a live tick; a refresh re-reads it.
@@ -63,14 +63,27 @@ export function MorLootbox() {
     return () => { cancelled = true; };
   }, [you, position, nonce]);
 
-  // MOR the user was credited in the SplitsWarehouse (after a distribute), still
-  // to be collected into the wallet — the last hop of the reward flow.
+  // Every recipient's MOR credited in the SplitsWarehouse (staker + Gnars +
+  // athletes) still to be collected — the last hop. One Collect click withdraws
+  // them all in a single batched tx (Multicall3).
   useEffect(() => {
-    if (!you) { setCollectable(0); return; }
+    if (!you) { setCollectItems([]); return; }
     let cancelled = false;
-    warehouseMorBalance(you as Address).then((v) => { if (!cancelled) setCollectable(v); });
+    (async () => {
+      const referrers = (position?.pools ?? [])
+        .filter((p) => p.staked > 0 && p.referrer && p.referrer.toLowerCase() !== ZERO)
+        .map((p) => getAddress(p.referrer));
+      const owners = [...new Set([getAddress(you as Address), MOR_GNARS_RECIPIENT, ...referrers])];
+      const amounts = await Promise.all(owners.map((o) => warehouseMorBalance(o)));
+      const items = owners
+        .map((owner, i) => ({ owner, amount: amounts[i] }))
+        .filter((x) => x.amount > LOOT_MIN_MOR);
+      if (!cancelled) setCollectItems(items);
+    })();
     return () => { cancelled = true; };
-  }, [you, nonce]);
+  }, [you, position, nonce]);
+
+  const collectable = collectItems.reduce((s, x) => s + x.amount, 0);
 
   const pools = position?.pools ?? [];
   const claimable = pools.filter((p) => p.pendingMor > LOOT_MIN_MOR && p.referrer && p.referrer.toLowerCase() !== ZERO);
@@ -122,12 +135,12 @@ export function MorLootbox() {
 
   const onCollect = useCallback(
     async () => {
-      if (!you) return;
-      const ok = await collect(you as Address);
+      if (collectItems.length === 0) return;
+      const ok = await collect(collectItems.map((x) => x.owner));
       if (ok) { toast.success(t("lootbox.collectedTitle")); refresh(); }
       else toast.error(t("lootbox.failed"));
     },
-    [you, collect, t],
+    [collectItems, collect, t],
   );
 
   const onWithdraw = useCallback(
