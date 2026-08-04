@@ -12,6 +12,7 @@ import { type Address } from "viem";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { MorpheusPoolPosition } from "@/hooks/use-morpheus-position";
+import type { VaultReward } from "@/hooks/use-vault-rewards";
 import type { MorpheusAsset } from "@/lib/morpheus";
 
 // The r3f Canvas is client-only and heavy — load it only when the modal mounts.
@@ -37,9 +38,12 @@ interface Props {
   claimable: MorpheusPoolPosition[];
   distributable: MorpheusPoolPosition[];
   collectable: number;
+  vaultRewards: VaultReward[];
   stakedPools: MorpheusPoolPosition[];
   splitBalances: Partial<Record<MorpheusAsset, number>>;
   busyAsset: MorpheusAsset | null;
+  busyVault: string | null;
+  claimingVault: boolean;
   morpheusBusy: boolean;
   morpheusPhase: string;
   distributing: boolean;
@@ -48,14 +52,15 @@ interface Props {
   onClaim: (asset: MorpheusAsset, referrer: Address) => void;
   onDistribute: (asset: MorpheusAsset, referrer: Address) => void;
   onCollect: () => void;
+  onClaimVault: (vault: Address, earnedRaw: bigint) => void;
   onWithdraw: (asset: MorpheusAsset, staked: number) => void;
   onClose: () => void;
 }
 
 export function RewardClaimModal({
-  claimable, distributable, collectable, stakedPools, splitBalances,
-  busyAsset, morpheusBusy, morpheusPhase, distributing, collecting, nowSec,
-  onClaim, onDistribute, onCollect, onWithdraw, onClose,
+  claimable, distributable, collectable, vaultRewards, stakedPools, splitBalances,
+  busyAsset, busyVault, claimingVault, morpheusBusy, morpheusPhase, distributing, collecting, nowSec,
+  onClaim, onDistribute, onCollect, onClaimVault, onWithdraw, onClose,
 }: Props) {
   const t = useTranslations("stake");
 
@@ -193,10 +198,29 @@ export function RewardClaimModal({
               </div>
             )}
 
-            {claimable.length === 0 && distributable.length === 0 && collectable === 0 && (
+            {claimable.length === 0 && distributable.length === 0 && collectable === 0 && vaultRewards.length === 0 && (
               <p className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">{t("lootbox.allCollected")}</p>
             )}
           </div>
+
+          {/* Morpho vault yield — the other reward type: one-click harvest per rider vault (USDC on Base) */}
+          {vaultRewards.length > 0 && (
+            <div className="border-t pt-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t("lootbox.morphoTitle")}</p>
+              <div className="space-y-2">
+                {vaultRewards.map((v) => (
+                  <div key={`v-${v.vault}`} className="flex items-center justify-between gap-2 rounded-lg border bg-muted/40 px-3 py-2">
+                    <span className="text-xs text-muted-foreground">
+                      <b className="font-mono text-foreground">{v.earned.toLocaleString(undefined, { maximumFractionDigits: 4 })}</b> USDC · {v.riderId}
+                    </span>
+                    <Button size="sm" disabled={busyVault === v.vault && claimingVault} onClick={() => onClaimVault(v.vault, v.earnedRaw)} className="h-7">
+                      {busyVault === v.vault && claimingVault ? t("lootbox.claiming") : t("lootbox.claimYield")}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Principal positions (withdraw after 7-day lock) */}
           {stakedPools.length > 0 && (

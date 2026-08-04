@@ -23,6 +23,8 @@ import { useMorDistribute } from "@/hooks/use-mor-distribute";
 import { predictSplitAddress, splitMorBalance, warehouseMorBalance } from "@/lib/mor-split";
 import { MOR_GNARS_RECIPIENT, type MorpheusAsset } from "@/lib/morpheus";
 import { RewardClaimModal } from "@/components/stake/RewardClaimModal";
+import { useStakeDeposit } from "@/hooks/use-stake-deposit";
+import { useVaultRewards } from "@/hooks/use-vault-rewards";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 const LOOT_MIN_MOR = 0.0001; // ignore dust
@@ -40,11 +42,15 @@ export function MorLootbox() {
   const position = useMorpheusPosition(you, nonce);
   const morpheus = useMorpheusStake();
   const { distribute, collect, isBusy: distributing, collecting } = useMorDistribute();
+  // Morpho (USDC vault) yield — the OTHER reward type, claimable per rider vault.
+  const { claimRewards, isStaking: claimingVault } = useStakeDeposit();
+  const vaultRewards = useVaultRewards(you, nonce);
 
   const [open, setOpen] = useState(false);
   const [splitBalances, setSplitBalances] = useState<Partial<Record<MorpheusAsset, number>>>({});
   const [collectItems, setCollectItems] = useState<{ owner: Address; amount: number }[]>([]);
   const [busyAsset, setBusyAsset] = useState<MorpheusAsset | null>(null);
+  const [busyVault, setBusyVault] = useState<string | null>(null);
   // Read the clock once at mount (a lazy initializer is pure-in-render safe) —
   // the 7-day unlock doesn't need a live tick; a refresh re-reads it.
   const [nowSec] = useState(() => Math.floor(Date.now() / 1000));
@@ -89,9 +95,12 @@ export function MorLootbox() {
   const claimable = pools.filter((p) => p.pendingMor > LOOT_MIN_MOR && p.referrer && p.referrer.toLowerCase() !== ZERO);
   const distributable = pools.filter((p) => (splitBalances[p.asset] ?? 0) > LOOT_MIN_MOR);
   const stakedPools = pools.filter((p) => p.staked > 0);
-  // The box surfaces whenever there's any MOR to act on — rewards to claim,
-  // distribute or collect, OR a principal position to manage (7-day lock).
-  const hasAction = claimable.length > 0 || distributable.length > 0 || collectable > LOOT_MIN_MOR || stakedPools.length > 0;
+  // The box surfaces whenever there's anything to act on — MOR rewards (claim,
+  // distribute, collect), Morpho vault yield to harvest, OR a principal position
+  // to manage (7-day lock).
+  const hasAction =
+    claimable.length > 0 || distributable.length > 0 || collectable > LOOT_MIN_MOR ||
+    vaultRewards.length > 0 || stakedPools.length > 0;
 
   const refresh = () => setNonce((n) => n + 1);
 
@@ -143,6 +152,22 @@ export function MorLootbox() {
     [collectItems, collect, t],
   );
 
+  // Harvest a rider vault's Morpho yield — withdraws only the earned amount,
+  // leaving the principal. USDC on Base; one click, no stepper.
+  const onClaimVault = useCallback(
+    async (vault: Address, earnedRaw: bigint) => {
+      setBusyVault(vault);
+      try {
+        const ok = await claimRewards(vault, earnedRaw);
+        if (ok) { toast.success(t("lootbox.vaultClaimed")); refresh(); }
+        else toast.error(t("lootbox.failed"));
+      } finally {
+        setBusyVault(null);
+      }
+    },
+    [claimRewards, t],
+  );
+
   const onWithdraw = useCallback(
     async (asset: MorpheusAsset, staked: number) => {
       setBusyAsset(asset);
@@ -170,9 +195,12 @@ export function MorLootbox() {
           claimable={claimable}
           distributable={distributable}
           collectable={collectable}
+          vaultRewards={vaultRewards}
           stakedPools={stakedPools}
           splitBalances={splitBalances}
           busyAsset={busyAsset}
+          busyVault={busyVault}
+          claimingVault={claimingVault}
           morpheusBusy={morpheus.isBusy}
           morpheusPhase={morpheus.phase}
           distributing={distributing}
@@ -181,6 +209,7 @@ export function MorLootbox() {
           onClaim={onClaim}
           onDistribute={onDistribute}
           onCollect={onCollect}
+          onClaimVault={onClaimVault}
           onWithdraw={onWithdraw}
           onClose={() => setOpen(false)}
         />
