@@ -29,6 +29,7 @@ import {
   SECTION_TITLE,
   type PreviewConfig,
 } from "@/components/stake/preview/preview-config";
+import { RevealItem, RevealSection } from "@/components/stake/preview/Reveal";
 import { RiderSelect } from "@/components/stake/preview/RiderSelect";
 import { SectionHeader } from "@/components/stake/preview/SectionHeader";
 import { SubnetSection } from "@/components/stake/preview/SubnetSection";
@@ -77,8 +78,10 @@ function RatesStrip() {
   ];
 
   return (
-    <section className="border-y border-white/[0.08] py-2 sm:min-h-14 sm:py-3">
-      <div className="sm:flex sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-1">
+    // One revealed block, not two: at ~56px the strip has no header/body split to
+    // stagger — it is the header.
+    <RevealSection className="border-y border-white/[0.08] py-2 sm:min-h-14 sm:py-3">
+      <RevealItem className="sm:flex sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-1">
         <h2 className={cn(SECTION_TITLE, "py-2 sm:py-0")}>{t("ratesTitle")}</h2>
 
         {/* Skeleton is one muted line, not three grey blocks: at 56px tall a shimmer
@@ -113,8 +116,8 @@ function RatesStrip() {
             ))}
           </ul>
         )}
-      </div>
-    </section>
+      </RevealItem>
+    </RevealSection>
   );
 }
 
@@ -200,38 +203,49 @@ export function StakePreview({ config, rider }: { config: PreviewConfig; rider?:
           spec draws it. Rounded at every breakpoint, no negative margins. */}
       <div className="dark rounded-2xl bg-background text-foreground shadow-xl">
         <div className="space-y-10 rounded-2xl bg-white/[0.02] px-4 py-8 ring-1 ring-white/[0.06] sm:space-y-12 sm:px-6">
-          <section className="space-y-4">
-            <SectionHeader title={t("subtitle")} />
+          <RevealSection className="space-y-4">
+            <RevealItem>
+              <SectionHeader title={t("subtitle")} />
+            </RevealItem>
             {/* onSelect drives the orbit's focus — picking a rider up here re-centres
                 the graph further down instead of leaving the two out of sync. */}
-            <RiderSelect initialRider={rider} onSelect={setFocus} />
-          </section>
+            <RevealItem delay={50}>
+              <RiderSelect initialRider={rider} onSelect={setFocus} />
+            </RevealItem>
+          </RevealSection>
 
           <RatesStrip />
 
           <PositionsHub config={config} />
 
-          <section className="space-y-4">
-            <SectionHeader title={tp("socialTitle")} desc={tp("socialDesc")} />
-            <SocialStats data={demoGraph} />
+          <RevealSection className="space-y-4">
+            <RevealItem>
+              <SectionHeader title={tp("socialTitle")} desc={tp("socialDesc")} />
+            </RevealItem>
+            {/* Stats and the visual are ONE revealed block: the stat line is a
+                caption for the graph under it, and revealing them separately would
+                stagger a sentence away from its subject. */}
+            <RevealItem delay={50} className="space-y-4">
+              <SocialStats data={demoGraph} />
 
-            {/* The graph is desktop-only. It is a pannable 2D orbit: on a phone it is
+              {/* The graph is desktop-only. It is a pannable 2D orbit: on a phone it is
                 a smear of overlapping labels inside a scroll container that fights the
                 page scroll, and the ranked list answers "who is backing whom" better
                 at that size. The ?orbit toggle therefore only switches the desktop arm. */}
-            <div className={cn(PANEL, "hidden p-2 sm:p-4 md:block")}>
-              {config.orbit === "graph" ? (
-                // `chromeless` drops the orbit's own card, title and stats row, so the
-                // panel is the only frame and SectionHeader is the only title.
-                <StakeOrbit focusRider={focus} chromeless data={demoGraph} />
-              ) : (
+              <div className={cn(PANEL, "hidden p-2 sm:p-4 md:block")}>
+                {config.orbit === "graph" ? (
+                  // `chromeless` drops the orbit's own card, title and stats row, so the
+                  // panel is the only frame and SectionHeader is the only title.
+                  <StakeOrbit focusRider={focus} chromeless data={demoGraph} />
+                ) : (
+                  <BackerList data={demoGraph} />
+                )}
+              </div>
+              <div className={cn(PANEL, "p-2 md:hidden")}>
                 <BackerList data={demoGraph} />
-              )}
-            </div>
-            <div className={cn(PANEL, "p-2 md:hidden")}>
-              <BackerList data={demoGraph} />
-            </div>
-          </section>
+              </div>
+            </RevealItem>
+          </RevealSection>
 
           <SubnetSection />
 

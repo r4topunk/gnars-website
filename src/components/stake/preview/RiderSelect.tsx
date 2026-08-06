@@ -24,10 +24,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { PRESS } from "@/components/stake/preview/preview-config";
 import { Button } from "@/components/ui/button";
 import { useVaultTotal } from "@/hooks/use-vault-total";
 import { getRider, type RiderId } from "@/lib/gnars-vaults";
+import { EASE_OUT_ARRAY } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { CHARACTERS, STAT_KEYS } from "../CharacterSelector";
 import { StakeDialog } from "../StakeDialog";
@@ -61,6 +63,9 @@ export function RiderSelect({ initialRider, onSelect }: RiderSelectProps) {
   // The clip is multi-MB, so the <video> only exists while the pointer is on the
   // stage — same deal as production: never preloaded, never fetched on load.
   const [hovered, setHovered] = useState(false);
+  // Reduced motion keeps the cross-fade (it is what stops the swap from being a
+  // hard cut) and drops the scale.
+  const reduce = useReducedMotion();
 
   const count = CHARACTERS.length;
   const active = CHARACTERS[index];
@@ -114,12 +119,15 @@ export function RiderSelect({ initialRider, onSelect }: RiderSelectProps) {
           <AnimatePresence initial={false}>
             <motion.div
               key={active.id}
-              initial={{ opacity: 0, scale: 1.03 }}
+              // Full transform strings, not the `scale` shorthand: the shorthand
+              // is not hardware accelerated and drops frames while the page is
+              // still loading portraits.
+              initial={{ opacity: 0, transform: reduce ? "scale(1)" : "scale(1.03)" }}
               // Fade the still out while the clip plays, otherwise the cut-out
               // shows through above and below the footage.
-              animate={{ opacity: hovered && active.video ? 0 : 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.26, ease: "easeOut" }}
+              animate={{ opacity: hovered && active.video ? 0 : 1, transform: "scale(1)" }}
+              exit={{ opacity: 0, transform: reduce ? "scale(1)" : "scale(0.98)" }}
+              transition={{ duration: 0.26, ease: EASE_OUT_ARRAY }}
               className="absolute inset-x-0 bottom-[4%] top-[4%]"
             >
               <Image
@@ -138,7 +146,7 @@ export function RiderSelect({ initialRider, onSelect }: RiderSelectProps) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.25 }}
+              transition={{ duration: 0.25, ease: EASE_OUT_ARRAY }}
               aria-hidden
               className="pointer-events-none absolute inset-0"
             >
@@ -185,7 +193,10 @@ export function RiderSelect({ initialRider, onSelect }: RiderSelectProps) {
 
           <Button
             onClick={() => setDialogOpen(true)}
-            className="h-11 w-full cursor-pointer border-0 font-bold hover:opacity-90 sm:w-auto"
+            className={cn(
+              "h-11 w-full cursor-pointer border-0 font-bold hover:opacity-90 sm:w-auto",
+              PRESS,
+            )}
             style={{ backgroundImage: GOLD, color: INK }}
           >
             {t("stakeCta", { name })}

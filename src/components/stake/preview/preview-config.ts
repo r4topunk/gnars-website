@@ -125,15 +125,31 @@ export const GOLD_SOLID = "#f7c948";
 /** Ink for text sitting on gold. */
 export const GOLD_INK = "#1a1205";
 
+/**
+ * Press feedback, on every button on the page. The whole point is that the
+ * interface visibly heard the press before anything else happens — a stake CTA
+ * opens a dialog and a quiet action signs a transaction, both slow enough that a
+ * dead button reads as a missed click.
+ *
+ * `scale` takes the label and icons with it, which is what makes it read as
+ * physical. `:active` is a real press on touch, so unlike `:hover` it needs no
+ * pointer gate. The property list is spelled out (never `transition-all`) and
+ * covers what these two recipes actually change on hover.
+ *
+ * The curve is the EASE_OUT token in src/lib/motion.ts — repeated as a literal
+ * because Tailwind only emits arbitrary values it can find in the source text.
+ */
+export const PRESS =
+  "transition-[transform,opacity,background-color] duration-[120ms] ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97]";
+
 /** Primary CTA. Pair with `style={{ backgroundImage: GOLD, color: GOLD_INK }}` —
  *  the same technique the production stake components use for the gradient. */
-export const GOLD_CTA = "h-11 cursor-pointer rounded-lg border-0 font-bold hover:opacity-90";
+export const GOLD_CTA = `h-11 cursor-pointer rounded-lg border-0 font-bold hover:opacity-90 ${PRESS}`;
 
 /** Quiet action (Colher / Sacar / Resgatar). These are secondary by definition:
  *  gold belongs to the page's primary stake CTAs, and a page where every button
  *  is gold has no primary action at all. */
-export const QUIET_BTN =
-  "h-11 cursor-pointer rounded-lg bg-white/[0.06] px-4 font-semibold text-white hover:bg-white/[0.10] sm:h-9";
+export const QUIET_BTN = `h-11 cursor-pointer rounded-lg bg-white/[0.06] px-4 font-semibold text-white hover:bg-white/[0.10] sm:h-9 ${PRESS}`;
 
 /** Neutral pill. Meta badges about the page itself ("sample data") only — a
  *  pill is never a state a row is in, because a pill next to a button reads as a

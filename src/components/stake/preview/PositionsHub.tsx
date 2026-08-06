@@ -30,6 +30,7 @@ import {
   ROW_PAD,
   type PreviewConfig,
 } from "@/components/stake/preview/preview-config";
+import { RevealItem, RevealSection } from "@/components/stake/preview/Reveal";
 import { SectionHeader } from "@/components/stake/preview/SectionHeader";
 import { Button } from "@/components/ui/button";
 import { useMorpheusPosition } from "@/hooks/use-morpheus-position";
@@ -152,18 +153,20 @@ export function PositionsHub({ config }: { config: PreviewConfig }) {
   if (rows.length === 0) return null;
 
   return (
-    <section className="space-y-4">
-      <SectionHeader title={t("title")} desc={t("desc")}>
-        {config.demo && <span className={PILL}>{t("sampleData")}</span>}
-      </SectionHeader>
+    <RevealSection className="space-y-4">
+      <RevealItem>
+        <SectionHeader title={t("title")} desc={t("desc")}>
+          {config.demo && <span className={PILL}>{t("sampleData")}</span>}
+        </SectionHeader>
+      </RevealItem>
 
       {/* Horizontal padding belongs to the panel so the hairlines between rows run
           the full width of the surface; the rows own their vertical rhythm. */}
-      <div className={cn(PANEL, ROW_LIST, "px-4 sm:px-6")}>
+      <RevealItem delay={50} className={cn(PANEL, ROW_LIST, "px-4 sm:px-6")}>
         {rows.map((r) => (
           <PositionRow key={r.venue} row={r} now={now} />
         ))}
-      </div>
-    </section>
+      </RevealItem>
+    </RevealSection>
   );
 }

@@ -32,6 +32,7 @@ import {
   PANEL,
   PANEL_PAD,
 } from "@/components/stake/preview/preview-config";
+import { RevealItem, RevealSection } from "@/components/stake/preview/Reveal";
 import { SectionHeader } from "@/components/stake/preview/SectionHeader";
 import { Button } from "@/components/ui/button";
 import { useGnarsSubnet } from "@/hooks/use-gnars-subnet";
@@ -52,10 +53,12 @@ export function SubnetSection() {
   const pct = Math.min(100, (totalStaked / SUBNET_GOAL_MOR) * 100);
 
   return (
-    <section className="space-y-4">
-      <SectionHeader title={t("title")} desc={t("desc")} />
+    <RevealSection className="space-y-4">
+      <RevealItem>
+        <SectionHeader title={t("title")} desc={t("desc")} />
+      </RevealItem>
 
-      <div className={cn(PANEL, PANEL_PAD)}>
+      <RevealItem delay={50} className={cn(PANEL, PANEL_PAD)}>
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
@@ -67,10 +70,15 @@ export function SubnetSection() {
                 {t("goal", { n: SUBNET_GOAL_MOR })}
               </span>
             </div>
+            {/* The fill is full width and scaled, not a growing `width`: animating
+                width lays out and paints on every frame, a transform does neither.
+                500ms is over the UI budget on purpose — this is a value arriving
+                from chain, and it should be legible as "it filled to here". */}
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
               <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${pct}%`, backgroundColor: MOR_GREEN }}
+                // ease token: EASE_OUT in src/lib/motion.ts.
+                className="h-full w-full origin-left rounded-full transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
+                style={{ transform: `scaleX(${pct / 100})`, backgroundColor: MOR_GREEN }}
               />
             </div>
           </div>
@@ -111,9 +119,9 @@ export function SubnetSection() {
         >
           {t("cta")}
         </Button>
-      </div>
+      </RevealItem>
 
       <GnarsStakeDialog open={open} onOpenChange={setOpen} />
-    </section>
+    </RevealSection>
   );
 }
