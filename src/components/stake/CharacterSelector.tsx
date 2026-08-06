@@ -2,21 +2,21 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useVaultTotal } from "@/hooks/use-vault-total";
+import { getRider } from "@/lib/gnars-vaults";
 import { cn } from "@/lib/utils";
 import { StakeDialog } from "./StakeDialog";
 import { YieldStatus } from "./YieldStatus";
-import { getRider } from "@/lib/gnars-vaults";
-import { useVaultTotal } from "@/hooks/use-vault-total";
 
-type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima" | "will";
+export type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima" | "will";
 
 // THPS-style attributes (1–10). Placeholder values — tailor freely.
-const STAT_KEYS = [
+export const STAT_KEYS = [
   "speed",
   "air",
   "ollie",
@@ -26,10 +26,10 @@ const STAT_KEYS = [
   "devSkills",
   "creativity",
 ] as const;
-type StatKey = (typeof STAT_KEYS)[number];
-const STAT_MAX = 10;
+export type StatKey = (typeof STAT_KEYS)[number];
+export const STAT_MAX = 10;
 
-interface Character {
+export interface Character {
   id: CharacterId;
   image: string;
   /** Tailwind gradient stops for the accent glow, from → to */
@@ -58,7 +58,9 @@ interface Character {
 // depositor keeps half the yield, the rest is shared.
 export const REWARD_SPLIT = { you: 50, skater: 25, treasury: 25 } as const;
 
-const CHARACTERS: Character[] = [
+// Exported (read-only) so the /stake/preview prototype can render the same roster
+// without forking the data. Nothing about this component's own rendering changes.
+export const CHARACTERS: Character[] = [
   {
     id: "vlad",
     image: "/stake/cutout/vlad.png",
@@ -67,7 +69,8 @@ const CHARACTERS: Character[] = [
     ring: "ring-yellow-400",
     hex: "#f59e0b",
     face: { size: "420%", pos: "50% 6%" },
-    video: "https://ipfs.skatehive.app/ipfs/bafybeiapkdzwrh3tv2dhaxkefzcwtoxekjaryecapa7kpqcaifqgwux3c4",
+    video:
+      "https://ipfs.skatehive.app/ipfs/bafybeiapkdzwrh3tv2dhaxkefzcwtoxekjaryecapa7kpqcaifqgwux3c4",
     stats: { speed: 7, air: 5, ollie: 8, spin: 9, rail: 2, flow: 9, devSkills: 10, creativity: 9 },
   },
   {
@@ -134,11 +137,43 @@ const CHARACTERS: Character[] = [
 
 // The arcade gold used for selection, bars and the overall score.
 const GOLD = "linear-gradient(90deg,#f7c948,#f5851f)";
-const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: n < 100 ? 2 : 0 })}`;
+const usd = (n: number) =>
+  `$${n.toLocaleString("en-US", { maximumFractionDigits: n < 100 ? 2 : 0 })}`;
 
-export function CharacterSelector({ initialRider }: { initialRider?: string } = {}) {
+/**
+ * Escape hatches for the prototype route. Every field defaults to what the live
+ * /stake routes already do, so omitting `preview` changes nothing.
+ */
+export type CharacterSelectorPreview = {
+  /** false → do not rewrite the URL on mount/selection. Default true. */
+  syncUrl?: boolean;
+  /** true → render the Stake CTA as the last row of the name plate instead of absolutely positioned. Default false. */
+  ctaInFlow?: boolean;
+  /** false → hide the "Overall" score block in the skills panel. Default true. */
+  showOverall?: boolean;
+  /** false → hide the per-tile numeric score in the roster thumbnails. Default true. */
+  showTileScore?: boolean;
+  /** true → roster grid uses auto-fit instead of fixed column counts. Default false. */
+  fluidRoster?: boolean;
+  /** false → omit the rates block. YieldStatus takes no rider, so its APYs are
+   *  global; a page that hoists it to page level must turn it off here or the
+   *  same three rows render twice. Default true. */
+  showRates?: boolean;
+};
+
+export function CharacterSelector({
+  initialRider,
+  preview,
+}: { initialRider?: string; preview?: CharacterSelectorPreview } = {}) {
   const t = useTranslations("stake");
   const pathname = usePathname();
+  // Read the preview flags once, defaulting to today's behaviour.
+  const syncUrl = preview?.syncUrl !== false;
+  const ctaInFlow = preview?.ctaInFlow === true;
+  const showOverall = preview?.showOverall !== false;
+  const showTileScore = preview?.showTileScore !== false;
+  const fluidRoster = preview?.fluidRoster === true;
+  const showRates = preview?.showRates !== false;
   const startIndex = Math.max(
     0,
     CHARACTERS.findIndex((c) => c.id === initialRider),
@@ -190,13 +225,15 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
 
   // Keep the URL on the picked rider so anyone can copy the address bar and
   // share that rider's vault. replaceState rather than push — browsing the
-  // roster with the arrows shouldn't stack up history entries.
+  // roster with the arrows shouldn't stack up history entries. Opted out of on
+  // routes that aren't /stake, where rewriting the path would navigate away.
   useEffect(() => {
+    if (!syncUrl) return;
     if (typeof window === "undefined") return;
     const root = pathname.replace(/\/stake(\/[^/]+)?\/?$/, "/stake");
     const next = `${root}/${active.id}`;
     if (window.location.pathname !== next) window.history.replaceState(null, "", next);
-  }, [active.id, pathname]);
+  }, [active.id, pathname, syncUrl]);
 
   return (
     <div className="flex flex-col gap-7">
@@ -315,18 +352,34 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
                 <span className="opacity-70">{t("vaultSoon")}</span>
               )}
             </p>
+            {/* In-flow CTA — same button as below, stacked as the plate's last
+                row. The plate is pointer-events-none, so the button has to hand
+                its own pointer events back or it reads as dead. */}
+            {ctaInFlow && (
+              <Button
+                size="lg"
+                onClick={() => setDialogOpen(true)}
+                className="pointer-events-auto mt-5 h-12 w-full cursor-pointer gap-2 border-0 font-bold text-[#1a1205] shadow-[0_8px_24px_rgba(245,133,31,.35)] hover:opacity-90 sm:h-10 sm:w-auto"
+                style={{ backgroundImage: GOLD }}
+              >
+                <Zap className="h-4 w-4" />
+                {t("stakeCta", { name })}
+              </Button>
+            )}
           </div>
 
           {/* Stake CTA — bottom-right of the card, above the name plate */}
-          <Button
-            size="lg"
-            onClick={() => setDialogOpen(true)}
-            className="absolute bottom-5 right-5 z-30 cursor-pointer gap-2 border-0 font-bold text-[#1a1205] shadow-[0_8px_24px_rgba(245,133,31,.35)] hover:opacity-90"
-            style={{ backgroundImage: GOLD }}
-          >
-            <Zap className="h-4 w-4" />
-            {t("stakeCta", { name })}
-          </Button>
+          {!ctaInFlow && (
+            <Button
+              size="lg"
+              onClick={() => setDialogOpen(true)}
+              className="absolute bottom-5 right-5 z-30 cursor-pointer gap-2 border-0 font-bold text-[#1a1205] shadow-[0_8px_24px_rgba(245,133,31,.35)] hover:opacity-90"
+              style={{ backgroundImage: GOLD }}
+            >
+              <Zap className="h-4 w-4" />
+              {t("stakeCta", { name })}
+            </Button>
+          )}
         </div>
 
         {/* Skills */}
@@ -338,17 +391,21 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
               </p>
               <p className="mt-1 truncate text-2xl font-extrabold text-white">{name}</p>
             </div>
-            <div className="text-right">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/50">
-                {t("overall")}
-              </p>
-              <p
-                className="bg-clip-text text-4xl font-black leading-none tabular-nums text-transparent"
-                style={{ backgroundImage: "linear-gradient(180deg,#f7c948,#f5851f)" }}
-              >
-                {overall}
-              </p>
-            </div>
+            {/* Only the visual block is optional — `overall` still feeds the
+                stake dialog either way. */}
+            {showOverall && (
+              <div className="text-right">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/50">
+                  {t("overall")}
+                </p>
+                <p
+                  className="bg-clip-text text-4xl font-black leading-none tabular-nums text-transparent"
+                  style={{ backgroundImage: "linear-gradient(180deg,#f7c948,#f5851f)" }}
+                >
+                  {overall}
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-[15px]">
@@ -379,14 +436,25 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
             })}
           </div>
 
-          <div className="my-5 h-px bg-white/[0.07]" />
-          {/* Live on-chain yields as the rider's status */}
-          <YieldStatus />
+          {showRates && (
+            <>
+              <div className="my-5 h-px bg-white/[0.07]" />
+              {/* Live on-chain yields as the rider's status */}
+              <YieldStatus />
+            </>
+          )}
         </div>
       </div>
 
-      {/* Roster — face-focused tiles */}
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-6 sm:gap-3.5">
+      {/* Roster — face-focused tiles. Fluid mode lets the tiles pack themselves
+          instead of snapping to 3/6 columns. */}
+      <div
+        className={
+          fluidRoster
+            ? "grid grid-cols-[repeat(auto-fit,minmax(96px,1fr))] gap-3 sm:gap-3.5"
+            : "grid grid-cols-3 gap-3 sm:grid-cols-6 sm:gap-3.5"
+        }
+      >
         {CHARACTERS.map((c, i) => {
           const isActive = i === index;
           const cOverall = Math.round(
@@ -427,7 +495,9 @@ export function CharacterSelector({ initialRider }: { initialRider?: string } = 
                 <span className="truncate text-sm font-extrabold text-white">
                   {t(`characters.${c.id}.name`)}
                 </span>
-                <span className="text-xs font-extrabold text-[#f7c948]">{cOverall}</span>
+                {showTileScore && (
+                  <span className="text-xs font-extrabold text-[#f7c948]">{cOverall}</span>
+                )}
               </div>
 
               {isActive && (

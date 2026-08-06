@@ -2,14 +2,22 @@
 
 // The whole sponsorship graph as an orbital flow: the Gnars treasury at the
 // center, the athletes in the first orbit, their backers in the second — with
-// each stake's value on the line, and support flowing inward. Unlike the
-// per-rider supporters list, this shows a backer's positions across every rider
-// at once (which is why "I don't see all my stakes" happens on the flat list).
+// support flowing inward. Unlike the per-rider supporters list, this shows a
+// backer's positions across every rider at once (which is why "I don't see all
+// my stakes" happens on the flat list).
+//
+// Two reading levels, on purpose:
+//   OVERVIEW — a composition. Athlete names and totals only; backer nodes are
+//     dots, with no ENS labels and no per-edge amounts. Printing a dollar figure
+//     on every line plus a name under every dot turned the whole field into text.
+//   FOCUS   — the reward for clicking. One athlete at the center, every backer
+//     named and every stake priced, at sizes that are actually legible.
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useActiveAccount } from "thirdweb/react";
 import { useStakeGraph } from "@/hooks/use-stake-graph";
 import type { RiderId } from "@/lib/gnars-vaults";
+import type { OrbitBacker, StakeGraph } from "@/services/stake-graph";
 
 // `face` zooms each full-body cut-out onto the head — same framing as the
 // character-select tiles, so the orbit nodes read as portraits.
@@ -32,47 +40,114 @@ const RIDER_VISUAL: Record<
 
 const usd = (n: number) =>
   `$${n.toLocaleString("en-US", { maximumFractionDigits: n > 0 && n < 100 ? 2 : 0 })}`;
+// Per-stake labels: always two decimals, no magnitude branch. In a dense focus
+// ring "$251", "$96.4" and "$61.83" side by side read as three formatting rules;
+// stake amounts share one. Athlete/graph totals keep the coarse `usd`.
+const usdStake = (n: number) =>
+  `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 // Tiny sub-cent treasury amounts still deserve to read as non-zero.
 const usdSmall = (n: number) => (n > 0 && n < 0.01 ? `$${n.toFixed(6)}` : usd(n));
 const fmtMor = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 4 });
 const short = (a: string) => `${a.slice(0, 5)}…${a.slice(-3)}`;
-/** Prefer an ENS/basename, trimmed to fit the small orbit label. */
-const nameOrShort = (addr: string, names: Record<string, string>) => {
-  const n = names[addr.toLowerCase()];
-  if (!n) return short(addr);
+/**
+ * Prefer an ENS/basename, trimmed to fit the small orbit label.
+ *
+ * A name the graph already carries (`b.ens`) wins over the client-side lookup:
+ * the live graph never sets it, but a fixture graph does, and its invented
+ * addresses would otherwise resolve to nothing and print as 0x-shorts.
+ */
+const nameOrShort = (b: OrbitBacker, names: Record<string, string>) => {
+  const n = b.ens ?? names[b.address.toLowerCase()];
+  if (!n) return short(b.address);
   return n.length > 16 ? `${n.slice(0, 15)}…` : n;
 };
+/** Rough advance width, only for the bounds math — cheaper than measuring text
+ *  in the DOM and accurate enough to keep a label from being clipped. */
+const textW = (s: string, size: number) => s.length * size * 0.58;
+
 const GOLD = "#f7c948";
-// Morpheus green — MOR stakes get their own colored stream, distinct from the
-// rider-tinted Morpho vault flows, so a wallet that backs both shows two lines.
-const MOR_GREEN = "#2be58b";
+// Edges carry no venue coding anymore. The graph answers WHO backs WHOM with HOW
+// MUCH; Morpho vs Morpheus is explained by the sections around it, and spending a
+// second hue (plus a legend to decode it) on that made every line argue for
+// attention. Neutral idle, gold only for the animated stream flowing inward.
+const EDGE = "rgba(255,255,255,.12)";
+const EDGE_FOCUS = "rgba(255,255,255,.2)";
 // Real protocol logos, marking each backer node by where they staked.
 const MORPHO_LOGO = "/logos/morpho.webp";
 const MORPHEUS_LOGO = "/logos/morpheus.webp";
+// Dark halo behind every label so a line crossing under it never eats the text.
+const HALO = { paintOrder: "stroke", stroke: "#0c0a08", strokeWidth: 3.5 } as const;
 
 const W = 760;
 const C = W / 2;
-const R_ATH = 208; // athlete orbit radius
-const R_SUP = 328; // supporter orbit radius
+const R_ATH = 196; // athlete orbit radius (overview)
+const R_SUP = 300; // backer orbit, inner tier (overview)
+const R_FOC = 244; // backer ring when one athlete is centered
+const TIER = 30; // every other backer sits one tier further out (see FAN below)
+// Focus mode keeps this arc clear at the top: the treasury satellite parks there,
+// and backers spread over a full circle used to land on top of it.
+const FOCUS_GAP = 76;
 const rad = (deg: number) => (deg * Math.PI) / 180;
+const r1 = (v: number) => Math.round(v * 10) / 10;
 const pt = (angleDeg: number, r: number) => ({
-  x: C + r * Math.cos(rad(angleDeg)),
-  y: C + r * Math.sin(rad(angleDeg)),
+  x: r1(C + r * Math.cos(rad(angleDeg))),
+  y: r1(C + r * Math.sin(rad(angleDeg))),
 });
+/** Faint guide arc under a fan, from `a0` to `a1` degrees. */
+const arcPath = (a0: number, a1: number, r: number) => {
+  const s = pt(a0, r);
+  const e = pt(a1, r);
+  return `M ${s.x} ${s.y} A ${r} ${r} 0 ${Math.abs(a1 - a0) > 180 ? 1 : 0} 1 ${e.x} ${e.y}`;
+};
 
-export function StakeOrbit() {
+/**
+ * `chromeless` strips the component's own frame and header (card shell, title,
+ * description, stats row) so a parent that already draws a panel and prints the
+ * same totals does not stack two frames. Purely additive: omitted or false, the
+ * output is exactly what /stake and /stake/[rider] render today. The back button
+ * survives — it drives the drawing itself, not the card around it.
+ *
+ * `data` substitutes a caller-supplied graph for the fetched one — the
+ * /stake/preview `?demo=1` fixture, which is dense enough to actually exercise
+ * the fan cap and the label collision math. Also purely additive: with the prop
+ * omitted this renders the live graph exactly as before. `useStakeGraph` is
+ * still called unconditionally (it is a react-query subscription; skipping it
+ * would break hook order), its result simply goes unused.
+ */
+export function StakeOrbit({
+  focusRider,
+  chromeless,
+  data,
+}: { focusRider?: RiderId | null; chromeless?: boolean; data?: StakeGraph } = {}) {
   const t = useTranslations("stake");
   const you = useActiveAccount()?.address?.toLowerCase();
-  const graph = useStakeGraph();
+  const live = useStakeGraph();
+  const graph = data ?? live;
 
   // Click an athlete to recenter the orbit on them; click "all" to zoom out.
-  const [focusId, setFocusId] = useState<RiderId | null>(null);
+  const [focusId, setFocusId] = useState<RiderId | null>(focusRider ?? null);
+  // Hover/keyboard-focus highlight for the athlete hit areas. One id, because
+  // only one node can be pointed at or focused at a time.
+  const [hotId, setHotId] = useState<RiderId | null>(null);
+  // A parent can seed / re-drive the focus (`focusRider`) without taking it
+  // over: the graph stays interactive, this only re-syncs when the prop itself
+  // changes. Omitting the prop leaves the orbit purely self-driven.
+  useEffect(() => {
+    if (focusRider !== undefined) setFocusId(focusRider);
+  }, [focusRider]);
   // Resolve backer addresses to ENS / basenames (batched, cached by /api/ens).
+  // Backers that arrive with their own `ens` are filtered out first, so a graph
+  // that labels every backer itself (the preview fixture) makes no request at
+  // all instead of asking the resolver about a dozen invented addresses.
   const [ensNames, setEnsNames] = useState<Record<string, string>>({});
   useEffect(() => {
     if (!graph) return;
     const addrs = Array.from(
-      new Set(graph.athletes.flatMap((a) => a.backers.map((b) => b.address.toLowerCase()))),
+      new Set(
+        graph.athletes.flatMap((a) =>
+          a.backers.filter((b) => !b.ens).map((b) => b.address.toLowerCase()),
+        ),
+      ),
     );
     if (addrs.length === 0) return;
     let cancelled = false;
@@ -101,7 +176,13 @@ export function StakeOrbit() {
 
   if (graph === null) {
     return (
-      <div className="rounded-[22px] border border-white/[0.06] bg-[#0e0b09] p-6 text-sm text-white/40">
+      <div
+        className={
+          chromeless
+            ? "p-2 text-sm text-white/40"
+            : "rounded-[22px] border border-white/[0.06] bg-[#0e0b09] p-6 text-sm text-white/40"
+        }
+      >
         {t("orbit.loading")}
       </div>
     );
@@ -122,73 +203,197 @@ export function StakeOrbit() {
   const treasuryPt = focused ? { x: C, y: 96 } : { x: C, y: C };
   const treasuryR = focused ? 26 : 48;
 
+  // FAN geometry. The old fan was a hardcoded 44° while the athletes sit
+  // 360/7 ≈ 51.4° apart, so a rider with several backers pushed its outermost
+  // ones straight into the neighbouring rider's arc. Now the fan is proportional
+  // to the backer count and hard-capped to stay inside the rider's own slot with
+  // margin, and adjacent backers alternate between two radii — the separation
+  // that matters (node to node) becomes diagonal instead of purely angular, which
+  // is also what keeps their labels apart in focus mode.
+  const slot = 360 / n;
+  const FAN_STEP = 12;
+  const fanMax = Math.max(12, Math.min(34, slot - 16));
+
+  // One layout pass for the whole drawing, so the render below is only painting
+  // and the frame can be fitted to real content bounds.
+  const placed = athletes
+    .map((a, i) => {
+      const angle = -90 + slot * i;
+      const isCenter = !!focused && a.id === focused.id;
+      const p = isCenter ? { x: C, y: C } : pt(angle, R_ATH);
+      const nodeR = isCenter ? 54 : athR(a.total);
+      const count = a.backers.length;
+      const fan = Math.min(fanMax, FAN_STEP * (count - 1));
+      const backers = a.backers.map((b, j) => {
+        const isYou = !!you && b.address.toLowerCase() === you;
+        const bAngle = isCenter
+          ? -90 + FOCUS_GAP / 2 + (360 - FOCUS_GAP) * ((j + 0.5) / count)
+          : angle + (count > 1 ? (j / (count - 1) - 0.5) * fan : 0);
+        const ring = (isCenter ? R_FOC : R_SUP) + (j % 2) * TIER;
+        const q = pt(bAngle, ring);
+        const nr = isYou ? 12 : 10;
+        // Label sits radially outward from its node, so it never lies on its own
+        // line and its anchor flips with the hemisphere.
+        const ux = Math.cos(rad(bAngle));
+        const uy = Math.sin(rad(bAngle));
+        const anchor: "start" | "middle" | "end" =
+          ux > 0.3 ? "start" : ux < -0.3 ? "end" : "middle";
+        const lx = r1(q.x + ux * (nr + 9));
+        const ly = r1(q.y + uy * (nr + 9));
+        const nameY = anchor !== "middle" ? ly - 1 : uy < 0 ? ly - 16 : ly + 12;
+        const name = isYou ? t("orbit.you") : nameOrShort(b, ensNames);
+        const amount = usdStake(b.amount);
+        return {
+          b,
+          isYou,
+          angle: bAngle,
+          x: q.x,
+          y: q.y,
+          nr,
+          label: {
+            x: lx,
+            nameY,
+            amtY: nameY + 14,
+            anchor,
+            name,
+            amount,
+            w: Math.max(textW(name, 12), textW(amount, 12)),
+          },
+        };
+      });
+      const arc = backers.length
+        ? arcPath(
+            backers[0].angle - 6,
+            backers[backers.length - 1].angle + 6,
+            isCenter ? R_FOC : R_SUP,
+          )
+        : null;
+      return { a, angle, p, nodeR, isCenter, lit: a.total > 0, backers, arc };
+    })
+    .filter((nd) => !focused || nd.isCenter);
+
+  // Content bounds → viewBox. A fixed `0 0 W W` square left a ~150px dead band
+  // under the drawing whenever the populated fans clustered in one arc (which is
+  // exactly what the real data does). Bounds are padded, then the short axis is
+  // grown so the frame never renders taller than it is wide, and never smaller
+  // than a floor — otherwise focusing a rider with no backers would zoom the
+  // portrait to fill the panel.
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  const box = (x0: number, y0: number, x1: number, y1: number) => {
+    if (x0 < minX) minX = x0;
+    if (y0 < minY) minY = y0;
+    if (x1 > maxX) maxX = x1;
+    if (y1 > maxY) maxY = y1;
+  };
+  box(
+    treasuryPt.x - treasuryR - 6,
+    treasuryPt.y - treasuryR - 6,
+    treasuryPt.x + treasuryR + 6,
+    treasuryPt.y + treasuryR + 24,
+  );
+  if (!focused) box(C - R_ATH, C - R_ATH, C + R_ATH, C + R_ATH);
+  for (const nd of placed) {
+    const half = Math.max(
+      nd.nodeR + 4,
+      textW(t(`characters.${nd.a.id}.name`), 15) / 2,
+      nd.lit ? textW(usd(nd.a.total), 14) / 2 : 0,
+    );
+    box(
+      nd.p.x - half,
+      nd.p.y - nd.nodeR - 4,
+      nd.p.x + half,
+      nd.p.y + nd.nodeR + (nd.lit ? 40 : 24),
+    );
+    for (const bk of nd.backers) {
+      box(bk.x - bk.nr - 3, bk.y - bk.nr - 3, bk.x + bk.nr + 3, bk.y + bk.nr + 3);
+      if (!nd.isCenter) continue; // labels only exist in focus mode
+      const { x, w, anchor, nameY, amtY } = bk.label;
+      const x0 = anchor === "start" ? x : anchor === "end" ? x - w : x - w / 2;
+      box(x0, Math.min(nameY, amtY) - 11, x0 + w, Math.max(nameY, amtY) + 4);
+    }
+  }
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  let vw = Math.max(maxX - minX + 36, 620);
+  let vh = Math.max(maxY - minY + 36, 470);
+  vw = Math.max(vw, vh * 1.12); // never a column
+  vh = Math.max(vh, vw / 1.55); // never a letterbox
+  vw = Math.max(vw, vh * 1.12);
+  const viewBox = `${r1(cx - vw / 2)} ${r1(cy - vh / 2)} ${r1(vw)} ${r1(vh)}`;
+
+  const toggle = (id: RiderId, isCenter: boolean) => setFocusId(isCenter ? null : id);
+
   return (
-    <div className="rounded-[22px] border border-white/[0.06] bg-gradient-to-b from-[#181410] to-[#0e0b09] p-5 sm:p-7">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">
-            {t("orbit.title")}
-          </p>
-          <p className="mt-1.5 max-w-md text-sm text-white/60">{t("orbit.subtitle")}</p>
+    <div
+      className={
+        chromeless
+          ? undefined
+          : "rounded-[22px] border border-white/[0.06] bg-gradient-to-b from-[#181410] to-[#0e0b09] p-5 sm:p-7"
+      }
+    >
+      {chromeless ? null : (
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">
+              {t("orbit.title")}
+            </p>
+            <p className="mt-1.5 max-w-md text-sm text-white/60">{t("orbit.subtitle")}</p>
+          </div>
+          <div className="flex gap-5 text-right">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
+                {t("orbit.total")}
+              </p>
+              <p className="font-mono text-xl font-bold tabular-nums text-white">
+                {usd(graph.total)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
+                {t("orbit.backers")}
+              </p>
+              <p className="font-mono text-xl font-bold tabular-nums text-white">
+                {graph.backerCount}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
+                {t("orbit.earnedForTreasury")}
+              </p>
+              <p className="font-mono text-xl font-bold tabular-nums" style={{ color: GOLD }}>
+                {usdSmall(graph.treasuryUsd)}
+              </p>
+              <p className="mt-0.5 font-mono text-[10px] tabular-nums text-white/40">
+                {usdSmall(graph.gnarsAccrued)} {t("orbit.fee")} · {fmtMor(graph.gnarsMor)} MOR
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-5 text-right">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
-              {t("orbit.total")}
-            </p>
-            <p className="font-mono text-xl font-bold tabular-nums text-white">
-              {usd(graph.total)}
-            </p>
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
-              {t("orbit.backers")}
-            </p>
-            <p className="font-mono text-xl font-bold tabular-nums text-white">
-              {graph.backerCount}
-            </p>
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
-              {t("orbit.earnedForTreasury")}
-            </p>
-            <p className="font-mono text-xl font-bold tabular-nums" style={{ color: GOLD }}>
-              {usdSmall(graph.treasuryUsd)}
-            </p>
-            <p className="mt-0.5 font-mono text-[10px] tabular-nums text-white/40">
-              {usdSmall(graph.gnarsAccrued)} {t("orbit.fee")} · {fmtMor(graph.gnarsMor)} MOR
-            </p>
-          </div>
-        </div>
-      </div>
+      )}
 
       {focused && (
         <button
           type="button"
           onClick={() => setFocusId(null)}
-          className="mb-3 inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-black/50"
+          className="mb-3 inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs font-semibold text-white/80 transition hover:border-white/35 hover:bg-black/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60"
         >
           ← {t("orbit.backToAll")}
         </button>
       )}
 
-      <div className="mb-3 flex flex-wrap items-center gap-4 text-[11px] text-white/50">
-        <span className="flex items-center gap-1.5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={MORPHO_LOGO} alt="" className="h-4 w-4 rounded-full" />
-          {t("orbit.legendVault")}
-        </span>
-        <span className="flex items-center gap-1.5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={MORPHEUS_LOGO} alt="" className="h-4 w-4 rounded-full" />
-          {t("orbit.legendMor")}
-        </span>
-      </div>
-
       <div className="overflow-x-auto">
+        {/* `min-w` below md makes the wrapper's horizontal scroll actually do
+            something: without it the SVG is `w-full`, can never overflow, and
+            gets squeezed to ~300px on a phone — labels render at ~4px. Panning
+            a 680px drawing beats reading a crushed one. From md up the wrapper
+            takes over and the drawing caps at 800px, where the base 12–15px
+            type in the SVG lands at ~14–17px on screen. */}
         <svg
-          viewBox={`0 0 ${W} ${W}`}
-          className="mx-auto block h-auto w-full max-w-[640px]"
+          viewBox={viewBox}
+          className="mx-auto block h-auto w-full min-w-[680px] max-w-[800px] md:min-w-0"
           role="img"
           aria-label={t("orbit.title")}
         >
@@ -196,196 +401,227 @@ export function StakeOrbit() {
             @keyframes so-flow { to { stroke-dashoffset: -220; } }
             .so-flow { stroke-dasharray: 3 9; animation: so-flow 3.2s linear infinite; }
           `}</style>
-          {/* orbit rings — recessive */}
-          <circle cx={C} cy={C} r={R_ATH} fill="none" stroke="rgba(255,255,255,.06)" />
-          <circle cx={C} cy={C} r={R_SUP} fill="none" stroke="rgba(255,255,255,.04)" />
 
-          {athletes.map((a, i) => {
-            // In focus mode, render only the focused athlete — at the center.
-            if (focused && a.id !== focused.id) return null;
-            const isCenter = !!focused && a.id === focused.id;
-            const angle = -90 + (360 / n) * i;
-            const ap = isCenter ? { x: C, y: C } : pt(angle, R_ATH);
-            const v = RIDER_VISUAL[a.id];
-            const lit = a.total > 0;
-            const nodeR = isCenter ? 52 : athR(a.total);
+          {/* orbit guides — recessive. The backer ring is drawn per fan instead of
+              as a full circle: an unbroken 300px ring around a graph whose backers
+              all sit in one arc is most of the "empty field" complaint. */}
+          {!focused && (
+            <circle cx={C} cy={C} r={R_ATH} fill="none" stroke="rgba(255,255,255,.05)" />
+          )}
+          {placed.map((nd) =>
+            nd.arc ? (
+              <path key={`arc-${nd.a.id}`} d={nd.arc} fill="none" stroke="rgba(255,255,255,.05)" />
+            ) : null,
+          )}
 
-            // backers fan a full circle when centered, else a ±22° arc.
-            const spread = 44;
-            const bs = a.backers;
-            return (
-              <g key={a.id}>
-                {/* spoke: athlete -> treasury (the fee relationship) */}
+          {/* every edge, under every node */}
+          {placed.map((nd) => (
+            <g key={`edges-${nd.a.id}`}>
+              {/* spoke: athlete -> treasury (the fee relationship) */}
+              <line
+                x1={nd.p.x}
+                y1={nd.p.y}
+                x2={treasuryPt.x}
+                y2={treasuryPt.y}
+                stroke={nd.isCenter ? EDGE_FOCUS : EDGE}
+                strokeWidth={nd.lit ? 2 : 1}
+              />
+              {nd.lit && (
                 <line
-                  x1={ap.x}
-                  y1={ap.y}
+                  x1={nd.p.x}
+                  y1={nd.p.y}
                   x2={treasuryPt.x}
                   y2={treasuryPt.y}
-                  stroke={lit ? v.hex : "rgba(255,255,255,.10)"}
-                  strokeOpacity={lit ? 0.5 : 1}
-                  strokeWidth={lit ? 2 : 1}
+                  className="so-flow"
+                  stroke={GOLD}
+                  strokeOpacity={nd.isCenter ? 0.6 : 0.42}
+                  strokeWidth={2}
                 />
-                {lit && (
+              )}
+              {/* `asset` belongs in the key: one wallet can stake MOR in BOTH
+                  Morpheus pools (stETH and USDC), which are two separate backer
+                  rows for the same address+kind. Without it React saw duplicate
+                  keys and dropped one of the two streams, silently hiding a real
+                  stake from the orbit. */}
+              {nd.backers.map((bk) => (
+                <g key={`e-${bk.b.kind}-${bk.b.asset ?? "na"}-${bk.b.address}`}>
                   <line
-                    x1={ap.x}
-                    y1={ap.y}
-                    x2={treasuryPt.x}
-                    y2={treasuryPt.y}
+                    x1={bk.x}
+                    y1={bk.y}
+                    x2={nd.p.x}
+                    y2={nd.p.y}
+                    stroke={nd.isCenter ? EDGE_FOCUS : EDGE}
+                    strokeWidth={supW(bk.b.amount)}
+                    strokeLinecap="round"
+                  />
+                  <line
+                    x1={bk.x}
+                    y1={bk.y}
+                    x2={nd.p.x}
+                    y2={nd.p.y}
                     className="so-flow"
-                    stroke={v.hex}
-                    strokeWidth={2}
-                    strokeOpacity={0.9}
+                    stroke={GOLD}
+                    strokeOpacity={nd.isCenter ? 0.7 : 0.32}
+                    strokeWidth={supW(bk.b.amount)}
+                    strokeLinecap="round"
                   />
-                )}
-
-                {/* backer lines + dots + value labels */}
-                {bs.map((b, j) => {
-                  const off = bs.length === 1 ? 0 : (j / (bs.length - 1) - 0.5) * spread;
-                  const bp = isCenter
-                    ? pt(-90 + (360 / bs.length) * j, R_SUP)
-                    : pt(angle + off, R_SUP);
-                  const mid = { x: (ap.x + bp.x) / 2, y: (ap.y + bp.y) / 2 };
-                  const isYou = you && b.address.toLowerCase() === you;
-                  const isMor = b.kind === "mor";
-                  const col = isMor ? MOR_GREEN : v.hex;
-                  // `asset` belongs in the key: one wallet can stake MOR in BOTH
-                  // Morpheus pools (stETH and USDC), which are two separate
-                  // backer rows for the same address+kind. Without it React saw
-                  // duplicate keys and dropped one of the two streams, silently
-                  // hiding a real stake from the orbit.
-                  return (
-                    <g key={`${b.kind}-${b.asset ?? "na"}-${b.address}`}>
-                      <line
-                        x1={bp.x}
-                        y1={bp.y}
-                        x2={ap.x}
-                        y2={ap.y}
-                        stroke={col}
-                        strokeOpacity={0.35}
-                        strokeWidth={supW(b.amount)}
-                        strokeLinecap="round"
-                      />
-                      <line
-                        x1={bp.x}
-                        y1={bp.y}
-                        x2={ap.x}
-                        y2={ap.y}
-                        className="so-flow"
-                        stroke={col}
-                        strokeWidth={supW(b.amount)}
-                        strokeLinecap="round"
-                      />
-                      {/* value on the line */}
-                      <text
-                        x={mid.x}
-                        y={mid.y - 4}
-                        textAnchor="middle"
-                        fontSize="11"
-                        fontWeight="700"
-                        fill="#fff"
-                        style={{ paintOrder: "stroke", stroke: "#0c0a08", strokeWidth: 3 }}
-                      >
-                        {usd(b.amount)}
-                      </text>
-                      {/* backer node — the real protocol logo (Morpho or Morpheus) */}
-                      {(() => {
-                        const r = isYou ? 12 : 10;
-                        return (
-                          <>
-                            <foreignObject x={bp.x - r} y={bp.y - r} width={r * 2} height={r * 2}>
-                              <div
-                                style={{
-                                  width: "100%",
-                                  height: "100%",
-                                  borderRadius: "50%",
-                                  backgroundColor: "#0c0a08",
-                                  backgroundImage: `url(${isMor ? MORPHEUS_LOGO : MORPHO_LOGO})`,
-                                  backgroundSize: "cover",
-                                  backgroundPosition: "center",
-                                }}
-                              />
-                            </foreignObject>
-                            <circle
-                              cx={bp.x}
-                              cy={bp.y}
-                              r={r}
-                              fill="none"
-                              stroke={isYou ? GOLD : col}
-                              strokeWidth={2}
-                            />
-                          </>
-                        );
-                      })()}
-                      <text
-                        x={bp.x}
-                        y={bp.y + (bp.y < C ? -14 : 20)}
-                        textAnchor="middle"
-                        fontSize="9.5"
-                        fill={isYou ? GOLD : "rgba(255,255,255,.55)"}
-                        fontFamily="monospace"
-                        fontWeight={isYou ? 700 : 400}
-                      >
-                        {isYou ? t("orbit.you") : nameOrShort(b.address, ensNames)}
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {/* athlete node — cut-out zoomed onto the face, clipped round.
-                    Click to recenter on this rider (or zoom back out). */}
-                <g
-                  transform={`translate(${ap.x} ${ap.y})`}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => setFocusId(isCenter ? null : a.id)}
-                >
-                  <circle
-                    r={nodeR}
-                    fill="#141210"
-                    stroke={lit ? v.hex : "rgba(255,255,255,.18)"}
-                    strokeWidth={lit ? 2.5 : 1.5}
-                  />
-                  <foreignObject x={-nodeR} y={-nodeR} width={nodeR * 2} height={nodeR * 2}>
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: "50%",
-                        backgroundImage: `url(${v.image})`,
-                        backgroundSize: v.face.size,
-                        backgroundPosition: v.face.pos,
-                        backgroundRepeat: "no-repeat",
-                        opacity: lit ? 1 : 0.45,
-                      }}
-                    />
-                  </foreignObject>
                 </g>
-                {/* athlete name + total */}
+              ))}
+            </g>
+          ))}
+
+          {/* backer nodes — the real protocol logo (Morpho or Morpheus). Their
+              names and amounts print in focus mode only. */}
+          {placed.map((nd) =>
+            nd.backers.map((bk) => (
+              <g key={`b-${bk.b.kind}-${bk.b.asset ?? "na"}-${bk.b.address}`}>
+                <foreignObject
+                  x={bk.x - bk.nr}
+                  y={bk.y - bk.nr}
+                  width={bk.nr * 2}
+                  height={bk.nr * 2}
+                >
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "50%",
+                      backgroundColor: "#0c0a08",
+                      backgroundImage: `url(${bk.b.kind === "mor" ? MORPHEUS_LOGO : MORPHO_LOGO})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                </foreignObject>
+                <circle
+                  cx={bk.x}
+                  cy={bk.y}
+                  r={bk.nr}
+                  fill="none"
+                  stroke={bk.isYou ? GOLD : "rgba(255,255,255,.28)"}
+                  strokeWidth={2}
+                />
+                {nd.isCenter && (
+                  <>
+                    <text
+                      x={bk.label.x}
+                      y={bk.label.nameY}
+                      textAnchor={bk.label.anchor}
+                      fontSize="12"
+                      fontFamily="monospace"
+                      fontWeight={bk.isYou ? 700 : 400}
+                      fill={bk.isYou ? GOLD : "rgba(255,255,255,.65)"}
+                      style={HALO}
+                    >
+                      {bk.label.name}
+                    </text>
+                    <text
+                      x={bk.label.x}
+                      y={bk.label.amtY}
+                      textAnchor={bk.label.anchor}
+                      fontSize="12"
+                      fontFamily="monospace"
+                      fontWeight="700"
+                      fill="#fff"
+                      style={HALO}
+                    >
+                      {bk.label.amount}
+                    </text>
+                  </>
+                )}
+              </g>
+            )),
+          )}
+
+          {/* athlete — portrait, name and total in ONE hit area, so clicking the
+              name does what clicking the face does. Keyboard-reachable, and the
+              ring brightens on hover/focus. */}
+          {placed.map((nd) => {
+            const v = RIDER_VISUAL[nd.a.id];
+            const hot = hotId === nd.a.id;
+            return (
+              <g
+                key={`node-${nd.a.id}`}
+                role="button"
+                tabIndex={0}
+                aria-label={nd.isCenter ? t("orbit.backToAll") : t(`characters.${nd.a.id}.name`)}
+                className="cursor-pointer outline-none"
+                onClick={() => toggle(nd.a.id, nd.isCenter)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggle(nd.a.id, nd.isCenter);
+                  }
+                }}
+                onPointerEnter={() => setHotId(nd.a.id)}
+                onPointerLeave={() => setHotId((c) => (c === nd.a.id ? null : c))}
+                onFocus={() => setHotId(nd.a.id)}
+                onBlur={() => setHotId((c) => (c === nd.a.id ? null : c))}
+              >
+                <circle cx={nd.p.x} cy={nd.p.y} r={nd.nodeR} fill="#141210" />
+                <foreignObject
+                  x={nd.p.x - nd.nodeR}
+                  y={nd.p.y - nd.nodeR}
+                  width={nd.nodeR * 2}
+                  height={nd.nodeR * 2}
+                >
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "50%",
+                      backgroundImage: `url(${v.image})`,
+                      backgroundSize: v.face.size,
+                      backgroundPosition: v.face.pos,
+                      backgroundRepeat: "no-repeat",
+                      opacity: nd.lit ? 1 : 0.45,
+                    }}
+                  />
+                </foreignObject>
+                <circle
+                  cx={nd.p.x}
+                  cy={nd.p.y}
+                  r={nd.nodeR}
+                  fill="none"
+                  stroke={hot ? "#fff" : nd.lit ? v.hex : "rgba(255,255,255,.18)"}
+                  strokeWidth={hot ? 3.5 : nd.lit ? 2.5 : 1.5}
+                />
                 <text
-                  x={ap.x}
-                  y={ap.y + nodeR + 16}
+                  x={nd.p.x}
+                  y={nd.p.y + nd.nodeR + 19}
                   textAnchor="middle"
-                  fontSize="13"
+                  fontSize="15"
                   fontWeight="800"
-                  fill="#fff"
+                  fill={nd.lit || hot ? "#fff" : "rgba(255,255,255,.4)"}
+                  style={HALO}
                 >
-                  {t(`characters.${a.id}.name`)}
+                  {t(`characters.${nd.a.id}.name`)}
                 </text>
-                <text
-                  x={ap.x}
-                  y={ap.y + nodeR + 31}
-                  textAnchor="middle"
-                  fontSize="12"
-                  fontWeight="700"
-                  fontFamily="monospace"
-                  fill={lit ? v.hex : "rgba(255,255,255,.4)"}
-                >
-                  {a.total > 0 ? usd(a.total) : "—"}
-                </text>
+                {/* No placeholder under a rider nobody backs yet: the dimmed name
+                    already says it, and a lone dash was reading as a glyph. */}
+                {nd.lit && (
+                  <text
+                    x={nd.p.x}
+                    // 37, not 35: at 35 the total's ascender box grazes the name's
+                    // descender box by a fraction of a pixel once every rider has
+                    // a total, and the pairwise-bbox overlap check trips on it.
+                    y={nd.p.y + nd.nodeR + 37}
+                    textAnchor="middle"
+                    fontSize="14"
+                    fontWeight="700"
+                    fontFamily="monospace"
+                    fill={GOLD}
+                    style={HALO}
+                  >
+                    {usd(nd.a.total)}
+                  </text>
+                )}
               </g>
             );
           })}
 
-          {/* treasury — center in overview, a small satellite when focused */}
+          {/* treasury — center in overview, a small satellite when focused. Drawn
+              last: everything flows into it, so nothing crosses over it. */}
           <circle
             cx={treasuryPt.x}
             cy={treasuryPt.y}
@@ -414,12 +650,13 @@ export function StakeOrbit() {
           </foreignObject>
           <text
             x={treasuryPt.x}
-            y={treasuryPt.y + treasuryR + 16}
+            y={treasuryPt.y + treasuryR + 18}
             textAnchor="middle"
-            fontSize="11"
+            fontSize="12"
             fontWeight="800"
             letterSpacing="1.5"
             fill="rgba(255,255,255,.6)"
+            style={HALO}
           >
             {t("orbit.treasury")}
           </text>

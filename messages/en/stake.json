@@ -68,7 +68,7 @@
   },
   "orbit": {
     "title": "Sponsorship flow",
-    "subtitle": "The Gnars treasury at the center, athletes in the first orbit, backers in the second. Each stake’s value sits on its line; support flows inward.",
+    "subtitle": "The Gnars treasury at the center, athletes in the first orbit, backers in the second. Pick an athlete to see who backs them, and with how much.",
     "total": "Total",
     "backers": "Backers",
     "you": "you",
@@ -225,5 +225,56 @@
     "unlocked": "unlocked",
     "claimHint": "To claim, open the reward box (bottom-right) once the MOR unlock date has passed — it bridges your MOR to Arbitrum and splits it to your wallet.",
     "powerLockNote": "A far-off MOR unlock means a longer power-lock was chosen at deposit (higher APR / power factor) — the MOR stays locked until that date."
+  },
+  "preview": {
+    "hero": "Back a Gnars rider. Your deposit stays yours and keeps earning. You keep half the yield; the other half backs your rider and the treasury.",
+    "rider": {
+      "rosterLabel": "Rider roster",
+      "hint": "Use ← → to switch riders",
+      "position": "{current} / {total}"
+    },
+    "ratesTitle": "Current rates",
+    "ratesLoading": "loading rates…",
+    "ratesNa": "n/a",
+    "socialTitle": "Who is already backing",
+    "socialDesc": "The treasury at the centre, athletes in the first orbit, backers in the second.",
+    "stats": {
+      "staked": "staked",
+      "backers": "{n, plural, one {backer} other {backers}}",
+      "treasury": "earned for the treasury"
+    },
+    "positions": {
+      "title": "Your positions",
+      "desc": "Everything you have staked, and when you can touch it.",
+      "sampleData": "sample data",
+      "backsSubnet": "backs the subnet",
+      "unlocks": "unlocks {date}",
+      "venue": {
+        "morpho": "Morpho · USDC",
+        "morpheus": "Morpheus · stETH",
+        "subnet": "Gnars subnet · MOR"
+      },
+      "venueNote": {
+        "morpho": "Base · no lock",
+        "morpheus": "Ethereum · 7-day lock",
+        "subnet": "Base · 7-day lock"
+      },
+      "action": {
+        "harvest": "Harvest",
+        "withdraw": "Withdraw",
+        "claim": "Claim"
+      }
+    },
+    "subnet": {
+      "title": "Stake MOR behind the Gnars subnet",
+      "desc": "This one pays you nothing. Staked MOR powers the Gnars Builder subnet, which funds what the DAO ships. Your MOR stays yours and unlocks 7 days after you stake.",
+      "morStaked": "MOR staked",
+      "goal": "goal {n, number}",
+      "cta": "Back the subnet"
+    },
+    "backers": {
+      "loading": "loading the flow…",
+      "empty": "No backers yet."
+    }
   }
 }

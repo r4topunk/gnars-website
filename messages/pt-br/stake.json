@@ -68,7 +68,7 @@
   },
   "orbit": {
     "title": "Fluxo de patrocínio",
-    "subtitle": "Tesouro da Gnars no centro, atletas na 1ª órbita, apoiadores na 2ª. O valor de cada stake fica na linha; o apoio flui pra dentro.",
+    "subtitle": "Tesouro da Gnars no centro, atletas na 1ª órbita, apoiadores na 2ª. Escolha um atleta pra ver quem apoia e com quanto.",
     "total": "Total",
     "backers": "Apoiadores",
     "you": "você",
@@ -225,5 +225,56 @@
     "unlocked": "liberado",
     "claimHint": "Pra sacar, abra a caixa de recompensa (canto inferior direito) depois que a data de unlock do MOR passar — ela leva o MOR pra Arbitrum e divide na sua carteira.",
     "powerLockNote": "Um unlock do MOR distante significa que um power-lock maior foi escolhido no depósito (APR / power factor mais alto) — o MOR fica travado até essa data."
+  },
+  "preview": {
+    "hero": "Apoie um rider da Gnars. Seu depósito continua seu e rendendo. Metade do rendimento fica com você; a outra metade banca seu rider e o tesouro.",
+    "rider": {
+      "rosterLabel": "Elenco de riders",
+      "hint": "Use ← → pra trocar de rider",
+      "position": "{current} / {total}"
+    },
+    "ratesTitle": "Taxas atuais",
+    "ratesLoading": "carregando as taxas…",
+    "ratesNa": "n/d",
+    "socialTitle": "Quem já está apoiando",
+    "socialDesc": "O tesouro no centro, atletas na primeira órbita, apoiadores na segunda.",
+    "stats": {
+      "staked": "em stake",
+      "backers": "{n, plural, one {apoiador} other {apoiadores}}",
+      "treasury": "rendeu pro tesouro"
+    },
+    "positions": {
+      "title": "Suas posições",
+      "desc": "Tudo que você tem em stake, e quando dá pra mexer nisso.",
+      "sampleData": "dados de exemplo",
+      "backsSubnet": "sustenta a subnet",
+      "unlocks": "libera em {date}",
+      "venue": {
+        "morpho": "Morpho · USDC",
+        "morpheus": "Morpheus · stETH",
+        "subnet": "Subnet Gnars · MOR"
+      },
+      "venueNote": {
+        "morpho": "Base · sem lock",
+        "morpheus": "Ethereum · lock de 7 dias",
+        "subnet": "Base · lock de 7 dias"
+      },
+      "action": {
+        "harvest": "Colher",
+        "withdraw": "Sacar",
+        "claim": "Resgatar"
+      }
+    },
+    "subnet": {
+      "title": "Faça stake de MOR pra bancar a subnet Gnars",
+      "desc": "Esse aqui não te paga nada. O MOR em stake sustenta a subnet Gnars Builder, que financia o que a DAO entrega. Seu MOR continua seu e libera 7 dias depois do stake.",
+      "morStaked": "MOR em stake",
+      "goal": "meta {n, number}",
+      "cta": "Apoiar a subnet"
+    },
+    "backers": {
+      "loading": "carregando o fluxo…",
+      "empty": "Nenhum apoiador ainda."
+    }
   }
 }
