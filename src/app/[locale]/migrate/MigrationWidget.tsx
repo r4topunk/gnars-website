@@ -2,7 +2,18 @@
 
 import * as React from "react";
 import { useTranslations } from "next-intl";
-import { ArrowDown, Check, ChevronRight, ShieldCheck, Sparkles, X } from "lucide-react";
+import {
+  ArrowDown,
+  Check,
+  ChevronRight,
+  ExternalLink,
+  Info,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+  Wallet,
+  X,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,6 +39,11 @@ import {
   type RouteHop,
 } from "@/hooks/use-gnars-migration";
 import { useUserAddress } from "@/hooks/use-user-address";
+import {
+  UPGRADER_ADDRESS,
+  MIGRATION_PARAMS,
+  isMigrationDepositLive,
+} from "@/lib/config";
 
 export function MigrationWidget() {
   const t = useTranslations("migrate");
@@ -108,6 +124,95 @@ export function MigrationWidget() {
           )}
         </>
       )}
+
+      <DepositSection />
+    </div>
+  );
+}
+
+/**
+ * The migration deposit — the presale terminal. Consolidated proceeds go into
+ * the Upgrader (not the wallet), get sold in one batch buy at TGE, then holders
+ * claim the new $gnars pro-rata. Gated until the operator schedules the upgrade
+ * id ({@link isMigrationDepositLive}); until then it shows the full story in an
+ * "opens at launch" state so nobody mistakes this for a public swap tool.
+ *
+ * TODO(plug-and-play): when the operator returns the swap-and-deposit entrypoint
+ * + upgrade id, set NEXT_PUBLIC_MIGRATION_UPGRADE_ID / _DEPOSIT_ENTRYPOINT and
+ * wire the CTA to useUpgradeDeposit().{deposit,claim}. The card, copy, terms and
+ * gating are already in place.
+ */
+function DepositSection() {
+  const t = useTranslations("migrate");
+  const live = isMigrationDepositLive();
+  const how = t.raw("deposit.how") as string[];
+  const scanUrl = `https://basescan.org/address/${UPGRADER_ADDRESS}`;
+
+  return (
+    <Card className="space-y-4 border-dashed p-5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-2 text-sm font-medium">
+          {live ? (
+            <Wallet className="size-4" />
+          ) : (
+            <Lock className="size-4 text-muted-foreground" />
+          )}
+          {t("deposit.title")}
+        </span>
+        {!live && <Badge variant="secondary">{t("deposit.opensAtLaunch")}</Badge>}
+      </div>
+
+      {!live && <p className="text-xs text-muted-foreground">{t("deposit.gatedHint")}</p>}
+
+      <div className="space-y-2">
+        <div className="text-xs font-medium">{t("deposit.howTitle")}</div>
+        <ol className="space-y-1.5">
+          {how.map((line, i) => (
+            <li key={i} className="flex gap-2 text-xs text-muted-foreground">
+              <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[10px] font-bold text-primary">
+                {i + 1}
+              </span>
+              <span>{line}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <TermTile label={t("deposit.feeLabel")} value={`${MIGRATION_PARAMS.swapFeePct}%`} />
+        <TermTile label={t("deposit.treasuryLabel")} value={`${MIGRATION_PARAMS.treasuryPct}%`} />
+        <TermTile
+          label={t("deposit.vestingLabel")}
+          value={t("deposit.vestingValue", { vestingDays: MIGRATION_PARAMS.vestingDays })}
+        />
+      </div>
+
+      <p className="flex items-start gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/5 p-2 text-[11px] text-amber-700 dark:text-amber-400">
+        <Info className="mt-px size-3.5 shrink-0" />
+        <span>{t("deposit.partialFillWarning")}</span>
+      </p>
+
+      <Button className="w-full" size="lg" disabled={!live}>
+        {live ? t("deposit.depositCta") : t("deposit.opensAtLaunch")}
+      </Button>
+
+      <a
+        href={scanUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+      >
+        {t("deposit.contractLink")} <ExternalLink className="size-3" />
+      </a>
+    </Card>
+  );
+}
+
+function TermTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border p-2 text-center">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-0.5 text-sm font-semibold">{value}</div>
     </div>
   );
 }
@@ -532,6 +637,13 @@ function MigrationPreview({
         <TargetToggle target={target} onChange={onTargetChange} />
       </div>
 
+      {!isEth && (
+        <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+          <Info className="mt-px size-3.5 shrink-0" />
+          <span>{t("preview.ethPreferred")}</span>
+        </p>
+      )}
+
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">{t("preview.selected")}</span>
         <span>{coins.length}</span>
@@ -564,6 +676,7 @@ function MigrationPreview({
         </div>
       </div>
 
+      <p className="text-xs text-muted-foreground">{t("preview.readiesDeposit")}</p>
       <p className="text-xs text-muted-foreground">{t("preview.slippageWarning")}</p>
 
       {steps.length > 0 && <StepList steps={steps} />}

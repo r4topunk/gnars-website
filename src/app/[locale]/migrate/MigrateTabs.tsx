@@ -1,10 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ArrowRightLeft, BookOpen, Coins } from "lucide-react";
+import { ArrowRightLeft, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GetGnarsWidget } from "./GetGnarsWidget";
 import { MigrationWidget } from "./MigrationWidget";
 
 export function MigrateTabs() {
@@ -12,14 +11,10 @@ export function MigrateTabs() {
 
   return (
     <Tabs defaultValue="consolidate" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="consolidate" className="gap-1.5">
           <ArrowRightLeft className="size-4" />
           <span className="hidden sm:inline">{t("tabs.consolidate")}</span>
-        </TabsTrigger>
-        <TabsTrigger value="get" className="gap-1.5">
-          <Coins className="size-4" />
-          <span className="hidden sm:inline">{t("tabs.get")}</span>
         </TabsTrigger>
         <TabsTrigger value="guide" className="gap-1.5">
           <BookOpen className="size-4" />
@@ -29,9 +24,6 @@ export function MigrateTabs() {
 
       <TabsContent value="consolidate" className="mt-6">
         <MigrationWidget />
-      </TabsContent>
-      <TabsContent value="get" className="mt-6">
-        <GetGnarsWidget />
       </TabsContent>
       <TabsContent value="guide" className="mt-6">
         <MigrationGuide />

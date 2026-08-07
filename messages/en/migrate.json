@@ -1,43 +1,33 @@
 {
-  "title": "Gnars Migration",
-  "subtitle": "Consolidate your scattered Zora coins into $gnars. Batch-select your holdings and swap them all into $gnars in one flow — routed through ZORA under the hood.",
-  "connectPrompt": "Connect your wallet to see your Zora coins and migrate them into $gnars.",
+  "title": "Migrate to new $gnars",
+  "subtitle": "One home for $gnars on Clanker. Consolidate your scattered Zora coins into the deposit currency, deposit into the migration, and claim your new $gnars after launch. Enter with ETH (recommended) or bring your old $gnars.",
+  "connectPrompt": "Connect your wallet to see your Zora coins and enter the migration.",
   "tabs": {
-    "consolidate": "Consolidate",
-    "get": "Get $GNARS",
+    "consolidate": "Enter",
     "guide": "Guide"
   },
-  "getGnars": {
-    "title": "Get old $gnars with ETH",
-    "subtitle": "Buy old $gnars directly (ETH → ZORA → $gnars). This uses Zora's router — the same one zora.co uses — which is why it works where Matcha/0x can't.",
-    "connectPrompt": "Connect your wallet to buy $gnars.",
-    "amountLabel": "Amount to spend",
-    "buyCta": "Buy $gnars",
-    "buying": "Buying $gnars…",
-    "slippageNote": "The $gnars pool is thin, so larger buys move the price. Start small and check the amount you receive."
-  },
   "guide": {
-    "title": "How the $gnars migration works",
-    "intro": "There are two ways to take part — convert your Zora coins into $gnars, or bring fresh ETH to the launch. Both get you into the new $gnars when the DAO runs the upgrade.",
+    "title": "How the migration works",
+    "intro": "This is a batch swap + presale, not a public swap tool. Two ways in: bring fresh ETH (the real backing for the new token), or convert your scattered Zora dust. Both deposit into the migration, and at launch everyone buys the new $gnars together at one shared price.",
     "steps": [
       {
-        "title": "Choose how you join",
-        "body": "Convert your Zora coins into old $gnars (Consolidate tab), buy in with ETH (Get $GNARS tab), or set ETH aside to contribute directly at launch. Fresh ETH is the strongest contribution — it becomes real liquidity backing the new token, which scattered coins can't provide."
+        "title": "Consolidate or bring ETH",
+        "body": "Batch-select your scattered Zora content/creator coins — we route them into ETH (recommended) or old $gnars. Fresh ETH is the strongest contribution: it becomes real liquidity backing the new token, which scattered dust can't provide."
       },
       {
-        "title": "Deposit when the upgrade opens",
-        "body": "When the DAO opens the upgrade, deposit your old $gnars and/or ETH into the portal (it will appear right here). There's no fixed on-chain deadline — watch the official Gnars channels for the date."
+        "title": "Deposit into the migration",
+        "body": "Your ETH (or old $gnars) goes straight into the Upgrader (0x999C…3c7e) — nothing lands loose in your wallet, so the only way out is claiming new $gnars. Watch the official Gnars channels for the open date."
       },
       {
-        "title": "The upgrade runs — one shared price",
-        "body": "In a single transaction, all deposits are sold, the new $gnars is deployed on Clanker (paired with ETH), and everyone buys in at the same snipe-proof price. Your ETH is what puts real liquidity into the new pool."
+        "title": "One batch buy at launch (TGE)",
+        "body": "In a single transaction every deposit is sold, the new $gnars is deployed on Clanker (ETH-paired), and everyone buys in at the same snipe-proof price — no preview until launch params are locked."
       },
       {
         "title": "Claim your new $gnars",
-        "body": "After the upgrade runs, claim your new $gnars — allocated proportionally to what you contributed. That's the token going forward: ETH ↔ $gnars ↔ content coins."
+        "body": "After the batch runs, claim your new $gnars — allocated pro-rata to what you contributed. That's the token going forward: ETH ↔ $gnars ↔ content coins. Vesting: 7 days."
       }
     ],
-    "footnote": "The ETH presale is what gives the new token real backing — migrating dust is optional and mostly symbolic. Amounts depend on live liquidity and can change; only contribute what you're comfortable with, and always verify links in official Gnars channels."
+    "footnote": "The ETH lane is what gives the new token real backing — migrating dust is optional and mostly symbolic. Params (to confirm with the operator): 1% swap fee · 30% to treasury · 7-day vesting. Amounts depend on live liquidity and can change; always verify links in official Gnars channels."
   },
   "noCoins": "No migratable Zora coins found in this wallet.",
   "safetyHint": "Only verified Zora coins are shown — non-Zora and scam/airdrop tokens are filtered out.",
@@ -53,31 +43,55 @@
     "hopHint": "Each coin routes through its pool pairing. The swap happens in one trade — these are the hops under the hood."
   },
   "preview": {
-    "title": "Migration preview",
+    "title": "Consolidation preview",
     "selected": "Selected coins",
-    "routable": "With a route to $gnars",
+    "routable": "With a route",
     "unroutable": "{count} no liquidity",
     "youReceive": "You receive (estimated)",
-    "slippageWarning": "The $gnars pool is thin — large migrations move the price. Estimates include slippage and can change before the transaction confirms.",
-    "migrateCta": "Migrate {count} coins to {token}",
-    "executing": "Migrating…",
-    "executionNote": "Runs one swap per coin — approve each in your wallet. Tip: test with a single low-value coin first.",
-    "receiveAs": "Receive as",
+    "readiesDeposit": "This consolidates into your wallet — your deposit currency, ready for the migration deposit below.",
+    "slippageWarning": "Thin pools move the price on large sells — estimates include slippage and can change before the transaction confirms.",
+    "ethPreferred": "ETH is the recommended lane: it sells ~1:1 and avoids the thin-pool partial fills that can leave part of a token stuck.",
+    "migrateCta": "Consolidate {count} coins to {token}",
+    "executing": "Consolidating…",
+    "receiveAs": "Consolidate to",
     "targetGnars": "$GNARS",
-    "targetEth": "ETH"
+    "targetEth": "ETH",
+    "executionNote": "Runs one swap per coin — approve each in your wallet. Tip: test with a single low-value coin first."
+  },
+  "deposit": {
+    "title": "Deposit into the migration",
+    "opensAtLaunch": "Opens at launch",
+    "gatedHint": "The deposit window opens once the operator schedules the upgrade. Consolidate now so you're ready — depositing turns on here the moment it's live.",
+    "howTitle": "What happens when you deposit",
+    "how": [
+      "Your ETH (or old $gnars) goes straight into the Upgrader — no loose funds in your wallet.",
+      "At launch (TGE) every deposit is sold in one batch buy at a single shared price.",
+      "You claim new $gnars here, pro-rata to your share of the deposits."
+    ],
+    "paramsTitle": "Terms",
+    "feeLabel": "Swap fee",
+    "treasuryLabel": "To treasury",
+    "vestingLabel": "Vesting",
+    "vestingValue": "{vestingDays} days",
+    "partialFillWarning": "Thin-pool deposits can partially fill — part of the token may be left with the operator. This is why ETH is the recommended lane.",
+    "contractLink": "Upgrader contract",
+    "depositCta": "Deposit into migration",
+    "claimTitle": "Claim your new $gnars",
+    "claimHint": "Available after the operator runs the batch at launch.",
+    "claimCta": "Claim new $gnars"
   },
   "editorial": {
-    "tagline": "One token, deeper liquidity",
-    "body": "Every Zora coin you migrate is consolidated into $gnars. The result: fragmented dust becomes concentrated, healthier $gnars liquidity."
+    "tagline": "One token, one shared entry",
+    "body": "Fragmented Zora dust becomes one deep, WETH-paired $gnars on Clanker — with everyone entering at the same price through the migration."
   },
   "smart": {
     "button": "Smart Select ✨",
-    "title": "Smart migration plan",
-    "hint": "We quote every coin and route each to its best destination — $gnars where it routes, ETH otherwise, and we skip coins with no route.",
-    "toGnars": "To $GNARS",
-    "toEth": "To ETH",
+    "title": "Smart deposit plan",
+    "hint": "We quote every coin and route each to its best deposit currency — old $gnars where it routes, ETH otherwise, and we skip coins with no route.",
+    "toGnars": "As $GNARS",
+    "toEth": "As ETH",
     "skipped": "Skipped (no route)",
-    "migrateCta": "Migrate {count} coins",
+    "migrateCta": "Consolidate {count} coins",
     "checking": "Checking…",
     "noRoute": "No route",
     "reason": {

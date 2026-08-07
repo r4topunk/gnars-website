@@ -60,6 +60,46 @@ export const MIGRATION_BURN_BPS = 100 as const;
 export const MIGRATION_MULTISIG = (process.env.NEXT_PUBLIC_MIGRATION_MULTISIG ||
   "0xBe6C3D651d2F6e9eFA562b5a7CDf411304cad076") as `0x${string}`;
 
+// --- Upgrader deposit/claim (the migration engine, operated by Onchain Inc) ---
+// Verified on Base. Users deposit ETH-proceeds (WETH) or old $gnars; at TGE the
+// operator sells all deposits in one batch buy and deploys the new WETH-paired
+// $gnars on Clanker; depositors claim pro-rata to their share of the proceeds.
+export const UPGRADER_ADDRESS = "0x999Cd4Dcb412A8272a62BeeB271662d1C72d3c7e" as const;
+export const UPGRADER_READER = "0x76a51fBC42e932ed3a5e1Ec413a7E03a3EC800AE" as const;
+
+// The two deposit lanes. WETH is the presale/fresh-capital lane (sells ~1:1 → no
+// thin-pool partial fill); old $gnars is the dust-migration lane.
+export const WETH_BASE = "0x4200000000000000000000000000000000000006" as const;
+
+// The scheduled upgrade id — the operator registers it "closer to launch" via
+// schedule(tokens). Until it's set the deposit leg stays GATED ("opens at
+// launch") and only the consolidation on-ramp is live. Flip on by setting the env.
+export const MIGRATION_UPGRADE_ID =
+  process.env.NEXT_PUBLIC_MIGRATION_UPGRADE_ID != null &&
+  process.env.NEXT_PUBLIC_MIGRATION_UPGRADE_ID !== ""
+    ? BigInt(process.env.NEXT_PUBLIC_MIGRATION_UPGRADE_ID)
+    : null;
+
+// The atomic swap-and-deposit entrypoint we're asking the operator to expose, so
+// the swap output goes STRAIGHT into the deposit (no wallet intermediate) — this
+// is what makes it a real presale and not a public batch-swap. Address of the
+// entrypoint (Upgrader itself or a periphery zap the operator deploys). Null =
+// not provided yet → the UI only offers plain deposit of already-held WETH/$gnars.
+export const MIGRATION_DEPOSIT_ENTRYPOINT = (process.env.NEXT_PUBLIC_MIGRATION_DEPOSIT_ENTRYPOINT ||
+  null) as `0x${string}` | null;
+
+/** Deposit/claim UI goes live only once the upgrade id is scheduled. */
+export const isMigrationDepositLive = () => MIGRATION_UPGRADE_ID !== null;
+
+// Launch params (Upgrader/Clanker side) — surfaced in the UI. Confirm with the
+// operator before launch. swapFee 1%, treasury 30% → founder-vault beneficiary =
+// MIGRATION_MULTISIG, vesting 7 days.
+export const MIGRATION_PARAMS = {
+  swapFeePct: 1,
+  treasuryPct: 30,
+  vestingDays: 7,
+} as const;
+
 // Trade referrer for the migration/buy swaps — earns a share of the Zora trade
 // fee, claimable in Zora by this account. Set to haxixe.eth (Vlad's personal
 // account) so rewards are easy to claim.
