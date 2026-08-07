@@ -137,6 +137,20 @@ export function StakeOrbit({
   // Hover/keyboard-focus highlight for the athlete hit areas. One id, because
   // only one node can be pointed at or focused at a time.
   const [hotId, setHotId] = useState<RiderId | null>(null);
+  // Hovered backer dot, overview only: the dot grows a step and reveals its ENS.
+  // Focus mode already prints every label, so hover there would be redundant.
+  const [hotBk, setHotBk] = useState<string | null>(null);
+  // The hovered dot's label, rendered ONCE as a top layer instead of inside the
+  // backer group: sibling dots paint after their neighbour's label in document
+  // order, so an in-group label gets overdrawn by the next dot ("gnartard.e…").
+  // Kept after pointer-leave so the fade-out shows the same text.
+  const [hotLabel, setHotLabel] = useState<{
+    x: number;
+    y: number;
+    anchor: "start" | "middle" | "end";
+    name: string;
+    isYou: boolean;
+  } | null>(null);
   // A parent can seed / re-drive the focus (`focusRider`) without taking it
   // over: the graph stays interactive, this only re-syncs when the prop itself
   // changes. Omitting the prop leaves the orbit purely self-driven.
@@ -404,7 +418,10 @@ export function StakeOrbit({
             type in the SVG lands at ~14–17px on screen. */}
         <svg
           viewBox={viewBox}
-          className="mx-auto block h-auto w-full min-w-[680px] max-w-[800px] md:min-w-0"
+          // overflow-visible: hover labels on edge dots sit outside the fitted
+          // viewBox (overview bounds don't count labels); the panel's padding
+          // absorbs the spill.
+          className="mx-auto block h-auto w-full min-w-[680px] max-w-[800px] overflow-visible md:min-w-0"
           role="img"
           aria-label={t("orbit.title")}
         >
@@ -423,9 +440,19 @@ export function StakeOrbit({
                scale() happen around the node instead of around the frame. */
             .so-node { transform-box: fill-box; transform-origin: center; }
             .so-fade { animation: so-fade-in 200ms ${EASE_OUT} 120ms both; }
+            /* Backer dot hover (overview): the dot grows a step and its ENS fades
+               in. Transitions, not keyframes — a pointer sweeping across the fan
+               retargets mid-flight instead of restarting. */
+            .so-dot { transition: transform 150ms ${EASE_OUT}; }
+            .so-dot-label {
+              pointer-events: none;
+              transition: opacity 150ms ${EASE_OUT};
+            }
             @media (prefers-reduced-motion: reduce) {
               .so-glide { transition: opacity 120ms ${EASE_OUT}; }
               .so-fade { animation-duration: 120ms; animation-delay: 0ms; }
+              /* Keep the label reveal (comprehension), drop the growth (motion). */
+              .so-dot { transition: none; }
             }
           `}</style>
 
@@ -508,64 +535,94 @@ export function StakeOrbit({
             {/* backer nodes — the real protocol logo (Morpho or Morpheus). Their
               names and amounts print in focus mode only. */}
             {placed.map((nd) =>
-              nd.backers.map((bk) => (
-                <g key={`b-${bk.b.kind}-${bk.b.asset ?? "na"}-${bk.b.address}`}>
-                  <foreignObject
-                    x={bk.x - bk.nr}
-                    y={bk.y - bk.nr}
-                    width={bk.nr * 2}
-                    height={bk.nr * 2}
+              nd.backers.map((bk) => {
+                const bkKey = `${nd.a.id}-${bk.b.kind}-${bk.b.asset ?? "na"}-${bk.b.address}`;
+                const hot = !nd.isCenter && hotBk === bkKey;
+                return (
+                  <g
+                    key={`b-${bkKey}`}
+                    // Mouse only: on touch, mouseenter fires on tap and the label
+                    // would stick. Focus mode ignores hover entirely.
+                    onPointerEnter={(e) => {
+                      if (!nd.isCenter && e.pointerType === "mouse") {
+                        setHotBk(bkKey);
+                        setHotLabel({
+                          x: bk.label.x,
+                          y: bk.label.nameY,
+                          anchor: bk.label.anchor,
+                          name: bk.label.name,
+                          isYou: bk.isYou,
+                        });
+                      }
+                    }}
+                    onPointerLeave={() => setHotBk((cur) => (cur === bkKey ? null : cur))}
                   >
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: "50%",
-                        backgroundColor: "#0c0a08",
-                        backgroundImage: `url(${bk.b.kind === "mor" ? MORPHEUS_LOGO : MORPHO_LOGO})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }}
-                    />
-                  </foreignObject>
-                  <circle
-                    cx={bk.x}
-                    cy={bk.y}
-                    r={bk.nr}
-                    fill="none"
-                    stroke={bk.isYou ? GOLD : "rgba(255,255,255,.28)"}
-                    strokeWidth={2}
-                  />
-                  {nd.isCenter && (
-                    <>
-                      <text
-                        x={bk.label.x}
-                        y={bk.label.nameY}
-                        textAnchor={bk.label.anchor}
-                        fontSize="12"
-                        fontFamily="monospace"
-                        fontWeight={bk.isYou ? 700 : 400}
-                        fill={bk.isYou ? GOLD : "rgba(255,255,255,.65)"}
-                        style={HALO}
+                    {/* so-node gives the group a fill-box center origin, so the
+                        scale grows the dot in place instead of around the frame. */}
+                    <g
+                      className="so-node so-dot"
+                      style={{ transform: hot ? "scale(1.3)" : "scale(1)" }}
+                    >
+                      <foreignObject
+                        x={bk.x - bk.nr}
+                        y={bk.y - bk.nr}
+                        width={bk.nr * 2}
+                        height={bk.nr * 2}
                       >
-                        {bk.label.name}
-                      </text>
-                      <text
-                        x={bk.label.x}
-                        y={bk.label.amtY}
-                        textAnchor={bk.label.anchor}
-                        fontSize="12"
-                        fontFamily="monospace"
-                        fontWeight="700"
-                        fill="#fff"
-                        style={HALO}
-                      >
-                        {bk.label.amount}
-                      </text>
-                    </>
-                  )}
-                </g>
-              )),
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            borderRadius: "50%",
+                            backgroundColor: "#0c0a08",
+                            backgroundImage: `url(${bk.b.kind === "mor" ? MORPHEUS_LOGO : MORPHO_LOGO})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }}
+                        />
+                      </foreignObject>
+                      <circle
+                        cx={bk.x}
+                        cy={bk.y}
+                        r={bk.nr}
+                        fill="none"
+                        stroke={
+                          bk.isYou ? GOLD : hot ? "rgba(255,255,255,.6)" : "rgba(255,255,255,.28)"
+                        }
+                        strokeWidth={2}
+                      />
+                    </g>
+                    {nd.isCenter && (
+                      <>
+                        <text
+                          x={bk.label.x}
+                          y={bk.label.nameY}
+                          textAnchor={bk.label.anchor}
+                          fontSize="12"
+                          fontFamily="monospace"
+                          fontWeight={bk.isYou ? 700 : 400}
+                          fill={bk.isYou ? GOLD : "rgba(255,255,255,.65)"}
+                          style={HALO}
+                        >
+                          {bk.label.name}
+                        </text>
+                        <text
+                          x={bk.label.x}
+                          y={bk.label.amtY}
+                          textAnchor={bk.label.anchor}
+                          fontSize="12"
+                          fontFamily="monospace"
+                          fontWeight="700"
+                          fill="#fff"
+                          style={HALO}
+                        >
+                          {bk.label.amount}
+                        </text>
+                      </>
+                    )}
+                  </g>
+                );
+              }),
             )}
           </g>
 
@@ -689,6 +746,25 @@ export function StakeOrbit({
               </g>
             );
           })}
+
+          {/* Hovered backer's ENS, as its own top layer so no later-painted dot
+              can overdraw it. Mounted once the first hover happens; opacity does
+              the in/out so the fade retargets when sweeping across a fan. */}
+          {!focused && hotLabel && (
+            <text
+              className="so-dot-label"
+              x={hotLabel.x}
+              y={hotLabel.y}
+              textAnchor={hotLabel.anchor}
+              fontSize="12"
+              fontFamily="monospace"
+              fontWeight={hotLabel.isYou ? 700 : 400}
+              fill={hotLabel.isYou ? GOLD : "rgba(255,255,255,.85)"}
+              style={{ ...HALO, opacity: hotBk ? 1 : 0 }}
+            >
+              {hotLabel.name}
+            </text>
+          )}
 
           {/* treasury — center in overview, a small satellite when focused. Drawn
               last: everything flows into it, so nothing crosses over it. It exists
