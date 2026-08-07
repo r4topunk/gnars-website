@@ -546,10 +546,13 @@ export function StakeOrbit({
                     onPointerEnter={(e) => {
                       if (!nd.isCenter && e.pointerType === "mouse") {
                         setHotBk(bkKey);
+                        // Centered right under the dot (which grows to 1.3x), a
+                        // tight 9px off the ring — not at the radial label slot,
+                        // which floats too far out for a hover hint.
                         setHotLabel({
-                          x: bk.label.x,
-                          y: bk.label.nameY,
-                          anchor: bk.label.anchor,
+                          x: bk.x,
+                          y: bk.y + bk.nr * 1.3 + 9 + 10,
+                          anchor: "middle",
                           name: bk.label.name,
                           isYou: bk.isYou,
                         });
