@@ -68,17 +68,14 @@
   },
   "orbit": {
     "title": "Fluxo de patrocínio",
-    "subtitle": "Tesouro da Gnars no centro, atletas na 1ª órbita, apoiadores na 2ª. Escolha um atleta pra ver quem apoia e com quanto.",
-    "total": "Total",
-    "backers": "Apoiadores",
     "you": "você",
     "loading": "carregando o fluxo…",
     "treasury": "TESOURO",
-    "earnedForTreasury": "Rendeu pro tesouro",
-    "fee": "taxa",
     "legendVault": "Vault Morpho",
     "legendMor": "Morpheus · MOR",
-    "backToAll": "Todos os riders"
+    "backToAll": "Todos os riders",
+    "error": "Não deu pra carregar o fluxo.",
+    "retry": "Tentar de novo"
   },
   "backing": "<b>{amount}</b> apoiando {name}",
   "loadingSupport": "carregando apoio…",
@@ -248,10 +245,10 @@
       "title": "Suas posições",
       "desc": "Tudo que você tem em stake, e quando dá pra mexer nisso.",
       "backsSubnet": "sustenta a subnet",
-      "unlocks": "libera em {date}",
+      "unlocks": "MOR libera em {date}",
       "venue": {
         "morpho": "Morpho · USDC",
-        "morpheus": "Morpheus · stETH",
+        "morpheus": "Morpheus",
         "subnet": "Subnet Gnars · MOR"
       },
       "venueNote": {
@@ -263,6 +260,12 @@
         "harvest": "Colher",
         "withdraw": "Sacar",
         "claim": "Resgatar"
+      },
+      "noClaim": "nada a resgatar",
+      "ready": {
+        "harvest": "pronto pra colher",
+        "withdraw": "pronto pra sacar",
+        "claim": "pronto pra resgatar"
       }
     },
     "subnet": {
@@ -277,11 +280,40 @@
         "10k": "{n, number} MOR em stake: mural dos apoiadores",
         "50k": "{n, number} MOR em stake: drop pra comunidade",
         "100k": "{n, number} MOR em stake: evento Gnars presencial"
+      },
+      "dialog": {
+        "title": "Apoie os Gnars na Morpheus",
+        "badge": "MOR · Base",
+        "desc": "Trave MOR na subnet Gnars Builder para apoiar a crew com capital de verdade. Seu principal continua seu — pode ser sacado depois de um bloqueio de 7 dias. Autocustódia na Base.",
+        "milestonesLabel": "Metas de stake",
+        "progressToEvent": "{pct}% do caminho até o evento IRL",
+        "totalStaked": "Total em stake",
+        "yourStake": "Seu stake",
+        "balance": "Saldo:",
+        "max": "Máx",
+        "minPlaceholder": "mín. {n} MOR",
+        "cta": "Fazer stake de {amount, number} MOR",
+        "phaseApprove": "aprovando MOR…",
+        "phaseStake": "fazendo stake na Base…",
+        "disclaimer": "Você está apoiando o builder — as recompensas vão para a subnet, não para stakers individuais. Toda ação é uma transação na Base.",
+        "yourPosition": "Sua posição",
+        "unlocksIn": "desbloqueia em {d}d {h}h",
+        "unlocked": "desbloqueado — saque quando quiser",
+        "withdraw": "Sacar",
+        "phaseWithdraw": "sacando…",
+        "toastStaked": "Stake feito na subnet Gnars",
+        "toastStakedDesc": "{amount, number} MOR apoiando os Gnars na Morpheus.",
+        "toastStakeFailed": "Falha no stake",
+        "toastWithdrawn": "Saque concluído",
+        "toastWithdrawnDesc": "{amount} MOR de volta na sua carteira.",
+        "toastWithdrawFailed": "Falha ao sacar"
       }
     },
     "backers": {
       "loading": "carregando o fluxo…",
-      "empty": "Nenhum apoiador ainda."
+      "empty": "Nenhum apoiador ainda.",
+      "error": "Não deu pra carregar o fluxo.",
+      "retry": "Tentar de novo"
     }
   }
 }

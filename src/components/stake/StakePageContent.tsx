@@ -178,6 +178,12 @@ function RatesStrip() {
  *
  * Same `useStakeGraph` hook (and therefore the same react-query cache entry) as
  * both arms below, so the stat line can never disagree with what it sits above.
+ *
+ * A failed fetch renders nothing here ON PURPOSE, and this is not the silent-error
+ * bug it looks like: the orbit directly below shares the cache entry and paints the
+ * failure message and the retry button for the whole section. A second copy of both
+ * in the stat line would say the same thing twice and put two retry buttons a few
+ * pixels apart.
  */
 function SocialStats() {
   const t = useTranslations("stake.page.stats");
@@ -215,6 +221,10 @@ export function StakePageContent({ initialRider }: { initialRider?: RiderId }) {
   // being looked at. Before this they disagreed: the selector tracked its own
   // index while StakeOrbit kept a separate focusId that nothing ever updated.
   const [focus, setFocus] = useState<RiderId | null>(initialRider ?? null);
+  // The claim modal has TWO entry points — the floater and a position row — so its
+  // open state lives here rather than inside MorLootbox. Both open the same modal;
+  // there is no second claim flow to keep in sync.
+  const [lootOpen, setLootOpen] = useState(false);
 
   return (
     <div className="space-y-8">
@@ -257,7 +267,7 @@ export function StakePageContent({ initialRider }: { initialRider?: RiderId }) {
 
         <RatesStrip />
 
-        <PositionsHub />
+        <PositionsHub onAction={() => setLootOpen(true)} />
 
         <RevealSection className={cn(CARD, CARD_PAD, "space-y-4")}>
           <RevealItem>
@@ -277,9 +287,9 @@ export function StakePageContent({ initialRider }: { initialRider?: RiderId }) {
                 ORBIT_STAGE inside the card: the orbit is artwork drawn for a dark
                 stage (white labels, dark halos), so it keeps its own dark surface
                 even on a light page — framed by the section card the way a photo
-                sits in an article. `chromeless` drops the orbit's own card, title
-                and stats row, so the stage is the only frame and SectionHeader is
-                the only title. */}
+                sits in an article. StakeOrbit draws the graph and nothing else:
+                the stage is the only frame, SectionHeader the only title, and
+                SocialStats above the only totals. */}
             <div className={cn(ORBIT_STAGE, "p-2 sm:p-4")}>
               {/* Focus is ONE piece of state shared both ways: the selector
                   writes it, the graph reads it, and `onFocusChange` reports the
@@ -287,7 +297,7 @@ export function StakePageContent({ initialRider }: { initialRider?: RiderId }) {
                   without reporting is what let them drift and then stick —
                   re-picking the rider the parent already held set an equal
                   value, React bailed out, and the graph never re-synced. */}
-              <StakeOrbit focusRider={focus} onFocusChange={setFocus} chromeless />
+              <StakeOrbit focusRider={focus} onFocusChange={setFocus} />
             </div>
             {/* The ranked list stays below `md`, under the graph rather than
                 instead of it. Not a duplicate: the orbit reveals a backer's ENS on
@@ -304,8 +314,9 @@ export function StakePageContent({ initialRider }: { initialRider?: RiderId }) {
       </div>
 
       {/* One floater, and only when the wallet actually has something to
-          collect. */}
-      <MorLootbox />
+          collect. Controlled from here so the "Claim" button on a position row
+          above opens this exact modal. */}
+      <MorLootbox open={lootOpen} onOpenChange={setLootOpen} />
     </div>
   );
 }

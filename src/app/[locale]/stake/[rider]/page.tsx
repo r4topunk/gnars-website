@@ -53,7 +53,12 @@ export async function generateMetadata({
         imageUrl: image,
         button: {
           ...STAKE_MINIAPP_EMBED_CONFIG.button,
-          title: `Stake with ${name}`,
+          // Same translated CTA as the page title — a hardcoded English literal
+          // here shipped "Stake with X" on the pt-BR route. Farcaster caps the
+          // button label at 32 chars: the longest real case is pt-BR
+          // "Fazer stake com Pamtech" (23), so both locales fit for every rider
+          // in RIDER_LIST.
+          title,
           action: {
             ...STAKE_MINIAPP_EMBED_CONFIG.button.action,
             url: `${BASE_URL}/stake/${rider}`,

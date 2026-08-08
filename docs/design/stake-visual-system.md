@@ -31,7 +31,12 @@ anti-slop taste rules. Everything here is decided; no toggles for these choices.
   island; the island is gone, so sections use the site's own card token.)
 - Rows inside a card: NO sub-cards. Transparent rows separated by ONE hairline
   (`divide-y` on the container). Never border-t AND border-b.
-- `MUTED` `text-white/50`, `MICRO` `text-white/35` unchanged.
+- `MUTED` = `text-muted-foreground`; `MICRO` = `text-neutral-600` plus
+  `dark:text-muted-foreground/90`. Both were `white/xx` alphas in the prototype;
+  they became theme tokens with the chrome rule above. MICRO is a light/dark pair
+  rather than an alpha under MUTED because light mode has no contrast headroom
+  below `muted-foreground` (already ~4.7:1 on `bg-card`), so on a light page micro
+  text steps _darker_ and takes its hierarchy from size instead.
 - GOLD unchanged, still the only UI accent. **Color rule tightened:** every key
   number / earned yield renders gold; Morpheus green appears ONLY on the subnet
   progress fill and the subnet MOR total. No green dots next to values anywhere.
@@ -43,19 +48,30 @@ anti-slop taste rules. Everything here is decided; no toggles for these choices.
 
 The 01–05 mono index is a section-number eyebrow, a known AI tell ("eyebrows name
 the topic in plain language, they don't enumerate"). SectionHeader drops the
-index entirely: bold title (`text-lg font-bold tracking-tight sm:text-xl`) +
-optional one-line desc (`text-sm text-white/50 max-w-prose`). The rhythm comes
-from consistency, not numbering. No uppercase-tracking eyebrows anywhere in
-preview files.
+index entirely: bold title (`SECTION_TITLE` = `text-lg font-bold tracking-tight
+sm:text-xl`) + optional one-line desc (`SECTION_DESC` = `max-w-prose text-sm
+text-muted-foreground`). The rhythm comes from consistency, not numbering. No
+uppercase-tracking eyebrows in anything the page renders. StakeOrbit still owns
+one (its `orbit.title` eyebrow), which is exactly what `chromeless` drops when
+StakePageContent mounts it.
 
 ## Copy rules (both locales, `stake.page.*` namespace)
 
 - **Zero em-dashes (`—`) and zero en-dash separators** in any user-visible
-  preview string. Restructure with period, comma, colon or parentheses.
+  `stake.page.*` string. Restructure with period, comma, colon or parentheses.
 - **Middle-dot rationed: max 1 `·` per line.** "Base · no lock" fine;
   "a · b · c" not.
-- Trust-critical rewrites (EN shown; pt-BR same meaning, glossary: claim→Resgatar,
-  withdraw→Sacar, harvest→Resgatar — "Colher" dies, resgatar covers yield):
+- **Three distinct pt-BR verbs, no overlap:** claim→**Resgatar**,
+  withdraw→**Sacar**, harvest→**Colher**. This is what
+  `page.positions.action.{claim,withdraw,harvest}` and `lootbox.claimYield`
+  ("Colher") ship. Collapsing harvest onto "Resgatar" would put two different
+  operations behind one word, which the project bans. PositionsHub currently
+  only ever emits `action: "claim"`, so the collision would be latent rather than
+  visible today — that is not a reason to reintroduce it.
+  - Pre-existing collisions elsewhere in `stake.json` are still open and are not
+    covered by this pass: `dlg.claim` = "Sacar rendimento", `lootbox.claim` =
+    "Sacar" and `lootbox.withdraw` = "Sacar".
+- Trust-critical rewrites (EN shown; pt-BR same meaning, glossary above):
   - hero: "Back a Gnars rider. Your deposit stays yours and keeps earning. You
     keep half the yield; the other half backs your rider and the treasury."
   - positions desc: "Everything you have staked, and when you can touch it."
@@ -76,15 +92,22 @@ preview files.
   slimmer padding than the other cards so global rates weigh less than the
   user's own money; PositionsHub and SubnetSection render their own cards
   because they own their headers (PositionsHub self-suppresses).
-- Social proof: **orbit graph is desktop-only** (`hidden md:block`); below `md`
-  render the ranked list (BackerList) instead. The `?orbit=list` param now only
-  affects desktop.
+- Social proof: **the orbit graph renders at every width**, inside the
+  `ORBIT_STAGE` panel. There is no `hidden md:block` and no list-instead-of-graph
+  swap: below `md` the SVG draws at `min-w-[680px]` inside StakeOrbit's own
+  `overflow-x-auto` scroller (`md:min-w-0` above it), so a phone pans across the
+  graph instead of reading one squeezed to ~300px where the labels land at ~4px.
+- BackerList is **additive, not a replacement**: it renders in a `md:hidden`
+  block _below_ the graph. The reason is hover — the orbit only reveals a
+  backer's ENS on hover, and touch has no hover, so on a phone the backer dots
+  are anonymous and the ranked list is the only place to read who is behind a
+  rider (and the only way to tap through to their profile).
 - Above the orbit panel: one stat line from useStakeGraph (total staked gold,
   "N backers", treasury earned) — replaces the stats StakeOrbit prints inside
   the drawing. StakeOrbit gets an additive `chromeless` prop (production file,
-  additive only, default false) that hides its internal card header (eyebrow
-  "SPONSORSHIP FLOW", description, stats row) and its own card chrome so the
-  preview panel is the only frame.
+  additive only, default false) that hides its internal card header (eyebrow,
+  description, stats row) and its own card chrome so the section card plus
+  ORBIT_STAGE are the only frames.
 
 ## RiderSelect
 

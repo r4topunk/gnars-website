@@ -13,7 +13,7 @@
 // frame and the totals are stated once.
 import { useLocale, useTranslations } from "next-intl";
 import { MICRO, MUTED, ROW_LIST, ROW_PAD } from "@/components/stake/stake-ui";
-import { useStakeGraph } from "@/hooks/use-stake-graph";
+import { useStakeGraphQuery } from "@/hooks/use-stake-graph";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { StakeGraph } from "@/services/stake-graph";
@@ -26,7 +26,7 @@ const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
  * `data` swaps in a caller-supplied graph for the fetched one. Nothing on /stake
  * passes it today (the page is live-only), but it is the seam StakeOrbit already
  * exposes, kept here so both arms of the social proof can be driven from one
- * source if a caller ever needs to. `useStakeGraph` is called unconditionally
+ * source if a caller ever needs to. `useStakeGraphQuery` is called unconditionally
  * either way — it is a react-query subscription, not a side-effect that can be
  * skipped.
  */
@@ -37,8 +37,27 @@ export function BackerList({ data }: { data?: StakeGraph } = {}) {
   // capital on every rider — including the one whose name is lowercase.
   const tc = useTranslations("stake.characters");
   const locale = useLocale();
-  const live = useStakeGraph();
-  const graph = data ?? live;
+  const { data: live, isError, refetch, isFetching } = useStakeGraphQuery();
+  const graph = data ?? live ?? null;
+
+  // A dead /api/stake-graph used to be indistinguishable from a slow one: both
+  // left this list on "loading the flow…" forever. Only the fetched arm can
+  // fail, so a caller-supplied `data` still wins over the error.
+  if (!graph && isError) {
+    return (
+      <div className={cn("space-y-2 text-sm", MUTED)}>
+        <p>{t("error")}</p>
+        <button
+          type="button"
+          onClick={() => void refetch()}
+          disabled={isFetching}
+          className="cursor-pointer font-semibold underline underline-offset-4 hover:text-foreground disabled:cursor-default disabled:opacity-60"
+        >
+          {t("retry")}
+        </button>
+      </div>
+    );
+  }
 
   if (!graph) return <p className={cn("text-sm", MICRO)}>{t("loading")}</p>;
 

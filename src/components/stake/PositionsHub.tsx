@@ -2,7 +2,8 @@
 
 // "Your positions" promoted from a read-only card at the bottom of the page into
 // the hub that answers "what do I have here" for all three venues, with the action
-// on the row instead of behind a floating button.
+// reachable from the row instead of only from a floating button. The row does not
+// transact: it opens the same RewardClaimModal the floater opens (see `onAction`).
 //
 // The section SELF-SUPPRESSES when there is nothing to show. StakePositions (the
 // component this replaces on the page) returns its <Card> unconditionally, which
@@ -45,6 +46,12 @@ type Row = {
    *  USDC), which are two rows with the same venue. */
   id: string;
   venue: Venue;
+  /** Deposited asset of THIS row, appended to the venue label. Required for
+   *  Morpheus, whose two pools are two rows under one venue name — without it both
+   *  printed the same hardcoded "Morpheus · stETH" and the USDC position was
+   *  labelled with the wrong token. Venues with a single asset can omit it and keep
+   *  the asset baked into their venue string. */
+  asset?: string;
   /** What the user deposited, already formatted with its unit. */
   principal: string;
   /** Accrued yield, already formatted with its unit. Empty string = none yet. */
@@ -54,25 +61,45 @@ type Row = {
   action: "harvest" | "withdraw" | "claim";
 };
 
-const fmtDate = (ts: number, locale: string) =>
-  new Date(ts * 1000).toLocaleDateString(locale, { day: "2-digit", month: "short" });
+/** Day + month, plus the YEAR whenever the unlock is not in the current year. The
+ *  date here is Morpheus' claim lock (`morUnlockAt`), which can sit years out — a
+ *  bare "14 de ago" then reads as "next week" for a lock that has not even started
+ *  to melt. Same-year dates stay short so the common case is not noisy. */
+const fmtDate = (ts: number, locale: string, now: number) => {
+  const d = new Date(ts * 1000);
+  const sameYear = d.getFullYear() === new Date(now * 1000).getFullYear();
+  return d.toLocaleDateString(locale, {
+    day: "2-digit",
+    month: "short",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+};
 /** Amounts take the APP locale, never `undefined` (= the browser's). A pt-BR page
  *  read in an en-US browser printed "1,234.5678 stETH" next to "libera em 14 de
  *  ago" — two separator conventions inside one row. */
 const fmtAmount = (n: number, locale: string) =>
   n.toLocaleString(locale, { maximumFractionDigits: 4 });
 
-function PositionRow({ row, now }: { row: Row; now: number }) {
+function PositionRow({ row, now, onAction }: { row: Row; now: number; onAction?: () => void }) {
   const t = useTranslations("stake.page.positions");
   const locale = useLocale();
   const locked = row.lockedUntil > now;
+  // A "claim" row with nothing accrued has nothing to claim — offering the verb
+  // there promised a payout that the modal would then show as zero. Withdraw and
+  // harvest are not gated on `earned` (you can always pull your principal).
+  const hasSomethingToDo = row.action !== "claim" || row.earned !== "";
 
   return (
     <div className={cn(ROW_PAD, "flex flex-wrap items-center gap-x-4 gap-y-2")}>
       {/* Full width on mobile: sharing the line with the amounts truncated the
           venue to "Morph…", which is the one thing on the row that must be read. */}
       <div className="w-full min-w-0 sm:w-auto sm:flex-1">
-        <div className="truncate text-sm font-semibold">{t(`venue.${row.venue}`)}</div>
+        {/* The asset belongs to the ROW, not to the venue: Morpheus prints one row
+            per pool, so its label is composed here instead of being baked into the
+            translated venue name. */}
+        <div className="truncate text-sm font-semibold">
+          {row.asset ? `${t(`venue.${row.venue}`)} · ${row.asset}` : t(`venue.${row.venue}`)}
+        </div>
         <div className={cn("truncate text-xs", MICRO)}>{t(`venueNote.${row.venue}`)}</div>
       </div>
 
@@ -96,20 +123,36 @@ function PositionRow({ row, now }: { row: Row; now: number }) {
         {locked ? (
           // A lock date is information, not a control. Plain right-aligned micro
           // text: a pill or a disabled button here invites a click that can't work.
+          // The string names the locked asset (MOR) because the venueNote beside it
+          // talks about the SEVEN-DAY principal lock — a different clock.
           <span className={cn("text-xs", MICRO)}>
-            {t("unlocks", { date: fmtDate(row.lockedUntil, locale) })}
+            {t("unlocks", { date: fmtDate(row.lockedUntil, locale, now) })}
           </span>
-        ) : (
-          <Button variant="secondary" className={QUIET_BTN}>
+        ) : !hasSomethingToDo ? (
+          <span className={cn("text-xs", MICRO)}>{t("noClaim")}</span>
+        ) : onAction ? (
+          <Button variant="secondary" className={QUIET_BTN} onClick={onAction}>
             {t(`action.${row.action}`)}
           </Button>
+        ) : (
+          // No handler wired by the parent → no button. A control that does nothing
+          // when clicked is worse than the same fact stated as text, which is the
+          // rule the `locked` branch above already follows.
+          <span className={cn("text-xs", MICRO)}>{t(`ready.${row.action}`)}</span>
         )}
       </div>
     </div>
   );
 }
 
-export function PositionsHub() {
+/**
+ * `onAction` is what a row's button does. There is exactly one place where a
+ * position is actually acted on — the RewardClaimModal behind MorLootbox — so the
+ * hub does not grow its own transaction flow: the parent owns the modal's open
+ * state and the row opens the SAME modal the floater opens. Without the prop the
+ * rows render their action as text (see PositionRow), never as a dead button.
+ */
+export function PositionsHub({ onAction }: { onAction?: () => void }) {
   const t = useTranslations("stake.page.positions");
   const locale = useLocale();
   const { address: you } = useUserAddress();
@@ -121,6 +164,7 @@ export function PositionsHub() {
     .map((p) => ({
       id: `morpheus-${p.symbol}`,
       venue: "morpheus" as const,
+      asset: p.symbol,
       principal: `${fmtAmount(p.staked, locale)} ${p.symbol}`,
       earned: p.pendingMor > 0 ? `${fmtAmount(p.pendingMor, locale)} MOR` : "",
       lockedUntil: p.morUnlockAt,
@@ -141,7 +185,7 @@ export function PositionsHub() {
 
       <RevealItem delay={50} className={ROW_LIST}>
         {rows.map((r) => (
-          <PositionRow key={r.id} row={r} now={now} />
+          <PositionRow key={r.id} row={r} now={now} onAction={onAction} />
         ))}
       </RevealItem>
     </RevealSection>

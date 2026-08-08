@@ -68,17 +68,14 @@
   },
   "orbit": {
     "title": "Sponsorship flow",
-    "subtitle": "The Gnars treasury at the center, athletes in the first orbit, backers in the second. Pick an athlete to see who backs them, and with how much.",
-    "total": "Total",
-    "backers": "Backers",
     "you": "you",
     "loading": "loading the flow…",
     "treasury": "TREASURY",
-    "earnedForTreasury": "Earned for treasury",
-    "fee": "fee",
     "legendVault": "Morpho vault",
     "legendMor": "Morpheus · MOR",
-    "backToAll": "All riders"
+    "backToAll": "All riders",
+    "error": "Couldn't load the flow.",
+    "retry": "Try again"
   },
   "backing": "<b>{amount}</b> backing {name}",
   "loadingSupport": "loading support…",
@@ -248,10 +245,10 @@
       "title": "Your positions",
       "desc": "Everything you have staked, and when you can touch it.",
       "backsSubnet": "backs the subnet",
-      "unlocks": "unlocks {date}",
+      "unlocks": "MOR unlocks {date}",
       "venue": {
         "morpho": "Morpho · USDC",
-        "morpheus": "Morpheus · stETH",
+        "morpheus": "Morpheus",
         "subnet": "Gnars subnet · MOR"
       },
       "venueNote": {
@@ -263,6 +260,12 @@
         "harvest": "Harvest",
         "withdraw": "Withdraw",
         "claim": "Claim"
+      },
+      "noClaim": "nothing to claim",
+      "ready": {
+        "harvest": "ready to harvest",
+        "withdraw": "ready to withdraw",
+        "claim": "ready to claim"
       }
     },
     "subnet": {
@@ -277,11 +280,40 @@
         "10k": "{n, number} MOR staked: featured stakers wall",
         "50k": "{n, number} MOR staked: community drop",
         "100k": "{n, number} MOR staked: IRL Gnars event"
+      },
+      "dialog": {
+        "title": "Back Gnars on Morpheus",
+        "badge": "MOR · Base",
+        "desc": "Lock MOR into the Gnars Builder subnet to back the crew with real capital. Your principal stays yours — withdrawable after a 7-day lock. Self-custody on Base.",
+        "milestonesLabel": "Staking milestones",
+        "progressToEvent": "{pct}% of the way to the IRL event",
+        "totalStaked": "Total staked",
+        "yourStake": "Your stake",
+        "balance": "Balance:",
+        "max": "Max",
+        "minPlaceholder": "min {n} MOR",
+        "cta": "Stake {amount, number} MOR",
+        "phaseApprove": "approving MOR…",
+        "phaseStake": "staking on Base…",
+        "disclaimer": "You're backing the builder — rewards accrue to the subnet, not to individual stakers. Every action is a transaction on Base.",
+        "yourPosition": "Your position",
+        "unlocksIn": "unlocks in {d}d {h}h",
+        "unlocked": "unlocked — withdraw anytime",
+        "withdraw": "Withdraw",
+        "phaseWithdraw": "withdrawing…",
+        "toastStaked": "Staked on the Gnars subnet",
+        "toastStakedDesc": "{amount, number} MOR backing Gnars on Morpheus.",
+        "toastStakeFailed": "Stake failed",
+        "toastWithdrawn": "Withdrawn",
+        "toastWithdrawnDesc": "{amount} MOR back in your wallet.",
+        "toastWithdrawFailed": "Withdraw failed"
       }
     },
     "backers": {
       "loading": "loading the flow…",
-      "empty": "No backers yet."
+      "empty": "No backers yet.",
+      "error": "Couldn't load the flow.",
+      "retry": "Try again"
     }
   }
 }

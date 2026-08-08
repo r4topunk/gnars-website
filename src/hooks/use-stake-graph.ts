@@ -15,8 +15,15 @@ async function fetchStakeGraph(): Promise<StakeGraph> {
   return res.json();
 }
 
-export function useStakeGraph(nonce = 0): StakeGraph | null {
-  const { data } = useQuery({
+/**
+ * The full query. Use this when the caller has to tell "still loading" apart from
+ * "the request failed" — `useStakeGraph` collapses both into `null`, which is how
+ * a dead /api/stake-graph used to render as an eternal "loading the flow…". The
+ * two hooks share one query key, so react-query serves both from the same cache
+ * entry and the same in-flight request.
+ */
+export function useStakeGraphQuery(nonce = 0) {
+  return useQuery({
     queryKey: ["stake-graph", nonce],
     queryFn: fetchStakeGraph,
     // Matched to the CDN `s-maxage` on /api/stake-graph: refetching sooner
@@ -29,5 +36,9 @@ export function useStakeGraph(nonce = 0): StakeGraph | null {
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
+}
+
+export function useStakeGraph(nonce = 0): StakeGraph | null {
+  const { data } = useStakeGraphQuery(nonce);
   return data ?? null;
 }
