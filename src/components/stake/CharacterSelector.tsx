@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { BarChart3, ChevronLeft, ChevronRight, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -162,13 +161,28 @@ const usd = (n: number, locale: string) =>
   `$${n.toLocaleString(locale, { maximumFractionDigits: n < 100 ? 2 : 0 })}`;
 
 /**
+ * Cut-outs already asked for, module-level so the set survives remounts of the
+ * selector (and any second instance on the page). The HTTP cache would collapse
+ * the duplicates anyway, but this keeps us from constructing throwaway Image
+ * elements on every rider change. See the preload effect for why the raw URL is
+ * the right thing to warm.
+ */
+const preloadedCutouts = new Set<string>();
+
+function preloadCutout(src: string) {
+  if (preloadedCutouts.has(src)) return;
+  preloadedCutouts.add(src);
+  // `window.Image`, not the imported next/image `Image` — this is the DOM
+  // constructor, and the two share a name in this file.
+  new window.Image().src = src;
+}
+
+/**
  * How the page-level composition (StakePageContent) turns off selector-owned
  * chrome it renders itself. Every field defaults to this component's standalone
  * behaviour, so omitting `preview` changes nothing.
  */
 export type CharacterSelectorPreview = {
-  /** false → do not rewrite the URL on mount/selection. Default true. */
-  syncUrl?: boolean;
   /** true → render the Stake CTA as the last row of the name plate instead of absolutely positioned. Default false. */
   ctaInFlow?: boolean;
   /** false → hide the "Overall" score block in the skills panel. Default true. */
@@ -293,9 +307,7 @@ export function CharacterSelector({
 } = {}) {
   const t = useTranslations("stake");
   const locale = useLocale();
-  const pathname = usePathname();
   // Read the preview flags once, defaulting to today's behaviour.
-  const syncUrl = preview?.syncUrl !== false;
   const ctaInFlow = preview?.ctaInFlow === true;
   const showOverall = preview?.showOverall !== false;
   const showTileScore = preview?.showTileScore !== false;
@@ -345,6 +357,11 @@ export function CharacterSelector({
   // beside them. Closed by default: the stage is the point of this section, and
   // eight meters permanently parked next to it made the card mostly numbers.
   const [skillsOpen, setSkillsOpen] = useState(false);
+  const skillsToggleRef = useRef<HTMLButtonElement | null>(null);
+  const skillsPanelRef = useRef<HTMLDivElement | null>(null);
+  // Tracks the previous value so the "give the focus back" arm below does not
+  // fire on mount, when nothing was ever taken.
+  const skillsWasOpen = useRef(false);
 
   const count = CHARACTERS.length;
   const active = CHARACTERS[index];
@@ -360,6 +377,13 @@ export function CharacterSelector({
   const vault = rider?.vault;
   const staked = useVaultTotal(vault);
 
+  // True once the READER has changed rider — go/select set it, nothing else
+  // does. This is what gates the URL sync below to user-driven picks: an
+  // effect that "skips its first run" breaks under StrictMode's double-mount
+  // (the ref survives the remount, so the second mount pass would sync), while
+  // a flag set only from event handlers cannot fire on any mount.
+  const userPicked = useRef(false);
+
   // Both selectors stop the clip: the stage is about to hold a different rider,
   // and a <video> left mounted across the swap keeps playing the previous one
   // under the new name plate.
@@ -367,6 +391,7 @@ export function CharacterSelector({
     (next: number) => {
       setDirection(next > index || (index === count - 1 && next === 0) ? 1 : -1);
       const i = (next + count) % count;
+      userPicked.current = true;
       setIndex(i);
       resetClip();
       onSelect?.(CHARACTERS[i].id);
@@ -377,6 +402,7 @@ export function CharacterSelector({
   const select = useCallback(
     (i: number) => {
       setDirection(i > index ? 1 : -1);
+      userPicked.current = true;
       setIndex(i);
       resetClip();
       onSelect?.(CHARACTERS[i].id);
@@ -386,27 +412,124 @@ export function CharacterSelector({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") go(index - 1);
-      if (e.key === "ArrowRight") go(index + 1);
       // Escape closes the stat sheet: it covers the stage, so it is the one
-      // thing here a reader can get "stuck" behind.
+      // thing here a reader can get "stuck" behind. Handled before the arrow
+      // guards below because it has to keep working from anywhere on the page.
       if (e.key === "Escape") setSkillsOpen(false);
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      // The arrows are a page-level shortcut on `window`, so without a target
+      // guard they fire while the reader is typing somewhere else. Concretely:
+      // with the stake dialog open on Vlad, moving the caret inside the amount
+      // field switched the rider under the open dialog (and rewrote the URL),
+      // so the deposit went to a different vault than the one on screen.
+      //
+      // The guard is DOM-based, not state-based: `dialogOpen` only knows about
+      // the dialog THIS component owns, and the same page mounts others
+      // (GnarsStakeDialog under SubnetSection) that would still be invisible to
+      // it. A Radix dialog anywhere marks itself [data-state="open"], and any
+      // text-entry target is recognisable from the event itself.
+      // `instanceof Element` rather than a cast: a keydown always targets an
+      // element in practice, but the listener is on `window`, and anything
+      // dispatching one with a non-element target would throw here on `.closest`
+      // and take the whole handler down with it.
+      const el = e.target;
+      if (el instanceof Element && el.closest('input, textarea, select, [contenteditable="true"]'))
+        return;
+      if (document.querySelector('[role="dialog"][data-state="open"]')) return;
+      if (e.key === "ArrowLeft") go(index - 1);
+      else go(index + 1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [go, index]);
 
-  // Keep the URL on the picked rider so anyone can copy the address bar and
-  // share that rider's vault. replaceState rather than push — browsing the
-  // roster with the arrows shouldn't stack up history entries. Opted out of on
-  // routes that aren't /stake, where rewriting the path would navigate away.
+  // The overlay arm is `lg:hidden`, not unmounted, so at `lg` it is still in the
+  // tree while the column shows the same numbers. Since being open is what makes
+  // the controls underneath unfocusable (see `skillsOpen` on the tabIndex props
+  // below), an overlay left open across the breakpoint would kill the chevrons
+  // and the CTA for keyboard users on a desktop that shows no panel at all.
+  // Closing it on the way up keeps the two arms honest. matchMedia is read in an
+  // effect, never during render — there is no window on the server.
   useEffect(() => {
-    if (!syncUrl) return;
-    if (typeof window === "undefined") return;
-    const root = pathname.replace(/\/stake(\/[^/]+)?\/?$/, "/stake");
-    const next = `${root}/${active.id}`;
-    if (window.location.pathname !== next) window.history.replaceState(null, "", next);
-  }, [active.id, pathname, syncUrl]);
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const sync = () => {
+      if (mq.matches) setSkillsOpen(false);
+    };
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  // Focus follows the panel: into it on open (it is a disclosure, not a modal —
+  // no focus trap, Tab simply continues past it), back to the toggle on close so
+  // a keyboard reader does not land at the top of the document. The toggle is
+  // `lg:hidden`, so when the effect above closes the panel at `lg` there is
+  // nothing visible to focus — offsetParent is the cheap "am I displayed" check.
+  useEffect(() => {
+    if (skillsOpen) {
+      skillsPanelRef.current?.focus();
+    } else if (skillsWasOpen.current) {
+      const toggle = skillsToggleRef.current;
+      if (toggle && toggle.offsetParent !== null) toggle.focus();
+    }
+    skillsWasOpen.current = skillsOpen;
+  }, [skillsOpen]);
+
+  // URL sync, shallow. Sharing is the one reason the path tracks the pick:
+  // /stake/<rider> serves that rider's OG image, title and Farcaster embed, so
+  // the link a reader copies after browsing to a rider unfurls as THAT rider's
+  // card. Native history.replaceState is the App Router's supported shallow
+  // route — the address bar updates with no navigation: no RSC fetch, no
+  // remount, no scroll. (Crawlers never see this; they fetch the copied URL
+  // cold and the /stake/[rider] route renders the matching metadata.)
+  //
+  // Two deliberate guards, learned from the first version of this sync:
+  // - `userPicked` — never on load. /stake used to rewrite itself to
+  //   /stake/vlad before the reader touched anything.
+  // - replaceState, not pushState — seven roster clicks must not become seven
+  //   Back presses. Back leaves the page in one step, exactly as it arrived.
+  //
+  // The path is read from window.location at commit time, not usePathname:
+  // subscribing this component to the router would re-render it on the very
+  // rewrites it causes.
+  useEffect(() => {
+    if (!userPicked.current) return;
+    const path = window.location.pathname;
+    // Only rewrite when actually on the stake page (with or without a rider
+    // segment) — mounted anywhere else, the selector leaves the URL alone.
+    if (!/\/stake(\/[^/]+)?\/?$/.test(path)) return;
+    const next = path.replace(/\/stake(\/[^/]+)?\/?$/, `/stake/${active.id}`);
+    if (path !== next) window.history.replaceState(null, "", next);
+  }, [active.id]);
+
+  // Warm the neighbouring cut-outs. Each PNG is ~700KB and the stage only asks
+  // for one when its rider becomes active, so the file was downloading DURING
+  // the slide — the new rider popped in a beat after the animation finished.
+  // Immediate neighbours first (the two riders one chevron press away), then
+  // the rest of the roster once the browser is idle, so the warm-up never
+  // competes with whatever the page is still doing on load.
+  //
+  // Preloading the raw `c.image` URL is what the stage will actually request:
+  // its <Image> is `unoptimized`, so next/image passes the src straight
+  // through instead of rewriting it to /_next/image?url=…&w=…&q=… . Same URL,
+  // same cache entry. (If that `unoptimized` ever comes off, this stops
+  // warming anything and the fix is hidden <Image>s with the stage's exact
+  // props, not a wider net here.) Effect-only, never during render: there is
+  // no `window.Image` on the server.
+  useEffect(() => {
+    const neighbours = [CHARACTERS[(index + 1) % count], CHARACTERS[(index - 1 + count) % count]];
+    neighbours.forEach((c) => preloadCutout(c.image));
+
+    const rest = () => CHARACTERS.forEach((c) => preloadCutout(c.image));
+    // requestIdleCallback is still missing on Safari <17; the timeout arm is a
+    // plain "later", not a race — preloadCutout is idempotent either way.
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(rest);
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(rest, 1500);
+    return () => window.clearTimeout(id);
+  }, [index, count]);
 
   return (
     <div className="flex flex-col gap-7">
@@ -529,6 +652,11 @@ export function CharacterSelector({
               type="button"
               onClick={startClip}
               aria-label={t("playClip", { name })}
+              // Covered by the stat-sheet overlay while it is open, so it leaves
+              // the tab order with it — Tab must not reach a control the reader
+              // cannot see. Same for the chevrons and both CTAs below; the
+              // toggle is deliberately left in, it is the way back out.
+              tabIndex={skillsOpen ? -1 : undefined}
               className={cn(
                 "absolute inset-y-[8%] left-1/2 aspect-[2/5] -translate-x-1/2 rounded-2xl",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60",
@@ -541,6 +669,7 @@ export function CharacterSelector({
             type="button"
             onClick={() => go(index - 1)}
             aria-label={t("prev")}
+            tabIndex={skillsOpen ? -1 : undefined}
             className="absolute left-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/[0.12] bg-black/35 text-white backdrop-blur-sm transition hover:bg-black/60"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -549,6 +678,7 @@ export function CharacterSelector({
             type="button"
             onClick={() => go(index + 1)}
             aria-label={t("next")}
+            tabIndex={skillsOpen ? -1 : undefined}
             className="absolute right-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/[0.12] bg-black/35 text-white backdrop-blur-sm transition hover:bg-black/60"
           >
             <ChevronRight className="h-5 w-5" />
@@ -561,6 +691,7 @@ export function CharacterSelector({
             sheet's header uses rather than a new one. */}
           <button
             type="button"
+            ref={skillsToggleRef}
             onClick={() => setSkillsOpen((v) => !v)}
             aria-expanded={skillsOpen}
             className="absolute right-4 top-4 z-50 inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/[0.12] bg-black/40 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white backdrop-blur-sm transition hover:bg-black/60 lg:hidden"
@@ -579,11 +710,18 @@ export function CharacterSelector({
           <AnimatePresence>
             {skillsOpen && (
               <motion.div
+                ref={skillsPanelRef}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.18, ease: "easeOut" }}
-                className="absolute inset-0 z-40 flex flex-col justify-center overflow-y-auto bg-[#0c0a08]/92 px-6 py-6 backdrop-blur-sm sm:px-8 lg:hidden"
+                // Focused on open (see the effect above) so the reader lands in
+                // the sheet rather than continuing from the toggle. -1 keeps it
+                // scriptable-only: the panel itself is not a tab stop, and it
+                // holds no controls, so Tab from here goes straight to whatever
+                // follows the stage.
+                tabIndex={-1}
+                className="absolute inset-0 z-40 flex flex-col justify-center overflow-y-auto bg-[#0c0a08]/92 px-6 py-6 outline-none backdrop-blur-sm sm:px-8 lg:hidden"
               >
                 {/* The scrim covers the whole stage, the sheet does not: on a tablet
                   the stage is wide enough that each meter segment stretched into a
@@ -640,6 +778,7 @@ export function CharacterSelector({
             <Button
               size="lg"
               onClick={() => setDialogOpen(true)}
+              tabIndex={skillsOpen ? -1 : undefined}
               className={cn(
                 "pointer-events-auto mt-5 h-12 w-full cursor-pointer gap-2 border-0 font-bold text-[#1a1205] shadow-[0_8px_24px_rgba(245,133,31,.35)] hover:opacity-90 sm:h-10 sm:w-auto",
                 !ctaInFlow && "sm:hidden",
@@ -657,6 +796,7 @@ export function CharacterSelector({
             <Button
               size="lg"
               onClick={() => setDialogOpen(true)}
+              tabIndex={skillsOpen ? -1 : undefined}
               className="absolute bottom-5 right-5 z-30 hidden cursor-pointer gap-2 border-0 font-bold text-[#1a1205] shadow-[0_8px_24px_rgba(245,133,31,.35)] hover:opacity-90 sm:inline-flex"
               style={{ backgroundImage: GOLD }}
             >

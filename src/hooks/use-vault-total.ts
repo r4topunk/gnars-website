@@ -1,12 +1,13 @@
 "use client";
 
-// Total currently staked in a rider's sponsorship vault, read straight from the
-// contract. Returns null while loading, when the rider has no vault yet, or if
-// the read fails — callers should show "no vault yet" rather than a fake $0.
-
-import { useEffect, useState } from "react";
-import { createPublicClient, http, fallback, formatUnits, type Address } from "viem";
+// Sponsorship vault reads (totals, per-account position, earned), straight from
+// the contract via react-query. Every hook here returns null while loading, when
+// the rider has no vault yet, or if the read fails — callers should show
+// "no vault yet" rather than a fake $0.
+import { useQuery } from "@tanstack/react-query";
+import { createPublicClient, fallback, formatUnits, http, type Address } from "viem";
 import { base } from "viem/chains";
+import { RIDER_LIST } from "@/lib/gnars-vaults";
 
 const client = createPublicClient({
   chain: base,
@@ -19,9 +20,27 @@ const client = createPublicClient({
 });
 
 const abi = [
-  { type: "function", name: "totalAssets", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
-  { type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ type: "address" }], outputs: [{ type: "uint256" }] },
-  { type: "function", name: "convertToAssets", stateMutability: "view", inputs: [{ type: "uint256" }], outputs: [{ type: "uint256" }] },
+  {
+    type: "function",
+    name: "totalAssets",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "convertToAssets",
+    stateMutability: "view",
+    inputs: [{ type: "uint256" }],
+    outputs: [{ type: "uint256" }],
+  },
 ] as const;
 
 /**
@@ -36,33 +55,35 @@ export function useVaultPosition(
   account?: string,
   nonce = 0,
 ): { shares: bigint; assets: number } | null {
-  const [pos, setPos] = useState<{ shares: bigint; assets: number } | null>(null);
-
-  useEffect(() => {
-    if (!vault || !account) {
-      setPos(null);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
+  const { data } = useQuery({
+    // `nonce` in the key is what makes a post-transaction bump refetch.
+    queryKey: ["vault-position", vault, account, nonce],
+    enabled: !!vault && !!account,
+    // The user's own money — kept fresher than the vault totals.
+    staleTime: 30_000,
+    queryFn: async (): Promise<{ shares: bigint; assets: number } | null> => {
       try {
         const shares = await client.readContract({
-          address: vault, abi, functionName: "balanceOf", args: [account as Address],
+          address: vault!,
+          abi,
+          functionName: "balanceOf",
+          args: [account as Address],
         });
-        if (cancelled) return;
-        if (shares === BigInt(0)) { setPos({ shares: BigInt(0), assets: 0 }); return; }
+        if (shares === BigInt(0)) return { shares: BigInt(0), assets: 0 };
         const assets = await client.readContract({
-          address: vault, abi, functionName: "convertToAssets", args: [shares],
+          address: vault!,
+          abi,
+          functionName: "convertToAssets",
+          args: [shares],
         });
-        if (!cancelled) setPos({ shares, assets: Number(formatUnits(assets, 6)) });
+        return { shares, assets: Number(formatUnits(assets, 6)) };
       } catch {
-        if (!cancelled) setPos(null);
+        return null;
       }
-    })();
-    return () => { cancelled = true; };
-  }, [vault, account, nonce]);
+    },
+  });
 
-  return pos;
+  return data ?? null;
 }
 
 type DecodedParam = { name?: string; value?: unknown };
@@ -110,61 +131,82 @@ export type VaultEarned = {
  * the current value is read from the contract. `nonce` forces a refetch.
  */
 export function useVaultEarned(vault?: Address, account?: string, nonce = 0): VaultEarned | null {
-  const [data, setData] = useState<VaultEarned | null>(null);
-
-  useEffect(() => {
-    if (!vault || !account) { setData(null); return; }
-    let cancelled = false;
-    setData(null);
-    (async () => {
+  const { data } = useQuery({
+    queryKey: ["vault-earned", vault, account, nonce],
+    enabled: !!vault && !!account,
+    staleTime: 30_000,
+    queryFn: async (): Promise<VaultEarned | null> => {
       try {
         const shares = await client.readContract({
-          address: vault, abi, functionName: "balanceOf", args: [account as Address],
+          address: vault!,
+          abi,
+          functionName: "balanceOf",
+          args: [account as Address],
         });
-        if (cancelled) return;
         if (shares === BigInt(0)) {
-          setData({ current: 0, principal: 0, earned: 0, earnedRaw: BigInt(0), shares: BigInt(0) });
-          return;
+          return { current: 0, principal: 0, earned: 0, earnedRaw: BigInt(0), shares: BigInt(0) };
         }
         const [currentRaw, principalRaw] = await Promise.all([
-          client.readContract({ address: vault, abi, functionName: "convertToAssets", args: [shares] }),
-          principalFromLogs(vault, account),
+          client.readContract({
+            address: vault!,
+            abi,
+            functionName: "convertToAssets",
+            args: [shares],
+          }),
+          principalFromLogs(vault!, account!),
         ]);
-        if (cancelled) return;
         const earnedRaw = currentRaw > principalRaw ? currentRaw - principalRaw : BigInt(0);
-        setData({
+        return {
           current: Number(formatUnits(currentRaw, 6)),
           principal: Number(formatUnits(principalRaw, 6)),
           earned: Number(formatUnits(earnedRaw, 6)),
           earnedRaw,
           shares,
-        });
+        };
       } catch {
-        if (!cancelled) setData(null);
+        return null;
       }
-    })();
-    return () => { cancelled = true; };
-  }, [vault, account, nonce]);
+    },
+  });
 
-  return data;
+  return data ?? null;
+}
+
+/**
+ * Totals for every rider vault in one query, keyed by lowercased vault address.
+ *
+ * Why one shared query instead of one read per rider: the /stake selector swaps
+ * riders constantly, and a per-rider read meant a fresh eth_call on every swap —
+ * on a public RPC that rate-limits datacenter IPs. Reading all vaults in a single
+ * flight warms the whole roster, so switching riders never hits the network again
+ * (and never flashes a loading state) inside the staleTime window.
+ *
+ * A vault whose read fails is simply omitted, so one bad address can't blank the
+ * others — the caller sees null for it, same as "no vault yet".
+ */
+function useVaultTotals() {
+  return useQuery({
+    queryKey: ["vault-totals"],
+    staleTime: 300_000,
+    queryFn: async (): Promise<Record<string, number>> => {
+      const vaults = RIDER_LIST.map((r) => r.vault).filter((v): v is Address => !!v);
+      const results = await Promise.allSettled(
+        vaults.map((address) => client.readContract({ address, abi, functionName: "totalAssets" })),
+      );
+      const totals: Record<string, number> = {};
+      results.forEach((res, i) => {
+        // USDC: 6 decimals.
+        if (res.status === "fulfilled") {
+          totals[vaults[i].toLowerCase()] = Number(formatUnits(res.value, 6));
+        }
+      });
+      return totals;
+    },
+  });
 }
 
 export function useVaultTotal(vault?: Address): number | null {
-  const [total, setTotal] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!vault) {
-      setTotal(null);
-      return;
-    }
-    let cancelled = false;
-    setTotal(null);
-    client
-      .readContract({ address: vault, abi, functionName: "totalAssets" })
-      .then((v) => { if (!cancelled) setTotal(Number(formatUnits(v, 6))); }) // USDC: 6 decimals
-      .catch(() => { if (!cancelled) setTotal(null); });
-    return () => { cancelled = true; };
-  }, [vault]);
-
-  return total;
+  const { data } = useVaultTotals();
+  if (!vault) return null;
+  return data?.[vault.toLowerCase()] ?? null;
 }
