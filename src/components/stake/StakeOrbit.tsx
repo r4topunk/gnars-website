@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useActiveAccount } from "thirdweb/react";
-import { useStakeGraph } from "@/hooks/use-stake-graph";
+import { useStakeGraphQuery } from "@/hooks/use-stake-graph";
 import type { RiderId } from "@/lib/gnars-vaults";
 import { EASE_IN_OUT, EASE_OUT } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -35,28 +35,92 @@ const RIDER_VISUAL: Record<
     hex: string;
     image: string;
     face: { size: string; pos: string };
+    /** The cut-out PNG's height/width. The portrait is a native SVG <image>
+     *  (see the node render for why), so the CSS background-size shorthand's
+     *  "height: auto" has to be computed by hand — which needs the file's real
+     *  aspect ratio. Measured from the assets; a re-exported cut-out with new
+     *  dimensions must update this or the face crop drifts. */
+    ratio: number;
     /** Alpha cut-out clip. Played whole inside the node — the still's `face`
      *  zoom applies to the portrait only. */
     clip?: { src: string };
   }
 > = {
-  vlad: { hex: "#f59e0b", image: "/stake/cutout/vlad.png", face: { size: "420%", pos: "50% 6%" } },
-  yan: { hex: "#0ea5e9", image: "/stake/cutout/yan.png", face: { size: "420%", pos: "50% 5%" } },
+  vlad: {
+    hex: "#f59e0b",
+    image: "/stake/cutout/vlad.png",
+    face: { size: "420%", pos: "50% 6%" },
+    ratio: 1448 / 1086,
+  },
+  yan: {
+    hex: "#0ea5e9",
+    image: "/stake/cutout/yan.png",
+    face: { size: "420%", pos: "50% 5%" },
+    ratio: 1448 / 1086,
+  },
   r4to: {
     hex: "#d946ef",
     image: "/stake/cutout/r4to.png",
     face: { size: "420%", pos: "50% 5%" },
+    ratio: 1024 / 688,
     clip: { src: "/stake/video/r4to.webm" },
   },
   pamtech: {
     hex: "#10b981",
     image: "/stake/cutout/pamtech.png",
     face: { size: "420%", pos: "50% 9%" },
+    ratio: 1448 / 1086,
   },
-  v2: { hex: "#f43f5e", image: "/stake/cutout/v2.png", face: { size: "420%", pos: "50% 8%" } },
-  zima: { hex: "#14b8a6", image: "/stake/cutout/zima.png", face: { size: "330%", pos: "50% 3%" } },
-  will: { hex: "#818cf8", image: "/stake/cutout/will.png", face: { size: "400%", pos: "50% 8%" } },
+  v2: {
+    hex: "#f43f5e",
+    image: "/stake/cutout/v2.png",
+    face: { size: "420%", pos: "50% 8%" },
+    ratio: 1448 / 1086,
+  },
+  zima: {
+    hex: "#14b8a6",
+    image: "/stake/cutout/zima.png",
+    face: { size: "330%", pos: "50% 3%" },
+    ratio: 586 / 426,
+  },
+  will: {
+    hex: "#818cf8",
+    image: "/stake/cutout/will.png",
+    face: { size: "400%", pos: "50% 8%" },
+    ratio: 564 / 442,
+  },
 };
+
+/**
+ * Where the face crop lands inside the node's square, in local SVG units.
+ *
+ * This is CSS `background-size: S%` / `background-position: PX% PY%` re-derived
+ * for a native <image>, because the portrait cannot be a foreignObject: in
+ * WebKit a foreignObject is not a containing block, so absolutely-positioned
+ * children (`inset: 0`, which the crop layer needs) resolve against nothing and
+ * never paint — on iOS every rider rendered as an empty ring, while the
+ * treasury's foreignObject (a plain static div) drew fine two inches away. The
+ * CSS rules being replicated:
+ *   width  = S% of the box; height follows the image's aspect (the `ratio`)
+ *   offset = P% of (box − drawn size)  — position percentages resolve against
+ *            the LEFTOVER space, not the box; that is what makes "50% 6%"
+ *            center the face and pin it near the top.
+ */
+function portraitRect(v: (typeof RIDER_VISUAL)[RiderId]) {
+  const box = NODE_BASE_R * 2;
+  const sizePct = parseFloat(v.face.size) / 100;
+  const [pxRaw, pyRaw] = v.face.pos.split(" ");
+  const px = parseFloat(pxRaw) / 100;
+  const py = parseFloat(pyRaw) / 100;
+  const w = box * sizePct;
+  const h = w * v.ratio;
+  return {
+    x: -NODE_BASE_R + px * (box - w),
+    y: -NODE_BASE_R + py * (box - h),
+    width: w,
+    height: h,
+  };
+}
 
 /** How long `.so-glide` takes. The clip waits for it: starting a video while the
  *  node is still travelling means the first frames play off to one side. */
@@ -74,13 +138,6 @@ const usd = (n: number, locale: string) =>
 // stake amounts share one. Athlete/graph totals keep the coarse `usd`.
 const usdStake = (n: number, locale: string) =>
   `$${n.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-// Tiny sub-cent treasury amounts still deserve to read as non-zero.
-const usdSmall = (n: number, locale: string) =>
-  n > 0 && n < 0.01
-    ? `$${n.toLocaleString(locale, { minimumFractionDigits: 6, maximumFractionDigits: 6 })}`
-    : usd(n, locale);
-const fmtMor = (n: number, locale: string) =>
-  n.toLocaleString(locale, { maximumFractionDigits: 4 });
 const short = (a: string) => `${a.slice(0, 5)}…${a.slice(-3)}`;
 /**
  * Prefer an ENS/basename, trimmed to fit the small orbit label.
@@ -140,11 +197,11 @@ const arcPath = (a0: number, a1: number, r: number) => {
 };
 
 /**
- * `chromeless` strips the component's own frame and header (card shell, title,
- * description, stats row) so a parent that already draws a panel and prints the
- * same totals does not stack two frames. Purely additive: omitted or false, the
- * output is exactly what /stake and /stake/[rider] render today. The back button
- * survives — it drives the drawing itself, not the card around it.
+ * The component draws the graph and nothing else: no card, no title, no stats
+ * row. Its only caller (StakePageContent) already frames the orbit in the social
+ * section's panel and prints the same totals above it, so owning a second frame
+ * only ever meant stacking two. The back button stays — it drives the drawing
+ * itself, not the card around it.
  *
  * `data` substitutes a caller-supplied graph for the fetched one — the seam a
  * fixture dense enough to exercise the fan cap and the label collision math
@@ -164,19 +221,17 @@ const arcPath = (a0: number, a1: number, r: number) => {
 export function StakeOrbit({
   focusRider,
   onFocusChange,
-  chromeless,
   data,
 }: {
   focusRider?: RiderId | null;
   onFocusChange?: (id: RiderId | null) => void;
-  chromeless?: boolean;
   data?: StakeGraph;
 } = {}) {
   const t = useTranslations("stake");
   const locale = useLocale();
   const you = useActiveAccount()?.address?.toLowerCase();
-  const live = useStakeGraph();
-  const graph = data ?? live;
+  const { data: live, isError, refetch, isFetching } = useStakeGraphQuery();
+  const graph = data ?? live ?? null;
 
   // Click an athlete to recenter the orbit on them; click "all" to zoom out.
   const [focusId, setFocusId] = useState<RiderId | null>(focusRider ?? null);
@@ -231,6 +286,22 @@ export function StakeOrbit({
     if (clipId && focusId !== clipId) dropClip();
   }, [focusId, clipId, dropClip]);
   useEffect(() => () => dropClip(), [dropClip]);
+  // Focus mode unmounts every node but the center, and unmounted nodes never fire
+  // their pointerleave — a highlight left on one could never clear itself, so the
+  // dot label reappeared at opacity 1 (and a portrait kept its hover ring) with no
+  // pointer anywhere near it on the way back to the overview.
+  //
+  // Has to be an effect keyed on `focusId` rather than a line in `toggle`: focus
+  // also arrives from the `focusRider` prop (the picker above the graph), which
+  // never runs the click handler. `hotLabel` is deliberately left alone so the
+  // fade-out still shows the right text.
+  useEffect(() => {
+    if (!focusId) return;
+    // `c === focusId` survives: hovering a node and clicking it makes that node
+    // the center, and it is still under the pointer.
+    setHotId((c) => (c && c !== focusId ? null : c));
+    setHotBk(null);
+  }, [focusId]);
   // Phones pan across a 680px drawing inside a ~390px window, and a scroller
   // opens at scrollLeft 0 — which parked the reader on the empty left margin
   // with the treasury cut in half at the right edge. The graph is drawn around
@@ -283,18 +354,26 @@ export function StakeOrbit({
     };
   }, [graph]);
 
-  if (graph === null) {
+  // A dead /api/stake-graph used to render as an eternal "loading the flow…".
+  // Only the fetched arm can fail, so a caller-supplied `data` still wins.
+  if (graph === null && isError) {
     return (
-      <div
-        className={
-          chromeless
-            ? "p-2 text-sm text-white/40"
-            : "rounded-[22px] border border-white/[0.06] bg-[#0e0b09] p-6 text-sm text-white/40"
-        }
-      >
-        {t("orbit.loading")}
+      <div className="space-y-2 p-2 text-sm text-white/60">
+        <p>{t("orbit.error")}</p>
+        <button
+          type="button"
+          onClick={() => void refetch()}
+          disabled={isFetching}
+          className="cursor-pointer font-semibold text-white underline underline-offset-4 hover:text-white/80 disabled:cursor-default disabled:opacity-60"
+        >
+          {t("orbit.retry")}
+        </button>
       </div>
     );
+  }
+
+  if (graph === null) {
+    return <div className="p-2 text-sm text-white/40">{t("orbit.loading")}</div>;
   }
 
   const athletes = graph.athletes;
@@ -308,8 +387,14 @@ export function StakeOrbit({
 
   // Focus mode: the picked athlete takes the center, the treasury slides to a
   // small satellite near the top, and everyone else drops away.
+  //
+  // The satellite sits INSIDE the backer ring, not on it: the FOCUS_GAP wedge it
+  // occupies holds no backers, so a treasury out at R_FOC (where it used to be)
+  // put ~190px of empty stage between itself and the rider — on a phone that
+  // panned as a screenful of void with one dashed line through it. Pulled in,
+  // the whole fitted frame tightens with it (the viewBox is bounds-driven).
   const focused = focusId ? (athletes.find((a) => a.id === focusId) ?? null) : null;
-  const treasuryPt = focused ? { x: C, y: 96 } : { x: C, y: C };
+  const treasuryPt = focused ? { x: C, y: C - (R_FOC - 76) } : { x: C, y: C };
   const treasuryR = focused ? 26 : 48;
 
   // FAN geometry. The old fan was a hardcoded 44° while the athletes sit
@@ -458,54 +543,7 @@ export function StakeOrbit({
   };
 
   return (
-    <div
-      className={
-        chromeless
-          ? undefined
-          : "rounded-[22px] border border-white/[0.06] bg-gradient-to-b from-[#181410] to-[#0e0b09] p-5 sm:p-7"
-      }
-    >
-      {chromeless ? null : (
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">
-              {t("orbit.title")}
-            </p>
-            <p className="mt-1.5 max-w-md text-sm text-white/60">{t("orbit.subtitle")}</p>
-          </div>
-          <div className="flex gap-5 text-right">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
-                {t("orbit.total")}
-              </p>
-              <p className="font-mono text-xl font-bold tabular-nums text-white">
-                {usd(graph.total, locale)}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
-                {t("orbit.backers")}
-              </p>
-              <p className="font-mono text-xl font-bold tabular-nums text-white">
-                {graph.backerCount}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
-                {t("orbit.earnedForTreasury")}
-              </p>
-              <p className="font-mono text-xl font-bold tabular-nums" style={{ color: GOLD }}>
-                {usdSmall(graph.treasuryUsd, locale)}
-              </p>
-              <p className="mt-0.5 font-mono text-[10px] tabular-nums text-white/40">
-                {usdSmall(graph.gnarsAccrued, locale)} {t("orbit.fee")} ·{" "}
-                {fmtMor(graph.gnarsMor, locale)} MOR
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <div>
       {focused && (
         <button
           type="button"
@@ -532,6 +570,14 @@ export function StakeOrbit({
           role="img"
           aria-label={t("orbit.title")}
         >
+          <defs>
+            {/* Circle mask for every portrait <image>. Defined once; the clip
+                resolves in each node's local user space, so one path serves all
+                seven nodes at whatever scale they glide through. */}
+            <clipPath id="so-node-clip">
+              <circle cx={0} cy={0} r={NODE_BASE_R} />
+            </clipPath>
+          </defs>
           <style>{`
             @keyframes so-flow { to { stroke-dashoffset: -220; } }
             .so-flow { stroke-dasharray: 3 9; animation: so-flow 3.2s linear infinite; }
@@ -544,7 +590,10 @@ export function StakeOrbit({
             }
             /* CSS transforms on SVG children resolve their origin against the
                viewport, not the element — fill-box + center is what makes
-               scale() happen around the node instead of around the frame. */
+               scale() happen around the node instead of around the frame.
+               Athlete nodes override the origin inline: their portrait <image>
+               stretches the fill box far past the circle, so "center" is not
+               the node's center there (see the node render). */
             .so-node { transform-box: fill-box; transform-origin: center; }
             .so-fade { animation: so-fade-in 200ms ${EASE_OUT} 120ms both; }
             /* Backer dot hover (overview): the dot grows a step and its ENS fades
@@ -752,6 +801,16 @@ export function StakeOrbit({
             // pre-divided so it lands at the intended width after the scale.
             const s = nd.nodeR / NODE_BASE_R;
             const ringW = (hot ? 3.5 : nd.lit ? 2.5 : 1.5) / s;
+            // `.so-node` scales in a `transform-box: fill-box` frame, where
+            // origin lengths resolve from the BOUNDING BOX's top-left — and the
+            // portrait <image> extends that box asymmetrically far beyond the
+            // circle (it is clipped visually, but clipping does not shrink a
+            // bbox). `origin: center` there is the bbox's center, not the
+            // node's, and scaling around it slid every node off its caption.
+            // This walks the origin back to the node's own (0,0).
+            const pr = portraitRect(v);
+            const originX = -Math.min(-NODE_BASE_R, pr.x);
+            const originY = -Math.min(-NODE_BASE_R, pr.y);
             return (
               <g
                 key={`node-${nd.a.id}`}
@@ -789,39 +848,52 @@ export function StakeOrbit({
                 onFocus={shown ? () => setHotId(nd.a.id) : undefined}
                 onBlur={shown ? () => setHotId((c) => (c === nd.a.id ? null : c)) : undefined}
               >
-                <g className="so-glide so-node" style={{ transform: `scale(${r1(s)})` }}>
+                <g
+                  className="so-glide so-node"
+                  style={{
+                    transform: `scale(${r1(s)})`,
+                    transformOrigin: `${r1(originX)}px ${r1(originY)}px`,
+                  }}
+                >
                   <circle cx={0} cy={0} r={NODE_BASE_R} fill="#141210" />
-                  <foreignObject
-                    x={-NODE_BASE_R}
-                    y={-NODE_BASE_R}
-                    width={NODE_BASE_R * 2}
-                    height={NODE_BASE_R * 2}
-                  >
-                    <div
-                      style={{
-                        position: "relative",
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: "50%",
-                        overflow: "hidden",
-                        opacity: nd.lit ? 1 : 0.45,
-                      }}
+                  {/* The still is a NATIVE <image>, not a foreignObject — see
+                      portraitRect() for the WebKit bug this dodges (iOS drew
+                      these as empty rings). portraitRect replays the face crop
+                      the CSS background shorthand used to do.
+                      `preserveAspectRatio="none"` because the rect already
+                      carries the image's own ratio — letting SVG re-fit it would
+                      apply the aspect correction twice. */}
+                  <image
+                    href={v.image}
+                    clipPath="url(#so-node-clip)"
+                    {...pr}
+                    preserveAspectRatio="none"
+                    // Hidden only once the clip is actually painting — the alpha
+                    // video would otherwise let this face show through around the
+                    // rider's silhouette. The 0.45 is the "nobody backs this
+                    // rider yet" dim.
+                    opacity={clipId === nd.a.id && clipShowing ? 0 : nd.lit ? 1 : 0.45}
+                  />
+                  {clipId === nd.a.id && v.clip && (
+                    // The clip stays a foreignObject <video> (SVG has no native
+                    // video element). Mounted only on click, and the still above
+                    // never unmounts — so a WebKit that refuses to paint this
+                    // keeps showing the portrait instead of an empty circle.
+                    <foreignObject
+                      x={-NODE_BASE_R}
+                      y={-NODE_BASE_R}
+                      width={NODE_BASE_R * 2}
+                      height={NODE_BASE_R * 2}
                     >
-                      {/* The still. Hidden only once the clip is actually
-                          painting — the alpha video would otherwise let this
-                          face show through around the rider's silhouette. */}
                       <div
                         style={{
-                          position: "absolute",
-                          inset: 0,
-                          backgroundImage: `url(${v.image})`,
-                          backgroundSize: v.face.size,
-                          backgroundPosition: v.face.pos,
-                          backgroundRepeat: "no-repeat",
-                          opacity: clipId === nd.a.id && clipShowing ? 0 : 1,
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: "50%",
+                          overflow: "hidden",
+                          opacity: nd.lit ? 1 : 0.45,
                         }}
-                      />
-                      {clipId === nd.a.id && v.clip && (
+                      >
                         <video
                           src={v.clip.src}
                           autoPlay
@@ -835,17 +907,11 @@ export function StakeOrbit({
                           // Whole rider, not the face crop the still uses. The
                           // clip is a full-body trick — zoomed to the head you
                           // see a chin move and none of the skating.
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "contain",
-                          }}
+                          style={{ width: "100%", height: "100%", objectFit: "contain" }}
                         />
-                      )}
-                    </div>
-                  </foreignObject>
+                      </div>
+                    </foreignObject>
+                  )}
                   <circle
                     cx={0}
                     cy={0}
@@ -864,7 +930,14 @@ export function StakeOrbit({
                     textAnchor="middle"
                     fontSize="15"
                     fontWeight="800"
-                    fill={nd.lit || hot ? "#fff" : "rgba(255,255,255,.4)"}
+                    // The unbacked rider's name is dimmed, not illegible: .4 on the
+                    // ORBIT_STAGE surface is ~3.8:1, under AA's 4.5:1 for text. .6
+                    // is ~7.4:1 and is the SAME alpha the treasury label already
+                    // uses, so the drawing keeps one step of quiet text instead of
+                    // two. The other "nobody backs this rider" signals (portrait
+                    // opacity, thinner ring, no gold total) are graphics, where 3:1
+                    // is the bar, and are left alone.
+                    fill={nd.lit || hot ? "#fff" : "rgba(255,255,255,.6)"}
                     style={HALO}
                   >
                     {t(`characters.${nd.a.id}.name`)}
