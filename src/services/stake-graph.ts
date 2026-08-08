@@ -124,8 +124,8 @@ export type OrbitBacker = {
   /**
    * A label the graph already knows, used INSTEAD of the client-side /api/ens
    * lookup. Nothing in this module ever sets it — the live path still resolves
-   * names in the browser. It exists for fixture graphs (the /stake/preview demo),
-   * whose invented addresses resolve to nothing: without it a dense fan renders
+   * names in the browser. It exists for fixture graphs, whose invented
+   * addresses resolve to nothing: without it a dense fan renders
    * as a dozen indistinguishable 0x-shorts, and the lookup is a wasted request.
    */
   ens?: string;

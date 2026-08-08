@@ -1,22 +1,22 @@
-// The preview's one section-header pattern: a title and an optional one-line
+// The /stake page's one section-header pattern: a title and an optional one-line
 // description. Nothing else is allowed above a section.
 //
 // It replaced the uppercase-tracking eyebrow every stake panel used to carry, and
-// then replaced its own replacement: the second pass numbered the sections
+// then replaced its own replacement: an earlier pass numbered the sections
 // (01 pick → 02 rates → 03 positions …) and the numbers read as a template. An
 // eyebrow is supposed to name the topic in plain language, not enumerate; five
 // identical headers already give the page its rhythm, so the index bought nothing
 // and cost the page its voice. There is no `index` prop and no uppercase eyebrow
-// anywhere under preview/.
+// on this page.
 //
 // Rule for who renders it: whoever controls the section's visibility. Sections
 // that can self-suppress (PositionsHub returns null with nothing staked) render
 // their own header, so a header can never survive its body. Sections that always
-// render get their header from StakePreview.
+// render get their header from StakePageContent.
 //
-// Lives in its own file because preview-config.ts is a `.ts` module — the tokens
-// it uses are all exported from there.
-import { SECTION_DESC, SECTION_TITLE } from "@/components/stake/preview/preview-config";
+// Lives in its own file because stake-ui.ts is a `.ts` module — the tokens it
+// uses are all exported from there.
+import { SECTION_DESC, SECTION_TITLE } from "@/components/stake/stake-ui";
 import { cn } from "@/lib/utils";
 
 export function SectionHeader({

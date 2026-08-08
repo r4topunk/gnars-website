@@ -12,8 +12,8 @@
 //     on every line plus a name under every dot turned the whole field into text.
 //   FOCUS   — the reward for clicking. One athlete at the center, every backer
 //     named and every stake priced, at sizes that are actually legible.
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useActiveAccount } from "thirdweb/react";
 import { useStakeGraph } from "@/hooks/use-stake-graph";
 import type { RiderId } from "@/lib/gnars-vaults";
@@ -23,13 +23,31 @@ import type { OrbitBacker, StakeGraph } from "@/services/stake-graph";
 
 // `face` zooms each full-body cut-out onto the head — same framing as the
 // character-select tiles, so the orbit nodes read as portraits.
+//
+// `clip` is the same alpha cut-out video the character select plays, framed into
+// the node with the same zoom as the still. Kept here rather than imported from
+// CharacterSelector on purpose: pulling that module in would drag StakeDialog,
+// YieldStatus and framer-motion into the graph for the sake of a data map. The
+// two definitions must stay in step — a rider gaining a clip needs it in both.
 const RIDER_VISUAL: Record<
   RiderId,
-  { hex: string; image: string; face: { size: string; pos: string } }
+  {
+    hex: string;
+    image: string;
+    face: { size: string; pos: string };
+    /** Alpha cut-out clip. Played whole inside the node — the still's `face`
+     *  zoom applies to the portrait only. */
+    clip?: { src: string };
+  }
 > = {
   vlad: { hex: "#f59e0b", image: "/stake/cutout/vlad.png", face: { size: "420%", pos: "50% 6%" } },
   yan: { hex: "#0ea5e9", image: "/stake/cutout/yan.png", face: { size: "420%", pos: "50% 5%" } },
-  r4to: { hex: "#d946ef", image: "/stake/cutout/r4to.png", face: { size: "420%", pos: "50% 8%" } },
+  r4to: {
+    hex: "#d946ef",
+    image: "/stake/cutout/r4to.png",
+    face: { size: "420%", pos: "50% 5%" },
+    clip: { src: "/stake/video/r4to.webm" },
+  },
   pamtech: {
     hex: "#10b981",
     image: "/stake/cutout/pamtech.png",
@@ -40,16 +58,29 @@ const RIDER_VISUAL: Record<
   will: { hex: "#818cf8", image: "/stake/cutout/will.png", face: { size: "400%", pos: "50% 8%" } },
 };
 
-const usd = (n: number) =>
-  `$${n.toLocaleString("en-US", { maximumFractionDigits: n > 0 && n < 100 ? 2 : 0 })}`;
+/** How long `.so-glide` takes. The clip waits for it: starting a video while the
+ *  node is still travelling means the first frames play off to one side. */
+const GLIDE_MS = 280;
+
+// Every number in the drawing takes the APP locale, not a hardcoded "en-US": the
+// stat line directly above this graph prints "$55,11" from the request locale, and
+// the same $17.02 appearing as "$17.02" in a node label two inches below it read
+// as two different values. The helpers stay module-level (they are pure) and take
+// the locale as an argument, the same shape BackerList and SubnetSection use.
+const usd = (n: number, locale: string) =>
+  `$${n.toLocaleString(locale, { maximumFractionDigits: n > 0 && n < 100 ? 2 : 0 })}`;
 // Per-stake labels: always two decimals, no magnitude branch. In a dense focus
 // ring "$251", "$96.4" and "$61.83" side by side read as three formatting rules;
 // stake amounts share one. Athlete/graph totals keep the coarse `usd`.
-const usdStake = (n: number) =>
-  `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const usdStake = (n: number, locale: string) =>
+  `$${n.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 // Tiny sub-cent treasury amounts still deserve to read as non-zero.
-const usdSmall = (n: number) => (n > 0 && n < 0.01 ? `$${n.toFixed(6)}` : usd(n));
-const fmtMor = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 4 });
+const usdSmall = (n: number, locale: string) =>
+  n > 0 && n < 0.01
+    ? `$${n.toLocaleString(locale, { minimumFractionDigits: 6, maximumFractionDigits: 6 })}`
+    : usd(n, locale);
+const fmtMor = (n: number, locale: string) =>
+  n.toLocaleString(locale, { maximumFractionDigits: 4 });
 const short = (a: string) => `${a.slice(0, 5)}…${a.slice(-3)}`;
 /**
  * Prefer an ENS/basename, trimmed to fit the small orbit label.
@@ -115,19 +146,34 @@ const arcPath = (a0: number, a1: number, r: number) => {
  * output is exactly what /stake and /stake/[rider] render today. The back button
  * survives — it drives the drawing itself, not the card around it.
  *
- * `data` substitutes a caller-supplied graph for the fetched one — the
- * /stake/preview `?demo=1` fixture, which is dense enough to actually exercise
- * the fan cap and the label collision math. Also purely additive: with the prop
- * omitted this renders the live graph exactly as before. `useStakeGraph` is
+ * `data` substitutes a caller-supplied graph for the fetched one — the seam a
+ * fixture dense enough to exercise the fan cap and the label collision math
+ * plugs into. Nothing on /stake passes it today (the page is live-only). Also
+ * purely additive: with the prop omitted this renders the live graph exactly as
+ * before. `useStakeGraph` is
  * still called unconditionally (it is a react-query subscription; skipping it
  * would break hook order), its result simply goes unused.
+ *
+ * `onFocusChange` reports focus back to whoever seeded it, so a parent holding
+ * `focusRider` in state stays truthful when the user re-focuses FROM the graph
+ * (clicking a node, or "all riders"). Without it the two drifted and then stuck:
+ * parent still on "vlad", graph back on the overview, so re-picking vlad in the
+ * selector set the same value, React bailed on the re-render, and the seeding
+ * effect below never fired — the graph ignored the pick.
  */
 export function StakeOrbit({
   focusRider,
+  onFocusChange,
   chromeless,
   data,
-}: { focusRider?: RiderId | null; chromeless?: boolean; data?: StakeGraph } = {}) {
+}: {
+  focusRider?: RiderId | null;
+  onFocusChange?: (id: RiderId | null) => void;
+  chromeless?: boolean;
+  data?: StakeGraph;
+} = {}) {
   const t = useTranslations("stake");
+  const locale = useLocale();
   const you = useActiveAccount()?.address?.toLowerCase();
   const live = useStakeGraph();
   const graph = data ?? live;
@@ -157,6 +203,47 @@ export function StakeOrbit({
   useEffect(() => {
     if (focusRider !== undefined) setFocusId(focusRider);
   }, [focusRider]);
+  /**
+   * The clip playing inside a node, and whether its first frame is on screen.
+   *
+   * `clipShowing` gates hiding the still for the same reason the character select
+   * does: with preload="none" there is a beat before playback, and swapping on
+   * the click alone leaves a hole in the graph. The still stays under the clip
+   * until there is something to replace it with.
+   */
+  const [clipId, setClipId] = useState<RiderId | null>(null);
+  const [clipShowing, setClipShowing] = useState(false);
+  const clipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const dropClip = useCallback(() => {
+    if (clipTimer.current) {
+      clearTimeout(clipTimer.current);
+      clipTimer.current = null;
+    }
+    setClipId(null);
+    setClipShowing(false);
+  }, []);
+
+  // The clip belongs to the focused rider. Any move away — another node, "all
+  // riders", or the picker above driving `focusRider` — puts the still back, so
+  // a rider is always re-entered as their photo.
+  useEffect(() => {
+    if (clipId && focusId !== clipId) dropClip();
+  }, [focusId, clipId, dropClip]);
+  useEffect(() => () => dropClip(), [dropClip]);
+  // Phones pan across a 680px drawing inside a ~390px window, and a scroller
+  // opens at scrollLeft 0 — which parked the reader on the empty left margin
+  // with the treasury cut in half at the right edge. The graph is drawn around
+  // its centre, so that is where it should open. Runs whenever the drawing's
+  // width changes (focus mode refits the viewBox) and no-ops on desktop, where
+  // the SVG fits and there is nothing to scroll.
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const slack = el.scrollWidth - el.clientWidth;
+    if (slack > 0) el.scrollLeft = slack / 2;
+  }, [graph, focusId]);
   // Resolve backer addresses to ENS / basenames (batched, cached by /api/ens).
   // Backers that arrive with their own `ens` are filtered out first, so a graph
   // that labels every backer itself (the preview fixture) makes no request at
@@ -262,7 +349,7 @@ export function StakeOrbit({
       const ly = r1(q.y + uy * (nr + 9));
       const nameY = anchor !== "middle" ? ly - 1 : uy < 0 ? ly - 16 : ly + 12;
       const name = isYou ? t("orbit.you") : nameOrShort(b, ensNames);
-      const amount = usdStake(b.amount);
+      const amount = usdStake(b.amount, locale);
       return {
         b,
         isYou,
@@ -324,7 +411,7 @@ export function StakeOrbit({
     const half = Math.max(
       nd.nodeR + 4,
       textW(t(`characters.${nd.a.id}.name`), 15) / 2,
-      nd.lit ? textW(usd(nd.a.total), 14) / 2 : 0,
+      nd.lit ? textW(usd(nd.a.total, locale), 14) / 2 : 0,
     );
     box(
       nd.p.x - half,
@@ -349,7 +436,26 @@ export function StakeOrbit({
   vw = Math.max(vw, vh * 1.12);
   const viewBox = `${r1(cx - vw / 2)} ${r1(cy - vh / 2)} ${r1(vw)} ${r1(vh)}`;
 
-  const toggle = (id: RiderId, isCenter: boolean) => setFocusId(isCenter ? null : id);
+  // One writer for focus, so the parent is told about every change the graph makes
+  // to it. Setting the state without reporting is what let the two fall out of
+  // sync (and then stick, because the seeding effect only fires on prop CHANGES).
+  const setFocus = (id: RiderId | null) => {
+    setFocusId(id);
+    onFocusChange?.(id);
+  };
+
+  // Clicking a rider focuses them, and — once the graph has finished travelling —
+  // their portrait hands over to their clip. It runs once and stays on its last
+  // frame; the still comes back only when the focus leaves, so navigating away
+  // and returning always starts from the photo again.
+  const toggle = (id: RiderId, isCenter: boolean) => {
+    const next = isCenter ? null : id;
+    setFocus(next);
+    dropClip();
+    if (next && RIDER_VISUAL[next].clip) {
+      clipTimer.current = setTimeout(() => setClipId(next), GLIDE_MS);
+    }
+  };
 
   return (
     <div
@@ -373,7 +479,7 @@ export function StakeOrbit({
                 {t("orbit.total")}
               </p>
               <p className="font-mono text-xl font-bold tabular-nums text-white">
-                {usd(graph.total)}
+                {usd(graph.total, locale)}
               </p>
             </div>
             <div>
@@ -389,10 +495,11 @@ export function StakeOrbit({
                 {t("orbit.earnedForTreasury")}
               </p>
               <p className="font-mono text-xl font-bold tabular-nums" style={{ color: GOLD }}>
-                {usdSmall(graph.treasuryUsd)}
+                {usdSmall(graph.treasuryUsd, locale)}
               </p>
               <p className="mt-0.5 font-mono text-[10px] tabular-nums text-white/40">
-                {usdSmall(graph.gnarsAccrued)} {t("orbit.fee")} · {fmtMor(graph.gnarsMor)} MOR
+                {usdSmall(graph.gnarsAccrued, locale)} {t("orbit.fee")} ·{" "}
+                {fmtMor(graph.gnarsMor, locale)} MOR
               </p>
             </div>
           </div>
@@ -402,14 +509,14 @@ export function StakeOrbit({
       {focused && (
         <button
           type="button"
-          onClick={() => setFocusId(null)}
+          onClick={() => setFocus(null)}
           className="mb-3 inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs font-semibold text-white/80 transition hover:border-white/35 hover:bg-black/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60"
         >
           ← {t("orbit.backToAll")}
         </button>
       )}
 
-      <div className="overflow-x-auto">
+      <div ref={scrollerRef} className="overflow-x-auto">
         {/* `min-w` below md makes the wrapper's horizontal scroll actually do
             something: without it the SVG is `w-full`, can never overflow, and
             gets squeezed to ~300px on a phone — labels render at ~4px. Panning
@@ -692,16 +799,52 @@ export function StakeOrbit({
                   >
                     <div
                       style={{
+                        position: "relative",
                         width: "100%",
                         height: "100%",
                         borderRadius: "50%",
-                        backgroundImage: `url(${v.image})`,
-                        backgroundSize: v.face.size,
-                        backgroundPosition: v.face.pos,
-                        backgroundRepeat: "no-repeat",
+                        overflow: "hidden",
                         opacity: nd.lit ? 1 : 0.45,
                       }}
-                    />
+                    >
+                      {/* The still. Hidden only once the clip is actually
+                          painting — the alpha video would otherwise let this
+                          face show through around the rider's silhouette. */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          backgroundImage: `url(${v.image})`,
+                          backgroundSize: v.face.size,
+                          backgroundPosition: v.face.pos,
+                          backgroundRepeat: "no-repeat",
+                          opacity: clipId === nd.a.id && clipShowing ? 0 : 1,
+                        }}
+                      />
+                      {clipId === nd.a.id && v.clip && (
+                        <video
+                          src={v.clip.src}
+                          autoPlay
+                          muted
+                          playsInline
+                          preload="none"
+                          onPlaying={() => setClipShowing(true)}
+                          // No onEnded handler: a <video> holds its last frame,
+                          // so leaving it mounted IS the freeze.
+                          onError={dropClip}
+                          // Whole rider, not the face crop the still uses. The
+                          // clip is a full-body trick — zoomed to the head you
+                          // see a chin move and none of the skating.
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                          }}
+                        />
+                      )}
+                    </div>
                   </foreignObject>
                   <circle
                     cx={0}
@@ -742,7 +885,7 @@ export function StakeOrbit({
                       fill={GOLD}
                       style={HALO}
                     >
-                      {usd(nd.a.total)}
+                      {usd(nd.a.total, locale)}
                     </text>
                   )}
                 </g>
@@ -798,9 +941,13 @@ export function StakeOrbit({
                   style={{
                     width: "100%",
                     height: "100%",
-                    borderRadius: "50%",
+                    // Inset, not `cover`: filling the circle cropped the noggles
+                    // into an unreadable block of colour. 55% of this box is 50%
+                    // of the node's diameter — the same logo-to-container ratio
+                    // the site header uses (a 16px mark in a 32px tile), so the
+                    // treasury reads as the Gnars logo wherever it appears.
                     backgroundImage: "url(/gnars.webp)",
-                    backgroundSize: "cover",
+                    backgroundSize: "55%",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
                   }}

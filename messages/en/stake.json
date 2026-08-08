@@ -3,7 +3,6 @@
   "subtitle": "Pick your rider",
   "intro": "Choose a character to represent you. Use the thumbnails, arrows, or arrow keys to switch.",
   "chooseLabel": "Choose your character",
-  "selected": "Selected",
   "selectedRider": "{name} is ready to drop in.",
   "stakeCta": "Stake with {name}",
   "stakeToast": "Staked with {name}",
@@ -21,6 +20,7 @@
   "disclaimer": "Your deposit stays yours and is withdrawable anytime. Rates vary; this isn't financial advice.",
   "prev": "Previous rider",
   "next": "Next rider",
+  "playClip": "Play {name}'s clip",
   "statusTitle": "Status",
   "ethStaking": "ETH staking",
   "usdcLending": "USDC lending",
@@ -46,7 +46,7 @@
       "tagline": "Frontend flow, backend grind."
     },
     "r4to": {
-      "name": "R4to",
+      "name": "r4to",
       "tagline": "Onchain from the first push."
     },
     "pamtech": {
@@ -226,14 +226,15 @@
     "claimHint": "To claim, open the reward box (bottom-right) once the MOR unlock date has passed — it bridges your MOR to Arbitrum and splits it to your wallet.",
     "powerLockNote": "A far-off MOR unlock means a longer power-lock was chosen at deposit (higher APR / power factor) — the MOR stays locked until that date."
   },
-  "preview": {
+  "page": {
     "hero": "Back a Gnars rider. Your deposit stays yours and keeps earning. You keep half the yield; the other half backs your rider and the treasury.",
-    "rider": {
-      "rosterLabel": "Rider roster",
-      "hint": "Use ← → to switch riders",
-      "position": "{current} / {total}"
-    },
     "ratesTitle": "Current rates",
+    "rateHelpLabel": "About the {asset} rate on {venue}",
+    "rateHelp": {
+      "morphoUsdc": "Annual rate, paid in USDC. No lock: withdraw whenever you want.",
+      "morpheusSteth": "Estimated annual rate, paid in MOR. Your stETH unlocks 7 days after you stake.",
+      "morpheusUsdc": "Estimated annual rate, paid in MOR. Your USDC unlocks 7 days after you stake."
+    },
     "ratesLoading": "loading rates…",
     "ratesNa": "n/a",
     "socialTitle": "Who is already backing",
@@ -246,7 +247,6 @@
     "positions": {
       "title": "Your positions",
       "desc": "Everything you have staked, and when you can touch it.",
-      "sampleData": "sample data",
       "backsSubnet": "backs the subnet",
       "unlocks": "unlocks {date}",
       "venue": {
@@ -270,7 +270,14 @@
       "desc": "This one pays you nothing. Staked MOR powers the Gnars Builder subnet, which funds what the DAO ships. Your MOR stays yours and unlocks 7 days after you stake.",
       "morStaked": "MOR staked",
       "goal": "goal {n, number}",
-      "cta": "Back the subnet"
+      "cta": "Back the subnet",
+      "milestones": {
+        "live": "Subnet live: Gnars is a Morpheus Builder",
+        "backers10": "First 10 backers on board",
+        "10k": "{n, number} MOR staked: featured stakers wall",
+        "50k": "{n, number} MOR staked: community drop",
+        "100k": "{n, number} MOR staked: IRL Gnars event"
+      }
     },
     "backers": {
       "loading": "loading the flow…",

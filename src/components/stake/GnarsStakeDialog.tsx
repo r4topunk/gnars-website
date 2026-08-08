@@ -4,41 +4,47 @@
 // premium dialog. Lock MOR into the Gnars Builder subnet on Base: principal
 // stays yours (withdrawable after a 7-day lock); the subnet accrues MOR
 // emissions for the builder. Reads key off the view-mode-aware user address;
-// writes flow through useGnarsSubnetStake (the SA signer). Strings are
-// hardcoded EN — this flow is not wired to the next-intl stake namespace.
-
-import Image from "next/image";
+// writes flow through useGnarsSubnetStake (the SA signer). Strings are still
+// hardcoded EN — this flow is not wired to the next-intl stake namespace, which
+// is a separate change. The one exception is the milestone checklist: those
+// labels moved into `stake.page.subnet.milestones` (SUBNET_MILESTONES is data
+// only now), and duplicating an English copy of them here would guarantee the
+// two lists drift the next time the campaign changes.
 import { useState } from "react";
-import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { AlertTriangle, Check, Lock } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { CountUp } from "@/components/ui/count-up";
 import { ConnectButton } from "@/components/ui/ConnectButton";
-import { cn } from "@/lib/utils";
-import { SUBNET_MIN_DEPOSIT_MOR } from "@/lib/morpheus-builder";
-import {
-  SUBNET_GOAL_MOR,
-  SUBNET_MILESTONES,
-  isMilestoneDone,
-  type StakeMilestone,
-} from "@/lib/stake-milestones";
-import { useUserAddress } from "@/hooks/use-user-address";
+import { CountUp } from "@/components/ui/count-up";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { useGnarsSubnet } from "@/hooks/use-gnars-subnet";
 import { useGnarsSubnetStake } from "@/hooks/use-gnars-subnet-stake";
+import { useUserAddress } from "@/hooks/use-user-address";
+import { SUBNET_MIN_DEPOSIT_MOR } from "@/lib/morpheus-builder";
+import {
+  isMilestoneDone,
+  SUBNET_GOAL_MOR,
+  SUBNET_MILESTONES,
+  type StakeMilestone,
+} from "@/lib/stake-milestones";
+import { cn } from "@/lib/utils";
 
 const fmt = (n: number, d = 4) => n.toLocaleString("en-US", { maximumFractionDigits: d });
 const shortMor = (n: number) => (n >= 1000 ? `${n / 1000}k` : String(n));
 
 // MOR-denominated milestones become tick marks on the progress bar.
 const MOR_TICKS = SUBNET_MILESTONES.filter(
-  (m): m is StakeMilestone & { amountMor: number } => typeof m.amountMor === "number" && m.amountMor > 0,
+  (m): m is StakeMilestone & { amountMor: number } =>
+    typeof m.amountMor === "number" && m.amountMor > 0,
 );
 
 type Props = { open: boolean; onOpenChange: (open: boolean) => void };
 
 export function GnarsStakeDialog({ open, onOpenChange }: Props) {
+  const tm = useTranslations("stake.page.subnet.milestones");
   const { address: you } = useUserAddress();
   const [amount, setAmount] = useState("");
   const [nonce, setNonce] = useState(0);
@@ -88,7 +94,9 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
     if (!position || position.staked <= 0) return;
     const ok = await withdraw(String(position.staked));
     if (ok) {
-      toast.success("Withdrawn", { description: `${fmt(position.staked, 4)} MOR back in your wallet.` });
+      toast.success("Withdrawn", {
+        description: `${fmt(position.staked, 4)} MOR back in your wallet.`,
+      });
       setNonce((n) => n + 1);
     } else {
       toast.error("Withdraw failed", { description: error ?? undefined });
@@ -102,7 +110,13 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
           {/* Header */}
           <div className="pr-6">
             <div className="flex flex-wrap items-center gap-3">
-              <Image src="/logos/morpheus.webp" alt="Morpheus" width={40} height={40} className="rounded-lg" />
+              <Image
+                src="/logos/morpheus.webp"
+                alt="Morpheus"
+                width={40}
+                height={40}
+                className="rounded-lg"
+              />
               <DialogTitle className="text-2xl font-black tracking-tight sm:text-3xl">
                 Back Gnars on Morpheus
               </DialogTitle>
@@ -111,8 +125,8 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
               </span>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Lock MOR into the Gnars Builder subnet to back the crew with real capital. Your principal stays
-              yours — withdrawable after a 7-day lock. Self-custody on Base.
+              Lock MOR into the Gnars Builder subnet to back the crew with real capital. Your
+              principal stays yours — withdrawable after a 7-day lock. Self-custody on Base.
             </p>
           </div>
 
@@ -124,7 +138,11 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                   Staking milestones
                 </div>
                 <div className="mt-1 flex items-baseline gap-1.5">
-                  <CountUp value={totalStaked} decimals={0} className="text-4xl font-black tabular-nums" />
+                  <CountUp
+                    value={totalStaked}
+                    decimals={0}
+                    className="text-4xl font-black tabular-nums"
+                  />
                   <span className="text-sm font-medium text-muted-foreground">
                     / {SUBNET_GOAL_MOR.toLocaleString()} MOR
                   </span>
@@ -155,7 +173,9 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                     <span
                       className={cn(
                         "h-4 w-1 rounded-full",
-                        done ? "bg-emerald-600 shadow-[0_0_6px_rgba(43,229,139,.8)] dark:bg-[#2be58b]" : "bg-emerald-500/25",
+                        done
+                          ? "bg-emerald-600 shadow-[0_0_6px_rgba(43,229,139,.8)] dark:bg-[#2be58b]"
+                          : "bg-emerald-500/25",
                       )}
                       aria-hidden
                     />
@@ -181,7 +201,9 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                     <span
                       className={cn(
                         "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
-                        done ? "bg-emerald-500 text-white" : "border border-border text-muted-foreground",
+                        done
+                          ? "bg-emerald-500 text-white"
+                          : "border border-border text-muted-foreground",
                       )}
                     >
                       {done ? <Check className="h-3.5 w-3.5" /> : <Lock className="h-3 w-3" />}
@@ -192,7 +214,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                         done ? "font-semibold text-foreground" : "text-muted-foreground",
                       )}
                     >
-                      {m.label}
+                      {tm(m.id, { n: m.amountMor ?? 0 })}
                     </span>
                   </li>
                 );
@@ -208,7 +230,8 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                   Total staked
                 </div>
                 <div className="mt-0.5 text-lg font-black tabular-nums">
-                  {fmt(totalStaked, 0)} <span className="text-xs font-medium text-muted-foreground">MOR</span>
+                  {fmt(totalStaked, 0)}{" "}
+                  <span className="text-xs font-medium text-muted-foreground">MOR</span>
                 </div>
               </div>
               <div className="rounded-xl border border-border/60 bg-background/40 p-3">
@@ -225,7 +248,10 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
             <div className="mt-4 flex items-center justify-between text-xs">
               <span className="text-muted-foreground">
                 Balance:{" "}
-                <span className="font-medium tabular-nums text-foreground">{fmt(walletMor, 4)}</span> MOR
+                <span className="font-medium tabular-nums text-foreground">
+                  {fmt(walletMor, 4)}
+                </span>{" "}
+                MOR
               </span>
               <button
                 type="button"
@@ -285,8 +311,8 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
 
             <p className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-              You&apos;re backing the builder — rewards accrue to the subnet, not to individual stakers. Every
-              action is a transaction on Base.
+              You&apos;re backing the builder — rewards accrue to the subnet, not to individual
+              stakers. Every action is a transaction on Base.
             </p>
           </section>
 
@@ -298,7 +324,8 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                   Your position
                 </div>
                 <div className="mt-0.5 text-lg font-black tabular-nums">
-                  {fmt(position.staked, 4)} <span className="text-xs font-medium text-muted-foreground">MOR</span>
+                  {fmt(position.staked, 4)}{" "}
+                  <span className="text-xs font-medium text-muted-foreground">MOR</span>
                 </div>
                 <div className="mt-1 flex items-center gap-1.5 text-xs">
                   {locked ? (

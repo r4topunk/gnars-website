@@ -1,37 +1,38 @@
 "use client";
 
-// Prototype: "Suas posições" promoted from a read-only card at the bottom of the
-// page into the hub that answers "what do I have here" for all three venues, with
-// the action on the row instead of behind a floating button.
+// "Your positions" promoted from a read-only card at the bottom of the page into
+// the hub that answers "what do I have here" for all three venues, with the action
+// on the row instead of behind a floating button.
 //
-// Two things the review's original sketch got wrong, corrected here:
-//   1. The card must SELF-SUPPRESS when there is nothing to show. The production
-//      component returns its <Card> unconditionally, which puts a dead "connect
-//      your wallet" box above the social proof for every new visitor. Because the
-//      section can vanish, it owns its own <SectionHeader/> — a header rendered by
-//      the parent would be left stranding above nothing.
-//   2. useVaultRewards cannot draw the Morpho row — its VaultReward type carries
-//      no principal and it drops any vault whose yield is below dust. So the rows
-//      here are fixtures behind ?demo=1; wiring them is a separate PR.
+// The section SELF-SUPPRESSES when there is nothing to show. StakePositions (the
+// component this replaces on the page) returns its <Card> unconditionally, which
+// puts a dead "connect your wallet" box above the social proof for every new
+// visitor. Because the section can vanish, it owns its own <SectionHeader/> — a
+// header rendered by the parent would be left stranding above nothing.
 //
-// v3 rules this file implements: rows are transparent and separated by one
+// Live data only, and today that means the Morpheus rows: useVaultRewards cannot
+// draw the Morpho row (its VaultReward type carries no principal, and it drops any
+// vault whose yield is below dust), and the subnet position has no reader yet.
+// Both are separate PRs. The Row type already models them so adding a source is
+// additive.
+//
+// Visual rules this file implements: rows are transparent and separated by one
 // hairline (no sub-cards), every earned figure is gold whatever the token, and the
 // only button shape on a row is the quiet one. A row that has nothing to do says
 // so in text — a pill or a greyed button there reads as a broken control.
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { RevealItem, RevealSection } from "@/components/stake/Reveal";
+import { SectionHeader } from "@/components/stake/SectionHeader";
 import {
-  GOLD_SOLID,
+  CARD,
+  CARD_PAD,
+  GOLD_TEXT,
   MICRO,
-  PANEL,
-  PILL,
   QUIET_BTN,
   ROW_LIST,
   ROW_PAD,
-  type PreviewConfig,
-} from "@/components/stake/preview/preview-config";
-import { RevealItem, RevealSection } from "@/components/stake/preview/Reveal";
-import { SectionHeader } from "@/components/stake/preview/SectionHeader";
+} from "@/components/stake/stake-ui";
 import { Button } from "@/components/ui/button";
 import { useMorpheusPosition } from "@/hooks/use-morpheus-position";
 import { useUserAddress } from "@/hooks/use-user-address";
@@ -40,6 +41,9 @@ import { cn } from "@/lib/utils";
 type Venue = "morpho" | "morpheus" | "subnet";
 
 type Row = {
+  /** React key. Not the venue: one wallet can hold BOTH Morpheus pools (stETH and
+   *  USDC), which are two rows with the same venue. */
+  id: string;
   venue: Venue;
   /** What the user deposited, already formatted with its unit. */
   principal: string;
@@ -50,35 +54,16 @@ type Row = {
   action: "harvest" | "withdraw" | "claim";
 };
 
-const DAY = 86_400;
-
-/** Fixtures for ?demo=1 — one row per venue, covering the three states a
- *  reviewer needs to judge: collectable, locked, and withdrawable. */
-function demoRows(now: number): Row[] {
-  return [
-    {
-      venue: "morpho",
-      principal: "500.00 USDC",
-      earned: "12.40 USDC",
-      lockedUntil: 0,
-      action: "harvest",
-    },
-    {
-      venue: "morpheus",
-      principal: "1.2000 stETH",
-      earned: "84.21 MOR",
-      lockedUntil: now + 9 * DAY,
-      action: "claim",
-    },
-    { venue: "subnet", principal: "120.00 MOR", earned: "", lockedUntil: 0, action: "withdraw" },
-  ];
-}
-
 const fmtDate = (ts: number, locale: string) =>
   new Date(ts * 1000).toLocaleDateString(locale, { day: "2-digit", month: "short" });
+/** Amounts take the APP locale, never `undefined` (= the browser's). A pt-BR page
+ *  read in an en-US browser printed "1,234.5678 stETH" next to "libera em 14 de
+ *  ago" — two separator conventions inside one row. */
+const fmtAmount = (n: number, locale: string) =>
+  n.toLocaleString(locale, { maximumFractionDigits: 4 });
 
 function PositionRow({ row, now }: { row: Row; now: number }) {
-  const t = useTranslations("stake.preview.positions");
+  const t = useTranslations("stake.page.positions");
   const locale = useLocale();
   const locked = row.lockedUntil > now;
 
@@ -96,10 +81,7 @@ function PositionRow({ row, now }: { row: Row; now: number }) {
         {row.earned ? (
           // Gold whatever the token: the unit text says "MOR", the colour doesn't
           // have to. The green identity dot that used to sit here is gone.
-          <div
-            className="font-mono text-xs tabular-nums"
-            style={{ color: GOLD_SOLID }}
-          >{`+${row.earned}`}</div>
+          <div className={cn("font-mono text-xs tabular-nums", GOLD_TEXT)}>{`+${row.earned}`}</div>
         ) : row.venue === "subnet" ? (
           // The subnet position genuinely never yields. Saying "no yield yet" here
           // promised a payout that is never coming.
@@ -127,44 +109,39 @@ function PositionRow({ row, now }: { row: Row; now: number }) {
   );
 }
 
-export function PositionsHub({ config }: { config: PreviewConfig }) {
-  const t = useTranslations("stake.preview.positions");
+export function PositionsHub() {
+  const t = useTranslations("stake.page.positions");
+  const locale = useLocale();
   const { address: you } = useUserAddress();
   const live = useMorpheusPosition(you);
   const [now] = useState(() => Math.floor(Date.now() / 1000));
 
-  const liveRows: Row[] = (live?.pools ?? [])
+  const rows: Row[] = (live?.pools ?? [])
     .filter((p) => p.staked > 0)
     .map((p) => ({
+      id: `morpheus-${p.symbol}`,
       venue: "morpheus" as const,
-      principal: `${p.staked.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${p.symbol}`,
-      earned:
-        p.pendingMor > 0
-          ? `${p.pendingMor.toLocaleString(undefined, { maximumFractionDigits: 4 })} MOR`
-          : "",
+      principal: `${fmtAmount(p.staked, locale)} ${p.symbol}`,
+      earned: p.pendingMor > 0 ? `${fmtAmount(p.pendingMor, locale)} MOR` : "",
       lockedUntil: p.morUnlockAt,
       action: "claim" as const,
     }));
-
-  const rows = config.demo ? demoRows(now) : liveRows;
 
   // Self-suppressing: nothing staked → the section does not exist. This is what
   // makes "positions above the social proof" defensible for a first-time visitor.
   if (rows.length === 0) return null;
 
   return (
-    <RevealSection className="space-y-4">
+    // The section IS its own card — every section on the page owns one; there is
+    // no wrapping island. Rows sit directly on the card, separated by hairlines.
+    <RevealSection className={cn(CARD, CARD_PAD, "space-y-4")}>
       <RevealItem>
-        <SectionHeader title={t("title")} desc={t("desc")}>
-          {config.demo && <span className={PILL}>{t("sampleData")}</span>}
-        </SectionHeader>
+        <SectionHeader title={t("title")} desc={t("desc")} />
       </RevealItem>
 
-      {/* Horizontal padding belongs to the panel so the hairlines between rows run
-          the full width of the surface; the rows own their vertical rhythm. */}
-      <RevealItem delay={50} className={cn(PANEL, ROW_LIST, "px-4 sm:px-6")}>
+      <RevealItem delay={50} className={ROW_LIST}>
         {rows.map((r) => (
-          <PositionRow key={r.venue} row={r} now={now} />
+          <PositionRow key={r.id} row={r} now={now} />
         ))}
       </RevealItem>
     </RevealSection>

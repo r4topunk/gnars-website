@@ -3,7 +3,6 @@
   "subtitle": "Escolha seu rider",
   "intro": "Escolha um personagem para te representar. Use as miniaturas, as setas ou as teclas de seta para alternar.",
   "chooseLabel": "Escolha seu personagem",
-  "selected": "Selecionado",
   "selectedRider": "{name} está pronto para descer.",
   "stakeCta": "Fazer stake com {name}",
   "stakeToast": "Stake feito com {name}",
@@ -21,6 +20,7 @@
   "disclaimer": "Seu depósito continua seu e pode ser sacado quando quiser. As taxas variam; isto não é aconselhamento financeiro.",
   "prev": "Rider anterior",
   "next": "Próximo rider",
+  "playClip": "Reproduzir o clipe de {name}",
   "statusTitle": "Status",
   "ethStaking": "Staking de ETH",
   "usdcLending": "Lending de USDC",
@@ -46,7 +46,7 @@
       "tagline": "Flow no frontend, ralação no backend."
     },
     "r4to": {
-      "name": "R4to",
+      "name": "r4to",
       "tagline": "Onchain desde o primeiro empurrão."
     },
     "pamtech": {
@@ -226,14 +226,15 @@
     "claimHint": "Pra sacar, abra a caixa de recompensa (canto inferior direito) depois que a data de unlock do MOR passar — ela leva o MOR pra Arbitrum e divide na sua carteira.",
     "powerLockNote": "Um unlock do MOR distante significa que um power-lock maior foi escolhido no depósito (APR / power factor mais alto) — o MOR fica travado até essa data."
   },
-  "preview": {
+  "page": {
     "hero": "Apoie um rider da Gnars. Seu depósito continua seu e rendendo. Metade do rendimento fica com você; a outra metade banca seu rider e o tesouro.",
-    "rider": {
-      "rosterLabel": "Elenco de riders",
-      "hint": "Use ← → pra trocar de rider",
-      "position": "{current} / {total}"
-    },
     "ratesTitle": "Taxas atuais",
+    "rateHelpLabel": "Sobre a taxa de {asset} na {venue}",
+    "rateHelp": {
+      "morphoUsdc": "Taxa anual, paga em USDC. Sem lock: saque quando quiser.",
+      "morpheusSteth": "Taxa anual estimada, paga em MOR. Seu stETH libera 7 dias depois do stake.",
+      "morpheusUsdc": "Taxa anual estimada, paga em MOR. Seu USDC libera 7 dias depois do stake."
+    },
     "ratesLoading": "carregando as taxas…",
     "ratesNa": "n/d",
     "socialTitle": "Quem já está apoiando",
@@ -246,7 +247,6 @@
     "positions": {
       "title": "Suas posições",
       "desc": "Tudo que você tem em stake, e quando dá pra mexer nisso.",
-      "sampleData": "dados de exemplo",
       "backsSubnet": "sustenta a subnet",
       "unlocks": "libera em {date}",
       "venue": {
@@ -270,7 +270,14 @@
       "desc": "Esse aqui não te paga nada. O MOR em stake sustenta a subnet Gnars Builder, que financia o que a DAO entrega. Seu MOR continua seu e libera 7 dias depois do stake.",
       "morStaked": "MOR em stake",
       "goal": "meta {n, number}",
-      "cta": "Apoiar a subnet"
+      "cta": "Apoiar a subnet",
+      "milestones": {
+        "live": "Subnet no ar: a Gnars virou Builder na Morpheus",
+        "backers10": "Primeiros 10 apoiadores a bordo",
+        "10k": "{n, number} MOR em stake: mural dos apoiadores",
+        "50k": "{n, number} MOR em stake: drop pra comunidade",
+        "100k": "{n, number} MOR em stake: evento Gnars presencial"
+      }
     },
     "backers": {
       "loading": "carregando o fluxo…",

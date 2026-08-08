@@ -1,14 +1,36 @@
-# /stake/preview — visual direction v3 (committed)
+# /stake — visual system
+
+> **Status: finalized 2026-08-07 and applied to the production `/stake` and
+> `/stake/[rider]` routes.** The `/stake/preview` prototype route is gone; the
+> tokens described below live in `src/components/stake/stake-ui.ts` and the page
+> is composed by `src/components/stake/StakePageContent.tsx`.
+>
+> Two decisions changed on the way in, and the sections below are read with them
+> in mind:
+>
+> - **The rider picker is the production `CharacterSelector`.** The prototype's
+>   `RiderSelect` fork was rejected, so the "RiderSelect" section at the end is
+>   history, not spec — the arcade stage, the stat meters and the roster grid all
+>   stayed.
+> - **Chrome follows the site theme.** Every `white/xx` alpha quoted below became
+>   a `foreground` / `muted-foreground` equivalent so the page reads in light mode
+>   too. The one committed-dark surface left is `ORBIT_STAGE`, the panel the orbit
+>   SVG is drawn on (it is artwork lit for a dark stage, like the rider cut-outs).
+>   Gold and Morpheus green ship as light/dark pairs (`GOLD_TEXT`, `MOR_TEXT`,
+>   `MOR_FILL`) because the bright values are unreadable on a light card.
+> - The message namespace is `stake.page.*` (it was `stake.preview.*`).
 
 Pass 3. Inputs: the triple visual evaluation (grades 6/5/5) and the owner's
 anti-slop taste rules. Everything here is decided; no toggles for these choices.
 
-## System tokens (preview-config.ts)
+## System tokens (stake-ui.ts)
 
-- `PANEL` = `rounded-2xl border border-white/[0.08] bg-white/[0.06]` — raised from
-  0.03: the site's own `--card` step is ~2× what we shipped.
-- Rows inside a panel: NO sub-cards. Transparent rows separated by ONE hairline
-  (`divide-y divide-white/[0.06]` on the container). Never border-t AND border-b.
+- `CARD` = `rounded-2xl border bg-card text-card-foreground shadow-sm` — one
+  section, one card, stacked on the page background. (Supersedes the prototype's
+  `PANEL` foreground-alpha recipe, which existed to step panels above a wrapping
+  island; the island is gone, so sections use the site's own card token.)
+- Rows inside a card: NO sub-cards. Transparent rows separated by ONE hairline
+  (`divide-y` on the container). Never border-t AND border-b.
 - `MUTED` `text-white/50`, `MICRO` `text-white/35` unchanged.
 - GOLD unchanged, still the only UI accent. **Color rule tightened:** every key
   number / earned yield renders gold; Morpheus green appears ONLY on the subnet
@@ -26,7 +48,7 @@ optional one-line desc (`text-sm text-white/50 max-w-prose`). The rhythm comes
 from consistency, not numbering. No uppercase-tracking eyebrows anywhere in
 preview files.
 
-## Copy rules (both locales, stake.preview.* namespace)
+## Copy rules (both locales, `stake.page.*` namespace)
 
 - **Zero em-dashes (`—`) and zero en-dash separators** in any user-visible
   preview string. Restructure with period, comma, colon or parentheses.
@@ -43,14 +65,17 @@ preview files.
     Builder subnet, which funds what the DAO ships. Your MOR stays yours and
     unlocks 7 days after you stake."
 
-## Page composition (StakePreview)
+## Page composition (StakePageContent)
 
 - Page container `max-w-6xl` (match the site shell); narrow measure only on
   paragraphs (`max-w-2xl`).
-- **h1 + hero paragraph live OUTSIDE the island**, so the page opens exactly like
-  Treasury/Auctions. The island starts at the rider section as an explicit stage:
-  `bg-white/[0.02] rounded-2xl ring-1 ring-white/[0.06] shadow-xl mx-0 px-4 py-8
-  sm:px-6` (all breakpoints rounded; no -mx bleeds).
+- **h1 + hero paragraph sit on the page background**, so the page opens exactly
+  like Treasury/Auctions. Below them, **every section is its own `CARD`** in a
+  `space-y-6` stack — the prototype's single wrapping island was replaced by
+  per-section cards at the owner's request (2026-08-07). The rates strip keeps
+  slimmer padding than the other cards so global rates weigh less than the
+  user's own money; PositionsHub and SubnetSection render their own cards
+  because they own their headers (PositionsHub self-suppresses).
 - Social proof: **orbit graph is desktop-only** (`hidden md:block`); below `md`
   render the ranked list (BackerList) instead. The `?orbit=list` param now only
   affects desktop.

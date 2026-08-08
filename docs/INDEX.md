@@ -15,6 +15,7 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/architecture/exploration-progress.md`
 - `docs/architecture/refactor-audit.md`
 - `docs/i18n/tone-brief.md` — PT-BR translation tone brief
+- `docs/design/stake-visual-system.md` — /stake visual system: panel/row/accent tokens (`src/components/stake/stake-ui.ts`), section-header pattern, copy rules, page composition
 
 ## Features
 

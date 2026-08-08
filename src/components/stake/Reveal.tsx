@@ -1,6 +1,6 @@
 "use client";
 
-// Section-level scroll reveal for the preview page.
+// Section-level scroll reveal for the /stake page.
 //
 // Scope, on purpose: each section reveals when IT enters the viewport, and the
 // only stagger is between that section's header and its body (~50ms). There is no

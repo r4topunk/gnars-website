@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { CharacterSelector } from "@/components/stake/CharacterSelector";
-import { StakeAdminPanel } from "@/components/stake/StakeAdminPanel";
-import { StakeOrbit } from "@/components/stake/StakeOrbit";
-import { StakePositions } from "@/components/stake/StakePositions";
-import { MorLootbox } from "@/components/stake/MorLootbox";
-import { MorpheusStakeWidget } from "@/components/stake/MorpheusStakeWidget";
+import { StakePageContent } from "@/components/stake/StakePageContent";
 import { STAKE_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
 
 export async function generateMetadata({
@@ -51,28 +46,13 @@ export default async function StakePage({ params }: { params: Promise<{ locale: 
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const t = await getTranslations("stake");
-
   return (
     <div className="py-10">
-      <div className="mx-auto max-w-4xl space-y-8">
-        <div className="space-y-2 text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            {t("subtitle")}
-          </p>
-          <h1 className="text-4xl font-black tracking-tight sm:text-5xl">{t("title")}</h1>
-          <p className="mx-auto max-w-xl text-muted-foreground">{t("intro")}</p>
-        </div>
-
-        <div id="stake-start" className="scroll-mt-24">
-          <CharacterSelector />
-        </div>
-        <StakeOrbit />
-        <StakePositions />
-        <StakeAdminPanel />
+      {/* max-w-6xl matches the site shell (Treasury, Auctions). The narrow measure
+          that reading text needs is applied by the paragraphs themselves. */}
+      <div className="mx-auto max-w-6xl">
+        <StakePageContent />
       </div>
-      <MorLootbox />
-      <MorpheusStakeWidget />
     </div>
   );
 }
