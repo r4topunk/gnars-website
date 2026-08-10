@@ -13,8 +13,15 @@ import { getAllFeedEvents } from "@/services/feed-events";
 import { listProposals } from "@/services/proposals";
 import { Eyebrow, SHELL } from "./primitives";
 
+// Both panels swallow their fetch error and render empty.
+//
+// These run during static generation, and an unhandled throw inside a Suspense
+// boundary fails the whole export — one transient Goldsky 5xx would take the
+// production deploy down with it, which is a bad trade for two panels that are
+// perfectly readable with no rows. The page revalidates every 5 minutes, so an
+// empty render self-heals on the next pass.
 async function Proposals() {
-  const proposals = (await listProposals(8))
+  const proposals = (await listProposals(8).catch(() => []))
     .map(toListProposal)
     .filter((p) => p.status !== ProposalStatus.CANCELLED)
     .slice(0, 2);
@@ -22,7 +29,7 @@ async function Proposals() {
 }
 
 async function Feed() {
-  const events = await getAllFeedEvents(24 * 30);
+  const events = await getAllFeedEvents(24 * 30).catch(() => []);
   return <FeedPanel events={events} limit={5} />;
 }
 
