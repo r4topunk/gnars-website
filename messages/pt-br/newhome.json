@@ -1,0 +1,156 @@
+{
+  "hero": {
+    "onAir": "No ar · Gnars TV",
+    "title": "Esportes de ação, dos próprios riders.",
+    "leadPrefix": "Gnars é uma marca headless tocada por quem anda de skate.",
+    "ctaStake": "Apoie um rider",
+    "ctaBounties": "Ver bounties abertas",
+    "stats": {
+      "totalGnars": "Total de Gnars",
+      "members": "Membros",
+      "treasury": "Tesouro",
+      "rails": "NogglesRails"
+    }
+  },
+  "ticker": {
+    "treasury": "TESOURO",
+    "auction": "LEILÃO",
+    "bounties": "BOUNTIES ABERTAS",
+    "rails": "RAILS",
+    "members": "MEMBROS",
+    "railsValue": "{count} construídos",
+    "countries": "{count} países",
+    "cc0": "CC0 PARA SEMPRE"
+  },
+  "tv": {
+    "channelGuide": "Guia de canais",
+    "all": "TUDO →",
+    "tune": "SINTONIZAR",
+    "fullscreen": "Tela cheia",
+    "exitFullscreen": "Sair",
+    "prevChannel": "Canal anterior",
+    "nextChannel": "Próximo canal",
+    "playPause": "Reproduzir ou pausar canal",
+    "tuning": "SINTONIZANDO…",
+    "channel": "CH {number}",
+    "loaded": "CARREGADO",
+    "channels": "{count} canais",
+    "railsCount": "{count} rails",
+    "empty": "Nenhum canal no ar no momento.",
+    "bountiesOpen": "{count} bounties de skate e surf",
+    "mute": "Silenciar",
+    "unmute": "Ativar som"
+  },
+  "stake": {
+    "eyebrow": "Stake or Die",
+    "title": "Escolha seu rider. Seu depósito continua seu.",
+    "body": "Deposite no cofre de patrocínio de um rider. Só o rendimento é compartilhado — você fica com 50%, o rider recebe 25%, o tesouro Gnars recebe 25%. Saque o principal quando quiser.",
+    "split": {
+      "you": "Você fica",
+      "rider": "O rider",
+      "treasury": "Tesouro"
+    },
+    "whyEyebrow": "Por que o stake existe",
+    "whyBody": "Patrocínio antes era uma marca assinando um cheque. Agora qualquer pessoa pode copatrocinar um rider — deposite, mantenha seu principal, e deixe o rendimento fazer a doação."
+  },
+  "bounties": {
+    "eyebrow": "Bounties",
+    "title": "Desafios",
+    "body": "As Gnars Bounties são desafios da comunidade: pague atletas em ETH para mandar as manobras, linhas e stunts que a comunidade quer ver filmados.",
+    "stats": {
+      "pool": "Pool aberto",
+      "open": "Bounties abertas",
+      "usd": "Valor em USD"
+    },
+    "viewAll": "Ver todas as bounties →",
+    "flowPrefix": "O fluxo:",
+    "flow": "crie ou escolha uma bounty → financie → execute e envie o trabalho → seja verificado → receba onchain",
+    "create": "Criar bounty",
+    "viewPoidh": "Ver no Poidh",
+    "card": {
+      "class": "CLASSE",
+      "status": "STATUS",
+      "posted": "POSTADA",
+      "chain": "REDE",
+      "usd": "USD",
+      "type": "Bounty Poidh"
+    },
+    "rarity": {
+      "legendary": "Lendária",
+      "epic": "Épica",
+      "rare": "Rara",
+      "uncommon": "Incomum",
+      "common": "Comum"
+    },
+    "empty": "Nenhuma bounty aberta no momento.",
+    "whyEyebrow": "Por que as bounties existem",
+    "whyBody": "Nenhum comitê decide o que vale filmar. Qualquer pessoa pode postar um desafio e financiá-lo — o mesmo padrão aberto que colocou um rail em 9 países.",
+    "discipline": {
+      "skate": "Skate",
+      "surf": "Surf",
+      "parkour": "Parkour",
+      "weed": "420"
+    },
+    "back": {
+      "reward": "Recompensa",
+      "issuer": "Criador",
+      "deadline": "Prazo",
+      "claims": "Entregas",
+      "noDeadline": "Sem prazo",
+      "noDescription": "Sem descrição para esta bounty.",
+      "view": "Ver bounty →",
+      "flipBack": "Voltar",
+      "flipHint": "Toque pra virar",
+      "flipTo": "Virar {title} para ler o briefing"
+    }
+  },
+  "rails": {
+    "eyebrow": "Comunidade · NogglesRails",
+    "title": "{rails} rails. {countries} países. Uma galera só",
+    "body": "Uma rede global de infraestrutura de skate comunitária — financiada por propostas, instalada pelos locais, livre para sempre. Gire o globo ou escolha um ponto para ver a proposta que o construiu.",
+    "hint": "Arraste para girar · clique num ponto",
+    "stats": {
+      "installations": "Instalações",
+      "countries": "Países",
+      "continents": "Continentes"
+    },
+    "readProposal": "Ler a proposta →",
+    "whyEyebrow": "Por que o mapa importa",
+    "whyBody": "Cada pin é uma proposta que passou e uma galera que apareceu. CC0 significa que qualquer pessoa pode construir a próxima — sem licença, sem pedir permissão."
+  },
+  "swap": {
+    "eyebrow": "Dinheiro · Swap",
+    "title": "Precisa de ETH?",
+    "body": "Com a caixa Apoiar o tesouro Gnars marcada, 0,5% de cada troca vai direto para o Gnars Collective Treasury — já responsável por 15 esculturas skatáveis pelo mundo, patrocínios de embaixadores e infraestrutura para uma rede de shredders do planeta inteiro.",
+    "loop": {
+      "swap": "de cada swap para o tesouro",
+      "yield": "do rendimento de stake para o tesouro",
+      "auction": "da receita de leilões para propostas"
+    },
+    "whyEyebrow": "Por que tudo volta pro começo",
+    "whyBody": "Leilões, swaps e rendimento alimentam um só tesouro. Cada rider vota para onde ele vai — é o DAO inteiro, num card só."
+  },
+  "gov": {
+    "eyebrow": "Governança",
+    "title": "Um tesouro, um voto cada.",
+    "recentProposals": "Propostas recentes",
+    "liveFeed": "Feed ao vivo",
+    "viewAll": "Ver todas →",
+    "liveAuction": "Leilão ao vivo",
+    "currentBid": "Lance atual",
+    "leaderboard": "Ranking · {count} lances",
+    "auctionFootnote": "Novos Gnars são leiloados continuamente onchain. Qualquer um pode dar lance; o vencedor minta o Gnar e o valor vai para o tesouro da DAO financiar propostas.",
+    "for": "A favor {count}",
+    "against": "Contra {count}",
+    "abstain": "Abstenção {count}",
+    "timeLeftDh": "faltam {days}d {hours}h",
+    "timeLeftH": "faltam {hours}h",
+    "timeAgoD": "há {days}d",
+    "timeAgoH": "há {hours}h",
+    "feedCreated": "criou",
+    "feedVoted": "votou",
+    "feedOn": "em",
+    "feedEmpty": "Nada onchain nos últimos 30 dias.",
+    "awaitingSettlement": "Aguardando settle"
+  }
+}

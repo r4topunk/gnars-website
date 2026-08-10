@@ -411,7 +411,11 @@ async function mapDroposalToTVItem(droposal: {
     id: `droposal-${droposal.proposalId}`,
     title: droposal.name || droposal.title || `Droposal #${droposal.proposalNumber}`,
     creator: "gnars",
-    imageUrl: isVideo ? undefined : mediaUrl,
+    // A video droposal still has its own cover art (`imageURI` in the mint
+    // calldata). Keep it as the poster instead of discarding it — without this
+    // every video droposal reaches the UI with no still to show before playback,
+    // which left channel-guide thumbnails blank.
+    imageUrl: isVideo ? droposal.bannerImage : mediaUrl,
     videoUrl: isVideo ? mediaUrl : undefined,
     isDroposal: true,
     priceEth: droposal.priceEth,

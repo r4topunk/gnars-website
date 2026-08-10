@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { ThemeProvider } from "next-themes";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Oswald } from "next/font/google";
 import { notFound } from "next/navigation";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { AAOnboarding } from "@/components/layout/AAOnboarding";
@@ -27,6 +27,14 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+// Keycap legends and the TV title card. Condensed grotesque is what the era's
+// silkscreened controls and film credits actually used.
+const oswald = Oswald({
+  variable: "--font-oswald",
+  weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
 
@@ -92,7 +100,9 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${oswald.variable} antialiased`}
+      >
         <NextIntlClientProvider messages={messages}>
           <GoogleAnalytics />
           <ThemeProvider

@@ -1,0 +1,156 @@
+{
+  "hero": {
+    "onAir": "On air · Gnars TV",
+    "title": "Open action sports brand.",
+    "leadPrefix": "Gnars is a headless brand run by the people who skate it.",
+    "ctaStake": "Back a rider",
+    "ctaBounties": "See open bounties",
+    "stats": {
+      "totalGnars": "Total Gnars",
+      "members": "Members",
+      "treasury": "Treasury",
+      "rails": "NogglesRails"
+    }
+  },
+  "ticker": {
+    "treasury": "TREASURY",
+    "auction": "AUCTION",
+    "bounties": "OPEN BOUNTIES",
+    "rails": "RAILS",
+    "members": "MEMBERS",
+    "railsValue": "{count} built",
+    "countries": "{count} countries",
+    "cc0": "CC0 FOREVER"
+  },
+  "tv": {
+    "channelGuide": "Channel Guide",
+    "all": "ALL →",
+    "tune": "TUNE",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit",
+    "prevChannel": "Previous channel",
+    "nextChannel": "Next channel",
+    "playPause": "Play or pause channel",
+    "tuning": "TUNING…",
+    "channel": "CH {number}",
+    "loaded": "LOADED",
+    "channels": "{count} channels",
+    "railsCount": "{count} rails",
+    "empty": "No channels on air right now.",
+    "bountiesOpen": "{count} skate & surf bounties",
+    "mute": "Mute",
+    "unmute": "Unmute"
+  },
+  "stake": {
+    "eyebrow": "Stake or Die",
+    "title": "Pick your rider. Your deposit stays yours.",
+    "body": "Deposit into a rider's sponsorship vault. Only the yield is shared — you keep 50%, the rider gets 25%, the Gnars treasury gets 25%. Withdraw the principal whenever you want.",
+    "split": {
+      "you": "You keep",
+      "rider": "The rider",
+      "treasury": "Treasury"
+    },
+    "whyEyebrow": "Why staking exists",
+    "whyBody": "Sponsorships used to mean one brand writing one check. Now anyone can co-sponsor a rider — deposit, keep your principal, and let the yield do the giving."
+  },
+  "bounties": {
+    "eyebrow": "Bounties",
+    "title": "Challenges",
+    "body": "Gnars Bounties are challenges from the community: pay athletes in ETH to land the tricks, runs, and stunts the community wants to see filmed.",
+    "stats": {
+      "pool": "Open pool",
+      "open": "Open bounties",
+      "usd": "USD value"
+    },
+    "viewAll": "View all bounties →",
+    "flowPrefix": "The flow:",
+    "flow": "create or select a bounty → fund it → execute and submit work → get verified → paid onchain",
+    "create": "Create Bounty",
+    "viewPoidh": "View on Poidh",
+    "card": {
+      "class": "CLASS",
+      "status": "STATUS",
+      "posted": "POSTED",
+      "chain": "CHAIN",
+      "usd": "USD",
+      "type": "Poidh Bounty"
+    },
+    "rarity": {
+      "legendary": "Legendary",
+      "epic": "Epic",
+      "rare": "Rare",
+      "uncommon": "Uncommon",
+      "common": "Common"
+    },
+    "empty": "No open bounties right now.",
+    "whyEyebrow": "Why bounties exist",
+    "whyBody": "No committee decides what's worth filming. Anyone can post a challenge and fund it — the same open pattern that put a rail in 9 countries.",
+    "discipline": {
+      "skate": "Skate",
+      "surf": "Surf",
+      "parkour": "Parkour",
+      "weed": "420"
+    },
+    "back": {
+      "reward": "Reward",
+      "issuer": "Issuer",
+      "deadline": "Deadline",
+      "claims": "Claims",
+      "noDeadline": "Open-ended",
+      "noDescription": "No brief written for this bounty.",
+      "view": "View bounty →",
+      "flipBack": "Back",
+      "flipHint": "Tap to flip",
+      "flipTo": "Flip {title} to read the brief"
+    }
+  },
+  "rails": {
+    "eyebrow": "Community · NogglesRails",
+    "title": "{rails} rails. {countries} countries. One big crew",
+    "body": "A global network of community skate infrastructure — funded by proposals, installed by locals, free forever. Spin the globe or pick a spot to see the proposal that built it.",
+    "hint": "Drag to spin · click a spot",
+    "stats": {
+      "installations": "Installations",
+      "countries": "Countries",
+      "continents": "Continents"
+    },
+    "readProposal": "Read the proposal →",
+    "whyEyebrow": "Why the map matters",
+    "whyBody": "Every pin is a proposal that passed and a crew that showed up. CC0 means anyone can build the next one — no license, no permission needed."
+  },
+  "swap": {
+    "eyebrow": "Money · Swap",
+    "title": "Need some ETH?",
+    "body": "With the Support Gnars treasury box ticked, 0.5% of every trade routes straight to the Gnars Collective Treasury — already behind 15 skatable sculptures around the world, ambassador sponsorships, and infrastructure for a network of shredders from across the planet.",
+    "loop": {
+      "swap": "of every swap to the treasury",
+      "yield": "of stake yield to the treasury",
+      "auction": "of auction proceeds to proposals"
+    },
+    "whyEyebrow": "Why it all loops back",
+    "whyBody": "Auctions, swaps and yield all feed one treasury. Every rider votes on where it goes next — that's the whole DAO, in one card."
+  },
+  "gov": {
+    "eyebrow": "Governance",
+    "title": "Join the crew",
+    "recentProposals": "Recent proposals",
+    "liveFeed": "Live feed",
+    "viewAll": "View all →",
+    "liveAuction": "Live auction",
+    "currentBid": "Current bid",
+    "leaderboard": "Leaderboard · {count} bids",
+    "auctionFootnote": "New Gnars are auctioned continuously onchain. Anyone can bid; the winner mints the Gnar and funds flow to the DAO treasury to back proposals.",
+    "for": "For {count}",
+    "against": "Against {count}",
+    "abstain": "Abstain {count}",
+    "timeLeftDh": "{days}d {hours}h left",
+    "timeLeftH": "{hours}h left",
+    "timeAgoD": "{days}d ago",
+    "timeAgoH": "{hours}h ago",
+    "feedCreated": "created",
+    "feedVoted": "voted",
+    "feedOn": "on",
+    "feedEmpty": "Nothing onchain in the last 30 days.",
+    "awaitingSettlement": "Awaiting settlement"
+  }
+}

@@ -67,9 +67,10 @@ export interface Character {
   stats: Record<StatKey, number>;
 }
 
-// Reward split when you stake as a rider (percent). Mirrors the vault: the
-// depositor keeps half the yield, the rest is shared.
-export const REWARD_SPLIT = { you: 50, skater: 25, treasury: 25 } as const;
+// Re-exported from the vault module so existing importers keep their path.
+// Server components must import it from "@/lib/gnars-vaults" directly — see the
+// note there about client-reference proxies.
+export { REWARD_SPLIT } from "@/lib/gnars-vaults";
 
 // Exported (read-only) so anything else that needs the roster reads it from here
 // instead of forking the data.

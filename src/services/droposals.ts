@@ -1,4 +1,6 @@
-import { formatEther } from "viem";
+import { cache } from "react";
+import { createPublicClient, formatEther, http } from "viem";
+import { base } from "viem/chains";
 import { DAO_ADDRESSES, DROPOSAL_TARGET } from "@/lib/config";
 import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
@@ -135,6 +137,30 @@ async function fetchDroposalProposalsPage(first: number, skip: number): Promise<
 
   return data.proposals ?? [];
 }
+
+/**
+ * The Zora edition contract a droposal deployed, read from its execution receipt.
+ *
+ * The subgraph does not carry the deployed address, so it is recovered the same
+ * way the droposal detail page does it: the first log of the execution
+ * transaction is emitted by the freshly-created edition. Wrapped in `cache()`
+ * so resolving a whole channel guide costs one receipt fetch per proposal per
+ * request, not per component that asks.
+ */
+export const resolveDroposalTokenAddress = cache(
+  async (executionTransactionHash?: string): Promise<`0x${string}` | undefined> => {
+    if (!executionTransactionHash?.startsWith("0x")) return undefined;
+    try {
+      const client = createPublicClient({ chain: base, transport: http() });
+      const receipt = await client.getTransactionReceipt({
+        hash: executionTransactionHash as `0x${string}`,
+      });
+      return receipt.logs?.[0]?.address;
+    } catch {
+      return undefined;
+    }
+  },
+);
 
 export async function fetchDroposals(max: number = 24): Promise<DroposalListItem[]> {
   const pageSize = Math.min(100, Math.max(1, max));
