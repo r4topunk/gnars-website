@@ -8,6 +8,17 @@ import { getAddress, type Address } from "viem";
 // admin panel — paste the addresses the panel prints here to light up the
 // rider's on-chain sponsorship on /stake.
 
+/**
+ * Reward split when you stake behind a rider, in percent. Mirrors the vault:
+ * the depositor keeps half the yield, the rest is shared.
+ *
+ * Lives here rather than beside the roster UI because server components read it
+ * too — a plain value exported from a `"use client"` module reaches the server
+ * as a client-reference proxy, and reading a property off that proxy yields
+ * `undefined` instead of the number.
+ */
+export const REWARD_SPLIT = { you: 50, skater: 25, treasury: 25 } as const;
+
 export type RiderId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima" | "will";
 
 export type Rider = {

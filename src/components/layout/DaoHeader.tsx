@@ -272,7 +272,7 @@ function DesktopNav() {
   return (
     <>
       <DelegationModal open={delegationModalOpen} onOpenChange={setDelegationModalOpen} />
-      <NavigationMenu className="hidden md:flex">
+      <NavigationMenu className="hidden lg:flex">
         <NavigationMenuList className="items-center">
           {navigationItems.map((item) => {
             // Single link item
@@ -427,7 +427,7 @@ function MobileNav() {
       <DelegationModal open={delegationModalOpen} onOpenChange={setDelegationModalOpen} />
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden">
+          <Button variant="ghost" size="icon" className="lg:hidden">
             <Menu className="size-5" />
             <span className="sr-only">{t("mobileMenu.toggleLabel")}</span>
           </Button>
@@ -584,18 +584,25 @@ function HeaderActions() {
 export function DaoHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* The desktop nav swaps in at `lg`, not `md`: between 768px and ~880px
+          the logo, the full nav and the Connect button together needed ~841px,
+          which overflowed the viewport and gave every page a horizontal
+          scrollbar. Below `lg` the hamburger carries the same links. */}
       <div className="flex h-16 items-center px-4 md:px-6 max-w-6xl mx-auto">
         {/* Left section: Mobile menu + Logo (desktop) */}
         <div className="flex items-center gap-4 flex-shrink-0">
           <MobileNav />
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <DaoLogo />
           </div>
         </div>
 
         {/* Center section: Logo (mobile) + Desktop navigation */}
-        <div className="flex-1 flex justify-center">
-          <div className="md:hidden">
+        {/* `min-w-0` lets this track shrink below the nav's min-content width.
+            Without it a flex child refuses to go under its content size, so any
+            overflow here escapes the header and scrolls the whole document. */}
+        <div className="flex min-w-0 flex-1 justify-center">
+          <div className="lg:hidden">
             <DaoLogo />
           </div>
           <DesktopNav />

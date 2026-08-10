@@ -18,13 +18,38 @@ interface GlobePoint {
   rail: NogglesRailLocation;
 }
 
-export function NogglesRailsGlobe() {
+interface NogglesRailsGlobeProps {
+  /**
+   * Slug of the rail to keep the camera on. Passing it also stops the
+   * auto-rotate: something else on the page now owns which rail is in focus.
+   */
+  focusSlug?: string;
+  /**
+   * Called when a marker is clicked. Providing it suppresses the built-in
+   * detail drawer — the parent is expected to show the rail itself.
+   */
+  onSelectRail?: (rail: NogglesRailLocation) => void;
+  /** Overrides the default `h-[60vh] min-h-[350px]` frame. */
+  className?: string;
+}
+
+export function NogglesRailsGlobe({
+  focusSlug,
+  onSelectRail,
+  className,
+}: NogglesRailsGlobeProps = {}) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const globeRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<LocationData | null>(null);
+  // The marker DOM is built once per mount, so its click handler reads the
+  // latest callback through a ref instead of closing over the mount-time one.
+  const onSelectRef = useRef(onSelectRail);
+  useEffect(() => {
+    onSelectRef.current = onSelectRail;
+  }, [onSelectRail]);
 
   const points: GlobePoint[] = useMemo(
     () =>
@@ -49,6 +74,10 @@ export function NogglesRailsGlobe() {
     el.innerHTML = `<img src="${p.iconUrl}" width="${p.iconSize[0]}" height="${p.iconSize[1]}" style="filter: drop-shadow(0 0 3px rgba(0,0,0,0.6));" />`;
     el.addEventListener("click", (e) => {
       e.stopPropagation();
+      if (onSelectRef.current) {
+        onSelectRef.current(p.rail);
+        return;
+      }
       setSelected(toLocationData(p.rail));
       setDrawerOpen(true);
     });
@@ -74,15 +103,29 @@ export function NogglesRailsGlobe() {
     if (!globeRef.current) return;
     globeRef.current.pointOfView({ altitude: 1.5 }, 0);
     const controls = globeRef.current.controls();
-    controls.autoRotate = true;
+    controls.autoRotate = !focusSlug;
     controls.autoRotateSpeed = 0.3;
     controls.minDistance = 200;
     controls.maxDistance = 350;
-  }, [dimensions]);
+  }, [dimensions, focusSlug]);
+
+  // Fly to whichever rail the parent has in focus.
+  useEffect(() => {
+    if (!focusSlug || !globeRef.current || dimensions.width === 0) return;
+    const rail = NOGGLES_RAILS.find((r) => r.slug === focusSlug);
+    if (!rail) return;
+    globeRef.current.pointOfView(
+      { lat: rail.position[0], lng: rail.position[1], altitude: 1.5 },
+      900,
+    );
+  }, [focusSlug, dimensions.width]);
 
   return (
     <>
-      <div ref={containerRef} className="h-[60vh] min-h-[350px] overflow-hidden rounded-lg">
+      <div
+        ref={containerRef}
+        className={className ?? "h-[60vh] min-h-[350px] overflow-hidden rounded-lg"}
+      >
         {dimensions.width > 0 && (
           <Globe
             ref={globeRef}
