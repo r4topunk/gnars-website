@@ -241,12 +241,14 @@ export function MorLootbox({
     [morpheus, t],
   );
 
-  if (!you) return null;
-
-  // Connected, but nothing accrued yet. The site-wide mount keeps the affordance
-  // on screen so the rewards loop is discoverable from anywhere, rather than only
-  // existing for people who already found /stake.
-  if (!hasAction) {
+  // Nothing to act on — either no wallet, or a wallet with nothing accrued yet.
+  //
+  // Both get the same invitation from the site-wide mount. Gating the prompt on
+  // a connected wallet meant the one audience most likely to need the pointer,
+  // someone who has not staked at all, was the one audience that never saw it.
+  // The controlled /stake instance still renders nothing here: the prompt would
+  // be inviting you to the page you are already on.
+  if (!you || !hasAction) {
     if (!showEnablePrompt) return null;
     return (
       <div className="fixed bottom-5 right-5 z-50">
