@@ -71,7 +71,8 @@
       "posted": "POSTED",
       "chain": "CHAIN",
       "usd": "USD",
-      "type": "Poidh Bounty"
+      "type": "Poidh Bounty",
+      "tapToFlip": "TAP TO FLIP"
     },
     "rarity": {
       "legendary": "Legendary",
@@ -99,7 +100,10 @@
       "view": "View bounty →",
       "flipBack": "Back",
       "flipHint": "Tap to flip",
-      "flipTo": "Flip {title} to read the brief"
+      "flipTo": "Flip {title} to read the brief",
+      "challenge": "THE CHALLENGE",
+      "submitClaim": "Submit claim",
+      "tapToFlipBack": "TAP TO FLIP BACK"
     }
   },
   "rails": {

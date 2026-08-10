@@ -138,6 +138,44 @@ function escapeRegExp(value: string): string {
 }
 
 /**
+ * Vocabulary that is also ordinary English.
+ *
+ * "set" is a wave set; it is also "a held-out set of test images", which is how
+ * a Chrome-extension bounty came to be dealt as the homepage's headline SURF
+ * card. These words corroborate a discipline but cannot establish one on their
+ * own — a bounty needs at least one unambiguous term before they count.
+ */
+const AMBIGUOUS = new Set([
+  // surf
+  "set",
+  "gun",
+  "fish",
+  "foam",
+  "snap",
+  "tube",
+  // skate
+  "street",
+  "park",
+  "spot",
+  "switch",
+  "slide",
+  "manual",
+  "pump",
+  "deck",
+  "transition",
+  // parkour
+  "flip",
+  "dash",
+  "precision",
+  // weed
+  "og",
+  "flower",
+  "bud",
+  "smoke",
+  "strain",
+]);
+
+/**
  * Word-boundary matchers, longest keyword first.
  *
  * Classification can't reuse `matchesGnarsKeywords`' substring test: "og" would
@@ -145,14 +183,19 @@ function escapeRegExp(value: string): string {
  * the first; scoring by matched length fixes the second, since the longer, more
  * specific keyword outweighs the generic one it contains.
  */
-const DISCIPLINE_MATCHERS: Array<{ discipline: GnarsDiscipline; re: RegExp; weight: number }> =
-  GNARS_DISCIPLINES.flatMap((discipline) =>
-    DISCIPLINE_KEYWORDS[discipline].map((keyword) => ({
-      discipline,
-      re: new RegExp(`\\b${escapeRegExp(keyword)}\\b`, "i"),
-      weight: keyword.length,
-    })),
-  );
+const DISCIPLINE_MATCHERS: Array<{
+  discipline: GnarsDiscipline;
+  re: RegExp;
+  weight: number;
+  ambiguous: boolean;
+}> = GNARS_DISCIPLINES.flatMap((discipline) =>
+  DISCIPLINE_KEYWORDS[discipline].map((keyword) => ({
+    discipline,
+    re: new RegExp(`\\b${escapeRegExp(keyword)}\\b`, "i"),
+    weight: keyword.length,
+    ambiguous: AMBIGUOUS.has(keyword),
+  })),
+);
 
 /**
  * The discipline a bounty most likely belongs to, or `null` when nothing in the
@@ -161,8 +204,15 @@ const DISCIPLINE_MATCHERS: Array<{ discipline: GnarsDiscipline; re: RegExp; weig
  */
 export function classifyGnarsDiscipline(text: string): GnarsDiscipline | null {
   const scores = new Map<GnarsDiscipline, number>();
-  for (const { discipline, re, weight } of DISCIPLINE_MATCHERS) {
-    if (re.test(text)) scores.set(discipline, (scores.get(discipline) ?? 0) + weight);
+  const solid = new Set<GnarsDiscipline>();
+  for (const { discipline, re, weight, ambiguous } of DISCIPLINE_MATCHERS) {
+    if (!re.test(text)) continue;
+    scores.set(discipline, (scores.get(discipline) ?? 0) + weight);
+    if (!ambiguous) solid.add(discipline);
+  }
+  // Drop disciplines carried only by common English.
+  for (const discipline of [...scores.keys()]) {
+    if (!solid.has(discipline)) scores.delete(discipline);
   }
   if (scores.size === 0) return null;
 

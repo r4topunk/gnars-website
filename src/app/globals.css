@@ -256,6 +256,52 @@
   }
 }
 
+/* Bounty trading cards — foil shine, sparkle twinkle and the poidh seal's
+   holographic hue cycle. Separate names from the `gnars-*` set above because the
+   sweep travels further and skews rather than rotating. The reduced-motion block
+   at the foot of this file neutralises all of them. */
+@keyframes bounty-holo {
+  0% {
+    transform: translateX(-120%) skewX(-12deg);
+  }
+  55%,
+  100% {
+    transform: translateX(340%) skewX(-12deg);
+  }
+}
+
+@keyframes bounty-twinkle {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes bounty-seal {
+  0% {
+    filter: hue-rotate(0deg) saturate(1.3) brightness(1.05);
+  }
+  50% {
+    filter: hue-rotate(160deg) saturate(1.9) brightness(1.4);
+  }
+  100% {
+    filter: hue-rotate(360deg) saturate(1.3) brightness(1.05);
+  }
+}
+
+@keyframes bounty-seal-sweep {
+  0% {
+    transform: translateX(-130%) rotate(18deg);
+  }
+  60%,
+  100% {
+    transform: translateX(150%) rotate(18deg);
+  }
+}
+
 /* Gnars TV — CRT + chassis motion. Declared here so the reduced-motion block at
    the foot of this file can neutralise every one of them at once. */
 @keyframes tv-pulse {
