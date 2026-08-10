@@ -63,6 +63,13 @@ export interface Character {
    * stage, which the name plate already sits on.
    */
   videoMode?: "footage" | "cutout";
+  /**
+   * Sponsorship paused. The rider stays on the roster and stays browsable, but
+   * their vault takes no new deposits: the cut-out renders desaturated, the clip
+   * does not run, and the stake CTA is inert. Deployed vault addresses are left
+   * in place — existing positions are unaffected and withdrawals still work.
+   */
+  disabled?: boolean;
   /** Character attributes, 1–STAT_MAX */
   stats: Record<StatKey, number>;
 }
@@ -114,6 +121,7 @@ export const CHARACTERS: Character[] = [
   {
     id: "pamtech",
     image: "/stake/cutout/pamtech.png",
+    disabled: true,
     accentFrom: "from-emerald-400",
     accentTo: "to-green-600",
     ring: "ring-emerald-400",
@@ -124,6 +132,7 @@ export const CHARACTERS: Character[] = [
   {
     id: "v2",
     image: "/stake/cutout/v2.png",
+    disabled: true,
     accentFrom: "from-rose-400",
     accentTo: "to-red-600",
     ring: "ring-rose-400",
@@ -347,13 +356,16 @@ export function CharacterSelector({
   // From "ended" the element is already mounted with the file decoded, so a
   // replay is a seek rather than a remount — no second fetch, no blink.
   const startClip = useCallback(() => {
+    // A paused rider stays desaturated: the clip is full-colour footage and
+    // playing it would undo the one signal that says the vault is closed.
+    if (CHARACTERS[index].disabled) return;
     const el = videoRef.current;
     if (el) {
       el.currentTime = 0;
       void el.play();
     }
     setClip("playing");
-  }, []);
+  }, [index]);
   // The stat sheet is a panel the reader opens over the rider, not a column
   // beside them. Closed by default: the stage is the point of this section, and
   // eight meters permanently parked next to it made the card mostly numbers.
@@ -366,6 +378,7 @@ export function CharacterSelector({
 
   const count = CHARACTERS.length;
   const active = CHARACTERS[index];
+  const isPaused = !!active.disabled;
   const isCutoutVideo = active.videoMode === "cutout";
   const name = t(`characters.${active.id}.name`);
   const tagline = t(`characters.${active.id}.tagline`);
@@ -578,7 +591,10 @@ export function CharacterSelector({
                 priority
                 unoptimized
                 sizes="(max-width: 1024px) 90vw, 44rem"
-                className="object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.55)]"
+                className={cn(
+                  "object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.55)]",
+                  isPaused && "grayscale",
+                )}
               />
             </motion.div>
           </AnimatePresence>
@@ -747,7 +763,9 @@ export function CharacterSelector({
             <p className="mt-2 text-[15px] text-white/75 sm:text-base">{tagline}</p>
             {/* What the community has behind this rider */}
             <p className="mt-3 text-sm text-white/60">
-              {vault ? (
+              {isPaused ? (
+                <span className="opacity-70">{t("vaultPaused")}</span>
+              ) : vault ? (
                 staked === null ? (
                   <span className="opacity-60">{t("loadingSupport")}</span>
                 ) : (
@@ -779,15 +797,17 @@ export function CharacterSelector({
             <Button
               size="lg"
               onClick={() => setDialogOpen(true)}
+              disabled={isPaused}
               tabIndex={skillsOpen ? -1 : undefined}
               className={cn(
                 "pointer-events-auto mt-5 h-12 w-full cursor-pointer gap-2 border-0 font-bold text-[#1a1205] shadow-[0_8px_24px_rgba(245,133,31,.35)] hover:opacity-90 sm:h-10 sm:w-auto",
                 !ctaInFlow && "sm:hidden",
+                isPaused && "cursor-not-allowed opacity-60 shadow-none hover:opacity-60",
               )}
-              style={{ backgroundImage: GOLD }}
+              style={{ backgroundImage: isPaused ? undefined : GOLD }}
             >
               <Zap className="h-4 w-4" />
-              {t("stakeCta", { name })}
+              {isPaused ? t("vaultPausedCta") : t("stakeCta", { name })}
             </Button>
           </div>
 
@@ -797,12 +817,16 @@ export function CharacterSelector({
             <Button
               size="lg"
               onClick={() => setDialogOpen(true)}
+              disabled={isPaused}
               tabIndex={skillsOpen ? -1 : undefined}
-              className="absolute bottom-5 right-5 z-30 hidden cursor-pointer gap-2 border-0 font-bold text-[#1a1205] shadow-[0_8px_24px_rgba(245,133,31,.35)] hover:opacity-90 sm:inline-flex"
-              style={{ backgroundImage: GOLD }}
+              className={cn(
+                "absolute bottom-5 right-5 z-30 hidden cursor-pointer gap-2 border-0 font-bold text-[#1a1205] shadow-[0_8px_24px_rgba(245,133,31,.35)] hover:opacity-90 sm:inline-flex",
+                isPaused && "cursor-not-allowed opacity-60 shadow-none hover:opacity-60",
+              )}
+              style={{ backgroundImage: isPaused ? undefined : GOLD }}
             >
               <Zap className="h-4 w-4" />
-              {t("stakeCta", { name })}
+              {isPaused ? t("vaultPausedCta") : t("stakeCta", { name })}
             </Button>
           )}
         </div>
@@ -855,7 +879,7 @@ export function CharacterSelector({
               {/* zoomed into the head — the fighting-game portrait */}
               <div
                 aria-hidden
-                className="absolute inset-0"
+                className={cn("absolute inset-0", c.disabled && "grayscale")}
                 style={{
                   backgroundImage: `url("${c.image}")`,
                   backgroundSize: c.face.size,
