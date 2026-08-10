@@ -71,7 +71,8 @@
       "posted": "POSTADA",
       "chain": "REDE",
       "usd": "USD",
-      "type": "Bounty Poidh"
+      "type": "Bounty Poidh",
+      "tapToFlip": "TOQUE PARA VIRAR"
     },
     "rarity": {
       "legendary": "Lendária",
@@ -99,7 +100,10 @@
       "view": "Ver bounty →",
       "flipBack": "Voltar",
       "flipHint": "Toque pra virar",
-      "flipTo": "Virar {title} para ler o briefing"
+      "flipTo": "Virar {title} para ler o briefing",
+      "challenge": "O DESAFIO",
+      "submitClaim": "Enviar claim",
+      "tapToFlipBack": "TOQUE PARA VOLTAR"
     }
   },
   "rails": {
