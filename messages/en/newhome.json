@@ -118,7 +118,27 @@
     },
     "readProposal": "Read the proposal →",
     "whyEyebrow": "Why the map matters",
-    "whyBody": "Every pin is a proposal that passed and a crew that showed up. CC0 means anyone can build the next one — no license, no permission needed."
+    "whyBody": "Every pin is a proposal that passed and a crew that showed up. CC0 means anyone can build the next one — no license, no permission needed.",
+    "filters": {
+      "all": "All",
+      "americas": "Americas",
+      "europe": "Europe",
+      "africa": "Africa",
+      "asia": "Asia",
+      "oceania": "Oceania"
+    },
+    "mono": {
+      "installed": "INSTALLED",
+      "countries": "COUNTRIES",
+      "continents": "CONTINENTS"
+    },
+    "selected": "SELECTED",
+    "photoTag": "Photo · on site",
+    "renderTag": "3D render",
+    "prevPhoto": "Previous photo",
+    "nextPhoto": "Next photo",
+    "goToPhoto": "Go to photo {n}",
+    "viewInstallation": "View full installation ↗"
   },
   "swap": {
     "eyebrow": "Money · Swap",

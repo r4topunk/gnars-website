@@ -15,6 +15,7 @@ interface GlobePoint {
   type: string;
   iconUrl: string;
   iconSize: [number, number];
+  selected: boolean;
   rail: NogglesRailLocation;
 }
 
@@ -31,18 +32,28 @@ interface NogglesRailsGlobeProps {
   onSelectRail?: (rail: NogglesRailLocation) => void;
   /** Overrides the default `h-[60vh] min-h-[350px]` frame. */
   className?: string;
+  /** Idle spin. Forced off while a rail is in focus, and under reduced motion. */
+  autoRotate?: boolean;
+  /** Multiplier on the idle spin rate. */
+  spinSpeed?: number;
 }
 
 export function NogglesRailsGlobe({
   focusSlug,
   onSelectRail,
   className,
+  autoRotate = true,
+  spinSpeed = 1,
 }: NogglesRailsGlobeProps = {}) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const globeRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // three.js reports readiness separately from the container measuring: on a
+  // cold load the ref can still be null when dimensions first arrive, and the
+  // opening fly-to was silently skipped.
+  const [ready, setReady] = useState(false);
   const [selected, setSelected] = useState<LocationData | null>(null);
   // The marker DOM is built once per mount, so its click handler reads the
   // latest callback through a ref instead of closing over the mount-time one.
@@ -51,6 +62,9 @@ export function NogglesRailsGlobe({
     onSelectRef.current = onSelectRail;
   }, [onSelectRail]);
 
+  // Keyed on the focused slug: react-globe.gl only rebuilds marker elements when
+  // the data array's identity changes, and the selected pin needs a different
+  // element than the rest.
   const points: GlobePoint[] = useMemo(
     () =>
       NOGGLES_RAILS.map((r) => ({
@@ -60,9 +74,10 @@ export function NogglesRailsGlobe({
         type: r.type,
         iconUrl: r.iconUrl,
         iconSize: r.iconSize,
+        selected: r.slug === focusSlug,
         rail: r,
       })),
-    [],
+    [focusSlug],
   );
 
   const markerHtmlElement = useCallback((point: object) => {
@@ -71,7 +86,15 @@ export function NogglesRailsGlobe({
     el.style.cursor = "pointer";
     el.style.pointerEvents = "auto";
     el.title = p.label;
-    el.innerHTML = `<img src="${p.iconUrl}" width="${p.iconSize[0]}" height="${p.iconSize[1]}" style="filter: drop-shadow(0 0 3px rgba(0,0,0,0.6));" />`;
+    // The pin stays the NogglesRail render rather than becoming a generic dot —
+    // it is the brand mark, and at this size it still reads as a point. The
+    // selected state is a pulsing green halo behind it, so "which one is open"
+    // is legible without giving up the icon.
+    el.innerHTML = `<span style="position:relative;display:block;width:${p.iconSize[0]}px;height:${p.iconSize[1]}px">${
+      p.selected
+        ? `<span aria-hidden style="position:absolute;left:50%;top:50%;width:${p.iconSize[0] + 16}px;height:${p.iconSize[1] + 16}px;transform:translate(-50%,-50%);border-radius:999px;border:2px solid #22c55e;background:radial-gradient(circle,rgba(34,197,94,.45),rgba(34,197,94,0) 70%);animation:rail-pin-pulse 1.8s ease-in-out infinite"></span>`
+        : ""
+    }<img src="${p.iconUrl}" width="${p.iconSize[0]}" height="${p.iconSize[1]}" style="position:relative;filter: drop-shadow(0 0 3px rgba(0,0,0,0.6));" /></span>`;
     el.addEventListener("click", (e) => {
       e.stopPropagation();
       if (onSelectRef.current) {
@@ -103,22 +126,28 @@ export function NogglesRailsGlobe({
     if (!globeRef.current) return;
     globeRef.current.pointOfView({ altitude: 1.5 }, 0);
     const controls = globeRef.current.controls();
-    controls.autoRotate = !focusSlug;
-    controls.autoRotateSpeed = 0.3;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    controls.autoRotate = autoRotate && !focusSlug && !reduced;
+    controls.autoRotateSpeed = 0.3 * spinSpeed;
     controls.minDistance = 200;
     controls.maxDistance = 350;
-  }, [dimensions, focusSlug]);
+  }, [dimensions, focusSlug, autoRotate, spinSpeed, ready]);
 
   // Fly to whichever rail the parent has in focus.
   useEffect(() => {
-    if (!focusSlug || !globeRef.current || dimensions.width === 0) return;
+    if (!focusSlug || !ready || !globeRef.current || dimensions.width === 0) return;
     const rail = NOGGLES_RAILS.find((r) => r.slug === focusSlug);
     if (!rail) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     globeRef.current.pointOfView(
       { lat: rail.position[0], lng: rail.position[1], altitude: 1.5 },
-      900,
+      reduced ? 0 : 900,
     );
-  }, [focusSlug, dimensions.width]);
+  }, [focusSlug, dimensions.width, ready]);
 
   return (
     <>
@@ -131,8 +160,9 @@ export function NogglesRailsGlobe({
             ref={globeRef}
             width={dimensions.width}
             height={dimensions.height}
-            globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-            bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+            globeImageUrl="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+            bumpImageUrl="https://unpkg.com/three-globe/example/img/earth-topology.png"
+            onGlobeReady={() => setReady(true)}
             backgroundColor="rgba(0,0,0,0)"
             atmosphereColor="#6699cc"
             atmosphereAltitude={0.15}

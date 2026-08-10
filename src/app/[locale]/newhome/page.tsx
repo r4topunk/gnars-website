@@ -90,10 +90,10 @@ export default async function NewHome({ params }: { params: Promise<{ locale: st
         {t("rails.whyBody")}
       </Interlude>
 
+      <GovSection />
+
       <SwapSection />
       <Interlude eyebrow={t("swap.whyEyebrow")}>{t("swap.whyBody")}</Interlude>
-
-      <GovSection />
     </div>
   );
 }
