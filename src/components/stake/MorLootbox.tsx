@@ -16,12 +16,14 @@ import { Gift } from "lucide-react";
 import { toast } from "sonner";
 import { getAddress, type Address } from "viem";
 import { RewardClaimModal } from "@/components/stake/RewardClaimModal";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMorDistribute } from "@/hooks/use-mor-distribute";
 import { useMorpheusPosition } from "@/hooks/use-morpheus-position";
 import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
 import { useStakeDeposit } from "@/hooks/use-stake-deposit";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useVaultRewards } from "@/hooks/use-vault-rewards";
+import { Link } from "@/i18n/navigation";
 import { predictSplitAddress, splitMorBalance, warehouseMorBalance } from "@/lib/mor-split";
 import { MOR_GNARS_RECIPIENT, type MorpheusAsset } from "@/lib/morpheus";
 
@@ -44,9 +46,16 @@ const MOR_GREEN = "#2be58b";
 export function MorLootbox({
   open: openProp,
   onOpenChange,
+  showEnablePrompt = false,
 }: {
   open?: boolean;
   onOpenChange?: (v: boolean) => void;
+  /**
+   * When the wallet has nothing to act on, render a muted button that points at
+   * /stake instead of rendering nothing. Only the site-wide mount asks for this:
+   * on /stake itself the prompt would be inviting you to the page you are on.
+   */
+  showEnablePrompt?: boolean;
 } = {}) {
   const t = useTranslations("stake");
   // Read off the EFFECTIVE user address (EOA for external wallets), not the raw
@@ -232,7 +241,34 @@ export function MorLootbox({
     [morpheus, t],
   );
 
-  if (!you || !hasAction) return null;
+  if (!you) return null;
+
+  // Connected, but nothing accrued yet. The site-wide mount keeps the affordance
+  // on screen so the rewards loop is discoverable from anywhere, rather than only
+  // existing for people who already found /stake.
+  if (!hasAction) {
+    if (!showEnablePrompt) return null;
+    return (
+      <div className="fixed bottom-5 right-5 z-50">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href="/stake"
+              aria-label={t("lootbox.enableRewards")}
+              className="relative flex h-14 w-14 cursor-pointer items-center justify-center rounded-2xl opacity-70 shadow-xl transition-opacity hover:opacity-100"
+              style={{
+                background: "linear-gradient(160deg,#123, #04140d)",
+                border: `1px solid ${MOR_GREEN}33`,
+              }}
+            >
+              <Gift className="h-6 w-6" style={{ color: `${MOR_GREEN}aa` }} />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="left">{t("lootbox.enableRewards")}</TooltipContent>
+        </Tooltip>
+      </div>
+    );
+  }
 
   const totalClaimable = claimable.reduce((s, p) => s + p.pendingMor, 0);
   const totalDistributable = distributable.reduce((s, p) => s + (splitBalances[p.asset] ?? 0), 0);

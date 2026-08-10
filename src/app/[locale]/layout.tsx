@@ -12,6 +12,7 @@ import { FooterBar } from "@/components/layout/FooterBar";
 import Providers from "@/components/layout/Providers";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { MiniAppReady } from "@/components/miniapp/MiniAppReady";
+import { GlobalRewardsLootbox } from "@/components/stake/GlobalRewardsLootbox";
 import { MiniTV } from "@/components/tv/MiniTV";
 import { MiniTVVisibilityProvider } from "@/components/tv/MiniTVVisibilityContext";
 import { Toaster } from "@/components/ui/sonner";
@@ -123,6 +124,7 @@ export default async function LocaleLayout({
                   <FooterBar />
                   <Toaster />
                   <MiniTV />
+                  <GlobalRewardsLootbox />
                 </MiniTVVisibilityProvider>
               </TooltipProvider>
             </Providers>

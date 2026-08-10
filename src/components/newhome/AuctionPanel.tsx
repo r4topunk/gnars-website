@@ -119,7 +119,7 @@ export function AuctionPanel() {
   const noop = useCallback(() => {}, []);
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-[#f7c948]/25 bg-[linear-gradient(180deg,#181410,#0f0d0b)] p-5 shadow-[0_0_0_1px_rgba(0,0,0,.4),0_20px_50px_rgba(0,0,0,.35)]">
+    <div className="flex h-full flex-col gap-4 rounded-2xl border border-[#f7c948]/25 bg-[linear-gradient(180deg,#181410,#0f0d0b)] p-5 shadow-[0_0_0_1px_rgba(0,0,0,.4),0_20px_50px_rgba(0,0,0,.35)]">
       {/* Badge + countdown */}
       <div className="flex items-center justify-between gap-3">
         {/* The badge tracks the clock. Between an auction ending and someone

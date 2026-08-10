@@ -256,6 +256,20 @@
   }
 }
 
+/* NogglesRail globe — the selected pin's halo. Declared here so the
+   reduced-motion block at the foot of this file neutralises it. */
+@keyframes rail-pin-pulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1.25);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.75);
+    opacity: 0.25;
+  }
+}
+
 /* Bounty trading cards — foil shine, sparkle twinkle and the poidh seal's
    holographic hue cycle. Separate names from the `gnars-*` set above because the
    sweep travels further and skews rather than rotating. The reduced-motion block

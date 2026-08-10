@@ -187,7 +187,8 @@
     "inWarehouse": "no Warehouse",
     "morphoTitle": "Yield Morpho",
     "claimYield": "Colher",
-    "vaultClaimed": "Yield colhido na carteira"
+    "vaultClaimed": "Yield colhido na carteira",
+    "enableRewards": "Ativar recompensas"
   },
   "admin": {
     "title": "Cofres de patrocínio",

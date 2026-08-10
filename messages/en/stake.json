@@ -187,7 +187,8 @@
     "inWarehouse": "in the Warehouse",
     "morphoTitle": "Morpho yield",
     "claimYield": "Harvest",
-    "vaultClaimed": "Yield harvested to your wallet"
+    "vaultClaimed": "Yield harvested to your wallet",
+    "enableRewards": "Enable rewards"
   },
   "admin": {
     "title": "Sponsorship vaults",

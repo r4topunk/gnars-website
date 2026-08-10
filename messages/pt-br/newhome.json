@@ -118,7 +118,27 @@
     },
     "readProposal": "Ler a proposta →",
     "whyEyebrow": "Por que o mapa importa",
-    "whyBody": "Cada pin é uma proposta que passou e uma galera que apareceu. CC0 significa que qualquer pessoa pode construir a próxima — sem licença, sem pedir permissão."
+    "whyBody": "Cada pin é uma proposta que passou e uma galera que apareceu. CC0 significa que qualquer pessoa pode construir a próxima — sem licença, sem pedir permissão.",
+    "filters": {
+      "all": "Todos",
+      "americas": "Américas",
+      "europe": "Europa",
+      "africa": "África",
+      "asia": "Ásia",
+      "oceania": "Oceania"
+    },
+    "mono": {
+      "installed": "INSTALADOS",
+      "countries": "PAÍSES",
+      "continents": "CONTINENTES"
+    },
+    "selected": "SELECIONADO",
+    "photoTag": "Foto · no local",
+    "renderTag": "Render 3D",
+    "prevPhoto": "Foto anterior",
+    "nextPhoto": "Próxima foto",
+    "goToPhoto": "Ir para a foto {n}",
+    "viewInstallation": "Ver instalação completa ↗"
   },
   "swap": {
     "eyebrow": "Dinheiro · Swap",

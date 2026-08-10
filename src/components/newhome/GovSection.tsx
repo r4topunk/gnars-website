@@ -55,10 +55,10 @@ export async function GovSection() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
+        <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
           <AuctionPanel />
 
-          <div className="flex min-w-0 flex-col gap-4 rounded-2xl border border-white/10 bg-neutral-900 p-5">
+          <div className="flex h-full min-w-0 flex-col gap-4 rounded-2xl border border-white/10 bg-neutral-900 p-5">
             <Suspense fallback={<RecentProposalsSkeleton />}>
               <Proposals />
             </Suspense>
