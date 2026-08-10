@@ -18,7 +18,7 @@ export async function SwapSection() {
   ];
 
   return (
-    <section id="swap" className="px-6 py-18">
+    <section id="swap" className="px-4 py-10 sm:px-6 sm:py-18">
       <div
         className={`${SHELL} grid grid-cols-1 items-center gap-11 px-0 lg:grid-cols-[1fr_440px]`}
       >

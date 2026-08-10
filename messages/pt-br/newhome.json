@@ -1,15 +1,13 @@
 {
   "hero": {
     "onAir": "No ar · Gnars TV",
-    "title": "Esportes de ação, dos próprios riders.",
-    "leadPrefix": "Gnars é uma marca headless tocada por quem anda de skate.",
+    "title": "Na Gnars, quem manda é quem anda",
     "ctaStake": "Apoie um rider",
     "ctaBounties": "Ver bounties abertas",
     "stats": {
-      "totalGnars": "Total de Gnars",
       "members": "Membros",
       "treasury": "Tesouro",
-      "rails": "NogglesRails"
+      "rails": "Esculturas"
     }
   },
   "ticker": {

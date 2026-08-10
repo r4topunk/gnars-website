@@ -58,8 +58,10 @@ export default async function NewHome({ params }: { params: Promise<{ locale: st
     treasury.usdTotal == null ? "—" : `$${formatLargeNumber(treasury.usdTotal)}`;
   const railCount = NOGGLES_RAILS.length;
 
+  // No total-supply tile: `ownerCount` is the subgraph's distinct-owner count,
+  // so Members already answers "how many people are in this" — the supply number
+  // beside it just read as a second, larger membership figure.
   const heroStats: HeroStat[] = [
-    { value: String(daoStats.totalSupply), label: t("hero.stats.totalGnars"), icon: "gnars" },
     { value: String(daoStats.ownerCount), label: t("hero.stats.members"), icon: "members" },
     { value: treasuryLabel, label: t("hero.stats.treasury"), icon: "treasury" },
     { value: String(railCount), label: t("hero.stats.rails"), icon: "rails" },
@@ -72,9 +74,8 @@ export default async function NewHome({ params }: { params: Promise<{ locale: st
           would add a horizontal scrollbar on every platform that reserves one. */}
       <div aria-hidden className="fixed inset-0 -z-10 bg-[#0a0a0a]" />
 
-      <TVHeroSection />
-
       <HeroSection stats={heroStats} />
+      <TVHeroSection />
 
       <StakeSection />
       <Interlude eyebrow={t("stake.whyEyebrow")}>{t("stake.whyBody")}</Interlude>

@@ -46,7 +46,7 @@ export async function GovSection() {
   const t = await getTranslations("newhome.gov");
 
   return (
-    <section id="gov" className="px-6 pb-22 pt-18">
+    <section id="gov" className="px-4 pb-12 pt-10 sm:px-6 sm:pb-22 sm:pt-18">
       <div className={`${SHELL} flex flex-col gap-6 px-0`}>
         <div className="flex flex-col gap-2.5">
           <Eyebrow>{t("eyebrow")}</Eyebrow>

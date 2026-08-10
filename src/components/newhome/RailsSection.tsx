@@ -33,7 +33,7 @@ export function RailsSection() {
   }, []);
 
   return (
-    <section id="rails" className="px-6 py-18">
+    <section id="rails" className="px-4 py-10 sm:px-6 sm:py-18">
       <div className={`${SHELL} flex flex-col gap-6 px-0`}>
         <SectionHeading
           eyebrow={t("eyebrow")}

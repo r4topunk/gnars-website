@@ -15,7 +15,7 @@ export async function StakeSection() {
   const t = await getTranslations("newhome.stake");
 
   return (
-    <section id="stake" className="px-6 pb-18 pt-22">
+    <section id="stake" className="px-4 pb-10 pt-12 sm:px-6 sm:pb-18 sm:pt-22">
       <div className={`${SHELL} flex flex-col gap-7 px-0`}>
         <SectionHeading
           eyebrow={t("eyebrow")}
