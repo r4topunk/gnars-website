@@ -11,6 +11,7 @@
 //               you keep 50%, Gnars 25%, athlete 25%.
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { Gift } from "lucide-react";
 import { toast } from "sonner";
@@ -30,6 +31,37 @@ import { MOR_GNARS_RECIPIENT, type MorpheusAsset } from "@/lib/morpheus";
 const ZERO = "0x0000000000000000000000000000000000000000";
 const LOOT_MIN_MOR = 0.0001; // ignore dust
 const MOR_GREEN = "#2be58b";
+
+/**
+ * The same chest the claim dialog opens with, shrunk into the trigger.
+ *
+ * Loaded lazily and never on the server: it is a react-three-fiber scene, so
+ * pulling it into the initial bundle of every route would be the wrong trade for
+ * a 56px button. Until it arrives the Gift glyph stands in, which is also what
+ * renders if WebGL is unavailable.
+ */
+const ChestArt = dynamic(() => import("@/components/lootbox/AnimatedChest3D"), {
+  ssr: false,
+  loading: () => <Gift className="h-6 w-6" style={{ color: MOR_GREEN }} />,
+});
+
+/**
+ * `pointer-events-none` matters: the chest ships its own OrbitControls and click
+ * target, and inside a button both would swallow the press. The wrapper also
+ * hides the scene's absolutely-positioned "[ GNARS REWARDS ]" corner label,
+ * which is sized for the dialog and overflows at this scale.
+ */
+function ChestIcon({ size }: { size: number }) {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none block [&_.absolute]:hidden"
+      style={{ width: size, height: size }}
+    >
+      <ChestArt onOpen={() => {}} tier="gold" disabled />
+    </span>
+  );
+}
 
 /**
  * `open`/`onOpenChange` are optional: unmanaged, the box keeps its own state and
@@ -263,7 +295,7 @@ export function MorLootbox({
                 border: `1px solid ${MOR_GREEN}33`,
               }}
             >
-              <Gift className="h-6 w-6" style={{ color: `${MOR_GREEN}aa` }} />
+              <ChestIcon size={44} />
             </Link>
           </TooltipTrigger>
           <TooltipContent side="left">{t("lootbox.enableRewards")}</TooltipContent>
@@ -326,7 +358,9 @@ export function MorLootbox({
             animate={{ opacity: [0.35, 0.8, 0.35] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />
-          <Gift className="relative h-7 w-7" style={{ color: MOR_GREEN }} />
+          <span className="relative">
+            <ChestIcon size={52} />
+          </span>
           <span
             className="absolute -right-1.5 -top-1.5 flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black"
             style={{ backgroundColor: MOR_GREEN, color: "#04140d" }}
