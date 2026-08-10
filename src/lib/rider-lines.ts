@@ -19,6 +19,7 @@ export const RIDER_LINES: Record<RiderId, string[]> = {
   v2: [],
   zima: [],
   will: [],
+  ephraim: [],
 };
 
 /** A rider's custom flavor line for this context, or null to use the generic one. */
