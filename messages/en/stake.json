@@ -80,6 +80,8 @@
   "backing": "<b>{amount}</b> backing {name}",
   "loadingSupport": "loading support…",
   "vaultSoon": "sponsorship vault coming soon",
+  "vaultPaused": "sponsorship vault paused",
+  "vaultPausedCta": "Sponsorship paused",
   "dlg": {
     "position": "Your position:",
     "principal": "principal",

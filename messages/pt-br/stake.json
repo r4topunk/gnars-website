@@ -80,6 +80,8 @@
   "backing": "<b>{amount}</b> apoiando {name}",
   "loadingSupport": "carregando apoio…",
   "vaultSoon": "cofre de patrocínio em breve",
+  "vaultPaused": "cofre de patrocínio pausado",
+  "vaultPausedCta": "Patrocínio pausado",
   "dlg": {
     "position": "Sua posição:",
     "principal": "principal",
