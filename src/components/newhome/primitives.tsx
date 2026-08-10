@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
  */
 
 /** Page ground + max width used by every section. */
-export const SHELL = "mx-auto w-full max-w-6xl px-6";
+export const SHELL = "mx-auto w-full max-w-6xl px-4 sm:px-6";
 
 /** Small caps eyebrow above a section title. */
 export function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {
@@ -102,7 +102,7 @@ export function Interlude({
   children: ReactNode;
 }) {
   return (
-    <section className="bg-[#0a0a0a] px-6 py-9">
+    <section className="bg-[#0a0a0a] px-4 py-6 sm:px-6 sm:py-9">
       <div className="mx-auto flex max-w-[640px] flex-col gap-1.5 text-center">
         <span
           className={cn(

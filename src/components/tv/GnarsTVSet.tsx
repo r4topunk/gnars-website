@@ -1122,8 +1122,10 @@ export function GnarsTVSet({ channels, ticker }: GnarsTVSetProps) {
               ))}
             </span>
 
-            {/* Right cluster */}
-            <span className="flex flex-wrap items-end gap-3 sm:ml-auto sm:gap-4">
+            {/* Right cluster. Below `sm` the deck wraps and this takes a row of
+                its own, so it claims the full width and centres — left-aligned
+                it sat under the nameplate with a ragged gap down the right. */}
+            <span className="flex w-full flex-wrap items-end justify-center gap-3 sm:ml-auto sm:w-auto sm:justify-start sm:gap-4">
               <span className="flex flex-col items-center gap-[7px]">
                 <span
                   className="flex gap-2"

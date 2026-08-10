@@ -1,15 +1,13 @@
 {
   "hero": {
     "onAir": "On air · Gnars TV",
-    "title": "Open action sports brand.",
-    "leadPrefix": "Gnars is a headless brand run by the people who skate it.",
+    "title": "Gnars is a headless brand run by its shredders",
     "ctaStake": "Back a rider",
     "ctaBounties": "See open bounties",
     "stats": {
-      "totalGnars": "Total Gnars",
       "members": "Members",
       "treasury": "Treasury",
-      "rails": "NogglesRails"
+      "rails": "Sculptures"
     }
   },
   "ticker": {

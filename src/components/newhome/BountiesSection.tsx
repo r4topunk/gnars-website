@@ -167,7 +167,7 @@ export function BountiesSection({
   };
 
   return (
-    <section id="bounties" className="px-6 py-18">
+    <section id="bounties" className="px-4 py-10 sm:px-6 sm:py-18">
       <div className={`${SHELL} flex flex-col gap-6 px-0`}>
         <SectionHeading
           eyebrow={

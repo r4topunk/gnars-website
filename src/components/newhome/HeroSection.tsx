@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Map, TrendingUp, Trophy, Users } from "lucide-react";
+import { Map, TrendingUp, Users } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { HeroTagline } from "./HeroTagline";
 import { SHELL } from "./primitives";
@@ -7,11 +7,10 @@ import { SHELL } from "./primitives";
 export interface HeroStat {
   value: string;
   label: string;
-  icon: "gnars" | "members" | "treasury" | "rails";
+  icon: "members" | "treasury" | "rails";
 }
 
 const ICONS = {
-  gnars: { Icon: Trophy, bg: "bg-purple-900/30", fg: "text-purple-400" },
   members: { Icon: Users, bg: "bg-blue-900/30", fg: "text-blue-400" },
   treasury: { Icon: TrendingUp, bg: "bg-green-900/30", fg: "text-green-400" },
   rails: { Icon: Map, bg: "bg-red-900/30", fg: "text-red-400" },
@@ -25,13 +24,19 @@ export async function HeroSection({ stats }: { stats: HeroStat[] }) {
       id="top"
       className="relative bg-[radial-gradient(90%_55%_at_50%_10%,rgba(217,70,239,.1)_0%,rgba(217,70,239,0)_60%)]"
     >
-      <div className={`${SHELL} flex flex-col items-center gap-3.5 pb-18 pt-12 text-center`}>
-        <h1 className="bg-[linear-gradient(90deg,#fafafa,rgba(250,250,250,.8))] bg-clip-text text-[clamp(2.75rem,7vw,6.75rem)] font-extrabold leading-[0.94] tracking-[-0.03em] text-transparent">
+      <div
+        className={`${SHELL} flex flex-col items-center gap-3.5 pb-10 pt-7 text-center sm:pb-18 sm:pt-12`}
+      >
+        {/* Sized down from the display setting the shorter headline used: this
+            sentence is twice the length, and at the old clamp it ran to five
+            lines before the fold. `text-balance` keeps the wrap even. */}
+        <h1 className="text-balance bg-[linear-gradient(90deg,#fafafa,rgba(250,250,250,.8))] bg-clip-text text-[clamp(2.25rem,5.5vw,4.75rem)] font-extrabold leading-[1] tracking-[-0.03em] text-transparent">
           {t("title")}
         </h1>
 
-        <p className="max-w-[32em] text-pretty text-lg leading-[1.55] text-neutral-400">
-          {t("leadPrefix")} <HeroTagline />
+        {/* HeroTagline reserves its own height against layout shift. */}
+        <p className="max-w-[32em] text-pretty text-[clamp(1.0625rem,2.2vw,1.5rem)] leading-[1.45] text-neutral-400">
+          <HeroTagline />
         </p>
 
         <div className="mt-1.5 flex flex-wrap justify-center gap-2.5">
