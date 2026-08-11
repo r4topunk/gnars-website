@@ -715,12 +715,17 @@ export function SwapWidget() {
         : t("captions.enterAmount");
 
   return (
-    <div className="overflow-hidden bg-transparent">
-      <div className="space-y-7 p-6 md:px-9 md:py-8">
+    // `@container` makes the breakpoints below relative to this box rather
+    // than the viewport. The widget is embedded in a 440px column on the
+    // homepage, where a viewport-keyed `md:` still forced the three-column
+    // strip on and overflowed it by 29px — which the overflow-hidden then
+    // sliced off.
+    <div className="@container overflow-hidden bg-transparent">
+      <div className="space-y-7 p-6 @2xl:px-9 @2xl:py-8">
         {/* Editorial strip: FROM | arrow | TO */}
-        <div className="grid grid-cols-1 items-end gap-y-7 md:grid-cols-[1fr_auto_1fr] md:gap-y-0">
+        <div className="grid grid-cols-1 items-end gap-y-7 @2xl:grid-cols-[1fr_auto_1fr] @2xl:gap-y-0">
           {/* FROM */}
-          <div className="md:border-r md:border-border md:pr-7">
+          <div className="@2xl:border-r @2xl:border-border @2xl:pr-7">
             <div className="mb-2.5 flex items-center justify-between gap-2">
               <TokenPicker
                 value={sellToken}
@@ -768,9 +773,9 @@ export function SwapWidget() {
                 value={sellAmount}
                 onChange={(e) => setSellAmount(e.target.value)}
                 aria-label={t("from.sellAmount")}
-                className="h-auto flex-1 border-0 bg-transparent p-0 text-[44px] font-thin leading-none tracking-[-2px] text-foreground shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 md:text-[56px] md:tracking-[-3px] dark:bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none"
+                className="h-auto flex-1 border-0 bg-transparent p-0 text-[44px] font-thin leading-none tracking-[-2px] text-foreground shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 @2xl:text-[56px] @2xl:tracking-[-3px] dark:bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none"
               />
-              <span className="shrink-0 text-xl font-light tracking-tight text-muted-foreground/60 md:text-2xl">
+              <span className="shrink-0 text-xl font-light tracking-tight text-muted-foreground/60 @2xl:text-2xl">
                 {sellToken.symbol}
               </span>
             </div>
@@ -786,20 +791,20 @@ export function SwapWidget() {
           </div>
 
           {/* CENTER — flip arrow with springy easing */}
-          <div className="flex justify-center px-0 py-2 md:px-7 md:py-0">
+          <div className="flex justify-center px-0 py-2 @2xl:px-7 @2xl:py-0">
             <button
               type="button"
               onClick={flip}
               aria-label={t("flipTokens")}
               className="group rounded-full p-2 text-muted-foreground transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:rotate-180 hover:scale-110 hover:text-foreground motion-reduce:transition-none motion-reduce:hover:rotate-0 motion-reduce:hover:scale-100"
             >
-              <ArrowRight className="hidden h-5 w-5 md:block" />
-              <ArrowRight className="h-5 w-5 rotate-90 md:hidden" />
+              <ArrowRight className="hidden h-5 w-5 @2xl:block" />
+              <ArrowRight className="h-5 w-5 rotate-90 @2xl:hidden" />
             </button>
           </div>
 
           {/* TO */}
-          <div className="md:pl-7">
+          <div className="@2xl:pl-7">
             <div className="mb-2.5 flex items-center justify-between gap-2">
               <TokenPicker
                 value={buyToken}
@@ -829,7 +834,7 @@ export function SwapWidget() {
               )}
             </div>
             <div className="flex items-baseline gap-3 border-b border-border pb-2.5">
-              <span className="flex-1 truncate text-[44px] font-thin leading-none tracking-[-2px] text-foreground/90 md:text-[56px] md:tracking-[-3px]">
+              <span className="flex-1 truncate text-[44px] font-thin leading-none tracking-[-2px] text-foreground/90 @2xl:text-[56px] @2xl:tracking-[-3px]">
                 {isFetching ? (
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/40" />
                 ) : (
@@ -842,7 +847,7 @@ export function SwapWidget() {
                   </span>
                 )}
               </span>
-              <span className="shrink-0 text-xl font-light tracking-tight text-muted-foreground/60 md:text-2xl">
+              <span className="shrink-0 text-xl font-light tracking-tight text-muted-foreground/60 @2xl:text-2xl">
                 {buyToken.symbol}
               </span>
             </div>
@@ -858,14 +863,14 @@ export function SwapWidget() {
         <div className="h-px bg-border" />
 
         {/* CTA + footer */}
-        <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-center">
-          <div className="md:flex-shrink-0">
+        <div className="flex flex-col items-stretch gap-4 @2xl:flex-row @2xl:items-center">
+          <div className="@2xl:flex-shrink-0">
             {!isConnected ? (
               <Button
                 variant="outline"
                 size="lg"
                 disabled
-                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide md:w-auto"
+                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide @2xl:w-auto"
               >
                 {t("buttons.connectToSwap")}
               </Button>
@@ -874,7 +879,7 @@ export function SwapWidget() {
                 size="lg"
                 onClick={handleSwitchChain}
                 disabled={isSwitchingChain}
-                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide md:w-auto"
+                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide @2xl:w-auto"
               >
                 {isSwitchingChain
                   ? t("chain.switching")
@@ -885,7 +890,7 @@ export function SwapWidget() {
                 size="lg"
                 onClick={handleApprove}
                 disabled={isApproving}
-                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide md:w-auto"
+                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide @2xl:w-auto"
               >
                 {isApproving ? (
                   <>
@@ -901,7 +906,7 @@ export function SwapWidget() {
                 size="lg"
                 onClick={handleSwap}
                 disabled={!canSwap}
-                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide md:w-auto"
+                className="w-full rounded-full px-7 text-[13px] font-medium tracking-wide @2xl:w-auto"
               >
                 {isSwapping ? (
                   <>
@@ -917,7 +922,7 @@ export function SwapWidget() {
             )}
           </div>
 
-          <div className="hidden h-px flex-1 bg-border md:block" />
+          <div className="hidden h-px flex-1 bg-border @2xl:block" />
 
           {/* Fee opt-in */}
           <div className="flex items-center gap-2">

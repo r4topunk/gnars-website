@@ -286,16 +286,16 @@ export function MorLootbox({
       <div className="fixed bottom-5 right-5 z-50">
         <Tooltip>
           <TooltipTrigger asChild>
+            {/* No plate behind the chest — it is a rendered object with its own
+                silhouette, and boxing it in a bordered rounded rectangle read as
+                chrome around an icon rather than as the object itself. A drop
+                shadow keeps it legible over light page content. */}
             <Link
               href="/stake"
               aria-label={t("lootbox.enableRewards")}
-              className="relative flex h-14 w-14 cursor-pointer items-center justify-center rounded-2xl opacity-70 shadow-xl transition-opacity hover:opacity-100"
-              style={{
-                background: "linear-gradient(160deg,#123, #04140d)",
-                border: `1px solid ${MOR_GREEN}33`,
-              }}
+              className="relative block cursor-pointer opacity-70 drop-shadow-[0_6px_14px_rgba(0,0,0,.55)] transition-opacity hover:opacity-100"
             >
-              <ChestIcon size={44} />
+              <ChestIcon size={60} />
             </Link>
           </TooltipTrigger>
           <TooltipContent side="left">{t("lootbox.enableRewards")}</TooltipContent>
@@ -341,25 +341,26 @@ export function MorLootbox({
           type="button"
           onClick={() => setOpen(true)}
           aria-label={t("lootbox.title")}
-          className="relative flex h-16 w-16 cursor-pointer items-center justify-center rounded-2xl shadow-xl"
-          style={{
-            background: "linear-gradient(160deg,#123, #04140d)",
-            border: `1px solid ${MOR_GREEN}55`,
-          }}
+          className="relative flex cursor-pointer items-center justify-center drop-shadow-[0_6px_14px_rgba(0,0,0,.55)]"
           animate={{ y: [0, -6, 0] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
         >
+          {/* The pulse is a soft radial behind the chest rather than a glowing
+              rounded-rectangle outline — with the plate gone, a box-shadow on a
+              rounded box would have drawn back the very rectangle it lit. */}
           <motion.span
             aria-hidden
-            className="absolute inset-0 rounded-2xl"
-            style={{ boxShadow: `0 0 24px 2px ${MOR_GREEN}` }}
+            className="pointer-events-none absolute left-1/2 top-1/2 size-[112%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              background: `radial-gradient(circle, ${MOR_GREEN}55 0%, ${MOR_GREEN}00 68%)`,
+            }}
             animate={{ opacity: [0.35, 0.8, 0.35] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />
           <span className="relative">
-            <ChestIcon size={52} />
+            <ChestIcon size={68} />
           </span>
           <span
             className="absolute -right-1.5 -top-1.5 flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black"
