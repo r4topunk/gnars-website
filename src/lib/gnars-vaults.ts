@@ -19,7 +19,7 @@ import { getAddress, type Address } from "viem";
  */
 export const REWARD_SPLIT = { you: 50, skater: 25, treasury: 25 } as const;
 
-export type RiderId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima" | "will";
+export type RiderId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima" | "will" | "ephraim";
 
 export type Rider = {
   id: RiderId;
@@ -98,6 +98,12 @@ export const RIDERS: Record<RiderId, Rider> = {
     vault: getAddress("0x438f7d1ef1ae4ce74d9994edfcaf4ecb92a3f855"),
     adapter: getAddress("0xa2343979662fe97F586cB001E1f3c5fe7462075b"),
     split: getAddress("0x6D966c9dcCAd3cb02B4c109f070181C2c8077bAB"),
+  },
+  ephraim: {
+    id: "ephraim",
+    handle: "ephraim",
+    // No wallet or vault yet — the admin panel deploys his when the addresses
+    // are ready. Until then the roster shows him with sponsorship paused.
   },
 };
 

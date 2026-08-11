@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { StakeDialog } from "./StakeDialog";
 import { YieldStatus } from "./YieldStatus";
 
-export type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima" | "will";
+export type CharacterId = "vlad" | "yan" | "r4to" | "pamtech" | "v2" | "zima" | "will" | "ephraim";
 
 // THPS-style attributes (1–10). Placeholder values — tailor freely.
 export const STAT_KEYS = [
@@ -149,6 +149,17 @@ export const CHARACTERS: Character[] = [
     hex: "#14b8a6",
     face: { size: "330%", pos: "50% 3%" },
     stats: { speed: 8, air: 8, ollie: 3, spin: 8, rail: 10, flow: 9, devSkills: 6, creativity: 10 },
+  },
+  {
+    id: "ephraim",
+    image: "/stake/cutout/ephraim.png",
+    disabled: true,
+    accentFrom: "from-orange-400",
+    accentTo: "to-orange-600",
+    ring: "ring-orange-400",
+    hex: "#fb923c",
+    face: { size: "300%", pos: "50% 8%" },
+    stats: { speed: 7, air: 7, ollie: 7, spin: 7, rail: 7, flow: 8, devSkills: 6, creativity: 8 },
   },
   {
     id: "will",
