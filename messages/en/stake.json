@@ -276,24 +276,56 @@
       }
     },
     "subnet": {
-      "title": "Stake MOR behind the Gnars subnet",
+      "title": "Co-sponsor the Gnars Builder subnet",
       "desc": "This one pays you nothing. Staked MOR powers the Gnars Builder subnet, which funds what the DAO ships. Your MOR stays yours and unlocks 7 days after you stake.",
       "morStaked": "MOR staked",
       "goal": "goal {n, number}",
       "cta": "Back the subnet",
+      "milestonesTitle": "Amplification milestones",
+      "milestonesNote": "As staked MOR grows, Gnars amplifies Morpheus — Gnars's own commitment, building on Morpheus's open protocol.",
+      "firmness": {
+        "committed": "committed",
+        "proposed": "proposed"
+      },
       "milestones": {
-        "live": "Subnet live: Gnars is a Morpheus Builder",
-        "backers10": "First 10 backers on board",
-        "10k": "{n, number} MOR staked: featured stakers wall",
-        "50k": "{n, number} MOR staked: community drop",
-        "100k": "{n, number} MOR staked: IRL Gnars event"
+        "10k": "{n, number} MOR staked: Morpheus ad on Gnars TV",
+        "15k": "{n, number} MOR staked: Morpheus on the Gnars banner + a pinned post",
+        "25k": "{n, number} MOR staked: Morpheus featured in a Gnars edit",
+        "30k": "{n, number} MOR staked: Morpheus swag in the Skater Vaults",
+        "50k": "{n, number} MOR staked: Morpheus at an IRL Gnars activation",
+        "100k": "{n, number} MOR staked: Morpheus flagship spotlight"
+      },
+      "roadmap": {
+        "title": "What comes next",
+        "status": {
+          "live": "live",
+          "upcoming": "upcoming"
+        },
+        "phases": {
+          "staking": {
+            "title": "Staking frontend",
+            "desc": "Stake MOR behind the Gnars Builder subnet. Live now."
+          },
+          "agent": {
+            "title": "BobGnarly on Morpheus",
+            "desc": "Gnars's AI agent moves onto Morpheus; the DAO becomes a real user of the network."
+          },
+          "inference": {
+            "title": "Gnarly inference",
+            "desc": "A private, uncensored inference platform built on Morpheus rails."
+          },
+          "airdrop": {
+            "title": "$gnars airdrop",
+            "desc": "Planned: a $gnars airdrop for subnet stakers. Not guaranteed and subject to change; if it happens, early stakers are first in line."
+          }
+        }
       },
       "dialog": {
         "title": "Back Gnars on Morpheus",
         "badge": "MOR · Base",
         "desc": "Lock MOR into the Gnars Builder subnet to back the crew with real capital. Your principal stays yours — withdrawable after a 7-day lock. Self-custody on Base.",
-        "milestonesLabel": "Staking milestones",
-        "progressToEvent": "{pct}% of the way to the IRL event",
+        "milestonesLabel": "Amplification milestones",
+        "progressToEvent": "{pct}% of the way to {n, number} MOR staked",
         "totalStaked": "Total staked",
         "yourStake": "Your stake",
         "balance": "Balance:",

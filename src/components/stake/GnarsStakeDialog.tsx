@@ -26,12 +26,7 @@ import { useGnarsSubnetStake } from "@/hooks/use-gnars-subnet-stake";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { toIntlLocale } from "@/lib/i18n/format";
 import { SUBNET_MIN_DEPOSIT_MOR } from "@/lib/morpheus-builder";
-import {
-  isMilestoneDone,
-  SUBNET_GOAL_MOR,
-  SUBNET_MILESTONES,
-  type StakeMilestone,
-} from "@/lib/stake-milestones";
+import { isMilestoneDone, SUBNET_GOAL_MOR, SUBNET_MILESTONES } from "@/lib/stake-milestones";
 import { cn } from "@/lib/utils";
 
 // Locale-aware on purpose: these MOR figures sit next to a CountUp and a section
@@ -41,11 +36,10 @@ const fmt = (n: number, locale: string, d = 4) =>
   n.toLocaleString(locale, { maximumFractionDigits: d });
 const shortMor = (n: number) => (n >= 1000 ? `${n / 1000}k` : String(n));
 
-// MOR-denominated milestones become tick marks on the progress bar.
-const MOR_TICKS = SUBNET_MILESTONES.filter(
-  (m): m is StakeMilestone & { amountMor: number } =>
-    typeof m.amountMor === "number" && m.amountMor > 0,
-);
+// Milestones become tick marks on the progress bar. Every milestone is
+// MOR-denominated since the ladder became the amplification ladder — the two
+// ungated entries this used to filter out (subnet live, first 10 backers) are gone.
+const MOR_TICKS = SUBNET_MILESTONES.filter((m) => m.amountMor > 0);
 
 type Props = { open: boolean; onOpenChange: (open: boolean) => void };
 
@@ -162,7 +156,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                 </div>
               </div>
               <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
-                {t("dialog.progressToEvent", { pct: pctLabel })}
+                {t("dialog.progressToEvent", { pct: pctLabel, n: SUBNET_GOAL_MOR })}
               </span>
             </div>
 
@@ -227,7 +221,13 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                         done ? "font-semibold text-foreground" : "text-muted-foreground",
                       )}
                     >
-                      {t("milestones." + m.id, { n: m.amountMor ?? 0 })}
+                      {t("milestones." + m.id, { n: m.amountMor })}{" "}
+                      {/* Same committed/proposed label the page ladder carries.
+                          Dropping it here would make the dialog read as six firm
+                          promises while the section behind it says five are not. */}
+                      <span className="text-[10px] font-semibold tracking-wide whitespace-nowrap text-muted-foreground uppercase">
+                        · {t("firmness." + m.firmness)}
+                      </span>
                     </span>
                   </li>
                 );

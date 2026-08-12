@@ -276,24 +276,56 @@
       }
     },
     "subnet": {
-      "title": "Faça stake de MOR pra bancar a subnet Gnars",
+      "title": "Co-patrocine a subnet Gnars Builder",
       "desc": "Esse aqui não te paga nada. O MOR em stake sustenta a subnet Gnars Builder, que financia o que a DAO entrega. Seu MOR continua seu e libera 7 dias depois do stake.",
       "morStaked": "MOR em stake",
       "goal": "meta {n, number}",
       "cta": "Apoiar a subnet",
+      "milestonesTitle": "Metas de amplificação",
+      "milestonesNote": "Conforme o MOR em stake cresce, a Gnars amplifica a Morpheus — compromisso unilateral da Gnars, construindo sobre o protocolo aberto da Morpheus.",
+      "firmness": {
+        "committed": "confirmado",
+        "proposed": "proposto"
+      },
       "milestones": {
-        "live": "Subnet no ar: a Gnars virou Builder na Morpheus",
-        "backers10": "Primeiros 10 apoiadores a bordo",
-        "10k": "{n, number} MOR em stake: mural dos apoiadores",
-        "50k": "{n, number} MOR em stake: drop pra comunidade",
-        "100k": "{n, number} MOR em stake: evento Gnars presencial"
+        "10k": "{n, number} MOR em stake: anúncio da Morpheus na Gnars TV",
+        "15k": "{n, number} MOR em stake: Morpheus no banner da Gnars + post fixado",
+        "25k": "{n, number} MOR em stake: Morpheus em destaque num edit da Gnars",
+        "30k": "{n, number} MOR em stake: swag da Morpheus nos Skater Vaults",
+        "50k": "{n, number} MOR em stake: Morpheus numa ativação IRL da Gnars",
+        "100k": "{n, number} MOR em stake: spotlight principal da Morpheus"
+      },
+      "roadmap": {
+        "title": "O que vem depois",
+        "status": {
+          "live": "no ar",
+          "upcoming": "a seguir"
+        },
+        "phases": {
+          "staking": {
+            "title": "Frontend de staking",
+            "desc": "Faça stake de MOR na subnet Gnars Builder. No ar agora."
+          },
+          "agent": {
+            "title": "BobGnarly na Morpheus",
+            "desc": "O agente de IA da Gnars migra pra Morpheus; a DAO vira usuária de verdade da rede."
+          },
+          "inference": {
+            "title": "Inference Gnarly",
+            "desc": "Uma plataforma de inference privada e sem censura sobre os trilhos da Morpheus."
+          },
+          "airdrop": {
+            "title": "Airdrop de $gnars",
+            "desc": "Planejado: um airdrop de $gnars pros stakers da subnet. Não garantido e sujeito a mudança; se acontecer, quem stakou cedo tem prioridade."
+          }
+        }
       },
       "dialog": {
         "title": "Apoie os Gnars na Morpheus",
         "badge": "MOR · Base",
         "desc": "Trave MOR na subnet Gnars Builder para apoiar a crew com capital de verdade. Seu principal continua seu — pode ser sacado depois de um bloqueio de 7 dias. Autocustódia na Base.",
-        "milestonesLabel": "Metas de stake",
-        "progressToEvent": "{pct}% do caminho até o evento IRL",
+        "milestonesLabel": "Metas de amplificação",
+        "progressToEvent": "{pct}% do caminho até {n, number} MOR em stake",
         "totalStaked": "Total em stake",
         "yourStake": "Seu stake",
         "balance": "Saldo:",

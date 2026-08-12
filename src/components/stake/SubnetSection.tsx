@@ -15,7 +15,11 @@
 // dots" rule because they encode real state — done vs pending — rather than
 // decorating a value that already carries its own unit.
 //
-// SUBNET_MILESTONES is campaign DATA only (id + threshold). The copy lives in
+// The milestone ladder is what Gnars DELIVERS to amplify Morpheus as the subnet
+// grows — not what a staker earns. See src/lib/stake-milestones.ts for why the
+// distinction matters and why only the 10k anchor reads as `committed`.
+//
+// SUBNET_MILESTONES is campaign DATA only (id + threshold + firmness). The copy lives in
 // `stake.page.subnet.milestones.<id>` so the checklist speaks the page's language
 // — it used to print English in the middle of a Portuguese section — and the
 // thresholds inside those labels are interpolated as `{n, number}`, so pt-BR gets
@@ -99,7 +103,13 @@ export function SubnetSection() {
           />
         </div>
 
-        <ul className="mt-5 space-y-2">
+        {/* The ladder needs naming and framing before it is read: without these
+            two lines it looks like a reward schedule, which is the other axis
+            entirely and the one the stake dialog's disclaimer contradicts. */}
+        <h3 className="mt-6 text-sm font-semibold">{t("milestonesTitle")}</h3>
+        <p className={cn("mt-1 max-w-prose text-xs", MUTED)}>{t("milestonesNote")}</p>
+
+        <ul className="mt-3 space-y-2">
           {SUBNET_MILESTONES.map((m) => {
             const done = isMilestoneDone(m, totalStaked);
             return (
@@ -115,7 +125,19 @@ export function SubnetSection() {
                   )}
                 />
                 <span className={done ? "" : MUTED}>
-                  {t(`milestones.${m.id}`, { n: m.amountMor ?? 0 })}
+                  {t(`milestones.${m.id}`, { n: m.amountMor })}{" "}
+                  {/* Inline rather than a right-aligned column: these labels are
+                      long enough to wrap on a phone, and a pinned column would
+                      squeeze them to two words a line. Not a PILL either — a pill
+                      is a badge about the page, never the state a row is in. */}
+                  <span
+                    className={cn(
+                      "whitespace-nowrap text-[10px] font-semibold tracking-wide uppercase",
+                      MICRO,
+                    )}
+                  >
+                    · {t(`firmness.${m.firmness}`)}
+                  </span>
                 </span>
               </li>
             );

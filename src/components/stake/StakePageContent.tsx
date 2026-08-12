@@ -27,6 +27,7 @@ import { CharacterSelector } from "@/components/stake/CharacterSelector";
 import { MorLootbox } from "@/components/stake/MorLootbox";
 import { PositionsHub } from "@/components/stake/PositionsHub";
 import { RevealItem, RevealSection } from "@/components/stake/Reveal";
+import { RoadmapSection } from "@/components/stake/RoadmapSection";
 import { SectionHeader } from "@/components/stake/SectionHeader";
 import {
   CARD,
@@ -311,6 +312,8 @@ export function StakePageContent({ initialRider }: { initialRider?: RiderId }) {
         </RevealSection>
 
         <SubnetSection />
+
+        <RoadmapSection />
       </div>
 
       {/* One floater, and only when the wallet actually has something to
