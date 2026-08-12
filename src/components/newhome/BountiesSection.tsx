@@ -149,21 +149,21 @@ export function BountiesSection({
         />
 
         {isLoading && hand.length === 0 ? (
-          <div className="flex h-[420px] items-center justify-center rounded-[22px] border border-white/[0.07] bg-[#060606] font-mono text-sm text-neutral-500">
+          <div className="flex h-[420px] items-center justify-center rounded-[22px] border border-border bg-muted/30 font-mono text-sm text-muted-foreground/70">
             …
           </div>
         ) : (
           <BountyCardFan cards={hand} />
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-white/10 bg-neutral-900 px-6 py-5">
-          <p className="text-pretty text-[14.5px] text-neutral-400">
-            {t("flowPrefix")} <span className="font-semibold text-neutral-50">{t("flow")}</span>
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card px-6 py-5">
+          <p className="text-pretty text-[14.5px] text-muted-foreground">
+            {t("flowPrefix")} <span className="font-semibold text-foreground">{t("flow")}</span>
           </p>
           <div className="flex gap-2">
             <Link
               href="/community/bounties"
-              className="rounded-lg bg-neutral-50 px-4.5 py-2.5 text-sm font-semibold text-neutral-900 hover:opacity-90"
+              className="rounded-lg bg-foreground px-4.5 py-2.5 text-sm font-semibold text-background hover:opacity-90"
             >
               {t("create")}
             </Link>
@@ -171,7 +171,7 @@ export function BountiesSection({
               href="https://poidh.xyz"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-white/10 bg-white/[0.04] px-4.5 py-2.5 text-sm font-medium text-neutral-50 hover:bg-neutral-800"
+              className="rounded-lg border border-border bg-muted/40 px-4.5 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
             >
               {t("viewPoidh")}
             </a>

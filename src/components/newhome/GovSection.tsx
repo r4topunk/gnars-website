@@ -50,7 +50,7 @@ export async function GovSection() {
       <div className={`${SHELL} flex flex-col gap-6 px-0`}>
         <div className="flex flex-col gap-2.5">
           <Eyebrow>{t("eyebrow")}</Eyebrow>
-          <h2 className="text-[clamp(1.875rem,3.4vw,2.75rem)] font-extrabold leading-[1.05] tracking-[-0.025em] text-neutral-50">
+          <h2 className="text-[clamp(1.875rem,3.4vw,2.75rem)] font-extrabold leading-[1.05] tracking-[-0.025em] text-foreground">
             {t("title")}
           </h2>
         </div>
@@ -58,11 +58,11 @@ export async function GovSection() {
         <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
           <AuctionPanel />
 
-          <div className="flex h-full min-w-0 flex-col gap-4 rounded-2xl border border-white/10 bg-neutral-900 p-5">
+          <div className="flex h-full min-w-0 flex-col gap-4 rounded-2xl border border-border bg-card p-5">
             <Suspense fallback={<RecentProposalsSkeleton />}>
               <Proposals />
             </Suspense>
-            <div className="h-px bg-white/[0.08]" />
+            <div className="h-px bg-border" />
             <Suspense fallback={<ActivityFeedSkeleton responsive />}>
               <Feed />
             </Suspense>

@@ -26,7 +26,7 @@ export function HeroTagline() {
       <TextType
         text={[...descriptions]}
         as="span"
-        className="col-start-1 row-start-1 font-medium text-neutral-50"
+        className="col-start-1 row-start-1 font-medium text-foreground"
         typingSpeed={75}
         deletingSpeed={50}
         pauseDuration={1800}

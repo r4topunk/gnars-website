@@ -4,10 +4,11 @@ import { cn } from "@/lib/utils";
 /**
  * Shared chrome for the /newhome experiment.
  *
- * The design (Claude Design "Gnars Homepage") is a dark showpiece: near-black
- * ground, hairline white borders, mono numerals. These helpers keep that
- * treatment in one place so every section reads as one surface instead of each
- * block re-inventing its own greys.
+ * The design (Claude Design "Gnars Homepage") is a dark showpiece, but the
+ * greys are expressed as the app's semantic tokens rather than literal
+ * near-blacks, so the route follows the theme toggle like every other page.
+ * Brand accents (gold, the status greens and reds) stay literal — they carry
+ * meaning and read on either ground.
  */
 
 /** Page ground + max width used by every section. */
@@ -18,7 +19,7 @@ export function Eyebrow({ children, className }: { children: ReactNode; classNam
   return (
     <span
       className={cn(
-        "text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400",
+        "text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground",
         className,
       )}
     >
@@ -46,11 +47,11 @@ export function SectionHeading({
     <div className="flex flex-wrap items-end justify-between gap-5">
       <div className="flex flex-col gap-2.5">
         <Eyebrow className={eyebrowClassName}>{eyebrow}</Eyebrow>
-        <h2 className="text-[clamp(1.875rem,3.4vw,2.75rem)] font-extrabold leading-[1.05] tracking-[-0.025em] text-neutral-50">
+        <h2 className="text-[clamp(1.875rem,3.4vw,2.75rem)] font-extrabold leading-[1.05] tracking-[-0.025em] text-foreground">
           {title}
         </h2>
         {body ? (
-          <p className="max-w-[48em] text-pretty text-[15.5px] leading-[1.55] text-neutral-400">
+          <p className="max-w-[48em] text-pretty text-[15.5px] leading-[1.55] text-muted-foreground">
             {body}
           </p>
         ) : null}
@@ -73,16 +74,16 @@ export function StatTile({
   valueClassName?: string;
 }) {
   return (
-    <div className="min-w-[100px] rounded-xl border border-white/10 bg-neutral-900 px-4 py-3">
+    <div className="min-w-[100px] rounded-xl border border-border bg-card px-4 py-3">
       <div
         className={cn(
-          "font-mono text-[22px] font-bold tabular-nums text-neutral-50",
+          "font-mono text-[22px] font-bold tabular-nums text-foreground",
           valueClassName,
         )}
       >
         {value}
       </div>
-      <div className="text-[11px] uppercase tracking-[0.08em] text-neutral-400">{label}</div>
+      <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{label}</div>
     </div>
   );
 }
@@ -102,7 +103,7 @@ export function Interlude({
   children: ReactNode;
 }) {
   return (
-    <section className="bg-[#0a0a0a] px-4 py-6 sm:px-6 sm:py-9">
+    <section className="bg-muted/40 px-4 py-6 sm:px-6 sm:py-9">
       <div className="mx-auto flex max-w-[640px] flex-col gap-1.5 text-center">
         <span
           className={cn(
@@ -112,7 +113,7 @@ export function Interlude({
         >
           {eyebrow}
         </span>
-        <p className="text-[15.5px] leading-[1.6] text-neutral-300">{children}</p>
+        <p className="text-[15.5px] leading-[1.6] text-foreground/75">{children}</p>
       </div>
     </section>
   );

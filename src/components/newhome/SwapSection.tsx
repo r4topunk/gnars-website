@@ -24,20 +24,17 @@ export async function SwapSection() {
       >
         <div className="flex flex-col gap-4.5">
           <Eyebrow>{t("eyebrow")}</Eyebrow>
-          <h2 className="text-[clamp(1.875rem,3.4vw,2.75rem)] font-extrabold leading-[1.05] tracking-[-0.025em] text-neutral-50">
+          <h2 className="text-[clamp(1.875rem,3.4vw,2.75rem)] font-extrabold leading-[1.05] tracking-[-0.025em] text-foreground">
             {t("title")}
           </h2>
-          <p className="max-w-[36em] text-pretty text-[15.5px] leading-[1.6] text-neutral-400">
+          <p className="max-w-[36em] text-pretty text-[15.5px] leading-[1.6] text-muted-foreground">
             {t("body")}
           </p>
           <div className="grid max-w-[520px] grid-cols-1 gap-2.5 sm:grid-cols-3">
             {loop.map((m) => (
-              <div
-                key={m.label}
-                className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3.5"
-              >
+              <div key={m.label} className="rounded-xl border border-border bg-card px-4 py-3.5">
                 <div className="font-mono text-[19px] font-bold text-[#4ade80]">{m.value}</div>
-                <div className="mt-0.5 text-xs leading-[1.4] text-neutral-400">{m.label}</div>
+                <div className="mt-0.5 text-xs leading-[1.4] text-muted-foreground">{m.label}</div>
               </div>
             ))}
           </div>

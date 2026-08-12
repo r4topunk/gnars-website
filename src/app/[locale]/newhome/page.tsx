@@ -68,11 +68,13 @@ export default async function NewHome({ params }: { params: Promise<{ locale: st
   ];
 
   return (
-    <div className="relative -mx-4 flex flex-1 flex-col text-neutral-50">
+    <div className="relative -mx-4 flex flex-1 flex-col text-foreground">
       {/* Full-viewport ground. A fixed backdrop rather than a 100vw block: the
           page lives inside the layout's centred `main`, and widening past it
-          would add a horizontal scrollbar on every platform that reserves one. */}
-      <div aria-hidden className="fixed inset-0 -z-10 bg-[#0a0a0a]" />
+          would add a horizontal scrollbar on every platform that reserves one.
+          `bg-background` rather than a hardcoded near-black: this route used to
+          be pinned dark and ignored the theme toggle entirely. */}
+      <div aria-hidden className="fixed inset-0 -z-10 bg-background" />
 
       <HeroSection stats={heroStats} />
       <TVHeroSection />

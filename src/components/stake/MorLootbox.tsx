@@ -347,18 +347,6 @@ export function MorLootbox({
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
         >
-          {/* The pulse is a soft radial behind the chest rather than a glowing
-              rounded-rectangle outline — with the plate gone, a box-shadow on a
-              rounded box would have drawn back the very rectangle it lit. */}
-          <motion.span
-            aria-hidden
-            className="pointer-events-none absolute left-1/2 top-1/2 size-[112%] -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{
-              background: `radial-gradient(circle, ${MOR_GREEN}55 0%, ${MOR_GREEN}00 68%)`,
-            }}
-            animate={{ opacity: [0.35, 0.8, 0.35] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          />
           <span className="relative">
             <ChestIcon size={104} />
           </span>

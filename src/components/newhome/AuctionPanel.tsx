@@ -130,7 +130,10 @@ export function AuctionPanel() {
           style={
             isLive
               ? { backgroundImage: GOLD, color: "#1a1205" }
-              : { background: "rgba(255,255,255,.08)", color: "#a3a3a3" }
+              : {
+                  background: "color-mix(in oklab,var(--foreground) 8%,transparent)",
+                  color: "var(--muted-foreground)",
+                }
           }
         >
           <span
@@ -144,24 +147,26 @@ export function AuctionPanel() {
           />
           {isLive ? t("liveAuction") : t("awaitingSettlement")}
         </span>
-        <div className="flex gap-[3px] font-mono text-[15px] font-bold text-neutral-50">
+        <div className="flex gap-[3px] font-mono text-[15px] font-bold text-foreground">
           {countdown ? (
             [countdown.hours, countdown.minutes, countdown.seconds].map((part, i) => (
               <span key={i} className="flex items-center gap-[3px]">
-                {i > 0 && <span className="text-neutral-500">:</span>}
+                {i > 0 && <span className="text-muted-foreground/70">:</span>}
                 <span className="rounded-[5px] bg-black px-[7px] py-[3px] tabular-nums">
                   {part}
                 </span>
               </span>
             ))
           ) : (
-            <span className="rounded-[5px] bg-black px-[7px] py-[3px] text-neutral-600">--</span>
+            <span className="rounded-[5px] bg-foreground/10 px-[7px] py-[3px] text-muted-foreground">
+              --
+            </span>
           )}
         </div>
       </div>
 
       {/* The Gnar */}
-      <div className="relative aspect-square overflow-hidden rounded-[14px] border-2 border-[#f7c948]/55 bg-neutral-800 shadow-[0_0_0_5px_rgba(247,201,72,.08),inset_0_0_34px_rgba(245,133,31,.18)]">
+      <div className="relative aspect-square overflow-hidden rounded-[14px] border-2 border-[#f7c948]/55 bg-muted shadow-[0_0_0_5px_rgba(247,201,72,.08),inset_0_0_34px_rgba(245,133,31,.18)]">
         <GnarImageTile tokenId={Number(tokenId || 0)} imageUrl={imageUrl} />
         {tokenId != null && (
           <span className="absolute left-2.5 top-2.5 rounded-lg bg-[#0a0908]/70 px-2.5 py-1 font-mono text-xs font-bold text-[#f7c948] backdrop-blur-sm">
@@ -171,7 +176,7 @@ export function AuctionPanel() {
         {/* An auction that closed without a bid reports the zero address as its
             "winner" — crowning that reads as a real leader, so it is dropped. */}
         {displayBidder && !ZERO_BIDDER.test(displayBidder) && (
-          <span className="absolute right-2.5 top-2.5 flex items-center gap-1.5 rounded-lg bg-[#0a0908]/70 px-2.5 py-1 text-[11px] font-bold text-neutral-50 backdrop-blur-sm">
+          <span className="absolute right-2.5 top-2.5 flex items-center gap-1.5 rounded-lg bg-[#0a0908]/70 px-2.5 py-1 text-[11px] font-bold text-foreground backdrop-blur-sm">
             👑 {truncateAddress(displayBidder)}
           </span>
         )}
@@ -180,7 +185,7 @@ export function AuctionPanel() {
       {/* Current bid + time elapsed */}
       <div>
         <div className="mb-[7px] flex items-baseline justify-between gap-3">
-          <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
+          <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             {t("currentBid")}
           </span>
           <span
@@ -190,14 +195,14 @@ export function AuctionPanel() {
             {displayBid ? Number(displayBid).toFixed(3) : "0.000"} ETH
           </span>
         </div>
-        <div className="flex h-2.5 overflow-hidden rounded-full border border-white/[0.06] bg-neutral-800">
+        <div className="flex h-2.5 overflow-hidden rounded-full border border-border bg-muted">
           <span
             className="block h-full rounded-full bg-[linear-gradient(90deg,#f59e0b,#FF2D2D)] transition-[width] duration-1000"
             style={{ width: `${elapsedPct}%` }}
           />
         </div>
         {leadingComment && displayBidder && !ZERO_BIDDER.test(displayBidder) && (
-          <p className="mt-1.5 text-[11.5px] italic text-neutral-400">
+          <p className="mt-1.5 text-[11.5px] italic text-muted-foreground">
             “{leadingComment}” — {truncateAddress(displayBidder ?? "")}
           </p>
         )}
@@ -206,7 +211,7 @@ export function AuctionPanel() {
       {/* Leaderboard */}
       {bids.length > 0 && (
         <div className="flex flex-col gap-1.5 rounded-xl border border-white/[0.07] bg-black/25 p-3">
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-neutral-400">
+          <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
             {t("leaderboard", { count: bids.length })}
           </span>
           {bids.slice(0, 4).map((bid, i) => (
@@ -222,10 +227,10 @@ export function AuctionPanel() {
                 className="size-[18px] shrink-0 rounded-full"
                 style={{ backgroundImage: avatarGradient(bid.bidder) }}
               />
-              <span className="flex-1 truncate text-[12.5px] font-medium text-neutral-200">
+              <span className="flex-1 truncate text-[12.5px] font-medium text-foreground/85">
                 {truncateAddress(bid.bidder)}
               </span>
-              <span className="font-mono text-[12.5px] font-bold tabular-nums text-neutral-50">
+              <span className="font-mono text-[12.5px] font-bold tabular-nums text-foreground">
                 {Number(formatEther(BigInt(bid.amount))).toFixed(3)} Ξ
               </span>
             </div>
@@ -245,7 +250,7 @@ export function AuctionPanel() {
         <AuctionSettleButton isWinner={!!isWinner} />
       )}
 
-      <p className="text-xs leading-[1.5] text-neutral-500">{t("auctionFootnote")}</p>
+      <p className="text-xs leading-[1.5] text-muted-foreground/70">{t("auctionFootnote")}</p>
     </div>
   );
 }

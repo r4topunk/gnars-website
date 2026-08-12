@@ -15,7 +15,7 @@ const STATUS_TONE: Partial<Record<ProposalStatus, [string, string, string]>> = {
 const NEUTRAL_TONE: [string, string, string] = [
   "rgba(38,38,38,.8)",
   "#a3a3a3",
-  "rgba(255,255,255,.1)",
+  "color-mix(in oklab,var(--foreground) 10%,transparent)",
 ];
 
 /**
@@ -60,10 +60,10 @@ export async function ProposalsPanel({ proposals }: { proposals: Proposal[] }) {
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex items-center justify-between">
-        <span className="text-base font-bold text-neutral-50">{t("recentProposals")}</span>
+        <span className="text-base font-bold text-foreground">{t("recentProposals")}</span>
         <Link
           href="/proposals"
-          className="text-[12.5px] font-medium text-neutral-400 hover:text-neutral-50"
+          className="text-[12.5px] font-medium text-muted-foreground hover:text-foreground"
         >
           {t("viewAll")}
         </Link>
@@ -82,22 +82,24 @@ export async function ProposalsPanel({ proposals }: { proposals: Proposal[] }) {
           <Link
             key={p.proposalId}
             href={`/proposals/base/${p.proposalNumber}`}
-            className="flex flex-col gap-2 rounded-[10px] border border-white/[0.08] bg-neutral-800/35 px-3.5 py-3 hover:border-white/20"
+            className="flex flex-col gap-2 rounded-[10px] border border-border bg-muted/40 px-3.5 py-3 hover:border-foreground/25"
           >
             <div className="flex items-center gap-2.5">
-              <span className="font-mono text-[11.5px] text-neutral-500">#{p.proposalNumber}</span>
+              <span className="font-mono text-[11.5px] text-muted-foreground/70">
+                #{p.proposalNumber}
+              </span>
               <span
                 className="rounded-md border px-2 py-px text-[11.5px] font-medium"
                 style={{ background: bg, color: fg, borderColor: border }}
               >
                 {p.status}
               </span>
-              <span className="ml-auto shrink-0 text-[11.5px] text-neutral-500">
+              <span className="ml-auto shrink-0 text-[11.5px] text-muted-foreground/70">
                 {time ? t(time.key, time.values) : null}
               </span>
             </div>
 
-            <span className="line-clamp-2 text-sm font-semibold leading-[1.35] text-neutral-50">
+            <span className="line-clamp-2 text-sm font-semibold leading-[1.35] text-foreground">
               {p.title}
             </span>
 
@@ -118,7 +120,7 @@ export async function ProposalsPanel({ proposals }: { proposals: Proposal[] }) {
               )}
             </div>
 
-            <div className="flex gap-3.5 text-[11.5px] text-neutral-400">
+            <div className="flex gap-3.5 text-[11.5px] text-muted-foreground">
               <span style={{ color: VOTE_COLOR.for }}>{t("for", { count: p.forVotes })}</span>
               <span style={{ color: VOTE_COLOR.against }}>
                 {t("against", { count: p.againstVotes })}
