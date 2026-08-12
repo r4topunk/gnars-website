@@ -158,7 +158,7 @@ export const CHARACTERS: Character[] = [
     accentTo: "to-orange-600",
     ring: "ring-orange-400",
     hex: "#fb923c",
-    face: { size: "300%", pos: "50% 8%" },
+    face: { size: "400%", pos: "50% 8%" },
     stats: { speed: 7, air: 7, ollie: 7, spin: 7, rail: 7, flow: 8, devSkills: 6, creativity: 8 },
   },
   {
