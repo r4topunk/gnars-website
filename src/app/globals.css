@@ -118,8 +118,33 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Guard for full-bleed sections that break out of the layout's centred
+     `max-w-6xl` main (currently the NogglesRail globe on the homepage). Those
+     use `w-screen`, and `100vw` counts the scrollbar, so they overshoot the
+     usable width by exactly one scrollbar and let the whole page be dragged
+     sideways — measured at 9px before this rule.
+
+     These two declarations only work together, so don't split them:
+
+     `overflow-x: clip` on `body` alone does nothing. While `html` is `visible`,
+     the root's overflow is propagated from `body` to the viewport and body's own
+     used value becomes `visible` — so the clip lands on the viewport, which
+     WebKit does not honour here (verified: `clip` AND `hidden` on `html` both
+     still scrolled 9px). Giving `html` a non-`visible` overflow-y stops that
+     propagation, which is what finally lets body clip its own overflow.
+
+     `auto`, not `scroll`: `scroll` also stops propagation but forces a permanent
+     scrollbar on every page on platforms that draw one.
+
+     `clip`, never `hidden`: `clip` leaves the other axis `visible`, so body
+     never becomes a scroll container and `position: sticky` on the site header
+     keeps working. `hidden` would break it. */
+  html {
+    overflow-y: auto;
+  }
   body {
     @apply bg-background text-foreground;
+    overflow-x: clip;
   }
   .leaflet-container {
     @apply !bg-card !font-[inherit];
