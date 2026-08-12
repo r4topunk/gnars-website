@@ -441,17 +441,24 @@ export function GnarsTVSet({ channels, ticker }: GnarsTVSetProps) {
     <section
       className="flex w-full flex-col items-center px-5 pb-14 pt-8"
       style={{
-        background:
-          "radial-gradient(70% 55% at 50% 8%,rgba(245,158,11,.13),rgba(0,0,0,0) 62%),#060608",
+        // Transparent to the page ground. The set is a physical object and
+        // carries its own dark chassis; the opaque near-black behind it was
+        // invisible on a dark page and read as a stray black rectangle on a
+        // light one. The warm glow stays — it is a halo around the object, and
+        // it composites over either ground.
+        background: "radial-gradient(70% 55% at 50% 8%,rgba(245,158,11,.13),rgba(0,0,0,0) 62%)",
       }}
     >
+      {/* The only text outside the chassis, so it is the only thing here that
+          sits on the page ground. Now that the section is transparent, the
+          chassis gold it used to share would be 79% luminance on white — the
+          darker amber keeps it legible without changing the dark rendering. */}
       <span
-        className="mb-5 flex items-center gap-2 font-bold"
+        className="mb-5 flex items-center gap-2 font-bold text-[#a16207] dark:text-[#f7c948]"
         style={{
           fontFamily: "var(--font-geist-mono), monospace",
           fontSize: 13,
           letterSpacing: ".28em",
-          color: "#f7c948",
         }}
       >
         <span
