@@ -92,8 +92,8 @@ const RIDER_VISUAL: Record<
   ephraim: {
     hex: "#fb923c",
     image: "/stake/cutout/ephraim.png",
-    face: { size: "300%", pos: "50% 8%" },
-    ratio: 576 / 764,
+    face: { size: "400%", pos: "50% 8%" },
+    ratio: 577 / 433,
   },
 };
 

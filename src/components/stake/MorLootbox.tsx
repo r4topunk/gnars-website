@@ -295,7 +295,7 @@ export function MorLootbox({
               aria-label={t("lootbox.enableRewards")}
               className="relative block cursor-pointer opacity-70 drop-shadow-[0_6px_14px_rgba(0,0,0,.55)] transition-opacity hover:opacity-100"
             >
-              <ChestIcon size={60} />
+              <ChestIcon size={92} />
             </Link>
           </TooltipTrigger>
           <TooltipContent side="left">{t("lootbox.enableRewards")}</TooltipContent>
@@ -360,10 +360,10 @@ export function MorLootbox({
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />
           <span className="relative">
-            <ChestIcon size={68} />
+            <ChestIcon size={104} />
           </span>
           <span
-            className="absolute -right-1.5 -top-1.5 flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black"
+            className="absolute right-1 top-1 flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black"
             style={{ backgroundColor: MOR_GREEN, color: "#04140d" }}
           >
             {badge >= 1 ? Math.floor(badge) : "!"}
