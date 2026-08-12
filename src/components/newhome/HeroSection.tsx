@@ -30,25 +30,34 @@ export async function HeroSection({ stats }: { stats: HeroStat[] }) {
         {/* Sized down from the display setting the shorter headline used: this
             sentence is twice the length, and at the old clamp it ran to five
             lines before the fold. `text-balance` keeps the wrap even. */}
-        <h1 className="text-balance bg-[linear-gradient(90deg,#fafafa,rgba(250,250,250,.8))] bg-clip-text text-[clamp(2.25rem,5.5vw,4.75rem)] font-extrabold leading-[1] tracking-[-0.03em] text-transparent">
+        <h1
+          className="text-balance bg-clip-text text-[clamp(2.25rem,5.5vw,4.75rem)] font-extrabold leading-[1] tracking-[-0.03em] text-transparent"
+          // Driven off the foreground token, not a literal near-white: clipped
+          // to the text, a hardcoded white gradient is invisible on a light
+          // ground.
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg,var(--foreground),color-mix(in oklab,var(--foreground) 78%,transparent))",
+          }}
+        >
           {t("title")}
         </h1>
 
         {/* HeroTagline reserves its own height against layout shift. */}
-        <p className="max-w-[32em] text-pretty text-[clamp(1.0625rem,2.2vw,1.5rem)] leading-[1.45] text-neutral-400">
+        <p className="max-w-[32em] text-pretty text-[clamp(1.0625rem,2.2vw,1.5rem)] leading-[1.45] text-muted-foreground">
           <HeroTagline />
         </p>
 
         <div className="mt-1.5 flex flex-wrap justify-center gap-2.5">
           <Link
             href="/stake"
-            className="whitespace-nowrap rounded-lg bg-neutral-50 px-5 py-3 text-[14.5px] font-semibold text-neutral-900 hover:opacity-90"
+            className="whitespace-nowrap rounded-lg bg-foreground px-5 py-3 text-[14.5px] font-semibold text-background hover:opacity-90"
           >
             {t("ctaStake")}
           </Link>
           <Link
             href="/community/bounties"
-            className="whitespace-nowrap rounded-lg border border-white/10 bg-white/[0.04] px-5 py-3 text-[14.5px] font-medium text-neutral-50 hover:bg-neutral-800"
+            className="whitespace-nowrap rounded-lg border border-border bg-muted/40 px-5 py-3 text-[14.5px] font-medium text-foreground hover:bg-accent"
           >
             {t("ctaBounties")}
           </Link>
@@ -65,8 +74,8 @@ export async function HeroSection({ stats }: { stats: HeroStat[] }) {
                   <Icon className="size-4" />
                 </span>
                 <span className="flex flex-col whitespace-nowrap text-left">
-                  <span className="text-[15px] font-semibold text-neutral-50">{s.value}</span>
-                  <span className="text-xs text-neutral-400">{s.label}</span>
+                  <span className="text-[15px] font-semibold text-foreground">{s.value}</span>
+                  <span className="text-xs text-muted-foreground">{s.label}</span>
                 </span>
               </div>
             );

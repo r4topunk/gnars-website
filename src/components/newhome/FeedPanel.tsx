@@ -68,7 +68,7 @@ export async function FeedPanel({ events, limit = 5 }: { events: FeedEvent[]; li
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-base font-bold text-neutral-50">
+        <span className="flex items-center gap-1.5 text-base font-bold text-foreground">
           {t("liveFeed")}
           <span
             aria-hidden
@@ -78,14 +78,14 @@ export async function FeedPanel({ events, limit = 5 }: { events: FeedEvent[]; li
         </span>
         <Link
           href="/feed"
-          className="text-[12.5px] font-medium text-neutral-400 hover:text-neutral-50"
+          className="text-[12.5px] font-medium text-muted-foreground hover:text-foreground"
         >
           {t("viewAll")}
         </Link>
       </div>
 
       {rows.length === 0 ? (
-        <p className="py-4 text-sm text-neutral-500">{t("feedEmpty")}</p>
+        <p className="py-4 text-sm text-muted-foreground/70">{t("feedEmpty")}</p>
       ) : (
         rows.map((row) => (
           <div key={row.id} className="flex flex-col gap-2 border-t border-white/[0.07] py-3">
@@ -95,14 +95,14 @@ export async function FeedPanel({ events, limit = 5 }: { events: FeedEvent[]; li
                 className="size-6 shrink-0 rounded-full"
                 style={{ backgroundImage: avatarGradient(row.actor) }}
               />
-              <span className="font-mono text-[13px] font-semibold text-neutral-50">
+              <span className="font-mono text-[13px] font-semibold text-foreground">
                 {truncateAddress(row.actor)}
               </span>
-              <span className="ml-auto shrink-0 text-[11.5px] text-neutral-500">
+              <span className="ml-auto shrink-0 text-[11.5px] text-muted-foreground/70">
                 {shortAge(row.timestamp * 1000, now)}
               </span>
             </div>
-            <p className="pl-[34px] text-[13.5px] leading-[1.5] text-neutral-400">
+            <p className="pl-[34px] text-[13.5px] leading-[1.5] text-muted-foreground">
               {row.verb === "created" ? (
                 t("feedCreated")
               ) : (
@@ -116,7 +116,7 @@ export async function FeedPanel({ events, limit = 5 }: { events: FeedEvent[]; li
               )}{" "}
               <Link
                 href={`/proposals/base/${row.proposalNumber}`}
-                className="font-bold text-neutral-50 hover:underline"
+                className="font-bold text-foreground hover:underline"
               >
                 #{row.proposalNumber} {row.proposalTitle}
               </Link>
