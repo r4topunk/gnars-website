@@ -102,6 +102,21 @@ const nextConfig: NextConfig = {
         destination: "/auctions",
         permanent: true,
       },
+      // /newhome was the homepage rebuild's staging route before it took over
+      // `/`. It carried no SEO weight (it shipped noindex), but the link was
+      // handed around during review, so it lands on the real homepage instead
+      // of a 404. Both locales, since localePrefix is "as-needed" and only
+      // pt-BR carries a prefix.
+      {
+        source: "/newhome",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/pt-br/newhome",
+        destination: "/pt-br",
+        permanent: true,
+      },
       // Blog post trailing slash cleanup (generated from markdown files)
       ...blogRedirects,
     ];

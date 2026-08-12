@@ -1,26 +1,25 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { FAQ } from "@/components/common/FAQ";
-import { ContractsList } from "@/components/contracts-list";
-import { AuctionSpotlight } from "@/components/hero/AuctionSpotlight";
-import { ActivityFeedSection } from "@/components/home/ActivityFeedSection";
-import { AnimatedDescription } from "@/components/home/AnimatedDescription";
-import { HeroStatsValues } from "@/components/home/HeroStatsValues";
-import { HomeStaticContent } from "@/components/home/HomeStaticContent";
-import { PoweredByMorpheus } from "@/components/home/PoweredByMorpheus";
-import { RecentProposalsSection } from "@/components/home/RecentProposalsSection";
-import {
-  ActivityFeedSkeleton,
-  HeroStatsSkeleton,
-  RecentProposalsSkeleton,
-} from "@/components/skeletons/home-skeletons";
-import { Gnar3DTVClient } from "@/components/tv/Gnar3DTVClient";
-import { HeroTVObserver } from "@/components/tv/HeroTVObserver";
-import { Link } from "@/i18n/navigation";
+import { BountiesSection } from "@/components/newhome/BountiesSection";
+import { GovSection } from "@/components/newhome/GovSection";
+import { HeroSection, type HeroStat } from "@/components/newhome/HeroSection";
+import { Interlude } from "@/components/newhome/primitives";
+import { RailsSection } from "@/components/newhome/RailsSection";
+import { StakeSection } from "@/components/newhome/StakeSection";
+import { SwapSection } from "@/components/newhome/SwapSection";
+import { TVHeroSection } from "@/components/newhome/TVHeroSection";
+import { NOGGLES_RAILS } from "@/content/nogglesrails";
+import { DAO_ADDRESSES } from "@/lib/config";
+import { fetchDaoStats } from "@/services/dao";
+import { fetchPoidhBounties } from "@/services/poidh";
+import { loadTreasurySnapshot } from "@/services/treasury";
 
 export const revalidate = 300;
 
+// Carried over verbatim from the previous homepage when this page took over `/`.
+// It is the site's canonical entry: dropping it here would leave the homepage
+// with no title, no description and no hreflang pair, which is how a homepage
+// silently falls out of the index.
 export async function generateMetadata({
   params,
 }: {
@@ -54,102 +53,85 @@ export async function generateMetadata({
   };
 }
 
+function formatLargeNumber(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`;
+  return value.toFixed(0);
+}
+
+/**
+ * The homepage.
+ *
+ * Built as the /newhome experiment and promoted to `/` once it was reviewed
+ * section by section; the page it replaced still exists at /oldhome as a
+ * noindex rollback reference. Everything that can be real is real — DAO stats,
+ * treasury, poidh bounties, the rails dataset, the TV feed, the live auction.
+ *
+ * Its components and messages still live under `newhome/` — renaming them would
+ * collide with the `home/` components that /oldhome still uses. That rename is
+ * the cleanup for whoever deletes /oldhome.
+ */
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const t = await getTranslations("home");
+  const t = await getTranslations("newhome");
+
+  const [daoStats, treasury, bounties] = await Promise.all([
+    fetchDaoStats().catch(() => ({ totalSupply: 0, ownerCount: 0 })),
+    loadTreasurySnapshot(DAO_ADDRESSES.treasury).catch(() => ({
+      usdTotal: null,
+      ethBalance: 0,
+      totalAuctionSales: 0,
+    })),
+    fetchPoidhBounties({ status: "open", limit: 100, filterGnarly: true }).catch(() => ({
+      bounties: [],
+      total: 0,
+    })),
+  ]);
+
+  const treasuryLabel =
+    treasury.usdTotal == null ? "—" : `$${formatLargeNumber(treasury.usdTotal)}`;
+  const railCount = NOGGLES_RAILS.length;
+
+  // No total-supply tile: `ownerCount` is the subgraph's distinct-owner count,
+  // so Members already answers "how many people are in this" — the supply number
+  // beside it just read as a second, larger membership figure.
+  const heroStats: HeroStat[] = [
+    { value: String(daoStats.ownerCount), label: t("hero.stats.members"), icon: "members" },
+    { value: treasuryLabel, label: t("hero.stats.treasury"), icon: "treasury" },
+    { value: String(railCount), label: t("hero.stats.rails"), icon: "rails" },
+  ];
 
   return (
-    <div className="flex flex-1 flex-col">
-      {/* Hero Section - Static content renders immediately */}
-      <section className="relative overflow-hidden">
-        <div className="relative bg-background z-10 py-8 md:py-10 lg:py-12">
-          <div className="mx-auto max-w-6xl">
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
-              {/* Left Column - Brand & Stats */}
-              <div className="flex flex-col justify-center space-y-6">
-                <div className="space-y-4">
-                  <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
-                    <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                      {t("hero.title")}
-                    </span>
-                    <span className="sr-only">{t("hero.srOnly")}</span>
-                  </h1>
-                  <AnimatedDescription />
-                </div>
+    <div className="relative -mx-4 flex flex-1 flex-col text-foreground">
+      {/* Full-viewport ground. A fixed backdrop rather than a 100vw block: the
+          page lives inside the layout's centred `main`, and widening past it
+          would add a horizontal scrollbar on every platform that reserves one.
+          `bg-background` rather than a hardcoded near-black: this route used to
+          be pinned dark and ignored the theme toggle entirely. */}
+      <div aria-hidden className="fixed inset-0 -z-10 bg-background" />
 
-                {/* Stats - Only this part streams in */}
-                <Suspense fallback={<HeroStatsSkeleton />}>
-                  <HeroStatsValues />
-                </Suspense>
-              </div>
+      <HeroSection stats={heroStats} />
+      <TVHeroSection />
 
-              {/* Right Column - 3D TV (Client Component) */}
-              <HeroTVObserver>
-                <div className="flex items-center justify-center">
-                  <Gnar3DTVClient autoRotate={true} />
-                </div>
-              </HeroTVObserver>
-            </div>
-          </div>
-        </div>
-      </section>
+      <StakeSection />
+      <Interlude eyebrow={t("stake.whyEyebrow")}>{t("stake.whyBody")}</Interlude>
 
-      {/* Community × community — Gnars is a Morpheus Builder (gated on the subnet goal) */}
-      <Suspense fallback={null}>
-        <PoweredByMorpheus />
-      </Suspense>
+      <BountiesSection initialBounties={bounties} />
+      <Interlude eyebrow={t("bounties.whyEyebrow")} eyebrowClassName="text-[#FF2D2D]">
+        {t("bounties.whyBody")}
+      </Interlude>
 
-      {/* Dashboard Grid */}
-      <div className="flex flex-1 flex-col gap-6 py-8">
-        {/* SEO-only context */}
-        <section className="sr-only">
-          <h2>{t("seo.whatIsGnars")}</h2>
-          <p>{t("seo.body1")}</p>
-          <p>{t("seo.body2")}</p>
-          <p>
-            Learn more about <Link href="/about">{t("seo.linkAbout")}</Link>, explore{" "}
-            <Link href="/proposals">{t("seo.linkProposals")}</Link>, or view{" "}
-            <Link href="/auctions">{t("seo.linkAuctions")}</Link>.
-          </p>
-        </section>
+      <RailsSection />
+      <Interlude eyebrow={t("rails.whyEyebrow")} eyebrowClassName="text-[#6699cc]">
+        {t("rails.whyBody")}
+      </Interlude>
 
-        {/* Recent Proposals Section */}
-        <section>
-          <Suspense fallback={<RecentProposalsSkeleton />}>
-            <RecentProposalsSection limit={6} />
-          </Suspense>
-        </section>
+      <GovSection />
 
-        {/* Auction + Activity Feed - Side by side on desktop */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Auction Spotlight - determines row height on desktop */}
-          <AuctionSpotlight />
-
-          {/* Activity Feed - fixed height on mobile, matches auction on desktop via absolute */}
-          <div className="relative h-[500px] lg:h-auto">
-            <div className="lg:absolute lg:inset-0 h-full">
-              <Suspense fallback={<ActivityFeedSkeleton responsive />}>
-                <ActivityFeedSection daysBack={30} responsive singleColumn />
-              </Suspense>
-            </div>
-          </div>
-        </section>
-
-        {/* Static/Client-side content: Charts, Auctions */}
-        <HomeStaticContent />
-
-        {/* FAQ Section */}
-        <section>
-          <FAQ />
-        </section>
-
-        {/* Smart Contracts */}
-        <section>
-          <ContractsList />
-        </section>
-      </div>
+      <SwapSection />
+      <Interlude eyebrow={t("swap.whyEyebrow")}>{t("swap.whyBody")}</Interlude>
     </div>
   );
 }
