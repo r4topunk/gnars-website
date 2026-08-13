@@ -37,6 +37,10 @@
         "title": "Treasury",
         "description": "ETH, ERC-20s, NFTs, and onchain analytics for the DAO treasury"
       },
+      "stake": {
+        "title": "Stake",
+        "description": "Back a Gnars rider with MOR — your deposit stays yours and keeps earning"
+      },
       "rounds": {
         "title": "Rounds",
         "description": "Community contests and voting rounds for Gnars projects — coming soon, not available yet"

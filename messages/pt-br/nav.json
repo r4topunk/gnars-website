@@ -37,6 +37,10 @@
         "title": "Tesouro",
         "description": "ETH, ERC-20s, NFTs e analytics onchain do tesouro da DAO"
       },
+      "stake": {
+        "title": "Stake",
+        "description": "Apoie um rider da Gnars com MOR — seu depósito continua seu e rendendo"
+      },
       "rounds": {
         "title": "Rounds",
         "description": "Concursos e votacoes comunitarias para projetos Gnars — em breve, ainda nao disponivel"

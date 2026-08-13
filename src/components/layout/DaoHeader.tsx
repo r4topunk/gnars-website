@@ -25,6 +25,7 @@ import Image from "next/image";
 import {
   ArrowLeftRight,
   BookOpen,
+  Coins,
   Gavel,
   Gift,
   Home,
@@ -134,6 +135,12 @@ function buildNavigationItems(t: NavTranslations) {
           href: "/treasury",
           icon: Wallet,
           description: t("items.money.treasury.description"),
+        },
+        {
+          title: t("items.money.stake.title"),
+          href: "/stake",
+          icon: Coins,
+          description: t("items.money.stake.description"),
         },
         {
           title: t("items.money.bounties.title"),
