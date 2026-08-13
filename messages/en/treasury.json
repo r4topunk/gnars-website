@@ -66,5 +66,12 @@
       "errorDescription": "Unable to load member activity data",
       "loadFailed": "Failed to load data"
     }
+  },
+  "inflows": {
+    "title": "Latest inflows",
+    "empty": "No recent inflows.",
+    "auction": "Auction",
+    "auctionHint": "Arrived from the auction house as an internal transfer",
+    "viewTx": "View transaction on Basescan"
   }
 }

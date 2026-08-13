@@ -8,9 +8,10 @@ import {
   TableSkeleton,
 } from "@/components/skeletons/treasury-skeletons";
 import { NftHoldings } from "@/components/treasury/NftHoldings";
+import { SponsorshipYield } from "@/components/treasury/SponsorshipYield";
 import { TokenHoldings } from "@/components/treasury/TokenHoldings";
 import { TreasuryBalance } from "@/components/treasury/TreasuryBalance";
-import { SponsorshipYield } from "@/components/treasury/SponsorshipYield";
+import { TreasuryInflows } from "@/components/treasury/TreasuryInflows";
 import { ZoraCoinHoldings } from "@/components/treasury/ZoraCoinHoldings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DAO_ADDRESSES } from "@/lib/config";
@@ -128,6 +129,12 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <SponsorshipYield />
         </div>
+
+        {/* What has actually come in lately. Sits directly under the balances:
+            the KPIs say how much there is, this says where it came from. */}
+        <Suspense fallback={<TableSkeleton />}>
+          <TreasuryInflows locale={locale} />
+        </Suspense>
 
         {/* Charts */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
