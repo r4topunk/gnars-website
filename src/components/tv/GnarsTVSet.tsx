@@ -438,17 +438,40 @@ export function GnarsTVSet({ channels, ticker }: GnarsTVSetProps) {
   if (!active) return null;
 
   return (
-    <section
-      className="flex w-full flex-col items-center px-5 pb-14 pt-8"
-      style={{
-        // Transparent to the page ground. The set is a physical object and
-        // carries its own dark chassis; the opaque near-black behind it was
-        // invisible on a dark page and read as a stray black rectangle on a
-        // light one. The warm glow stays — it is a halo around the object, and
-        // it composites over either ground.
-        background: "radial-gradient(70% 55% at 50% 8%,rgba(245,158,11,.13),rgba(0,0,0,0) 62%)",
-      }}
-    >
+    <section className="relative flex w-full flex-col items-center px-5 pb-14 pt-8">
+      {/* The warm halo around the set.
+          Transparent to the page ground: the set is a physical object and
+          carries its own dark chassis; the opaque near-black behind it was
+          invisible on a dark page and read as a stray black rectangle on a
+          light one. The glow composites over either ground.
+
+          It lives on its own layer, extended 220px ABOVE the section, because
+          the halo's core sits near the top of the set — so on the section's own
+          box the top edge fell at 0.15 of the gradient radius, where the ramp
+          still carries ~77% of peak alpha, and the browser cut it flat. That
+          straight amber-on-black line across the full width was the "hard block
+          on top of another" it read as.
+
+          Extending the box upward moves the falloff off-stage: the ramp now
+          reaches zero 174px above the section starts, so there is no edge to
+          see. Intensity at the section's own top edge is unchanged — this
+          lengthens the fade, it does not dim the halo.
+
+          `-z-10` rather than a later sibling: an absolutely positioned element
+          paints above in-flow content, so without it the halo would wash over
+          the set itself. It matches the page ground's own `-z-10` layer and so
+          composites above that and below everything else. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10"
+        style={{
+          // Inline, not `-top-[220px]`: that arbitrary utility did not generate,
+          // leaving `top` at its static position and collapsing this layer to
+          // zero height. Every other bespoke value in this file is inline too.
+          top: -220,
+          background: "radial-gradient(70% 44% at 50% 26%,rgba(245,158,11,.13),rgba(0,0,0,0) 62%)",
+        }}
+      />
       {/* The only text outside the chassis, so it is the only thing here that
           sits on the page ground. Now that the section is transparent, the
           chassis gold it used to share would be 79% luminance on white — the
