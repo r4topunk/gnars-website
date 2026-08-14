@@ -66,5 +66,12 @@
       "errorDescription": "Não foi possível carregar dados de atividade dos membros",
       "loadFailed": "Falha ao carregar dados"
     }
+  },
+  "inflows": {
+    "title": "Últimas entradas",
+    "empty": "Nenhuma entrada recente.",
+    "auction": "Leilão",
+    "auctionHint": "Chegou do contrato de leilão como transferência interna",
+    "viewTx": "Ver transação no Basescan"
   }
 }
