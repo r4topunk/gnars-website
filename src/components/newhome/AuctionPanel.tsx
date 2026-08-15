@@ -13,6 +13,7 @@ import { useAuctionLive } from "@/hooks/use-auction-live";
 import { useBidComments } from "@/hooks/use-bid-comments";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
+import { cn } from "@/lib/utils";
 import auctionAbi from "@/utils/abis/auctionAbi";
 import { avatarGradient, GOLD, truncateAddress } from "./gov-ui";
 
@@ -119,7 +120,12 @@ export function AuctionPanel() {
   const noop = useCallback(() => {}, []);
 
   return (
-    <div className="flex h-full flex-col gap-4 rounded-2xl border border-[#f7c948]/25 bg-[linear-gradient(180deg,#181410,#0f0d0b)] p-5 shadow-[0_0_0_1px_rgba(0,0,0,.4),0_20px_50px_rgba(0,0,0,.35)]">
+    // Same surface as the proposals/feed panel it sits beside in GovSection
+    // (`rounded-2xl border-border bg-card p-5`), keeping only the gold border as
+    // the accent that tells the two apart. It used to paint a literal near-black
+    // gradient with a 50px black drop shadow, so on a light page the auction
+    // stayed a dark slab while everything around it inverted.
+    <div className="flex h-full flex-col gap-4 rounded-2xl border border-[#f7c948]/25 bg-card p-5">
       {/* Badge + countdown */}
       <div className="flex items-center justify-between gap-3">
         {/* The badge tracks the clock. Between an auction ending and someone
@@ -142,7 +148,7 @@ export function AuctionPanel() {
             style={
               isLive
                 ? { background: "#1a1205", animation: "gnars-pulse 1.8s infinite" }
-                : { background: "#737373" }
+                : { background: "var(--muted-foreground)" }
             }
           />
           {isLive ? t("liveAuction") : t("awaitingSettlement")}
@@ -152,7 +158,7 @@ export function AuctionPanel() {
             [countdown.hours, countdown.minutes, countdown.seconds].map((part, i) => (
               <span key={i} className="flex items-center gap-[3px]">
                 {i > 0 && <span className="text-muted-foreground/70">:</span>}
-                <span className="rounded-[5px] bg-black px-[7px] py-[3px] tabular-nums">
+                <span className="rounded-[5px] bg-foreground/10 px-[7px] py-[3px] tabular-nums">
                   {part}
                 </span>
               </span>
@@ -174,9 +180,15 @@ export function AuctionPanel() {
           </span>
         )}
         {/* An auction that closed without a bid reports the zero address as its
-            "winner" — crowning that reads as a real leader, so it is dropped. */}
+            "winner" — crowning that reads as a real leader, so it is dropped.
+
+            `text-white`, not `text-foreground`: both chips here sit ON the Gnar
+            artwork, so they stay dark in either theme — and a foreground that
+            inverts would have painted near-black text onto a near-black chip the
+            moment the page went light. The #id chip above was already safe (gold
+            on dark); this one was not. */}
         {displayBidder && !ZERO_BIDDER.test(displayBidder) && (
-          <span className="absolute right-2.5 top-2.5 flex items-center gap-1.5 rounded-lg bg-[#0a0908]/70 px-2.5 py-1 text-[11px] font-bold text-foreground backdrop-blur-sm">
+          <span className="absolute right-2.5 top-2.5 flex items-center gap-1.5 rounded-lg bg-[#0a0908]/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
             👑 {truncateAddress(displayBidder)}
           </span>
         )}
@@ -188,10 +200,13 @@ export function AuctionPanel() {
           <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             {t("currentBid")}
           </span>
-          <span
-            className="bg-clip-text font-mono text-3xl font-extrabold leading-none tabular-nums text-transparent"
-            style={{ backgroundImage: GOLD }}
-          >
+          {/* The ramp stays, but it darkens in light mode. The dark-mode ramp
+              runs #f7c948 → #f5851f; clipped into text on a white card its light
+              end lands near 1.6:1, so the card's single most important number
+              would be the least readable thing on it. Same ramp shape, amber
+              stops, set as classes rather than the inline GOLD so each theme can
+              carry its own. */}
+          <span className="bg-[linear-gradient(90deg,#b45309,#c2410c)] bg-clip-text font-mono text-3xl font-extrabold leading-none tabular-nums text-transparent dark:bg-[linear-gradient(90deg,#f7c948,#f5851f)]">
             {displayBid ? Number(displayBid).toFixed(3) : "0.000"} ETH
           </span>
         </div>
@@ -210,15 +225,20 @@ export function AuctionPanel() {
 
       {/* Leaderboard */}
       {bids.length > 0 && (
-        <div className="flex flex-col gap-1.5 rounded-xl border border-white/[0.07] bg-black/25 p-3">
+        <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-muted/40 p-3">
           <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
             {t("leaderboard", { count: bids.length })}
           </span>
           {bids.slice(0, 4).map((bid, i) => (
             <div key={bid.id} className="flex items-center gap-2.5 py-[5px]">
+              {/* Gold only carries the leader in dark. #f7c948 on a white card is
+                  ~1.6:1 — the same trap stake-ui documents — so light mode steps
+                  down to amber. */}
               <span
-                className="w-4 font-mono text-[11.5px] font-bold"
-                style={{ color: i === 0 ? "#f7c948" : "#737373" }}
+                className={cn(
+                  "w-4 font-mono text-[11.5px] font-bold",
+                  i === 0 ? "text-amber-700 dark:text-[#f7c948]" : "text-muted-foreground",
+                )}
               >
                 {i + 1}
               </span>
