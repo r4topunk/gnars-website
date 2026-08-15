@@ -46,3 +46,16 @@ export const SUBNET_MILESTONES: StakeMilestone[] = [
 export function isMilestoneDone(m: StakeMilestone, totalStaked: number) {
   return totalStaked >= m.amountMor;
 }
+
+/**
+ * The lowest milestone the subnet has NOT reached yet — the one the page should
+ * be counting toward right now. `null` once every milestone is behind us.
+ *
+ * Derived, never hardcoded to a tier: the campaign points people at "the 10,000
+ * MOR milestone", but that is only today's answer. This walks the ladder, so the
+ * day 10k lands the page starts counting toward 15k on its own. SUBNET_MILESTONES
+ * is ascending, which is what makes `find` the right pick rather than a sort.
+ */
+export function nextMilestone(totalStaked: number): StakeMilestone | null {
+  return SUBNET_MILESTONES.find((m) => totalStaked < m.amountMor) ?? null;
+}

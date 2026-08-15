@@ -221,7 +221,7 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
                         done ? "font-semibold text-foreground" : "text-muted-foreground",
                       )}
                     >
-                      {t("milestones." + m.id, { n: m.amountMor })}{" "}
+                      {t("milestoneRow", { n: m.amountMor, what: t("milestones." + m.id) })}{" "}
                       {/* Same committed/proposed label the page ladder carries.
                           Dropping it here would make the dialog read as six firm
                           promises while the section behind it says five are not. */}
