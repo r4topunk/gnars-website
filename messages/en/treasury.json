@@ -5,7 +5,9 @@
     "kpis": {
       "totalValue": "Total Treasury Value",
       "ethBalance": "ETH Balance",
-      "totalAuctions": "Total Auction Sales"
+      "totalAuctions": "Total Auction Sales",
+      "subnetEarnings": "Subnet Earnings",
+      "subnetEarningsNote": "Morpheus · treasury's 20% share"
     },
     "nftSection": {
       "title": "NFT Holdings",
@@ -72,6 +74,11 @@
     "empty": "No recent inflows.",
     "auction": "Auction",
     "auctionHint": "Arrived from the auction house as an internal transfer",
-    "viewTx": "View transaction on Basescan"
+    "viewTx": "View transaction on Basescan",
+    "sources": "By source",
+    "subnet": "Subnet",
+    "splits": "Splits",
+    "transfer": "Transfer",
+    "entries": "entries"
   }
 }
