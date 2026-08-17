@@ -113,7 +113,17 @@ export function GnarsStakeDialog({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] w-[calc(100%-2rem)] gap-0 overflow-y-auto rounded-3xl border-emerald-500/25 bg-background p-0 sm:max-w-[720px]">
+      {/* The dialog is taller than the viewport, so it scrolls. Left unstyled it
+          draws the platform's default bar — on macOS with "always show
+          scrollbars" that is a wide light-grey track running down the inside of
+          a rounded dark panel, which reads as a browser artifact rather than
+          part of the panel.
+
+          Same recipe BountyCardFan already uses (thin + rounded WebKit thumb),
+          with one change: its thumb is `bg-white/15`, and this surface is
+          `bg-background`, which follows the theme — a fixed white thumb would
+          vanish on a light page. `foreground/20` inverts with it. */}
+      <DialogContent className="max-h-[92vh] w-[calc(100%-2rem)] gap-0 overflow-y-auto rounded-3xl border-emerald-500/25 bg-background p-0 [scrollbar-width:thin] sm:max-w-[720px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-foreground/20 [&::-webkit-scrollbar-thumb:hover]:bg-foreground/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
         <div className="flex flex-col gap-6 p-6 sm:p-8">
           {/* Header */}
           <div className="pr-6">
