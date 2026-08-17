@@ -141,6 +141,7 @@ function buildNavigationItems(t: NavTranslations) {
           href: "/stake",
           icon: Coins,
           description: t("items.money.stake.description"),
+          badge: "NEW!",
         },
         {
           title: t("items.money.bounties.title"),
