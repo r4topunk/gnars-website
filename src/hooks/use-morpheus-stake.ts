@@ -5,8 +5,25 @@
 // stake() passes the athlete's wallet as `referrer_`, so the athlete accrues a
 // protocol-funded referral bonus (3–15% tiered) at zero cost to the depositor —
 // this is the athlete's "cut", since Morpheus has no fee skim to route through a
-// split. The claim flow (MOR out, LayerZero fee) and the opt-in donate split
-// come in a later phase.
+// split.
+//
+// WHERE THE MOR GOES, as this file actually behaves today. The claim flow (MOR
+// out, LayerZero fee) is live — see MorLootbox / RewardClaimModal — and the
+// split is NOT opt-in and NOT a later phase: `stake()` below wires it by
+// default. Right after the deposit lands it asks for a SECOND signature setting
+// this pool's claim receiver to the staker's deterministic 3-way PushSplit
+// (staker 50 / Gnars 25 / athlete 25, see lib/mor-split.ts).
+//
+// That second signature is the whole opt-out, and it is silent: the call sits in
+// a try/catch, so declining it leaves the receiver at 0x0 and the staker keeps
+// 100% of the MOR — with the stake still standing and the athlete still earning
+// the referrer bonus. Worth knowing before "fixing" that catch: services/
+// stake-graph.ts reads a zero receiver as a raw Morpheus deposit rather than a
+// sponsorship, so a staker who declines is deliberately excluded from the orbit
+// and from its totals.
+//
+// This paragraph replaced one claiming the claim flow and the split "come in a
+// later phase" — it had been wrong long enough to mislead a reader of this file.
 //
 // Everything is a real mainnet tx (gas is not cheap) — the UI flags that.
 import { useCallback, useRef, useState } from "react";
