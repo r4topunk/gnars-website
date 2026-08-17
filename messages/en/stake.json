@@ -278,22 +278,29 @@
     "subnet": {
       "title": "Co-sponsor the Gnars Builder subnet",
       "desc": "This one pays you nothing. Staked MOR powers the Gnars Builder subnet, which funds what the DAO ships. Your MOR stays yours and unlocks 7 days after you stake.",
-      "morStaked": "MOR staked",
-      "goal": "goal {n, number}",
       "cta": "Back the subnet",
       "milestonesTitle": "Amplification milestones",
       "milestonesNote": "As staked MOR grows, Gnars amplifies Morpheus — Gnars's own commitment, building on Morpheus's open protocol.",
+      "milestoneRow": "{n, number} MOR staked: {what}",
+      "nextMilestone": {
+        "label": "Next milestone",
+        "unlocks": "Unlocks: {what}",
+        "loading": "Reading the subnet…",
+        "error": "Can't reach the subnet right now",
+        "allDone": "Every milestone reached",
+        "macro": "{staked, number} of {target, number} MOR toward the full ladder"
+      },
       "firmness": {
         "committed": "committed",
         "proposed": "proposed"
       },
       "milestones": {
-        "10k": "{n, number} MOR staked: Morpheus ad on Gnars TV",
-        "15k": "{n, number} MOR staked: Morpheus on the Gnars banner + a pinned post",
-        "25k": "{n, number} MOR staked: Morpheus featured in a Gnars edit",
-        "30k": "{n, number} MOR staked: Morpheus swag in the Skater Vaults",
-        "50k": "{n, number} MOR staked: Morpheus at an IRL Gnars activation",
-        "100k": "{n, number} MOR staked: Morpheus flagship spotlight"
+        "10k": "Morpheus ad on Gnars TV",
+        "15k": "Morpheus on the Gnars banner + a pinned post",
+        "25k": "Morpheus featured in a Gnars edit",
+        "30k": "Morpheus swag in the Skater Vaults",
+        "50k": "Morpheus at an IRL Gnars activation",
+        "100k": "Morpheus flagship spotlight"
       },
       "roadmap": {
         "title": "What comes next",

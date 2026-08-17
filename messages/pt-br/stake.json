@@ -278,22 +278,29 @@
     "subnet": {
       "title": "Co-patrocine a subnet Gnars Builder",
       "desc": "Esse aqui não te paga nada. O MOR em stake sustenta a subnet Gnars Builder, que financia o que a DAO entrega. Seu MOR continua seu e libera 7 dias depois do stake.",
-      "morStaked": "MOR em stake",
-      "goal": "meta {n, number}",
       "cta": "Apoiar a subnet",
       "milestonesTitle": "Metas de amplificação",
       "milestonesNote": "Conforme o MOR em stake cresce, a Gnars amplifica a Morpheus — compromisso unilateral da Gnars, construindo sobre o protocolo aberto da Morpheus.",
+      "milestoneRow": "{n, number} MOR em stake: {what}",
+      "nextMilestone": {
+        "label": "Próximo marco",
+        "unlocks": "Destrava: {what}",
+        "loading": "Lendo a subnet…",
+        "error": "Não dá pra ler a subnet agora",
+        "allDone": "Todos os marcos atingidos",
+        "macro": "{staked, number} de {target, number} MOR rumo à escada completa"
+      },
       "firmness": {
         "committed": "confirmado",
         "proposed": "proposto"
       },
       "milestones": {
-        "10k": "{n, number} MOR em stake: anúncio da Morpheus na Gnars TV",
-        "15k": "{n, number} MOR em stake: Morpheus no banner da Gnars + post fixado",
-        "25k": "{n, number} MOR em stake: Morpheus em destaque num edit da Gnars",
-        "30k": "{n, number} MOR em stake: swag da Morpheus nos Skater Vaults",
-        "50k": "{n, number} MOR em stake: Morpheus numa ativação IRL da Gnars",
-        "100k": "{n, number} MOR em stake: spotlight principal da Morpheus"
+        "10k": "anúncio da Morpheus na Gnars TV",
+        "15k": "Morpheus no banner da Gnars + post fixado",
+        "25k": "Morpheus em destaque num edit da Gnars",
+        "30k": "swag da Morpheus nos Skater Vaults",
+        "50k": "Morpheus numa ativação IRL da Gnars",
+        "100k": "spotlight principal da Morpheus"
       },
       "roadmap": {
         "title": "O que vem depois",
