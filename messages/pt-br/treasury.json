@@ -5,9 +5,7 @@
     "kpis": {
       "totalValue": "Valor Total do Tesouro",
       "ethBalance": "Saldo de ETH",
-      "totalAuctions": "Total de Vendas em Leilão",
-      "subnetEarnings": "Ganhos da subnet",
-      "subnetEarningsNote": "Morpheus · fatia de 20% do tesouro"
+      "totalAuctions": "Total de Vendas em Leilão"
     },
     "nftSection": {
       "title": "Holdings de NFT",
