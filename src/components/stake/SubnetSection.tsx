@@ -106,15 +106,24 @@ export function SubnetSection() {
               </p>
             ) : next ? (
               <>
+                {/* One step down at base, full size from sm. At 390px the pair
+                    needed 252px of a 254px column — two pixels short — so the
+                    percentage wrapped onto its own line and read as a separate
+                    statistic instead of the share OF the figure above it. The
+                    margin also shrinks as the ladder climbs ("10,000 / 15,000
+                    MOR" is wider than today's label), so this is not just about
+                    the current number. */}
                 <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                  <span className="font-mono text-2xl font-bold tabular-nums">
+                  <span className="font-mono text-xl font-bold tabular-nums sm:text-2xl">
                     <span className={MOR_TEXT}>{fmtMor(totalStaked, locale)}</span>
-                    <span className={cn("text-base font-normal", MUTED)}>
+                    <span className={cn("text-sm font-normal sm:text-base", MUTED)}>
                       {" / "}
                       {fmtMor(next.amountMor, locale)} MOR
                     </span>
                   </span>
-                  <span className="font-mono text-2xl font-bold tabular-nums">{tierPct}%</span>
+                  <span className="font-mono text-xl font-bold tabular-nums sm:text-2xl">
+                    {tierPct}%
+                  </span>
                 </div>
 
                 {/* The fill is full width and scaled, not a growing `width`:
