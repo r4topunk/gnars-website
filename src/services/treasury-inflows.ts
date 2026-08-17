@@ -19,6 +19,27 @@ import { DAO_ADDRESSES, TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 const USDC = TREASURY_TOKEN_ALLOWLIST.USDC.toLowerCase();
 const WETH = TREASURY_TOKEN_ALLOWLIST.WETH.toLowerCase();
 
+/**
+ * 0xSplits V2 SplitsWarehouse on Base — a shared singleton.
+ *
+ * Splits do not pay recipients directly: `distribute()` credits the warehouse,
+ * and each recipient withdraws from it. So treasury income that originated in a
+ * split arrives `from` THIS address, never from the split itself. Verified: the
+ * Gnars Subnet Final Split has distributed $291.02, the treasury is a 20%
+ * recipient, and exactly $58.29 of USDC reached the treasury from here — the
+ * nine cents of drift being yield between distribution and withdrawal.
+ */
+const SPLITS_WAREHOUSE = "0x8fb66f38cf86a3d5e8768f8f1754a24a6c661fb8";
+
+/** The split that pays the treasury its 20% of Morpheus subnet earnings. */
+export const SUBNET_FINAL_SPLIT = "0xcc7e971fb6828e45c01e168849447e460fdf3a4e";
+
+/**
+ * Where a credit came from. Kept deliberately coarse — these are the four
+ * things the DAO actually earns from, not a transaction taxonomy.
+ */
+export type InflowSource = "auction" | "subnet" | "splits" | "transfer";
+
 /** Assets this panel reports. Everything else the treasury receives is noise here. */
 const TRACKED = new Set([USDC, WETH]);
 
@@ -35,6 +56,8 @@ export interface TreasuryInflow {
   at: string;
   /** True when the value arrived contract-to-contract (auction settlement). */
   internal: boolean;
+  /** Where it came from, for the source tiles and the tag on each row. */
+  source: InflowSource;
 }
 
 interface AlchemyTransfer {
@@ -56,62 +79,89 @@ const ALCHEMY_KEY = process.env.ALCHEMY_API_KEY;
  * treasury page, and a Goldsky/Alchemy hiccup should cost one panel, not the
  * whole route.
  */
-export const loadTreasuryInflows = cache(async (limit = 8): Promise<TreasuryInflow[]> => {
-  if (!ALCHEMY_KEY) return [];
+export const loadTreasuryInflows = cache(
+  async (limit = 8, splitsAmbiguous = false): Promise<TreasuryInflow[]> => {
+    if (!ALCHEMY_KEY) return [];
 
-  try {
-    const res = await fetch(`https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "alchemy_getAssetTransfers",
-        params: [
-          {
-            fromBlock: "0x0",
-            toBlock: "latest",
-            toAddress: DAO_ADDRESSES.treasury,
-            category: ["external", "internal", "erc20"],
-            withMetadata: true,
-            excludeZeroValue: true,
-            // Over-fetch: the window is filtered down to three assets, and a
-            // burst of one token would otherwise crowd out everything else.
-            maxCount: "0x32",
-            order: "desc",
-          },
-        ],
-      }),
-      next: { revalidate: 300 },
-    });
-    if (!res.ok) return [];
+    try {
+      const res = await fetch(`https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "alchemy_getAssetTransfers",
+          params: [
+            {
+              fromBlock: "0x0",
+              toBlock: "latest",
+              toAddress: DAO_ADDRESSES.treasury,
+              category: ["external", "internal", "erc20"],
+              withMetadata: true,
+              excludeZeroValue: true,
+              // Over-fetch: the window is filtered down to three assets, and a
+              // burst of one token would otherwise crowd out everything else.
+              maxCount: "0x32",
+              order: "desc",
+            },
+          ],
+        }),
+        next: { revalidate: 300 },
+      });
+      if (!res.ok) return [];
 
-    const json = (await res.json()) as { result?: { transfers?: AlchemyTransfer[] } };
+      const json = (await res.json()) as { result?: { transfers?: AlchemyTransfer[] } };
 
-    return (json.result?.transfers ?? [])
-      .flatMap<TreasuryInflow>((t) => {
-        const amount = typeof t.value === "number" ? t.value : 0;
-        if (!t.hash || !t.from || amount <= 0) return [];
+      return (json.result?.transfers ?? [])
+        .flatMap<TreasuryInflow>((t) => {
+          const amount = typeof t.value === "number" ? t.value : 0;
+          if (!t.hash || !t.from || amount <= 0) return [];
 
-        const contract = t.rawContract?.address?.toLowerCase();
-        const isNative = t.category === "external" || t.category === "internal";
-        if (!isNative && (!contract || !TRACKED.has(contract))) return [];
+          const contract = t.rawContract?.address?.toLowerCase();
+          const isNative = t.category === "external" || t.category === "internal";
+          if (!isNative && (!contract || !TRACKED.has(contract))) return [];
 
-        const asset: InflowAsset = isNative ? "ETH" : contract === USDC ? "USDC" : "WETH";
+          const asset: InflowAsset = isNative ? "ETH" : contract === USDC ? "USDC" : "WETH";
+          const from = t.from.toLowerCase();
 
-        return [
-          {
-            hash: t.hash,
-            asset,
-            amount,
-            from: t.from,
-            at: t.metadata?.blockTimestamp ?? "",
-            internal: t.category === "internal",
-          },
-        ];
-      })
-      .slice(0, limit);
-  } catch {
-    return [];
-  }
-});
+          // Auction settlement is a contract-to-contract ETH move from the auction
+          // house — the DAO's primary revenue, and invisible to `external`.
+          //
+          // Anything arriving from the warehouse was distributed by a split the
+          // treasury is a recipient of. Today the only one paying the treasury is
+          // the subnet split, so warehouse USDC IS subnet income. That stops being
+          // true the day a rider sponsorship split is first distributed: its
+          // payout leaves the SAME warehouse address, and tagging it `subnet`
+          // would report sponsorship yield as Morpheus earnings.
+          //
+          // `splitsAmbiguous` is resolved by the caller, which knows whether any
+          // rider split has distributed yet. Until one has, warehouse credits are
+          // unambiguously subnet; after that they degrade to the honest `splits`
+          // rather than silently claiming the wrong origin.
+          const source: InflowSource =
+            from === DAO_ADDRESSES.auction.toLowerCase()
+              ? "auction"
+              : from === SPLITS_WAREHOUSE
+                ? splitsAmbiguous
+                  ? "splits"
+                  : "subnet"
+                : "transfer";
+
+          return [
+            {
+              hash: t.hash,
+              asset,
+              amount,
+              from: t.from,
+              at: t.metadata?.blockTimestamp ?? "",
+              internal: t.category === "internal",
+              source,
+            },
+          ];
+        })
+        .slice(0, limit);
+    } catch {
+      return [];
+    }
+  },
+);

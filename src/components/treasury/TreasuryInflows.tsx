@@ -2,7 +2,23 @@ import { getTranslations } from "next-intl/server";
 import { ArrowDownLeft, ExternalLink, Gavel } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { loadTreasuryInflows, type InflowAsset } from "@/services/treasury-inflows";
+import {
+  loadTreasuryInflows,
+  type InflowAsset,
+  type InflowSource,
+} from "@/services/treasury-inflows";
+
+/**
+ * Source accents. Not semantic tokens on purpose — like the asset colours below,
+ * these identify a kind of income, and the point is telling them apart at a
+ * glance rather than following the theme's foreground.
+ */
+const SOURCE_TONE: Record<InflowSource, string> = {
+  auction: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  subnet: "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  splits: "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  transfer: "border-border bg-muted text-muted-foreground",
+};
 
 /** Per-asset accent. Deliberately not the semantic tokens — these identify a currency. */
 const ASSET_TONE: Record<InflowAsset, string> = {
@@ -60,6 +76,30 @@ export async function TreasuryInflows({ locale }: { locale: string }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {inflows.length > 0 ? (
+          <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {(["auction", "subnet", "splits", "transfer"] as const)
+              .map((src) => ({
+                src,
+                rows: inflows.filter((f) => f.source === src),
+              }))
+              .filter(({ rows }) => rows.length > 0)
+              .map(({ src, rows }) => (
+                <div key={src} className="rounded-lg border border-border bg-muted/40 p-2.5">
+                  <div
+                    className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${SOURCE_TONE[src]}`}
+                  >
+                    {t(src)}
+                  </div>
+                  <div className="mt-1.5 font-mono text-sm font-semibold tabular-nums">
+                    {rows.length}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground">{t("entries")}</div>
+                </div>
+              ))}
+          </div>
+        ) : null}
+
         {inflows.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">{t("empty")}</p>
         ) : (
@@ -74,15 +114,16 @@ export async function TreasuryInflows({ locale }: { locale: string }) {
                     showExplorer={false}
                     truncateLength={4}
                   />
-                  {flow.internal ? (
-                    <span
-                      className="inline-flex shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
-                      title={t("auctionHint")}
-                    >
-                      <Gavel className="size-3" />
-                      {t("auction")}
-                    </span>
-                  ) : null}
+                  {/* Every row carries its origin now, not just auctions. The
+                      binary "internal = auction" badge could not say where the
+                      other three quarters of the income came from. */}
+                  <span
+                    className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${SOURCE_TONE[flow.source]}`}
+                    title={flow.source === "auction" ? t("auctionHint") : undefined}
+                  >
+                    {flow.source === "auction" ? <Gavel className="size-3" /> : null}
+                    {t(flow.source)}
+                  </span>
                 </div>
 
                 <span className="shrink-0 whitespace-nowrap font-mono text-sm font-semibold tabular-nums">
