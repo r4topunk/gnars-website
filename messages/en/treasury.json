@@ -73,10 +73,8 @@
     "auction": "Auction",
     "auctionHint": "Arrived from the auction house as an internal transfer",
     "viewTx": "View transaction on Basescan",
-    "sources": "By source",
-    "subnet": "Subnet",
+    "subnet": "Morpheus Subnet",
     "splits": "Splits",
-    "transfer": "Transfer",
-    "entries": "entries"
+    "transfer": "Transfer"
   }
 }

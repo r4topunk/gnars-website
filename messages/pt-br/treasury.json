@@ -73,10 +73,8 @@
     "auction": "Leilão",
     "auctionHint": "Chegou do contrato de leilão como transferência interna",
     "viewTx": "Ver transação no Basescan",
-    "sources": "Por fonte",
-    "subnet": "Subnet",
+    "subnet": "Morpheus Subnet",
     "splits": "Splits",
-    "transfer": "Transferência",
-    "entries": "entradas"
+    "transfer": "Transferência"
   }
 }

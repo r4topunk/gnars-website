@@ -65,13 +65,6 @@ const ProposalsPerMonthChart = dynamic(
     })),
   { loading: () => <div className="h-[300px] rounded-xl bg-muted animate-pulse" /> },
 );
-const MemberActivityChart = dynamic(
-  () =>
-    import("@/components/treasury/MemberActivityChart").then((mod) => ({
-      default: mod.MemberActivityChart,
-    })),
-  { loading: () => <div className="h-[300px] rounded-xl bg-muted animate-pulse" /> },
-);
 
 export default async function TreasuryPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -136,15 +129,12 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="lg:col-span-1 min-w-0">
             <AuctionBidsPerMonthChart />
           </div>
           <div className="lg:col-span-1 min-w-0">
             <ProposalsPerMonthChart />
-          </div>
-          <div className="lg:col-span-1 min-w-0">
-            <MemberActivityChart />
           </div>
         </div>
 
