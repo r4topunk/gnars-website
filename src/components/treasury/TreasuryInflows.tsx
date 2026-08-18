@@ -76,30 +76,6 @@ export async function TreasuryInflows({ locale }: { locale: string }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {inflows.length > 0 ? (
-          <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {(["auction", "subnet", "splits", "transfer"] as const)
-              .map((src) => ({
-                src,
-                rows: inflows.filter((f) => f.source === src),
-              }))
-              .filter(({ rows }) => rows.length > 0)
-              .map(({ src, rows }) => (
-                <div key={src} className="rounded-lg border border-border bg-muted/40 p-2.5">
-                  <div
-                    className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${SOURCE_TONE[src]}`}
-                  >
-                    {t(src)}
-                  </div>
-                  <div className="mt-1.5 font-mono text-sm font-semibold tabular-nums">
-                    {rows.length}
-                  </div>
-                  <div className="text-[11px] text-muted-foreground">{t("entries")}</div>
-                </div>
-              ))}
-          </div>
-        ) : null}
-
         {inflows.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">{t("empty")}</p>
         ) : (

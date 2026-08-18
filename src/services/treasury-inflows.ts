@@ -138,6 +138,17 @@ export const loadTreasuryInflows = cache(
           // rider split has distributed yet. Until one has, warehouse credits are
           // unambiguously subnet; after that they degrade to the honest `splits`
           // rather than silently claiming the wrong origin.
+          //
+          // READ THIS BEFORE TOUCHING THE `subnet` BRANCH. The label users see is
+          // no longer the vague "Subnet" — it now reads "Morpheus Subnet", which
+          // names a specific product. So the failure mode changed with it: the
+          // first rider sponsorship payout would not just be filed under a fuzzy
+          // heading, it would appear on a public treasury page as Morpheus
+          // earnings when it is nothing of the sort. Disambiguating stopped being
+          // cosmetic the day that string was renamed. `splitsAmbiguous` and the
+          // `splits` tag exist precisely so that day costs one flag, not a
+          // redesign — set it and these rows degrade to an honest label instead
+          // of asserting a false origin.
           const source: InflowSource =
             from === DAO_ADDRESSES.auction.toLowerCase()
               ? "auction"
