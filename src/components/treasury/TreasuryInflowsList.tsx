@@ -259,48 +259,39 @@ export function TreasuryInflowsList({
         </ul>
       ) : null}
 
+      {/* Column headers, like the reference design — the grid below shares
+          this exact template, which is what actually aligns the columns. */}
+      <div className="hidden gap-x-3 border-b border-border pb-2 text-[11px] font-medium text-muted-foreground sm:grid sm:grid-cols-[minmax(0,1.3fr)_116px_minmax(0,1fr)_44px_20px]">
+        <span>{t("colFrom")}</span>
+        <span>{t("colSource")}</span>
+        <span className="text-right">{t("colAmount")}</span>
+        <span className="text-right">{t("colAge")}</span>
+        <span aria-hidden />
+      </div>
+
       <ul className="divide-y divide-border">
-        {rows.map((flow) => (
-          // `flex-wrap` is the mobile layout: at 390px a hex sender + badge +
-          // amount + age don't fit one line, and without the wrap the left
-          // group's overflow painted OVER the amount. Wrapped, the amount
-          // group drops to its own right-aligned line; on desktop nothing
-          // wraps and the row is identical to before.
-          <li key={flow.hash} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
-            <div className="flex min-w-0 flex-1 basis-40 items-center gap-2">
-              {(() => {
-                const entity = knownEntity(flow.from, flow.source, t);
-                if (!entity)
-                  return (
-                    <AddressDisplay
-                      address={flow.from}
-                      variant="compact"
-                      showCopy={false}
-                      showExplorer={false}
-                      truncateLength={4}
-                    />
-                  );
-                // `min-h-8` matches the avatar AddressDisplay renders on hex
-                // rows: without it a named row is text-height, a hex row is
-                // avatar-height, and the card's total height becomes a function
-                // of which senders happen to be on the page — which is the
-                // instability the fillers below exist to prevent.
-                return (
-                  <span className="flex min-h-8 min-w-0 items-center gap-2">
-                    {entity.icon ? (
-                      <span className="relative size-8 shrink-0 overflow-hidden rounded-full bg-muted">
-                        {/* Rider cut-outs reuse the sponsorship card's face
-                            crop; square logos just cover; the noggles sit
-                            padded on a dark ground like the design shows. */}
-                        {entity.icon.size ? (
-                          /* eslint-disable-next-line @next/next/no-img-element -- 32px local asset; next/image adds nothing at this size */
+        {rows.map((flow) => {
+          const entity = knownEntity(flow.from, flow.source, t);
+          return (
+            // One grid, five fixed columns from `sm` up — a row is not a bag of
+            // floats, and every cell starts where the header says it does.
+            // Below `sm` the same children wrap: sender+badge line, amount
+            // right, age+link trailing.
+            <li
+              key={flow.hash}
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 sm:grid sm:grid-cols-[minmax(0,1.3fr)_116px_minmax(0,1fr)_44px_20px]"
+            >
+              <div className="flex min-w-0 flex-1 basis-40 items-center gap-2 sm:flex-none">
+                {entity ? (
+                  <>
+                    <span className="relative size-8 shrink-0 overflow-hidden rounded-full bg-muted">
+                      {entity.icon ? (
+                        entity.icon.size ? (
+                          /* eslint-disable-next-line @next/next/no-img-element -- 32px local asset; the sponsorship card's verified face crop */
                           <img
                             src={entity.icon.src}
                             alt=""
                             className="size-full object-cover"
-                            // Same crop the sponsorship card renders — the one
-                            // face-crop treatment that has been verified on
-                            // screen, not a reimplementation of it.
                             style={{
                               objectPosition: entity.icon.pos,
                               scale: String(parseFloat(entity.icon.size) / 100),
@@ -317,45 +308,65 @@ export function TreasuryInflowsList({
                                 : "size-full object-cover"
                             }
                           />
-                        )}
-                      </span>
-                    ) : null}
+                        )
+                      ) : (
+                        /* A named entity with no known mark still gets ITS
+                           identicon (seeded by address, same generator the
+                           hex rows use) — never a bare text row: one ragged
+                           left edge and the whole column stops reading as a
+                           column. */
+                        /* eslint-disable-next-line @next/next/no-img-element -- tiny remote identicon, same source AddressDisplay uses */
+                        <img
+                          src={`https://api.dicebear.com/7.x/identicon/svg?seed=${flow.from.toLowerCase()}&backgroundColor=b6e3f4,c0aede,d1d4f9`}
+                          alt=""
+                          className="size-full"
+                        />
+                      )}
+                    </span>
                     <span className="truncate text-sm">{entity.name}</span>
-                  </span>
-                );
-              })()}
-              {/* Every row carries its origin, not just auctions. The binary
-                  "internal = auction" badge could not say where the other three
-                  quarters of the income came from. */}
-              <span
-                className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${SOURCE_TONE[flow.source]}`}
-                title={flow.source === "auction" ? t("auctionHint") : undefined}
-              >
-                {flow.source === "auction" ? <Gavel className="size-3" /> : null}
-                {t(flow.source)}
+                  </>
+                ) : (
+                  <AddressDisplay
+                    address={flow.from}
+                    variant="compact"
+                    showCopy={false}
+                    showExplorer={false}
+                    truncateLength={4}
+                  />
+                )}
+              </div>
+
+              <span className="shrink-0">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${SOURCE_TONE[flow.source]}`}
+                  title={flow.source === "auction" ? t("auctionHint") : undefined}
+                >
+                  {flow.source === "auction" ? <Gavel className="size-3" /> : null}
+                  {t(flow.source)}
+                </span>
               </span>
-            </div>
 
-            <span className="ml-auto shrink-0 font-mono text-sm font-semibold whitespace-nowrap tabular-nums">
-              +{formatAmount(flow.amount, flow.asset, locale)}{" "}
-              <span className={ASSET_TONE[flow.asset]}>{flow.asset}</span>
-            </span>
+              <span className="ml-auto shrink-0 font-mono text-sm font-semibold whitespace-nowrap tabular-nums sm:ml-0 sm:justify-self-end">
+                +{formatAmount(flow.amount, flow.asset, locale)}{" "}
+                <span className={ASSET_TONE[flow.asset]}>{flow.asset}</span>
+              </span>
 
-            <span className="w-9 shrink-0 text-right font-mono text-[11px] text-muted-foreground">
-              {ageLabel(flow.at, now)}
-            </span>
+              <span className="shrink-0 text-right font-mono text-[11px] text-muted-foreground sm:justify-self-end">
+                {ageLabel(flow.at, now)}
+              </span>
 
-            <a
-              href={`https://basescan.org/tx/${flow.hash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={t("viewTx")}
-              className="shrink-0 text-muted-foreground hover:text-foreground"
-            >
-              <ExternalLink className="size-3.5" />
-            </a>
-          </li>
-        ))}
+              <a
+                href={`https://basescan.org/tx/${flow.hash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t("viewTx")}
+                className="shrink-0 text-muted-foreground hover:text-foreground sm:justify-self-end"
+              >
+                <ExternalLink className="size-3.5" />
+              </a>
+            </li>
+          );
+        })}
 
         {/* Height reservation. `border-t-transparent` cancels the divider so the
             padding shows up as space, not as empty ruled lines. The `h-8` block

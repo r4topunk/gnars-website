@@ -87,7 +87,11 @@
     "nameWarehouse": "Splits Warehouse",
     "nameVault": "Vault do rider",
     "nameSplit": "Split do rider",
-    "loadFailed": "Não deu pra carregar mais — tenta de novo"
+    "loadFailed": "Não deu pra carregar mais — tenta de novo",
+    "colFrom": "De",
+    "colSource": "Origem",
+    "colAmount": "Valor",
+    "colAge": "Idade"
   },
   "allocation": {
     "title": "Alocação",
