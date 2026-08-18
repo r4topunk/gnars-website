@@ -2,10 +2,15 @@
   "page": {
     "title": "Treasury",
     "description": "Overview of the Gnars DAO treasury holdings and financial position",
+    "synced": "Synced {time}",
     "kpis": {
       "totalValue": "Total Treasury Value",
       "ethBalance": "ETH Balance",
-      "totalAuctions": "Total Auction Sales"
+      "totalAuctions": "Total Auction Sales",
+      "subnetEarnings": "Subnet Earnings",
+      "acrossAssets": "across {count} assets",
+      "auctionsSettled": "{count} auctions settled",
+      "morpheusClaims": "Morpheus · {count} claims"
     },
     "nftSection": {
       "title": "NFT Holdings",
