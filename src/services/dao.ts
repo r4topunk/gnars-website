@@ -61,3 +61,29 @@ export const fetchTotalAuctionSalesWei = cache(async (): Promise<bigint> => {
   const { totalAuctionSalesWei } = await fetchDaoOverview();
   return totalAuctionSalesWei;
 });
+
+const SETTLED_AUCTION_IDS_GQL = /* GraphQL */ `
+  query SettledAuctionIds($dao: String!) {
+    auctions(where: { dao: $dao, settled: true }, first: 1000) {
+      id
+    }
+  }
+`;
+
+/**
+ * Count of settled auctions. The subgraph pages at 1000, so this saturates
+ * there — at the DAO's ~1/day cadence that is years away, and the KPI note
+ * degrades to "1000 auctions settled", not a wrong number. `0` = count
+ * unavailable; callers omit the note rather than claiming zero history.
+ */
+export const fetchSettledAuctionCount = cache(async (): Promise<number> => {
+  try {
+    const data = await subgraphQuery<{ auctions?: Array<{ id: string }> }>(
+      SETTLED_AUCTION_IDS_GQL,
+      { dao: DAO_ADDRESSES.token.toLowerCase() },
+    );
+    return data.auctions?.length ?? 0;
+  } catch {
+    return 0;
+  }
+});

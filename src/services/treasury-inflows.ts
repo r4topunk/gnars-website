@@ -284,3 +284,61 @@ export const loadTreasuryInflows = cache(async (): Promise<InflowPage> => {
     return { inflows: [], nextPageKey: null };
   }
 });
+
+export interface SubnetEarnings {
+  totalUsdc: number;
+  claimCount: number;
+}
+
+/**
+ * All-time Morpheus subnet earnings: every USDC transfer from the final split
+ * to the treasury. The paged inflows feed above is a window and cannot sum
+ * honestly; this asks Alchemy for exactly the split→treasury lane and walks
+ * every page (the claim history is tiny). `null` = could not determine —
+ * the KPI card renders a dash, never a fabricated 0.
+ */
+export const loadSubnetEarnings = cache(async (): Promise<SubnetEarnings | null> => {
+  if (!ALCHEMY_KEY) return null;
+  try {
+    let totalUsdc = 0;
+    let claimCount = 0;
+    let pageKey: string | undefined;
+    do {
+      const res = await fetch(`https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "alchemy_getAssetTransfers",
+          params: [
+            {
+              fromAddress: SUBNET_FINAL_SPLIT,
+              toAddress: DAO_ADDRESSES.treasury,
+              contractAddresses: [USDC],
+              category: ["erc20"],
+              withMetadata: false,
+              maxCount: "0x3e8",
+              ...(pageKey ? { pageKey } : {}),
+            },
+          ],
+        }),
+        next: { revalidate: 300 },
+      });
+      if (!res.ok) throw new Error(`Alchemy ${res.status}`);
+      const json = (await res.json()) as {
+        result?: { transfers?: Array<{ value: number | null }>; pageKey?: string };
+        error?: { message?: string };
+      };
+      if (json.error) throw new Error(json.error.message ?? "Alchemy error");
+      for (const t of json.result?.transfers ?? []) {
+        totalUsdc += t.value ?? 0;
+        claimCount += 1;
+      }
+      pageKey = json.result?.pageKey;
+    } while (pageKey);
+    return { totalUsdc, claimCount };
+  } catch {
+    return null;
+  }
+});
