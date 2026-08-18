@@ -24,96 +24,98 @@ interface TokenMetadataResponse {
   };
 }
 
-const loadTokenHoldings = cache(async (treasuryAddress: string): Promise<EnrichedToken[]> => {
-  const baseUrl = await getBaseUrl();
+export const loadTokenHoldings = cache(
+  async (treasuryAddress: string): Promise<EnrichedToken[]> => {
+    const baseUrl = await getBaseUrl();
 
-  const balancesResponse = await fetchJson<TokenBalancesResponse>(`${baseUrl}/api/alchemy`, {
-    method: "POST",
-    body: JSON.stringify({
-      method: "alchemy_getTokenBalances",
-      params: [treasuryAddress, TREASURY_TOKEN_ADDRESSES.filter(Boolean)],
-    }),
-  });
+    const balancesResponse = await fetchJson<TokenBalancesResponse>(`${baseUrl}/api/alchemy`, {
+      method: "POST",
+      body: JSON.stringify({
+        method: "alchemy_getTokenBalances",
+        params: [treasuryAddress, TREASURY_TOKEN_ADDRESSES.filter(Boolean)],
+      }),
+    });
 
-  const balances = (balancesResponse.result?.tokenBalances ?? []).filter((token) => {
-    const balance = token.tokenBalance?.toLowerCase();
-    return balance && balance !== "0" && balance !== "0x0";
-  });
+    const balances = (balancesResponse.result?.tokenBalances ?? []).filter((token) => {
+      const balance = token.tokenBalance?.toLowerCase();
+      return balance && balance !== "0" && balance !== "0x0";
+    });
 
-  if (!balances.length) {
-    return [];
-  }
-
-  const metadataResults = await Promise.all(
-    balances.map(async (token) => {
-      if (!token.contractAddress) return null;
-      try {
-        return await fetchJson<TokenMetadataResponse>(`${baseUrl}/api/alchemy`, {
-          method: "POST",
-          body: JSON.stringify({
-            method: "alchemy_getTokenMetadata",
-            params: [token.contractAddress],
-          }),
-        });
-      } catch {
-        return null;
-      }
-    }),
-  );
-
-  const tokensWithMetadata: EnrichedToken[] = [];
-  for (let index = 0; index < balances.length; index += 1) {
-    const token = balances[index];
-    const metadata = metadataResults[index]?.result;
-    if (
-      !token.contractAddress ||
-      !metadata?.symbol ||
-      !metadata.name ||
-      metadata.decimals === undefined
-    ) {
-      continue;
+    if (!balances.length) {
+      return [];
     }
 
-    const decimals = Number(metadata.decimals);
-    const raw = token.tokenBalance ?? "0x0";
-    const parsed = Number.parseInt(raw, 16);
-    const balance = Number.isFinite(parsed) ? parsed / Math.pow(10, decimals) : 0;
+    const metadataResults = await Promise.all(
+      balances.map(async (token) => {
+        if (!token.contractAddress) return null;
+        try {
+          return await fetchJson<TokenMetadataResponse>(`${baseUrl}/api/alchemy`, {
+            method: "POST",
+            body: JSON.stringify({
+              method: "alchemy_getTokenMetadata",
+              params: [token.contractAddress],
+            }),
+          });
+        } catch {
+          return null;
+        }
+      }),
+    );
 
-    tokensWithMetadata.push({
-      contractAddress: token.contractAddress,
-      balance,
-      decimals,
-      symbol: metadata.symbol,
-      name: metadata.name,
-      logo: metadata.logo,
-      usdValue: null,
-    });
-  }
+    const tokensWithMetadata: EnrichedToken[] = [];
+    for (let index = 0; index < balances.length; index += 1) {
+      const token = balances[index];
+      const metadata = metadataResults[index]?.result;
+      if (
+        !token.contractAddress ||
+        !metadata?.symbol ||
+        !metadata.name ||
+        metadata.decimals === undefined
+      ) {
+        continue;
+      }
 
-  if (!tokensWithMetadata.length) {
-    return [];
-  }
+      const decimals = Number(metadata.decimals);
+      const raw = token.tokenBalance ?? "0x0";
+      const parsed = Number.parseInt(raw, 16);
+      const balance = Number.isFinite(parsed) ? parsed / Math.pow(10, decimals) : 0;
 
-  // Server-side already — read the service directly instead of this module
-  // making an HTTP round trip to the app's own /api/prices.
-  const priceMap = await getTokenPricesUsd(
-    tokensWithMetadata.map((token) => token.contractAddress.toLowerCase()),
-    "base",
-  );
+      tokensWithMetadata.push({
+        contractAddress: token.contractAddress,
+        balance,
+        decimals,
+        symbol: metadata.symbol,
+        name: metadata.name,
+        logo: metadata.logo,
+        usdValue: null,
+      });
+    }
 
-  for (const token of tokensWithMetadata) {
-    const price = priceMap[token.contractAddress.toLowerCase()];
-    // `null` = unpriceable. Leave usdValue null rather than claiming $0, which
-    // is a real balance the UI would otherwise show as worthless.
-    token.usdValue = price == null ? null : price * token.balance;
-  }
+    if (!tokensWithMetadata.length) {
+      return [];
+    }
 
-  // Sort tokens by USD value descending for a friendlier presentation.
-  // Unpriced tokens sort last rather than being treated as worth $0.
-  tokensWithMetadata.sort((a, b) => (b.usdValue ?? -1) - (a.usdValue ?? -1));
+    // Server-side already — read the service directly instead of this module
+    // making an HTTP round trip to the app's own /api/prices.
+    const priceMap = await getTokenPricesUsd(
+      tokensWithMetadata.map((token) => token.contractAddress.toLowerCase()),
+      "base",
+    );
 
-  return tokensWithMetadata;
-});
+    for (const token of tokensWithMetadata) {
+      const price = priceMap[token.contractAddress.toLowerCase()];
+      // `null` = unpriceable. Leave usdValue null rather than claiming $0, which
+      // is a real balance the UI would otherwise show as worthless.
+      token.usdValue = price == null ? null : price * token.balance;
+    }
+
+    // Sort tokens by USD value descending for a friendlier presentation.
+    // Unpriced tokens sort last rather than being treated as worth $0.
+    tokensWithMetadata.sort((a, b) => (b.usdValue ?? -1) - (a.usdValue ?? -1));
+
+    return tokensWithMetadata;
+  },
+);
 
 async function getBaseUrl() {
   const h = await headers();

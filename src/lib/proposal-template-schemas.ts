@@ -64,9 +64,9 @@ export const TEMPLATE_SCHEMAS: Record<string, TemplateSchema> = {
         rows: 5,
         required: true,
         helper:
-          "The exact calls to add in the transaction step. The fee arrives as vault shares, so the treasury withdraws them from the Splits Warehouse and then redeems them for USDC.",
+          "The exact calls to add in the transaction step. Distributing the split and withdrawing from the Splits Warehouse are permissionless — do them beforehand, from any wallet, so this proposal only carries the one call that genuinely needs the treasury: redeeming the shares for USDC.",
         placeholder:
-          "1. PullSplit.distribute(...) — permissionless, can be called by anyone beforehand\n2. SplitsWarehouse.withdraw(treasury, <vault share token>)\n3. VaultV2.redeem(<shares>, treasury, treasury)",
+          "1. VaultV2.redeem(<shares>, treasury, treasury)\n\n(distribute + SplitsWarehouse.withdraw already done — both permissionless)",
       },
       {
         id: "rationale",

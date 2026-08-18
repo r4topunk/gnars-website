@@ -8,9 +8,11 @@
 // invisible — the rule fired, nobody ever saw it.
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ExternalLink, Gavel } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Gavel } from "lucide-react";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Button } from "@/components/ui/button";
+import { DAO_ADDRESSES } from "@/lib/config";
+import { RIDER_LIST } from "@/lib/gnars-vaults";
 import type { InflowAsset, InflowSource, TreasuryInflow } from "@/services/treasury-inflows";
 
 /**
@@ -18,6 +20,13 @@ import type { InflowAsset, InflowSource, TreasuryInflow } from "@/services/treas
  * these identify a kind of income, and the point is telling them apart at a
  * glance rather than following the theme's foreground.
  */
+const SOURCE_DOT: Record<InflowSource, string> = {
+  auction: "bg-amber-500",
+  subnet: "bg-emerald-500",
+  splits: "bg-emerald-500",
+  transfer: "bg-muted-foreground",
+};
+
 const SOURCE_TONE: Record<InflowSource, string> = {
   auction: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
   subnet: "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
@@ -34,6 +43,24 @@ const ASSET_TONE: Record<InflowAsset, string> = {
 
 /** Rows per page. Twenty is what it takes for the auction credits to be on screen. */
 const PAGE_SIZE = 20;
+
+/**
+ * Addresses we can name. A raw 0x tells a reader nothing about whether the DAO
+ * earned the money or someone sent it — and every one of these is already known
+ * to the codebase, so the hex was never the best we could do. Anything not in
+ * here keeps its truncated address rather than getting a guessed label.
+ */
+const SPLITS_WAREHOUSE = "0x8fb66f38cf86a3d5e8768f8f1754a24a6c661fb8";
+function knownName(address: string, t: (k: string) => string): string | null {
+  const a = address.toLowerCase();
+  if (a === DAO_ADDRESSES.auction.toLowerCase()) return t("nameAuction");
+  if (a === SPLITS_WAREHOUSE) return t("nameWarehouse");
+  for (const r of RIDER_LIST) {
+    if (r.vault && r.vault.toLowerCase() === a) return t("nameVault");
+    if (r.split && r.split.toLowerCase() === a) return t("nameSplit");
+  }
+  return null;
+}
 
 /**
  * ETH is worth ~4 decimals; USDC is a dollar figure and reads wrong with more
@@ -73,22 +100,98 @@ export function TreasuryInflowsList({
   now: number;
 }) {
   const t = useTranslations("treasury.inflows");
-  const [visible, setVisible] = useState(PAGE_SIZE);
-  const remaining = inflows.length - visible;
+  const [page, setPage] = useState(0);
+
+  // Pages REPLACE each other; they do not accumulate. "Show more" grew this
+  // column without bound, which pushed the card next to it back into the
+  // mismatched-height problem the NFT preview had just fixed — a layout bug
+  // wearing a pagination costume. Swapping pages keeps the column's height a
+  // function of PAGE_SIZE instead of how many times someone clicked.
+  const pageCount = Math.max(1, Math.ceil(inflows.length / PAGE_SIZE));
+  const current = Math.min(page, pageCount - 1);
+  const start = current * PAGE_SIZE;
+  const rows = inflows.slice(start, start + PAGE_SIZE);
+  // The last page is usually short. Without fillers the card would shrink on
+  // the final click and the whole row would jump, which is the same instability
+  // by another route.
+  const fillers = pageCount > 1 ? PAGE_SIZE - rows.length : 0;
+
+  // Per SOURCE, then per ASSET. Sources genuinely mix currencies — transfers
+  // arrive as ETH, WETH and USDC — and there is no price feed in this component,
+  // so each asset keeps its own line. A single blended figure would require a
+  // conversion this component cannot honestly make.
+  const summary = (["auction", "subnet", "splits", "transfer"] as InflowSource[])
+    .map((source) => {
+      const rowsFor = inflows.filter((f) => f.source === source);
+      const byAsset = new Map<InflowAsset, number>();
+      for (const f of rowsFor) byAsset.set(f.asset, (byAsset.get(f.asset) ?? 0) + f.amount);
+      return { source, count: rowsFor.length, assets: [...byAsset.entries()] };
+    })
+    .filter((s) => s.count > 0);
 
   return (
     <>
+      {summary.length > 1 ? (
+        <ul className="mb-3 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-4">
+          {summary.map((s) => (
+            <li key={s.source} className="bg-card p-3">
+              <div className="flex items-center gap-1.5">
+                <span aria-hidden className={`size-1.5 rounded-[2px] ${SOURCE_DOT[s.source]}`} />
+                <span className="truncate text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+                  {t(s.source)}
+                </span>
+              </div>
+              {s.assets.map(([asset, amount]) => (
+                <p key={asset} className="mt-1.5 font-mono text-sm font-semibold tabular-nums">
+                  {formatAmount(amount, asset, locale)}{" "}
+                  <span className={`text-[10px] font-medium ${ASSET_TONE[asset]}`}>{asset}</span>
+                </p>
+              ))}
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                {t("entryCount", { count: s.count })}
+              </p>
+            </li>
+          ))}
+          {/* The gap-px/bg-border trick draws hairlines between cells — but an
+              UNOCCUPIED cell (splits has no entries today) shows as a solid
+              block of border colour. Card-coloured fillers close the row, one
+              set per breakpoint because the column count differs. */}
+          {Array.from({ length: (4 - (summary.length % 4)) % 4 }, (_, i) => (
+            <li key={`pad-sm-${i}`} aria-hidden className="hidden bg-card sm:block" />
+          ))}
+          {Array.from({ length: (2 - (summary.length % 2)) % 2 }, (_, i) => (
+            <li key={`pad-xs-${i}`} aria-hidden className="bg-card sm:hidden" />
+          ))}
+        </ul>
+      ) : null}
+
       <ul className="divide-y divide-border">
-        {inflows.slice(0, visible).map((flow) => (
-          <li key={flow.hash} className="flex items-center gap-3 py-2.5">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              <AddressDisplay
-                address={flow.from}
-                variant="compact"
-                showCopy={false}
-                showExplorer={false}
-                truncateLength={4}
-              />
+        {rows.map((flow) => (
+          // `flex-wrap` is the mobile layout: at 390px a hex sender + badge +
+          // amount + age don't fit one line, and without the wrap the left
+          // group's overflow painted OVER the amount. Wrapped, the amount
+          // group drops to its own right-aligned line; on desktop nothing
+          // wraps and the row is identical to before.
+          <li key={flow.hash} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
+            <div className="flex min-w-0 flex-1 basis-40 items-center gap-2">
+              {knownName(flow.from, t) ? (
+                // `min-h-8` matches the avatar AddressDisplay renders on hex
+                // rows: without it a named row is text-height, a hex row is
+                // avatar-height, and the card's total height becomes a function
+                // of which senders happen to be on the page — which is the
+                // instability the fillers below exist to prevent.
+                <span className="flex min-h-8 items-center truncate text-sm">
+                  {knownName(flow.from, t)}
+                </span>
+              ) : (
+                <AddressDisplay
+                  address={flow.from}
+                  variant="compact"
+                  showCopy={false}
+                  showExplorer={false}
+                  truncateLength={4}
+                />
+              )}
               {/* Every row carries its origin, not just auctions. The binary
                   "internal = auction" badge could not say where the other three
                   quarters of the income came from. */}
@@ -101,7 +204,7 @@ export function TreasuryInflowsList({
               </span>
             </div>
 
-            <span className="shrink-0 whitespace-nowrap font-mono text-sm font-semibold tabular-nums">
+            <span className="ml-auto shrink-0 font-mono text-sm font-semibold whitespace-nowrap tabular-nums">
               +{formatAmount(flow.amount, flow.asset, locale)}{" "}
               <span className={ASSET_TONE[flow.asset]}>{flow.asset}</span>
             </span>
@@ -121,19 +224,57 @@ export function TreasuryInflowsList({
             </a>
           </li>
         ))}
+
+        {/* Height reservation. `border-t-transparent` cancels the divider so the
+            padding shows up as space, not as empty ruled lines. The `h-8` block
+            copies the real rows' tallest element (the 32px avatar), so a filler
+            occupies exactly one row — a text-height filler under-reserved and
+            the card still shrank on the last page. */}
+        {Array.from({ length: fillers }, (_, i) => (
+          <li
+            key={`filler-${i}`}
+            aria-hidden
+            className="flex items-center gap-3 border-t-transparent py-2.5"
+          >
+            <span className="invisible block h-8" />
+          </li>
+        ))}
       </ul>
 
-      {remaining > 0 ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-3 w-full cursor-pointer"
-          onClick={() => setVisible((v) => v + PAGE_SIZE)}
-        >
-          {/* The count is the point — how much history is left changes whether
-              anyone bothers clicking. */}
-          {t("showMore", { count: remaining })}
-        </Button>
+      {pageCount > 1 ? (
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-8 cursor-pointer"
+            disabled={current === 0}
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            aria-label={t("prevPage")}
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+
+          {/* Announced politely: with arrows and no readout, a screen-reader
+              user gets no confirmation that anything moved. */}
+          <span aria-live="polite" className="font-mono text-xs tabular-nums text-muted-foreground">
+            {t("range", {
+              from: start + 1,
+              to: start + rows.length,
+              total: inflows.length,
+            })}
+          </span>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-8 cursor-pointer"
+            disabled={current >= pageCount - 1}
+            onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+            aria-label={t("nextPage")}
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
       ) : null}
     </>
   );

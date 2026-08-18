@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { ArrowDownLeft } from "lucide-react";
 import { TreasuryInflowsList } from "@/components/treasury/TreasuryInflowsList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DAO_ADDRESSES } from "@/lib/config";
 import { loadTreasuryInflows } from "@/services/treasury-inflows";
 
 /**
@@ -30,10 +31,24 @@ export async function TreasuryInflows({ locale }: { locale: string }) {
   return (
     <Card className="gap-2">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-sm font-medium">
-          <ArrowDownLeft className="size-4 text-emerald-500" />
-          {t("title")}
-        </CardTitle>
+        <div className="flex items-baseline justify-between gap-3">
+          <CardTitle className="flex items-center gap-2 text-sm font-medium">
+            <ArrowDownLeft className="size-4 text-emerald-500" />
+            {t("title")}
+          </CardTitle>
+          {/* Basescan IS the full ledger — it is the complete, unfiltered record
+              of every credit. Inventing an in-app ledger page to satisfy the
+              mock's link would be shipping a promise with nothing behind it. */}
+          <a
+            href={`https://basescan.org/address/${DAO_ADDRESSES.treasury}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            {t("fullLedger")} ↗
+          </a>
+        </div>
+        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
       </CardHeader>
       <CardContent>
         {inflows.length === 0 ? (
