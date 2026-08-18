@@ -291,17 +291,19 @@ export interface SubnetEarnings {
 }
 
 /**
- * All-time Morpheus subnet earnings: every USDC transfer from the final split
- * to the treasury. The paged inflows feed above is a window and cannot sum
- * honestly; this asks Alchemy for exactly the split→treasury lane and walks
- * every page (the claim history is tiny). `null` = could not determine —
- * the KPI card renders a dash, never a fabricated 0.
+ * All-time Morpheus subnet earnings. Splits pay through the warehouse (see the
+ * SPLITS_WAREHOUSE note above — the split address is never the `from`), so
+ * this walks every warehouse→treasury USDC transfer and keeps the ones whose
+ * transaction the subnet's final split emitted in, the same attribution rule
+ * the inflows ledger uses. The paged inflows feed above is a window and cannot
+ * sum honestly; this lane's full history is tiny, and the per-tx receipts are
+ * immutable and day-cached. `null` = could not determine — the KPI card
+ * renders a dash, never a fabricated 0.
  */
 export const loadSubnetEarnings = cache(async (): Promise<SubnetEarnings | null> => {
   if (!ALCHEMY_KEY) return null;
   try {
-    let totalUsdc = 0;
-    let claimCount = 0;
+    const transfers: Array<{ value: number; hash: string }> = [];
     let pageKey: string | undefined;
     do {
       const res = await fetch(`https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`, {
@@ -313,7 +315,7 @@ export const loadSubnetEarnings = cache(async (): Promise<SubnetEarnings | null>
           method: "alchemy_getAssetTransfers",
           params: [
             {
-              fromAddress: SUBNET_FINAL_SPLIT,
+              fromAddress: SPLITS_WAREHOUSE,
               toAddress: DAO_ADDRESSES.treasury,
               contractAddresses: [USDC],
               category: ["erc20"],
@@ -327,16 +329,27 @@ export const loadSubnetEarnings = cache(async (): Promise<SubnetEarnings | null>
       });
       if (!res.ok) throw new Error(`Alchemy ${res.status}`);
       const json = (await res.json()) as {
-        result?: { transfers?: Array<{ value: number | null }>; pageKey?: string };
+        result?: {
+          transfers?: Array<{ value: number | null; hash?: string }>;
+          pageKey?: string;
+        };
         error?: { message?: string };
       };
       if (json.error) throw new Error(json.error.message ?? "Alchemy error");
       for (const t of json.result?.transfers ?? []) {
-        totalUsdc += t.value ?? 0;
-        claimCount += 1;
+        if (t.hash) transfers.push({ value: t.value ?? 0, hash: t.hash });
       }
       pageKey = json.result?.pageKey;
     } while (pageKey);
+
+    const sources = await Promise.all(transfers.map((t) => splitSourceForTx(t.hash)));
+    let totalUsdc = 0;
+    let claimCount = 0;
+    for (let i = 0; i < transfers.length; i += 1) {
+      if (sources[i] !== "subnet") continue;
+      totalUsdc += transfers[i].value;
+      claimCount += 1;
+    }
     return { totalUsdc, claimCount };
   } catch {
     return null;

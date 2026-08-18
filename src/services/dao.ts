@@ -63,26 +63,41 @@ export const fetchTotalAuctionSalesWei = cache(async (): Promise<bigint> => {
 });
 
 const SETTLED_AUCTION_IDS_GQL = /* GraphQL */ `
-  query SettledAuctionIds($dao: String!) {
-    auctions(where: { dao: $dao, settled: true }, first: 1000) {
+  query SettledAuctionIds($dao: String!, $after: ID!) {
+    auctions(
+      where: { dao: $dao, settled: true, id_gt: $after }
+      first: 1000
+      orderBy: id
+      orderDirection: asc
+    ) {
       id
     }
   }
 `;
 
 /**
- * Count of settled auctions. The subgraph pages at 1000, so this saturates
- * there — at the DAO's ~1/day cadence that is years away, and the KPI note
- * degrades to "1000 auctions settled", not a wrong number. `0` = count
- * unavailable; callers omit the note rather than claiming zero history.
+ * Count of settled auctions. There is no aggregate on the DAO entity (and
+ * `tokensCount` counts founder mints too), so this cursors through id-only
+ * pages — ~8 requests for Gnars' ~7k auctions, refreshed at the page's ISR
+ * cadence. The 20-page guard is a runaway stop, not an expected ceiling.
+ * `0` = count unavailable; callers omit the note rather than claiming zero.
  */
 export const fetchSettledAuctionCount = cache(async (): Promise<number> => {
   try {
-    const data = await subgraphQuery<{ auctions?: Array<{ id: string }> }>(
-      SETTLED_AUCTION_IDS_GQL,
-      { dao: DAO_ADDRESSES.token.toLowerCase() },
-    );
-    return data.auctions?.length ?? 0;
+    const dao = DAO_ADDRESSES.token.toLowerCase();
+    let count = 0;
+    let after = "";
+    for (let page = 0; page < 20; page += 1) {
+      const data = await subgraphQuery<{ auctions?: Array<{ id: string }> }>(
+        SETTLED_AUCTION_IDS_GQL,
+        { dao, after },
+      );
+      const ids = data.auctions ?? [];
+      count += ids.length;
+      if (ids.length < 1000) return count;
+      after = ids[ids.length - 1].id;
+    }
+    return count;
   } catch {
     return 0;
   }
