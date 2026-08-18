@@ -15,11 +15,6 @@
   "tokens": {
     "title": "Holdings de Tokens",
     "description": "Tokens ERC-20 mantidos no tesouro",
-    "table": {
-      "token": "Token",
-      "amount": "Quantia",
-      "valueUsd": "Valor (USD)"
-    },
     "empty": "Nenhum token encontrado",
     "emptyDescription": "O tesouro não tem tokens ERC-20 no momento",
     "errorLoading": "Erro ao carregar holdings de tokens: {error}"
