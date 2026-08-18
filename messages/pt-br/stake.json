@@ -189,7 +189,8 @@
     "morphoTitle": "Yield Morpho",
     "claimYield": "Colher",
     "vaultClaimed": "Yield colhido na carteira",
-    "enableRewards": "Ativar recompensas"
+    "enableRewards": "Ativar recompensas",
+    "claimLocked": "MOR travado até {date}"
   },
   "admin": {
     "title": "Cofres de patrocínio",
