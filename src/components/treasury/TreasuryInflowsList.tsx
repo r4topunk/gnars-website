@@ -152,15 +152,37 @@ export function TreasuryInflowsList({
               </p>
             </li>
           ))}
+          {/* The gap-px/bg-border trick draws hairlines between cells — but an
+              UNOCCUPIED cell (splits has no entries today) shows as a solid
+              block of border colour. Card-coloured fillers close the row, one
+              set per breakpoint because the column count differs. */}
+          {Array.from({ length: (4 - (summary.length % 4)) % 4 }, (_, i) => (
+            <li key={`pad-sm-${i}`} aria-hidden className="hidden bg-card sm:block" />
+          ))}
+          {Array.from({ length: (2 - (summary.length % 2)) % 2 }, (_, i) => (
+            <li key={`pad-xs-${i}`} aria-hidden className="bg-card sm:hidden" />
+          ))}
         </ul>
       ) : null}
 
       <ul className="divide-y divide-border">
         {rows.map((flow) => (
-          <li key={flow.hash} className="flex items-center gap-3 py-2.5">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
+          // `flex-wrap` is the mobile layout: at 390px a hex sender + badge +
+          // amount + age don't fit one line, and without the wrap the left
+          // group's overflow painted OVER the amount. Wrapped, the amount
+          // group drops to its own right-aligned line; on desktop nothing
+          // wraps and the row is identical to before.
+          <li key={flow.hash} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
+            <div className="flex min-w-0 flex-1 basis-40 items-center gap-2">
               {knownName(flow.from, t) ? (
-                <span className="truncate text-sm">{knownName(flow.from, t)}</span>
+                // `min-h-8` matches the avatar AddressDisplay renders on hex
+                // rows: without it a named row is text-height, a hex row is
+                // avatar-height, and the card's total height becomes a function
+                // of which senders happen to be on the page — which is the
+                // instability the fillers below exist to prevent.
+                <span className="flex min-h-8 items-center truncate text-sm">
+                  {knownName(flow.from, t)}
+                </span>
               ) : (
                 <AddressDisplay
                   address={flow.from}
@@ -182,7 +204,7 @@ export function TreasuryInflowsList({
               </span>
             </div>
 
-            <span className="shrink-0 whitespace-nowrap font-mono text-sm font-semibold tabular-nums">
+            <span className="ml-auto shrink-0 font-mono text-sm font-semibold whitespace-nowrap tabular-nums">
               +{formatAmount(flow.amount, flow.asset, locale)}{" "}
               <span className={ASSET_TONE[flow.asset]}>{flow.asset}</span>
             </span>
@@ -204,14 +226,17 @@ export function TreasuryInflowsList({
         ))}
 
         {/* Height reservation. `border-t-transparent` cancels the divider so the
-            padding shows up as space, not as empty ruled lines. */}
+            padding shows up as space, not as empty ruled lines. The `h-8` block
+            copies the real rows' tallest element (the 32px avatar), so a filler
+            occupies exactly one row — a text-height filler under-reserved and
+            the card still shrank on the last page. */}
         {Array.from({ length: fillers }, (_, i) => (
           <li
             key={`filler-${i}`}
             aria-hidden
             className="flex items-center gap-3 border-t-transparent py-2.5"
           >
-            <span className="invisible text-sm">&nbsp;</span>
+            <span className="invisible block h-8" />
           </li>
         ))}
       </ul>
