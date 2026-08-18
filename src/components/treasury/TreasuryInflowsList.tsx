@@ -223,10 +223,34 @@ export function TreasuryInflowsList({
     })
     .filter((s) => s.count > 0);
 
+  // Column count DERIVED from the source count, so rows come out balanced —
+  // never one orphan tile trailing a full row. The inner ceil is "how many
+  // rows would a max-4 grid need", the outer spreads the tiles evenly over
+  // those rows:
+  //
+  //   sources | cols | rows
+  //   --------+------+------
+  //      4    |  4   | 4
+  //      5    |  3   | 3+2   (today: auction, subnet, swap, splits, transfer)
+  //      6    |  3   | 3+3   (the day a Secondary/Seaport source lands)
+  //      7    |  4   | 4+3
+  //
+  // Deliberately NOT auto-fit/minmax: that makes composition a function of
+  // card width, so the orphan comes back intermittently at in-between
+  // breakpoints — a reproducible defect traded for a flaky one. Keep this
+  // deterministic-by-count even if the two ceils look "simplifiable".
+  const tileCols =
+    summary.length <= 4
+      ? summary.length
+      : Math.ceil(summary.length / Math.ceil(summary.length / 4));
+
   return (
     <>
       {summary.length > 1 ? (
-        <ul className="mb-3 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-4">
+        <ul
+          className="mb-3 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-[repeat(var(--tile-cols),minmax(0,1fr))]"
+          style={{ "--tile-cols": tileCols } as React.CSSProperties}
+        >
           {summary.map((s) => (
             <li key={s.source} className="bg-card p-3">
               <div className="flex items-center gap-1.5">
@@ -250,7 +274,7 @@ export function TreasuryInflowsList({
               UNOCCUPIED cell (splits has no entries today) shows as a solid
               block of border colour. Card-coloured fillers close the row, one
               set per breakpoint because the column count differs. */}
-          {Array.from({ length: (4 - (summary.length % 4)) % 4 }, (_, i) => (
+          {Array.from({ length: (tileCols - (summary.length % tileCols)) % tileCols }, (_, i) => (
             <li key={`pad-sm-${i}`} aria-hidden className="hidden bg-card sm:block" />
           ))}
           {Array.from({ length: (2 - (summary.length % 2)) % 2 }, (_, i) => (

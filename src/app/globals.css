@@ -118,6 +118,14 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    /* The site header is sticky (DaoHeader: h-16 = 64px, translucent) and
+       content scrolls UNDER it. Any anchor jump or scrollIntoView therefore
+       lands with its heading behind the nav — 64px of nav plus breathing
+       room keeps programmatic scroll targets clear of it, site-wide, without
+       per-section scroll-mt classes that new sections would forget. */
+    scroll-padding-top: 5rem;
+  }
   body {
     @apply bg-background text-foreground;
   }
