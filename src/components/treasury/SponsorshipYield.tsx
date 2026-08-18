@@ -101,6 +101,14 @@ export function SponsorshipYield() {
             {graph ? usd(treasuryShare) : "—"}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">{t("desc")}</p>
+          {/* The accrual mechanism, stated because the raw numbers look wrong
+              without it: Morpho VaultV2 mints the fee on vault INTERACTIONS,
+              not continuously. Yan's figure once jumped 66x in a day (a
+              partial withdrawal realised ~a month of accrual at once), which
+              reads as a bug unless the card says it is the mechanism. */}
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground/70">
+            {t("accrualNote")}
+          </p>
         </div>
 
         <div>

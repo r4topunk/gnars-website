@@ -107,6 +107,7 @@
     "openTitle": "Qualquer um pode fazer agora",
     "openDesc": "Distribuir o split e empurrar o saldo pro tesouro são os dois permissionless — não precisa de votação. Qualquer carteira dispara.",
     "govDesc": "Só converter essas shares em USDC exige proposta: o tesouro é um timelock, e o ERC-4626 não deixa mais ninguém resgatar no lugar dele.",
-    "govCta": "Abrir proposta de resgate"
+    "govCta": "Abrir proposta de resgate",
+    "accrualNote": "O rendimento materializa quando alguém interage com o vault, não de forma contínua — os números podem ficar parados por semanas e pular de uma vez. Um vault pequeno e antigo pode acumular mais que um grande e recente."
   }
 }
