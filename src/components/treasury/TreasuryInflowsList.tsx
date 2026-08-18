@@ -8,12 +8,18 @@
 // invisible — the rule fired, nobody ever saw it.
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight, ExternalLink, Gavel } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Gavel, Loader2 } from "lucide-react";
+import { AVATAR } from "@/components/treasury/SponsorshipYield";
 import { AddressDisplay } from "@/components/ui/address-display";
 import { Button } from "@/components/ui/button";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { RIDER_LIST } from "@/lib/gnars-vaults";
-import type { InflowAsset, InflowSource, TreasuryInflow } from "@/services/treasury-inflows";
+import type {
+  InflowAsset,
+  InflowPage,
+  InflowSource,
+  TreasuryInflow,
+} from "@/services/treasury-inflows";
 
 /**
  * Source accents. Not semantic tokens on purpose — like the asset colours below,
@@ -23,14 +29,20 @@ import type { InflowAsset, InflowSource, TreasuryInflow } from "@/services/treas
 const SOURCE_DOT: Record<InflowSource, string> = {
   auction: "bg-amber-500",
   subnet: "bg-emerald-500",
-  splits: "bg-emerald-500",
+  swap: "bg-sky-500",
+  // Generic splits is the "a split we have not mapped" bucket — it must never
+  // borrow a product's colour, least of all the subnet green it used to share.
+  splits: "bg-foreground/50",
   transfer: "bg-muted-foreground",
 };
 
 const SOURCE_TONE: Record<InflowSource, string> = {
   auction: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
   subnet: "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  splits: "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  swap: "border-sky-500/25 bg-sky-500/10 text-sky-600 dark:text-sky-400",
+  // Unmapped split: tinted just enough to say "known mechanism, unknown
+  // product" without wearing any product's brand colour.
+  splits: "border-foreground/20 bg-foreground/5 text-foreground/70",
   transfer: "border-border bg-muted text-muted-foreground",
 };
 
@@ -49,15 +61,46 @@ const PAGE_SIZE = 20;
  * earned the money or someone sent it — and every one of these is already known
  * to the codebase, so the hex was never the best we could do. Anything not in
  * here keeps its truncated address rather than getting a guessed label.
+ *
+ * `icon` follows the same rule as the name: a known entity gets its real mark
+ * (assets that already ship with the site), an unknown one falls back to the
+ * address identicon. No approximated logos — a wrong mark is worse than a
+ * generic one.
  */
 const SPLITS_WAREHOUSE = "0x8fb66f38cf86a3d5e8768f8f1754a24a6c661fb8";
-function knownName(address: string, t: (k: string) => string): string | null {
+type EntityIcon = {
+  src: string;
+  /** "contain" pads logos that are not square portraits (the noggles). */
+  fit: "cover" | "contain";
+  /** Face-crop values for rider cut-outs, same numbers the sponsorship card uses. */
+  size?: string;
+  pos?: string;
+};
+type KnownEntity = { name: string; icon?: EntityIcon };
+
+function knownEntity(
+  address: string,
+  source: TreasuryInflow["source"],
+  t: (k: string) => string,
+): KnownEntity | null {
   const a = address.toLowerCase();
-  if (a === DAO_ADDRESSES.auction.toLowerCase()) return t("nameAuction");
-  if (a === SPLITS_WAREHOUSE) return t("nameWarehouse");
+  if (a === DAO_ADDRESSES.auction.toLowerCase())
+    return { name: t("nameAuction"), icon: { src: "/red_noggles.png", fit: "contain" } };
+  if (a === SPLITS_WAREHOUSE) {
+    // The warehouse is a conduit, not an earner — when the receipt proved which
+    // product's split paid through it, the row wears that product's identity.
+    if (source === "subnet")
+      return { name: t("nameWarehouse"), icon: { src: "/logos/morpheus.webp", fit: "cover" } };
+    return { name: t("nameWarehouse") };
+  }
   for (const r of RIDER_LIST) {
-    if (r.vault && r.vault.toLowerCase() === a) return t("nameVault");
-    if (r.split && r.split.toLowerCase() === a) return t("nameSplit");
+    if ((r.vault && r.vault.toLowerCase() === a) || (r.split && r.split.toLowerCase() === a)) {
+      const av = AVATAR[r.id];
+      return {
+        name: r.vault && r.vault.toLowerCase() === a ? t("nameVault") : t("nameSplit"),
+        icon: { src: av.src, fit: "cover", size: av.size, pos: av.pos },
+      };
+    }
   }
   return null;
 }
@@ -91,38 +134,89 @@ function ageLabel(at: string, now: number): string {
 
 export function TreasuryInflowsList({
   inflows,
+  nextPageKey,
   locale,
   now,
 }: {
   inflows: TreasuryInflow[];
+  /** Cursor into deeper history; `null` means the server saw the very end. */
+  nextPageKey: string | null;
   locale: string;
   /** Snapshot clock from the server, so ages do not shift on hydration. */
   now: number;
 }) {
   const t = useTranslations("treasury.inflows");
   const [page, setPage] = useState(0);
+  // History fetched past the server's first window. `cursor === null` means
+  // the chain's history is EXHAUSTED — deliberately a different state from
+  // "not fetched yet" (a string) so the next-arrow can tell "disabled because
+  // done" from "click me to load more". Conflating those two is the empty-
+  // backer-list bug wearing pagination clothes.
+  const [extra, setExtra] = useState<TreasuryInflow[]>([]);
+  const [cursor, setCursor] = useState<string | null>(nextPageKey);
+  const [loading, setLoading] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  const all = [...inflows, ...extra];
 
   // Pages REPLACE each other; they do not accumulate. "Show more" grew this
   // column without bound, which pushed the card next to it back into the
   // mismatched-height problem the NFT preview had just fixed — a layout bug
   // wearing a pagination costume. Swapping pages keeps the column's height a
   // function of PAGE_SIZE instead of how many times someone clicked.
-  const pageCount = Math.max(1, Math.ceil(inflows.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
   const current = Math.min(page, pageCount - 1);
   const start = current * PAGE_SIZE;
-  const rows = inflows.slice(start, start + PAGE_SIZE);
+  const rows = all.slice(start, start + PAGE_SIZE);
   // The last page is usually short. Without fillers the card would shrink on
   // the final click and the whole row would jump, which is the same instability
   // by another route.
   const fillers = pageCount > 1 ? PAGE_SIZE - rows.length : 0;
 
+  const onLastLoadedPage = current >= pageCount - 1;
+
+  async function goNext() {
+    setLoadFailed(false);
+    if (!onLastLoadedPage) {
+      setPage((p) => p + 1);
+      return;
+    }
+    if (!cursor || loading) return;
+    // At the edge of what is loaded, the arrow FETCHES instead of dead-ending.
+    // An indexer page is 50 raw transfers filtered down to tracked assets, so
+    // one page can yield few visible rows; chain a couple of fetches until a
+    // screenful arrives or the history truly ends. Bounded — this must never
+    // become "load everything".
+    setLoading(true);
+    try {
+      let got: TreasuryInflow[] = [];
+      let next: string | null = cursor;
+      for (let hops = 0; next && got.length < PAGE_SIZE && hops < 4; hops++) {
+        const res = await fetch(`/api/treasury/inflows?pageKey=${encodeURIComponent(next)}`);
+        if (!res.ok) throw new Error("inflows page failed");
+        const data = (await res.json()) as InflowPage;
+        got = [...got, ...data.inflows];
+        next = data.nextPageKey;
+      }
+      setExtra((e) => [...e, ...got]);
+      setCursor(next);
+      if (got.length > 0) setPage((p) => p + 1);
+    } catch {
+      // Reported, not silenced: the failure line renders under the pager and
+      // the cursor is kept so the same click can retry.
+      setLoadFailed(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   // Per SOURCE, then per ASSET. Sources genuinely mix currencies — transfers
   // arrive as ETH, WETH and USDC — and there is no price feed in this component,
   // so each asset keeps its own line. A single blended figure would require a
   // conversion this component cannot honestly make.
-  const summary = (["auction", "subnet", "splits", "transfer"] as InflowSource[])
+  const summary = (["auction", "subnet", "swap", "splits", "transfer"] as InflowSource[])
     .map((source) => {
-      const rowsFor = inflows.filter((f) => f.source === source);
+      const rowsFor = all.filter((f) => f.source === source);
       const byAsset = new Map<InflowAsset, number>();
       for (const f of rowsFor) byAsset.set(f.asset, (byAsset.get(f.asset) ?? 0) + f.amount);
       return { source, count: rowsFor.length, assets: [...byAsset.entries()] };
@@ -174,24 +268,62 @@ export function TreasuryInflowsList({
           // wraps and the row is identical to before.
           <li key={flow.hash} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
             <div className="flex min-w-0 flex-1 basis-40 items-center gap-2">
-              {knownName(flow.from, t) ? (
+              {(() => {
+                const entity = knownEntity(flow.from, flow.source, t);
+                if (!entity)
+                  return (
+                    <AddressDisplay
+                      address={flow.from}
+                      variant="compact"
+                      showCopy={false}
+                      showExplorer={false}
+                      truncateLength={4}
+                    />
+                  );
                 // `min-h-8` matches the avatar AddressDisplay renders on hex
                 // rows: without it a named row is text-height, a hex row is
                 // avatar-height, and the card's total height becomes a function
                 // of which senders happen to be on the page — which is the
                 // instability the fillers below exist to prevent.
-                <span className="flex min-h-8 items-center truncate text-sm">
-                  {knownName(flow.from, t)}
-                </span>
-              ) : (
-                <AddressDisplay
-                  address={flow.from}
-                  variant="compact"
-                  showCopy={false}
-                  showExplorer={false}
-                  truncateLength={4}
-                />
-              )}
+                return (
+                  <span className="flex min-h-8 min-w-0 items-center gap-2">
+                    {entity.icon ? (
+                      <span className="relative size-8 shrink-0 overflow-hidden rounded-full bg-muted">
+                        {/* Rider cut-outs reuse the sponsorship card's face
+                            crop; square logos just cover; the noggles sit
+                            padded on a dark ground like the design shows. */}
+                        {entity.icon.size ? (
+                          /* eslint-disable-next-line @next/next/no-img-element -- 32px local asset; next/image adds nothing at this size */
+                          <img
+                            src={entity.icon.src}
+                            alt=""
+                            className="size-full object-cover"
+                            // Same crop the sponsorship card renders — the one
+                            // face-crop treatment that has been verified on
+                            // screen, not a reimplementation of it.
+                            style={{
+                              objectPosition: entity.icon.pos,
+                              scale: String(parseFloat(entity.icon.size) / 100),
+                            }}
+                          />
+                        ) : (
+                          /* eslint-disable-next-line @next/next/no-img-element -- 32px local asset */
+                          <img
+                            src={entity.icon.src}
+                            alt=""
+                            className={
+                              entity.icon.fit === "contain"
+                                ? "size-full object-contain p-1"
+                                : "size-full object-cover"
+                            }
+                          />
+                        )}
+                      </span>
+                    ) : null}
+                    <span className="truncate text-sm">{entity.name}</span>
+                  </span>
+                );
+              })()}
               {/* Every row carries its origin, not just auctions. The binary
                   "internal = auction" badge could not say where the other three
                   quarters of the income came from. */}
@@ -241,38 +373,54 @@ export function TreasuryInflowsList({
         ))}
       </ul>
 
-      {pageCount > 1 ? (
+      {pageCount > 1 || cursor ? (
         <div className="mt-3 flex items-center justify-between gap-3">
           <Button
             variant="outline"
             size="icon"
             className="size-8 cursor-pointer"
-            disabled={current === 0}
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={current === 0 || loading}
+            onClick={() => {
+              setLoadFailed(false);
+              setPage((p) => Math.max(0, p - 1));
+            }}
             aria-label={t("prevPage")}
           >
             <ChevronLeft className="size-4" />
           </Button>
 
-          {/* Announced politely: with arrows and no readout, a screen-reader
-              user gets no confirmation that anything moved. */}
           <span aria-live="polite" className="font-mono text-xs tabular-nums text-muted-foreground">
-            {t("range", {
-              from: start + 1,
-              to: start + rows.length,
-              total: inflows.length,
-            })}
+            {loadFailed ? (
+              <span className="text-destructive">{t("loadFailed")}</span>
+            ) : (
+              /* Announced politely: with arrows and no readout, a screen-reader
+                 user gets no confirmation that anything moved. The total stays
+                 open-ended ("34+") while a cursor remains — printing a closed
+                 count for an unfinished history would be a small lie. */
+              t("range", {
+                from: start + 1,
+                to: start + rows.length,
+                total: cursor ? `${all.length}+` : String(all.length),
+              })
+            )}
           </span>
 
           <Button
             variant="outline"
             size="icon"
             className="size-8 cursor-pointer"
-            disabled={current >= pageCount - 1}
-            onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+            // Truly done only when the cursor is spent AND we sit on the last
+            // page. While loading it stays enabled-looking but inert via the
+            // guard in goNext, and shows the spinner instead of the chevron.
+            disabled={onLastLoadedPage && cursor === null}
+            onClick={() => void goNext()}
             aria-label={t("nextPage")}
           >
-            <ChevronRight className="size-4" />
+            {loading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <ChevronRight className="size-4" />
+            )}
           </Button>
         </div>
       ) : null}

@@ -74,6 +74,7 @@
     "auctionHint": "Arrived from the auction house as an internal transfer",
     "viewTx": "View transaction on Basescan",
     "subnet": "Morpheus Subnet",
+    "swap": "Swap fee",
     "splits": "Splits",
     "transfer": "Transfer",
     "subtitle": "Every credit to the treasury, tagged by where it came from",
@@ -85,7 +86,8 @@
     "nameAuction": "Auction house",
     "nameWarehouse": "Splits Warehouse",
     "nameVault": "Rider vault",
-    "nameSplit": "Rider split"
+    "nameSplit": "Rider split",
+    "loadFailed": "Couldn't load more — try again"
   },
   "allocation": {
     "title": "Allocation",

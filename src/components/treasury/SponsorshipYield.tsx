@@ -41,7 +41,7 @@ import { RIDER_LIST, type RiderId } from "@/lib/gnars-vaults";
  * module graph onto the treasury page for the sake of seven thumbnails. A rider
  * gaining a new cut-out needs it in both.
  */
-const AVATAR: Record<RiderId, { src: string; size: string; pos: string }> = {
+export const AVATAR: Record<RiderId, { src: string; size: string; pos: string }> = {
   vlad: { src: "/stake/cutout/vlad.png", size: "420%", pos: "50% 6%" },
   yan: { src: "/stake/cutout/yan.png", size: "420%", pos: "50% 5%" },
   r4to: { src: "/stake/cutout/r4to.png", size: "420%", pos: "50% 5%" },
@@ -52,7 +52,10 @@ const AVATAR: Record<RiderId, { src: string; size: string; pos: string }> = {
   ephraim: { src: "/stake/cutout/ephraim.png", size: "400%", pos: "50% 8%" },
 };
 
-const SPLITS_APP = (split: string) => `https://app.splits.org/accounts/${split}/?chainId=8453`;
+// explorer.splits.org, NOT app.splits.org: the app answers "Account not found"
+// for these SplitV2 contracts (verified in a browser on Vlad's split), while
+// the explorer renders the contract, its recipients and the Distribute button.
+const SPLITS_APP = (split: string) => `https://explorer.splits.org/accounts/${split}/?chainId=8453`;
 
 export function SponsorshipYield() {
   const t = useTranslations("treasury.sponsorship");
