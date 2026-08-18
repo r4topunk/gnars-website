@@ -25,7 +25,10 @@ import { subgraphQuery } from "@/lib/subgraph";
  * scroll for screens on end and left a tall column of page background next to a
  * short neighbour.
  */
-const PREVIEW_COUNT = 7;
+// 15 + the "+N" tile: full width gives the grid 8 columns from `sm`, so the
+// preview is two complete rows there — and exactly four complete rows of the
+// 4-column mobile grid. Both breakpoints close without holes.
+const PREVIEW_COUNT = 15;
 
 interface NftHoldingsProps {
   treasuryAddress: string;
@@ -242,7 +245,7 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
       {/* Preview: plain image tiles, not GnarCards. The card sits in a narrow
           column, and the full card's date/bid/winner rows would be unreadable at
           this width — the detail belongs in the dialog, where there is room. */}
-      <div className="grid grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-8">
         {tokens.slice(0, PREVIEW_COUNT).map((token) => (
           <div
             key={`preview-${token.id}`}

@@ -138,7 +138,16 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
           <Suspense fallback={<TableSkeleton />}>
             <TreasuryInflows locale={locale} />
           </Suspense>
-          <SponsorshipYield />
+          {/* Sponsorship alone left ~280px of dead space under it while the
+              inflows column ran long. Token Holdings is three rows — it fills
+              that void, and surrendering its old half-width row gives the NFT
+              grid the full width it actually benefits from. */}
+          <div className="space-y-6">
+            <SponsorshipYield />
+            <Suspense fallback={<TableSkeleton />}>
+              <TokenHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
+            </Suspense>
+          </div>
         </div>
 
         {/* Charts */}
@@ -151,13 +160,9 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
           </div>
         </div>
 
-        {/* Holdings, paired: fungible on the left, the Gnars themselves on the
-            right. Both answer "what is in there", so they belong on one row. */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-          <Suspense fallback={<TableSkeleton />}>
-            <TokenHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
-          </Suspense>
-
+        {/* The Gnars themselves, full width — the one section where width is
+            the feature (Token Holdings moved up beside the sponsorship card). */}
+        <div>
           <div className="space-y-4">
             <div className="space-y-2">
               <h2 className="text-xl font-semibold">{t("page.nftSection.title")}</h2>
