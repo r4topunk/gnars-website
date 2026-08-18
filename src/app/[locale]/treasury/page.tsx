@@ -130,7 +130,11 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
             are permissionless. Side by side because they are the two halves
             of the same question, and reading one without the other overstates
             or understates what the DAO has earned. */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)]">
+        {/* `items-start`, against the grid default: stretch forced the short
+            sponsorship card to the inflows card's full height, leaving a void
+            below its button. In the design reference it ends where its content
+            ends. */}
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)]">
           <Suspense fallback={<TableSkeleton />}>
             <TreasuryInflows locale={locale} />
           </Suspense>
