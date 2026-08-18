@@ -5,9 +5,27 @@ import { useLocale, useTranslations } from "next-intl";
 import { GnarCard } from "@/components/auctions/GnarCard";
 import { LoadingGridSkeleton } from "@/components/skeletons/loading-grid-skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { toIntlLocale } from "@/lib/i18n/format";
 import { subgraphQuery } from "@/lib/subgraph";
+
+/**
+ * Tiles shown on the card before the dialog takes over. Seven plus the "see the
+ * rest" cell fills exactly two rows of the four-column grid, which is what the
+ * design shows — and what keeps this card a similar height to the Token
+ * Holdings card beside it. Rendering all of them inline is what made the page
+ * scroll for screens on end and left a tall column of page background next to a
+ * short neighbour.
+ */
+const PREVIEW_COUNT = 7;
 
 interface NftHoldingsProps {
   treasuryAddress: string;
@@ -208,6 +226,8 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
     );
   }
 
+  const remaining = tokens.length - PREVIEW_COUNT;
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -219,19 +239,68 @@ export function NftHoldings({ treasuryAddress }: NftHoldingsProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {tokens.slice(0, visibleCount).map((token) => (
-          <GnarCard
-            key={`gnar-${token.id}`}
-            tokenId={token.id}
-            imageUrl={token.imageUrl}
-            dateLabel={token.dateLabel}
-            finalBidEth={token.finalBidEth ?? null}
-            winnerAddress={token.winnerAddress ?? null}
-          />
+      {/* Preview: plain image tiles, not GnarCards. The card sits in a narrow
+          column, and the full card's date/bid/winner rows would be unreadable at
+          this width — the detail belongs in the dialog, where there is room. */}
+      <div className="grid grid-cols-4 gap-2.5">
+        {tokens.slice(0, PREVIEW_COUNT).map((token) => (
+          <div
+            key={`preview-${token.id}`}
+            title={`Gnar #${token.id}`}
+            className="aspect-square overflow-hidden rounded-lg bg-muted"
+          >
+            {token.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- subgraph URLs are unbounded hosts; next/image would need every one allow-listed
+              <img
+                src={token.imageUrl}
+                alt={`Gnar #${token.id}`}
+                loading="lazy"
+                className="size-full object-cover"
+              />
+            ) : null}
+          </div>
         ))}
+
+        {remaining > 0 ? (
+          <Dialog>
+            <DialogTrigger asChild>
+              {/* The count is the point: "+571" and "+4" are different
+                  decisions, and a bare "see more" hides which one this is. */}
+              <button
+                type="button"
+                className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/50 font-mono text-xs font-medium text-muted-foreground transition-colors hover:bg-muted"
+              >
+                +{remaining}
+              </button>
+            </DialogTrigger>
+            {/* Same scrollbar treatment as GnarsStakeDialog: without it the long
+                grid brings back the platform's default wide grey track running
+                down the inside of a rounded panel. */}
+            <DialogContent className="max-h-[88vh] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-[900px] [scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-foreground/20 [&::-webkit-scrollbar-thumb:hover]:bg-foreground/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
+              <DialogHeader>
+                <DialogTitle>{t("nfts.title")}</DialogTitle>
+                <DialogDescription>{t("nfts.count", { count: tokens.length })}</DialogDescription>
+              </DialogHeader>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {tokens.slice(0, visibleCount).map((token) => (
+                  <GnarCard
+                    key={`gnar-${token.id}`}
+                    tokenId={token.id}
+                    imageUrl={token.imageUrl}
+                    dateLabel={token.dateLabel}
+                    finalBidEth={token.finalBidEth ?? null}
+                    winnerAddress={token.winnerAddress ?? null}
+                  />
+                ))}
+              </div>
+              {/* Paging moved in here with the grid, so the sentinel scrolls
+                  inside the dialog instead of extending the page. */}
+              {visibleCount < tokens.length ? <div ref={sentinelRef} className="h-10" /> : null}
+            </DialogContent>
+          </Dialog>
+        ) : null}
       </div>
-      {visibleCount < tokens.length && <div ref={sentinelRef} className="h-10" />}
     </div>
   );
 }
