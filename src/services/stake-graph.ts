@@ -144,13 +144,19 @@ export type StakeGraph = {
   total: number;
   backerCount: number;
   /**
-   * Whether every rider's backer list is known to be COMPLETE.
+   * Whether every rider's VAULT (Morpho) backer list is known to be complete.
    *
    * The distinction this encodes did not exist before: an orbit with no backers
    * meant either "nobody has staked" or "the indexer we ask about holders was
    * down", and the code could not tell you which. Anything rendering backers
    * must check this before drawing a conclusion from an empty list — and must
    * not present a partial list as the full picture.
+   *
+   * SCOPE, deliberately narrow: this covers the vault half only. The MOR half
+   * (`morBackersByRider`) still returns an empty list on a failed log scan
+   * without saying so, so a `true` here does NOT promise the Morpheus stakers
+   * are all present. Widening it means teaching that path to tell a real outage
+   * apart from an absent ETHERSCAN_API_KEY, which is its own change.
    */
   backersResolved: boolean;
   /** Gnars' share of the Morpho vault performance fee accrued so far, in USD. */
