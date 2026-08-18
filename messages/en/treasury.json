@@ -91,7 +91,8 @@
     "colFrom": "From",
     "colSource": "Source",
     "colAmount": "Amount",
-    "colAge": "Age"
+    "colAge": "Age",
+    "secondary": "Secondary"
   },
   "allocation": {
     "title": "Allocation",
