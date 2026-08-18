@@ -51,7 +51,8 @@ subgraph query path (aggregate count, not the mock's placeholder 12).
 
 ## Error handling
 
-- Snapshot load failure: same behavior as today (error state in the cards).
+- Snapshot load failure: em-dash values in the affected cards (the page's
+  "unavailable, not zero" convention), notes omitted.
 - Subnet earnings `null`: dash, no fabricated zero.
 - BRL rate outage: existing `FiatFallbackNote` appears in the Total card (the
   only KPI card showing converted fiat as its main value).
