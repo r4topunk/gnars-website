@@ -410,7 +410,18 @@ export function useMorpheusStake() {
           setPhase("error");
           return false;
         }
-        const fee = await quoteClaimFee(account.address as Address, pending_);
+        // Quoting can fail for reasons that have nothing to do with the user
+        // (the LayerZero pathway rejecting our params is how every claim died
+        // for a while) — and a raw viem revert dump with a selector in it is
+        // not an error message. Name the step that failed instead.
+        let fee: bigint;
+        try {
+          fee = await quoteClaimFee(account.address as Address, pending_);
+        } catch {
+          setError("Couldn't price the bridge fee (mainnet → Arbitrum). Try again in a moment.");
+          setPhase("error");
+          return false;
+        }
         const data = encodeFunctionData({
           abi: depositPoolAbi,
           functionName: "claim",

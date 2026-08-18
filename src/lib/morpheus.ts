@@ -93,34 +93,89 @@ export const WITHDRAW_LOCK_SECONDS = 604800;
 
 // ---- ABIs (exact signatures from the Morpheus source, verified on-chain) ----
 export const depositPoolAbi = [
-  { type: "function", name: "stake", stateMutability: "nonpayable", inputs: [
-    { name: "rewardPoolIndex", type: "uint256" }, { name: "amount", type: "uint256" },
-    { name: "claimLockEnd", type: "uint128" }, { name: "referrer", type: "address" },
-  ], outputs: [] },
-  { type: "function", name: "withdraw", stateMutability: "nonpayable", inputs: [
-    { name: "rewardPoolIndex", type: "uint256" }, { name: "amount", type: "uint256" },
-  ], outputs: [] },
-  { type: "function", name: "claim", stateMutability: "payable", inputs: [
-    { name: "rewardPoolIndex", type: "uint256" }, { name: "receiver", type: "address" },
-  ], outputs: [] },
-  { type: "function", name: "claimFor", stateMutability: "payable", inputs: [
-    { name: "poolId", type: "uint256" }, { name: "user", type: "address" }, { name: "receiver", type: "address" },
-  ], outputs: [] },
-  { type: "function", name: "setClaimReceiver", stateMutability: "nonpayable", inputs: [
-    { name: "rewardPoolIndex", type: "uint256" }, { name: "receiver", type: "address" },
-  ], outputs: [] },
-  { type: "function", name: "getLatestUserReward", stateMutability: "view", inputs: [
-    { name: "rewardPoolIndex", type: "uint256" }, { name: "user", type: "address" },
-  ], outputs: [{ type: "uint256" }] },
-  { type: "function", name: "usersData", stateMutability: "view", inputs: [
-    { name: "user", type: "address" }, { name: "rewardPoolIndex", type: "uint256" },
-  ], outputs: [
-    { name: "lastStake", type: "uint128" }, { name: "deposited", type: "uint256" },
-    { name: "rate", type: "uint256" }, { name: "pendingRewards", type: "uint256" },
-    { name: "claimLockStart", type: "uint128" }, { name: "claimLockEnd", type: "uint128" },
-    { name: "virtualDeposited", type: "uint256" }, { name: "lastClaim", type: "uint128" },
-    { name: "referrer", type: "address" },
-  ] },
+  {
+    type: "function",
+    name: "stake",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "rewardPoolIndex", type: "uint256" },
+      { name: "amount", type: "uint256" },
+      { name: "claimLockEnd", type: "uint128" },
+      { name: "referrer", type: "address" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "withdraw",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "rewardPoolIndex", type: "uint256" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "claim",
+    stateMutability: "payable",
+    inputs: [
+      { name: "rewardPoolIndex", type: "uint256" },
+      { name: "receiver", type: "address" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "claimFor",
+    stateMutability: "payable",
+    inputs: [
+      { name: "poolId", type: "uint256" },
+      { name: "user", type: "address" },
+      { name: "receiver", type: "address" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "setClaimReceiver",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "rewardPoolIndex", type: "uint256" },
+      { name: "receiver", type: "address" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "getLatestUserReward",
+    stateMutability: "view",
+    inputs: [
+      { name: "rewardPoolIndex", type: "uint256" },
+      { name: "user", type: "address" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "usersData",
+    stateMutability: "view",
+    inputs: [
+      { name: "user", type: "address" },
+      { name: "rewardPoolIndex", type: "uint256" },
+    ],
+    outputs: [
+      { name: "lastStake", type: "uint128" },
+      { name: "deposited", type: "uint256" },
+      { name: "rate", type: "uint256" },
+      { name: "pendingRewards", type: "uint256" },
+      { name: "claimLockStart", type: "uint128" },
+      { name: "claimLockEnd", type: "uint128" },
+      { name: "virtualDeposited", type: "uint256" },
+      { name: "lastClaim", type: "uint128" },
+      { name: "referrer", type: "address" },
+    ],
+  },
 ] as const;
 
 // ---- Claim / LayerZero fee (all read on-chain from L1SenderV2's config) ----
@@ -132,16 +187,57 @@ export const depositPoolAbi = [
 export const L1_SENDER = getAddress("0x2Efd4430489e1a05A89c2f51811aC661B7E5FF84");
 export const LZ_GATEWAY = getAddress("0x66A71Dcef29A0fFBDBE3c6a460a3B5BC225Cd675");
 export const LZ_DST_CHAIN_ID = 110; // LayerZero v1 chain id for Arbitrum One
-export const LZ_ADAPTER_PARAMS = "0x" as const;
 
-export const lzEndpointAbi = [{
-  type: "function", name: "estimateFees", stateMutability: "view",
-  inputs: [
-    { name: "dstChainId", type: "uint16" }, { name: "userApplication", type: "address" },
-    { name: "payload", type: "bytes" }, { name: "payInZRO", type: "bool" }, { name: "adapterParam", type: "bytes" },
-  ],
-  outputs: [{ name: "nativeFee", type: "uint256" }, { name: "zroFee", type: "uint256" }],
-}] as const;
+/**
+ * Type-1 adapter params: `encodePacked(uint16(1), uint256(destinationGas))`.
+ *
+ * This used to be `"0x"`, which on classic LayerZero V1 meant "use the
+ * pathway's configured default". The V1 endpoint now routes through the
+ * V2-era UltraLightNode, which converts adapter params into worker options
+ * and REJECTS empty bytes — `estimateFees` reverts with
+ * `LZ_ULN_InvalidWorkerOptions(uint256)` (0x6592671c), which is exactly how
+ * every MOR claim died: the fee quote threw before any transaction was sent.
+ * Reproduced both ways by direct RPC call: `0x` reverts; type-1 params quote
+ * fine (200k → 0.0000481 ETH, 350k → 0.0000511 ETH).
+ *
+ * 350k destination gas is deliberately conservative, NOT a documented
+ * Morpheus figure: this constant only shapes the QUOTE (the value attached
+ * to `claim()`), the send's real destination gas comes from the L1Sender's
+ * own stored config, and the contracts refund excess `msg.value`. Over-quote
+ * costs ~$0.01 refunded; under-quote kills the claim.
+ */
+export const LZ_ADAPTER_PARAMS = `0x0001${BigInt(350_000).toString(16).padStart(64, "0")}` as const;
+
+export const lzEndpointAbi = [
+  {
+    type: "function",
+    name: "estimateFees",
+    stateMutability: "view",
+    inputs: [
+      { name: "dstChainId", type: "uint16" },
+      { name: "userApplication", type: "address" },
+      { name: "payload", type: "bytes" },
+      { name: "payInZRO", type: "bool" },
+      { name: "adapterParam", type: "bytes" },
+    ],
+    outputs: [
+      { name: "nativeFee", type: "uint256" },
+      { name: "zroFee", type: "uint256" },
+    ],
+  },
+  // The ULN's revert vocabulary, so viem can decode a failure into a NAME
+  // instead of showing users a raw selector with an openchain link.
+  {
+    type: "error",
+    name: "LZ_ULN_InvalidWorkerOptions",
+    inputs: [{ name: "cursor", type: "uint256" }],
+  },
+  {
+    type: "error",
+    name: "LZ_ULN_UnsupportedOptionType",
+    inputs: [{ name: "optionType", type: "uint256" }],
+  },
+] as const;
 
 /** MOR reward destination for a rider — a 2-recipient Arbitrum split (Gnars/athlete). */
 export type MorpheusSponsor = { morSplit?: Address };
