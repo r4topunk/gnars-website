@@ -3,7 +3,9 @@
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatFiatUsd } from "@/lib/i18n/fiat";
 import { toIntlLocale } from "@/lib/i18n/format";
+import { FiatFallbackNote } from "./FiatFallbackNote";
 
 export interface EnrichedToken {
   contractAddress: string;
@@ -19,9 +21,11 @@ export interface EnrichedToken {
 interface TokenHoldingsClientProps {
   tokens: EnrichedToken[];
   error?: string | null;
+  /** USD→BRL rate for value display on pt-br; `null` keeps USD. */
+  brlRate?: number | null;
 }
 
-export function TokenHoldingsClient({ tokens, error }: TokenHoldingsClientProps) {
+export function TokenHoldingsClient({ tokens, error, brlRate = null }: TokenHoldingsClientProps) {
   const t = useTranslations("treasury");
   const locale = useLocale();
   const intlLocale = toIntlLocale(locale);
@@ -36,12 +40,7 @@ export function TokenHoldingsClient({ tokens, error }: TokenHoldingsClientProps)
   const formatUsdValue = (value: number | null) => {
     // A real balance we couldn't price reads as a dash, never as $0.00.
     if (value == null) return "—";
-    return new Intl.NumberFormat(intlLocale, {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
+    return formatFiatUsd(value, locale, brlRate);
   };
 
   if (error) {
@@ -72,6 +71,7 @@ export function TokenHoldingsClient({ tokens, error }: TokenHoldingsClientProps)
       <CardHeader>
         <CardTitle>{t("tokens.title")}</CardTitle>
         <CardDescription>{t("tokens.description")}</CardDescription>
+        <FiatFallbackNote brlRate={brlRate} />
       </CardHeader>
       <CardContent>
         {/* Two-line rows instead of a three-column table: this card lives in

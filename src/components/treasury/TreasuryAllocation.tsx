@@ -1,7 +1,10 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { formatFiatUsd } from "@/lib/i18n/fiat";
+import { getBrlRateForRequest } from "@/services/exchange-rate";
 import { loadTreasurySnapshot } from "@/services/treasury";
+import { FiatFallbackNote } from "./FiatFallbackNote";
 import { loadTokenHoldings } from "./TokenHoldings";
 
 /**
@@ -35,6 +38,8 @@ type Slice = { label: string; usd: number; color: string };
 
 export async function TreasuryAllocation() {
   const t = await getTranslations("treasury.allocation");
+  const locale = await getLocale();
+  const brlRate = await getBrlRateForRequest();
 
   let slices: Slice[] = [];
   try {
@@ -74,8 +79,7 @@ export async function TreasuryAllocation() {
   if (slices.length === 0) return null;
 
   const total = slices.reduce((s, x) => s + x.usd, 0);
-  const usd = (n: number) =>
-    `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const usd = (n: number) => formatFiatUsd(n, locale, brlRate);
   const pct = (n: number) => (n / total) * 100;
 
   return (
@@ -113,6 +117,8 @@ export async function TreasuryAllocation() {
             </li>
           ))}
         </ul>
+
+        <FiatFallbackNote brlRate={brlRate} className="mt-3" />
       </CardContent>
     </Card>
   );

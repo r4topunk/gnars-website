@@ -12,6 +12,9 @@
       "description": "Tokens não-fungíveis mantidos no tesouro"
     }
   },
+  "fiat": {
+    "usdFallback": "Cotação do dólar indisponível — valores em US$"
+  },
   "tokens": {
     "title": "Holdings de Tokens",
     "description": "Tokens ERC-20 mantidos no tesouro",
