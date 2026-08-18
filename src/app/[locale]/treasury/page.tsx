@@ -12,7 +12,6 @@ import { SponsorshipYield } from "@/components/treasury/SponsorshipYield";
 import { TokenHoldings } from "@/components/treasury/TokenHoldings";
 import { TreasuryBalance } from "@/components/treasury/TreasuryBalance";
 import { TreasuryInflows } from "@/components/treasury/TreasuryInflows";
-import { ZoraCoinHoldings } from "@/components/treasury/ZoraCoinHoldings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DAO_ADDRESSES } from "@/lib/config";
 
@@ -124,17 +123,17 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
           </Card>
         </div>
 
-        {/* Rider sponsorship vaults — the DAO's share of the staking yield, and
-            the proposal that turns it into treasury USDC. */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {/* Income, paired. Left: what actually arrived and where from. Right:
+            what has accrued in the rider vaults but has NOT arrived yet — it
+            needs a claim proposal. Side by side because they are the two halves
+            of the same question, and reading one without the other overstates
+            or understates what the DAO has earned. */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)]">
+          <Suspense fallback={<TableSkeleton />}>
+            <TreasuryInflows locale={locale} />
+          </Suspense>
           <SponsorshipYield />
         </div>
-
-        {/* What has actually come in lately. Sits directly under the balances:
-            the KPIs say how much there is, this says where it came from. */}
-        <Suspense fallback={<TableSkeleton />}>
-          <TreasuryInflows locale={locale} />
-        </Suspense>
 
         {/* Charts */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -149,25 +148,22 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
           </div>
         </div>
 
-        {/* Token Holdings Table */}
-        <Suspense fallback={<TableSkeleton />}>
-          <TokenHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
-        </Suspense>
-
-        {/* Zora Coin Holdings */}
-        <Suspense fallback={<TableSkeleton />}>
-          <ZoraCoinHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
-        </Suspense>
-
-        {/* NFT Holdings Grid */}
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold">{t("page.nftSection.title")}</h2>
-            <p className="text-sm text-muted-foreground">{t("page.nftSection.description")}</p>
-          </div>
-          <Suspense fallback={<NftGridSkeleton />}>
-            <NftHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
+        {/* Holdings, paired: fungible on the left, the Gnars themselves on the
+            right. Both answer "what is in there", so they belong on one row. */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+          <Suspense fallback={<TableSkeleton />}>
+            <TokenHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
           </Suspense>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold">{t("page.nftSection.title")}</h2>
+              <p className="text-sm text-muted-foreground">{t("page.nftSection.description")}</p>
+            </div>
+            <Suspense fallback={<NftGridSkeleton />}>
+              <NftHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
+            </Suspense>
+          </div>
         </div>
       </div>
     </div>

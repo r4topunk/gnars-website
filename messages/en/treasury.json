@@ -5,9 +5,7 @@
     "kpis": {
       "totalValue": "Total Treasury Value",
       "ethBalance": "ETH Balance",
-      "totalAuctions": "Total Auction Sales",
-      "subnetEarnings": "Subnet Earnings",
-      "subnetEarningsNote": "Morpheus · treasury's 20% share"
+      "totalAuctions": "Total Auction Sales"
     },
     "nftSection": {
       "title": "NFT Holdings",
