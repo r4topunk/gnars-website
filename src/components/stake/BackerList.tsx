@@ -63,49 +63,62 @@ export function BackerList({ data }: { data?: StakeGraph } = {}) {
 
   const ranked = [...graph.athletes].filter((a) => a.total > 0).sort((a, b) => b.total - a.total);
 
-  if (ranked.length === 0) return <p className={cn("text-sm", MUTED)}>{t("empty")}</p>;
+  // "No backers yet" is a claim about the world, and it may be false: the
+  // holder index can be down, in which case we simply do not know. Say the
+  // thing we actually know instead. (`=== false`, not falsy — a react-query
+  // payload from before this field shipped is `undefined`, not a failure.)
+  const backersUnknown = graph.backersResolved === false;
+
+  if (ranked.length === 0)
+    return <p className={cn("text-sm", MUTED)}>{t(backersUnknown ? "unavailable" : "empty")}</p>;
 
   return (
-    // No sub-cards: one hairline between riders. No padding of its own — the
-    // section card's padding is what keeps the rows off the frame.
-    <ul className={ROW_LIST}>
-      {ranked.map((a) => (
-        <li key={a.id} className={ROW_PAD}>
-          <div className="flex items-baseline justify-between gap-3">
-            <span className="truncate text-sm font-semibold">{tc(`${a.id}.name`)}</span>
-            <span className="font-mono text-sm tabular-nums">{usd(a.total, locale)}</span>
-          </div>
-          <ul className="mt-1.5 space-y-0.5">
-            {a.backers.map((b) => (
-              <li
-                // `asset` belongs in the key for the same reason it does in
-                // StakeOrbit's: one wallet can stake MOR in BOTH Morpheus pools
-                // (stETH and USDC), which are two rows with the same address and
-                // kind. Without it React saw duplicate keys and dropped one —
-                // this fires on the LIVE data today (vlad's wallet), silently
-                // hiding a real stake from the list.
-                key={`${b.address}-${b.kind}-${b.asset ?? "na"}`}
-                className={cn("flex justify-between gap-3 text-xs", MICRO)}
-              >
-                {/* A name the graph already carries wins over the address. This
+    <>
+      {/* The rider totals below are exact even now — they come from the vault's
+          own `totalAssets()`, not from the backer list — so the list degrades
+          without taking the amounts down with it. */}
+      {backersUnknown && <p className={cn("mb-2 text-xs", MUTED)}>{t("unavailable")}</p>}
+      {/* No sub-cards: one hairline between riders. No padding of its own — the
+          section card's padding is what keeps the rows off the frame. */}
+      <ul className={ROW_LIST}>
+        {ranked.map((a) => (
+          <li key={a.id} className={ROW_PAD}>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="truncate text-sm font-semibold">{tc(`${a.id}.name`)}</span>
+              <span className="font-mono text-sm tabular-nums">{usd(a.total, locale)}</span>
+            </div>
+            <ul className="mt-1.5 space-y-0.5">
+              {a.backers.map((b) => (
+                <li
+                  // `asset` belongs in the key for the same reason it does in
+                  // StakeOrbit's: one wallet can stake MOR in BOTH Morpheus pools
+                  // (stETH and USDC), which are two rows with the same address and
+                  // kind. Without it React saw duplicate keys and dropped one —
+                  // this fires on the LIVE data today (vlad's wallet), silently
+                  // hiding a real stake from the list.
+                  key={`${b.address}-${b.kind}-${b.asset ?? "na"}`}
+                  className={cn("flex justify-between gap-3 text-xs", MICRO)}
+                >
+                  {/* A name the graph already carries wins over the address. This
                     list does no ENS lookup of its own, so without it the fixture
                     rows would all read as near-identical 0x-shorts.
 
                     Every identity on the site links to the internal profile, never
                     to an explorer — and below `md` this list IS the social proof,
                     so an unlinked backer is a dead end on the primary surface. */}
-                <Link
-                  href={`/members/${b.address}`}
-                  className="truncate font-mono hover:text-foreground hover:underline"
-                >
-                  {b.ens ?? short(b.address)}
-                </Link>
-                <span className="shrink-0 font-mono tabular-nums">{usd(b.amount, locale)}</span>
-              </li>
-            ))}
-          </ul>
-        </li>
-      ))}
-    </ul>
+                  <Link
+                    href={`/members/${b.address}`}
+                    className="truncate font-mono hover:text-foreground hover:underline"
+                  >
+                    {b.ens ?? short(b.address)}
+                  </Link>
+                  <span className="shrink-0 font-mono tabular-nums">{usd(b.amount, locale)}</span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

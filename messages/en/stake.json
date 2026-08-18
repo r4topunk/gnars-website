@@ -78,6 +78,7 @@
     "legendVault": "Morpho vault",
     "legendMor": "Morpheus · MOR",
     "backToAll": "All riders",
+    "backersUnavailable": "Couldn't load who's backing each rider. The amounts staked are live and correct.",
     "error": "Couldn't load the flow.",
     "retry": "Try again"
   },
@@ -354,6 +355,7 @@
     "backers": {
       "loading": "loading the flow…",
       "empty": "No backers yet.",
+      "unavailable": "Couldn't load the backers. The totals below are live and correct.",
       "error": "Couldn't load the flow.",
       "retry": "Try again"
     }

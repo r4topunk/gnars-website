@@ -78,6 +78,7 @@
     "legendVault": "Vault Morpho",
     "legendMor": "Morpheus · MOR",
     "backToAll": "Todos os riders",
+    "backersUnavailable": "Não deu pra carregar quem apoia cada rider. Os valores em stake estão ao vivo e corretos.",
     "error": "Não deu pra carregar o fluxo.",
     "retry": "Tentar de novo"
   },
@@ -354,6 +355,7 @@
     "backers": {
       "loading": "carregando o fluxo…",
       "empty": "Nenhum apoiador ainda.",
+      "unavailable": "Não deu pra carregar os apoiadores. Os totais abaixo estão ao vivo e corretos.",
       "error": "Não deu pra carregar o fluxo.",
       "retry": "Tentar de novo"
     }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getStakeGraph } from "@/services/stake-graph";
+import { loadStakeGraph } from "@/services/stake-graph";
 
 /**
  * Two independent cache windows, and they must NOT share a constant:
@@ -31,10 +31,17 @@ const CDN_TTL_SECONDS = 300;
 
 export async function GET() {
   try {
-    const graph = await getStakeGraph();
+    const { graph, degraded } = await loadStakeGraph();
     return NextResponse.json(graph, {
       headers: {
-        "Cache-Control": `public, s-maxage=${CDN_TTL_SECONDS}, stale-while-revalidate=${CDN_TTL_SECONDS * 2}`,
+        // A degraded graph must not enter EITHER cache. The service keeps it out
+        // of the data cache by throwing; `no-store` is what keeps it out of the
+        // CDN — the cache `revalidateTag` cannot reach, and therefore the one
+        // that would pin an empty orbit for the full s-maxage window even after
+        // the indexer recovered.
+        "Cache-Control": degraded
+          ? "no-store"
+          : `public, s-maxage=${CDN_TTL_SECONDS}, stale-while-revalidate=${CDN_TTL_SECONDS * 2}`,
       },
     });
   } catch {
