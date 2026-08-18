@@ -21,6 +21,12 @@ export interface TreasurySnapshot {
   usdTotal: number | null;
   ethBalance: number;
   totalAuctionSales: number;
+  /** USD value of the native ETH balance; `null` when the ETH price was unavailable. */
+  nativeEthUsd: number | null;
+  /** Positive-balance assets incl. native ETH — the "across N assets" note. */
+  assetCount: number;
+  /** Epoch ms when this snapshot was computed (feeds the "Synced" badge). */
+  generatedAt: number;
 }
 
 function getBaseUrl() {
@@ -130,6 +136,9 @@ export const loadTreasurySnapshot = cache(
       usdTotal,
       ethBalance,
       totalAuctionSales,
+      nativeEthUsd: ethUsd == null ? null : nativeEthUsd,
+      assetCount: tokenBalances.length + (ethBalance > 0 ? 1 : 0),
+      generatedAt: Date.now(),
     };
   },
 );

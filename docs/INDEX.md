@@ -44,6 +44,7 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/superpowers/specs/2026-03-16-vote-card-delegation-breakdown-design.md` — vote card own vs delegated breakdown
 - `docs/superpowers/specs/2026-04-24-proposal-template-fields-design.md` — structured input fields per proposal template (replaces markdown skeleton)
 - `docs/superpowers/specs/2026-05-11-i18n-en-ptbr-design.md` — i18n EN + PT-BR design
+- `docs/superpowers/specs/2026-08-18-treasury-kpi-header-design.md` — treasury KPI header: 4 accented cards + synced badge + subnet earnings
 
 ## Research
 

@@ -61,3 +61,44 @@ export const fetchTotalAuctionSalesWei = cache(async (): Promise<bigint> => {
   const { totalAuctionSalesWei } = await fetchDaoOverview();
   return totalAuctionSalesWei;
 });
+
+const SETTLED_AUCTION_IDS_GQL = /* GraphQL */ `
+  query SettledAuctionIds($dao: String!, $after: ID!) {
+    auctions(
+      where: { dao: $dao, settled: true, id_gt: $after }
+      first: 1000
+      orderBy: id
+      orderDirection: asc
+    ) {
+      id
+    }
+  }
+`;
+
+/**
+ * Count of settled auctions. There is no aggregate on the DAO entity (and
+ * `tokensCount` counts founder mints too), so this cursors through id-only
+ * pages — ~8 requests for Gnars' ~7k auctions, refreshed at the page's ISR
+ * cadence. The 20-page guard is a runaway stop, not an expected ceiling.
+ * `0` = count unavailable; callers omit the note rather than claiming zero.
+ */
+export const fetchSettledAuctionCount = cache(async (): Promise<number> => {
+  try {
+    const dao = DAO_ADDRESSES.token.toLowerCase();
+    let count = 0;
+    let after = "";
+    for (let page = 0; page < 20; page += 1) {
+      const data = await subgraphQuery<{ auctions?: Array<{ id: string }> }>(
+        SETTLED_AUCTION_IDS_GQL,
+        { dao, after },
+      );
+      const ids = data.auctions ?? [];
+      count += ids.length;
+      if (ids.length < 1000) return count;
+      after = ids[ids.length - 1].id;
+    }
+    return count;
+  } catch {
+    return 0;
+  }
+});

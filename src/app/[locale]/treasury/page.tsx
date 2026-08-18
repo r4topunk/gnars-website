@@ -9,11 +9,11 @@ import {
 } from "@/components/skeletons/treasury-skeletons";
 import { NftHoldings } from "@/components/treasury/NftHoldings";
 import { SponsorshipYield } from "@/components/treasury/SponsorshipYield";
+import { SyncedBadge } from "@/components/treasury/SyncedBadge";
 import { TokenHoldings } from "@/components/treasury/TokenHoldings";
 import { TreasuryAllocation } from "@/components/treasury/TreasuryAllocation";
-import { TreasuryBalance } from "@/components/treasury/TreasuryBalance";
 import { TreasuryInflows } from "@/components/treasury/TreasuryInflows";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TreasuryKpiRow } from "@/components/treasury/TreasuryKpiRow";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { getBrlRateForRequest } from "@/services/exchange-rate";
 
@@ -79,47 +79,31 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
   return (
     <div className="py-8">
       <div className="space-y-8">
-        {/* Page Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">{t("page.title")}</h1>
-          <p className="text-muted-foreground">{t("page.description")}</p>
+        {/* Page Header — synced badge binds to the ISR snapshot's timestamp */}
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">{t("page.title")}</h1>
+            <p className="text-muted-foreground">{t("page.description")}</p>
+          </div>
+          <Suspense fallback={null}>
+            <SyncedBadge />
+          </Suspense>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <Card className="gap-2">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">{t("page.kpis.totalValue")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={<MetricSkeleton />}>
-                <TreasuryBalance treasuryAddress={DAO_ADDRESSES.treasury} />
-              </Suspense>
-            </CardContent>
-          </Card>
-
-          <Card className="gap-2">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">{t("page.kpis.ethBalance")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={<MetricSkeleton />}>
-                <TreasuryBalance treasuryAddress={DAO_ADDRESSES.treasury} metric="eth" />
-              </Suspense>
-            </CardContent>
-          </Card>
-
-          <Card className="gap-2">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">{t("page.kpis.totalAuctions")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={<MetricSkeleton />}>
-                <TreasuryBalance treasuryAddress={DAO_ADDRESSES.treasury} metric="auctions" />
-              </Suspense>
-            </CardContent>
-          </Card>
-        </div>
+        {/* KPIs — one component, one snapshot load, four accented cards */}
+        <Suspense
+          fallback={
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-xl border bg-card p-6">
+                  <MetricSkeleton />
+                </div>
+              ))}
+            </div>
+          }
+        >
+          <TreasuryKpiRow />
+        </Suspense>
 
         {/* What the treasury is MADE OF, before the income breakdown below.
             Every figure is already on this page — the point is the share, which

@@ -2,10 +2,15 @@
   "page": {
     "title": "Tesouro",
     "description": "Visão geral dos holdings do tesouro da Gnars DAO e da posição financeira",
+    "synced": "Sincronizado {time}",
     "kpis": {
       "totalValue": "Valor Total do Tesouro",
       "ethBalance": "Saldo de ETH",
-      "totalAuctions": "Total de Vendas em Leilão"
+      "totalAuctions": "Total de Vendas em Leilão",
+      "subnetEarnings": "Ganhos da Subnet",
+      "acrossAssets": "em {count} ativos",
+      "auctionsSettled": "{count} leilões concluídos",
+      "morpheusClaims": "Morpheus · {count} resgates"
     },
     "nftSection": {
       "title": "Holdings de NFT",
