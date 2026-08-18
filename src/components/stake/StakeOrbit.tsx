@@ -550,6 +550,18 @@ export function StakeOrbit({
 
   return (
     <div>
+      {/* An empty orbit used to be unreadable: it meant "nobody has staked" and
+          "we couldn't find out who staked" equally well, and the second one is
+          what was actually happening in production. The graph now says which,
+          so the page can too. `=== false` on purpose — a payload cached by
+          react-query from before this field existed is `undefined`, and that is
+          not a claim of failure. */}
+      {graph.backersResolved === false && (
+        <p className="mb-3 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/70">
+          {t("orbit.backersUnavailable")}
+        </p>
+      )}
+
       {focused && (
         <button
           type="button"
