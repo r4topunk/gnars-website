@@ -15,6 +15,7 @@ import { TreasuryBalance } from "@/components/treasury/TreasuryBalance";
 import { TreasuryInflows } from "@/components/treasury/TreasuryInflows";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { getBrlRateForRequest } from "@/services/exchange-rate";
 
 export async function generateMetadata({
   params,
@@ -71,6 +72,9 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("treasury");
+  // One USD→BRL lookup per request, shared by every fiat display on the page.
+  // SponsorshipYield is a client component, so its copy arrives as a prop.
+  const brlRate = await getBrlRateForRequest();
 
   return (
     <div className="py-8">
@@ -143,7 +147,7 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
               that void, and surrendering its old half-width row gives the NFT
               grid the full width it actually benefits from. */}
           <div className="space-y-6">
-            <SponsorshipYield />
+            <SponsorshipYield brlRate={brlRate} />
             <Suspense fallback={<TableSkeleton />}>
               <TokenHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
             </Suspense>

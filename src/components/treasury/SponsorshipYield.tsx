@@ -34,6 +34,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useStakeGraphQuery } from "@/hooks/use-stake-graph";
 import { RIDER_LIST, type RiderId } from "@/lib/gnars-vaults";
+import { localizeFiat } from "@/lib/i18n/fiat";
+import { toIntlLocale } from "@/lib/i18n/format";
+import { FiatFallbackNote } from "./FiatFallbackNote";
 
 /**
  * Avatar crop per rider. Duplicated from StakeOrbit's `RIDER_VISUAL` on purpose,
@@ -57,7 +60,7 @@ export const AVATAR: Record<RiderId, { src: string; size: string; pos: string }>
 // the explorer renders the contract, its recipients and the Distribute button.
 const SPLITS_APP = (split: string) => `https://explorer.splits.org/accounts/${split}/?chainId=8453`;
 
-export function SponsorshipYield() {
+export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }) {
   const t = useTranslations("treasury.sponsorship");
   const tc = useTranslations("stake.characters");
   const locale = useLocale();
@@ -66,8 +69,17 @@ export function SponsorshipYield() {
   // Nothing deployed yet — don't show an empty widget on the treasury page.
   if (RIDER_LIST.every((r) => !r.vault)) return null;
 
-  const usd = (n: number) =>
-    `$${n.toLocaleString(locale, { maximumFractionDigits: n > 0 && n < 100 ? 4 : 2 })}`;
+  const usd = (n: number) => {
+    const { value, currency } = localizeFiat(n, locale, brlRate);
+    // The 4-digit rule keys off the DISPLAYED magnitude: a sub-cent accrual
+    // stays sub-cent after conversion and still needs the extra precision.
+    return new Intl.NumberFormat(toIntlLocale(locale), {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: value > 0 && value < 100 ? 4 : 2,
+    }).format(value);
+  };
 
   const byId = new Map((graph?.athletes ?? []).map((a) => [a.id, a]));
   const rows = RIDER_LIST.map((r) => {
@@ -109,6 +121,7 @@ export function SponsorshipYield() {
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground/70">
             {t("accrualNote")}
           </p>
+          <FiatFallbackNote brlRate={brlRate} className="mt-2" />
         </div>
 
         <div>

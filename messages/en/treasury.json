@@ -12,6 +12,9 @@
       "description": "Non-fungible tokens held in the treasury"
     }
   },
+  "fiat": {
+    "usdFallback": "BRL rate unavailable — values shown in US$"
+  },
   "tokens": {
     "title": "Token Holdings",
     "description": "ERC-20 tokens held in the treasury",

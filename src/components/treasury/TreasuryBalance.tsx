@@ -1,3 +1,4 @@
+import { getBrlRateForRequest } from "@/services/exchange-rate";
 import { loadTreasurySnapshot } from "@/services/treasury";
 import { TreasuryBalanceClient } from "./TreasuryBalanceClient";
 
@@ -23,5 +24,7 @@ export async function TreasuryBalance({ treasuryAddress, metric = "total" }: Tre
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load treasury data";
   }
-  return <TreasuryBalanceClient metric={metric} value={value} error={error} />;
+  // Only the "total" metric is a fiat figure; ETH metrics never convert.
+  const brlRate = metric === "total" ? await getBrlRateForRequest() : null;
+  return <TreasuryBalanceClient metric={metric} value={value} error={error} brlRate={brlRate} />;
 }

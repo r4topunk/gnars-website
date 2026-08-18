@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { headers } from "next/headers";
 import { TREASURY_TOKEN_ADDRESSES } from "@/lib/config";
+import { getBrlRateForRequest } from "@/services/exchange-rate";
 import { getTokenPricesUsd } from "@/services/prices";
 import { EnrichedToken, TokenHoldingsClient } from "./TokenHoldingsClient";
 
@@ -156,5 +157,6 @@ export async function TokenHoldings({ treasuryAddress }: TokenHoldingsProps) {
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load token holdings";
   }
-  return <TokenHoldingsClient tokens={tokens} error={error} />;
+  const brlRate = await getBrlRateForRequest();
+  return <TokenHoldingsClient tokens={tokens} error={error} brlRate={brlRate} />;
 }
