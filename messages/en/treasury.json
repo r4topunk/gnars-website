@@ -15,11 +15,6 @@
   "tokens": {
     "title": "Token Holdings",
     "description": "ERC-20 tokens held in the treasury",
-    "table": {
-      "token": "Token",
-      "amount": "Amount",
-      "valueUsd": "Value (USD)"
-    },
     "empty": "No tokens found",
     "emptyDescription": "The treasury currently holds no ERC-20 tokens",
     "errorLoading": "Error loading token holdings: {error}"

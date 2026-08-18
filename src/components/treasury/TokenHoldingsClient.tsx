@@ -3,14 +3,6 @@
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { toIntlLocale } from "@/lib/i18n/format";
 
 export interface EnrichedToken {
@@ -82,47 +74,42 @@ export function TokenHoldingsClient({ tokens, error }: TokenHoldingsClientProps)
         <CardDescription>{t("tokens.description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("tokens.table.token")}</TableHead>
-              <TableHead className="text-right">{t("tokens.table.amount")}</TableHead>
-              <TableHead className="text-right">{t("tokens.table.valueUsd")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tokens.map((token) => (
-              <TableRow key={token.contractAddress}>
-                <TableCell>
-                  <div className="flex items-center space-x-3">
-                    {token.logo && (
-                      <Image
-                        src={token.logo}
-                        alt={token.symbol}
-                        width={24}
-                        height={24}
-                        className="rounded-full"
-                        onError={(event) => {
-                          event.currentTarget.style.display = "none";
-                        }}
-                      />
-                    )}
-                    <div>
-                      <div className="font-medium">{token.name}</div>
-                      <div className="text-sm text-muted-foreground">{token.symbol}</div>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right tabular-nums">
+        {/* Two-line rows instead of a three-column table: this card lives in
+            the narrow right column, where the table's Value column clipped
+            against the card edge. */}
+        <ul className="divide-y">
+          {tokens.map((token) => (
+            <li
+              key={token.contractAddress}
+              className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                {token.logo && (
+                  <Image
+                    src={token.logo}
+                    alt={token.symbol}
+                    width={24}
+                    height={24}
+                    className="rounded-full"
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none";
+                    }}
+                  />
+                )}
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{token.name}</div>
+                  <div className="text-sm text-muted-foreground">{token.symbol}</div>
+                </div>
+              </div>
+              <div className="shrink-0 text-right">
+                <div className="font-medium tabular-nums">{formatUsdValue(token.usdValue)}</div>
+                <div className="text-sm text-muted-foreground tabular-nums">
                   {formatBalance(token.balance, token.decimals)} {token.symbol}
-                </TableCell>
-                <TableCell className="text-right tabular-nums">
-                  {formatUsdValue(token.usdValue)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
       </CardContent>
     </Card>
   );
