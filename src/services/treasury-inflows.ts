@@ -65,7 +65,25 @@ const SPLIT_PRODUCT: Record<string, InflowSource> = {
  * the DAO actually earns from, not a transaction taxonomy. `splits` is the
  * explicit "a split paid this but we cannot say which product" bucket.
  */
-export type InflowSource = "auction" | "subnet" | "swap" | "splits" | "transfer";
+export type InflowSource = "auction" | "subnet" | "swap" | "splits" | "secondary" | "transfer";
+
+/**
+ * Seaport 1.6 (the canonical vanity deployment). Secondary sales of Gnars NFTs
+ * settle through it in two shapes, and only ONE of them is detectable by the
+ * sender:
+ *
+ * - ETH listings: Seaport itself pays the treasury, so `from` IS this address.
+ * - Accepted WETH offers: the WETH leaves EACH BUYER's wallet (via conduit),
+ *   so `from` varies per row — dozens of senders were dozens of buyers, not a
+ *   mystery. Do NOT "fix" that path by filtering on a sender; the only
+ *   reliable marker is Seaport appearing among the transaction's log emitters
+ *   (verified: to = Seaport, emitters = Seaport + WETH + the Gnars token).
+ *
+ * The tag is "secondary", never a platform name: Seaport is an open protocol
+ * (OpenSea, aggregators, bots), and the dissected fulfilment used no OpenSea
+ * conduit — the platform is not provable from the chain.
+ */
+const SEAPORT = "0x0000000000000068f116a894984e2db1123eb395";
 
 /** Assets this panel reports. Everything else the treasury receives is noise here. */
 const TRACKED = new Set([USDC, WETH]);
@@ -109,7 +127,7 @@ const ALCHEMY_KEY = process.env.ALCHEMY_API_KEY;
  * there, and the answer is the generic `splits`, not a guess. A failed
  * receipt read degrades the same way: `splits` asserts nothing false.
  */
-async function splitSourceForTx(hash: string): Promise<InflowSource> {
+async function txLogEmitters(hash: string): Promise<Set<string> | null> {
   try {
     const res = await fetch(`https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`, {
       method: "POST",
@@ -123,16 +141,30 @@ async function splitSourceForTx(hash: string): Promise<InflowSource> {
       // Receipts are immutable; cache them as long as Next allows.
       next: { revalidate: 86400 },
     });
-    if (!res.ok) return "splits";
+    if (!res.ok) return null;
     const json = (await res.json()) as { result?: { logs?: { address?: string }[] } };
-    for (const log of json.result?.logs ?? []) {
-      const product = SPLIT_PRODUCT[(log.address ?? "").toLowerCase()];
-      if (product) return product;
-    }
-    return "splits";
+    return new Set((json.result?.logs ?? []).map((l) => (l.address ?? "").toLowerCase()));
   } catch {
-    return "splits";
+    return null;
   }
+}
+
+async function splitSourceForTx(hash: string): Promise<InflowSource> {
+  const emitters = await txLogEmitters(hash);
+  if (!emitters) return "splits";
+  for (const e of emitters) {
+    const product = SPLIT_PRODUCT[e];
+    if (product) return product;
+  }
+  return "splits";
+}
+
+/** A WETH credit is a secondary sale iff Seaport emitted in its transaction —
+ * see the SEAPORT note for why the sender can never be the marker here. A
+ * failed receipt read stays "transfer": asserting a sale needs the evidence. */
+async function secondaryOrTransfer(hash: string): Promise<InflowSource> {
+  const emitters = await txLogEmitters(hash);
+  return emitters?.has(SEAPORT) ? "secondary" : "transfer";
 }
 
 /** One page of inflows plus the cursor to the next. `nextPageKey: null` means
@@ -217,7 +249,11 @@ export const loadTreasuryInflowsPage = cache(async (pageKey?: string): Promise<I
           ? "auction"
           : from === SPLITS_WAREHOUSE
             ? await splitSourceForTx(t.hash)
-            : "transfer";
+            : from === SEAPORT
+              ? "secondary"
+              : asset === "WETH"
+                ? await secondaryOrTransfer(t.hash)
+                : "transfer";
 
       return [
         {

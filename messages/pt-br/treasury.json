@@ -91,7 +91,8 @@
     "colFrom": "De",
     "colSource": "Origem",
     "colAmount": "Valor",
-    "colAge": "Idade"
+    "colAge": "Idade",
+    "secondary": "Secundária"
   },
   "allocation": {
     "title": "Alocação",
