@@ -69,13 +69,38 @@
   },
   "inflows": {
     "title": "Últimas entradas",
-    "showMore": "Ver mais {count}",
     "empty": "Nenhuma entrada recente.",
     "auction": "Leilão",
     "auctionHint": "Chegou do contrato de leilão como transferência interna",
     "viewTx": "Ver transação no Basescan",
     "subnet": "Morpheus Subnet",
     "splits": "Splits",
-    "transfer": "Transferência"
+    "transfer": "Transferência",
+    "subtitle": "Cada crédito no tesouro, marcado pela origem",
+    "fullLedger": "Extrato completo",
+    "prevPage": "Página anterior",
+    "nextPage": "Próxima página",
+    "range": "{from}–{to} de {total}",
+    "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+    "nameAuction": "Casa de leilão",
+    "nameWarehouse": "Splits Warehouse",
+    "nameVault": "Vault do rider",
+    "nameSplit": "Split do rider"
+  },
+  "allocation": {
+    "title": "Alocação",
+    "subtitle": "{count, plural, one {# ativo} other {# ativos}} · a preço de mercado"
+  },
+  "sponsorship": {
+    "title": "Rendimento de patrocínio",
+    "desc": "Parte do tesouro no rendimento acumulado nos vaults dos riders. Quem deposita mantém o principal — só o rendimento é dividido.",
+    "colRider": "Rider",
+    "colTvl": "TVL do vault",
+    "colYield": "Rendimento",
+    "totalTvl": "TVL total dos vaults",
+    "openTitle": "Qualquer um pode fazer agora",
+    "openDesc": "Distribuir o split e empurrar o saldo pro tesouro são os dois permissionless — não precisa de votação. Qualquer carteira dispara.",
+    "govDesc": "Só converter essas shares em USDC exige proposta: o tesouro é um timelock, e o ERC-4626 não deixa mais ninguém resgatar no lugar dele.",
+    "govCta": "Abrir proposta de resgate"
   }
 }

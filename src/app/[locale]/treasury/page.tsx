@@ -10,6 +10,7 @@ import {
 import { NftHoldings } from "@/components/treasury/NftHoldings";
 import { SponsorshipYield } from "@/components/treasury/SponsorshipYield";
 import { TokenHoldings } from "@/components/treasury/TokenHoldings";
+import { TreasuryAllocation } from "@/components/treasury/TreasuryAllocation";
 import { TreasuryBalance } from "@/components/treasury/TreasuryBalance";
 import { TreasuryInflows } from "@/components/treasury/TreasuryInflows";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,9 +117,17 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
           </Card>
         </div>
 
+        {/* What the treasury is MADE OF, before the income breakdown below.
+            Every figure is already on this page — the point is the share, which
+            neither the KPI row nor the token table can answer on its own. */}
+        <Suspense fallback={null}>
+          <TreasuryAllocation />
+        </Suspense>
+
         {/* Income, paired. Left: what actually arrived and where from. Right:
-            what has accrued in the rider vaults but has NOT arrived yet — it
-            needs a claim proposal. Side by side because they are the two halves
+            what has accrued in the rider vaults but has NOT arrived yet. Only
+            the final USDC redemption needs a proposal; the two steps before it
+            are permissionless. Side by side because they are the two halves
             of the same question, and reading one without the other overstates
             or understates what the DAO has earned. */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)]">

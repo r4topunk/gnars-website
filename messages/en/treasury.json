@@ -69,13 +69,38 @@
   },
   "inflows": {
     "title": "Latest inflows",
-    "showMore": "Show {count} more",
     "empty": "No recent inflows.",
     "auction": "Auction",
     "auctionHint": "Arrived from the auction house as an internal transfer",
     "viewTx": "View transaction on Basescan",
     "subnet": "Morpheus Subnet",
     "splits": "Splits",
-    "transfer": "Transfer"
+    "transfer": "Transfer",
+    "subtitle": "Every credit to the treasury, tagged by where it came from",
+    "fullLedger": "Full ledger",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
+    "range": "{from}–{to} of {total}",
+    "entryCount": "{count, plural, one {# entry} other {# entries}}",
+    "nameAuction": "Auction house",
+    "nameWarehouse": "Splits Warehouse",
+    "nameVault": "Rider vault",
+    "nameSplit": "Rider split"
+  },
+  "allocation": {
+    "title": "Allocation",
+    "subtitle": "{count, plural, one {# asset} other {# assets}} · marked to market"
+  },
+  "sponsorship": {
+    "title": "Sponsorship yield",
+    "desc": "Treasury's share of the yield accrued in the rider vaults. Depositors keep their principal — only the yield is split.",
+    "colRider": "Rider",
+    "colTvl": "Vault TVL",
+    "colYield": "Yield",
+    "totalTvl": "Total vault TVL",
+    "openTitle": "Anyone can do this now",
+    "openDesc": "Distributing the split and pushing the balance to the treasury are both permissionless — no vote needed. Any wallet can trigger them.",
+    "govDesc": "Only converting those shares to USDC needs a proposal: the treasury is a timelock, and ERC-4626 lets nobody else redeem on its behalf.",
+    "govCta": "Start redeem proposal"
   }
 }
