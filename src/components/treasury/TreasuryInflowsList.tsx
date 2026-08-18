@@ -6,7 +6,6 @@
 // paging happens here. That ordering matters: the auction credits are older than
 // the newest handful, so slicing on the server made a working Auction badge
 // invisible — the rule fired, nobody ever saw it.
-
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ExternalLink, Gavel } from "lucide-react";

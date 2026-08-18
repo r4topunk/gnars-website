@@ -69,6 +69,7 @@
   },
   "inflows": {
     "title": "Últimas entradas",
+    "showMore": "Ver mais {count}",
     "empty": "Nenhuma entrada recente.",
     "auction": "Leilão",
     "auctionHint": "Chegou do contrato de leilão como transferência interna",
