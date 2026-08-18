@@ -189,7 +189,8 @@
     "morphoTitle": "Morpho yield",
     "claimYield": "Harvest",
     "vaultClaimed": "Yield harvested to your wallet",
-    "enableRewards": "Enable rewards"
+    "enableRewards": "Enable rewards",
+    "claimLocked": "MOR locked until {date}"
   },
   "admin": {
     "title": "Sponsorship vaults",

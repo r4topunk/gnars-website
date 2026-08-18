@@ -175,9 +175,16 @@ export function MorLootbox({
   const collectable = collectItems.reduce((s, x) => s + x.amount, 0);
 
   const pools = position?.pools ?? [];
-  const claimable = pools.filter(
+  // Split by the claim-lock, not filtered out by it: locked MOR is still the
+  // user's money and still a reason to open the box — it just must not wear a
+  // Claim button that the contract will revert until claimLockEnd. One user
+  // already has 0.2 MOR locked to 2028 behind what looked like a working
+  // button.
+  const rewardable = pools.filter(
     (p) => p.pendingMor > LOOT_MIN_MOR && p.referrer && p.referrer.toLowerCase() !== ZERO,
   );
+  const claimable = rewardable.filter((p) => p.morUnlockAt <= nowSec);
+  const claimLocked = rewardable.filter((p) => p.morUnlockAt > nowSec);
   const distributable = pools.filter((p) => (splitBalances[p.asset] ?? 0) > LOOT_MIN_MOR);
   const stakedPools = pools.filter((p) => p.staked > 0);
   // The box surfaces whenever there's anything to act on — MOR rewards (claim,
@@ -185,6 +192,7 @@ export function MorLootbox({
   // to manage (7-day lock).
   const hasAction =
     claimable.length > 0 ||
+    claimLocked.length > 0 ||
     distributable.length > 0 ||
     collectable > LOOT_MIN_MOR ||
     vaultRewards.length > 0 ||
@@ -313,6 +321,7 @@ export function MorLootbox({
       {open && (
         <RewardClaimModal
           claimable={claimable}
+          claimLocked={claimLocked}
           distributable={distributable}
           collectable={collectable}
           vaultRewards={vaultRewards}
