@@ -74,6 +74,7 @@
     "auctionHint": "Chegou do contrato de leilão como transferência interna",
     "viewTx": "Ver transação no Basescan",
     "subnet": "Morpheus Subnet",
+    "swap": "Taxa de swap",
     "splits": "Splits",
     "transfer": "Transferência",
     "subtitle": "Cada crédito no tesouro, marcado pela origem",
@@ -85,7 +86,8 @@
     "nameAuction": "Casa de leilão",
     "nameWarehouse": "Splits Warehouse",
     "nameVault": "Vault do rider",
-    "nameSplit": "Split do rider"
+    "nameSplit": "Split do rider",
+    "loadFailed": "Não deu pra carregar mais — tenta de novo"
   },
   "allocation": {
     "title": "Alocação",
