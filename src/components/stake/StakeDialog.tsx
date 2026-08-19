@@ -34,7 +34,6 @@ interface Opp {
   kind: "vault" | "mor";
   asset: "usdc" | "steth";
   unit: string;
-  labelKey: string;
   venue: string;
   logo: string;
   presets: number[];
@@ -46,7 +45,6 @@ const OPPS: Opp[] = [
     kind: "vault",
     asset: "usdc",
     unit: "USDC",
-    labelKey: "opp.vaultUsdc",
     venue: "Morpho",
     logo: MORPHO_LOGO,
     presets: [100, 500, 1000, 5000],
@@ -57,7 +55,6 @@ const OPPS: Opp[] = [
     kind: "mor",
     asset: "steth",
     unit: "stETH",
-    labelKey: "opp.morSteth",
     venue: "Morpheus",
     logo: MORPHEUS_LOGO,
     presets: [0.011, 0.1, 0.5, 1],
@@ -68,7 +65,6 @@ const OPPS: Opp[] = [
     kind: "mor",
     asset: "usdc",
     unit: "USDC",
-    labelKey: "opp.morUsdc",
     venue: "Morpheus",
     logo: MORPHEUS_LOGO,
     presets: [100, 500, 1000, 5000],
@@ -432,12 +428,17 @@ export function StakeDialog({
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={o.logo} alt="" className="h-6 w-6 flex-none rounded-full" />
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-bold">{t(o.labelKey)}</div>
+                          {/* Deposit asset first, protocol second: users deposit
+                              regular USDC/stETH — Morpho/Morpheus is only the
+                              yield source (community feedback). */}
+                          <div className="text-sm font-bold">
+                            {t("opp.depositTitle", { unit: o.unit })}
+                          </div>
                           <div
                             className="mt-0.5 text-[11.5px] font-semibold"
                             style={{ color: muted }}
                           >
-                            {o.kind === "vault" ? t("opp.stableTag") : t("opp.morTag")} · {o.unit}
+                            {o.kind === "vault" ? t("opp.viaMorpho") : t("opp.viaMorpheus")}
                           </div>
                         </div>
                         <div className="flex-none text-[17px] font-black" style={{ color: GREEN }}>
