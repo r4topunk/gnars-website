@@ -39,26 +39,60 @@ export const SUBNET_FINAL_SPLIT = "0xcc7e971fb6828e45c01e168849447e460fdf3a4e";
 export const SWAP_FEE_SPLIT = "0x15e69fd67dcc17e061ceeb93dac791e0f5af0eae";
 
 /**
- * THE SPLIT → PRODUCT MAP. Attribution is per ORIGINATING SPLIT, not per
- * warehouse: every split pays through the same SplitsWarehouse address, so
- * "warehouse USDC = subnet" was a rule with an expiry date — and it expired.
- * The swap-fee split distributed on 2026-06-22, and that credit spent weeks on
- * the treasury page labelled "Morpheus Subnet".
+ * ═══════════════════ THE SPLIT ADDRESS BOOK ═══════════════════
  *
- * A warehouse credit is attributed by which of these splits emitted an event
- * in the SAME transaction (distribute-and-withdraw flows). A credit whose
- * transaction names none of them — a bare `withdraw()` of balance deposited
- * earlier, or a split nobody has mapped yet (two such ETH-paying splits,
- * 0xd9b2…ad6b and 0xdac8…e54, have already credited this treasury) — falls to
- * the generic `splits` tag. Generic is the honest floor: an unmapped split
- * must surface as unclassified, never wear another product's name.
+ * Every split that has ever paid this treasury, in three tiers. Attribution is
+ * per ORIGINATING SPLIT, not per warehouse: every split pays through the same
+ * SplitsWarehouse address, so "warehouse USDC = subnet" was a rule with an
+ * expiry date — and it expired. The swap-fee split distributed on 2026-06-22,
+ * and that credit spent weeks on the public page labelled "Morpheus Subnet".
  *
- * Adding a product = one entry here plus its i18n strings and tile tone.
+ * TIER 1 — MAPPED (in SPLIT_PRODUCT below; their payouts wear a product tag):
+ *   SUBNET_FINAL_SPLIT 0xcc7E…3A4E  → "subnet"
+ *     Recipients (hash-verified 2026-08-19): Sopa Multisig 0x96C3…eEA2 80%,
+ *     treasury 20%. Pays USDC. distributionIncentive 6.
+ *   SWAP_FEE_SPLIT 0x15e6…0eae  → "swap"
+ *     Gnars treasury 50 / operations wallet 50, read from its SplitUpdated
+ *     event (see SWAP_FEE_RECIPIENT_BASE in config).
+ *
+ * TIER 2 — IDENTIFIED, RECIPIENTS VERIFIED, PRODUCT UNKNOWN (constants below;
+ * deliberately NOT in SPLIT_PRODUCT — their payouts stay generic until a human
+ * names them). Both were once suspected of being subnet splits; the on-chain
+ * shape refutes that, so do not re-add the hypothesis:
+ *   0xd9b2…ad6b — recipients (hash-verified 2026-08-19):
+ *     0xEed9…a282 20%, treasury 80%. Diverges from the subnet pattern on every
+ *     axis: counterparty is not the Sopa Multisig, the treasury share is
+ *     INVERTED (80% here vs the subnet's 20%), it came from a different
+ *     factory (0x5cba…21d1), has no distribution incentive, and pays ETH
+ *     where the subnet lane pays USDC.
+ *   0xdac8…e54 — recipients (hash-verified 2026-08-19):
+ *     0x9ad8…E1c8 49.5%, treasury 49.5%, 0x9946…17a1 1%. Also unrelated to
+ *     the [80/20] subnet shape. Pays ETH.
+ *
+ * TIER 3 — NOT SPLITS, NEVER SOURCES: SplitsWarehouse 0x8fb6…1fb8 is shared
+ * transport for every split above; the legacy Ethereum-mainnet treasury
+ * 0x4d3a…ce52 (config `GNARS_ADDRESSES_ETH.treasury`) is an obsolete DAO
+ * address, not an income product; Seaport and the auction house have their
+ * own tags outside this map.
+ *
+ * THE RULE FOR UNKNOWNS: a split absent from SPLIT_PRODUCT falls to the
+ * generic `splits` tag — it must surface as unclassified, never wear another
+ * product's name. Adding a product = verify the recipients against the stored
+ * splitHash first (reconstruct from the creation event), then one entry here
+ * plus its i18n strings and tile tone.
  */
 const SPLIT_PRODUCT: Record<string, InflowSource> = {
   [SUBNET_FINAL_SPLIT]: "subnet",
   [SWAP_FEE_SPLIT]: "swap",
 };
+
+/** Tier-2 splits: investigated and hash-verified, product still unnamed (see
+ * the address book above for their recipients and why they are NOT subnet).
+ * Exported so future naming starts from the verified constants, not a re-dig. */
+export const UNNAMED_VERIFIED_SPLITS = [
+  "0xd9b22da0c190a90bcada99d69b0f5aeeaf10ad6b",
+  "0xdac848cfe537b21eeb5e718422e4055644b29e54",
+] as const;
 
 /**
  * Where a credit came from. Kept deliberately coarse — these are the things
@@ -159,6 +193,222 @@ async function splitSourceForTx(hash: string): Promise<InflowSource> {
   return "splits";
 }
 
+/**
+ * RETROACTIVE ATTRIBUTION for bare warehouse withdrawals.
+ *
+ * A `withdraw()` that only moves balance deposited earlier carries no split in
+ * its own receipt — but the deposits that FORMED that balance do. All four
+ * bare USDC withdrawals on this treasury to date were single-source Morpheus
+ * money, provable one transaction back (verified on-chain 2026-08-19 by
+ * bisecting the warehouse's historical `balanceOf`).
+ *
+ * The rule, decided with the operator: a withdrawal inherits a product only
+ * when EVERY credit since the previous withdrawal came from that one product
+ * AND the found credits fully cover the withdrawn amount. Mixed products,
+ * partial coverage, or unattributable credits all fall back to the generic
+ * `splits` tag — the honest floor never asserts more than the chain proves.
+ */
+export function decideRetroSource(
+  credits: Array<{ amount: bigint; source: InflowSource }>,
+  withdrawn: bigint,
+): InflowSource {
+  if (credits.length === 0) return "splits";
+  const covered = credits.reduce((sum, c) => sum + c.amount, 0n);
+  // The warehouse's withdraw leaves 1 unit behind as a gas optimization, so
+  // credits and withdrawal can differ by a unit or two without being a gap.
+  if (covered + 2n < withdrawn) return "splits";
+  const products = new Set(credits.map((c) => c.source));
+  if (products.size !== 1) return "splits";
+  const only = credits[0].source;
+  return only === "splits" ? "splits" : only;
+}
+
+/** ERC-6909 Transfer on the warehouse: (caller, from indexed, to indexed, id indexed; data = caller ++ amount). */
+const WAREHOUSE_TRANSFER_TOPIC =
+  "0x1b3d7edb2e9c0b0e7c525b20aaaef0f5940d2ed71663c7d39266ecafac728859";
+/** balanceOf(address,uint256) selector, for historical warehouse balance reads. */
+const BALANCE_OF_SELECTOR = "0x00fdd58e";
+/** Free-tier Alchemy caps eth_getLogs at 10 blocks — the cheap window honors it. */
+const CHEAP_WINDOW_BLOCKS = 9;
+/** How far back the balance bisection may look (~35 days of Base blocks). */
+const MAX_LOOKBACK_BLOCKS = 1_500_000;
+/** Hard budget for historical eth_calls in one attribution. */
+const MAX_BISECT_CALLS = 48;
+
+const pad32 = (hex: string) => hex.toLowerCase().replace(/^0x/, "").padStart(64, "0");
+const TREASURY_TOPIC = `0x${pad32(DAO_ADDRESSES.treasury)}`;
+
+async function rpc<T>(method: string, params: unknown[], revalidate: number): Promise<T | null> {
+  try {
+    const res = await fetch(`https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      next: { revalidate },
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { result?: T; error?: unknown };
+    return json.error ? null : (json.result ?? null);
+  } catch {
+    return null;
+  }
+}
+
+interface WarehouseCreditLog {
+  transactionHash: string;
+  topics: string[];
+  data: string;
+}
+
+/** Warehouse Transfer logs paying INTO the treasury's balance for one token, in a block range. */
+async function treasuryCreditLogs(
+  fromBlock: number,
+  toBlock: number,
+  tokenTopic: string,
+): Promise<WarehouseCreditLog[] | null> {
+  const logs = await rpc<WarehouseCreditLog[]>(
+    "eth_getLogs",
+    [
+      {
+        address: SPLITS_WAREHOUSE,
+        fromBlock: `0x${fromBlock.toString(16)}`,
+        toBlock: `0x${toBlock.toString(16)}`,
+        topics: [WAREHOUSE_TRANSFER_TOPIC, null, TREASURY_TOPIC, tokenTopic],
+      },
+    ],
+    // Mined blocks are immutable; cache as long as Next allows.
+    86400,
+  );
+  return logs;
+}
+
+const creditAmount = (log: WarehouseCreditLog): bigint => {
+  // data = abi.encode(caller, amount)
+  const word = log.data.slice(2 + 64, 2 + 128);
+  return word ? BigInt(`0x${word}`) : 0n;
+};
+
+/** Treasury's warehouse balance for a token at a historical block. */
+async function warehouseBalanceAt(block: number, tokenId: string): Promise<bigint | null> {
+  const result = await rpc<string>(
+    "eth_call",
+    [
+      {
+        to: SPLITS_WAREHOUSE,
+        data: `${BALANCE_OF_SELECTOR}${pad32(DAO_ADDRESSES.treasury)}${tokenId}`,
+      },
+      `0x${block.toString(16)}`,
+    ],
+    86400,
+  );
+  return result ? BigInt(result) : null;
+}
+
+/**
+ * Attribute a bare warehouse withdrawal by the credits that formed its balance.
+ *
+ * Cheap path first: the operator habitually runs `distribute()` seconds before
+ * `withdraw()`, so a 10-block look-back (the free-tier getLogs ceiling) finds
+ * the credit almost always. When it doesn't cover the amount, a bounded
+ * bisection of the historical balance locates each older credit block — ~20
+ * calls per credit, all immutable and day-cached. Any failure or budget
+ * exhaustion degrades to the generic `splits`, never to a guess.
+ */
+async function retroAttributeWithdraw(hash: string): Promise<InflowSource> {
+  const receipt = await rpc<{
+    blockNumber?: string;
+    logs?: Array<{ address?: string; topics?: string[]; data?: string }>;
+  }>("eth_getTransactionReceipt", [hash], 86400);
+  if (!receipt?.blockNumber || !receipt.logs) return "splits";
+
+  // The withdrawal burn: treasury's balance → 0x0, telling us token + amount.
+  const burn = receipt.logs.find(
+    (l) =>
+      l.address?.toLowerCase() === SPLITS_WAREHOUSE &&
+      l.topics?.[0] === WAREHOUSE_TRANSFER_TOPIC &&
+      l.topics?.[1]?.toLowerCase() === TREASURY_TOPIC &&
+      BigInt(l.topics?.[2] ?? "0x0") === 0n,
+  );
+  if (!burn?.topics?.[3] || !burn.data) return "splits";
+  const tokenTopic = burn.topics[3];
+  const withdrawn = creditAmount(burn as WarehouseCreditLog);
+  if (withdrawn <= 0n) return "splits";
+
+  const block = Number(receipt.blockNumber);
+
+  const collectCredits = async (logs: WarehouseCreditLog[]) => {
+    const credits: Array<{ amount: bigint; source: InflowSource }> = [];
+    for (const log of logs) {
+      // Skip the withdrawal's own tx and non-mint moves are fine to include:
+      // anything that credited the treasury's balance counts as a source.
+      if (log.transactionHash === hash) continue;
+      credits.push({
+        amount: creditAmount(log),
+        source: await splitSourceForTx(log.transactionHash),
+      });
+    }
+    return credits;
+  };
+
+  // Cheap path: credits within the last 10 blocks (distribute-then-withdraw).
+  const nearLogs = await treasuryCreditLogs(block - CHEAP_WINDOW_BLOCKS, block, tokenTopic);
+  if (nearLogs === null) return "splits";
+  const nearCredits = await collectCredits(nearLogs);
+  const nearDecision = decideRetroSource(nearCredits, withdrawn);
+  if (nearDecision !== "splits" || nearCredits.length > 0) {
+    // Either attributed, or the near credits exist but are mixed/unattributable
+    // — in which case older history cannot make the answer MORE certain.
+    if (nearCredits.reduce((s, c) => s + c.amount, 0n) + 2n >= withdrawn) return nearDecision;
+  }
+
+  // Bisect the balance history for the remaining credits.
+  let calls = 0;
+  const bal = async (b: number) => {
+    calls += 1;
+    return warehouseBalanceAt(b, tokenTopic.slice(2));
+  };
+  const lo = Math.max(1, block - MAX_LOOKBACK_BLOCKS);
+  const hi = block - CHEAP_WINDOW_BLOCKS - 1;
+  const [balLo, balHi] = [await bal(lo), await bal(hi)];
+  // The whole balance must be explainable inside the window: a lookback start
+  // with money already sitting there means unseen, unattributable credits.
+  if (balLo === null || balHi === null || balLo > 2n) return "splits";
+
+  const stepBlocks: number[] = [];
+  const findSteps = async (a: number, b: number, balA: bigint, balB: bigint): Promise<boolean> => {
+    if (balA >= balB) return true;
+    if (b - a <= 1) {
+      stepBlocks.push(b);
+      return true;
+    }
+    if (calls >= MAX_BISECT_CALLS) return false;
+    const mid = Math.floor((a + b) / 2);
+    const balMid = await bal(mid);
+    if (balMid === null) return false;
+    return (await findSteps(a, mid, balA, balMid)) && (await findSteps(mid, b, balMid, balB));
+  };
+  if (!(await findSteps(lo, hi, balLo, balHi))) return "splits";
+
+  const credits = [...nearCredits];
+  for (const stepBlock of stepBlocks) {
+    const logs = await treasuryCreditLogs(stepBlock, stepBlock, tokenTopic);
+    if (logs === null) return "splits";
+    credits.push(...(await collectCredits(logs)));
+  }
+  return decideRetroSource(credits, withdrawn);
+}
+
+/**
+ * Full attribution for a warehouse-sent inflow: the credit's own receipt
+ * first (distribute-and-withdraw), retroactive balance tracing second (bare
+ * withdraw), generic `splits` as the unchanged honest floor.
+ */
+async function warehouseSource(hash: string): Promise<InflowSource> {
+  const direct = await splitSourceForTx(hash);
+  if (direct !== "splits") return direct;
+  return retroAttributeWithdraw(hash);
+}
+
 /** A WETH credit is a secondary sale iff Seaport emitted in its transaction —
  * see the SEAPORT note for why the sender can never be the marker here. A
  * failed receipt read stays "transfer": asserting a sale needs the evidence. */
@@ -248,7 +498,7 @@ export const loadTreasuryInflowsPage = cache(async (pageKey?: string): Promise<I
         from === DAO_ADDRESSES.auction.toLowerCase()
           ? "auction"
           : from === SPLITS_WAREHOUSE
-            ? await splitSourceForTx(t.hash)
+            ? await warehouseSource(t.hash)
             : from === SEAPORT
               ? "secondary"
               : asset === "WETH"
@@ -342,7 +592,7 @@ export const loadSubnetEarnings = cache(async (): Promise<SubnetEarnings | null>
       pageKey = json.result?.pageKey;
     } while (pageKey);
 
-    const sources = await Promise.all(transfers.map((t) => splitSourceForTx(t.hash)));
+    const sources = await Promise.all(transfers.map((t) => warehouseSource(t.hash)));
     let totalUsdc = 0;
     let claimCount = 0;
     for (let i = 0; i < transfers.length; i += 1) {
