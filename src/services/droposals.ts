@@ -2,6 +2,7 @@ import { cache } from "react";
 import { createPublicClient, formatEther, http } from "viem";
 import { base } from "viem/chains";
 import { DAO_ADDRESSES, DROPOSAL_TARGET } from "@/lib/config";
+import { resolveDroposalPlaybackUrl } from "@/lib/droposal-media";
 import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
 import { subgraphQuery } from "@/lib/subgraph";
@@ -95,7 +96,9 @@ function mapDroposalItems(proposals: ProposalData[]): DroposalListItem[] {
 
       const decoded = calldatas[i] ? decodeDroposalParams(calldatas[i]!) : null;
       const bannerImage = decoded?.imageURI ? ipfsToHttp(decoded.imageURI) : undefined;
-      const animationUrl = decoded?.animationURI ? ipfsToHttp(decoded.animationURI) : undefined;
+      const animationUrl = decoded?.animationURI
+        ? resolveDroposalPlaybackUrl(decoded.animationURI)
+        : undefined;
       const priceEth =
         decoded?.saleConfig?.publicSalePrice !== undefined
           ? formatEther(decoded.saleConfig.publicSalePrice)
