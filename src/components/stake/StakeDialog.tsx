@@ -11,6 +11,7 @@ import { useEthPrice } from "@/hooks/use-eth-price";
 import { useMorpheusStake } from "@/hooks/use-morpheus-stake";
 import { useStakeDeposit } from "@/hooks/use-stake-deposit";
 import { useVaultEarned, useVaultPosition } from "@/hooks/use-vault-total";
+import { Link } from "@/i18n/navigation";
 import { getRider } from "@/lib/gnars-vaults";
 import { claimLockEndFor, LOCK_OPTIONS, multiplierForYears } from "@/lib/lock-multiplier";
 import { riderCustomLine } from "@/lib/rider-lines";
@@ -493,6 +494,18 @@ export function StakeDialog({
                       </button>
                     );
                   })}
+                </div>
+                {/* No {unit} yet? Hand off to /swap in a new tab so the dialog
+                    (and the typed amount) survive the detour. */}
+                <div className="mt-2 text-[12px] font-semibold">
+                  <Link
+                    href="/swap"
+                    target="_blank"
+                    className="underline underline-offset-4 transition-colors hover:text-white"
+                    style={{ color: muted }}
+                  >
+                    {t("opp.needAsset", { unit: opp.unit })}
+                  </Link>
                 </div>
                 {rate > 0 && (
                   <div className="mt-3 text-[12.5px] font-semibold" style={{ color: muted }}>

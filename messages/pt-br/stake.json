@@ -113,6 +113,7 @@
   "opp": {
     "choose": "O que {name} oferece?",
     "depositTitle": "Depositar {unit}",
+    "needAsset": "Precisa de {unit}? Consiga no Swap ↗",
     "viaMorpho": "rendimento via Morpho · estável",
     "viaMorpheus": "rendimento via Morpheus · em MOR",
     "estNote": "≈{rate}% APR estimado — varia com o preço do MOR e o tamanho do pool.",
