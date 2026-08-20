@@ -187,6 +187,11 @@ export function GnarsTVSet({ channels, ticker }: GnarsTVSetProps) {
 
   const active = channels[index] ?? channels[0];
 
+  // `?ch=` is only written to the URL after the viewer actually tunes a channel
+  // — never for the initial auto-selected channel. Keeps a fresh load's URL
+  // clean; a `?ch=` deep link stays as-is until the viewer changes it.
+  const userHasTunedRef = useRef(false);
+
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const apply = () => setReducedMotion(mq.matches);
@@ -205,7 +210,7 @@ export function GnarsTVSet({ channels, ticker }: GnarsTVSetProps) {
   }, [channels]);
 
   useEffect(() => {
-    if (!active) return;
+    if (!active || !userHasTunedRef.current) return;
     const url = new URL(window.location.href);
     url.searchParams.set("ch", String(active.propNumber));
     window.history.replaceState(null, "", url);
@@ -256,6 +261,7 @@ export function GnarsTVSet({ channels, ticker }: GnarsTVSetProps) {
       setTuning(true);
       clearTimeout(tuneTimer.current);
       tuneTimer.current = setTimeout(() => {
+        userHasTunedRef.current = true;
         setIndex(target);
         setTuning(false);
       }, TUNE_MS);
