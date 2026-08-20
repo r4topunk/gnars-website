@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { ipfsToHttp } from "@/lib/ipfs";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
 import { getAddress, isAddress } from "viem";
 
@@ -100,7 +101,7 @@ export async function GET(req: NextRequest) {
           (preview as Record<string, string>)?.small)
         : (preview as string | undefined);
     if (raw) {
-      logoUrl = raw.startsWith("ipfs://") ? raw.replace("ipfs://", "https://dweb.link/ipfs/") : raw;
+      logoUrl = ipfsToHttp(raw);
     }
   }
 

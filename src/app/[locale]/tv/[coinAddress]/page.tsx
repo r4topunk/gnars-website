@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ipfsToHttp } from "@/lib/ipfs";
 import { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
@@ -71,10 +72,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  // Convert IPFS to HTTP
-  const imageUrl = metadata.imageUrl?.startsWith("ipfs://")
-    ? metadata.imageUrl.replace("ipfs://", "https://ipfs.io/ipfs/")
-    : metadata.imageUrl;
+  // Convert IPFS to HTTP (resilient gateway chain — see @/lib/ipfs)
+  const imageUrl = metadata.imageUrl ? ipfsToHttp(metadata.imageUrl) : undefined;
 
   const miniappEmbed = {
     ...TV_MINIAPP_EMBED_CONFIG,

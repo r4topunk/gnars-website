@@ -1,16 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState, type MutableRefObject } from "react";
+import { ipfsToHttp } from "@/lib/ipfs";
 import type { TVItem } from "./types";
 
 /**
  * Convert IPFS URIs to HTTP gateway URLs
  */
 function toHttpUrl(url: string): string {
-  if (url.startsWith("ipfs://")) {
-    return url.replace("ipfs://", "https://dweb.link/ipfs/");
-  }
-  return url;
+  return ipfsToHttp(url);
 }
 
 /**

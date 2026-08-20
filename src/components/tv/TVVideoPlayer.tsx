@@ -3,17 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { ipfsCandidates } from "@/lib/ipfs";
 import { usePerformanceTracking } from "./useVideoPreloader";
-
-/**
- * Convert IPFS URIs to HTTP gateway URLs
- */
-function toHttpUrl(url: string): string {
-  if (url.startsWith("ipfs://")) {
-    return url.replace("ipfs://", "https://dweb.link/ipfs/");
-  }
-  return url;
-}
 
 type LoadState = "idle" | "loading" | "canplay" | "playing" | "error" | "waiting";
 
@@ -54,8 +45,15 @@ export function TVVideoPlayer({
 
   const isImageOnly = !src && !!poster;
 
-  // Convert IPFS URLs to HTTP gateway
-  const videoSrc = useMemo(() => (src ? toHttpUrl(src) : ""), [src]);
+  // Ordered gateway candidates for this source, so a dead/blocked gateway falls
+  // through to the next one instead of failing the video (see @/lib/ipfs).
+  const candidates = useMemo(() => (src ? ipfsCandidates(src) : []), [src]);
+  const [gwIndex, setGwIndex] = useState(0);
+  // Reset to the primary gateway whenever the source changes.
+  useEffect(() => {
+    setGwIndex(0);
+  }, [src]);
+  const videoSrc = candidates[gwIndex] ?? "";
   const [loadProgress, setLoadProgress] = useState(0);
   const [hasFirstFrame, setHasFirstFrame] = useState(false);
   const mountedRef = useRef(true);
@@ -96,8 +94,14 @@ export function TVVideoPlayer({
 
   const handleError = useCallback(() => {
     if (!mountedRef.current) return;
+    // Try the next gateway in the chain before surfacing an error.
+    if (gwIndex < candidates.length - 1) {
+      setGwIndex((i) => i + 1);
+      setLoadState("loading");
+      return;
+    }
     setLoadState("error");
-  }, []);
+  }, [gwIndex, candidates.length]);
 
   const handleLoadStart = useCallback(() => {
     if (!mountedRef.current) return;

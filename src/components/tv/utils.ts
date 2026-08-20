@@ -8,6 +8,7 @@
  */
 
 import { DAO_ADDRESSES, GNARS_CREATOR_COIN } from "@/lib/config";
+import { ipfsToHttp } from "@/lib/ipfs";
 import type { CoinMedia, CoinNode, TVItem } from "./types";
 
 const GNARS_TREASURY = DAO_ADDRESSES.treasury;
@@ -33,10 +34,7 @@ export const FALLBACK_ITEMS: TVItem[] = [
  */
 function toHttpUrl(uri?: string | null): string | undefined {
   if (!uri) return undefined;
-  if (uri.startsWith("ipfs://")) {
-    return uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-  }
-  return uri;
+  return ipfsToHttp(uri);
 }
 
 /**
