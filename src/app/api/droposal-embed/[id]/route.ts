@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { formatEther } from "viem";
 import { DAO_ADDRESSES } from "@/lib/config";
+import { resolveDroposalPlaybackUrl } from "@/lib/droposal-media";
 import { decodeDroposalParams, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
 import { subgraphQuery } from "@/lib/subgraph";
@@ -59,7 +60,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     }
 
     const mediaImage = decoded?.imageURI ? ipfsToHttp(decoded.imageURI) : undefined;
-    const mediaAnimation = decoded?.animationURI ? ipfsToHttp(decoded.animationURI) : undefined;
+    const mediaAnimation = decoded?.animationURI
+      ? resolveDroposalPlaybackUrl(decoded.animationURI)
+      : undefined;
     const priceEth = decoded?.saleConfig?.publicSalePrice
       ? formatEther(decoded.saleConfig.publicSalePrice)
       : "0";

@@ -13,6 +13,7 @@ import { DroposalSupporters } from "@/components/droposals/detail/DroposalSuppor
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { BASE_URL, DAO_ADDRESSES } from "@/lib/config";
+import { resolveDroposalPlaybackUrl } from "@/lib/droposal-media";
 import { decodeDroposalParams, formatDroposalForTable, isDroposal } from "@/lib/droposal-utils";
 import { ipfsToHttp } from "@/lib/ipfs";
 import { DROPOSALS_MINIAPP_EMBED_CONFIG } from "@/lib/miniapp-config";
@@ -236,7 +237,9 @@ export default async function DroposalDetailPage({
   }
 
   const mediaImage = decoded?.imageURI ? ipfsToHttp(decoded.imageURI) : undefined;
-  const mediaAnimation = decoded?.animationURI ? ipfsToHttp(decoded.animationURI) : undefined;
+  const mediaAnimation = decoded?.animationURI
+    ? resolveDroposalPlaybackUrl(decoded.animationURI)
+    : undefined;
   const priceEth = decoded?.saleConfig?.publicSalePrice
     ? formatEther(decoded.saleConfig.publicSalePrice)
     : "0";
