@@ -7,6 +7,7 @@
  */
 
 import { unstable_cache } from "next/cache";
+import { ipfsToHttp } from "@/lib/ipfs";
 import { SubgraphSDK } from "@buildeross/sdk";
 import { CHAIN, DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
@@ -291,11 +292,7 @@ type SubgraphFeedEvent =
   | (BaseSubgraphEvent & { __typename: string });
 
 function toHttpUrl(uri?: string | null): string | undefined {
-  if (!uri) return undefined;
-  if (uri.startsWith("ipfs://")) {
-    return uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-  }
-  return uri;
+  return uri ? ipfsToHttp(uri) : undefined;
 }
 
 const VOTE_SUPPORT: Record<string, "FOR" | "AGAINST" | "ABSTAIN"> = {

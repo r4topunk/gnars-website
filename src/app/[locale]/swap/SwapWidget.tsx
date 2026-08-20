@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ipfsToHttp } from "@/lib/ipfs";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
@@ -60,7 +61,7 @@ function useZoraLogo(address: string, chainId: number, skip: boolean): string | 
             : (preview as string | undefined);
         if (!raw) return null;
         // Convert IPFS URIs to an HTTP gateway URL.
-        return raw.startsWith("ipfs://") ? raw.replace("ipfs://", "https://dweb.link/ipfs/") : raw;
+        return ipfsToHttp(raw);
       },
     }).data ?? null
   );

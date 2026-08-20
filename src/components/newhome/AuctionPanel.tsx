@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ipfsToHttp } from "@/lib/ipfs";
 import { useTranslations } from "next-intl";
 import { useDaoAuction } from "@buildeross/hooks";
 import { formatEther } from "viem";
@@ -109,9 +110,7 @@ export function AuctionPanel() {
     return () => clearInterval(id);
   }, [startTime, displayEndTime]);
 
-  const imageUrl = tokenUri?.image?.startsWith("ipfs://")
-    ? tokenUri.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-    : tokenUri?.image;
+  const imageUrl = tokenUri?.image ? ipfsToHttp(tokenUri.image) : undefined;
 
   const isWinner =
     address && displayBidder && address.toLowerCase() === displayBidder.toLowerCase();

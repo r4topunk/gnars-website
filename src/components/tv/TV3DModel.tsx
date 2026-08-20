@@ -6,6 +6,7 @@ import { useTexture, useVideoTexture } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
 import * as THREE from "three";
+import { ipfsCandidates, ipfsToHttp } from "@/lib/ipfs";
 import type { PlasticConfig, TVTextureConfig } from "./TVTextureControls";
 
 // Creator coin image type
@@ -861,20 +862,10 @@ const sharedMaterials = {
   }),
 };
 
-// Convert IPFS URIs and gateways to faster gateway
+// Convert IPFS URIs (and re-point any existing gateway URL) to the primary gateway.
 function toFastIPFS(url?: string): string | undefined {
   if (!url) return undefined;
-
-  // First convert ipfs:// protocol to HTTP gateway
-  let httpUrl = url;
-  if (url.startsWith("ipfs://")) {
-    httpUrl = url.replace("ipfs://", "https://dweb.link/ipfs/");
-  }
-
-  // Then convert other gateways to faster one
-  return httpUrl
-    .replace("https://ipfs.io/ipfs/", "https://dweb.link/ipfs/")
-    .replace("https://cloudflare-ipfs.com/ipfs/", "https://dweb.link/ipfs/");
+  return ipfsToHttp(url);
 }
 
 // Vertex shader (shared by all screen effects)
@@ -969,7 +960,15 @@ const crtFragmentShader = `
 
 // Video Screen component that uses VideoTexture with CRT effect
 function VideoScreen({ videoUrl, isVisible = true }: { videoUrl: string; isVisible?: boolean }) {
-  const texture = useVideoTexture(videoUrl, {
+  // Fallback chain: if the current gateway errors, advance to the next one.
+  const candidates = useMemo(() => ipfsCandidates(videoUrl), [videoUrl]);
+  const [gwIndex, setGwIndex] = useState(0);
+  useEffect(() => {
+    setGwIndex(0);
+  }, [videoUrl]);
+  const resolvedUrl = candidates[gwIndex] ?? videoUrl;
+
+  const texture = useVideoTexture(resolvedUrl, {
     muted: true,
     loop: true,
     start: isVisible, // Only auto-start if visible
@@ -988,6 +987,17 @@ function VideoScreen({ videoUrl, isVisible = true }: { videoUrl: string; isVisib
     }),
     [texture],
   );
+
+  // Advance to the next gateway if the current source fails to load.
+  useEffect(() => {
+    const video = texture.image as HTMLVideoElement;
+    if (!video) return;
+    const onError = () => {
+      setGwIndex((i) => (i < candidates.length - 1 ? i + 1 : i));
+    };
+    video.addEventListener("error", onError);
+    return () => video.removeEventListener("error", onError);
+  }, [texture, candidates.length]);
 
   // Ensure video plays at 2x
   useEffect(() => {
@@ -1268,11 +1278,8 @@ function Sticker({
 function proxyImageUrl(url?: string): string | undefined {
   if (!url) return undefined;
 
-  // Convert IPFS URLs first
-  let httpUrl = url;
-  if (url.startsWith("ipfs://")) {
-    httpUrl = url.replace("ipfs://", "https://ipfs.io/ipfs/");
-  }
+  // Convert IPFS URLs first (ipfs:// or a dead gateway → primary gateway)
+  const httpUrl = ipfsToHttp(url);
 
   // Use wsrv.nl as CORS proxy for external images
   // This service adds proper CORS headers

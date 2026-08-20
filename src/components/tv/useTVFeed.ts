@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
+import { ipfsToHttp } from "@/lib/ipfs";
 import type { CoinNode, TVItem } from "./types";
 import { FALLBACK_ITEMS, mapCoinToTVItem, PRELOAD_THRESHOLD } from "./utils";
 
@@ -10,10 +11,7 @@ import { FALLBACK_ITEMS, mapCoinToTVItem, PRELOAD_THRESHOLD } from "./utils";
  */
 function toHttpUrl(url?: string | null): string | undefined {
   if (!url) return undefined;
-  if (url.startsWith("ipfs://")) {
-    return url.replace("ipfs://", "https://dweb.link/ipfs/");
-  }
-  return url;
+  return ipfsToHttp(url);
 }
 
 /**

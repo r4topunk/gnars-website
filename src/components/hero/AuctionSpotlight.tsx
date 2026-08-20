@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ipfsToHttp } from "@/lib/ipfs";
 import { useTranslations } from "next-intl";
 import { useDaoAuction } from "@buildeross/hooks";
 import { toast } from "sonner";
@@ -89,11 +90,7 @@ export function AuctionSpotlight() {
 
   // Derived state
   const tokenName = tokenUri?.name;
-  const imageUrl = tokenUri?.image
-    ? tokenUri.image.startsWith("ipfs://")
-      ? tokenUri.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-      : tokenUri.image
-    : undefined;
+  const imageUrl = tokenUri?.image ? ipfsToHttp(tokenUri.image) : undefined;
 
   const isWinner =
     address && displayBidder && address.toLowerCase() === displayBidder.toLowerCase();

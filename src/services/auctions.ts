@@ -1,4 +1,5 @@
 import { formatEther } from "viem";
+import { ipfsToHttp } from "@/lib/ipfs";
 import { DAO_ADDRESSES } from "@/lib/config";
 import { subgraphQuery } from "@/lib/subgraph";
 
@@ -72,13 +73,8 @@ export async function fetchRecentAuctions(limit: number): Promise<PastAuction[]>
     first: limit,
   });
 
-  const toHttp = (uri?: string | null): string | undefined => {
-    if (!uri) return undefined;
-    if (uri.startsWith("ipfs://")) {
-      return uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-    }
-    return uri;
-  };
+  const toHttp = (uri?: string | null): string | undefined =>
+    uri ? ipfsToHttp(uri) : undefined;
 
   return (data.auctions || []).map((a) => {
     const amountWei = a.winningBid?.amount ?? a.highestBid?.amount ?? "0";
@@ -109,13 +105,8 @@ export async function fetchAllAuctions(limit?: number): Promise<PastAuction[]> {
     first: limit ?? 1000,
   });
 
-  const toHttp = (uri?: string | null): string | undefined => {
-    if (!uri) return undefined;
-    if (uri.startsWith("ipfs://")) {
-      return uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-    }
-    return uri;
-  };
+  const toHttp = (uri?: string | null): string | undefined =>
+    uri ? ipfsToHttp(uri) : undefined;
 
   return (data.auctions || []).map((a) => {
     const amountWei = a.winningBid?.amount ?? a.highestBid?.amount ?? "0";
