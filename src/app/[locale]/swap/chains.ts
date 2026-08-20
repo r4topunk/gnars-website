@@ -46,7 +46,7 @@ export const SWAP_CHAINS: readonly SwapChain[] = [
     name: "Base",
     shortName: "Base",
     thirdwebChain: thirdwebBase,
-    defaults: { sell: "ETH", buy: "GNARS" },
+    defaults: { sell: "ETH", buy: "MOR" },
     // First 4 tokens appear in the "Popular" chip row of the token picker.
     tokens: [
       {
@@ -55,6 +55,13 @@ export const SWAP_CHAINS: readonly SwapChain[] = [
         address: DAO_ADDRESSES.gnarsErc20 as `0x${string}`,
         decimals: 18,
         logo: "/gnars.webp",
+      },
+      {
+        symbol: "MOR",
+        name: "Morpheus AI",
+        address: "0x7431aDa8a591C955a994a21710752EF9b882b8e3",
+        decimals: 18,
+        logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/assets/0x7431aDa8a591C955a994a21710752EF9b882b8e3/logo.png",
       },
       {
         symbol: "HIGHER",
