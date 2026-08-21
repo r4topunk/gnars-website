@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import type { WebGLRenderer } from "three";
+import { WebGLGuard } from "@/components/webgl/WebGLGuard";
 import { TV3DModel } from "./TV3DModel";
 import { useTVTextureControls } from "./TVTextureControls";
 import type { CreatorCoinImage } from "./useTVFeed";
@@ -60,54 +61,59 @@ export function Gnar3DTVScene({
 
   return (
     <div ref={containerRef} className="relative h-full w-full">
-      <Canvas
-        camera={{ position: [0, 0.5, 4], fov: 60 }}
-        frameloop="demand"
-        gl={{
-          antialias: false,
-          alpha: true,
-          powerPreference: "low-power",
-          failIfMajorPerformanceCaveat: false,
-          // Don't preserve drawing buffer - allows GPU to discard after compositing
-          preserveDrawingBuffer: false,
-          // Prefer low power GPU on multi-GPU systems
-          precision: "lowp",
-          // Limit pixel ratio for memory savings
-          depth: true,
-          stencil: false,
-        }}
-        onCreated={handleCreated}
-        style={{ background: "transparent" }}
-        dpr={dpr}
-      >
-        {/* Lighting - simplified for better performance */}
-        <ambientLight intensity={3.5} />
-        <directionalLight position={[5, 5, 5]} intensity={2.5} />
-        <directionalLight position={[-3, 3, -3]} intensity={1.5} />
+      {/* The MiniTV that renders this scene sits in the root layout, so a
+          machine without WebGL used to lose every page to the global error
+          screen rather than just the television. */}
+      <WebGLGuard label="gnars-tv">
+        <Canvas
+          camera={{ position: [0, 0.5, 4], fov: 60 }}
+          frameloop="demand"
+          gl={{
+            antialias: false,
+            alpha: true,
+            powerPreference: "low-power",
+            failIfMajorPerformanceCaveat: false,
+            // Don't preserve drawing buffer - allows GPU to discard after compositing
+            preserveDrawingBuffer: false,
+            // Prefer low power GPU on multi-GPU systems
+            precision: "lowp",
+            // Limit pixel ratio for memory savings
+            depth: true,
+            stencil: false,
+          }}
+          onCreated={handleCreated}
+          style={{ background: "transparent" }}
+          dpr={dpr}
+        >
+          {/* Lighting - simplified for better performance */}
+          <ambientLight intensity={3.5} />
+          <directionalLight position={[5, 5, 5]} intensity={2.5} />
+          <directionalLight position={[-3, 3, -3]} intensity={1.5} />
 
-        {/* TV Model */}
-        <Suspense fallback={null}>
-          <TV3DModel
-            videoUrl={videoUrl}
-            autoRotate={autoRotate}
-            onNextVideo={onNextVideo}
-            textureConfig={config}
-            creatorCoinImages={creatorCoinImages}
-            isVisible={isVisible}
-          />
-        </Suspense>
+          {/* TV Model */}
+          <Suspense fallback={null}>
+            <TV3DModel
+              videoUrl={videoUrl}
+              autoRotate={autoRotate}
+              onNextVideo={onNextVideo}
+              textureConfig={config}
+              creatorCoinImages={creatorCoinImages}
+              isVisible={isVisible}
+            />
+          </Suspense>
 
-        {/* Controls */}
-        {enableOrbitControls && (
-          <OrbitControls
-            enableDamping={false}
-            minDistance={2}
-            maxDistance={8}
-            enablePan={false}
-            enableZoom={false}
-          />
-        )}
-      </Canvas>
+          {/* Controls */}
+          {enableOrbitControls && (
+            <OrbitControls
+              enableDamping={false}
+              minDistance={2}
+              maxDistance={8}
+              enablePan={false}
+              enableZoom={false}
+            />
+          )}
+        </Canvas>
+      </WebGLGuard>
     </div>
   );
 }

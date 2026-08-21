@@ -6,12 +6,12 @@
    the particle buffers, useFrame mutates those buffers + reads refs each RAF frame
    (outside React render), and loaded textures get their wrap/colorSpace set once.
    None of this runs in React's render path. */
-
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Environment, OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { Group, PointLight, TextureLoader } from "three";
 import * as THREE from "three";
+import { WebGLGuard } from "@/components/webgl/WebGLGuard";
 
 interface ChestProps {
   onClick: () => void;
@@ -249,7 +249,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }
   const floatingLogoRef = useRef<Group>(null);
   const interiorGlowRef = useRef<THREE.MeshBasicMaterial>(null);
   const logoGlowRef = useRef<THREE.MeshBasicMaterial>(null);
-  
+
   // Get tier colors
   const tierColors = TIER_COLORS[tier];
 
@@ -259,7 +259,7 @@ const FuturisticCrate = memo(({ onClick, isOpening, isPending, tier = "bronze" }
 
   // Load Gnars logo 3D model for button
   const gnarsLogoModel = useGLTF("/models/gnars-logo.glb");
-  
+
   // Clone the model scene to allow multiple instances
   const clonedLogoScene = useMemo(() => {
     return gnarsLogoModel.scene.clone();
@@ -1445,51 +1445,65 @@ export default function AnimatedChest3D({
 
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden">
-      <Canvas
-        shadows
-        dpr={[1, 2]}
-        performance={{ min: 0.5 }}
-        gl={{ alpha: true, antialias: true }}
-        style={{ background: "transparent" }}
-      >
-        <PerspectiveCamera makeDefault position={[0, 1.5, 6]} fov={45} />
-        <OrbitControls
-          enableZoom={true}
-          enablePan={false}
-          minDistance={3}
-          maxDistance={8}
-          minPolarAngle={Math.PI / 6}
-          maxPolarAngle={Math.PI / 2}
-          enableDamping
-          dampingFactor={0.05}
-        />
+      {/* No context, no crate — but the panel around it keeps working. */}
+      <WebGLGuard label="lootbox-chest">
+        <Canvas
+          shadows
+          dpr={[1, 2]}
+          performance={{ min: 0.5 }}
+          gl={{ alpha: true, antialias: true }}
+          style={{ background: "transparent" }}
+        >
+          <PerspectiveCamera makeDefault position={[0, 1.5, 6]} fov={45} />
+          <OrbitControls
+            enableZoom={true}
+            enablePan={false}
+            minDistance={3}
+            maxDistance={8}
+            minPolarAngle={Math.PI / 6}
+            maxPolarAngle={Math.PI / 2}
+            enableDamping
+            dampingFactor={0.05}
+          />
 
-        {/* Lighting */}
-        <ambientLight intensity={0.4} />
-        <directionalLight
-          position={[5, 8, 5]}
-          intensity={1.5}
-          castShadow
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
-        />
-        <directionalLight position={[-3, 5, -3]} intensity={0.6} color="#88aaff" />
-        <spotLight
-          position={[0, 3, 4]}
-          angle={0.5}
-          penumbra={1}
-          intensity={1.2}
-          color="#ffffff"
-          castShadow
-        />
-        <spotLight position={[-4, 2, 2]} angle={0.4} penumbra={1} intensity={0.4} color="#6699ff" />
+          {/* Lighting */}
+          <ambientLight intensity={0.4} />
+          <directionalLight
+            position={[5, 8, 5]}
+            intensity={1.5}
+            castShadow
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+          />
+          <directionalLight position={[-3, 5, -3]} intensity={0.6} color="#88aaff" />
+          <spotLight
+            position={[0, 3, 4]}
+            angle={0.5}
+            penumbra={1}
+            intensity={1.2}
+            color="#ffffff"
+            castShadow
+          />
+          <spotLight
+            position={[-4, 2, 2]}
+            angle={0.4}
+            penumbra={1}
+            intensity={0.4}
+            color="#6699ff"
+          />
 
-        {/* Environment for reflections */}
-        <Environment preset="warehouse" background={false} />
+          {/* Environment for reflections */}
+          <Environment preset="warehouse" background={false} />
 
-        {/* The Futuristic Crate */}
-        <FuturisticCrate onClick={handleChestClick} isOpening={isOpening} isPending={isPending} tier={tier} />
-      </Canvas>
+          {/* The Futuristic Crate */}
+          <FuturisticCrate
+            onClick={handleChestClick}
+            isOpening={isOpening}
+            isPending={isPending}
+            tier={tier}
+          />
+        </Canvas>
+      </WebGLGuard>
 
       {/* Sci-fi corner decorations — status is shown by the surrounding panel's
           stepper (translated), so no text overlay here. */}

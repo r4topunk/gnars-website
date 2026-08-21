@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { MapLocationDrawer, type LocationData } from "@/components/map-location-drawer";
+import { WebGLGuard } from "@/components/webgl/WebGLGuard";
 import { NOGGLES_RAILS, type NogglesRailLocation } from "@/content/nogglesrails";
 import { toLocationData } from "./NogglesRailsMap";
 
@@ -156,22 +157,26 @@ export function NogglesRailsGlobe({
         className={className ?? "h-[60vh] min-h-[350px] overflow-hidden rounded-lg"}
       >
         {dimensions.width > 0 && (
-          <Globe
-            ref={globeRef}
-            width={dimensions.width}
-            height={dimensions.height}
-            globeImageUrl="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-            bumpImageUrl="https://unpkg.com/three-globe/example/img/earth-topology.png"
-            onGlobeReady={() => setReady(true)}
-            backgroundColor="rgba(0,0,0,0)"
-            atmosphereColor="#6699cc"
-            atmosphereAltitude={0.15}
-            htmlElementsData={points}
-            htmlLat="lat"
-            htmlLng="lng"
-            htmlAltitude={0.01}
-            htmlElement={markerHtmlElement}
-          />
+          // three-globe builds a WebGLRenderer on mount; without a context that
+          // throws through React and takes the whole page down with it.
+          <WebGLGuard label="noggles-rails-globe">
+            <Globe
+              ref={globeRef}
+              width={dimensions.width}
+              height={dimensions.height}
+              globeImageUrl="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+              bumpImageUrl="https://unpkg.com/three-globe/example/img/earth-topology.png"
+              onGlobeReady={() => setReady(true)}
+              backgroundColor="rgba(0,0,0,0)"
+              atmosphereColor="#6699cc"
+              atmosphereAltitude={0.15}
+              htmlElementsData={points}
+              htmlLat="lat"
+              htmlLng="lng"
+              htmlAltitude={0.01}
+              htmlElement={markerHtmlElement}
+            />
+          </WebGLGuard>
         )}
       </div>
       <MapLocationDrawer location={selected} open={drawerOpen} onOpenChange={setDrawerOpen} />
