@@ -46,12 +46,13 @@ export const SWAP_FEE_SPLIT = "0x15e69fd67dcc17e061ceeb93dac791e0f5af0eae";
  * the treasury page labelled "Morpheus Subnet".
  *
  * A warehouse credit is attributed by which of these splits emitted an event
- * in the SAME transaction (distribute-and-withdraw flows). A credit whose
- * transaction names none of them — a bare `withdraw()` of balance deposited
- * earlier, or a split nobody has mapped yet (two such ETH-paying splits,
- * 0xd9b2…ad6b and 0xdac8…e54, have already credited this treasury) — falls to
- * the generic `splits` tag. Generic is the honest floor: an unmapped split
- * must surface as unclassified, never wear another product's name.
+ * in the SAME transaction (distribute-and-withdraw flows), and failing that by
+ * the ledger credit that funded it — see `ledgerSplitForCredit`, which is what
+ * recovers a bare `withdraw()` of balance deposited earlier. A split nobody has
+ * mapped yet (two such ETH-paying splits, 0xd9b2…ad6b and 0xdac8…e54, have
+ * already credited this treasury) still falls to the generic `splits` tag: an
+ * unmapped split must surface as unclassified, never wear another product's
+ * name. The one exception is spelled out at `UNATTRIBUTED_USDC_FALLBACK`.
  *
  * Adding a product = one entry here plus its i18n strings and tile tone.
  */
@@ -111,11 +112,33 @@ interface AlchemyTransfer {
   value?: number | null;
   asset?: string | null;
   category?: string;
+  /** Hex block number — needed to bound the ledger scan in `ledgerSplitForCredit`. */
+  blockNum?: string;
   rawContract?: { address?: string | null };
   metadata?: { blockTimestamp?: string };
 }
 
 const ALCHEMY_KEY = process.env.ALCHEMY_API_KEY;
+
+async function alchemyRpc<T>(
+  method: string,
+  params: unknown[],
+  revalidate: number,
+): Promise<T | null> {
+  try {
+    const res = await fetch(`https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      next: { revalidate },
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { result?: T; error?: unknown };
+    return json.error ? null : (json.result ?? null);
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Which mapped split a warehouse-credit transaction came from.
@@ -157,6 +180,144 @@ async function splitSourceForTx(hash: string): Promise<InflowSource> {
     if (product) return product;
   }
   return "splits";
+}
+
+/**
+ * ERC-6909 `Transfer(address caller, address indexed sender, address indexed
+ * receiver, uint256 indexed id, uint256 amount)` on the warehouse. For a CREDIT
+ * into the treasury's ledger, `sender` (topic1) is the split that paid it — so
+ * the warehouse ledger knows the product even when the withdrawal does not.
+ */
+const WAREHOUSE_TRANSFER_TOPIC =
+  "0x1b3d7edb2e9c0b0e7c525b20aaaef0f5940d2ed71663c7d39266ecafac728859";
+
+/** Warehouse token id for an ERC-20 is `uint256(uint160(token))`. */
+const topicAddr = (a: string) => `0x${a.replace(/^0x/, "").toLowerCase().padStart(64, "0")}`;
+
+/**
+ * How far back a credit may sit from the withdrawal it funded. Observed on
+ * chain: the distribute and the withdraw are separate transactions ~10 blocks
+ * apart, run back-to-back by the same operator. 10k blocks (~5.5h on Base) is
+ * generous for that and is also the widest range the public Base RPC accepts,
+ * so the scan does not depend on a paid indexer plan to work.
+ */
+const LEDGER_SCAN_BLOCKS = 10_000;
+
+/**
+ * The product behind a BARE `withdraw()`.
+ *
+ * `splitSourceForTx` reads the withdrawal's own receipt, and a bare withdraw of
+ * balance credited earlier contains no split event at all — just the warehouse
+ * burn and the ERC-20 transfer out. That is why four subnet payouts totalling
+ * ~$27 sat on the treasury page under the generic "Splits" tag.
+ *
+ * They are still attributable, just not from that receipt: the CREDIT event
+ * that funded them names its split, and the amounts match exactly (7.843441
+ * USDC credited by the subnet split at block 50182875, withdrawn at 50182885).
+ * So scan the treasury's ledger credits in the window before the withdrawal and
+ * match on the exact amount. All four of the rows this was written for resolve
+ * that way — see `matchLedgerCredit` for what happens when they do not.
+ */
+async function ledgerSplitForCredit(
+  blockNum: string | undefined,
+  token: string,
+  rawAmount: bigint,
+): Promise<InflowSource | null> {
+  if (!blockNum) return null;
+  const to = parseInt(blockNum, 16);
+  if (!Number.isFinite(to)) return null;
+
+  const logs = await alchemyRpc<{ topics: string[]; data: string }[]>(
+    "eth_getLogs",
+    [
+      {
+        address: SPLITS_WAREHOUSE,
+        topics: [
+          WAREHOUSE_TRANSFER_TOPIC,
+          null,
+          topicAddr(DAO_ADDRESSES.treasury),
+          topicAddr(token),
+        ],
+        fromBlock: `0x${Math.max(0, to - LEDGER_SCAN_BLOCKS).toString(16)}`,
+        toBlock: `0x${to.toString(16)}`,
+      },
+    ],
+    // Historical logs behind a finalized block never change.
+    86400,
+  );
+  if (!logs) return null;
+
+  return matchLedgerCredit(logs, rawAmount);
+}
+
+/**
+ * The pure half of `ledgerSplitForCredit`: pick the product whose credit
+ * matches this amount. Exported for the unit tests — everything above it is a
+ * network call, and this is the part with the decisions in it.
+ *
+ * Ambiguity returns `null` rather than a first match: two mapped splits having
+ * credited the identical amount inside the window means the chain genuinely
+ * does not say which one this withdrawal drew on.
+ */
+export function matchLedgerCredit(
+  logs: { topics: string[]; data: string }[],
+  rawAmount: bigint,
+): InflowSource | null {
+  const matches = new Set<InflowSource>();
+  for (const l of logs) {
+    // data = abi.encode(caller, amount); the amount is the second word.
+    if (l.data.length < 130) continue;
+    let credited: bigint;
+    try {
+      credited = BigInt(`0x${l.data.slice(66, 130)}`);
+    } catch {
+      continue;
+    }
+    if (credited !== rawAmount) continue;
+    const split = `0x${(l.topics[1] ?? "").slice(26)}`.toLowerCase();
+    const product = SPLIT_PRODUCT[split];
+    if (product) matches.add(product);
+  }
+  return matches.size === 1 ? [...matches][0] : null;
+}
+
+/**
+ * Last-resort label for a warehouse USDC credit nothing could attribute.
+ *
+ * CALLER'S CHOICE, and it carries a known cost: today the subnet split is the
+ * only mapped product paying the treasury in USDC, so this is right far more
+ * often than not — but it is the same shape of assumption ("warehouse USDC =
+ * subnet") that ran a swap-fee credit under the Morpheus name for weeks, and it
+ * will mislabel the next USDC product the same way. Both attribution paths run
+ * first, so it only fires when the receipt names no split AND no ledger credit
+ * matches. Deleting this constant and its one use restores the strict "generic
+ * when unproven" behaviour.
+ */
+const UNATTRIBUTED_USDC_FALLBACK: InflowSource = "subnet";
+
+/**
+ * Where a warehouse credit came from, best evidence first:
+ *   1. a mapped split emitting in the credit's own transaction (distribute+withdraw)
+ *   2. the ledger credit that funded a bare withdraw, matched by exact amount
+ *   3. the USDC fallback above
+ * ETH and WETH warehouse credits never reach step 3 — two unmapped splits pay
+ * this treasury in ETH, and they are not the subnet.
+ */
+async function warehouseSource(
+  t: AlchemyTransfer,
+  asset: InflowAsset,
+  amount: number,
+): Promise<InflowSource> {
+  const fromReceipt = await splitSourceForTx(t.hash as string);
+  if (fromReceipt !== "splits") return fromReceipt;
+
+  if (asset !== "USDC") return "splits";
+
+  // USDC is 6dp and these are dollar-scale amounts — well inside the range
+  // where the float round-trips exactly.
+  const raw = BigInt(Math.round(amount * 1e6));
+  const fromLedger = await ledgerSplitForCredit(t.blockNum, USDC, raw);
+  return fromLedger ?? UNATTRIBUTED_USDC_FALLBACK;
 }
 
 /** A WETH credit is a secondary sale iff Seaport emitted in its transaction —
@@ -237,18 +398,18 @@ export const loadTreasuryInflowsPage = cache(async (pageKey?: string): Promise<I
       // Auction settlement is a contract-to-contract ETH move from the auction
       // house — the DAO's primary revenue, and invisible to `external`.
       //
-      // Warehouse credits are attributed to a PRODUCT by the split that
-      // emitted in the credit's own transaction (see SPLIT_PRODUCT for why
-      // the sender address alone cannot: every split shares this one
-      // warehouse, and the day two products' payouts left it under one
-      // label has already happened — a swap-fee credit ran on the public
-      // page as "Morpheus Subnet"). One immutable-receipt read per
-      // warehouse row; everything else costs nothing extra.
+      // Warehouse credits are attributed to a PRODUCT by `warehouseSource`
+      // (see SPLIT_PRODUCT for why the sender address alone cannot: every
+      // split shares this one warehouse, and the day two products' payouts
+      // left it under one label has already happened — a swap-fee credit ran
+      // on the public page as "Morpheus Subnet"). One immutable-receipt read
+      // per warehouse row, plus a cached log scan only for the ones that
+      // receipt cannot explain; everything else costs nothing extra.
       const source: InflowSource =
         from === DAO_ADDRESSES.auction.toLowerCase()
           ? "auction"
           : from === SPLITS_WAREHOUSE
-            ? await splitSourceForTx(t.hash)
+            ? await warehouseSource(t, asset, amount)
             : from === SEAPORT
               ? "secondary"
               : asset === "WETH"
@@ -293,9 +454,10 @@ export interface SubnetEarnings {
 /**
  * All-time Morpheus subnet earnings. Splits pay through the warehouse (see the
  * SPLITS_WAREHOUSE note above — the split address is never the `from`), so
- * this walks every warehouse→treasury USDC transfer and keeps the ones whose
- * transaction the subnet's final split emitted in, the same attribution rule
- * the inflows ledger uses. The paged inflows feed above is a window and cannot
+ * this walks every warehouse→treasury USDC transfer and keeps the ones
+ * `warehouseSource` attributes to the subnet — literally the same call the
+ * inflows feed makes, so the KPI and the tile below it cannot report different
+ * subnet totals. The paged inflows feed above is a window and cannot
  * sum honestly; this lane's full history is tiny, and the per-tx receipts are
  * immutable and day-cached. `null` = could not determine — the KPI card
  * renders a dash, never a fabricated 0.
@@ -303,7 +465,7 @@ export interface SubnetEarnings {
 export const loadSubnetEarnings = cache(async (): Promise<SubnetEarnings | null> => {
   if (!ALCHEMY_KEY) return null;
   try {
-    const transfers: Array<{ value: number; hash: string }> = [];
+    const transfers: Array<{ value: number; hash: string; blockNum?: string }> = [];
     let pageKey: string | undefined;
     do {
       const res = await fetch(`https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`, {
@@ -330,19 +492,28 @@ export const loadSubnetEarnings = cache(async (): Promise<SubnetEarnings | null>
       if (!res.ok) throw new Error(`Alchemy ${res.status}`);
       const json = (await res.json()) as {
         result?: {
-          transfers?: Array<{ value: number | null; hash?: string }>;
+          transfers?: Array<{ value: number | null; hash?: string; blockNum?: string }>;
           pageKey?: string;
         };
         error?: { message?: string };
       };
       if (json.error) throw new Error(json.error.message ?? "Alchemy error");
       for (const t of json.result?.transfers ?? []) {
-        if (t.hash) transfers.push({ value: t.value ?? 0, hash: t.hash });
+        if (t.hash) transfers.push({ value: t.value ?? 0, hash: t.hash, blockNum: t.blockNum });
       }
       pageKey = json.result?.pageKey;
     } while (pageKey);
 
-    const sources = await Promise.all(transfers.map((t) => splitSourceForTx(t.hash)));
+    // The SAME classifier the inflows feed uses, not just the receipt read.
+    // These two live on one screen — the KPI card at the top and the "Morpheus
+    // Subnet" tile in the panel below — so a rule applied to one and not the
+    // other puts two different subnet totals a few hundred pixels apart. Every
+    // transfer here is USDC by construction (`contractAddresses: [USDC]`).
+    const sources = await Promise.all(
+      transfers.map((t) =>
+        warehouseSource({ hash: t.hash, blockNum: t.blockNum }, "USDC", t.value),
+      ),
+    );
     let totalUsdc = 0;
     let claimCount = 0;
     for (let i = 0; i < transfers.length; i += 1) {

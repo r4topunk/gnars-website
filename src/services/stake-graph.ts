@@ -44,8 +44,8 @@ import {
   MOR_TOKEN,
   MORPHEUS_POOLS,
 } from "@/lib/morpheus";
-import { getEthUsd, getTokenPriceUsd, type UsdPrice } from "@/services/prices";
 import { blockscoutGet } from "@/services/blockscout";
+import { getEthUsd, getTokenPriceUsd, type UsdPrice } from "@/services/prices";
 
 // Prefer Alchemy (reliable, handles large getLogs) when the key is set, since
 // the public RPCs frequently fail/timeout on the MOR log scan — and a swallowed
@@ -136,6 +136,25 @@ export type OrbitAthlete = {
   handle: string;
   vault: Address;
   split?: Address;
+  /**
+   * Morpho sponsorship vault TVL (`totalAssets()`, USDC≈USD). This is the
+   * balance the performance fee accrues on, so it — not `total` — is what a
+   * yield figure must be read against.
+   */
+  vaultTvl: number;
+  /** Morpheus stake behind this rider, in USD. Earns MOR, not the vault fee. */
+  morUsd: number;
+  /**
+   * Everything backing this rider = `vaultTvl` + `morUsd`.
+   *
+   * It has to be the sum, because this is the number the orbit node prints and
+   * `StakeGraph.total` is the headline above it. While `total` meant "vault
+   * only", a rider backed purely through Morpheus rendered UNLIT with no figure
+   * at all — Will had $31 of MOR behind him and an empty node — and the
+   * per-node values could not be added up to the headline, since only the
+   * headline knew about MOR. Zooming into that same rider then listed the
+   * backers the overview had just denied.
+   */
   total: number;
   feeAccrued: number;
   backers: OrbitBacker[];
@@ -797,6 +816,9 @@ async function fetchStakeGraphUncached(): Promise<StakeGraph> {
             handle: r.handle,
             vault,
             split: r.split,
+            vaultTvl: Number(formatUnits(totalAssets, 6)),
+            // Both filled in below, once the MOR backers have been merged in.
+            morUsd: 0,
             total: Number(formatUnits(totalAssets, 6)),
             feeAccrued: Number(formatUnits(toAssets(feeShares), 6)),
             backers,
@@ -817,6 +839,11 @@ async function fetchStakeGraphUncached(): Promise<StakeGraph> {
       a.backers.push(...m);
       a.backers.sort((x, y) => y.amount - x.amount);
     }
+    // Derived from the merged backer list rather than tracked separately, so
+    // "what the node prints" and "what zooming into that node lists" cannot
+    // disagree — they are now the same numbers read twice.
+    a.morUsd = a.backers.reduce((s, b) => s + (b.kind === "mor" ? b.amount : 0), 0);
+    a.total = a.vaultTvl + a.morUsd;
   }
 
   const distinct = new Set<string>();
@@ -824,14 +851,12 @@ async function fetchStakeGraphUncached(): Promise<StakeGraph> {
 
   const gnarsAccrued = athletes.reduce((s, a) => s + a.feeAccrued, 0) / 2; // vault fee, USDC≈USD
   const gm = await gnarsMorEarned(mor);
-  // Total staked backing riders = Morpho vault TVL + Morpheus (MOR) deposits, USD.
-  const morTvl = athletes.reduce(
-    (s, a) => s + a.backers.reduce((x, b) => x + (b.kind === "mor" ? b.amount : 0), 0),
-    0,
-  );
   const graph: StakeGraph = {
     athletes,
-    total: athletes.reduce((s, a) => s + a.total, 0) + morTvl,
+    // Plain sum now that `a.total` carries each rider's MOR. The headline used
+    // to add `morTvl` on top of vault-only per-rider totals, which is exactly
+    // what let it disagree with the nodes printed underneath it.
+    total: athletes.reduce((s, a) => s + a.total, 0),
     backerCount: distinct.size,
     backersResolved,
     gnarsAccrued,

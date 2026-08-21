@@ -5,9 +5,21 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAddress, type Address } from "viem";
 import { NATIVE_TOKEN, type SwapChain, type SwapToken, type WalletToken } from "./chains";
 
+/** Decimal string → base-units bigint. Pioneer returns human balances (e.g.
+ * "25.00000000"), which `BigInt()` rejects — pad/truncate the fraction to
+ * the token's decimals. */
+function decimalToBaseUnits(human: string | undefined, decimals: number): bigint {
+  if (!human) return 0n;
+  const [whole = "0", frac = ""] = human.split(".");
+  const fracPadded = (frac + "0".repeat(decimals)).slice(0, decimals);
+  return BigInt(`${whole || "0"}${fracPadded}`);
+}
+
 /**
  * Fetches every ERC-20 token the connected user holds on the selected chain
- * via /api/wallet/tokens (Alchemy alchemy_getTokenBalances).
+ * via /api/wallet/pioneer-tokens (Pioneer portfolio — the same keyless,
+ * multi-source balance engine keepkey-vault / SwapPro use). Replaces the old
+ * Alchemy + Blockscout path that 500'd in production.
  *
  * Returns a merged token list: hardcoded curated tokens first (with their
  * vetted logos), then any discovered tokens the user holds that aren't already
@@ -32,7 +44,9 @@ export function useWalletTokens({
     enabled,
     staleTime: 60_000,
     queryFn: async () => {
-      const res = await fetch(`/api/wallet/tokens?address=${userAddress}&chainId=${chain.id}`);
+      const res = await fetch(
+        `/api/wallet/pioneer-tokens?address=${userAddress}&chainId=${chain.id}`,
+      );
       if (!res.ok) return [];
       return res.json();
     },
@@ -46,7 +60,7 @@ export function useWalletTokens({
       const key = ["swap-token-balance", chain.id, userAddress, t.address] as const;
       if (!queryClient.getQueryData(key)) {
         queryClient.setQueryData(key, {
-          value: BigInt(t.balance),
+          value: decimalToBaseUnits(t.balance, t.decimals),
           displayValue: t.displayBalance,
           decimals: t.decimals,
           symbol: t.symbol,

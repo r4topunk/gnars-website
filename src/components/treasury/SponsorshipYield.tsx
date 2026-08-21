@@ -26,6 +26,14 @@
 // TVL and accrued yield both come from the shared stake graph rather than
 // bespoke RPC reads, so this card and /stake can never disagree about a rider's
 // numbers.
+//
+// The headline is the graph's `treasuryUsd` — the SAME field /stake prints as
+// "earned for the treasury" — because these two pages answering "what did the
+// riders earn the DAO" with different numbers is precisely the drift this card
+// was supposed to have ruled out. What it earns splits two ways, so both are
+// named under it: the Morpho vaults' performance fee, and MOR from the Morpheus
+// stake. The per-rider table below stays vault-only, since the fee is the only
+// part attributable per rider.
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
@@ -87,15 +95,25 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
     return {
       id: r.id,
       split: r.split,
-      // The split holds the whole fee; the treasury's half is what this card is about.
+      // The split holds the whole fee; the treasury's half is what this column is about.
       yieldUsd: a ? a.feeAccrued / 2 : null,
-      tvl: a ? a.total : null,
+      // `vaultTvl`, NOT `total`: the performance fee accrues on the Morpho
+      // balance alone, so pairing the yield with a MOR-inclusive figure would
+      // invite reading a return rate off two unrelated numbers.
+      tvl: a ? a.vaultTvl : null,
     };
   });
 
-  const treasuryShare = rows.reduce((s, r) => s + (r.yieldUsd ?? 0), 0);
-  // One source of truth: `total` is the vault's own `totalAssets()`, the same
-  // read the stake orbit sums. No second TVL field to drift out of step.
+  // The headline is the graph's own `treasuryUsd` — the identical field /stake
+  // prints as "earned for the treasury". It used to be re-derived here as the
+  // vault fee alone, so the same question got two different answers on two
+  // pages ($0.0024 here against $0.0112 there) with nothing saying one was a
+  // subset of the other. The components are named underneath it instead.
+  const treasuryTotal = graph?.treasuryUsd ?? 0;
+  const vaultShare = graph?.gnarsAccrued ?? 0;
+  const morShare = graph?.gnarsMorUsd ?? 0;
+  // One source of truth: `vaultTvl` is each vault's own `totalAssets()`,
+  // straight off the shared graph — no second TVL field to drift.
   const totalTvl = rows.reduce((s, r) => s + (r.tvl ?? 0), 0);
   const claimable = rows.filter((r) => r.split && (r.yieldUsd ?? 0) > 0);
 
@@ -110,9 +128,22 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
       <CardContent className="space-y-4">
         <div>
           <p className="font-mono text-2xl font-bold tabular-nums">
-            {graph ? usd(treasuryShare) : "—"}
+            {graph ? usd(treasuryTotal) : "—"}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">{t("desc")}</p>
+          {/* Both halves, always — including a zero one. "Vault fee $0" is what
+              tells a reader the headline is not the vault fee, which is the
+              confusion this card started from. */}
+          <dl className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] text-muted-foreground">
+            <div className="flex items-baseline gap-1.5">
+              <dt>{t("fromVaults")}</dt>
+              <dd className="font-mono tabular-nums">{graph ? usd(vaultShare) : "—"}</dd>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <dt>{t("fromMor")}</dt>
+              <dd className="font-mono tabular-nums">{graph ? usd(morShare) : "—"}</dd>
+            </div>
+          </dl>
+          <p className="mt-1.5 text-xs text-muted-foreground">{t("desc")}</p>
           {/* The accrual mechanism, stated because the raw numbers look wrong
               without it: Morpho VaultV2 mints the fee on vault INTERACTIONS,
               not continuously. Yan's figure once jumped 66x in a day (a
@@ -175,8 +206,8 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
           </ul>
         </div>
 
-        {/* One source of truth: `total` is each vault's own `totalAssets()`, the
-            same read the stake orbit sums — no second TVL field to drift. */}
+        {/* Deliberately NOT the orbit node's figure, which also carries the
+            rider's MOR stake and would not belong under a fee-earning column. */}
         <div className="flex items-baseline justify-between gap-2.5 border-t border-border pt-3">
           <span className="text-xs text-muted-foreground">{t("totalTvl")}</span>
           <span className="font-mono text-sm font-semibold tabular-nums">
