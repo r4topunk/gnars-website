@@ -45,6 +45,7 @@ import {
   MORPHEUS_POOLS,
 } from "@/lib/morpheus";
 import { getEthUsd, getTokenPriceUsd, type UsdPrice } from "@/services/prices";
+import { blockscoutGet } from "@/services/blockscout";
 
 // Prefer Alchemy (reliable, handles large getLogs) when the key is set, since
 // the public RPCs frequently fail/timeout on the MOR log scan — and a swallowed
@@ -226,26 +227,19 @@ function collect(out: Set<Address>, raw: string | null | undefined): void {
 
 /** `null` = the source failed. An empty array = the source answered "none". */
 async function fromBlockscout(vault: Address): Promise<Discovery> {
-  try {
-    const res = await fetch(`https://base.blockscout.com/api/v2/tokens/${vault}/transfers`, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(9000),
-    });
-    if (!res.ok) return null;
-    const json = (await res.json()) as {
-      items?: { to?: { hash?: string }; from?: { hash?: string } }[];
-    };
-    // A 200 whose body isn't the shape we expect is a failure, not "no holders".
-    if (!Array.isArray(json.items)) return null;
-    const out = new Set<Address>();
-    for (const t of json.items) {
-      collect(out, t.to?.hash);
-      collect(out, t.from?.hash);
-    }
-    return [...out];
-  } catch {
-    return null;
+  // Crash-safe helper: a 500 with a non-JSON body now degrades to `null`
+  // instead of calling `.json()` on the text body.
+  const json = await blockscoutGet<{
+    items?: { to?: { hash?: string }; from?: { hash?: string } }[];
+  }>(`tokens/${vault}/transfers`);
+  // A 200 whose body isn't the shape we expect is a failure, not "no holders".
+  if (!json || !Array.isArray(json.items)) return null;
+  const out = new Set<Address>();
+  for (const t of json.items) {
+    collect(out, t.to?.hash);
+    collect(out, t.from?.hash);
   }
+  return [...out];
 }
 
 /**

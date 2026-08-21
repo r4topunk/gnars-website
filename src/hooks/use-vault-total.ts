@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createPublicClient, fallback, formatUnits, http, type Address } from "viem";
 import { base } from "viem/chains";
 import { RIDER_LIST } from "@/lib/gnars-vaults";
+import { blockscoutGet } from "@/services/blockscout";
 
 const client = createPublicClient({
   chain: base,
@@ -89,14 +90,13 @@ export function useVaultPosition(
 type DecodedParam = { name?: string; value?: unknown };
 type LogItem = { decoded?: { method_call?: string; parameters?: DecodedParam[] } | null };
 
-/** Net principal an account put in: sum of its Deposit assets minus Withdraw assets. */
+/** Net principal an account put in: sum of its Deposit assets minus Withdraw assets.
+ *  Delegates the fetch to the crash-safe Blockscout helper — a 500 with a
+ *  non-JSON body (the production "Internal server error") now degrades to 0
+ *  instead of calling `.json()` on the text body. */
 async function principalFromLogs(vault: Address, account: string): Promise<bigint> {
-  const res = await fetch(`https://base.blockscout.com/api/v2/addresses/${vault}/logs`, {
-    headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(9000),
-  });
-  if (!res.ok) return BigInt(0);
-  const json = (await res.json()) as { items?: LogItem[] };
+  const json = await blockscoutGet<{ items?: LogItem[] }>(`addresses/${vault}/logs`);
+  if (!json) return BigInt(0);
   const me = account.toLowerCase();
   let principal = BigInt(0);
   for (const log of json.items ?? []) {
