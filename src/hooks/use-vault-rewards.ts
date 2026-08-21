@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createPublicClient, fallback, formatUnits, http, type Address } from "viem";
 import { base } from "viem/chains";
 import { RIDERS, type RiderId } from "@/lib/gnars-vaults";
+import { blockscoutGet } from "@/services/blockscout";
 
 const client = createPublicClient({
   chain: base,
@@ -42,32 +43,27 @@ const abi = [
 type DecodedParam = { name?: string; value?: unknown };
 type LogItem = { decoded?: { method_call?: string; parameters?: DecodedParam[] } | null };
 
-/** Net principal an account put in: sum of its Deposit assets minus Withdraw assets. */
+/** Net principal an account put in: sum of its Deposit assets minus Withdraw assets.
+ *  Delegates the fetch to the crash-safe Blockscout helper — a 500 with a
+ *  non-JSON body (the production "Internal server error") now degrades to 0
+ *  instead of calling `.json()` on the text body. */
 async function principalFromLogs(vault: Address, account: string): Promise<bigint> {
-  try {
-    const res = await fetch(`https://base.blockscout.com/api/v2/addresses/${vault}/logs`, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(9000),
-    });
-    if (!res.ok) return BigInt(0);
-    const json = (await res.json()) as { items?: LogItem[] };
-    const me = account.toLowerCase();
-    let principal = BigInt(0);
-    for (const log of json.items ?? []) {
-      const call = log.decoded?.method_call ?? "";
-      const params = log.decoded?.parameters ?? [];
-      const owner = params.find((p) => p.name === "owner")?.value;
-      if (typeof owner !== "string" || owner.toLowerCase() !== me) continue;
-      const assets = params.find((p) => p.name === "assets")?.value;
-      if (typeof assets !== "string" && typeof assets !== "number") continue;
-      const amt = BigInt(assets);
-      if (call.startsWith("Deposit(")) principal += amt;
-      else if (call.startsWith("Withdraw(")) principal -= amt;
-    }
-    return principal > BigInt(0) ? principal : BigInt(0);
-  } catch {
-    return BigInt(0);
+  const json = await blockscoutGet<{ items?: LogItem[] }>(`addresses/${vault}/logs`);
+  if (!json) return BigInt(0);
+  const me = account.toLowerCase();
+  let principal = BigInt(0);
+  for (const log of json.items ?? []) {
+    const call = log.decoded?.method_call ?? "";
+    const params = log.decoded?.parameters ?? [];
+    const owner = params.find((p) => p.name === "owner")?.value;
+    if (typeof owner !== "string" || owner.toLowerCase() !== me) continue;
+    const assets = params.find((p) => p.name === "assets")?.value;
+    if (typeof assets !== "string" && typeof assets !== "number") continue;
+    const amt = BigInt(assets);
+    if (call.startsWith("Deposit(")) principal += amt;
+    else if (call.startsWith("Withdraw(")) principal -= amt;
   }
+  return principal > BigInt(0) ? principal : BigInt(0);
 }
 
 export type VaultReward = {
