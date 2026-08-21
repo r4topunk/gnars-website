@@ -55,6 +55,12 @@ export const SWAP_FEE_SPLIT = "0x15e69fd67dcc17e061ceeb93dac791e0f5af0eae";
  *
  * ── THE ADDRESS BOOK ──
  *
+ * Reference, NOT implementation. Attribution in production is the mechanism
+ * above (same-tx receipt, then `ledgerSplitForCredit`'s amount-matched credit
+ * scan). This book only documents who the addresses are, so nobody re-digs —
+ * do not wire it into attribution: naming an address here must never be what
+ * makes a payout wear a product tag.
+ *
  * MAPPED (below):
  *   SUBNET_FINAL_SPLIT 0xcc7E…3A4E → "subnet". Recipients (reconstructed from
  *   the creation event, hash-verified against the stored splitHash,
