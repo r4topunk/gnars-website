@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { ipfsToHttp } from "@/lib/ipfs";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { getCoin, setApiKey } from "@zoralabs/coins-sdk";
@@ -24,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserAddress } from "@/hooks/use-user-address";
 import { useWriteAccount } from "@/hooks/use-write-account";
+import { ipfsToHttp } from "@/lib/ipfs";
 import { getThirdwebClient } from "@/lib/thirdweb";
 import { ensureOnChain, normalizeTxError } from "@/lib/thirdweb-tx";
 import { cn } from "@/lib/utils";
@@ -774,7 +774,15 @@ export function SwapWidget() {
                 value={sellAmount}
                 onChange={(e) => setSellAmount(e.target.value)}
                 aria-label={t("from.sellAmount")}
-                className="h-auto flex-1 border-0 bg-transparent p-0 text-[44px] font-thin leading-none tracking-[-2px] text-foreground shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 @2xl:text-[56px] @2xl:tracking-[-3px] dark:bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none"
+                // `md:text-[44px]` is not redundant with the base size: the
+                // shadcn Input ships `md:text-sm`, and tailwind-merge only
+                // drops a conflicting class within the SAME modifier — so the
+                // bare `text-[44px]` replaced `text-base` and left `md:text-sm`
+                // standing, which then won at ≥768px. The sell amount rendered
+                // at 14px on desktop next to the buy amount's 44px, matching
+                // only on phones. Restating it under `md:` is what actually
+                // evicts it.
+                className="h-auto flex-1 border-0 bg-transparent p-0 text-[44px] font-thin leading-none tracking-[-2px] text-foreground shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30 md:text-[44px] @2xl:text-[56px] @2xl:tracking-[-3px] dark:bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none"
               />
               <span className="shrink-0 text-xl font-light tracking-tight text-muted-foreground/60 @2xl:text-2xl">
                 {sellToken.symbol}
