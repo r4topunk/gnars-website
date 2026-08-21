@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { VotingControls } from "@/components/common/VotingControls";
 import { Propdates } from "@/components/proposals/detail/Propdates";
 import { ProposalActions } from "@/components/proposals/detail/ProposalActions";
@@ -236,6 +237,24 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
   const visibleTabsCount = 1 + (shouldShowVotesTab ? 1 : 0) + (shouldShowPropdatesTab ? 1 : 0);
   const shouldShowTabsList = visibleTabsCount > 1;
 
+  // Deep links (?tab=votes|propdates) can't use <Tabs defaultValue> because
+  // those tabs are revealed post-mount; honor the param once, when the target
+  // tab becomes visible, then hand control back to the user.
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState("details");
+  const honoredTabParam = useRef(false);
+  useEffect(() => {
+    if (honoredTabParam.current) return;
+    if (
+      (requestedTab === "votes" && shouldShowVotesTab) ||
+      (requestedTab === "propdates" && shouldShowPropdatesTab)
+    ) {
+      honoredTabParam.current = true;
+      setActiveTab(requestedTab);
+    }
+  }, [requestedTab, shouldShowVotesTab, shouldShowPropdatesTab]);
+
   // Show voting card for active proposals (connection check moved to VotingControls to avoid hydration issues)
   // Hide voting for read-only proposals (Snapshot and Ethereum)
   const isProposalActive = proposal.status === "Active";
@@ -303,7 +322,7 @@ export function ProposalDetail({ proposal }: ProposalDetailProps) {
       {isProposalSuccessful(proposal.status) && (
         <ProposalActions proposal={proposal} onActionSuccess={handleActionSuccess} />
       )}
-      <Tabs defaultValue="details" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {shouldShowTabsList && (
           <div className="overflow-x-auto">
             <TabsList

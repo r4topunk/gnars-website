@@ -16,6 +16,12 @@ export interface NogglesRailLocation {
     name: string;
     link: string;
   };
+  /**
+   * Base (Gnars DAO) proposal number used to auto-link onchain propdates to
+   * this rail. Only set for rails funded by a Base proposal — Snapshot/Nouns/
+   * organic rails leave it undefined and simply show no Updates section.
+   */
+  proposalNumber?: number;
   video?: string;
   droposals?: number[];
   thumbnailPosition?: string;
@@ -116,6 +122,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Gnars Proposal 20",
       link: "https://www.gnars.com/proposals/20",
     },
+    proposalNumber: 20,
     slug: "rio-de-janeiro-delta",
   },
   {
@@ -176,6 +183,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Gnars Proposal",
       link: "https://gnars.com/proposals/73",
     },
+    proposalNumber: 73,
     slug: "nairobi",
   },
   {
@@ -194,6 +202,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/4",
     },
+    proposalNumber: 4,
     slug: "sao-paulo-sopa-de-letras",
   },
   {
@@ -263,6 +272,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/25",
     },
+    proposalNumber: 25,
     slug: "medellin",
   },
   {
@@ -286,6 +296,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/33",
     },
+    proposalNumber: 33,
     slug: "london",
   },
   {
@@ -309,6 +320,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/proposals/41",
     },
+    proposalNumber: 41,
     slug: "buenos-aires",
   },
   {
@@ -332,6 +344,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/dao/proposal/68",
     },
+    proposalNumber: 68,
     slug: "milan",
   },
   {
@@ -353,6 +366,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/proposals/63",
     },
+    proposalNumber: 63,
     slug: "oc-ramp",
   },
   {
@@ -376,6 +390,7 @@ export const NOGGLES_RAILS: NogglesRailLocation[] = [
       name: "Gnars Proposal",
       link: "https://www.gnars.com/proposals/89",
     },
+    proposalNumber: 89,
     slug: "sao-paulo-itapetininga",
   },
 ];
