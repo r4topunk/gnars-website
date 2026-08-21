@@ -105,15 +105,15 @@
     "title": "Sponsorship yield",
     "desc": "Everything the riders earn the treasury: the vaults’ performance fee plus MOR from the Morpheus stake. Depositors keep their principal — only the yield is split.",
     "colRider": "Rider",
-    "colTvl": "Vault TVL",
     "colYield": "Vault yield",
-    "totalTvl": "Total vault TVL",
     "openTitle": "Anyone can do this now",
     "openDesc": "Distributing the split and pushing the balance to the treasury are both permissionless — no vote needed. Any wallet can trigger them.",
     "govDesc": "Only converting those shares to USDC needs a proposal: the treasury is a timelock, and ERC-4626 lets nobody else redeem on its behalf.",
     "govCta": "Start redeem proposal",
     "accrualNote": "Fees materialize when someone interacts with a vault, not continuously — the figures can sit still for weeks, then jump all at once. An older small vault can carry more accrued fee than a big recent one.",
     "fromVaults": "Vault fee",
-    "fromMor": "MOR rewards"
+    "fromMor": "MOR rewards",
+    "colStaked": "Staked",
+    "totalStaked": "Total staked"
   }
 }

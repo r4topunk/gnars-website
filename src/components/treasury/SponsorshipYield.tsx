@@ -32,8 +32,12 @@
 // riders earn the DAO" with different numbers is precisely the drift this card
 // was supposed to have ruled out. What it earns splits two ways, so both are
 // named under it: the Morpho vaults' performance fee, and MOR from the Morpheus
-// stake. The per-rider table below stays vault-only, since the fee is the only
-// part attributable per rider.
+// stake. The per-rider table below shows each rider's full backing, the same
+// figure their orbit node prints, but its YIELD column is the vault fee alone:
+// MOR earned for the treasury includes a balance sitting in one shared wallet
+// (`MOR_GNARS_RECIPIENT`) that carries no rider attribution, so a per-rider MOR
+// yield is not something the chain can answer. The column says "vault yield"
+// rather than implying the split is knowable.
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
@@ -97,10 +101,12 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
       split: r.split,
       // The split holds the whole fee; the treasury's half is what this column is about.
       yieldUsd: a ? a.feeAccrued / 2 : null,
-      // `vaultTvl`, NOT `total`: the performance fee accrues on the Morpho
-      // balance alone, so pairing the yield with a MOR-inclusive figure would
-      // invite reading a return rate off two unrelated numbers.
-      tvl: a ? a.vaultTvl : null,
+      // `total`, the SAME figure the orbit node prints — vault balance plus the
+      // rider's Morpheus stake. A vault-only column read as "nothing backs this
+      // rider" for anyone staked purely through Morpheus: Will showed an em
+      // dash here while the orbit drew him at $31 and his MOR fed the headline
+      // above. The column is named for what it holds, not for the vault.
+      staked: a ? a.total : null,
     };
   });
 
@@ -112,9 +118,9 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
   const treasuryTotal = graph?.treasuryUsd ?? 0;
   const vaultShare = graph?.gnarsAccrued ?? 0;
   const morShare = graph?.gnarsMorUsd ?? 0;
-  // One source of truth: `vaultTvl` is each vault's own `totalAssets()`,
-  // straight off the shared graph — no second TVL field to drift.
-  const totalTvl = rows.reduce((s, r) => s + (r.tvl ?? 0), 0);
+  // The graph's own headline rather than a re-sum of the rows, so this line is
+  // the very number /stake prints as "$X staked".
+  const totalStaked = graph?.total ?? 0;
   const claimable = rows.filter((r) => r.split && (r.yieldUsd ?? 0) > 0);
 
   return (
@@ -158,7 +164,7 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
         <div>
           <div className="grid grid-cols-[minmax(0,1fr)_72px_66px] gap-2.5 border-b border-border pb-2 text-[11px] font-medium text-muted-foreground">
             <span>{t("colRider")}</span>
-            <span className="text-right">{t("colTvl")}</span>
+            <span className="text-right">{t("colStaked")}</span>
             <span className="text-right">{t("colYield")}</span>
           </div>
 
@@ -192,7 +198,7 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
                     and the yield column right beside it says $0 for exactly
                     that case, so the two must not look alike. */}
                 <span className="text-right font-mono text-xs tabular-nums text-muted-foreground">
-                  {(r.tvl ?? 0) > 0 ? usd(r.tvl as number) : "–"}
+                  {(r.staked ?? 0) > 0 ? usd(r.staked as number) : "–"}
                 </span>
                 <span
                   className={`text-right font-mono text-xs font-semibold tabular-nums ${
@@ -206,12 +212,12 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
           </ul>
         </div>
 
-        {/* Deliberately NOT the orbit node's figure, which also carries the
-            rider's MOR stake and would not belong under a fee-earning column. */}
+        {/* Straight off the graph, so this line and the "$X staked" headline on
+            /stake are one value read in two places, not two sums that agree. */}
         <div className="flex items-baseline justify-between gap-2.5 border-t border-border pt-3">
-          <span className="text-xs text-muted-foreground">{t("totalTvl")}</span>
+          <span className="text-xs text-muted-foreground">{t("totalStaked")}</span>
           <span className="font-mono text-sm font-semibold tabular-nums">
-            {graph ? usd(totalTvl) : "—"}
+            {graph ? usd(totalStaked) : "—"}
           </span>
         </div>
 
