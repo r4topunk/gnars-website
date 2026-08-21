@@ -49,17 +49,58 @@ export const SWAP_FEE_SPLIT = "0x15e69fd67dcc17e061ceeb93dac791e0f5af0eae";
  * in the SAME transaction (distribute-and-withdraw flows), and failing that by
  * the ledger credit that funded it — see `ledgerSplitForCredit`, which is what
  * recovers a bare `withdraw()` of balance deposited earlier. A split nobody has
- * mapped yet (two such ETH-paying splits, 0xd9b2…ad6b and 0xdac8…e54, have
- * already credited this treasury) still falls to the generic `splits` tag: an
- * unmapped split must surface as unclassified, never wear another product's
- * name. The one exception is spelled out at `UNATTRIBUTED_USDC_FALLBACK`.
+ * mapped yet still falls to the generic `splits` tag: an unmapped split must
+ * surface as unclassified, never wear another product's name. The one
+ * exception is spelled out at `UNATTRIBUTED_USDC_FALLBACK`.
  *
- * Adding a product = one entry here plus its i18n strings and tile tone.
+ * ── THE ADDRESS BOOK ──
+ *
+ * Reference, NOT implementation. Attribution in production is the mechanism
+ * above (same-tx receipt, then `ledgerSplitForCredit`'s amount-matched credit
+ * scan). This book only documents who the addresses are, so nobody re-digs —
+ * do not wire it into attribution: naming an address here must never be what
+ * makes a payout wear a product tag.
+ *
+ * MAPPED (below):
+ *   SUBNET_FINAL_SPLIT 0xcc7E…3A4E → "subnet". Recipients (reconstructed from
+ *   the creation event, hash-verified against the stored splitHash,
+ *   2026-08-19): Sopa Multisig 0x96C3…eEA2 80%, treasury 20%. Pays USDC.
+ *   SWAP_FEE_SPLIT 0x15e6…0eae → "swap" (recipients above).
+ *
+ * IDENTIFIED, RECIPIENTS VERIFIED, PRODUCT UNKNOWN (`UNNAMED_VERIFIED_SPLITS`;
+ * deliberately unmapped — their payouts stay generic until a human names
+ * them). Both were once suspected of being subnet splits; the on-chain shape
+ * refutes that, so do not re-add the hypothesis:
+ *   0xd9b2…ad6b — 0xEed9…a282 20%, treasury 80% (hash-verified 2026-08-19).
+ *     Diverges from the subnet pattern on every axis: counterparty is not the
+ *     Sopa Multisig, the treasury share is INVERTED (80% vs the subnet's 20%),
+ *     different factory (0x5cba…21d1), no distribution incentive, pays ETH
+ *     where the subnet lane pays USDC.
+ *   0xdac8…e54 — 0x9ad8…E1c8 49.5%, treasury 49.5%, 0x9946…17a1 1%
+ *     (hash-verified 2026-08-19). Also unrelated to the [80/20] subnet shape.
+ *     Pays ETH.
+ *
+ * NOT SPLITS, NEVER SOURCES: SplitsWarehouse 0x8fb6…1fb8 is shared transport
+ * for every split above; the legacy Ethereum-mainnet treasury 0x4d3a…ce52
+ * (config `GNARS_ADDRESSES_ETH.treasury`) is an obsolete DAO address, not an
+ * income product; Seaport and the auction house have their own tags.
+ *
+ * Adding a product = verify the recipients against the stored splitHash first
+ * (reconstruct from the creation event), then one entry here plus its i18n
+ * strings and tile tone.
  */
 const SPLIT_PRODUCT: Record<string, InflowSource> = {
   [SUBNET_FINAL_SPLIT]: "subnet",
   [SWAP_FEE_SPLIT]: "swap",
 };
+
+/** Investigated and hash-verified splits whose product is still unnamed (see
+ * the address book above for their recipients and why they are NOT subnet).
+ * Exported so future naming starts from the verified constants, not a re-dig. */
+export const UNNAMED_VERIFIED_SPLITS = [
+  "0xd9b22da0c190a90bcada99d69b0f5aeeaf10ad6b",
+  "0xdac848cfe537b21eeb5e718422e4055644b29e54",
+] as const;
 
 /**
  * Where a credit came from. Kept deliberately coarse — these are the things
