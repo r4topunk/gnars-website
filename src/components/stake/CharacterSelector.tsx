@@ -89,7 +89,7 @@ export const CHARACTERS: Character[] = [
     accentTo: "to-amber-600",
     ring: "ring-yellow-400",
     hex: "#f59e0b",
-    face: { size: "420%", pos: "50% 6%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     video:
       "https://ipfs.skatehive.app/ipfs/bafybeiapkdzwrh3tv2dhaxkefzcwtoxekjaryecapa7kpqcaifqgwux3c4",
     stats: { speed: 7, air: 5, ollie: 8, spin: 9, rail: 2, flow: 9, devSkills: 10, creativity: 9 },
@@ -111,7 +111,7 @@ export const CHARACTERS: Character[] = [
     accentTo: "to-purple-600",
     ring: "ring-fuchsia-400",
     hex: "#d946ef",
-    face: { size: "420%", pos: "50% 5%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     // Same render as the still, so the hover swap lands on the same silhouette:
     // the rider fills 93.8% of the video's height against 93.9% of the still's.
     video: "/stake/video/r4to.webm",
@@ -137,7 +137,7 @@ export const CHARACTERS: Character[] = [
     accentTo: "to-red-600",
     ring: "ring-rose-400",
     hex: "#f43f5e",
-    face: { size: "420%", pos: "50% 8%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     stats: { speed: 10, air: 7, ollie: 7, spin: 8, rail: 5, flow: 9, devSkills: 7, creativity: 9 },
   },
   {

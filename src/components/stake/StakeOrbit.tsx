@@ -49,7 +49,7 @@ const RIDER_VISUAL: Record<
   vlad: {
     hex: "#f59e0b",
     image: "/stake/cutout/vlad.png",
-    face: { size: "420%", pos: "50% 6%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     ratio: 1448 / 1086,
   },
   yan: {
@@ -61,8 +61,8 @@ const RIDER_VISUAL: Record<
   r4to: {
     hex: "#d946ef",
     image: "/stake/cutout/r4to.png",
-    face: { size: "420%", pos: "50% 5%" },
-    ratio: 1024 / 688,
+    face: { size: "480%", pos: "50% 5.5%" },
+    ratio: 1448 / 1086,
     clip: { src: "/stake/video/r4to.webm" },
   },
   pamtech: {
@@ -74,7 +74,7 @@ const RIDER_VISUAL: Record<
   v2: {
     hex: "#f43f5e",
     image: "/stake/cutout/v2.png",
-    face: { size: "420%", pos: "50% 8%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     ratio: 1448 / 1086,
   },
   zima: {
