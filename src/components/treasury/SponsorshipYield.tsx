@@ -97,10 +97,15 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
       split: r.split,
       // The split holds the whole fee; the treasury's half is what this column is about.
       yieldUsd: a ? a.feeAccrued / 2 : null,
-      // `vaultTvl`, NOT `total`: the performance fee accrues on the Morpho
-      // balance alone, so pairing the yield with a MOR-inclusive figure would
-      // invite reading a return rate off two unrelated numbers.
-      tvl: a ? a.vaultTvl : null,
+      // `total` (vault + Morpheus stake) — the SAME figure the orbit node
+      // prints, so a rider backed purely through Morpheus (Will's MOR stake)
+      // no longer reads as having nothing behind him here while /stake lights
+      // him up. The yield column stays vault-fee-only because that is the only
+      // per-rider-attributable earning — the MOR half of the treasury's take
+      // exists only as the graph-level aggregate in the headline above. The
+      // header says "Staked", not "Vault TVL", for exactly this reason: these
+      // two columns answer different questions and must not be read as a rate.
+      tvl: a ? a.total : null,
     };
   });
 
@@ -112,9 +117,9 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
   const treasuryTotal = graph?.treasuryUsd ?? 0;
   const vaultShare = graph?.gnarsAccrued ?? 0;
   const morShare = graph?.gnarsMorUsd ?? 0;
-  // One source of truth: `vaultTvl` is each vault's own `totalAssets()`,
-  // straight off the shared graph — no second TVL field to drift.
-  const totalTvl = rows.reduce((s, r) => s + (r.tvl ?? 0), 0);
+  // One source of truth: the graph's own headline total (vault + Morpheus),
+  // the identical number the orbit prints — never a second sum to drift.
+  const totalTvl = graph?.total ?? 0;
   const claimable = rows.filter((r) => r.split && (r.yieldUsd ?? 0) > 0);
 
   return (
@@ -206,8 +211,6 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
           </ul>
         </div>
 
-        {/* Deliberately NOT the orbit node's figure, which also carries the
-            rider's MOR stake and would not belong under a fee-earning column. */}
         <div className="flex items-baseline justify-between gap-2.5 border-t border-border pt-3">
           <span className="text-xs text-muted-foreground">{t("totalTvl")}</span>
           <span className="font-mono text-sm font-semibold tabular-nums">
