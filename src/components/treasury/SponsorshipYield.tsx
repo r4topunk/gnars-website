@@ -211,11 +211,20 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
           </ul>
         </div>
 
-        <div className="flex items-baseline justify-between gap-2.5 border-t border-border pt-3">
-          <span className="text-xs text-muted-foreground">{t("totalTvl")}</span>
-          <span className="font-mono text-sm font-semibold tabular-nums">
-            {graph ? usd(totalTvl) : "—"}
-          </span>
+        <div className="border-t border-border pt-3">
+          <div className="flex items-baseline justify-between gap-2.5">
+            <span className="text-xs text-muted-foreground">{t("totalTvl")}</span>
+            <span className="font-mono text-sm font-semibold tabular-nums">
+              {graph ? usd(totalTvl) : "—"}
+            </span>
+          </div>
+          {/* Same word ("staked"), different subject: this figure is the
+              SUPPORTERS' money behind the riders. The treasury's own position
+              sits centimeters below in the In DeFi card — without this line,
+              "$79k staked" next to "vault shares $0" reads as a contradiction. */}
+          <p className="mt-1 text-[11px] leading-snug text-muted-foreground/70">
+            {t("stakedNote")}
+          </p>
         </div>
 
         {claimable.length > 0 ? (
