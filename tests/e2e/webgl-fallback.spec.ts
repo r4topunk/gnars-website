@@ -13,11 +13,21 @@ import { expect, test } from "@playwright/test";
 function disableWebGL(page: import("@playwright/test").Page) {
   return page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function (id: string, ...rest: unknown[]) {
+    // The DOM lib types getContext as per-id overloads; a generic interceptor
+    // cannot satisfy them, so the override is assigned through the original's
+    // own type. Runtime behavior is untouched passthrough for non-WebGL ids.
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      id: string,
+      ...rest: unknown[]
+    ) {
       if (id === "webgl" || id === "webgl2" || id === "experimental-webgl") return null;
-      // @ts-expect-error - passthrough to the untouched 2d/bitmaprenderer contexts
-      return original.call(this, id, ...rest);
-    };
+      return (original as (this: HTMLCanvasElement, ...a: unknown[]) => unknown).call(
+        this,
+        id,
+        ...rest,
+      );
+    } as typeof HTMLCanvasElement.prototype.getContext;
   });
 }
 
