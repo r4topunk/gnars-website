@@ -66,19 +66,18 @@ export const SWAP_FEE_SPLIT = "0x15e69fd67dcc17e061ceeb93dac791e0f5af0eae";
  *   the creation event, hash-verified against the stored splitHash,
  *   2026-08-19): Sopa Multisig 0x96C3…eEA2 80%, treasury 20%. Pays USDC.
  *   SWAP_FEE_SPLIT 0x15e6…0eae → "swap" (recipients above).
- *
- * IDENTIFIED, RECIPIENTS VERIFIED, PRODUCT UNKNOWN (`UNNAMED_VERIFIED_SPLITS`;
- * deliberately unmapped — their payouts stay generic until a human names
- * them). Both were once suspected of being subnet splits; the on-chain shape
- * refutes that, so do not re-add the hypothesis:
- *   0xd9b2…ad6b — 0xEed9…a282 20%, treasury 80% (hash-verified 2026-08-19).
- *     Diverges from the subnet pattern on every axis: counterparty is not the
- *     Sopa Multisig, the treasury share is INVERTED (80% vs the subnet's 20%),
- *     different factory (0x5cba…21d1), no distribution incentive, pays ETH
- *     where the subnet lane pays USDC.
- *   0xdac8…e54 — 0x9ad8…E1c8 49.5%, treasury 49.5%, 0x9946…17a1 1%
- *     (hash-verified 2026-08-19). Also unrelated to the [80/20] subnet shape.
- *     Pays ETH.
+ *   DROPOSAL_UGANDA_SPLIT 0xd9b2…ad6b → "droposal". The payout split of prop
+ *     #81 "Droposal Uganda Connection Film" — its address sits in the executed
+ *     proposal's calldata as the edition's funds recipient. Recipients
+ *     (hash-verified 2026-08-19): Renan Carvalho 0xEed9…a282 20% (the payment
+ *     recipient of props #14/#47/#59/#81), treasury 80%. Deployed by the
+ *     artist directly (factory 0x5cba…21d1, 2025-04), which is why no
+ *     governance address appears in its creation. Pays ETH.
+ *   DROPOSAL_7CAPAS_SPLIT 0xdac8…e54 → "droposal". The payout split of prop
+ *     #98 "Dropossal 7Capas Mag Ska7e & Jazz" (calldata match). Recipients
+ *     (hash-verified 2026-08-19): 7Capas / Skate & Jazz crew 0x9ad8…E1c8
+ *     49.5% (recipient of props #41/#76/#98/#104), treasury 49.5%, and
+ *     0x9946…17a1 1% — the one recipient still unidentified. Pays ETH.
  *
  * NOT SPLITS, NEVER SOURCES: SplitsWarehouse 0x8fb6…1fb8 is shared transport
  * for every split above; the legacy Ethereum-mainnet treasury 0x4d3a…ce52
@@ -89,25 +88,32 @@ export const SWAP_FEE_SPLIT = "0x15e69fd67dcc17e061ceeb93dac791e0f5af0eae";
  * (reconstruct from the creation event), then one entry here plus its i18n
  * strings and tile tone.
  */
+
+/** Payout split of droposal prop #81 (Uganda Connection Film) — see the book. */
+export const DROPOSAL_UGANDA_SPLIT = "0xd9b22da0c190a90bcada99d69b0f5aeeaf10ad6b";
+/** Payout split of droposal prop #98 (7Capas Mag Skate & Jazz) — see the book. */
+export const DROPOSAL_7CAPAS_SPLIT = "0xdac848cfe537b21eeb5e718422e4055644b29e54";
+
 const SPLIT_PRODUCT: Record<string, InflowSource> = {
   [SUBNET_FINAL_SPLIT]: "subnet",
   [SWAP_FEE_SPLIT]: "swap",
+  [DROPOSAL_UGANDA_SPLIT]: "droposal",
+  [DROPOSAL_7CAPAS_SPLIT]: "droposal",
 };
-
-/** Investigated and hash-verified splits whose product is still unnamed (see
- * the address book above for their recipients and why they are NOT subnet).
- * Exported so future naming starts from the verified constants, not a re-dig. */
-export const UNNAMED_VERIFIED_SPLITS = [
-  "0xd9b22da0c190a90bcada99d69b0f5aeeaf10ad6b",
-  "0xdac848cfe537b21eeb5e718422e4055644b29e54",
-] as const;
 
 /**
  * Where a credit came from. Kept deliberately coarse — these are the things
  * the DAO actually earns from, not a transaction taxonomy. `splits` is the
  * explicit "a split paid this but we cannot say which product" bucket.
  */
-export type InflowSource = "auction" | "subnet" | "swap" | "splits" | "secondary" | "transfer";
+export type InflowSource =
+  | "auction"
+  | "subnet"
+  | "swap"
+  | "droposal"
+  | "splits"
+  | "secondary"
+  | "transfer";
 
 /**
  * Seaport 1.6 (the canonical vanity deployment). Secondary sales of Gnars NFTs

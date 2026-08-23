@@ -77,6 +77,7 @@
     "auctionHint": "Chegou do contrato de leilão como transferência interna",
     "viewTx": "Ver transação no Basescan",
     "subnet": "Morpheus Subnet",
+    "droposal": "Droposal",
     "swap": "Taxa de swap",
     "splits": "Splits",
     "transfer": "Transferência",

@@ -30,6 +30,7 @@ const SOURCE_DOT: Record<InflowSource, string> = {
   auction: "bg-amber-500",
   subnet: "bg-emerald-500",
   swap: "bg-sky-500",
+  droposal: "bg-violet-500",
   secondary: "bg-rose-500",
   // Generic splits is the "a split we have not mapped" bucket — it must never
   // borrow a product's colour, least of all the subnet green it used to share.
@@ -41,6 +42,7 @@ const SOURCE_TONE: Record<InflowSource, string> = {
   auction: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
   subnet: "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   swap: "border-sky-500/25 bg-sky-500/10 text-sky-600 dark:text-sky-400",
+  droposal: "border-violet-500/25 bg-violet-500/10 text-violet-600 dark:text-violet-400",
   secondary: "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-400",
   // Unmapped split: tinted just enough to say "known mechanism, unknown
   // product" without wearing any product's brand colour.
@@ -217,7 +219,7 @@ export function TreasuryInflowsList({
   // so each asset keeps its own line. A single blended figure would require a
   // conversion this component cannot honestly make.
   const summary = (
-    ["auction", "secondary", "subnet", "swap", "splits", "transfer"] as InflowSource[]
+    ["auction", "secondary", "subnet", "swap", "droposal", "splits", "transfer"] as InflowSource[]
   )
     .map((source) => {
       const rowsFor = all.filter((f) => f.source === source);

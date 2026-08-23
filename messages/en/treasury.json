@@ -77,6 +77,7 @@
     "auctionHint": "Arrived from the auction house as an internal transfer",
     "viewTx": "View transaction on Basescan",
     "subnet": "Morpheus Subnet",
+    "droposal": "Droposal",
     "swap": "Swap fee",
     "splits": "Splits",
     "transfer": "Transfer",
