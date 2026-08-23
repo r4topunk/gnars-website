@@ -463,7 +463,10 @@ export async function getPublicRoundBySlug(slug: string): Promise<RoundWithSubmi
 
 export async function getRoundVotingPower(round: Round, walletAddress?: string | null) {
   if (!walletAddress || !isAddress(walletAddress)) return 0;
-  const delegatedVotingPower = await getDelegatedGnarsVotingPower(walletAddress);
+  // Snapshot at the instant voting opened — see getDelegatedGnarsVotingPower
+  // for why live votes would let the same Gnars vote once per re-delegation.
+  const snapshotTimestamp = Math.floor(Date.parse(round.votingStartsAt) / 1000);
+  const delegatedVotingPower = await getDelegatedGnarsVotingPower(walletAddress, snapshotTimestamp);
   if (delegatedVotingPower <= 0) return 0;
 
   if (round.votingStrategy === "fixed_per_wallet") return round.votesPerWallet;

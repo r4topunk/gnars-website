@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Round } from "@/features/rounds/types";
+import { serverPublicClient } from "@/lib/rpc";
+import { getRoundVotingPower } from "./rounds";
 
 vi.mock("server-only", () => ({}));
 
@@ -8,9 +10,6 @@ vi.mock("@/lib/rpc", () => ({
     readContract: vi.fn(),
   },
 }));
-
-import { serverPublicClient } from "@/lib/rpc";
-import { getRoundVotingPower } from "./rounds";
 
 const readContract = vi.mocked(serverPublicClient.readContract);
 
@@ -63,14 +62,43 @@ describe("getRoundVotingPower", () => {
   it("returns votesPerWallet for fixed_per_wallet when delegated Gnars voting power is greater than 0", async () => {
     readContract.mockResolvedValueOnce(7n);
 
-    await expect(getRoundVotingPower(baseRound("fixed_per_wallet", 5), walletAddress)).resolves.toBe(
-      5,
-    );
+    await expect(
+      getRoundVotingPower(baseRound("fixed_per_wallet", 5), walletAddress),
+    ).resolves.toBe(5);
   });
 
   it("returns delegated Gnars voting power for one_per_nft", async () => {
     readContract.mockResolvedValueOnce(7n);
 
     await expect(getRoundVotingPower(baseRound("one_per_nft"), walletAddress)).resolves.toBe(7);
+  });
+
+  it("reads votes at the round's voting-open SNAPSHOT, not live", async () => {
+    // Live getVotes would let the same Gnars vote once per re-delegation hop
+    // (A→B votes, A re-delegates→C votes). The checkpoint at votingStartsAt is
+    // immutable, so the power must be read there.
+    readContract.mockResolvedValueOnce(7n);
+
+    await getRoundVotingPower(baseRound("one_per_nft"), walletAddress);
+
+    expect(readContract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        functionName: "getPastVotes",
+        args: [
+          expect.any(String),
+          BigInt(Math.floor(Date.parse("2026-06-03T00:00:00.000Z") / 1000)),
+        ],
+      }),
+    );
+  });
+
+  it("returns 0 without touching the chain when voting has not opened yet", async () => {
+    // ERC-5805 reverts on a future timepoint; a round that has not opened has
+    // no snapshot and nobody can vote in it — 0 is the true answer.
+    const future = baseRound("one_per_nft");
+    future.votingStartsAt = new Date(Date.now() + 86_400_000).toISOString();
+
+    await expect(getRoundVotingPower(future, walletAddress)).resolves.toBe(0);
+    expect(readContract).not.toHaveBeenCalled();
   });
 });
