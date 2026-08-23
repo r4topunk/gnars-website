@@ -6,6 +6,7 @@ import { formatFiatUsd } from "@/lib/i18n/fiat";
 import { fetchSettledAuctionCount } from "@/services/dao";
 import { getBrlRateForRequest } from "@/services/exchange-rate";
 import { loadTreasurySnapshot } from "@/services/treasury";
+import { loadTreasuryDefi } from "@/services/treasury-defi";
 import { loadSubnetEarnings } from "@/services/treasury-inflows";
 import { FiatFallbackNote } from "./FiatFallbackNote";
 import { KpiValue } from "./KpiValue";
@@ -56,12 +57,21 @@ function UsdcMark() {
 export async function TreasuryKpiRow() {
   const t = await getTranslations("treasury.page.kpis");
   const locale = await getLocale();
-  const [snapshot, subnet, auctionCount, brlRate] = await Promise.all([
+  const [snapshot, subnet, auctionCount, brlRate, defi] = await Promise.all([
     loadTreasurySnapshot(DAO_ADDRESSES.treasury).catch(() => null),
     loadSubnetEarnings(),
     fetchSettledAuctionCount(),
     getBrlRateForRequest(),
+    loadTreasuryDefi().catch(() => null),
   ]);
+
+  // Total = wallet + DeFi (net worth by right, the shared three-surface spec).
+  // A failed DeFi read keeps the wallet total but says so out loud — the sum
+  // of the KNOWN positions still counts (it is a floor, never an estimate).
+  const walletUsd = snapshot?.usdTotal ?? null;
+  const defiKnown = defi?.knownUsd ?? 0;
+  const totalUsd = walletUsd == null ? null : walletUsd + defiKnown;
+  const defiHealthy = defi != null && defi.complete;
 
   const cards: Array<{
     key: string;
@@ -76,9 +86,24 @@ export async function TreasuryKpiRow() {
       key: "total",
       label: t("totalValue"),
       accent: "--chart-5",
-      value: <KpiValue value={snapshot?.usdTotal ?? null} decimals={2} fiat brlRate={brlRate} />,
-      note: snapshot ? t("acrossAssets", { count: snapshot.assetCount }) : null,
-      extra: <FiatFallbackNote brlRate={brlRate} className="relative mt-1" />,
+      value: <KpiValue value={totalUsd} decimals={2} fiat brlRate={brlRate} />,
+      note:
+        walletUsd != null
+          ? t("walletVsDefi", {
+              wallet: formatFiatUsd(walletUsd, locale, brlRate),
+              defi: formatFiatUsd(defiKnown, locale, brlRate),
+            })
+          : null,
+      extra: (
+        <>
+          {!defiHealthy && (
+            <p className="relative mt-1 text-xs text-amber-600 dark:text-amber-500">
+              {t("defiUnavailable")}
+            </p>
+          )}
+          <FiatFallbackNote brlRate={brlRate} className="relative mt-1" />
+        </>
+      ),
       mark: (
         <Image
           src="/red_noggles.png"

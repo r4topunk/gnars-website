@@ -10,7 +10,9 @@
       "subnetEarnings": "Ganhos da Subnet",
       "acrossAssets": "em {count} ativos",
       "auctionsSettled": "{count} leilões concluídos",
-      "morpheusClaims": "Morpheus · {count} resgates"
+      "morpheusClaims": "Morpheus · {count} resgates",
+      "walletVsDefi": "Em carteira {wallet} · Em DeFi {defi}",
+      "defiUnavailable": "Posições DeFi ilegíveis — o total mostra só a carteira"
     },
     "nftSection": {
       "title": "Holdings de NFT",
@@ -116,5 +118,25 @@
     "accrualNote": "O rendimento materializa quando alguém interage com o vault, não de forma contínua — os números podem ficar parados por semanas e pular de uma vez. Um vault pequeno e antigo pode acumular mais que um grande e recente.",
     "fromVaults": "Taxa dos vaults",
     "fromMor": "Recompensas MOR"
+  },
+  "defi": {
+    "title": "Em DeFi",
+    "description": "Posições em protocolo que o tesouro detém por direito",
+    "positions": {
+      "vaultShares": "Shares dos vaults de rider (Morpho)",
+      "feeInSplits": "Fee de vault acumulada nos splits dos riders",
+      "warehouse": "Saldo no Splits Warehouse",
+      "splitPending": "Saldos não distribuídos nos splits",
+      "subnetStake": "MOR em stake no subnet da Gnars",
+      "vaultSharesZeroNote": "o tesouro não deposita nos vaults — o direito dele é a taxa de performance que acumula nos splits"
+    },
+    "liquidity": {
+      "instant": "resgatável já — permissionless",
+      "proposal": "resgate via proposta de governança",
+      "locked": "em lock até {date}"
+    },
+    "readFailed": "falha de leitura",
+    "total": "Total em DeFi",
+    "incomplete": "* uma ou mais posições não puderam ser lidas — o total é um piso, não a verdade inteira"
   }
 }
