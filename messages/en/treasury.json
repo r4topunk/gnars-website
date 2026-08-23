@@ -10,7 +10,9 @@
       "subnetEarnings": "Subnet Earnings",
       "acrossAssets": "across {count} assets",
       "auctionsSettled": "{count} auctions settled",
-      "morpheusClaims": "Morpheus · {count} claims"
+      "morpheusClaims": "Morpheus · {count} claims",
+      "walletVsDefi": "In wallet {wallet} · In DeFi {defi}",
+      "defiUnavailable": "DeFi positions unreadable — the total shows the wallet only"
     },
     "nftSection": {
       "title": "NFT Holdings",
@@ -116,5 +118,25 @@
     "accrualNote": "Fees materialize when someone interacts with a vault, not continuously — the figures can sit still for weeks, then jump all at once. An older small vault can carry more accrued fee than a big recent one.",
     "fromVaults": "Vault fee",
     "fromMor": "MOR rewards"
+  },
+  "defi": {
+    "title": "In DeFi",
+    "description": "Protocol positions the treasury owns by right",
+    "positions": {
+      "vaultShares": "Rider vault shares (Morpho)",
+      "feeInSplits": "Vault fee accrued in rider splits",
+      "warehouse": "Splits Warehouse balance",
+      "splitPending": "Undistributed split balances",
+      "subnetStake": "MOR staked in the Gnars subnet",
+      "vaultSharesZeroNote": "the treasury never deposits here — its right is the performance fee accruing in the splits"
+    },
+    "liquidity": {
+      "instant": "redeemable now — permissionless",
+      "proposal": "redeem via governance proposal",
+      "locked": "locked until {date}"
+    },
+    "readFailed": "read failed",
+    "total": "Total in DeFi",
+    "incomplete": "* one or more positions could not be read — the total is a floor, not the whole truth"
   }
 }

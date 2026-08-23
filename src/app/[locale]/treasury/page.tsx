@@ -12,6 +12,7 @@ import { SponsorshipYield } from "@/components/treasury/SponsorshipYield";
 import { SyncedBadge } from "@/components/treasury/SyncedBadge";
 import { TokenHoldings } from "@/components/treasury/TokenHoldings";
 import { TreasuryAllocation } from "@/components/treasury/TreasuryAllocation";
+import { TreasuryDefi } from "@/components/treasury/TreasuryDefi";
 import { TreasuryInflows } from "@/components/treasury/TreasuryInflows";
 import { TreasuryKpiRow } from "@/components/treasury/TreasuryKpiRow";
 import { DAO_ADDRESSES } from "@/lib/config";
@@ -134,6 +135,12 @@ export default async function TreasuryPage({ params }: { params: Promise<{ local
             <SponsorshipYield brlRate={brlRate} />
             <Suspense fallback={<TableSkeleton />}>
               <TokenHoldings treasuryAddress={DAO_ADDRESSES.treasury} />
+            </Suspense>
+            {/* Stock, not flow: what the treasury owns by right in protocol
+                positions. Sits under Token Holdings ("in wallet") so the two
+                halves of the Total KPI are adjacent and reconcilable. */}
+            <Suspense fallback={<TableSkeleton />}>
+              <TreasuryDefi />
             </Suspense>
           </div>
         </div>
