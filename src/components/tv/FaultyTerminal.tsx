@@ -3,6 +3,7 @@
 /* eslint-disable react-hooks/purity -- OGL WebGL imperative API requires render-time allocation */
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Color, Mesh, Program, Renderer, Triangle } from "ogl";
+import { hasWebGLSupport } from "@/lib/webgl";
 
 const vertexShader = `
 attribute vec2 position;
@@ -295,6 +296,10 @@ export function FaultyTerminal({
   useEffect(() => {
     const ctn = containerRef.current;
     if (!ctn) return;
+    // ogl's Renderer throws when it cannot get a context (GPU disabled,
+    // sandboxed, blocklisted driver). This is a decorative background, so a
+    // machine without WebGL simply gets the empty container.
+    if (!hasWebGLSupport()) return;
 
     const renderer = new Renderer({ dpr });
     rendererRef.current = renderer;
