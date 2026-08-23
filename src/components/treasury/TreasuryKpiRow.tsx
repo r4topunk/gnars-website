@@ -78,7 +78,7 @@ export async function TreasuryKpiRow() {
     label: string;
     accent: string;
     value: ReactNode;
-    note: string | null;
+    note: ReactNode;
     extra?: ReactNode;
     mark: ReactNode;
   }> = [
@@ -87,13 +87,23 @@ export async function TreasuryKpiRow() {
       label: t("totalValue"),
       accent: "--chart-5",
       value: <KpiValue value={totalUsd} decimals={2} fiat brlRate={brlRate} />,
+      // Two deliberate lines, not one that wraps: BRL strings run ~30% longer
+      // than USD ("R$ 177.908,14" vs "$34,414.31") and the single-line form
+      // broke across the corner noggles on pt-BR. The right padding keeps the
+      // text clear of the mark in every locale.
       note:
-        walletUsd != null
-          ? t("walletVsDefi", {
-              wallet: formatFiatUsd(walletUsd, locale, brlRate),
-              defi: formatFiatUsd(defiKnown, locale, brlRate),
-            })
-          : null,
+        walletUsd != null ? (
+          <span className="block space-y-0 pr-[88px]">
+            <span className="flex items-baseline gap-1.5 whitespace-nowrap">
+              <span>{t("inWallet")}</span>
+              <span className="tabular-nums">{formatFiatUsd(walletUsd, locale, brlRate)}</span>
+            </span>
+            <span className="flex items-baseline gap-1.5 whitespace-nowrap">
+              <span>{t("inDefi")}</span>
+              <span className="tabular-nums">{formatFiatUsd(defiKnown, locale, brlRate)}</span>
+            </span>
+          </span>
+        ) : null,
       extra: (
         <>
           {!defiHealthy && (

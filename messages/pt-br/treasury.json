@@ -11,8 +11,9 @@
       "acrossAssets": "em {count} ativos",
       "auctionsSettled": "{count} leilões concluídos",
       "morpheusClaims": "Morpheus · {count} resgates",
-      "walletVsDefi": "Em carteira {wallet} · Em DeFi {defi}",
-      "defiUnavailable": "Posições DeFi ilegíveis — o total mostra só a carteira"
+      "defiUnavailable": "Posições DeFi ilegíveis — o total mostra só a carteira",
+      "inWallet": "Em carteira",
+      "inDefi": "Em DeFi"
     },
     "nftSection": {
       "title": "Holdings de NFT",

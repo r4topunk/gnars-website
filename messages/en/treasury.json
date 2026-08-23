@@ -11,8 +11,9 @@
       "acrossAssets": "across {count} assets",
       "auctionsSettled": "{count} auctions settled",
       "morpheusClaims": "Morpheus · {count} claims",
-      "walletVsDefi": "In wallet {wallet} · In DeFi {defi}",
-      "defiUnavailable": "DeFi positions unreadable — the total shows the wallet only"
+      "defiUnavailable": "DeFi positions unreadable — the total shows the wallet only",
+      "inWallet": "In wallet",
+      "inDefi": "In DeFi"
     },
     "nftSection": {
       "title": "NFT Holdings",

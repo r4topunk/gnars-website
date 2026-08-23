@@ -161,7 +161,7 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
         </div>
 
         <div>
-          <div className="grid grid-cols-[minmax(0,1fr)_72px_66px] gap-2.5 border-b border-border pb-2 text-[11px] font-medium text-muted-foreground">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2.5 border-b border-border pb-2 text-[11px] font-medium text-muted-foreground">
             <span>{t("colRider")}</span>
             <span className="text-right">{t("colTvl")}</span>
             <span className="text-right">{t("colYield")}</span>
@@ -171,7 +171,7 @@ export function SponsorshipYield({ brlRate = null }: { brlRate?: number | null }
             {rows.map((r) => (
               <li
                 key={r.id}
-                className="grid grid-cols-[minmax(0,1fr)_72px_66px] items-center gap-2.5 py-1.5"
+                className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2.5 py-1.5"
               >
                 <span className="flex min-w-0 items-center gap-2">
                   {/* Cropped to the face the same way the orbit nodes are, so a
