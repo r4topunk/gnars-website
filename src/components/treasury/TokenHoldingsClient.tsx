@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TREASURY_TOKEN_ALLOWLIST } from "@/lib/config";
 import { formatFiatUsd } from "@/lib/i18n/fiat";
 import { toIntlLocale } from "@/lib/i18n/format";
 import { FiatFallbackNote } from "./FiatFallbackNote";
@@ -106,6 +107,19 @@ export function TokenHoldingsClient({ tokens, error, brlRate = null }: TokenHold
                 <div className="text-sm text-muted-foreground tabular-nums">
                   {formatBalance(token.balance, token.decimals)} {token.symbol}
                 </div>
+                {/* Sendit trades in exactly one thin-volume Uniswap pool, so
+                    its screen price is a market estimate, not an exit value.
+                    Measured 2026-08-23 (UTC), QuoterV2 against the Sendit/WETH
+                    0.3% pool (reserve ~$115k, 24h vol $0.44): selling the full
+                    474M position in one swap realized 88.6% of screen price;
+                    a 10% tranche realized 96.9%. The note is deliberately
+                    qualitative — a number would age into misinformation. */}
+                {token.contractAddress.toLowerCase() ===
+                  TREASURY_TOKEN_ALLOWLIST.SENDIT.toLowerCase() && (
+                  <div className="mt-0.5 max-w-[13rem] text-[11px] leading-snug text-muted-foreground/80">
+                    {t("tokens.thinMarketNote")}
+                  </div>
+                )}
               </div>
             </li>
           ))}

@@ -11,8 +11,9 @@
       "acrossAssets": "em {count} ativos",
       "auctionsSettled": "{count} leilões concluídos",
       "morpheusClaims": "Morpheus · {count} resgates",
-      "walletVsDefi": "Em carteira {wallet} · Em DeFi {defi}",
-      "defiUnavailable": "Posições DeFi ilegíveis — o total mostra só a carteira"
+      "defiUnavailable": "Posições DeFi ilegíveis — o total mostra só a carteira",
+      "inWallet": "Em carteira",
+      "inDefi": "Em DeFi"
     },
     "nftSection": {
       "title": "Holdings de NFT",
@@ -27,7 +28,8 @@
     "description": "Tokens ERC-20 mantidos no tesouro",
     "empty": "Nenhum token encontrado",
     "emptyDescription": "O tesouro não tem tokens ERC-20 no momento",
-    "errorLoading": "Erro ao carregar holdings de tokens: {error}"
+    "errorLoading": "Erro ao carregar holdings de tokens: {error}",
+    "thinMarketNote": "estimativa a preço de mercado de um pool de baixo volume — a saída integral realizaria menos que o valor de tela"
   },
   "zoraCoin": {
     "title": "Zora Coins",
@@ -117,7 +119,8 @@
     "govCta": "Abrir proposta de resgate",
     "accrualNote": "O rendimento materializa quando alguém interage com o vault, não de forma contínua — os números podem ficar parados por semanas e pular de uma vez. Um vault pequeno e antigo pode acumular mais que um grande e recente.",
     "fromVaults": "Taxa dos vaults",
-    "fromMor": "Recompensas MOR"
+    "fromMor": "Recompensas MOR",
+    "stakedNote": "Dinheiro de apoiadores atrás dos riders — não é posição do tesouro (essa fica em Em DeFi)."
   },
   "defi": {
     "title": "Em DeFi",

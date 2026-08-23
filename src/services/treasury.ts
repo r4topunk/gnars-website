@@ -129,6 +129,14 @@ export const loadTreasurySnapshot = cache(
     const nativeEthUsd = ethBalance * (ethUsd ?? 0);
     // `null` = "we could not price this", which every consumer must render as
     // unavailable. It is never the same thing as a treasury worth $0.
+    //
+    // KNOW THIS BEFORE MARKING ANY TOKEN AS UNPRICED: a total missing one part
+    // is not a smaller total — it is an UNKNOWN total. One `null` price here
+    // nulls `usdTotal`, and the page's headline number becomes a dash. That is
+    // deliberate (a confident wrong figure is worse), but it means "mark token
+    // X as unpriceable" is a page-headline decision, not a row decision. If a
+    // partial figure is ever wanted instead, use the DeFi card's pattern: a
+    // labeled floor ("known so far"), never a silent subtraction.
     const usdTotal: number | null = priced ? tokensUsd + nativeEthUsd : null;
     const totalAuctionSales = Number(formatEther(auctionSalesWei));
 

@@ -11,8 +11,9 @@
       "acrossAssets": "across {count} assets",
       "auctionsSettled": "{count} auctions settled",
       "morpheusClaims": "Morpheus · {count} claims",
-      "walletVsDefi": "In wallet {wallet} · In DeFi {defi}",
-      "defiUnavailable": "DeFi positions unreadable — the total shows the wallet only"
+      "defiUnavailable": "DeFi positions unreadable — the total shows the wallet only",
+      "inWallet": "In wallet",
+      "inDefi": "In DeFi"
     },
     "nftSection": {
       "title": "NFT Holdings",
@@ -27,7 +28,8 @@
     "description": "ERC-20 tokens held in the treasury",
     "empty": "No tokens found",
     "emptyDescription": "The treasury currently holds no ERC-20 tokens",
-    "errorLoading": "Error loading token holdings: {error}"
+    "errorLoading": "Error loading token holdings: {error}",
+    "thinMarketNote": "market-price estimate from one low-volume pool — a full exit would realize less than shown"
   },
   "zoraCoin": {
     "title": "Zora Coins",
@@ -117,7 +119,8 @@
     "govCta": "Start redeem proposal",
     "accrualNote": "Fees materialize when someone interacts with a vault, not continuously — the figures can sit still for weeks, then jump all at once. An older small vault can carry more accrued fee than a big recent one.",
     "fromVaults": "Vault fee",
-    "fromMor": "MOR rewards"
+    "fromMor": "MOR rewards",
+    "stakedNote": "Backers' money staked behind the riders — not the treasury's own position (that lives under In DeFi)."
   },
   "defi": {
     "title": "In DeFi",
