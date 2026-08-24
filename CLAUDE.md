@@ -154,50 +154,15 @@ Secrets never go in client code. `NEXT_PUBLIC_*` is public by definition.
 - **Address displays link to the internal profile** `/members/[address]`, never Basescan.
 - **Never invent user-facing status copy** ("coming soon", "beta", "unstable") from code state — confirm the feature's real status with the user first.
 - **Format + lint before every commit**, not after CI flags it: `pnpm format` on touched files, then `pnpm lint`. Pre-existing lint errors outside your diff: report, don't fix.
-- **End every change report with explicit git state**: branch, commit hash, pushed or not, PR URL. Never commit or push without explicit instruction.
+- **End every change with the one-line report**: `<projeto> · <sha curto> · <o que mudou> · deploy <success|building|failed>`. A change is NOT done until its deploy is `success` (verify via GitHub deployments API, full sha).
 - **Continuing an existing PR**: `git fetch origin pull/<N>/head:pr-<N>` and commit on that branch — don't create a new one. Fresh worktrees need `pnpm install` first (or invoke binaries from the main repo's `node_modules/.bin/`).
 
-## Pull Request Protocol
+## Direct-to-Main Protocol (Vlad, 2026-08-24 — supersedes the old PR protocol)
 
-All medium and large tasks MUST be delivered via Pull Request. Do not commit directly to `main`.
+Everything lands directly on `main` and in production. Do not open a PR and wait for review — the goal is visibility, not speed: work sitting in unreviewed PRs made it impossible to know what was live.
 
-| Size       | Criteria                                       | PR Required? |
-| ---------- | ---------------------------------------------- | ------------ |
-| **Small**  | Single-file fix, typo, config tweak, <20 lines | Optional     |
-| **Medium** | Multi-file, new component, 20–100 lines        | **Yes**      |
-| **Large**  | Cross-cutting, refactor, 100+ lines            | **Yes**      |
-
-When in doubt, create a PR.
-
-### Workflow
-
-1. Branch from `main` (or stack from prior feature branch). Format: `feat/*`, `fix/*`, `update/*`. Use a git worktree when the main repo has unrelated work in progress.
-2. Small atomic commits with clear messages.
-3. `gh pr create` with title <70 chars and the body template below. Target `main` unless stacking.
-4. Report the PR URL to the user.
-
-### PR Body Template
-
-```markdown
-## Summary
-
-- [1-3 bullets: what changed and why]
-
-## Changes
-
-- [key files/areas modified]
-
-## Test plan
-
-- [ ] [how to verify]
-
-Generated with [Claude Code](https://claude.com/claude-code)
-```
-
-### Worktrees
-
-Use when: current dir has uncommitted work on another branch; implementing a plan that needs isolation; user asks for isolation.
-
-### Stacking
-
-First PR → `main`. Subsequent PRs target the previous feature branch. Merge in order; rebase as needed.
+- After EVERY change, report in ONE line: `<projeto> · <sha curto> · <o que mudou> · deploy <success|building|failed>`.
+- A change is not done until the deploy is `success`. A commit on `main` without a confirmed deploy is the old blindness, only faster.
+- Gates that still apply before pushing: `tsc` and the test suite green; PT-BR capture for any layout change; a failed read renders as a failure, never as zero.
+- Do NOT wait for approval on routine changes. Ask first ONLY for: changes touching power or money (governance, funds, permissions), hard-to-reverse actions, and anything touching credentials.
+- PRs are the exception, used only when explicitly requested. Worktrees still apply when the main repo has unrelated work in progress.
