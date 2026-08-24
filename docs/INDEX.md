@@ -33,6 +33,7 @@ This is the canonical entry point for project documentation. Everything below sh
 - `docs/integrations/splits.md` — 0xSplits droposal revenue sharing
 - `docs/integrations/swap.md` — 0x Swap API v2 integration powering /swap, including affiliate-fee config
 - `docs/integrations/keepkey-fulfillment.md` — KeepKey dropship fulfillment: implemented client + API routes + webhook, money flow, sandbox, env
+- `docs/integrations/morpheus-claim-restake-proposer.md` — spec for the SOPA-portal proposer: claim MOR (mainnet, LZ fee) → OFT bridge Arb→Base → swap/restake into the Gnars subnet, with time gates and the lock-reset warning
 
 ## Strategy
 
