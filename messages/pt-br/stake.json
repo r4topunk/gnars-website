@@ -117,13 +117,13 @@
     "viaMorpho": "rendimento via Morpho · estável",
     "viaMorpheus": "rendimento via Morpheus · em MOR",
     "estNote": "≈{rate}% APR estimado — varia com o preço do MOR e o tamanho do pool.",
-    "mainnetWarn": "O principal destrava após um lock de 7 dias.",
+    "mainnetWarn": "O principal destrava 7 dias depois do último stake.",
     "estYearLabel": "Valor estimado / ano",
     "estYearNote": "Pago em MOR na Arbitrum — estimativa ao vivo, não é garantia.",
     "approving": "aprovando…",
     "staking": "stakeando na mainnet…",
     "stakedMorTitle": "Stake com {name} na Morpheus",
-    "stakedMorDesc": "Rendendo MOR na Arbitrum — o principal destrava após 7 dias.",
+    "stakedMorDesc": "Rendendo MOR na Arbitrum — o principal destrava 7 dias depois do último stake.",
     "yourPosition": "Sua posição",
     "principal": "principal",
     "yield": "rendimento",
@@ -233,8 +233,8 @@
     "rateHelpLabel": "Sobre a taxa de {asset} na {venue}",
     "rateHelp": {
       "morphoUsdc": "Taxa anual, paga em USDC. Sem lock: saque quando quiser.",
-      "morpheusSteth": "Taxa anual estimada, paga em MOR. Seu stETH libera 7 dias depois do stake.",
-      "morpheusUsdc": "Taxa anual estimada, paga em MOR. Seu USDC libera 7 dias depois do stake."
+      "morpheusSteth": "Taxa anual estimada, paga em MOR. Seu stETH libera 7 dias depois do último stake.",
+      "morpheusUsdc": "Taxa anual estimada, paga em MOR. Seu USDC libera 7 dias depois do último stake."
     },
     "ratesLoading": "carregando as taxas…",
     "ratesNa": "n/d",

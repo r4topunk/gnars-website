@@ -117,13 +117,13 @@
     "viaMorpho": "yield via Morpho · stable",
     "viaMorpheus": "yield via Morpheus · in MOR",
     "estNote": "≈{rate}% APR estimate — swings with the MOR price and pool size.",
-    "mainnetWarn": "Principal unlocks after a 7-day lock.",
+    "mainnetWarn": "Principal unlocks 7 days after your last stake.",
     "estYearLabel": "Estimated value / year",
     "estYearNote": "Paid in MOR on Arbitrum — a live estimate, not a guarantee.",
     "approving": "approving…",
     "staking": "staking on mainnet…",
     "stakedMorTitle": "Staked with {name} on Morpheus",
-    "stakedMorDesc": "Earning MOR on Arbitrum — your principal unlocks after 7 days.",
+    "stakedMorDesc": "Earning MOR on Arbitrum — your principal unlocks 7 days after your last stake.",
     "yourPosition": "Your position",
     "principal": "principal",
     "yield": "yield",
@@ -233,8 +233,8 @@
     "rateHelpLabel": "About the {asset} rate on {venue}",
     "rateHelp": {
       "morphoUsdc": "Annual rate, paid in USDC. No lock: withdraw whenever you want.",
-      "morpheusSteth": "Estimated annual rate, paid in MOR. Your stETH unlocks 7 days after you stake.",
-      "morpheusUsdc": "Estimated annual rate, paid in MOR. Your USDC unlocks 7 days after you stake."
+      "morpheusSteth": "Estimated annual rate, paid in MOR. Your stETH unlocks 7 days after your last stake.",
+      "morpheusUsdc": "Estimated annual rate, paid in MOR. Your USDC unlocks 7 days after your last stake."
     },
     "ratesLoading": "loading rates…",
     "ratesNa": "n/a",
