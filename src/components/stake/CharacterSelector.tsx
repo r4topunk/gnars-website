@@ -101,7 +101,7 @@ export const CHARACTERS: Character[] = [
     accentTo: "to-blue-600",
     ring: "ring-sky-400",
     hex: "#0ea5e9",
-    face: { size: "420%", pos: "50% 5%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     stats: { speed: 7, air: 8, ollie: 8, spin: 7, rail: 6, flow: 8, devSkills: 8, creativity: 9 },
   },
   {
@@ -126,7 +126,7 @@ export const CHARACTERS: Character[] = [
     accentTo: "to-green-600",
     ring: "ring-emerald-400",
     hex: "#10b981",
-    face: { size: "420%", pos: "50% 9%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     stats: { speed: 6, air: 9, ollie: 9, spin: 6, rail: 10, flow: 7, devSkills: 9, creativity: 8 },
   },
   {
@@ -147,7 +147,7 @@ export const CHARACTERS: Character[] = [
     accentTo: "to-cyan-600",
     ring: "ring-teal-400",
     hex: "#14b8a6",
-    face: { size: "330%", pos: "50% 3%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     stats: { speed: 8, air: 8, ollie: 3, spin: 8, rail: 10, flow: 9, devSkills: 6, creativity: 10 },
   },
   {
@@ -158,7 +158,7 @@ export const CHARACTERS: Character[] = [
     accentTo: "to-orange-600",
     ring: "ring-orange-400",
     hex: "#fb923c",
-    face: { size: "400%", pos: "50% 8%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     stats: { speed: 7, air: 7, ollie: 7, spin: 7, rail: 7, flow: 8, devSkills: 6, creativity: 8 },
   },
   {
@@ -168,7 +168,7 @@ export const CHARACTERS: Character[] = [
     accentTo: "to-indigo-600",
     ring: "ring-indigo-400",
     hex: "#818cf8",
-    face: { size: "400%", pos: "50% 8%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     stats: { speed: 7, air: 6, ollie: 7, spin: 7, rail: 8, flow: 8, devSkills: 5, creativity: 8 },
   },
 ];

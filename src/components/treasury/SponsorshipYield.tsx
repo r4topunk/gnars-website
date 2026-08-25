@@ -54,13 +54,13 @@ import { FiatFallbackNote } from "./FiatFallbackNote";
  */
 export const AVATAR: Record<RiderId, { src: string; size: string; pos: string }> = {
   vlad: { src: "/stake/cutout/vlad.png", size: "480%", pos: "50% 5.5%" },
-  yan: { src: "/stake/cutout/yan.png", size: "420%", pos: "50% 5%" },
+  yan: { src: "/stake/cutout/yan.png", size: "480%", pos: "50% 5.5%" },
   r4to: { src: "/stake/cutout/r4to.png", size: "480%", pos: "50% 5.5%" },
-  pamtech: { src: "/stake/cutout/pamtech.png", size: "420%", pos: "50% 9%" },
+  pamtech: { src: "/stake/cutout/pamtech.png", size: "480%", pos: "50% 5.5%" },
   v2: { src: "/stake/cutout/v2.png", size: "480%", pos: "50% 5.5%" },
-  zima: { src: "/stake/cutout/zima.png", size: "330%", pos: "50% 3%" },
-  will: { src: "/stake/cutout/will.png", size: "400%", pos: "50% 8%" },
-  ephraim: { src: "/stake/cutout/ephraim.png", size: "400%", pos: "50% 8%" },
+  zima: { src: "/stake/cutout/zima.png", size: "480%", pos: "50% 5.5%" },
+  will: { src: "/stake/cutout/will.png", size: "480%", pos: "50% 5.5%" },
+  ephraim: { src: "/stake/cutout/ephraim.png", size: "480%", pos: "50% 5.5%" },
 };
 
 // explorer.splits.org, NOT app.splits.org: the app answers "Account not found"

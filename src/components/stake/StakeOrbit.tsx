@@ -55,7 +55,7 @@ const RIDER_VISUAL: Record<
   yan: {
     hex: "#0ea5e9",
     image: "/stake/cutout/yan.png",
-    face: { size: "420%", pos: "50% 5%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     ratio: 1448 / 1086,
   },
   r4to: {
@@ -68,7 +68,7 @@ const RIDER_VISUAL: Record<
   pamtech: {
     hex: "#10b981",
     image: "/stake/cutout/pamtech.png",
-    face: { size: "420%", pos: "50% 9%" },
+    face: { size: "480%", pos: "50% 5.5%" },
     ratio: 1448 / 1086,
   },
   v2: {
@@ -80,20 +80,20 @@ const RIDER_VISUAL: Record<
   zima: {
     hex: "#14b8a6",
     image: "/stake/cutout/zima.png",
-    face: { size: "330%", pos: "50% 3%" },
-    ratio: 586 / 426,
+    face: { size: "480%", pos: "50% 5.5%" },
+    ratio: 1448 / 1086,
   },
   will: {
     hex: "#818cf8",
     image: "/stake/cutout/will.png",
-    face: { size: "400%", pos: "50% 8%" },
-    ratio: 564 / 442,
+    face: { size: "480%", pos: "50% 5.5%" },
+    ratio: 1448 / 1086,
   },
   ephraim: {
     hex: "#fb923c",
     image: "/stake/cutout/ephraim.png",
-    face: { size: "400%", pos: "50% 8%" },
-    ratio: 577 / 433,
+    face: { size: "480%", pos: "50% 5.5%" },
+    ratio: 1448 / 1086,
   },
 };
 
