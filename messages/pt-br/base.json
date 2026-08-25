@@ -40,5 +40,19 @@
   },
   "culture": "O que a Gnars traz pra Base é uma audiência que a cripto não alcança sozinha: a cultura do skate, BMX e surf, financiando riders e vídeos de verdade através de uma DAO que executa onchain de fato.",
   "liveTitle": "Não precisa acreditar — isto abaixo é o produto ao vivo",
-  "liveDesc": "As seções abaixo não são screenshots. São os mesmos componentes que o site roda em produção — leilão, governança, swap e staking de riders."
+  "liveDesc": "As seções abaixo não são screenshots. São os mesmos componentes que o site roda em produção — leilão, governança, swap e staking de riders.",
+  "demo": {
+    "chip": "Demo — replay de leilões encerrados",
+    "sold": "Vendido",
+    "wonBy": "arrematado por",
+    "gnarNo": "Gnar #{id}",
+    "totalRaised": "{n} ETH levantados pelo leilão diário até agora",
+    "quips": {
+      "q1": "Vendido. Direto pro tesouro, sem intermediário.",
+      "q2": "Mais uma video part financiada.",
+      "q3": "Um Gnar por dia espanta os patrocinadores chatos.",
+      "q4": "Dinheiro de lixa pra crew inteira.",
+      "q5": "Dá lance, ganha, governa. Esse é o loop."
+    }
+  }
 }

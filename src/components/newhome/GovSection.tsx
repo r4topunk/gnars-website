@@ -42,7 +42,7 @@ async function Feed() {
  * independently-chromed cards read as three widgets parked next to each other.
  * The data and the auction's write path are still the production ones.
  */
-export async function GovSection() {
+export async function GovSection({ auction }: { auction?: React.ReactNode } = {}) {
   const t = await getTranslations("newhome.gov");
 
   return (
@@ -56,7 +56,7 @@ export async function GovSection() {
         </div>
 
         <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
-          <AuctionPanel />
+          {auction ?? <AuctionPanel />}
 
           <div className="flex h-full min-w-0 flex-col gap-4 rounded-2xl border border-border bg-card p-5">
             <Suspense fallback={<RecentProposalsSkeleton />}>
