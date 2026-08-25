@@ -1,4 +1,26 @@
 {
+  "morpheusPage": {
+    "eyebrow": "Gnars × Morpheus",
+    "title": "Gnars builds on Morpheus",
+    "lede": "Gnars — the community-owned action-sports DAO — runs a Builder subnet on Morpheus, the decentralized AI network. Permissionlessly: no official deal, no gatekeeper, just Gnars building on an open protocol and bringing skate, BMX, and surf culture with it.",
+    "ctaStake": "Stake MOR",
+    "ctaFull": "Every way to stake",
+    "how": {
+      "title": "How the flywheel works",
+      "step1t": "Stake MOR into the Gnars subnet",
+      "step1d": "Anyone can back the subnet, from 0.001 MOR up. Your stake powers what Gnars ships on Morpheus.",
+      "step2t": "Milestones unlock the $gnars airdrop",
+      "step2d": "The $gnars airdrop is locked and unlocks in buckets as the community's total stake grows — the earlier you stake and the more you bring, the bigger the share you unlock. (Allocation being finalized, subject to change.)",
+      "step3t": "Gnars amplifies Morpheus",
+      "step3d": "Every milestone also triggers Gnars to put Morpheus in front of its crew — from a Morpheus ad on Gnars TV at 10k MOR up to an IRL activation and a flagship spotlight."
+    },
+    "facts": {
+      "title": "The fine print, verified on-chain",
+      "f1": "Your principal stays yours — only your wallet can withdraw it, straight from the contract on Base.",
+      "f2": "Withdrawals unlock 7 days after your last deposit — each new deposit restarts the lock on your whole position.",
+      "f3": "Rewards accrue to the subnet — you're backing the builder, not farming yield."
+    }
+  },
   "title": "Stake or Die",
   "subtitle": "Pick your rider",
   "intro": "Choose a character to represent you. Use the thumbnails, arrows, or arrow keys to switch.",

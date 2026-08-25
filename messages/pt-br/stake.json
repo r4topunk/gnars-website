@@ -1,4 +1,26 @@
 {
+  "morpheusPage": {
+    "eyebrow": "Gnars × Morpheus",
+    "title": "A Gnars constrói na Morpheus",
+    "lede": "A Gnars — DAO de esportes de ação de propriedade da comunidade — roda uma subnet Builder na Morpheus, a rede de IA descentralizada. De forma permissionless: sem acordo oficial, sem gatekeeper, só a Gnars construindo sobre um protocolo aberto e levando junto a cultura do skate, BMX e surf.",
+    "ctaStake": "Fazer stake de MOR",
+    "ctaFull": "Todas as formas de stake",
+    "how": {
+      "title": "Como o flywheel funciona",
+      "step1t": "Faça stake de MOR na subnet Gnars",
+      "step1d": "Qualquer um pode apoiar a subnet, a partir de 0,001 MOR. Seu stake sustenta o que a Gnars entrega na Morpheus.",
+      "step2t": "Os marcos destravam o airdrop de $gnars",
+      "step2d": "O airdrop de $gnars está travado e destrava em buckets conforme o stake total da comunidade cresce — quanto mais cedo você entra e mais stake traz, maior a fatia que destrava. (Alocação em definição, sujeita a mudança.)",
+      "step3t": "A Gnars amplifica a Morpheus",
+      "step3d": "Cada marco também faz a Gnars colocar a Morpheus na frente da sua crew — do anúncio da Morpheus na Gnars TV aos 10 mil MOR até uma ativação IRL e o spotlight principal."
+    },
+    "facts": {
+      "title": "As letras miúdas, verificadas on-chain",
+      "f1": "Seu principal continua seu — só a sua carteira consegue sacar, direto do contrato na Base.",
+      "f2": "O saque destrava 7 dias depois do último depósito — cada depósito novo reinicia o lock da posição inteira.",
+      "f3": "As recompensas vão para a subnet — você está apoiando o builder, não farmando yield."
+    }
+  },
   "title": "Stake or Die",
   "subtitle": "Escolha seu rider",
   "intro": "Escolha um personagem para te representar. Use as miniaturas, as setas ou as teclas de seta para alternar.",
