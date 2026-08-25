@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { BasePageContent } from "@/components/base/BasePageContent";
+import { BasePageContent, BaseUnderHood } from "@/components/base/BasePageContent";
+import { GovSection } from "@/components/newhome/GovSection";
+import { StakeSection } from "@/components/newhome/StakeSection";
+import { SwapSection } from "@/components/newhome/SwapSection";
 
 // The pitch page for Base ecosystem programs (Base Batches): everything Gnars
 // runs on Base, with links to the live surfaces. See BasePageContent.
@@ -46,6 +49,13 @@ export default async function BasePage({ params }: { params: Promise<{ locale: s
   return (
     <div className="py-10">
       <BasePageContent />
+      {/* The proof: live production sections, not screenshots. GovSection is
+          the daily auction + recent proposals + activity feed; SwapSection is
+          the working 0x swap widget; StakeSection is the rider roster. */}
+      <GovSection />
+      <SwapSection />
+      <StakeSection />
+      <BaseUnderHood />
     </div>
   );
 }

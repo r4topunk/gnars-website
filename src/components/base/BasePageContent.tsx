@@ -85,6 +85,23 @@ export function BasePageContent() {
         </ul>
       </section>
 
+      {/* Handoff line into the LIVE embeds the page composes after this
+          component (GovSection, SwapSection, StakeSection — real production
+          sections, not screenshots). */}
+      <section className="pt-2 text-center">
+        <h2 className="text-2xl font-black tracking-tight sm:text-3xl">{t("liveTitle")}</h2>
+        <p className={`mx-auto mt-2 max-w-2xl text-sm ${MUTED}`}>{t("liveDesc")}</p>
+      </section>
+    </div>
+  );
+}
+
+/** The plumbing + culture pitch, rendered by the page AFTER the live embeds. */
+export function BaseUnderHood() {
+  const t = useTranslations("base");
+
+  return (
+    <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
       {/* The Base-native plumbing — the part reviewers actually ask about */}
       <section className={`${CARD} ${CARD_PAD}`}>
         <h2 className="text-lg font-bold tracking-tight">{t("underHoodTitle")}</h2>

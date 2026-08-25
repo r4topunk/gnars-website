@@ -27,6 +27,13 @@
       "unlocked": "unlocked",
       "next": "next up",
       "upcoming": "on the ladder"
+    },
+    "crew": {
+      "title": "The crew breaks it down",
+      "vlad": "We run a Builder subnet on Morpheus. Stake MOR behind the crew — every coin funds what Gnars ships next on decentralized AI.",
+      "r4to": "Morpheus also powers the sponsorship vaults: back a rider on /stake with stETH or USDC and the yield lands in MOR — principal unlocks 7 days after your last stake.",
+      "yan": "The $gnars airdrop is locked. Every milestone the community stakes past unlocks the next bucket — early stakers set the pace.",
+      "pamtech": "And every milestone ships real Morpheus marketing from our side: the Gnars TV ad at 10k, edits, swag, IRL activations."
     }
   },
   "title": "Stake or Die",

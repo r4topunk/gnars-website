@@ -25,6 +25,7 @@ import {
   Shirt,
   Tv,
 } from "lucide-react";
+import { CHARACTERS } from "@/components/stake/CharacterSelector";
 import { GnarsStakeDialog } from "@/components/stake/GnarsStakeDialog";
 import { RoadmapSection } from "@/components/stake/RoadmapSection";
 import { CARD, CARD_PAD, GOLD, GOLD_CTA, GOLD_INK, MUTED } from "@/components/stake/stake-ui";
@@ -38,6 +39,11 @@ import { cn } from "@/lib/utils";
 // One icon per flywheel step and per milestone rung. Data-keyed (not positional)
 // so a ladder edit in stake-milestones.ts can't silently shift every icon.
 const STEP_ICONS = { step1: HandCoins, step2: Gift, step3: Megaphone } as const;
+// The four riders who narrate the page, one Morpheus topic each. Heads are
+// cropped from the /stake cut-outs with the roster's own face zoom data, so a
+// new cut-out automatically works here too.
+const CREW = ["vlad", "r4to", "yan", "pamtech"] as const;
+
 const RUNG_ICONS: Record<string, typeof Tv> = {
   "10k": Tv,
   "15k": Flag,
@@ -50,6 +56,7 @@ const RUNG_ICONS: Record<string, typeof Tv> = {
 export function MorpheusPageContent() {
   const t = useTranslations("stake.morpheusPage");
   const tSub = useTranslations("stake.page.subnet");
+  const tChar = useTranslations("stake.characters");
   const locale = useLocale();
   const [stakeOpen, setStakeOpen] = useState(false);
   const { totalStaked } = useGnarsSubnet();
@@ -179,6 +186,58 @@ export function MorpheusPageContent() {
             );
           })}
         </ul>
+      </section>
+
+      {/* The crew explains it, fighting-game style: rider heads from the /stake
+          cut-outs + speech balloons. This is also where the Morpheus-powered
+          SPONSORSHIP VAULTS get their mention — the subnet sections above are
+          about MOR, this bubble routes people to the rider side. */}
+      <section className={`${CARD} ${CARD_PAD} sm:p-8`}>
+        <h2 className="text-lg font-bold tracking-tight">{t("crew.title")}</h2>
+        <div className="mt-5 flex flex-col gap-5">
+          {CREW.map((id, i) => {
+            const c = CHARACTERS.find((x) => x.id === id);
+            if (!c) return null;
+            const flipped = i % 2 === 1;
+            return (
+              <div
+                key={id}
+                className={cn("flex items-start gap-3 sm:gap-4", flipped && "flex-row-reverse")}
+              >
+                <div className="flex w-16 shrink-0 flex-col items-center gap-1.5 sm:w-20">
+                  <div
+                    aria-hidden
+                    className={cn("h-16 w-16 rounded-full bg-muted ring-2 sm:h-20 sm:w-20", c.ring)}
+                    style={{
+                      backgroundImage: `url("${c.image}")`,
+                      backgroundSize: c.face.size,
+                      backgroundPosition: c.face.pos,
+                      backgroundRepeat: "no-repeat",
+                    }}
+                  />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                    {tChar(`${id}.name`)}
+                  </span>
+                </div>
+                <div
+                  className={cn(
+                    "relative max-w-xl rounded-2xl border border-border/60 bg-card px-4 py-3 text-sm leading-relaxed shadow-sm",
+                    flipped ? "mr-1.5" : "ml-1.5",
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute top-7 h-3 w-3 rotate-45 border-border/60 bg-card",
+                      flipped ? "-right-1.5 border-t border-r" : "-left-1.5 border-b border-l",
+                    )}
+                  />
+                  {t(`crew.${id}`)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* Custody facts — every line verified against the contract */}

@@ -38,5 +38,7 @@
     "farcaster": "Farcaster mini-app integration — the auction and stake flows run inside the feed.",
     "mobile": "Mobile-first: every DAO feature works on a phone."
   },
-  "culture": "What Gnars brings to Base is an audience crypto doesn't reach on its own: skate, BMX, and surf culture, funding real riders and real videos through a DAO that actually executes onchain."
+  "culture": "What Gnars brings to Base is an audience crypto doesn't reach on its own: skate, BMX, and surf culture, funding real riders and real videos through a DAO that actually executes onchain.",
+  "liveTitle": "Don't take our word for it — this is the live product",
+  "liveDesc": "The sections below aren't screenshots. They're the same live components the site runs in production — auction, governance, swap, and rider staking."
 }

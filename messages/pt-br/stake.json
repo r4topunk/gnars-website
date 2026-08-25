@@ -27,6 +27,13 @@
       "unlocked": "destravado",
       "next": "próximo",
       "upcoming": "na escada"
+    },
+    "crew": {
+      "title": "A crew explica",
+      "vlad": "A gente roda uma subnet Builder na Morpheus. Faça stake de MOR atrás da crew — cada moeda financia o que a Gnars entrega em IA descentralizada.",
+      "r4to": "A Morpheus também move os vaults de patrocínio: apoie um rider na /stake com stETH ou USDC e o rendimento chega em MOR — o principal libera 7 dias depois do último stake.",
+      "yan": "O airdrop de $gnars está travado. Cada marco que a comunidade cruza destrava o próximo bucket — quem staka cedo dita o ritmo.",
+      "pamtech": "E cada marco entrega marketing de verdade da Morpheus do nosso lado: o anúncio na Gnars TV aos 10 mil, edits, swag, ativações IRL."
     }
   },
   "title": "Stake or Die",
