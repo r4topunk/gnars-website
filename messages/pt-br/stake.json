@@ -2,7 +2,7 @@
   "morpheusPage": {
     "eyebrow": "Gnars × Morpheus",
     "title": "A Gnars constrói na Morpheus",
-    "lede": "A Gnars — DAO de esportes de ação de propriedade da comunidade — roda uma subnet Builder na Morpheus, a rede de IA descentralizada. De forma permissionless: sem acordo oficial, sem gatekeeper, só a Gnars construindo sobre um protocolo aberto e levando junto a cultura do skate, BMX e surf.",
+    "lede": "A Gnars — DAO de esportes de ação de propriedade da comunidade — roda uma subnet Builder na Morpheus, a rede de IA descentralizada, construindo de forma permissionless sobre o protocolo aberto e levando junto a cultura do skate, BMX e surf.",
     "ctaStake": "Fazer stake de MOR",
     "ctaFull": "Todas as formas de stake",
     "how": {
@@ -19,6 +19,14 @@
       "f1": "Seu principal continua seu — só a sua carteira consegue sacar, direto do contrato na Base.",
       "f2": "O saque destrava 7 dias depois do último depósito — cada depósito novo reinicia o lock da posição inteira.",
       "f3": "As recompensas vão para a subnet — você está apoiando o builder, não farmando yield."
+    },
+    "amp": {
+      "title": "A escada de amplificação",
+      "desc": "Os marcos não são só buckets de airdrop. A cada degrau que a comunidade sobe, a Gnars coloca a própria mídia e a própria crew atrás da Morpheus — alcance de verdade, entregue pela própria DAO.",
+      "liveChip": "{n, number} MOR em stake até agora",
+      "unlocked": "destravado",
+      "next": "próximo",
+      "upcoming": "na escada"
     }
   },
   "title": "Stake or Die",

@@ -63,7 +63,7 @@ import { cn } from "@/lib/utils";
 const fmtMor = (n: number, locale: string) =>
   n.toLocaleString(locale, { maximumFractionDigits: 0 });
 
-export function SubnetSection() {
+export function SubnetSection({ showChecklist = true }: { showChecklist?: boolean } = {}) {
   const t = useTranslations("stake.page.subnet");
   const locale = useLocale();
   const { address: you } = useUserAddress();
@@ -186,44 +186,51 @@ export function SubnetSection() {
 
         {/* The ladder needs naming and framing before it is read: without these
             two lines it looks like a reward schedule, which is the other axis
-            entirely and the one the stake dialog's disclaimer contradicts. */}
-        <h3 className="mt-6 text-sm font-semibold">{t("milestonesTitle")}</h3>
-        <p className={cn("mt-1 max-w-prose text-xs", MUTED)}>{t("milestonesNote")}</p>
+            entirely and the one the stake dialog's disclaimer contradicts.
+            /morpheus passes showChecklist={false}: its illustrated ladder card
+            carries the same milestones, and printing them twice on one page
+            reads as filler. */}
+        {showChecklist ? (
+          <>
+            <h3 className="mt-6 text-sm font-semibold">{t("milestonesTitle")}</h3>
+            <p className={cn("mt-1 max-w-prose text-xs", MUTED)}>{t("milestonesNote")}</p>
 
-        <ul className="mt-3 space-y-2">
-          {SUBNET_MILESTONES.map((m) => {
-            const done = isMilestoneDone(m, totalStaked);
-            return (
-              <li key={m.id} className="flex items-start gap-2.5 text-sm">
-                {/* Filled = reached, hollow = pending. Colourless on purpose: green
+            <ul className="mt-3 space-y-2">
+              {SUBNET_MILESTONES.map((m) => {
+                const done = isMilestoneDone(m, totalStaked);
+                return (
+                  <li key={m.id} className="flex items-start gap-2.5 text-sm">
+                    {/* Filled = reached, hollow = pending. Colourless on purpose: green
                     is spent on the bar and the total, and a green tick here would
                     make three different greens argue inside one panel. */}
-                <span
-                  aria-hidden
-                  className={cn(
-                    "mt-1.5 size-1.5 shrink-0 rounded-full",
-                    done ? "bg-foreground/70" : "border border-foreground/30",
-                  )}
-                />
-                <span className={done ? "" : MUTED}>
-                  {t("milestoneRow", { n: m.amountMor, what: t(`milestones.${m.id}`) })}{" "}
-                  {/* Inline rather than a right-aligned column: these labels are
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "mt-1.5 size-1.5 shrink-0 rounded-full",
+                        done ? "bg-foreground/70" : "border border-foreground/30",
+                      )}
+                    />
+                    <span className={done ? "" : MUTED}>
+                      {t("milestoneRow", { n: m.amountMor, what: t(`milestones.${m.id}`) })}{" "}
+                      {/* Inline rather than a right-aligned column: these labels are
                       long enough to wrap on a phone, and a pinned column would
                       squeeze them to two words a line. Not a PILL either — a pill
                       is a badge about the page, never the state a row is in. */}
-                  <span
-                    className={cn(
-                      "whitespace-nowrap text-[10px] font-semibold tracking-wide uppercase",
-                      MICRO,
-                    )}
-                  >
-                    · {t(`firmness.${m.firmness}`)}
-                  </span>
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+                      <span
+                        className={cn(
+                          "whitespace-nowrap text-[10px] font-semibold tracking-wide uppercase",
+                          MICRO,
+                        )}
+                      >
+                        · {t(`firmness.${m.firmness}`)}
+                      </span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        ) : null}
 
         <Button
           className={cn(GOLD_CTA, "mt-6 w-full sm:w-auto")}

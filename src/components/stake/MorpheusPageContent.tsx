@@ -12,18 +12,48 @@
 // wallet, 7-day lock counted from the LAST deposit, rewards accrue to the
 // subnet. Don't add a claim here without reading the contract first.
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
+import {
+  Clapperboard,
+  Flag,
+  Gift,
+  HandCoins,
+  MapPin,
+  Megaphone,
+  Rocket,
+  Shirt,
+  Tv,
+} from "lucide-react";
 import { GnarsStakeDialog } from "@/components/stake/GnarsStakeDialog";
 import { RoadmapSection } from "@/components/stake/RoadmapSection";
 import { CARD, CARD_PAD, GOLD, GOLD_CTA, GOLD_INK, MUTED } from "@/components/stake/stake-ui";
 import { SubnetSection } from "@/components/stake/SubnetSection";
 import { Button } from "@/components/ui/button";
+import { useGnarsSubnet } from "@/hooks/use-gnars-subnet";
 import { Link } from "@/i18n/navigation";
+import { isMilestoneDone, nextMilestone, SUBNET_MILESTONES } from "@/lib/stake-milestones";
+import { cn } from "@/lib/utils";
+
+// One icon per flywheel step and per milestone rung. Data-keyed (not positional)
+// so a ladder edit in stake-milestones.ts can't silently shift every icon.
+const STEP_ICONS = { step1: HandCoins, step2: Gift, step3: Megaphone } as const;
+const RUNG_ICONS: Record<string, typeof Tv> = {
+  "10k": Tv,
+  "15k": Flag,
+  "25k": Clapperboard,
+  "30k": Shirt,
+  "50k": MapPin,
+  "100k": Rocket,
+};
 
 export function MorpheusPageContent() {
   const t = useTranslations("stake.morpheusPage");
+  const tSub = useTranslations("stake.page.subnet");
+  const locale = useLocale();
   const [stakeOpen, setStakeOpen] = useState(false);
+  const { totalStaked } = useGnarsSubnet();
+  const next = nextMilestone(totalStaked);
 
   const steps = ["step1", "step2", "step3"] as const;
   const facts = ["f1", "f2", "f3"] as const;
@@ -64,16 +94,91 @@ export function MorpheusPageContent() {
       <section className={`${CARD} ${CARD_PAD}`}>
         <h2 className="text-lg font-bold tracking-tight">{t("how.title")}</h2>
         <ol className="mt-4 grid gap-4 sm:grid-cols-3">
-          {steps.map((s, i) => (
-            <li key={s} className="rounded-xl border border-border/60 bg-background/40 p-4">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">
-                {i + 1}
-              </div>
-              <div className="mt-2.5 text-sm font-semibold">{t(`how.${s}t`)}</div>
-              <p className={`mt-1 text-xs leading-relaxed ${MUTED}`}>{t(`how.${s}d`)}</p>
-            </li>
-          ))}
+          {steps.map((s) => {
+            const Icon = STEP_ICONS[s];
+            return (
+              <li key={s} className="rounded-xl border border-border/60 bg-background/40 p-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background">
+                  <Icon className="h-4.5 w-4.5" aria-hidden />
+                </div>
+                <div className="mt-2.5 text-sm font-semibold">{t(`how.${s}t`)}</div>
+                <p className={`mt-1 text-xs leading-relaxed ${MUTED}`}>{t(`how.${s}d`)}</p>
+              </li>
+            );
+          })}
         </ol>
+      </section>
+
+      {/* The amplification ladder, illustrated — the marketing Gnars ships for
+          Morpheus at each rung, with live unlock state. Morpheus green is the
+          accent on purpose: this page is the Morpheus page. */}
+      <section className={`${CARD} ${CARD_PAD} sm:p-8`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-bold tracking-tight">{t("amp.title")}</h2>
+          <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
+            {t("amp.liveChip", { n: Math.floor(totalStaked) })}
+          </span>
+        </div>
+        <p className={`mt-1.5 max-w-2xl text-sm ${MUTED}`}>{t("amp.desc")}</p>
+        <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {SUBNET_MILESTONES.map((m) => {
+            const done = isMilestoneDone(m, totalStaked);
+            const isNext = next?.id === m.id;
+            const Icon = RUNG_ICONS[m.id] ?? Rocket;
+            return (
+              <li
+                key={m.id}
+                className={cn(
+                  "rounded-2xl border p-4 transition-colors",
+                  done &&
+                    "border-emerald-500/40 bg-gradient-to-br from-emerald-500/[0.12] to-transparent",
+                  isNext &&
+                    "border-amber-500/50 bg-gradient-to-br from-amber-500/[0.08] to-transparent",
+                  !done && !isNext && "border-border/60 bg-background/40",
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span
+                    className={cn(
+                      "flex h-10 w-10 items-center justify-center rounded-xl",
+                      done
+                        ? "bg-emerald-500 text-white"
+                        : isNext
+                          ? "bg-amber-500/90 text-white"
+                          : "border border-border text-muted-foreground",
+                    )}
+                  >
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </span>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                      done
+                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
+                        : isNext
+                          ? "bg-amber-500/15 text-amber-600 dark:text-amber-300"
+                          : "text-muted-foreground",
+                    )}
+                  >
+                    {done ? t("amp.unlocked") : isNext ? t("amp.next") : t("amp.upcoming")}
+                  </span>
+                </div>
+                <div className="mt-3 text-xl font-black tabular-nums">
+                  {m.amountMor.toLocaleString(locale)}{" "}
+                  <span className="text-xs font-medium text-muted-foreground">MOR</span>
+                </div>
+                <div className="mt-1 text-sm font-medium leading-snug">
+                  {tSub(`milestones.${m.id}`)}
+                </div>
+                <div
+                  className={`mt-1.5 text-[10px] font-semibold uppercase tracking-wider ${MUTED}`}
+                >
+                  {tSub(`firmness.${m.firmness}`)}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
       {/* Custody facts — every line verified against the contract */}
@@ -89,7 +194,7 @@ export function MorpheusPageContent() {
       </section>
 
       {/* Live ladder + stake CTA, and the four phases — the production sections */}
-      <SubnetSection />
+      <SubnetSection showChecklist={false} />
       <RoadmapSection />
 
       <GnarsStakeDialog open={stakeOpen} onOpenChange={setStakeOpen} />
