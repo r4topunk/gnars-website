@@ -202,17 +202,24 @@ export function MorpheusPageContent() {
             return (
               <div
                 key={id}
-                className={cn("flex items-start gap-3 sm:gap-4", flipped && "flex-row-reverse")}
+                className={cn("flex items-center gap-3 sm:gap-5", flipped && "flex-row-reverse")}
               >
-                <div className="flex w-16 shrink-0 flex-col items-center gap-1.5 sm:w-20">
+                <div className="flex w-24 shrink-0 flex-col items-center gap-1 sm:w-36">
+                  {/* Bare head, no frame: the cut-outs carry their own alpha, so
+                      the crop just floats on the page. The bottom fade dissolves
+                      the neck instead of guillotining it at the box edge, and
+                      drop-shadow follows the alpha silhouette, not the box. */}
                   <div
                     aria-hidden
-                    className={cn("h-16 w-16 rounded-full bg-muted ring-2 sm:h-20 sm:w-20", c.ring)}
+                    className="h-24 w-24 sm:h-36 sm:w-36"
                     style={{
                       backgroundImage: `url("${c.image}")`,
                       backgroundSize: c.face.size,
                       backgroundPosition: c.face.pos,
                       backgroundRepeat: "no-repeat",
+                      maskImage: "linear-gradient(to bottom, black 72%, transparent 98%)",
+                      WebkitMaskImage: "linear-gradient(to bottom, black 72%, transparent 98%)",
+                      filter: "drop-shadow(0 8px 14px rgba(0,0,0,0.35))",
                     }}
                   />
                   <span className="text-[10px] font-bold uppercase tracking-wider">
@@ -228,7 +235,7 @@ export function MorpheusPageContent() {
                   <span
                     aria-hidden
                     className={cn(
-                      "absolute top-7 h-3 w-3 rotate-45 border-border/60 bg-card",
+                      "absolute top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 border-border/60 bg-card",
                       flipped ? "-right-1.5 border-t border-r" : "-left-1.5 border-b border-l",
                     )}
                   />

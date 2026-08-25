@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BasePageContent, BaseUnderHood } from "@/components/base/BasePageContent";
+import { DroposalsGrid } from "@/components/droposals/DroposalsGrid";
 import { GovSection } from "@/components/newhome/GovSection";
 import { StakeSection } from "@/components/newhome/StakeSection";
 import { SwapSection } from "@/components/newhome/SwapSection";
+import { fetchDroposals } from "@/services/droposals";
 
 // The pitch page for Base ecosystem programs (Base Batches): everything Gnars
 // runs on Base, with links to the live surfaces. See BasePageContent.
@@ -45,6 +47,10 @@ export async function generateMetadata({
 export default async function BasePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "base" });
+
+  // The freshest four drops are enough for the pitch; /droposals has them all.
+  const droposals = await fetchDroposals(4).catch(() => []);
 
   return (
     <div className="py-10">
@@ -53,6 +59,19 @@ export default async function BasePage({ params }: { params: Promise<{ locale: s
           the daily auction + recent proposals + activity feed; SwapSection is
           the working 0x swap widget; StakeSection is the rider roster. */}
       <GovSection />
+      {droposals.length > 0 && (
+        <section className="mx-auto w-full max-w-5xl px-4 pb-4 pt-10 sm:px-6">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            {t("features.droposals.title")}
+          </h2>
+          <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
+            {t("features.droposals.desc")}
+          </p>
+          <div className="mt-5">
+            <DroposalsGrid items={droposals} />
+          </div>
+        </section>
+      )}
       <SwapSection />
       <StakeSection />
       <BaseUnderHood />
