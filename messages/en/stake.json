@@ -327,7 +327,7 @@
       "dialog": {
         "title": "Back Gnars on Morpheus",
         "badge": "MOR · Base",
-        "desc": "Lock MOR into the Gnars Builder subnet to back the crew with real capital. Your principal stays yours — after the 7-day lock, you pull it straight from the contract. No middleman, no permission slip. Fully onchain on Base.",
+        "desc": "Lock MOR into the Gnars Builder subnet to back the crew with real capital. Your principal stays yours — you pull it straight from the contract, 7 days after your last deposit. No middleman, no permission slip. Fully onchain on Base.",
         "milestonesLabel": "Amplification milestones",
         "progressToEvent": "{pct}% of the way to {n, number} MOR staked",
         "totalStaked": "Total staked",

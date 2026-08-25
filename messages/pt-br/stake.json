@@ -327,7 +327,7 @@
       "dialog": {
         "title": "Apoie os Gnars na Morpheus",
         "badge": "MOR · Base",
-        "desc": "Trave MOR na subnet Gnars Builder para apoiar a crew com capital de verdade. Seu principal continua seu — depois do lock de 7 dias, você saca direto do contrato. Sem intermediário, sem pedir licença. Tudo onchain na Base.",
+        "desc": "Trave MOR na subnet Gnars Builder para apoiar a crew com capital de verdade. Seu principal continua seu — você saca direto do contrato, 7 dias depois do último depósito. Sem intermediário, sem pedir licença. Tudo onchain na Base.",
         "milestonesLabel": "Metas de amplificação",
         "progressToEvent": "{pct}% do caminho até {n, number} MOR em stake",
         "totalStaked": "Total em stake",
