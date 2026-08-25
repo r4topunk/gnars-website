@@ -1,0 +1,42 @@
+{
+  "eyebrow": "Built on Base",
+  "title": "Gnars runs entirely on Base",
+  "lede": "Gnars is a community-owned action-sports DAO running its whole stack on Base — daily auctions, onchain governance, a transparent treasury, NFT drops, swaps, and staking. Chain id 8453, end to end, since day one.",
+  "ctaAuctions": "See the live auction",
+  "ctaGovernance": "Browse governance",
+  "featuresTitle": "A complete DAO, all onchain",
+  "features": {
+    "auctions": {
+      "title": "Daily auctions",
+      "desc": "One Gnar at a time: the daily auction that funds the treasury and mints membership, Nouns-style."
+    },
+    "governance": {
+      "title": "Onchain governance",
+      "desc": "Proposals, voting, queueing, and execution through the Nouns Builder governor — every decision settles on Base."
+    },
+    "treasury": {
+      "title": "Transparent treasury",
+      "desc": "Every asset, inflow, and DeFi position readable onchain — and when a price can't be read, the page says so instead of printing a zero."
+    },
+    "droposals": {
+      "title": "Droposals",
+      "desc": "NFT drops proposed, voted, and executed by governance, with revenue splits verified onchain."
+    },
+    "swap": {
+      "title": "Swap",
+      "desc": "Token swaps on Base via the 0x API, straight from the site."
+    },
+    "staking": {
+      "title": "Staking",
+      "desc": "Back Gnars riders through yield vaults, and back the Gnars Builder subnet on Morpheus with MOR — both live on Base."
+    }
+  },
+  "underHoodTitle": "Base-native under the hood",
+  "underHood": {
+    "aa": "Account abstraction with sponsored gas — smart accounts by default, so a first-timer's vote or bid costs them nothing.",
+    "login": "Social and email login next to every major wallet — built for skaters, not just crypto natives.",
+    "farcaster": "Farcaster mini-app integration — the auction and stake flows run inside the feed.",
+    "mobile": "Mobile-first: every DAO feature works on a phone."
+  },
+  "culture": "What Gnars brings to Base is an audience crypto doesn't reach on its own: skate, BMX, and surf culture, funding real riders and real videos through a DAO that actually executes onchain."
+}

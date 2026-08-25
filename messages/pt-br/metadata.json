@@ -1,4 +1,8 @@
 {
+  "base": {
+    "title": "Gnars na Base — Uma DAO Completa Onchain",
+    "description": "A Gnars roda toda a sua stack na Base: leilões diários, governança onchain, tesouro transparente, droposals, swaps e staking — com gás patrocinado e login social."
+  },
   "morpheus": {
     "title": "Gnars × Morpheus — Stake or Die",
     "description": "A Gnars roda uma subnet Builder na Morpheus, a rede de IA descentralizada. Faça stake de MOR para apoiar a subnet, destravar o airdrop de $gnars bucket por bucket e colocar a Morpheus na frente da cultura do skate."

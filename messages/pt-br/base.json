@@ -1,0 +1,42 @@
+{
+  "eyebrow": "Construído na Base",
+  "title": "A Gnars roda inteira na Base",
+  "lede": "A Gnars é uma DAO de esportes de ação de propriedade da comunidade rodando toda a sua stack na Base — leilões diários, governança onchain, tesouro transparente, drops de NFT, swaps e staking. Chain id 8453, de ponta a ponta, desde o primeiro dia.",
+  "ctaAuctions": "Ver o leilão ao vivo",
+  "ctaGovernance": "Explorar a governança",
+  "featuresTitle": "Uma DAO completa, toda onchain",
+  "features": {
+    "auctions": {
+      "title": "Leilões diários",
+      "desc": "Um Gnar por vez: o leilão diário que financia o tesouro e minta a membership, no estilo Nouns."
+    },
+    "governance": {
+      "title": "Governança onchain",
+      "desc": "Propostas, votação, fila e execução pelo governor do Nouns Builder — toda decisão liquida na Base."
+    },
+    "treasury": {
+      "title": "Tesouro transparente",
+      "desc": "Todo ativo, entrada e posição DeFi legível onchain — e quando um preço não pode ser lido, a página avisa em vez de imprimir zero."
+    },
+    "droposals": {
+      "title": "Droposals",
+      "desc": "Drops de NFT propostos, votados e executados pela governança, com splits de receita verificados onchain."
+    },
+    "swap": {
+      "title": "Swap",
+      "desc": "Swaps de token na Base via 0x API, direto do site."
+    },
+    "staking": {
+      "title": "Staking",
+      "desc": "Apoie os riders da Gnars com vaults de rendimento, e apoie a subnet Gnars Builder na Morpheus com MOR — os dois ao vivo na Base."
+    }
+  },
+  "underHoodTitle": "Base-native por baixo do capô",
+  "underHood": {
+    "aa": "Account abstraction com gás patrocinado — smart accounts por padrão, então o primeiro voto ou lance de alguém não custa nada.",
+    "login": "Login social e por e-mail ao lado de todas as carteiras principais — feito pra skatista, não só pra cripto-nativo.",
+    "farcaster": "Integração de mini-app do Farcaster — os fluxos de leilão e stake rodam dentro do feed.",
+    "mobile": "Mobile-first: toda funcionalidade da DAO funciona no celular."
+  },
+  "culture": "O que a Gnars traz pra Base é uma audiência que a cripto não alcança sozinha: a cultura do skate, BMX e surf, financiando riders e vídeos de verdade através de uma DAO que executa onchain de fato."
+}
