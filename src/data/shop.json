@@ -80,36 +80,10 @@
       "tags": ["crypto", "hardware-wallet", "self-custody"],
       "status": "active",
       "featured": true
-    },
-    {
-      "id": "keepkey-ethdenver-tee",
-      "slug": "keepkey-ethdenver-tee",
-      "title": "KeepKey ETHDenver 2025 Tee",
-      "description": "KeepKey ETHDenver 2025 t-shirt. Print-on-demand crypto merch for the self-custody crowd.",
-      "images": ["/shop/keepkey-ethdenver-tee.png"],
-      "priceUSD": 30,
-      "type": "affiliate",
-      "externalUrl": "https://keepkey.printify.me/product/17250533",
-      "vendor": "KeepKey",
-      "tags": ["apparel", "crypto", "merch"],
-      "status": "active"
-    },
-    {
-      "id": "keepkey-laser-eyes-tee",
-      "slug": "keepkey-laser-eyes-tee",
-      "title": "KeepKey Laser Eyes Tee",
-      "description": "American Apparel Laser Eyes KeepKey t-shirt. Print-on-demand Bitcoin maxi merch.",
-      "images": ["/shop/keepkey-laser-eyes-tee.png"],
-      "priceUSD": 30,
-      "type": "affiliate",
-      "externalUrl": "https://keepkey.printify.me/product/13163479",
-      "vendor": "KeepKey",
-      "tags": ["apparel", "crypto", "merch"],
-      "status": "active"
     }
   ],
   "meta": {
-    "total": 8,
-    "lastUpdated": "2026-06-20"
+    "total": 6,
+    "lastUpdated": "2026-08-26"
   }
 }
