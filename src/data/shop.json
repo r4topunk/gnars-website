@@ -89,9 +89,10 @@
       "images": ["/shop/nogenta-tee-white.png"],
       "priceUSD": 30,
       "type": "affiliate",
+      "externalUrl": "mailto:nogentaskate@gmail.com?subject=Nogenta%20Tee%20(White)%20-%20Purchase%20Inquiry",
       "vendor": "Nogenta",
       "tags": ["apparel", "merch"],
-      "status": "coming-soon"
+      "status": "active"
     },
     {
       "id": "nogenta-tee-black",
@@ -101,9 +102,10 @@
       "images": ["/shop/nogenta-tee-black.png"],
       "priceUSD": 30,
       "type": "affiliate",
+      "externalUrl": "mailto:nogentaskate@gmail.com?subject=Nogenta%20Tee%20(Black)%20-%20Purchase%20Inquiry",
       "vendor": "Nogenta",
       "tags": ["apparel", "merch"],
-      "status": "coming-soon"
+      "status": "active"
     },
     {
       "id": "nogenta-jersey-rio",
@@ -113,9 +115,10 @@
       "images": ["/shop/nogenta-jersey-rio.png"],
       "priceUSD": 30,
       "type": "affiliate",
+      "externalUrl": "mailto:nogentaskate@gmail.com?subject=Nogenta%20Rio%20de%20Janeiro%20Jersey%20-%20Purchase%20Inquiry",
       "vendor": "Nogenta",
       "tags": ["apparel", "merch", "jersey"],
-      "status": "coming-soon"
+      "status": "active"
     }
   ],
   "meta": {
