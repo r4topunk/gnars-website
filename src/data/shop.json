@@ -80,10 +80,46 @@
       "tags": ["crypto", "hardware-wallet", "self-custody"],
       "status": "active",
       "featured": true
+    },
+    {
+      "id": "nogenta-tee-white",
+      "slug": "nogenta-tee-white",
+      "title": "Nogenta Tee (White)",
+      "description": "White Nogenta tee with front chest print.",
+      "images": ["/shop/nogenta-tee-white.png"],
+      "priceUSD": 30,
+      "type": "affiliate",
+      "vendor": "Nogenta",
+      "tags": ["apparel", "merch"],
+      "status": "coming-soon"
+    },
+    {
+      "id": "nogenta-tee-black",
+      "slug": "nogenta-tee-black",
+      "title": "Nogenta Tee (Black)",
+      "description": "Black Nogenta tee with front chest print.",
+      "images": ["/shop/nogenta-tee-black.png"],
+      "priceUSD": 30,
+      "type": "affiliate",
+      "vendor": "Nogenta",
+      "tags": ["apparel", "merch"],
+      "status": "coming-soon"
+    },
+    {
+      "id": "nogenta-jersey-rio",
+      "slug": "nogenta-jersey-rio",
+      "title": "Nogenta Rio de Janeiro Jersey",
+      "description": "Black Nogenta football jersey, Rio de Janeiro edition.",
+      "images": ["/shop/nogenta-jersey-rio.png"],
+      "priceUSD": 30,
+      "type": "affiliate",
+      "vendor": "Nogenta",
+      "tags": ["apparel", "merch", "jersey"],
+      "status": "coming-soon"
     }
   ],
   "meta": {
-    "total": 6,
+    "total": 9,
     "lastUpdated": "2026-08-26"
   }
 }
