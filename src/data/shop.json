@@ -82,34 +82,92 @@
       "featured": true
     },
     {
-      "id": "keepkey-ethdenver-tee",
-      "slug": "keepkey-ethdenver-tee",
-      "title": "KeepKey ETHDenver 2025 Tee",
-      "description": "KeepKey ETHDenver 2025 t-shirt. Print-on-demand crypto merch for the self-custody crowd.",
-      "images": ["/shop/keepkey-ethdenver-tee.png"],
-      "priceUSD": 30,
+      "id": "nogenta-noggles-tee-white",
+      "slug": "nogenta-noggles-tee-white",
+      "title": "Nogenta Noggles Tee (White)",
+      "description": "White Nogenta tee — oval script logo and pixel-block noggles across the front chest.",
+      "images": ["/shop/nogenta-noggles-tee-white.jpeg"],
       "type": "affiliate",
-      "externalUrl": "https://keepkey.printify.me/product/17250533",
-      "vendor": "KeepKey",
-      "tags": ["apparel", "crypto", "merch"],
-      "status": "active"
+      "externalUrl": "mailto:nogentaskate@gmail.com?subject=Nogenta%20Noggles%20Tee%20(White)%20-%20Purchase%20Inquiry",
+      "vendor": "Nogenta",
+      "tags": ["apparel", "merch", "tee"],
+      "status": "coming-soon"
     },
     {
-      "id": "keepkey-laser-eyes-tee",
-      "slug": "keepkey-laser-eyes-tee",
-      "title": "KeepKey Laser Eyes Tee",
-      "description": "American Apparel Laser Eyes KeepKey t-shirt. Print-on-demand Bitcoin maxi merch.",
-      "images": ["/shop/keepkey-laser-eyes-tee.png"],
-      "priceUSD": 30,
+      "id": "nogenta-noggles-tee-black",
+      "slug": "nogenta-noggles-tee-black",
+      "title": "Nogenta Noggles Tee (Black)",
+      "description": "Black Nogenta tee — oval script logo and pixel-block noggles across the front chest.",
+      "images": ["/shop/nogenta-noggles-tee-black.jpeg"],
       "type": "affiliate",
-      "externalUrl": "https://keepkey.printify.me/product/13163479",
-      "vendor": "KeepKey",
-      "tags": ["apparel", "crypto", "merch"],
-      "status": "active"
+      "externalUrl": "mailto:nogentaskate@gmail.com?subject=Nogenta%20Noggles%20Tee%20(Black)%20-%20Purchase%20Inquiry",
+      "vendor": "Nogenta",
+      "tags": ["apparel", "merch", "tee"],
+      "status": "coming-soon"
+    },
+    {
+      "id": "nogenta-pixel-noggles-tee-white",
+      "slug": "nogenta-pixel-noggles-tee-white",
+      "title": "Nogenta Pixel Noggles Tee (White)",
+      "description": "White Nogenta tee with the Gnars noggles rendered as a color pixel block at center chest.",
+      "images": ["/shop/nogenta-pixel-noggles-tee-white.jpeg"],
+      "type": "affiliate",
+      "externalUrl": "mailto:nogentaskate@gmail.com?subject=Nogenta%20Pixel%20Noggles%20Tee%20(White)%20-%20Purchase%20Inquiry",
+      "vendor": "Nogenta",
+      "tags": ["apparel", "merch", "tee"],
+      "status": "coming-soon"
+    },
+    {
+      "id": "nogenta-ngnt-tee-white",
+      "slug": "nogenta-ngnt-tee-white",
+      "title": "Nogenta NGNT Tee (White)",
+      "description": "White Nogenta tee — faded pixel-block noggles at center chest with an NGNT graffiti tag at the hem.",
+      "images": ["/shop/nogenta-ngnt-tee-white.jpeg"],
+      "type": "affiliate",
+      "externalUrl": "mailto:nogentaskate@gmail.com?subject=Nogenta%20NGNT%20Tee%20(White)%20-%20Purchase%20Inquiry",
+      "vendor": "Nogenta",
+      "tags": ["apparel", "merch", "tee"],
+      "status": "coming-soon"
+    },
+    {
+      "id": "nogenta-logo-tee-black",
+      "slug": "nogenta-logo-tee-black",
+      "title": "Nogenta Logo Tee (Black)",
+      "description": "Black Nogenta tee with the oval script logo at center chest.",
+      "images": ["/shop/nogenta-logo-tee-black.jpeg"],
+      "type": "affiliate",
+      "externalUrl": "mailto:nogentaskate@gmail.com?subject=Nogenta%20Logo%20Tee%20(Black)%20-%20Purchase%20Inquiry",
+      "vendor": "Nogenta",
+      "tags": ["apparel", "merch", "tee"],
+      "status": "coming-soon"
+    },
+    {
+      "id": "nogenta-logo-tee-blue",
+      "slug": "nogenta-logo-tee-blue",
+      "title": "Nogenta Logo Tee (Blue)",
+      "description": "Light blue Nogenta tee with the oval script logo at center chest.",
+      "images": ["/shop/nogenta-logo-tee-blue.jpeg"],
+      "type": "affiliate",
+      "externalUrl": "mailto:nogentaskate@gmail.com?subject=Nogenta%20Logo%20Tee%20(Blue)%20-%20Purchase%20Inquiry",
+      "vendor": "Nogenta",
+      "tags": ["apparel", "merch", "tee"],
+      "status": "coming-soon"
+    },
+    {
+      "id": "nogenta-jersey-rio",
+      "slug": "nogenta-jersey-rio",
+      "title": "Nogenta Rio de Janeiro Jersey",
+      "description": "Nogenta football jersey, Rio de Janeiro edition. Black with a white collar and trim — NGNT script and pixel-block noggles on the front, GNARLY 13 on the back.",
+      "images": ["/shop/nogenta-jersey-rio-front.jpeg", "/shop/nogenta-jersey-rio-back.jpeg"],
+      "type": "affiliate",
+      "externalUrl": "mailto:nogentaskate@gmail.com?subject=Nogenta%20Rio%20de%20Janeiro%20Jersey%20-%20Purchase%20Inquiry",
+      "vendor": "Nogenta",
+      "tags": ["apparel", "merch", "jersey", "football"],
+      "status": "coming-soon"
     }
   ],
   "meta": {
-    "total": 8,
-    "lastUpdated": "2026-06-20"
+    "total": 13,
+    "lastUpdated": "2026-08-27"
   }
 }

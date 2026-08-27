@@ -17,7 +17,9 @@
   },
   "detail": {
     "backToShop": "Back to shop",
-    "checkoutComingSoon": "Checkout coming soon"
+    "checkoutComingSoon": "Checkout coming soon",
+    "emailToBuy": "Email to buy",
+    "emailToBuyHint": "Opens your email app to send a purchase inquiry to the vendor."
   },
   "notFound": {
     "title": "Product Not Found",
