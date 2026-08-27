@@ -2,13 +2,15 @@ import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 import type { ShopItem } from "@/types/shop";
-import { formatPrice, type ShopCardLabels } from "./shared";
+import { formatPrice, isDirectBuyLink, type ShopCardLabels } from "./shared";
 
 function CardInner({ item, labels }: { item: ShopItem; labels: ShopCardLabels }) {
   const cover = item.images[0];
   const price = formatPrice(item.priceUSD);
-  const isExternal = item.type === "affiliate";
+  const isExternal = isDirectBuyLink(item);
+  const isComingSoon = item.status === "coming-soon";
 
   return (
     <div className="group flex h-full flex-col">
@@ -20,7 +22,10 @@ function CardInner({ item, labels }: { item: ShopItem; labels: ShopCardLabels })
             alt={item.title}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-contain p-2 drop-shadow-sm transition-transform duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-105"
+            className={cn(
+              "object-contain p-2 drop-shadow-sm transition-transform duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-105",
+              isComingSoon && "grayscale",
+            )}
           />
         )}
 
@@ -58,7 +63,7 @@ function CardInner({ item, labels }: { item: ShopItem; labels: ShopCardLabels })
 }
 
 export function ShopCard({ item, labels }: { item: ShopItem; labels: ShopCardLabels }) {
-  if (item.type === "affiliate" && item.externalUrl) {
+  if (isDirectBuyLink(item)) {
     return (
       <a
         href={item.externalUrl}

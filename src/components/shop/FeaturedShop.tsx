@@ -1,13 +1,15 @@
 import Image from "next/image";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 import type { ShopItem } from "@/types/shop";
-import { formatPrice, type ShopCardLabels } from "./shared";
+import { formatPrice, isDirectBuyLink, type ShopCardLabels } from "./shared";
 
 function FeaturedCard({ item, labels }: { item: ShopItem; labels: ShopCardLabels }) {
   const cover = item.images[0];
   const price = formatPrice(item.priceUSD);
-  const isExternal = item.type === "affiliate";
+  const isExternal = isDirectBuyLink(item);
+  const isComingSoon = item.status === "coming-soon";
 
   const content = (
     <div className="group flex h-full flex-col">
@@ -19,7 +21,10 @@ function FeaturedCard({ item, labels }: { item: ShopItem; labels: ShopCardLabels
             alt={item.title}
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-contain p-4 drop-shadow-md transition-transform duration-500 ease-out group-hover:-translate-y-1.5 group-hover:scale-105"
+            className={cn(
+              "object-contain p-4 drop-shadow-md transition-transform duration-500 ease-out group-hover:-translate-y-1.5 group-hover:scale-105",
+              isComingSoon && "grayscale",
+            )}
           />
         )}
         <span className="absolute left-1 top-1 inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary-foreground">
@@ -48,7 +53,7 @@ function FeaturedCard({ item, labels }: { item: ShopItem; labels: ShopCardLabels
     </div>
   );
 
-  if (isExternal && item.externalUrl) {
+  if (isExternal) {
     return (
       <a
         href={item.externalUrl}

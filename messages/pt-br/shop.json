@@ -17,7 +17,9 @@
   },
   "detail": {
     "backToShop": "Voltar à loja",
-    "checkoutComingSoon": "Finalização de compra em breve"
+    "checkoutComingSoon": "Finalização de compra em breve",
+    "emailToBuy": "Comprar por e-mail",
+    "emailToBuyHint": "Abre seu app de e-mail para enviar uma solicitação de compra ao vendedor."
   },
   "notFound": {
     "title": "Produto não encontrado",

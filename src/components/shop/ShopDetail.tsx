@@ -1,19 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 import type { ShopItem } from "@/types/shop";
 import { formatPrice } from "./shared";
 
 export function ShopDetail({ item }: { item: ShopItem }) {
   const t = useTranslations("shop");
-  const cover = item.images[0];
+  const [activeImage, setActiveImage] = useState(0);
+  const images = item.images.length > 0 ? item.images : [];
+  const cover = images[Math.min(activeImage, images.length - 1)];
   const price = formatPrice(item.priceUSD);
+  const isComingSoon = item.status === "coming-soon";
   const isAffiliate = item.type === "affiliate";
+  const isEmail = item.externalUrl?.startsWith("mailto:") ?? false;
+  const canBuy = isAffiliate && !!item.externalUrl && !isComingSoon;
 
   return (
     <div className="container mx-auto max-w-5xl px-4">
@@ -26,18 +33,48 @@ export function ShopDetail({ item }: { item: ShopItem }) {
       </Link>
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        {cover && (
-          <div className="relative aspect-square w-full">
-            <div className="pointer-events-none absolute inset-0 hidden dark:block [background:radial-gradient(circle_at_center,rgba(255,255,255,0.10),transparent_65%)]" />
-            <Image
-              src={cover}
-              alt={item.title}
-              fill
-              priority
-              className="object-contain p-4 drop-shadow-md"
-            />
-          </div>
-        )}
+        <div className="flex flex-col gap-3">
+          {cover && (
+            <div className="relative aspect-square w-full">
+              <div className="pointer-events-none absolute inset-0 hidden dark:block [background:radial-gradient(circle_at_center,rgba(255,255,255,0.10),transparent_65%)]" />
+              <Image
+                src={cover}
+                alt={item.title}
+                fill
+                priority
+                className={cn("object-contain p-4 drop-shadow-md", isComingSoon && "grayscale")}
+              />
+            </div>
+          )}
+
+          {images.length > 1 && (
+            <div className="flex flex-wrap gap-2">
+              {images.map((src, i) => (
+                <button
+                  key={src}
+                  type="button"
+                  onClick={() => setActiveImage(i)}
+                  aria-label={`${item.title} — ${i + 1}`}
+                  aria-pressed={i === activeImage}
+                  className={cn(
+                    "relative h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-md border transition-colors",
+                    i === activeImage
+                      ? "border-primary"
+                      : "border-border hover:border-muted-foreground",
+                  )}
+                >
+                  <Image
+                    src={src}
+                    alt=""
+                    fill
+                    sizes="64px"
+                    className={cn("object-contain p-1", isComingSoon && "grayscale")}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="flex flex-col">
           {item.vendor && (
@@ -58,19 +95,31 @@ export function ShopDetail({ item }: { item: ShopItem }) {
           {item.description && <p className="mt-4 text-muted-foreground">{item.description}</p>}
 
           <div className="mt-8">
-            {isAffiliate && item.externalUrl ? (
+            {canBuy ? (
               <Button asChild size="lg">
-                <a href={item.externalUrl} target="_blank" rel="noopener noreferrer sponsored">
-                  {t("card.shopNow")}
-                  <ExternalLink className="ml-2 h-4 w-4" />
+                <a
+                  href={item.externalUrl}
+                  target={isEmail ? undefined : "_blank"}
+                  rel={isEmail ? undefined : "noopener noreferrer sponsored"}
+                >
+                  {isEmail ? t("detail.emailToBuy") : t("card.shopNow")}
+                  {isEmail ? (
+                    <Mail className="ml-2 h-4 w-4" />
+                  ) : (
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  )}
                 </a>
               </Button>
             ) : (
               <Button size="lg" disabled>
-                {t("detail.checkoutComingSoon")}
+                {isComingSoon ? t("card.comingSoon") : t("detail.checkoutComingSoon")}
               </Button>
             )}
           </div>
+
+          {canBuy && isEmail && (
+            <p className="mt-3 text-sm text-muted-foreground">{t("detail.emailToBuyHint")}</p>
+          )}
         </div>
       </div>
     </div>
