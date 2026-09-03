@@ -122,7 +122,7 @@ NEXT_PUBLIC_ZORA_API_KEY
 COINGECKO_API_KEY
 PINATA_JWT
 NEYNAR_API_KEY
-ZEROX_API_KEY        # 0x Swap API (server-only)
+# (ZEROX_API_KEY retired: /swap quotes through SwapPro, keyless — docs/integrations/swap.md)
 
 # Optional
 USDC_BASE

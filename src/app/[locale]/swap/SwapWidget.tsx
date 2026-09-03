@@ -491,6 +491,9 @@ export function SwapWidget() {
           buyToken: buyToken.address,
           sellAmount: rawAmount,
           taker,
+          // SwapPro quotes in human decimals; the proxy converts both ways.
+          sellDecimals: String(sellToken.decimals),
+          buyDecimals: String(buyToken.decimals),
         });
         if (supportFee) params.set("fee", "1");
 
@@ -611,6 +614,8 @@ export function SwapWidget() {
         buyToken: buyToken.address,
         sellAmount: rawAmount,
         taker: address,
+        sellDecimals: String(sellToken.decimals),
+        buyDecimals: String(buyToken.decimals),
       });
       if (supportFee) params.set("fee", "1");
 
