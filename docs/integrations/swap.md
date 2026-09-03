@@ -1,75 +1,87 @@
-# 0x Swap Integration
+# SwapPro Swap Integration
 
-The `/swap` page lets users trade ETH, WETH, USDC, GNARS, and a few other Base ERC-20s
-through the [0x Swap API v2](https://0x.org/docs/0x-swap-api/introduction). Routing is
-handled by 0x's allowance-holder endpoints, and all transaction signing happens through
-the existing thirdweb wallet layer (`useWriteAccount`).
+The `/swap` page trades ETH, USDC, GNARS and the other Base tokens in the picker through
+the [SwapPro HTTP API](https://www.swaps.pro/docs/api). One `GET /quote` routes across
+0x, CoW, LI.FI, Relay and more and returns a firm quote with the transaction to sign.
+There is no API key. All transaction signing happens through the existing thirdweb
+wallet layer (`useWriteAccount`), exactly as before.
 
 ## Architecture
 
 ```
-src/app/swap/
-  page.tsx          server component — metadata + page chrome
-  SwapWidget.tsx    "use client" — token pickers, debounced price, approve, swap
+src/app/[locale]/swap/
+  SwapWidget.tsx      "use client" — token pickers, debounced price, approve, swap (unchanged UI)
+
+src/lib/
+  swappro.ts          pure: SwapPro request/response ⇄ the shape the widget reads (unit-tested)
+  swapproRoute.ts     the one handler: reads the query, sets the fee from config, calls SwapPro
 
 src/app/api/0x/
-  price/route.ts    GET proxy → api.0x.org/swap/allowance-holder/price
-  quote/route.ts    GET proxy → api.0x.org/swap/allowance-holder/quote
+  price/route.ts      GET → swapproRoute   (kept at its old path so the widget does not change)
+  quote/route.ts      GET → swapproRoute   (same call: every SwapPro answer is firm)
 ```
 
-The proxies exist so the `0x-api-key` header stays server-side, and so the affiliate-fee
-parameters can be injected without exposing the recipient address in the client bundle.
+The routes keep their `/api/0x/*` paths on purpose: the widget's two-step flow (price while
+typing, quote on click) is untouched, and the fee recipient is still set server-side from
+`src/lib/config.ts` rather than in the client bundle.
 
 ## Flow
 
 1. User picks sell/buy tokens and enters an amount.
 2. After 600 ms of idle, `SwapWidget` calls `/api/0x/price` with `chainId`, `sellToken`,
-   `buyToken`, `sellAmount`, `taker`, and (optionally) `fee=1`.
-3. If the response includes `issues.allowance`, the widget shows an "Approve" button.
-   Approval is signed via `prepareContractCall` + `sendTransaction` against the user's
-   active thirdweb account and confirmed via `waitForReceipt`.
-4. Once approved (or for ETH), the "Swap" button calls `/api/0x/quote` to get a firm
-   transaction (`{ to, data, value, gas }`), wraps it with `prepareTransaction`, and
-   sends it via the same thirdweb account.
-5. Wrong-network state shows a "Switch to Base" CTA that calls
-   `wallet.switchChain(thirdwebBase)`.
+   `buyToken`, `sellAmount` (base units), `taker`, `sellDecimals`, `buyDecimals` and
+   (optionally) `fee=1`.
+3. The handler converts base units to human decimals, maps the native sentinel
+   (`0xeeee…`) to the chain's native symbol, and calls
+   `https://www.swaps.pro/api/sdk/v1/quote`. The answer comes back in the widget's shape:
+   `liquidityAvailable`, `buyAmount` / `minBuyAmount` in base units, `issues.allowance`
+   when an ERC-20 approval is needed, `transaction { to, data, value, gas }`, and `route`
+   naming the venue SwapPro chose.
+4. If `issues.allowance` is present, the widget shows "Approve". SwapPro's approval is for
+   the exact amount; the widget's existing approve flow (`prepareContractCall` +
+   `sendTransaction`) is unchanged.
+5. "Swap" calls `/api/0x/quote` — the same call — and sends `transaction` via
+   `prepareTransaction` on the user's thirdweb account.
+6. Wrong-network state shows a "Switch to Base" CTA, as before.
 
 ## Configuration
 
-| Setting         | Source                                       | Notes                                                                                                     |
-| --------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `ZEROX_API_KEY` | env (server-only)                            | 0x API key. Required — proxy returns `500` without it.                                                    |
-| Fee recipient   | `getSwapFeeRecipient` in `src/lib/config.ts` | Base swaps route fees to the Gnars split contract. Non-Base swaps route to the cross-chain fee recipient. |
-| Fee rate        | `SWAP_FEE_BPS` in `src/lib/config.ts`        | Defaults to `50` (0.5%). Edit the constant to change.                                                     |
+| Setting       | Source                                       | Notes                                                                                                 |
+| ------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| API key       | none                                         | SwapPro is CORS-open and keyless. `ZEROX_API_KEY` is no longer read.                                  |
+| Fee recipient | `getSwapFeeRecipient` in `src/lib/config.ts` | Sent as SwapPro's `partner`. An EVM address as partner is the opt-in to being paid the partner share. |
+| Fee rate      | `SWAP_FEE_BPS` in `src/lib/config.ts`        | Sent as `partnerFeeBps`. SwapPro caps it at 100 bps (200 with a Pro Pass).                            |
+| Rate limit    | SwapPro                                      | 60 quotes a minute per IP with no credential; the proxy shares the site's server IP.                  |
 
-Only `ZEROX_API_KEY` is read from the environment. Everything else ships with the
-code so the fee destination and rate are auditable in git rather than hidden in
-deploy-time secrets.
+## Affiliate fee behaviour — read this before merging
 
-## Affiliate fee behaviour
+The fee is still **opt-in per request** (`fee=1`, the "Support Gnars treasury" checkbox,
+default checked). What changes is _how_ it is collected, and it depends on the venue
+SwapPro picks for the quote:
 
-The fee is **opt-in per request**: the client appends `&fee=1` to its proxy call,
-the proxy sees this flag and injects three params before forwarding to 0x:
+- **CoW** — a genuine on-chain volume fee to the partner address, per swap.
+- **0x and LI.FI** — the partner share rides inside SwapPro's own fee and is settled to
+  the partner address from SwapPro's request log, not on chain per swap.
+- **Relay and other same-chain venues** — cannot carry a partner fee at all.
 
-```
-swapFeeRecipient = getSwapFeeRecipient(chainId)
-swapFeeBps       = SWAP_FEE_BPS  (default 50)
-swapFeeToken     = <buyToken>    (fee is taken on the asset the user receives)
-```
+Every quote returns a `partnerFee` block saying what was requested, what was collected
+and whether it was `paidToPartner`, and the handler passes it through verbatim. With the
+direct 0x integration the fee landed in the split contract on every swap; with SwapPro
+it lands on some venues per swap and is settled off-chain on others. SwapPro also takes
+its own 30 bps on same-chain EVM routes. This is a treasury-policy decision for the DAO,
+not a code one, and it is the reason this PR is a proposal rather than a drop-in.
 
-Both `/api/0x/price` and `/api/0x/quote` apply identical logic so the indicative
-price matches the executed quote. The "Support Gnars treasury (0.5% fee)" checkbox
-in `SwapWidget` defaults to **checked** — users can untick it to skip the fee.
+## What the user gains
 
-## Notes & deviations from the SkateHive reference
+- Every quote is priced across every venue at once, not just 0x.
+- `minBuyAmount` is the floor the transaction enforces on chain; the wallet receives at
+  least that or the transaction reverts.
+- No API key to rotate, no per-request 0x pricing.
+- Cross-chain and Bitcoin-native routes (THORChain) are one parameter away when the DAO
+  wants them: the same endpoint takes a different `sellChain`.
 
-- **No multi-chain.** Gnars lives on Base only; the chainId is hardcoded to `8453`
-  client-side.
-- **No Hive / Zora bonding-curve routes.** Standard 0x ERC-20 swaps only.
-- **shadcn / Tailwind, not Chakra.** UI is rebuilt with `Card`, `Button`, `Input`,
-  `Dialog`, `Checkbox`, `Tooltip`, and `sonner` toasts.
-- **thirdweb signing, not wagmi writes.** The widget calls `useWriteAccount()` and
-  uses thirdweb's `prepareContractCall` (approval) + `prepareTransaction` (raw 0x tx)
-  to keep the SA-vs-EOA view-mode toggle working.
-- **Fixed token list.** No dynamic search — we ship ETH, WETH, USDC, GNARS, DEGEN,
-  HIGHER. Adding tokens is a one-line edit in `SwapWidget.tsx`.
+## Chains
+
+SwapPro routes Base, Ethereum, Arbitrum, BNB Chain, Avalanche and Robinhood Chain. Optimism
+is in the site's chain list but not routed by SwapPro yet; the handler answers
+`liquidityAvailable: false` with `code: UNSUPPORTED_CHAIN` for it.
